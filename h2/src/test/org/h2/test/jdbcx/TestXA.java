@@ -7,13 +7,14 @@
 package org.h2.test.jdbcx;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Random;
 import javax.sql.XAConnection;
 import javax.sql.XADataSource;
 import javax.transaction.xa.XAResource;
 import javax.transaction.xa.Xid;
-
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.test.TestBase;
 import org.h2.util.JdbcUtils;
@@ -36,6 +37,7 @@ public class TestXA extends TestBase {
     }
 
     public void test() throws Exception {
+        testRollbackWithoutPrepare();
         testXAAutoCommit();
         deleteDb("xa");
         testMixedXaNormal();
@@ -46,6 +48,40 @@ public class TestXA extends TestBase {
         deleteDb("xa");
         deleteDb(DB_NAME1);
         deleteDb(DB_NAME2);
+    }
+
+    private void testRollbackWithoutPrepare() throws Exception {
+        Xid xid = new Xid() {
+            public int getFormatId() {
+                return 3145;
+            }
+            public byte[] getGlobalTransactionId() {
+                return new byte[] { 1, 2, 3, 4, 5, 6, 6, 7, 8 };
+            }
+            public byte[] getBranchQualifier() {
+                return new byte[] { 34, 43, 33, 3, 3, 3, 33, 33, 3 };
+            }
+        };
+        deleteDb("xa");
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL(getURL("xa", true));
+        Connection dm = ds.getConnection();
+        Statement stat = dm.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY, VAL INT)");
+        stat.execute("INSERT INTO TEST(ID,VAL) VALUES (1,1)");
+        dm.close();
+        XAConnection c = ds.getXAConnection();
+        XAResource xa = c.getXAResource();
+        Connection connection = c.getConnection();
+        xa.start(xid, XAResource.TMJOIN);
+        PreparedStatement ps = connection.prepareStatement("UPDATE TEST SET VAL=? WHERE ID=?");
+        ps.setInt(1, new Random().nextInt());
+        ps.setInt(2, 1);
+        ps.close();
+        xa.rollback(xid);
+        connection.close();
+        c.close();
+        deleteDb("xa");
     }
 
     private void testMixedXaNormal() throws Exception {

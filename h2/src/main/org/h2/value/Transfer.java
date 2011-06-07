@@ -393,8 +393,16 @@ public class Transfer {
             break;
         }
         case Value.ARRAY: {
-            Value[] list = ((ValueArray) v).getList();
-            writeInt(list.length);
+            ValueArray va = (ValueArray) v;
+            Value[] list = va.getList();
+            int len = list.length;
+            Class<?> componentType = va.getComponentType();
+            if (componentType == Object.class) {
+                writeInt(len);
+            } else {
+                writeInt(-(len + 1));
+                writeString(componentType.getName());
+            }
             for (Value value : list) {
                 writeValue(value);
             }
@@ -511,11 +519,16 @@ public class Transfer {
         }
         case Value.ARRAY: {
             int len = readInt();
+            Class<?> componentType = Object.class;
+            if (len < 0) {
+                len = -(len + 1);
+                componentType = Utils.loadUserClass(readString());
+            }
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {
                 list[i] = readValue();
             }
-            return ValueArray.get(list);
+            return ValueArray.get(componentType, list);
         }
         case Value.RESULT_SET: {
             SimpleResultSet rs = new SimpleResultSet();

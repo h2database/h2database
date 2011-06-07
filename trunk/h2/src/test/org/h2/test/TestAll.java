@@ -601,7 +601,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestBatchUpdates().runTest(this);
         new TestCallableStatement().runTest(this);
         new TestCancel().runTest(this);
-        // new TestDatabaseEventListener().runTest(this);
+         new TestDatabaseEventListener().runTest(this);
         new TestDriver().runTest(this);
         new TestLobApi().runTest(this);
         new TestManyJdbcObjects().runTest(this);
@@ -635,7 +635,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // synth
         new TestBtreeIndex().runTest(this);
         new TestCrashAPI().runTest(this);
-        // new TestFuzzOptimizations().runTest(this);
+        new TestFuzzOptimizations().runTest(this);
         new TestLimit().runTest(this);
         new TestRandomSQL().runTest(this);
         new TestRandomCompare().runTest(this);

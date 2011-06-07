@@ -335,6 +335,8 @@ java org.h2.test.TestAll timer
         printSystemInfo();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
         System.setProperty("h2.check2", "true");
+        System.setProperty("h2.delayWrongPasswordMin", "0");
+        System.setProperty("h2.delayWrongPasswordMax", "0");
 
         // System.setProperty("h2.lobInDatabase", "true");
         // test.nestedJoins = true;

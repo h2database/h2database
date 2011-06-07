@@ -76,9 +76,12 @@ public class TestCrashAPI extends TestBase implements Runnable {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
+        System.setProperty("h2.delayWrongPasswordMin", "0");
+        System.setProperty("h2.delayWrongPasswordMax", "0");
         TestBase.createCaller().init().test();
     }
 
+    @SuppressWarnings("deprecation")
     public void run() {
         while (--maxWait > 0) {
             try {

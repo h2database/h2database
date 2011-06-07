@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -50,6 +51,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testArrayParameters();
         testDefaultConnection();
         testFunctionInSchema();
         testGreatest();
@@ -728,6 +730,33 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs = stat.executeQuery("CALL FUNCTIONS.TEST.PARSE_INT2('-2147483648', 10)");
         rs.next();
         assertEquals(-2147483648, rs.getInt(1));
+        conn.close();
+    }
+
+    private void testArrayParameters() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("create alias array_test AS "
+                + "$$ Integer[] array_test(Integer[] in_array) "
+                + "{ return in_array; } $$;");
+
+        PreparedStatement stmt = conn.prepareStatement("select array_test(?) from dual");
+        stmt.setObject(1, new Integer[] { 1, 2 });
+        rs = stmt.executeQuery();
+        rs.next();
+        assertEquals(Integer[].class.getName(), rs.getObject(1).getClass().getName());
+
+        CallableStatement call = conn.prepareCall("{ ? = call array_test(?) }");
+        call.setObject(2, new Integer[] { 2, 1 });
+        call.registerOutParameter(1, Types.ARRAY);
+        call.execute();
+        assertEquals(Integer[].class.getName(), call.getArray(1).getArray().getClass().getName());
+        assertEquals(new Integer[] { 2, 1 }, (Integer[]) call.getObject(1));
+
+        stat.execute("drop alias array_test");
+
         conn.close();
     }
 

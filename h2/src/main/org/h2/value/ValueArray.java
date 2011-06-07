@@ -6,6 +6,7 @@
  */
 package org.h2.value;
 
+import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import org.h2.engine.Constants;
@@ -18,11 +19,17 @@ import org.h2.util.StatementBuilder;
  */
 public class ValueArray extends Value {
 
+    private final Class<?> componentType;
     private final Value[] values;
     private int hash;
 
-    private ValueArray(Value[] list) {
+    private ValueArray(Class<?> componentType, Value[] list) {
+        this.componentType = componentType;
         this.values = list;
+    }
+    
+    private ValueArray(Value[] list) {
+        this(Object.class, list);
     }
 
     /**
@@ -36,6 +43,17 @@ public class ValueArray extends Value {
         return new ValueArray(list);
     }
 
+    /**
+     * Get or create a array value for the given value array.
+     * Do not clone the data.
+     *
+     * @param list the value array
+     * @return the value
+     */
+    public static ValueArray get(Class<?> componentType, Value[] list) {
+        return new ValueArray(componentType, list);
+    }
+    
     public int hashCode() {
         if (hash != 0) {
             return hash;
@@ -54,6 +72,10 @@ public class ValueArray extends Value {
 
     public int getType() {
         return Value.ARRAY;
+    }
+    
+    public Class<?> getComponentType() {
+        return componentType;
     }
 
     public long getPrecision() {
@@ -94,7 +116,7 @@ public class ValueArray extends Value {
 
     public Object getObject() {
         int len = values.length;
-        Object[] list = new Object[len];
+        Object[] list = (Object[]) Array.newInstance(componentType, len);
         for (int i = 0; i < len; i++) {
             list[i] = values[i].getObject();
         }

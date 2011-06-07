@@ -93,9 +93,9 @@ public class TestCrashAPI extends TestBase implements Runnable {
             stopped = true;
             objects.clear();
             if (running) {
-                println("stopping main thread:");
+                System.out.println("stopping main thread:");
                 for (StackTraceElement e : mainThread.getStackTrace()) {
-                    println(e.toString());
+                    System.out.println(e.toString());
                 }
                 mainThread.stop(new SQLException("stop"));
             }

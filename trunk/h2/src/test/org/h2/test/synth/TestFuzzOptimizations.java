@@ -40,7 +40,9 @@ public class TestFuzzOptimizations extends TestBase {
     public void test() throws Exception {
         deleteDb("optimizations");
         conn = getConnection("optimizations");
-        testIn();
+        if (!config.diskResult) {
+            testIn();
+        }
         testGroupSorted();
         testInSelect();
         conn.close();

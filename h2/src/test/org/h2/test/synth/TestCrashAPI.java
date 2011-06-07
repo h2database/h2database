@@ -79,7 +79,6 @@ public class TestCrashAPI extends TestBase implements Runnable {
         TestBase.createCaller().init().test();
     }
 
-    @SuppressWarnings("deprecation")
     public void run() {
         while (--maxWait > 0) {
             try {
@@ -94,6 +93,10 @@ public class TestCrashAPI extends TestBase implements Runnable {
             stopped = true;
             objects.clear();
             if (running) {
+                println("stopping main thread:");
+                for (StackTraceElement e : mainThread.getStackTrace()) {
+                    println(e.toString());
+                }
                 mainThread.stop(new SQLException("stop"));
             }
         }

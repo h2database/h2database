@@ -32,6 +32,7 @@ public class DateTimeUtils {
     private static final int DEFAULT_MONTH = 1;
     private static final int DEFAULT_DAY = 1;
     private static final int DEFAULT_HOUR = 0;
+    private static final int ZONE_OFFSET = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
 
     private static Calendar cachedCalendar = Calendar.getInstance();
 
@@ -424,11 +425,7 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocal(java.util.Date d) {
-        Calendar c = getCalendar();
-        synchronized (c) {
-            c.setTime(d);
-            return c.getTime().getTime() + c.get(Calendar.ZONE_OFFSET);
-        }
+        return d.getTime() + ZONE_OFFSET;
     }
 
     /**
@@ -439,12 +436,7 @@ public class DateTimeUtils {
      * @return the number of milliseconds in GMT
      */
     public static long getTimeGMT(long millis) {
-        Date d = new Date(millis);
-        Calendar c = getCalendar();
-        synchronized (c) {
-            c.setTime(d);
-            return c.getTime().getTime() - c.get(Calendar.ZONE_OFFSET);
-        }
+        return millis - ZONE_OFFSET;
     }
 
     /**

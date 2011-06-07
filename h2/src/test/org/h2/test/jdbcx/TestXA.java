@@ -51,6 +51,9 @@ public class TestXA extends TestBase {
     }
 
     private void testRollbackWithoutPrepare() throws Exception {
+        if (config.memory) {
+            return;
+        }
         Xid xid = new Xid() {
             public int getFormatId() {
                 return 3145;
@@ -65,6 +68,7 @@ public class TestXA extends TestBase {
         deleteDb("xa");
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(getURL("xa", true));
+        ds.setPassword(getPassword());
         Connection dm = ds.getConnection();
         Statement stat = dm.createStatement();
         stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY, VAL INT)");

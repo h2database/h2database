@@ -579,6 +579,30 @@ public abstract class TestBase {
     }
 
     /**
+     * Check if two values are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    public void assertEquals(Object[] expected, Object[] actual) {
+        if (expected == null || actual == null) {
+            assertTrue(expected == actual);
+            return;
+        }
+        assertEquals(expected.length, actual.length);
+        for (int i = 0; i < expected.length; i++) {
+            if (expected[i] == null || actual[i] == null) {
+                if (expected[i] != actual[i]) {
+                    fail("[" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
+                }
+            } else if (!expected[i].equals(actual[i])) {
+                fail("[" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
+            }
+        }
+    }
+    
+    /**
      * Check if two readers are equal, and if not throw an exception.
      *
      * @param expected the expected value

@@ -30,6 +30,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
 
 /**
@@ -352,6 +353,14 @@ public class FunctionAlias extends SchemaObjectBase {
                 Object o;
                 if (Value.class.isAssignableFrom(paramClass)) {
                     o = v;
+                } else if (v.getType() == Value.ARRAY && paramClass.isArray() && paramClass.getComponentType() != Object.class) {
+                    Value[] array = ((ValueArray) v).getList();
+                    Object[] objArray = (Object[]) Array.newInstance(paramClass.getComponentType(), array.length);
+                    int componentType = DataType.getTypeFromClass(paramClass.getComponentType());
+                    for (int i = 0; i < objArray.length; i++) {
+                        objArray[i] = array[i].convertTo(componentType).getObject();
+                    }
+                    o = objArray;
                 } else {
                     v = v.convertTo(type);
                     o = v.getObject();

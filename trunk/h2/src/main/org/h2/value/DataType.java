@@ -917,7 +917,7 @@ public class DataType {
             for (int i = 0; i < len; i++) {
                 v[i] = convertToValue(session, o[i], type);
             }
-            return ValueArray.get(v);
+            return ValueArray.get(x.getClass().getComponentType(), v);
         } else if (x instanceof Character) {
             return ValueStringFixed.get(((Character) x).toString());
         } else {

@@ -518,9 +518,9 @@ public class Database implements DataHandler {
             trace = traceSystem.getTrace(Trace.DATABASE);
             trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
             if (autoServerMode) {
-                if (readOnly || fileLockMethod == FileLock.LOCK_NO || fileLockMethod == FileLock.LOCK_SERIALIZED || fileLockMethod == FileLock.LOCK_FS) {
+                if (readOnly || fileLockMethod == FileLock.LOCK_NO || fileLockMethod == FileLock.LOCK_SERIALIZED || fileLockMethod == FileLock.LOCK_FS || !persistent) {
                     throw DbException.getUnsupportedException("autoServerMode && (readOnly || fileLockMethod == NO" +
-                            " || fileLockMethod == SERIALIZED)");
+                            " || fileLockMethod == SERIALIZED || inMemory)");
                 }
             }
             String lockFileName = databaseName + Constants.SUFFIX_LOCK_FILE;
@@ -548,6 +548,9 @@ public class Database implements DataHandler {
             starting = false;
             writer = WriterThread.create(this, writeDelay);
         } else {
+            if (autoServerMode) {
+                throw DbException.getUnsupportedException("autoServerMode && inMemory");
+            }
             traceSystem = new TraceSystem(null);
             trace = traceSystem.getTrace(Trace.DATABASE);
         }

@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 import org.h2.util.SortedProperties;
 
@@ -34,8 +33,26 @@ public class TestAutoServer extends TestBase {
     }
 
     public void test() throws Exception {
+        testUnsupportedCombinations();
         testAutoServer();
         testLinkedLocalTablesWithAutoServerReconnect();
+    }
+
+    private void testUnsupportedCombinations() {
+        String[] urls = {
+                "jdbc:h2:test;file_lock=no;auto_server=true",
+                "jdbc:h2:test;file_lock=serialized;auto_server=true",
+                "jdbc:h2:test;access_mode_data=r;auto_server=true",
+                "jdbc:h2:mem:test;auto_server=true"
+        };
+        for (String url : urls) {
+            try {
+                DriverManager.getConnection(url);
+                fail(url);
+            } catch (SQLException e) {
+                assertKnownException(e);
+            }
+        }
     }
 
     /**

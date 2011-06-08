@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 
+import org.h2.Driver;
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 
@@ -54,7 +55,12 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
 
         public void opened() {
             try {
-                Connection conn = DriverManager.getConnection(databaseUrl, "sa", "sa");
+                // using DriverManager.getConnection could result in a deadlock
+                // when using the server mode, but within the same process
+                Properties prop = new Properties();
+                prop.setProperty("user", "sa");
+                prop.setProperty("password", "sa");
+                Connection conn = Driver.load().connect(databaseUrl, prop);
                 Statement stat = conn.createStatement();
                 stat.execute("create table if not exists test(id int)");
                 conn.close();

@@ -27,6 +27,34 @@ public class TestRecursiveQueries extends TestBase {
     }
 
     public void test() throws Exception {
+        testWrongLinkLargeResult();
+        testSimple();
+    }
+
+    private void testWrongLinkLargeResult() throws Exception {
+        deleteDb("recursiveQueries");
+        Connection conn = getConnection("recursiveQueries");
+        Statement stat;
+        stat = conn.createStatement();
+        stat.execute("create table test(parent varchar(255), child varchar(255))");
+        stat.execute("insert into test values('/', 'a'), ('a', 'b1'), ('a', 'b2'), ('a', 'c'), ('c', 'd1'), ('c', 'd2')");
+        // stat.execute("with recursive rec_test(depth, parent, child) as (" +
+        //        "select 0, parent, child from test where parent = '/' " +
+        //        "union all " +
+        //        "select depth+1, r.parent, r.child from test i join rec_test r " +
+        //        "on (i.parent = r.child) where depth<9 " +
+        //        ") select * from rec_test");
+        stat.execute("with recursive rec_test(depth, parent, child) as ( "+
+                "select 0, parent, child from test where parent = '/' "+
+                "union all "+
+                "select depth+1, i.parent, i.child from test i join rec_test r "+
+                "on (r.child = i.parent) where depth<10 "+
+                ") select * from rec_test");
+        conn.close();
+        deleteDb("recursiveQueries");
+    }
+
+    private void testSimple() throws Exception {
         deleteDb("recursiveQueries");
         Connection conn = getConnection("recursiveQueries");
         Statement stat;

@@ -20,6 +20,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
+import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -50,7 +51,7 @@ public class TableView extends Table {
     private long maxDataModificationId;
     private User owner;
     private Query topQuery;
-    private ResultInterface recursiveResult;
+    private LocalResult recursiveResult;
     private boolean tableExpression;
 
     public TableView(Schema schema, int id, String name, String querySQL, ArrayList<Parameter> params, String[] columnNames,
@@ -443,12 +444,12 @@ public class TableView extends Table {
         return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR);
     }
 
-    public void setRecursiveResult(ResultInterface recursiveResult) {
-        this.recursiveResult = recursiveResult;
+    public void setRecursiveResult(LocalResult value, Session session) {
+        this.recursiveResult = value.createShallowCopy(session);
     }
 
-    public ResultInterface getRecursiveResult() {
-        return recursiveResult;
+    public ResultInterface getRecursiveResult(Session session) {
+        return recursiveResult == null ? null : recursiveResult.createShallowCopy(session);
     }
 
     public void setTableExpression(boolean tableExpression) {

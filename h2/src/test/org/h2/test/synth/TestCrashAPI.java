@@ -400,7 +400,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             if (errorCode == 0) {
                 printError(seed, id, s);
             } else if (errorCode == ErrorCode.OBJECT_CLOSED) {
-                if (objectId >= 0) {
+                if (objectId >= 0 && objects.size() > 0) {
                     // TODO at least call a few more times after close - maybe
                     // there is still an error
                     objects.remove(objectId);

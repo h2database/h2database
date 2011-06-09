@@ -91,7 +91,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
                 // ignore
             }
         }
-        if (maxWait <= 10) {
+        if (maxWait > 0 && maxWait <= 10) {
             println("stopping...");
             stopped = true;
         } else if (maxWait == 0) {

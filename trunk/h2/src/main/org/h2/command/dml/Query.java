@@ -61,11 +61,12 @@ public abstract class Query extends Prepared {
      */
     protected boolean randomAccessResult;
 
+    private boolean noCache;
     private int lastLimit;
     private long lastEvaluated;
     private LocalResult lastResult;
     private Value[] lastParameters;
-    private boolean cacheableChecked, cacheable;
+    private boolean cacheableChecked;
 
     Query(Session session) {
         super(session);
@@ -218,13 +219,17 @@ public abstract class Query extends Prepared {
         return true;
     }
 
+    public void disableCache() {
+        this.noCache = true;
+    }
+
     private boolean sameResultAsLast(Session s, Value[] params, Value[] lastParams, long lastEval) {
         if (!cacheableChecked) {
             long max = getMaxDataModificationId();
-            cacheable = max != Long.MAX_VALUE;
+            noCache = max == Long.MAX_VALUE;
             cacheableChecked = true;
         }
-        if (!cacheable) {
+        if (noCache) {
             return false;
         }
         Database db = s.getDatabase();
@@ -269,7 +274,7 @@ public abstract class Query extends Prepared {
      */
     LocalResult query(int limit, ResultTarget target) {
         fireBeforeSelectTriggers();
-        if (!session.getDatabase().getOptimizeReuseResults()) {
+        if (noCache || !session.getDatabase().getOptimizeReuseResults()) {
             return queryWithoutCache(limit, target);
         }
         Value[] params = getParameterValues();
@@ -287,10 +292,11 @@ public abstract class Query extends Prepared {
         }
         lastParameters = params;
         closeLastResult();
-        lastResult = queryWithoutCache(limit, target);
+        LocalResult r = queryWithoutCache(limit, target);
+        lastResult = r;
         this.lastEvaluated = now;
         lastLimit = limit;
-        return lastResult;
+        return r;
     }
 
     private void closeLastResult() {

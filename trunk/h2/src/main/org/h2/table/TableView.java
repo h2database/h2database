@@ -444,12 +444,15 @@ public class TableView extends Table {
         return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR);
     }
 
-    public void setRecursiveResult(LocalResult value, Session session) {
-        this.recursiveResult = value.createShallowCopy(session);
+    public void setRecursiveResult(LocalResult value) {
+        if (recursiveResult != null) {
+            recursiveResult.close();
+        }
+        this.recursiveResult = value;
     }
 
-    public ResultInterface getRecursiveResult(Session session) {
-        return recursiveResult == null ? null : recursiveResult.createShallowCopy(session);
+    public ResultInterface getRecursiveResult() {
+        return recursiveResult;
     }
 
     public void setTableExpression(boolean tableExpression) {

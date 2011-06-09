@@ -157,7 +157,7 @@ public class ViewIndex extends BaseIndex {
 
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (recursive) {
-            ResultInterface recResult = view.getRecursiveResult(session);
+            ResultInterface recResult = view.getRecursiveResult();
             if (recResult != null) {
                 recResult.reset();
                 return new ViewCursor(table, recResult);
@@ -174,6 +174,8 @@ public class ViewIndex extends BaseIndex {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_2, "recursive queries without UNION ALL");
             }
             Query left = union.getLeft();
+            // to ensure the last result isn't closed
+            left.disableCache();
             LocalResult r = left.query(0);
             LocalResult result = union.getEmptyResult();
             while (r.next()) {
@@ -181,7 +183,9 @@ public class ViewIndex extends BaseIndex {
             }
             Query right = union.getRight();
             r.reset();
-            view.setRecursiveResult(r, session);
+            view.setRecursiveResult(r);
+            // to ensure the last result isn't closed
+            right.disableCache();
             while (true) {
                 r = right.query(0);
                 if (r.getRowCount() == 0) {
@@ -191,8 +195,10 @@ public class ViewIndex extends BaseIndex {
                     result.addRow(r.currentRow());
                 }
                 r.reset();
-                view.setRecursiveResult(r, session);
+                view.setRecursiveResult(r);
             }
+            view.setRecursiveResult(null);
+            result.done();
             return new ViewCursor(table, result);
         }
         ArrayList<Parameter> paramList = query.getParameters();

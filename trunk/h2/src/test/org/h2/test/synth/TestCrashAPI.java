@@ -91,9 +91,11 @@ public class TestCrashAPI extends TestBase implements Runnable {
                 // ignore
             }
         }
-        if (maxWait == 0) {
+        if (maxWait <= 10) {
             println("stopping...");
             stopped = true;
+        } else if (maxWait == 0) {
+            println("stopping (force)...");
             objects.clear();
             if (running) {
                 System.out.println("stopping main thread:");

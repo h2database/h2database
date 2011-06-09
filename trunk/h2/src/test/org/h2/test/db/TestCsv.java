@@ -54,6 +54,7 @@ public class TestCsv extends TestBase {
     }
 
     public void test() throws Exception {
+        testPreserveWhitespace();
         testChangeData();
         testOptions();
         testPseudoBom();
@@ -68,6 +69,24 @@ public class TestCsv extends TestBase {
         testRead();
         testPipe();
         deleteDb("csv");
+    }
+
+    private void testPreserveWhitespace() throws Exception {
+        OutputStream out = IOUtils.openFileOutputStream(getBaseDir()+"/test.tsv", false);
+        out.write("a,b\n 1 , 2 \n".getBytes());
+        out.close();
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv')");
+        rs.next();
+        assertEquals("1", rs.getString(1));
+        assertEquals("2", rs.getString(2));
+        rs = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv', null, 'preserveWhitespace=true')");
+        rs.next();
+        assertEquals(" 1 ", rs.getString(1));
+        assertEquals(" 2 ", rs.getString(2));
+        conn.close();
     }
 
     private void testChangeData() throws Exception {
@@ -102,6 +121,7 @@ public class TestCsv extends TestBase {
         assertEquals(',', csv.getFieldSeparatorRead());
         assertEquals(",", csv.getFieldSeparatorWrite());
         assertEquals(Constants.VERSION_MINOR == 3 ? 0 : '#', csv.getLineCommentCharacter());
+        assertEquals(false, csv.getPreserveWhitespace());
 
         String charset;
 
@@ -116,7 +136,7 @@ public class TestCsv extends TestBase {
 
         charset = csv.setOptions("escape=1x fieldDelimiter=2x fieldSeparator=3x " +
                 "lineComment=4x lineSeparator=5x " +
-                "null=6x rowSeparator=7x charset=8x");
+                "null=6x rowSeparator=7x charset=8x preserveWhitespace=true");
         assertEquals('1', csv.getEscapeCharacter());
         assertEquals('2', csv.getFieldDelimiter());
         assertEquals('3', csv.getFieldSeparatorRead());
@@ -126,6 +146,7 @@ public class TestCsv extends TestBase {
         assertEquals("6x", csv.getNullString());
         assertEquals("7x", csv.getRowSeparatorWrite());
         assertEquals("8x", charset);
+        assertTrue(csv.getPreserveWhitespace());
 
         charset = csv.setOptions("escape= fieldDelimiter= fieldSeparator= " +
                 "lineComment= lineSeparator=\r\n " +

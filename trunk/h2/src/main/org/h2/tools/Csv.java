@@ -50,6 +50,7 @@ public class Csv implements SimpleRowSource {
     private char fieldDelimiter = '\"';
     private char fieldSeparatorRead = ',';
     private String fieldSeparatorWrite = ",";
+    private boolean preserveWhitespace;
 
     // TODO change the docs at setLineCommentCharacter
     // TODO also change help.csv
@@ -514,9 +515,12 @@ public class Csv implements SimpleRowSource {
                     }
                 }
                 String s = new String(inputBuffer, inputBufferStart, inputBufferPos - inputBufferStart - 1);
+                if (!preserveWhitespace) {
+                    s = s.trim();
+                }
                 inputBufferStart = -1;
                 // check un-delimited value for nullString
-                return readNull(s.trim());
+                return readNull(s);
             }
         }
     }
@@ -780,6 +784,24 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
+     * Enable or disable preserving whitespace in unquoted text.
+     *
+     * @param value the new value for the setting
+     */
+    public void setPreserveWhitespace(boolean value) {
+        this.preserveWhitespace = value;
+    }
+
+    /**
+     * Whether whitespace in unquoted text is preserved.
+     *
+     * @return the current value for the setting
+     */
+    public boolean getPreserveWhitespace() {
+        return preserveWhitespace;
+    }
+
+    /**
      * INTERNAL.
      * Parse and set the CSV options.
      *
@@ -788,7 +810,6 @@ public class Csv implements SimpleRowSource {
      */
     public String setOptions(String options) {
         String charset = null;
-//        options = StringUtils.javaDecode(options);
         String[] keyValuePairs = StringUtils.arraySplit(options, ' ', false);
         for (String pair : keyValuePairs) {
             if (pair.length() == 0) {
@@ -815,6 +836,8 @@ public class Csv implements SimpleRowSource {
                 setRowSeparatorWrite(value);
             } else if (isParam(key, "charset", "characterSet")) {
                 charset = value;
+            } else if (isParam(key, "preserveWhitespace")) {
+                setPreserveWhitespace(Boolean.parseBoolean(value));
             } else {
                 throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
             }

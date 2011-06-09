@@ -1681,8 +1681,9 @@ combined into a space separated key-value pairs, as follows:
 ""'lineComment=# lineSeparator=\n null= rowSeparator=')"".
 The following options are supported:
 ""charset"", ""escape"", ""fieldDelimiter"", ""fieldSeparator"",
-""lineComment"" (""#"" for H2 version 1.2, disabled for H2 version 1.3),
-""lineSeparator"", ""null"", ""rowSeparator"" (not set by default).
+""lineComment"" (disabled by default),
+""lineSeparator"", ""null"", ""rowSeparator"" (not set by default),
+""preserveWhitespace"" (true or false; disabled by default).
 For a newline or other special character, use STRINGDECODE as in the example above.
 A space needs to be escaped with a backslash (""'\ '"").
 A backslash needs to be escaped with another backslash (""'\\'"").

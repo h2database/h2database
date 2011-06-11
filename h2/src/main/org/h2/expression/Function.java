@@ -1704,8 +1704,23 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case CASEWHEN:
-        case NVL2:
             t = Value.getHigherOrder(args[1].getType(), args[2].getType());
+            p = Math.max(args[1].getPrecision(), args[2].getPrecision());
+            d = Math.max(args[1].getDisplaySize(), args[2].getDisplaySize());
+            s = Math.max(args[1].getScale(), args[2].getScale());
+            break;
+        case NVL2:
+            switch (args[1].getType()) {
+            case Value.STRING:
+            case Value.CLOB:
+            case Value.STRING_FIXED:
+            case Value.STRING_IGNORECASE:
+                t = args[1].getType();
+                break;
+            default:
+                t = Value.getHigherOrder(args[1].getType(), args[2].getType());
+                break;
+            }
             p = Math.max(args[1].getPrecision(), args[2].getPrecision());
             d = Math.max(args[1].getDisplaySize(), args[2].getDisplaySize());
             s = Math.max(args[1].getScale(), args[2].getScale());

@@ -3602,6 +3602,7 @@ NULLIF(A, B)
 NVL2(testValue, aValue, bValue)
 ","
 If the test value is null, then 'b' is returned. Otherwise, 'a' is returned.
+The data type of the returned value is the data type of 'a' if this is a text type.
 ","
 NVL2(X, 'not null', 'null')
 "

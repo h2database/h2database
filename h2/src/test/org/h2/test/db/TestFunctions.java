@@ -115,6 +115,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             assertEquals(ErrorCode.DATA_CONVERSION_ERROR_1, e.getErrorCode());
         }
 
+        // nvl2 should return expr2's datatype, if expr2 is character data.
+        rs = stat.executeQuery("SELECT NVL2(1, 'test', 123), 'test' FROM dual");
+        rs.next();
+        actual = rs.getString(1);
+        assertEquals("test", actual);
+        assertEquals(rs.getMetaData().getColumnType(2), rs.getMetaData().getColumnType(1));
+
         conn.close();
     }
 

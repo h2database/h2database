@@ -214,6 +214,8 @@ public class JdbcClob extends TraceObject implements Clob
             checkClosed();
             if (pos != 1) {
                 throw DbException.getInvalidValueException("pos", pos);
+            } else if (str == null) {
+                throw DbException.getInvalidValueException("str", str);
             }
             value = conn.createClob(new StringReader(str), -1);
             return str.length();

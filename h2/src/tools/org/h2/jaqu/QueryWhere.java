@@ -49,9 +49,10 @@ public class QueryWhere<T> {
     }
 
     public String getSQL() {
-        SQLStatement selectList = new SQLStatement(query.getDb());
-        selectList.appendSQL("*");
-        return query.prepare(selectList, false).getSQL().trim();
+        SQLStatement stat = new SQLStatement(query.getDb());
+        stat.appendSQL("SELECT *");
+        query.appendFromWhere(stat);
+        return stat.getSQL().trim();
     }
 
     public <X, Z> List<X> selectDistinct(Z x) {

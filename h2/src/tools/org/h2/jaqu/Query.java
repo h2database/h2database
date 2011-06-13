@@ -54,9 +54,10 @@ public class Query<T> {
     }
 
     public long selectCount() {
-        SQLStatement selectList = new SQLStatement(db);
-        selectList.setSQL("COUNT(*)");
-        ResultSet rs = prepare(selectList, false).executeQuery();
+        SQLStatement stat = getSelectStatement(false);
+        stat.appendSQL("COUNT(*) ");
+        appendFromWhere(stat);
+        ResultSet rs = stat.executeQuery();
         try {
             rs.next();
             long value = rs.getLong(1);
@@ -64,7 +65,6 @@ public class Query<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            int whyTrue;
             JdbcUtils.closeSilently(rs, true);
         }
     }
@@ -88,16 +88,19 @@ public class Query<T> {
     }
 
     public String getSQL() {
-        SQLStatement selectList = new SQLStatement(db);
-        selectList.setSQL("*");
-        return prepare(selectList, false).getSQL().trim();
+        SQLStatement stat = getSelectStatement(false);
+        stat.appendSQL("*");
+        appendFromWhere(stat);
+        return stat.getSQL().trim();
     }
 
     private List<T> select(boolean distinct) {
         List<T> result = Utils.newArrayList();
         TableDefinition<T> def = from.getAliasDefinition();
-        SQLStatement selectList = def.getSelectList(db);
-        ResultSet rs = prepare(selectList, distinct).executeQuery();
+        SQLStatement stat = getSelectStatement(distinct);
+        def.appendSelectList(stat);
+        appendFromWhere(stat);
+        ResultSet rs = stat.executeQuery();
         try {
             while (rs.next()) {
                 T item = from.newObject();
@@ -161,7 +164,7 @@ public class Query<T> {
     private <X, Z> List<X> select(Z x, boolean distinct) {
         Class<?> clazz = x.getClass();
         if (Utils.isSimpleType(clazz)) {
-            return getSimple((X) x, distinct);
+            return selectSimple((X) x, distinct);
         }
         clazz = clazz.getSuperclass();
         return select((Class<X>) clazz, (X) x, distinct);
@@ -170,8 +173,10 @@ public class Query<T> {
     private <X> List<X> select(Class<X> clazz, X x, boolean distinct) {
         List<X> result = Utils.newArrayList();
         TableDefinition<X> def = db.define(clazz);
-        SQLStatement selectList = def.getSelectList(this, x);
-        ResultSet rs = prepare(selectList, distinct).executeQuery();
+        SQLStatement stat = getSelectStatement(distinct);
+        def.appendSelectList(stat, this, x);
+        appendFromWhere(stat);
+        ResultSet rs = stat.executeQuery();
         try {
             while (rs.next()) {
                 X row = Utils.newObject(clazz);
@@ -187,10 +192,11 @@ public class Query<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private <X> List<X> getSimple(X x, boolean distinct) {
-        SQLStatement selectList = new SQLStatement(db);
-        appendSQL(selectList, x);
-        ResultSet rs = prepare(selectList, distinct).executeQuery();
+    private <X> List<X> selectSimple(X x, boolean distinct) {
+        SQLStatement stat = getSelectStatement(distinct);
+        appendSQL(stat, x);
+        appendFromWhere(stat);
+        ResultSet rs = stat.executeQuery();
         List<X> result = Utils.newArrayList();
         try {
             while (rs.next()) {
@@ -214,6 +220,15 @@ public class Query<T> {
             JdbcUtils.closeSilently(rs, true);
         }
         return result;
+    }
+
+    private SQLStatement getSelectStatement(boolean distinct) {
+        SQLStatement stat = new SQLStatement(db);
+        stat.appendSQL("SELECT ");
+        if (distinct) {
+            stat.appendSQL("DISTINCT ");
+        }
+        return stat;
     }
 
     public <A> QueryCondition<T, A> where(A x) {
@@ -341,16 +356,7 @@ public class Query<T> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    SQLStatement prepare(SQLStatement selectList, boolean distinct) {
-        SQLStatement stat = selectList;
-        String selectSQL = stat.getSQL();
-        stat.setSQL("");
-        stat.appendSQL("SELECT ");
-        if (distinct) {
-            stat.appendSQL("DISTINCT ");
-        }
-        stat.appendSQL(selectSQL);
+    void appendFromWhere(SQLStatement stat) {
         stat.appendSQL(" FROM ");
         from.appendSQL(stat);
         for (SelectTable join : joins) {
@@ -386,7 +392,6 @@ public class Query<T> {
             db.getDialect().appendOffset(stat, offset);
         }
         StatementLogger.select(stat.getSQL());
-        return stat;
     }
 //## Java 1.5 end ##
 

@@ -612,29 +612,25 @@ class TableDefinition<T> {
         }
     }
 
-    SQLStatement getSelectList(Db db) {
-        SQLStatement selectList = new SQLStatement(db);
+    void appendSelectList(SQLStatement stat) {
         for (int i = 0; i < fields.size(); i++) {
             if (i > 0) {
-                selectList.appendSQL(", ");
+                stat.appendSQL(", ");
             }
             FieldDefinition def = fields.get(i);
-            selectList.appendSQL(def.columnName);
+            stat.appendSQL(def.columnName);
         }
-        return selectList;
     }
 
-    <Y, X> SQLStatement getSelectList(Query<Y> query, X x) {
-        SQLStatement selectList = new SQLStatement(query.getDb());
+    <Y, X> void appendSelectList(SQLStatement stat, Query<Y> query, X x) {
         for (int i = 0; i < fields.size(); i++) {
             if (i > 0) {
-                selectList.appendSQL(", ");
+                stat.appendSQL(", ");
             }
             FieldDefinition def = fields.get(i);
             Object obj = def.getValue(x);
-            query.appendSQL(selectList, obj);
+            query.appendSQL(stat, obj);
         }
-        return selectList;
     }
 
     <Y, X> void copyAttributeValues(Query<Y> query, X to, X map) {

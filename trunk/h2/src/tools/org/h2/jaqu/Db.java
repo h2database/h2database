@@ -56,12 +56,7 @@ public class Db {
 
     public Db(Connection conn) {
         this.conn = conn;
-        dialect = getDialect(conn);
-    }
-
-    private SQLDialect getDialect(Connection conn) {
-        // TODO add special cases here
-        return new DefaultSQLDialect();
+        dialect = new DefaultSQLDialect();
     }
 
     static <X> X registerToken(X x, Token token) {

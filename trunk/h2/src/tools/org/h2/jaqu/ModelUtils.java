@@ -121,7 +121,7 @@ public class ModelUtils {
         if (SUPPORTED_TYPES.containsKey(fieldClass)) {
             String type = SUPPORTED_TYPES.get(fieldClass);
             if (type.equals("VARCHAR") && fieldDef.maxLength <= 0) {
-                // Unspecified length strings are TEXT, not VARCHAR
+                // unspecified length strings are TEXT, not VARCHAR
                 return "TEXT";
             }
             return type;

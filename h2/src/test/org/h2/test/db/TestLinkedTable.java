@@ -34,6 +34,7 @@ public class TestLinkedTable extends TestBase {
     }
 
     public void test() throws SQLException {
+        testLinkedServerMode();
         testDefaultValues();
         testHiddenSQL();
         // testLinkAutoAdd();
@@ -51,6 +52,30 @@ public class TestLinkedTable extends TestBase {
         testLinkedTableInReadOnlyDb();
 
         deleteDb("linkedTable");
+    }
+
+    private void testLinkedServerMode() throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        // the network mode will result in a deadlock
+        if (config.networked) {
+            return;
+        }
+        deleteDb("linkedTable1");
+        deleteDb("linkedTable2");
+        String url2 = getURL("linkedTable2", true);
+        String user = getUser(), password = getPassword();
+        Connection conn = getConnection("linkedTable2");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        conn.close();
+        conn = getConnection("linkedTable1");
+        stat = conn.createStatement();
+        stat.execute("create linked table link(null, '"+url2+"', '"+user+"', '"+password+"', 'TEST')");
+        conn.close();
+        conn = getConnection("linkedTable1");
+        conn.close();
     }
 
     private void testDefaultValues() throws SQLException {

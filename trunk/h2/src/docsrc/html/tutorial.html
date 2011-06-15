@@ -621,6 +621,12 @@ Another (more dangerous) solution is to set <code>useDatabaseLock</code> to fals
 The project <a href="http://kenai.com/projects/nbh2">H2 Database Engine Support For NetBeans</a>
 allows you to start and stop the H2 server from within the IDE.
 </p>
+<p>
+There is a known issue when using the Netbeans SQL Execution Window:
+before executing a query, another query in the form <code>SELECT COUNT(*) FROM &lt;query&gt;</code> is run.
+This is a problem for queries that modify state, such as <code>SELECT SEQ.NEXTVAL</code>.
+In this case, two sequence values are allocated instead of just one.
+</p>
 
 <h2 id="web_applications">Using Databases in Web Applications</h2>
 <p>
@@ -1249,6 +1255,7 @@ Variables that are not set evaluate to <code>NULL</code>.
 The data type of a user-defined variable is the data type
 of the value assigned to it, that means it is not necessary (or possible) to declare variable names before using them.
 There are no restrictions on the assigned values; large objects (LOBs) are supported as well.
+Rolling back a transaction does not affect the value of a user-defined variable.
 </p>
 
 <h2 id="date_time">Date and Time</h2>

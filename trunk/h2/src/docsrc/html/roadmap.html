@@ -433,6 +433,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Maybe use PhantomReference instead of finalize.
 </li><li>Database file name suffix: should only have one dot by default. Example: .h2db
 </li><li>Issue 196: Function based indexes
+</li><li>ALTER TABLE ... ADD COLUMN IF NOT EXISTS columnName.
 </li><li>Fix the disk space leak (killing the process at the exact right moment will increase
     the disk space usage; this space is not re-used). See TestDiskSpaceLeak.java
 </li><li>ROWNUM: Oracle compatibility when used within a subquery. Issue 198.
@@ -541,6 +542,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL compatibility: support PgAdmin III (specially the function current_setting).
 </li><li>MySQL compatibility: support TIMESTAMPADD.
 </li><li>Support SELECT ... FOR UPDATE with joins (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby).
+</li><li>TRANSACTION_ID() for in-memory databases.
+</li><li>TRANSACTION_ID() should be long (same as HSQLDB and PostgreSQL).
 </li></ul>
 
 <h2>Not Planned</h2>

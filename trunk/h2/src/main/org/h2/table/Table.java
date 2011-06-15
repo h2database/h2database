@@ -311,6 +311,10 @@ public abstract class Table extends SchemaObjectBase {
      * @param dependencies the current set of dependencies
      */
     public void addDependencies(HashSet<DbObject> dependencies) {
+        if (dependencies.contains(this)) {
+            // avoid endless recursion
+            return;
+        }
         if (sequences != null) {
             for (Sequence s : sequences) {
                 dependencies.add(s);
@@ -320,6 +324,12 @@ public abstract class Table extends SchemaObjectBase {
         for (Column col : columns) {
             col.isEverything(visitor);
         }
+        if (constraints != null) {
+            for (Constraint c : constraints) {
+                c.isEverything(visitor);
+            }
+        }
+        dependencies.add(this);
     }
 
     public ArrayList<DbObject> getChildren() {

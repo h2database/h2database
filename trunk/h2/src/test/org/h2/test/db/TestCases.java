@@ -37,6 +37,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testDependencies();
         testConvertType();
         testSortedSelect();
         testMaxMemoryRowsDistinct();
@@ -92,6 +93,43 @@ public class TestCases extends TestBase {
         deleteDb("cases");
     }
 
+    private void testDependencies() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        // avoid endless recursion when adding dependencies
+        stat.execute("create table test(id int primary key, parent int)");
+        stat.execute("alter table test add constraint test check (select count(*) from test) < 10");
+        stat.execute("create table b()");
+        stat.execute("drop table b");
+        stat.execute("drop table test");
+
+        // ensure the dependency is detected
+        stat.execute("create alias is_positive as 'boolean isPositive(int x) { return x > 0; }'");
+        stat.execute("create table a(a integer, constraint test check is_positive(a))");
+        try {
+            stat.execute("drop alias is_positive");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
+        }
+        stat.execute("drop table a");
+        stat.execute("drop alias is_positive");
+
+        // ensure trying to reference the table fails
+        // (otherwise re-opening the database is not possible)
+        stat.execute("create table test(id int primary key)");
+        try {
+            stat.execute("alter table test alter column id set default ifnull((select max(id) from test for update)+1, 0)");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.COLUMN_IS_REFERENCED_1, e.getErrorCode());
+        }
+        stat.execute("drop table test");
+        conn.close();
+    }
+
     private void testConvertType() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");
@@ -101,6 +139,7 @@ public class TestCases extends TestBase {
         assertEquals(2, meta.getPrecision(1));
         assertEquals(2, meta.getScale(1));
         stat.execute("alter table test add column y int");
+        stat.execute("drop table test");
         conn.close();
     }
 

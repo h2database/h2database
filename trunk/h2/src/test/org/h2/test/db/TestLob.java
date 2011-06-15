@@ -116,8 +116,10 @@ public class TestLob extends TestBase {
         }
         if (upgraded) {
             stat.execute("alter table information_schema.lob_map drop column offset");
-            conn.close();
-            conn = getConnection("lob");
+            if (!config.memory) {
+                conn.close();
+                conn = getConnection("lob");
+            }
         }
         prep = conn.prepareStatement("select * from test where id = ?");
         for (int i = 0; i < 1; i++) {

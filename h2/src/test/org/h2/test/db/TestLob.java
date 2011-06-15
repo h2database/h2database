@@ -47,13 +47,14 @@ public class TestLob extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        System.setProperty("h2.lobInDatabase", "true");
         TestBase test = TestBase.createCaller().init();
         // test.config.big = true;
         test.test();
     }
 
     public void test() throws Exception {
+        testBlobInputStreamSeek(true);
+        testBlobInputStreamSeek(false);
         testDeadlock();
         testCopyManyLobs();
         testCopyLob();
@@ -94,6 +95,46 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testBlobInputStreamSeek(boolean upgraded) throws Exception {
+        deleteDb("lob");
+        Connection conn;
+        conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, data blob)");
+        PreparedStatement prep;
+        Random random = new Random();
+        byte[] buff = new byte[3000000];
+        for (int i = 0; i < 10; i++) {
+            prep = conn.prepareStatement("insert into test values(?, ?)");
+            prep.setInt(1, i);
+            random.setSeed(i);
+            random.nextBytes(buff);
+            prep.setBinaryStream(2, new ByteArrayInputStream(buff));
+            prep.execute();
+        }
+        if (upgraded) {
+            stat.execute("alter table information_schema.lob_map drop column offset");
+            conn.close();
+            conn = getConnection("lob");
+        }
+        prep = conn.prepareStatement("select * from test where id = ?");
+        for (int i = 0; i < 1; i++) {
+            random.setSeed(i);
+            random.nextBytes(buff);
+            for (int j = 0; j < buff.length; j += 4096) {
+                prep.setInt(1, i);
+                ResultSet rs = prep.executeQuery();
+                rs.next();
+                InputStream in = rs.getBinaryStream(2);
+                in.skip(j);
+                int t = in.read();
+                assertEquals(t, buff[j] & 0xff);
+            }
+        }
+        conn.close();
+        conn.close();
     }
 
     /**

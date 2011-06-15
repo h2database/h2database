@@ -7,6 +7,7 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -18,6 +19,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
@@ -76,6 +78,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
         table.checkSupportAlter();
         table.lock(session, true, true);
         Sequence sequence = oldColumn == null ? null : oldColumn.getSequence();
+        if (newColumn != null) {
+            checkDefaultReferencesTable(newColumn.getDefaultExpression());
+        }
         switch (type) {
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL: {
             if (!oldColumn.isNullable()) {
@@ -98,6 +103,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT: {
+            checkDefaultReferencesTable(defaultExpression);
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, defaultExpression);
             removeSequence(sequence);
@@ -147,6 +153,18 @@ public class AlterTableAlterColumn extends SchemaCommand {
             DbException.throwInternalError("type=" + type);
         }
         return 0;
+    }
+
+    private void checkDefaultReferencesTable(Expression defaultExpression) {
+        if (defaultExpression == null) {
+            return;
+        }
+        HashSet<DbObject> dependencies = New.hashSet();
+        ExpressionVisitor visitor = ExpressionVisitor.getDependenciesVisitor(dependencies);
+        defaultExpression.isEverything(visitor);
+        if (dependencies.contains(table)) {
+            throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1, defaultExpression.getSQL());
+        }
     }
 
     private void convertAutoIncrementColumn(Column c) {

@@ -944,6 +944,7 @@ SAVEPOINT HALF_DONE
 SET @variableName [ = ] expression
 ","
 Updates a user-defined variable.
+Variables are not persisted and session scoped, that means only visible from within the session in which they are defined.
 This command does not commit a transaction, and rollback does not affect it.
 ","
 SET @TOTAL=0

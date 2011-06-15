@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved Oracle compatibility for NVL2. Thanks again to litailang for the patch.
+<ul><li>BLOB: InputStream.skip is now more efficient in embedded mode.
+</li><li>The default expression of a column may no longer reference the table,
+    because a database with such a table couldn't be opened normally.
+</li><li>Referenced objects in check constraints could be dropped, which resulted
+    in a database that can't be opened normally.
+</li><li>Improved Oracle compatibility for NVL2. Thanks again to litailang for the patch.
 </li><li>CSVREAD now supports the option 'preserveWhitespace'.
 </li><li>Recursive queries with many rows could throw an IndexOutOfBoundsException.
 </li><li>The auto-server mode can't be combined with an in-memory database.

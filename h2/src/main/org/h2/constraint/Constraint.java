@@ -9,6 +9,7 @@ package org.h2.constraint;
 import java.util.HashSet;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -177,6 +178,17 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
 
     public boolean isHidden() {
         return table.isHidden();
+    }
+
+    /**
+     * Visit all elements in the constraint.
+     *
+     * @param visitor the visitor
+     * @return true if every visited expression returned true, or if there are
+     *         no expressions
+     */
+    public boolean isEverything(ExpressionVisitor visitor) {
+        return true;
     }
 
 }

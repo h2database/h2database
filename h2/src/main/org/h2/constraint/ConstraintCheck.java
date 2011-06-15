@@ -140,4 +140,8 @@ public class ConstraintCheck extends Constraint {
         // nothing to do
     }
 
+    public boolean isEverything(ExpressionVisitor visitor) {
+        return expr.isEverything(visitor);
+    }
+
 }

@@ -177,6 +177,12 @@ is shared. To disable this, set the system property <code>h2.shareLinkedConnecti
 The statement <a href="grammar.html#create_linked_table" class="notranslate" >CREATE LINKED TABLE</a>
 supports an optional schema name parameter.
 </p>
+<p>
+The following are not supported because they may result in a deadlock: 
+creating a linked table to the same database,
+and creating a linked table to another database using the server mode if the other database is open in the same server
+(use the embedded mode instead).
+</p>
 
 <h2 id="updatable_views">Updatable Views</h2>
 <p>

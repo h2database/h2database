@@ -624,6 +624,7 @@ public class MetaTable extends Table {
 
         ArrayList<Row> rows = New.arrayList();
         String catalog = identifier(database.getShortName());
+        boolean admin = session.getUser().isAdmin();
         switch (type) {
         case TABLES: {
             for (Table table : getAllTables(session)) {
@@ -851,7 +852,7 @@ public class MetaTable extends Table {
             add(rows, "info.VERSION_MAJOR", "" + Constants.VERSION_MAJOR);
             add(rows, "info.VERSION_MINOR", "" + Constants.VERSION_MINOR);
             add(rows, "info.VERSION", "" + Constants.getFullVersion());
-            if (session.getUser().isAdmin()) {
+            if (admin) {
                 String[] settings = {
                         "java.runtime.version",
                         "java.vm.name", "java.vendor",
@@ -983,76 +984,82 @@ public class MetaTable extends Table {
         }
         case USERS: {
             for (User u : database.getAllUsers()) {
-                add(rows,
-                        // NAME
-                        identifier(u.getName()),
-                        // ADMIN
-                        String.valueOf(u.isAdmin()),
-                        // REMARKS
-                        replaceNullWithEmpty(u.getComment()),
-                        // ID
-                        "" + u.getId()
-                );
+                if (admin || session.getUser() == u) {
+                    add(rows,
+                            // NAME
+                            identifier(u.getName()),
+                            // ADMIN
+                            String.valueOf(u.isAdmin()),
+                            // REMARKS
+                            replaceNullWithEmpty(u.getComment()),
+                            // ID
+                            "" + u.getId()
+                    );
+                }
             }
             break;
         }
         case ROLES: {
             for (Role r : database.getAllRoles()) {
-                add(rows,
-                        // NAME
-                        identifier(r.getName()),
-                        // REMARKS
-                        replaceNullWithEmpty(r.getComment()),
-                        // ID
-                        "" + r.getId()
-                );
+                if (admin || session.getUser().isRoleGranted(r)) {
+                    add(rows,
+                            // NAME
+                            identifier(r.getName()),
+                            // REMARKS
+                            replaceNullWithEmpty(r.getComment()),
+                            // ID
+                            "" + r.getId()
+                    );
+                }
             }
             break;
         }
         case RIGHTS: {
-            for (Right r : database.getAllRights()) {
-                Role role = r.getGrantedRole();
-                DbObject grantee = r.getGrantee();
-                String rightType = grantee.getType() == DbObject.USER ? "USER" : "ROLE";
-                if (role == null) {
-                    Table granted = r.getGrantedTable();
-                    String tableName = identifier(granted.getName());
-                    if (!checkIndex(session, tableName, indexFrom, indexTo)) {
-                        continue;
+            if (admin) {
+                for (Right r : database.getAllRights()) {
+                    Role role = r.getGrantedRole();
+                    DbObject grantee = r.getGrantee();
+                    String rightType = grantee.getType() == DbObject.USER ? "USER" : "ROLE";
+                    if (role == null) {
+                        Table granted = r.getGrantedTable();
+                        String tableName = identifier(granted.getName());
+                        if (!checkIndex(session, tableName, indexFrom, indexTo)) {
+                            continue;
+                        }
+                        add(rows,
+                                // GRANTEE
+                                identifier(grantee.getName()),
+                                // GRANTEETYPE
+                                rightType,
+                                // GRANTEDROLE
+                                "",
+                                // RIGHTS
+                                r.getRights(),
+                                // TABLE_SCHEMA
+                                identifier(granted.getSchema().getName()),
+                                // TABLE_NAME
+                                identifier(granted.getName()),
+                                // ID
+                                "" + r.getId()
+                        );
+                    } else {
+                        add(rows,
+                                // GRANTEE
+                                identifier(grantee.getName()),
+                                // GRANTEETYPE
+                                rightType,
+                                // GRANTEDROLE
+                                identifier(role.getName()),
+                                // RIGHTS
+                                "",
+                                // TABLE_SCHEMA
+                                "",
+                                // TABLE_NAME
+                                "",
+                                // ID
+                                "" + r.getId()
+                        );
                     }
-                    add(rows,
-                            // GRANTEE
-                            identifier(grantee.getName()),
-                            // GRANTEETYPE
-                            rightType,
-                            // GRANTEDROLE
-                            "",
-                            // RIGHTS
-                            r.getRights(),
-                            // TABLE_SCHEMA
-                            identifier(granted.getSchema().getName()),
-                            // TABLE_NAME
-                            identifier(granted.getName()),
-                            // ID
-                            "" + r.getId()
-                    );
-                } else {
-                    add(rows,
-                            // GRANTEE
-                            identifier(grantee.getName()),
-                            // GRANTEETYPE
-                            rightType,
-                            // GRANTEDROLE
-                            identifier(role.getName()),
-                            // RIGHTS
-                            "",
-                            // TABLE_SCHEMA
-                            "",
-                            // TABLE_NAME
-                            "",
-                            // ID
-                            "" + r.getId()
-                    );
                 }
             }
             break;
@@ -1277,7 +1284,7 @@ public class MetaTable extends Table {
         }
         case IN_DOUBT: {
             ArrayList<InDoubtTransaction> prepared = database.getInDoubtTransactions();
-            if (prepared != null) {
+            if (prepared != null && admin) {
                 for (InDoubtTransaction prep : prepared) {
                     add(rows,
                             // TRANSACTION
@@ -1504,7 +1511,6 @@ public class MetaTable extends Table {
             break;
         }
         case SESSIONS: {
-            boolean admin = session.getUser().isAdmin();
             long now = System.currentTimeMillis();
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
@@ -1530,7 +1536,6 @@ public class MetaTable extends Table {
             break;
         }
         case LOCKS: {
-            boolean admin = session.getUser().isAdmin();
             for (Session s : database.getSessions(false)) {
                 if (admin || s == session) {
                     for (Table table : s.getLocks()) {

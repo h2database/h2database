@@ -2660,9 +2660,9 @@ RANDOM_UUID()
 "
 
 "Functions (Numeric)","ROUND","
-ROUND(numeric, digitsInt)
+ROUND(numeric [, digitsInt])
 ","
-Rounds to a number of digits.
+Rounds to a number of digits, or to the nearest long if the number of digits if not set.
 This method returns a double.
 ","
 ROUND(VALUE, 2)

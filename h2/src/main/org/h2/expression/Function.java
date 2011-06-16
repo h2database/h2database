@@ -189,7 +189,7 @@ public class Function extends Expression implements FunctionCall {
         // RAND with one argument: seed the random generator
         addFunctionNotDeterministic("RAND", RAND, VAR_ARGS, Value.DOUBLE);
         addFunctionNotDeterministic("RANDOM", RAND, VAR_ARGS, Value.DOUBLE);
-        addFunction("ROUND", ROUND, 2, Value.DOUBLE);
+        addFunction("ROUND", ROUND, VAR_ARGS, Value.DOUBLE);
         addFunction("ROUNDMAGIC", ROUNDMAGIC, 1, Value.DOUBLE);
         addFunction("SIGN", SIGN, 1, Value.INT);
         addFunction("SIN", SIN, 1, Value.DOUBLE);
@@ -925,7 +925,7 @@ public class Function extends Expression implements FunctionCall {
             result = ValueDouble.get(Math.pow(v0.getDouble(), v1.getDouble()));
             break;
         case ROUND: {
-            double f = Math.pow(10., v1.getDouble());
+            double f = v1 == null ? 1. : Math.pow(10., v1.getDouble());
             result = ValueDouble.get(Math.round(v0.getDouble() * f) / f);
             break;
         }
@@ -1595,6 +1595,7 @@ public class Function extends Expression implements FunctionCall {
         case RTRIM:
         case TRIM:
         case FILE_READ:
+        case ROUND:
             min = 1;
             max = 2;
             break;

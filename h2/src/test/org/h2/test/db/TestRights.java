@@ -34,6 +34,7 @@ public class TestRights extends TestBase {
     }
 
     public void test() throws SQLException {
+        testDisallowedTables();
         testDropOwnUser();
         testGetTables();
         testDropTempTables();
@@ -43,6 +44,49 @@ public class TestRights extends TestBase {
         deleteDb("rights");
     }
 
+    private void testDisallowedTables() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+
+        stat.execute("CREATE USER IF NOT EXISTS TEST PASSWORD 'TEST'");
+        stat.execute("CREATE ROLE TEST_ROLE");
+        stat.execute("CREATE TABLE ADMIN_ONLY(ID INT)");
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        stat.execute("GRANT ALL ON TEST TO TEST");
+        Connection conn2 = getConnection("rights", "TEST", getPassword("TEST"));
+        Statement stat2 = conn2.createStatement();
+
+        String sql = "select * from admin_only where 1=0";
+        stat.execute(sql);
+        try {
+            stat2.execute(sql);
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, e.getErrorCode());
+        }
+
+        DatabaseMetaData meta = conn2.getMetaData();
+        ResultSet rs;
+        rs = meta.getTables(null, null, "%", new String[]{"TABLE", "VIEW", "SEQUENCE"});
+        assertTrue(rs.next());
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        for (String s : new String[] {
+                "information_schema.settings where name='property.java.runtime.version'",
+                "information_schema.users where name='SA'",
+                "information_schema.roles",
+                "information_schema.rights",
+                "information_schema.sessions where user_name='SA'"
+                }) {
+            rs = stat2.executeQuery("select * from " + s);
+            assertFalse(rs.next());
+            rs = stat.executeQuery("select * from " + s);
+            assertTrue(rs.next());
+        }
+        conn2.close();
+        conn.close();
+    }
     private void testDropOwnUser() throws SQLException {
         deleteDb("rights");
         String user = getUser().toUpperCase();

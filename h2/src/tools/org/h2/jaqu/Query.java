@@ -356,6 +356,7 @@ public class Query<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     void appendFromWhere(SQLStatement stat) {
         stat.appendSQL(" FROM ");
         from.appendSQL(stat);

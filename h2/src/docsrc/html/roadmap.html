@@ -39,6 +39,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 <ul><li>Full outer joins.
 </li><li>Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208. Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
+</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>Support hints for the optimizer (which index to use, enforce the join order).
 </li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
     DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
@@ -120,7 +121,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Default date format for input and output (local date constants).
 </li><li>Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery).
 </li><li>File system that writes to two file systems (replication, replicating file system).
-</li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
 </li><li>Standalone tool to get relevant system properties and add it to the trace output.
 </li><li>Support 'call proc(1=value)' (PostgreSQL, Oracle).
 </li><li>Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?).
@@ -544,6 +544,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support SELECT ... FOR UPDATE with joins (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby).
 </li><li>TRANSACTION_ID() for in-memory databases.
 </li><li>TRANSACTION_ID() should be long (same as HSQLDB and PostgreSQL).
+</li><li>Oracle compatibility: convert empty strings to null.
 </li></ul>
 
 <h2>Not Planned</h2>

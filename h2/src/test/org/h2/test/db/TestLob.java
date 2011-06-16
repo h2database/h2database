@@ -105,7 +105,7 @@ public class TestLob extends TestBase {
         stat.execute("create table test(id int primary key, data blob)");
         PreparedStatement prep;
         Random random = new Random();
-        byte[] buff = new byte[3000000];
+        byte[] buff = new byte[500000];
         for (int i = 0; i < 10; i++) {
             prep = conn.prepareStatement("insert into test values(?, ?)");
             prep.setInt(1, i);
@@ -115,8 +115,10 @@ public class TestLob extends TestBase {
             prep.execute();
         }
         if (upgraded) {
-            stat.execute("alter table information_schema.lob_map drop column offset");
-            if (!config.memory) {
+            if (config.memory) {
+                stat.execute("update information_schema.lob_map set offset=null");
+            } else {
+                stat.execute("alter table information_schema.lob_map drop column offset");
                 conn.close();
                 conn = getConnection("lob");
             }
@@ -125,7 +127,7 @@ public class TestLob extends TestBase {
         for (int i = 0; i < 1; i++) {
             random.setSeed(i);
             random.nextBytes(buff);
-            for (int j = 0; j < buff.length; j += 4096) {
+            for (int j = 0; j < buff.length; j += 10000) {
                 prep.setInt(1, i);
                 ResultSet rs = prep.executeQuery();
                 rs.next();

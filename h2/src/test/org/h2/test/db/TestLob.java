@@ -111,7 +111,7 @@ public class TestLob extends TestBase {
             prep.setInt(1, i);
             random.setSeed(i);
             random.nextBytes(buff);
-            prep.setBinaryStream(2, new ByteArrayInputStream(buff));
+            prep.setBinaryStream(2, new ByteArrayInputStream(buff), -1);
             prep.execute();
         }
         if (upgraded) {

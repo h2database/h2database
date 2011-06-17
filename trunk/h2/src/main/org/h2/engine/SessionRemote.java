@@ -374,7 +374,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                     transferList.add(trans);
                 } catch (IOException e) {
                     if (len == 1) {
-                        throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, e + ": " + s, e.getMessage());
+                        throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, e, e + ": " + s);
                     }
                     switchOffCluster = true;
                 }

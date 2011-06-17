@@ -324,7 +324,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * INTERNAL
      */
     public String toString() {
-        return getTraceObjectName() + ": " + value == null ? "null" : value.getTraceSQL();
+        return getTraceObjectName() + ": " + (value == null ? "null" : value.getTraceSQL());
     }
 
 }

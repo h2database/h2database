@@ -51,6 +51,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
+        testFunctionTable();
         testArrayParameters();
         testDefaultConnection();
         testFunctionInSchema();
@@ -72,6 +73,28 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testNvl2();
         deleteDb("functions");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testFunctionTable() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("create alias simple_function_table for \"" + TestFunctions.class.getName() + ".simpleFunctionTable\"");
+        stat.execute("select * from simple_function_table() where a>0 and b in ('x', 'y')");
+        conn.close();
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param conn the connection
+     * @return a result set
+     */
+    public static ResultSet simpleFunctionTable(Connection conn) {
+        SimpleResultSet result = new SimpleResultSet();
+        result.addColumn("A", Types.INTEGER, 0, 0);
+        result.addColumn("B", Types.CHAR, 0, 0);
+        result.addRow(42, 'X');
+        return result;
     }
 
     private void testNvl2() throws SQLException {

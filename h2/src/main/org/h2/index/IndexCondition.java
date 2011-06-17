@@ -224,7 +224,7 @@ public class IndexCondition {
         case Comparison.IN_LIST:
         case Comparison.IN_QUERY:
             if (indexConditions.size() > 1) {
-                if (!column.getTable().getTableType().equals(Table.TABLE)) {
+                if (!Table.TABLE.equals(column.getTable().getTableType())) {
                     // if combined with other conditions,
                     // IN(..) can only be used for regular tables
                     // test case:

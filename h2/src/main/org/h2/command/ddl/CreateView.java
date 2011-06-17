@@ -79,7 +79,7 @@ public class CreateView extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            if (!orReplace || !old.getTableType().equals(Table.VIEW)) {
+            if (!orReplace || !Table.VIEW.equals(old.getTableType())) {
                 throw DbException.get(ErrorCode.VIEW_ALREADY_EXISTS_1, viewName);
             }
             view = (TableView) old;

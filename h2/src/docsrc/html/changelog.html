@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.156 (2011-06-17)</h2>
 <ul><li>Issue 323: NullPointerException when using IN(...) with a function table.
 </li><li>Clob.toString() and Blob.toString() now include the trace identifier.
 </li><li>The SQL parser silently ignored characters such as '^' or '\'.
@@ -813,38 +817,6 @@ Change Log
 </li><li>CREATE VIEW now supports the OR REPLACE clause (patch from Kerry Sainsbury)
 </li><li>Build tool: ability to only run one test using the -Dtest=className setting.
     eg: build -Dtest=org.h2.test.db.TestViewDropView test (patch from Kerry Sainsbury).
-</li></ul>
-
-<h2>Version 1.2.137 (2010-06-06)</h2>
-<ul><li>Statements with a nested query and a condition that was always NULL threw an
-    IndexOutOfBoundsException. Example: select * from (select null as x) where x=1
-</li><li>The changes that were made to support large transactions also fixed a bug
-    with large transactions (when the undo log file size is larger than 2 GB).
-</li><li>Experimental feature to support very large transactions (except when using MVCC).
-    To enable, set the system property h2.largeTransactions to true.
-    If enabled, changes to tables without a primary key can be buffered to disk.
-    The plan is to enable this feature by default in version 1.3.x.
-</li><li>H2 Console: editing result sets is now also working for database other than H2,
-    if they do support updatable result sets. Add "@edit" before the query.
-    Only limited testing has been done on this feature,
-    some data types may not work (please provide feedback if you find issues).
-</li><li>Cluster: an open transaction was committed when a cluster node was stopped
-    (because disabling the cluster executes SET CLUSTER '', which committed the transaction).
-    Transaction are no longer committed when calling SET CLUSTER. Issue 199.
-</li><li>Cluster: non-admin users couldn't connect to the cluster and couldn't disable the cluster. Issue 201.
-</li><li>Cluster: NEXTVAL('sequence') was only called on one cluster node,
-    therefore sequence values could get out of sync.
-</li><li>Version 1.2.136 could not be converted to Java 1.4
-    (because the Retrotranslator doesn't support BigDecimal.precision).
-    A workaround has been implemented.
-</li><li>The error code of IO exceptions in CSV functions was incorrect.
-</li><li>The TriggerPassData example now uses a prefix (the database name).
-</li><li>The wrong exception was thrown when trying to reference a table that doesn't support references
-    such as a table in the information schema.
-</li><li>Server.shutdownTcpServer can now stop all TCP servers on this JVM.
-</li><li>JdbcConnectionPool: the default connection timeout is now 30 seconds (it used to be 5 minutes).
-</li><li>LOB storage: LOBs added with "h2.lobInDatabase" enabled couldn't
-    be read later with this option disabled.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

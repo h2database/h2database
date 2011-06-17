@@ -52,7 +52,7 @@ public class TestSelectCountNonNullColumn extends TestBase {
 
     }
 
-    void checkStarCount(long expect) throws SQLException {
+    private void checkStarCount(long expect) throws SQLException {
         String sql = "SELECT COUNT(*) FROM SIMPLE";
         if (expect < 0) {
             sql = "EXPLAIN " + sql;
@@ -68,7 +68,7 @@ public class TestSelectCountNonNullColumn extends TestBase {
         }
     }
 
-    void checkKeyCount(long expect) throws SQLException {
+    private void checkKeyCount(long expect) throws SQLException {
         String sql = "SELECT COUNT(KEY) FROM SIMPLE";
         if (expect < 0) {
             sql = "EXPLAIN " + sql;
@@ -84,7 +84,7 @@ public class TestSelectCountNonNullColumn extends TestBase {
         }
     }
 
-    void checkNameCount(long expect) throws SQLException {
+    private void checkNameCount(long expect) throws SQLException {
         String sql = "SELECT COUNT(NAME) FROM SIMPLE";
         if (expect < 0) {
             sql = "EXPLAIN " + sql;

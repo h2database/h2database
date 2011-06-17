@@ -77,8 +77,10 @@ public class CloseWatcher extends PhantomReference<Object> {
      * called in a loop to remove old references.
      *
      * @param o the object
+     * @param closeable the object to close
      * @param stackTrace whether the stack trace should be registered (this is
      *            relatively slow)
+     * @return the close watcher
      */
     public static CloseWatcher register(Object o, Closeable closeable, boolean stackTrace) {
         ReferenceQueue<Object> q = queue;

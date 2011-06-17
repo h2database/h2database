@@ -219,6 +219,9 @@ public abstract class Query extends Prepared {
         return true;
     }
 
+    /**
+     * Disable caching of result sets.
+     */
     public void disableCache() {
         this.noCache = true;
     }

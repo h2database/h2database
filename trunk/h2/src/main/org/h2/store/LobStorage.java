@@ -210,7 +210,7 @@ public class LobStorage {
      * Retrieve the sequence id and offset that is smaller than the requested
      * offset. Those values can be used to quickly skip to a given position
      * without having to read all data.
-     * 
+     *
      * @param lob the lob
      * @param offset the required offset
      * @return null if the data is not available, or an array of two elements:
@@ -284,22 +284,6 @@ public class LobStorage {
             return super.skip(n);
         }
 
-//        public long skip(long n) throws IOException {
-//            n -= skipSmall(n);
-//            while (n > BLOCK_LENGTH) {
-//                try {
-//                    n -= skipBuffer(lob, seq++);
-//                    pos = 0;
-//                    buffer = null;
-//                } catch (SQLException e) {
-//                    throw DbException.convertToIOException(e);
-//                }
-//            }
-//            fillBuffer();
-//            n -= skipSmall(n);
-//            return super.skip(n);
-//        }
-//
         private int skipSmall(long n) {
             if (n > 0 && buffer != null && pos < buffer.length) {
                 int x = MathUtils.convertLongToInt(Math.min(n, buffer.length - pos));
@@ -553,8 +537,6 @@ public class LobStorage {
                 long lobId = getNextLobId();
                 String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, OFFSET, HASH, BLOCK) " +
                         "SELECT ?, SEQ, OFFSET, HASH, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?";
-//                String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, LEN, HASH, BLOCK) " +
-//                        "SELECT ?, SEQ, LEN, HASH, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?";
                 PreparedStatement prep = prepare(sql);
                 prep.setLong(1, lobId);
                 prep.setLong(2, oldLobId);
@@ -608,7 +590,6 @@ public class LobStorage {
      */
     void storeBlock(long lobId, int seq, long offset, byte[] b, String compressAlgorithm) throws SQLException {
         long block;
-//        int len = b.length;
         boolean blockExists = false;
         if (compressAlgorithm != null) {
             b = compress.compress(b, compressAlgorithm);
@@ -643,11 +624,9 @@ public class LobStorage {
                 reuse(sql, prep);
             }
             String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, OFFSET, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
-//            String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, LEN, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
             PreparedStatement prep = prepare(sql);
             prep.setLong(1, lobId);
             prep.setInt(2, seq);
-//            prep.setInt(3, len);
             prep.setLong(3, offset);
             prep.setLong(4, hash);
             prep.setLong(5, block);

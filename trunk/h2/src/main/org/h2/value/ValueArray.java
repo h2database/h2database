@@ -27,7 +27,7 @@ public class ValueArray extends Value {
         this.componentType = componentType;
         this.values = list;
     }
-    
+
     private ValueArray(Value[] list) {
         this(Object.class, list);
     }
@@ -47,13 +47,14 @@ public class ValueArray extends Value {
      * Get or create a array value for the given value array.
      * Do not clone the data.
      *
+     * @param componentType the array class (null for Object[])
      * @param list the value array
      * @return the value
      */
     public static ValueArray get(Class<?> componentType, Value[] list) {
         return new ValueArray(componentType, list);
     }
-    
+
     public int hashCode() {
         if (hash != 0) {
             return hash;
@@ -73,7 +74,7 @@ public class ValueArray extends Value {
     public int getType() {
         return Value.ARRAY;
     }
-    
+
     public Class<?> getComponentType() {
         return componentType;
     }

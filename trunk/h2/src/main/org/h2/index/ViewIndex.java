@@ -174,7 +174,7 @@ public class ViewIndex extends BaseIndex {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_2, "recursive queries without UNION ALL");
             }
             Query left = union.getLeft();
-            // to ensure the last result isn't closed
+            // to ensure the last result is not closed
             left.disableCache();
             LocalResult r = left.query(0);
             LocalResult result = union.getEmptyResult();
@@ -184,7 +184,7 @@ public class ViewIndex extends BaseIndex {
             Query right = union.getRight();
             r.reset();
             view.setRecursiveResult(r);
-            // to ensure the last result isn't closed
+            // to ensure the last result is not closed
             right.disableCache();
             while (true) {
                 r = right.query(0);

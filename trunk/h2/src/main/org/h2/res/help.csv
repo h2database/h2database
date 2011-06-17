@@ -946,9 +946,9 @@ RANDOM_UUID()
 ","
 Returns a new UUID with 122 pseudo random bits."
 "Functions (Numeric)","ROUND","
-ROUND(numeric, digitsInt)
+ROUND(numeric [, digitsInt])
 ","
-Rounds to a number of digits."
+Rounds to a number of digits, or to the nearest long if the number of digits if not set."
 "Functions (Numeric)","ROUNDMAGIC","
 ROUNDMAGIC(numeric)
 ","

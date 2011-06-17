@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select 2^2;
+> exception
+
 select * from dual where x in (select x from dual group by x order by max(x));
 > X
 > -

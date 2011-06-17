@@ -3227,7 +3227,9 @@ public class Parser {
                 } else if (c >= '0' && c <= '9') {
                     type = CHAR_VALUE;
                 } else {
-                    if (Character.isJavaIdentifierPart(c)) {
+                    if (c <= ' ' || Character.isWhitespace(c)) {
+                        // whitespace
+                    } else if (Character.isJavaIdentifierPart(c)) {
                         type = CHAR_NAME;
                         if (identifiersToUpper) {
                             char u = Character.toUpperCase(c);
@@ -3236,6 +3238,8 @@ public class Parser {
                                 changed = true;
                             }
                         }
+                    } else {
+                        type = CHAR_SPECIAL_1;
                     }
                 }
             }

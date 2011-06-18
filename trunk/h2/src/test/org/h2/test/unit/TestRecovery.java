@@ -116,7 +116,9 @@ public class TestRecovery extends TestBase {
         }
         f.close();
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
-        String script = IOUtils.readStringAndClose(new InputStreamReader(IOUtils.openFileInputStream(getBaseDir() + "/recovery.h2.sql")), -1);
+        String script = IOUtils.readStringAndClose(
+                new InputStreamReader(
+                IOUtils.openFileInputStream(getBaseDir() + "/recovery.h2.sql")), -1);
         assertContains(script, "checksum mismatch");
         assertContains(script, "dump:");
         assertContains(script, "Hello World2");

@@ -745,7 +745,8 @@ public class BuildBase {
         println("Zip " + destFile + " (" + kb + " KB)");
     }
 
-    private static long zipOrJar(String destFile, FileList files, String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
+    private static long zipOrJar(String destFile, FileList files,
+            String basePath, boolean storeOnly, boolean sortBySuffix, boolean jar) {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
             Collections.sort(files, new Comparator<File>() {

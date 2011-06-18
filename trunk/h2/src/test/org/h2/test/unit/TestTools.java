@@ -525,7 +525,9 @@ public class TestTools extends TestBase {
         prep.executeUpdate();
         conn.close();
 
-        ConvertTraceFile.main("-traceFile", getBaseDir() + "/toolsConvertTraceFile.trace.db", "-javaClass", getBaseDir() + "/Test", "-script", getBaseDir() + "/test.sql");
+        ConvertTraceFile.main("-traceFile", getBaseDir() + "/toolsConvertTraceFile.trace.db",
+                "-javaClass", getBaseDir() + "/Test",
+                "-script", getBaseDir() + "/test.sql");
         FileSystem fs = FileSystem.getInstance(getBaseDir());
         fs.delete(getBaseDir() + "/Test.java");
 

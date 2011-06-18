@@ -66,13 +66,20 @@ public class TestSecurity extends TestBase {
                 getHashString(
                         new byte[] { (byte) 0xe3, (byte) 0xd7, 0x25, 0x70, (byte) 0xdc, (byte) 0xdd, 0x78, 0x7c, (byte) 0xe3,
                                 (byte) 0x88, 0x7a, (byte) 0xb2, (byte) 0xcd, 0x68, 0x46, 0x52 }));
-        checkSHA256("", "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855");
-        checkSHA256("a", "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
-        checkSHA256("abc", "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
-        checkSHA256("message digest", "F7846F55CF23E14EEBEAB5B4E1550CAD5B509E3348FBC4EFA3A1413D393CB650");
-        checkSHA256("abcdefghijklmnopqrstuvwxyz", "71C480DF93D6AE2F1EFAD1447C66C9525E316218CF51FC8D9ED832F2DAF18B73");
-        checkSHA256("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", "248D6A61D20638B8E5C026930C3E6039A33CE45964FF2167F6ECEDD419DB06C1");
-        checkSHA256("12345678901234567890123456789012345678901234567890123456789012345678901234567890", "F371BC4A311F2B009EEF952DD83CA80E2B60026C8E935592D0F9C308453C813E");
+        checkSHA256("",
+                "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855");
+        checkSHA256("a",
+                "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
+        checkSHA256("abc",
+                "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD");
+        checkSHA256("message digest",
+                "F7846F55CF23E14EEBEAB5B4E1550CAD5B509E3348FBC4EFA3A1413D393CB650");
+        checkSHA256("abcdefghijklmnopqrstuvwxyz",
+                "71C480DF93D6AE2F1EFAD1447C66C9525E316218CF51FC8D9ED832F2DAF18B73");
+        checkSHA256("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+                "248D6A61D20638B8E5C026930C3E6039A33CE45964FF2167F6ECEDD419DB06C1");
+        checkSHA256("12345678901234567890123456789012345678901234567890123456789012345678901234567890",
+                "F371BC4A311F2B009EEF952DD83CA80E2B60026C8E935592D0F9C308453C813E");
         StringBuilder buff = new StringBuilder(1000000);
         buff.append('a');
         checkSHA256(buff.toString(), "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
@@ -116,7 +123,8 @@ public class TestSecurity extends TestBase {
         assertEquals("3f5b8cc9ea855a0afa7347d23e8d664e", r);
 
         // test vector from
-        // http://www.inconteam.com/index.php?option=com_content&view=article&id=55:aes-test-vectors&catid=41:encryption&Itemid=60#aes-ecb-128
+        // http://www.inconteam.com/index.php?option=com_content&view=article&
+        // id=55:aes-test-vectors&catid=41:encryption&Itemid=60#aes-ecb-128
         test.setKey(StringUtils.convertHexToBytes("2b7e151628aed2a6abf7158809cf4f3c"));
         data = StringUtils.convertHexToBytes("6bc1bee22e409f96e93d7e117393172a");
         test.encrypt(data, 0, data.length);

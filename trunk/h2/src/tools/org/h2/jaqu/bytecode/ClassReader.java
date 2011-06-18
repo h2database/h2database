@@ -1367,7 +1367,9 @@ public class ClassReader {
         int field = constantPool[fieldRef].intValue();
         int classIndex = field >>> 16;
         int nameAndType = constantPool[field & 0xffff].intValue();
-        String className = constantPool[constantPool[classIndex].intValue()] + "." + constantPool[nameAndType >>> 16] + " " + constantPool[nameAndType & 0xffff];
+        String className = constantPool[constantPool[classIndex].intValue()] + "." +
+                constantPool[nameAndType >>> 16] + " " +
+                constantPool[nameAndType & 0xffff];
         return className;
     }
 
@@ -1375,7 +1377,9 @@ public class ClassReader {
         int method = constantPool[methodRef].intValue();
         int classIndex = method >>> 16;
         int nameAndType = constantPool[method & 0xffff].intValue();
-        String className = constantPool[constantPool[classIndex].intValue()] + "." + constantPool[nameAndType >>> 16] + " " + constantPool[nameAndType & 0xffff];
+        String className = constantPool[constantPool[classIndex].intValue()] + "." +
+            constantPool[nameAndType >>> 16] + " " +
+            constantPool[nameAndType & 0xffff];
         return className;
     }
 

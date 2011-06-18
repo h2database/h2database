@@ -563,7 +563,8 @@ public class FullText {
      * @param data whether the raw data should be returned
      * @return the result set
      */
-    protected static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
+    protected static ResultSet search(Connection conn, String text, int limit,
+            int offset, boolean data) throws SQLException {
         SimpleResultSet result = createResultSet(data);
         if (conn.getMetaData().getURL().startsWith("jdbc:columnlist:")) {
             // this is just to query the result set columns
@@ -722,7 +723,8 @@ public class FullText {
         createOrDropTrigger(conn, schema, table, true);
     }
 
-    private static void createOrDropTrigger(Connection conn, String schema, String table, boolean create) throws SQLException {
+    private static void createOrDropTrigger(Connection conn,
+            String schema, String table, boolean create) throws SQLException {
         Statement stat = conn.createStatement();
         String trigger = StringUtils.quoteIdentifier(schema) + "."
                 + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);

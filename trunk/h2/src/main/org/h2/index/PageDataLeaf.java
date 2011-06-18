@@ -252,7 +252,8 @@ public class PageDataLeaf extends PageData {
                     size = pageSize - PageDataOverflow.START_MORE;
                     next = index.getPageStore().allocatePage();
                 }
-                PageDataOverflow overflow = PageDataOverflow.create(index.getPageStore(), page, type, previous, next, all, dataOffset, size);
+                PageDataOverflow overflow = PageDataOverflow.create(index.getPageStore(),
+                        page, type, previous, next, all, dataOffset, size);
                 index.getPageStore().update(overflow);
                 dataOffset += size;
                 remaining -= size;
@@ -407,7 +408,8 @@ public class PageDataLeaf extends PageData {
     boolean remove(long key) {
         int i = find(key);
         if (keys == null || keys[i] != key) {
-            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + key + " " + (keys == null ? -1 : keys[i]));
+            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
+                    index.getSQL() + ": " + key + " " + (keys == null ? -1 : keys[i]));
         }
         index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {

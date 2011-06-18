@@ -345,10 +345,14 @@ public class ScriptCommand extends ScriptBase {
 
     private int writeLobStream(Value v) throws IOException {
         if (!tempLobTableCreated) {
-            add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA BINARY)", true);
-            add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY ON SYSTEM_LOB_STREAM(ID, PART)", true);
-            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_CLOB FOR \"" + this.getClass().getName() + ".combineClob\"", true);
-            add("CREATE ALIAS IF NOT EXISTS SYSTEM_COMBINE_BLOB FOR \"" + this.getClass().getName() + ".combineBlob\"", true);
+            add("CREATE TABLE IF NOT EXISTS SYSTEM_LOB_STREAM" +
+                    "(ID INT NOT NULL, PART INT NOT NULL, CDATA VARCHAR, BDATA BINARY)", true);
+            add("CREATE PRIMARY KEY SYSTEM_LOB_STREAM_PRIMARY_KEY " +
+                    "ON SYSTEM_LOB_STREAM(ID, PART)", true);
+            add("CREATE ALIAS IF NOT EXISTS " +
+                    "SYSTEM_COMBINE_CLOB FOR \"" + this.getClass().getName() + ".combineClob\"", true);
+            add("CREATE ALIAS IF NOT EXISTS " +
+                    "SYSTEM_COMBINE_BLOB FOR \"" + this.getClass().getName() + ".combineBlob\"", true);
             tempLobTableCreated = true;
         }
         int id = nextLobId++;

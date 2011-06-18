@@ -245,7 +245,8 @@ public class FunctionAlias extends SchemaObjectBase {
                 return m;
             }
         }
-        throw DbException.get(ErrorCode.METHOD_NOT_FOUND_1, methodName + " (" + className + ", parameter count: " + parameterCount + ")");
+        throw DbException.get(ErrorCode.METHOD_NOT_FOUND_1,
+                methodName + " (" + className + ", parameter count: " + parameterCount + ")");
     }
 
     public String getJavaClassName() {

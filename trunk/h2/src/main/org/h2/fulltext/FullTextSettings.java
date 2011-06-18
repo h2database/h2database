@@ -49,7 +49,8 @@ public class FullTextSettings {
     /**
      * The prepared statement cache.
      */
-    protected SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache = new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
+    protected SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache =
+        new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
 
     /**
      * The whitespace characters.

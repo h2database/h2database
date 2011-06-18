@@ -1994,7 +1994,8 @@ public class Function extends Expression implements FunctionCall {
         return (ValueResultSet) getValueWithArgs(session, argList);
     }
 
-    private static void setCsvDelimiterEscape(Csv csv, String fieldSeparator, String fieldDelimiter, String escapeCharacter) {
+    private static void setCsvDelimiterEscape(Csv csv, String fieldSeparator,
+            String fieldDelimiter, String escapeCharacter) {
         if (fieldSeparator != null) {
             csv.setFieldSeparatorWrite(fieldSeparator);
             if (fieldSeparator.length() > 0) {

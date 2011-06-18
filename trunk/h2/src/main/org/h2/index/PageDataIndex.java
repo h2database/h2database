@@ -54,7 +54,8 @@ public class PageDataIndex extends PageIndex {
 
     private boolean multiVersion;
 
-    public PageDataIndex(RegularTable table, int id, IndexColumn[] columns, IndexType indexType, boolean create, Session session) {
+    public PageDataIndex(RegularTable table, int id, IndexColumn[] columns,
+            IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
         this.multiVersion = database.isMultiVersion();
 

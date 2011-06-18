@@ -372,7 +372,8 @@ public class FullTextLucene extends FullText {
      * @param data whether the raw data should be returned
      * @return the result set
      */
-    protected static ResultSet search(Connection conn, String text, int limit, int offset, boolean data) throws SQLException {
+    protected static ResultSet search(Connection conn, String text,
+            int limit, int offset, boolean data) throws SQLException {
         SimpleResultSet result = createResultSet(data);
         if (conn.getMetaData().getURL().startsWith("jdbc:columnlist:")) {
             // this is just to query the result set columns

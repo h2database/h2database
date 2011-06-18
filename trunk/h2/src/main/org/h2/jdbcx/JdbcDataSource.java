@@ -63,7 +63,8 @@ import java.util.logging.Logger;
  * In this example the user name and password are serialized as
  * well; this may be a security problem in some cases.
  */
-public class JdbcDataSource extends TraceObject implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Referenceable {
+public class JdbcDataSource extends TraceObject
+        implements XADataSource, DataSource, ConnectionPoolDataSource, Serializable, Referenceable {
 
     private static final long serialVersionUID = 1288136338451857771L;
 

@@ -280,7 +280,8 @@ public class PageDataNode extends PageData {
                     throw DbException.throwInternalError("Page it its own child: " + getPos());
                 }
                 count += page.getRowCount();
-                index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE, index.getTable() + "." + index.getName(), count, Integer.MAX_VALUE);
+                index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE,
+                        index.getTable() + "." + index.getName(), count, Integer.MAX_VALUE);
             }
             rowCount = count;
         }
@@ -363,7 +364,8 @@ public class PageDataNode extends PageData {
     }
 
     public String toString() {
-        return "page[" + getPos() + "] data node table:" + index.getId() + " entries:" + entryCount + " " + Arrays.toString(childPageIds);
+        return "page[" + getPos() + "] data node table:" + index.getId() +
+            " entries:" + entryCount + " " + Arrays.toString(childPageIds);
     }
 
     public void moveTo(Session session, int newPos) {

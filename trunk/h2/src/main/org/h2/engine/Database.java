@@ -520,7 +520,11 @@ public class Database implements DataHandler {
             trace = traceSystem.getTrace(Trace.DATABASE);
             trace.info("opening {0} (build {1})", databaseName, Constants.BUILD_ID);
             if (autoServerMode) {
-                if (readOnly || fileLockMethod == FileLock.LOCK_NO || fileLockMethod == FileLock.LOCK_SERIALIZED || fileLockMethod == FileLock.LOCK_FS || !persistent) {
+                if (readOnly ||
+                        fileLockMethod == FileLock.LOCK_NO ||
+                        fileLockMethod == FileLock.LOCK_SERIALIZED ||
+                        fileLockMethod == FileLock.LOCK_FS ||
+                        !persistent) {
                     throw DbException.getUnsupportedException("autoServerMode && (readOnly || fileLockMethod == NO" +
                             " || fileLockMethod == SERIALIZED || inMemory)");
                 }

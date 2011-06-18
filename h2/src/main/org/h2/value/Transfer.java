@@ -322,23 +322,29 @@ public class Transfer {
             writeByte(v.getByte());
             break;
         case Value.TIME:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 writeLong(DateTimeUtils.getTimeLocal(v.getTimeNoCopy()));
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTimeNoCopy()));
             } else {
                 writeLong(v.getTimeNoCopy().getTime());
             }
             break;
         case Value.DATE:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                writeLong(DateTimeUtils.getTimeLocal(v.getDateNoCopy()));
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
+                writeLong(DateTimeUtils.getTimeLocal(v.getTimeNoCopy()));
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getDateNoCopy()));
             } else {
                 writeLong(v.getDateNoCopy().getTime());
             }
             break;
         case Value.TIMESTAMP: {
             Timestamp ts = v.getTimestampNoCopy();
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 writeLong(DateTimeUtils.getTimeLocal(ts));
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
             } else {
                 writeLong(ts.getTime());
             }
@@ -462,18 +468,26 @@ public class Transfer {
         case Value.BYTE:
             return ValueByte.get(readByte());
         case Value.DATE:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueDate.getNoCopy(new Date(DateTimeUtils.getTimeGMT(readLong())));
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                return ValueDate.getNoCopy(new Date(DateTimeUtils.getTimeGMTWithoutDst(readLong())));
             }
             return ValueDate.getNoCopy(new Date(readLong()));
         case Value.TIME:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueTime.getNoCopy(new Time(DateTimeUtils.getTimeGMT(readLong())));
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                return ValueTime.getNoCopy(new Time(DateTimeUtils.getTimeGMTWithoutDst(readLong())));
             }
             return ValueTime.getNoCopy(new Time(readLong()));
         case Value.TIMESTAMP: {
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 Timestamp ts = new Timestamp(DateTimeUtils.getTimeGMT(readLong()));
+                ts.setNanos(readInt());
+                return ValueTimestamp.getNoCopy(ts);
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                Timestamp ts = new Timestamp(DateTimeUtils.getTimeGMTWithoutDst(readLong()));
                 ts.setNanos(readInt());
                 return ValueTimestamp.getNoCopy(ts);
             }

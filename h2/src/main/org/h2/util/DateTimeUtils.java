@@ -32,12 +32,16 @@ public class DateTimeUtils {
     private static final int DEFAULT_MONTH = 1;
     private static final int DEFAULT_DAY = 1;
     private static final int DEFAULT_HOUR = 0;
-    private static final int ZONE_OFFSET = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
 
-    private static Calendar cachedCalendar = Calendar.getInstance();
+    private static int zoneOffset;
+    private static Calendar cachedCalendar;
 
     private DateTimeUtils() {
         // utility class
+    }
+
+    static {
+        getCalendar();
     }
 
     /**
@@ -45,11 +49,13 @@ public class DateTimeUtils {
      */
     public static void resetCalendar() {
         cachedCalendar = null;
+        getCalendar();
     }
 
     private static Calendar getCalendar() {
         if (cachedCalendar == null) {
             cachedCalendar = Calendar.getInstance();
+            zoneOffset = cachedCalendar.get(Calendar.ZONE_OFFSET);
         }
         return cachedCalendar;
     }
@@ -425,7 +431,22 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocal(java.util.Date d) {
-        return d.getTime() + ZONE_OFFSET;
+        Calendar c = getCalendar();
+        synchronized (c) {
+            c.setTime(d);
+            return c.getTimeInMillis() + c.get(Calendar.ZONE_OFFSET) + c.get(Calendar.DST_OFFSET);
+        }
+    }
+
+    /**
+     * Get the number of milliseconds since 1970-01-01 in the local timezone, but
+     * without daylight saving time into account.
+     *
+     * @param d the date
+     * @return the milliseconds
+     */
+    public static long getTimeLocalWithoutDst(java.util.Date d) {
+        return d.getTime() + zoneOffset;
     }
 
     /**
@@ -436,7 +457,23 @@ public class DateTimeUtils {
      * @return the number of milliseconds in GMT
      */
     public static long getTimeGMT(long millis) {
-        return millis - ZONE_OFFSET;
+        Calendar c = getCalendar();
+        synchronized (c) {
+            c.setTimeInMillis(millis);
+            return c.getTime().getTime() - c.get(Calendar.ZONE_OFFSET) - c.get(Calendar.DST_OFFSET);
+        }
+    }
+
+    /**
+     * Convert the number of milliseconds since 1970-01-01 in the local timezone
+     * to GMT, but
+     * without daylight saving time into account.
+     *
+     * @param millis the number of milliseconds in the local timezone
+     * @return the number of milliseconds in GMT
+     */
+    public static long getTimeGMTWithoutDst(long millis) {
+        return millis - zoneOffset;
     }
 
     /**

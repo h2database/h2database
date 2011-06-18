@@ -110,9 +110,12 @@ public class ConvertTraceFile extends Tool {
      * @throws IOException
      */
     private void convertFile(String traceFileName, String javaClassName, String script) throws IOException {
-        LineNumberReader reader = new LineNumberReader(IOUtils.getBufferedReader(IOUtils.openFileInputStream(traceFileName)));
-        PrintWriter javaWriter = new PrintWriter(IOUtils.getBufferedWriter(IOUtils.openFileOutputStream(javaClassName + ".java", false)));
-        PrintWriter scriptWriter = new PrintWriter(IOUtils.getBufferedWriter(IOUtils.openFileOutputStream(script, false)));
+        LineNumberReader reader = new LineNumberReader(IOUtils.getBufferedReader(
+                IOUtils.openFileInputStream(traceFileName)));
+        PrintWriter javaWriter = new PrintWriter(IOUtils.getBufferedWriter(
+                IOUtils.openFileOutputStream(javaClassName + ".java", false)));
+        PrintWriter scriptWriter = new PrintWriter(IOUtils.getBufferedWriter(
+                IOUtils.openFileOutputStream(script, false)));
         javaWriter.println("import java.io.*;");
         javaWriter.println("import java.sql.*;");
         javaWriter.println("import java.math.*;");

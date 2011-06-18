@@ -241,44 +241,52 @@ public class DataType {
                 20
         );
         add(Value.INT, Types.INTEGER, "Int",
-                createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0, ValueInt.DISPLAY_SIZE, false, false),
+                createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
+                        ValueInt.DISPLAY_SIZE, false, false),
                 new String[]{"INTEGER", "INT", "MEDIUMINT", "INT4", "SIGNED"},
                 // in many cases the value is in the cache
                 20
         );
         add(Value.LONG, Types.BIGINT, "Long",
-                createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, false, false),
+                createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
+                        ValueLong.DISPLAY_SIZE, false, false),
                 new String[]{"BIGINT", "INT8", "LONG"},
                 24
         );
         add(Value.LONG, Types.BIGINT, "Long",
-                createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0, ValueLong.DISPLAY_SIZE, false, true),
+                createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
+                        ValueLong.DISPLAY_SIZE, false, true),
                 new String[]{"IDENTITY", "SERIAL"},
                 24
         );
         add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
-                createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
+                createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION,
+                        ValueDecimal.DEFAULT_SCALE, ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
                 new String[]{"DECIMAL", "DEC"},
                 // 40 for ValueDecimal,
                 64
         );
         add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
-                createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION, ValueDecimal.DEFAULT_SCALE, ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
+                createDecimal(Integer.MAX_VALUE, ValueDecimal.DEFAULT_PRECISION,
+                        ValueDecimal.DEFAULT_SCALE, ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
                 new String[]{"NUMERIC", "NUMBER"},
                 64
         );
         add(Value.FLOAT, Types.REAL, "Float",
-                createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION, 0, ValueFloat.DISPLAY_SIZE, false, false),
+                createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION,
+                        0, ValueFloat.DISPLAY_SIZE, false, false),
                 new String[] {"REAL", "FLOAT4"},
                 24
         );
         add(Value.DOUBLE, Types.DOUBLE, "Double",
-                createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, ValueDouble.DISPLAY_SIZE, false, false),
+                createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
+                        0, ValueDouble.DISPLAY_SIZE, false, false),
                 new String[] { "DOUBLE", "DOUBLE PRECISION" },
                 24
         );
         add(Value.DOUBLE, Types.FLOAT, "Double",
-                createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION, 0, ValueDouble.DISPLAY_SIZE, false, false),
+                createDecimal(ValueDouble.PRECISION, ValueDouble.PRECISION,
+                        0, ValueDouble.DISPLAY_SIZE, false, false),
                 new String[] {"FLOAT", "FLOAT8" },
                 24
         );
@@ -396,7 +404,9 @@ public class DataType {
         }
     }
 
-    private static DataType createDecimal(int maxPrecision, int defaultPrecision, int defaultScale, int defaultDisplaySize, boolean needsPrecisionAndScale, boolean autoInc) {
+    private static DataType createDecimal(int maxPrecision,
+            int defaultPrecision, int defaultScale, int defaultDisplaySize,
+            boolean needsPrecisionAndScale, boolean autoInc) {
         DataType dataType = new DataType();
         dataType.maxPrecision = maxPrecision;
         dataType.defaultPrecision = defaultPrecision;

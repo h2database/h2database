@@ -87,7 +87,8 @@ public class ValueLob extends Value {
     }
 
     private static ValueLob copy(ValueLob lob) {
-        ValueLob copy = new ValueLob(lob.type, lob.handler, lob.fileName, lob.tableId, lob.objectId, lob.linked, lob.precision, lob.compression);
+        ValueLob copy = new ValueLob(lob.type, lob.handler, lob.fileName,
+                lob.tableId, lob.objectId, lob.linked, lob.precision, lob.compression);
         copy.small = lob.small;
         copy.hash = lob.hash;
         return copy;
@@ -123,7 +124,8 @@ public class ValueLob extends Value {
      * @param compression if compression is used
      * @return the value object
      */
-    public static ValueLob open(int type, DataHandler handler, int tableId, int objectId, long precision, boolean compression) {
+    public static ValueLob open(int type, DataHandler handler,
+            int tableId, int objectId, long precision, boolean compression) {
         String fileName = getFileName(handler, tableId, objectId);
         return new ValueLob(type, handler, fileName, tableId, objectId, true, precision, compression);
     }

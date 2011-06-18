@@ -83,7 +83,8 @@ public class TableView extends Table {
         }
     }
 
-    private void init(String querySQL, ArrayList<Parameter> params, String[] columnNames, Session session, boolean recursive) {
+    private void init(String querySQL, ArrayList<Parameter> params,
+            String[] columnNames, Session session, boolean recursive) {
         this.querySQL = querySQL;
         this.columnNames = columnNames;
         this.recursive = recursive;

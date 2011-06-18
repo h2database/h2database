@@ -29,9 +29,12 @@ public class FileFunctions {
         Class.forName("org.h2.Driver");
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:", "sa", "");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS READ_TEXT_FILE FOR \"org.h2.samples.FileFunctions.readTextFile\" ");
-        stat.execute("CREATE ALIAS READ_TEXT_FILE_WITH_ENCODING FOR \"org.h2.samples.FileFunctions.readTextFileWithEncoding\" ");
-        stat.execute("CREATE ALIAS READ_FILE FOR \"org.h2.samples.FileFunctions.readFile\" ");
+        stat.execute("CREATE ALIAS READ_TEXT_FILE " +
+                "FOR \"org.h2.samples.FileFunctions.readTextFile\" ");
+        stat.execute("CREATE ALIAS READ_TEXT_FILE_WITH_ENCODING " +
+                "FOR \"org.h2.samples.FileFunctions.readTextFileWithEncoding\" ");
+        stat.execute("CREATE ALIAS READ_FILE " +
+                "FOR \"org.h2.samples.FileFunctions.readFile\" ");
         ResultSet rs = stat.executeQuery("CALL READ_FILE('test.txt')");
         rs.next();
         byte[] data = rs.getBytes(1);

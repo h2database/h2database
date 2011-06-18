@@ -789,9 +789,15 @@ public abstract class Value {
             case NULL:
                 return ValueNull.INSTANCE;
             case BOOLEAN: {
-                if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("t") || s.equalsIgnoreCase("yes") || s.equalsIgnoreCase("y")) {
+                if (s.equalsIgnoreCase("true") ||
+                        s.equalsIgnoreCase("t") ||
+                        s.equalsIgnoreCase("yes") ||
+                        s.equalsIgnoreCase("y")) {
                     return ValueBoolean.get(true);
-                } else if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("f") || s.equalsIgnoreCase("no") || s.equalsIgnoreCase("n")) {
+                } else if (s.equalsIgnoreCase("false") ||
+                        s.equalsIgnoreCase("f") ||
+                        s.equalsIgnoreCase("no") ||
+                        s.equalsIgnoreCase("n")) {
                     return ValueBoolean.get(false);
                 } else {
                     // convert to a number, and if it is not 0 then it is true

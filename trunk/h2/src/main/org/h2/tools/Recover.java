@@ -575,7 +575,8 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private void dumpPageLogStream(PrintWriter writer, int logKey, int logFirstTrunkPage, int logFirstDataPage) throws IOException {
+    private void dumpPageLogStream(PrintWriter writer, int logKey,
+            int logFirstTrunkPage, int logFirstDataPage) throws IOException {
         Data s = Data.create(this, pageSize);
         DataReader in = new DataReader(
                 new PageInputStream(writer, this, store, logKey, logFirstTrunkPage, logFirstDataPage, pageSize)

@@ -356,7 +356,9 @@ public class DateTimeUtils {
         }
     }
 
-    private static long getTime(boolean lenient, TimeZone tz, int year, int month, int day, int hour, int minute, int second, boolean setMillis, int nano) {
+    private static long getTime(boolean lenient, TimeZone tz,
+            int year, int month, int day, int hour, int minute, int second,
+            boolean setMillis, int nano) {
         Calendar c;
         if (tz == null) {
             c = getCalendar();

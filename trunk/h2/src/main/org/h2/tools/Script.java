@@ -101,7 +101,8 @@ public class Script extends Tool {
         }
     }
 
-    private static void processScript(String url, String user, String password, String fileName, String options1, String options2) throws SQLException {
+    private static void processScript(String url, String user, String password,
+            String fileName, String options1, String options2) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {

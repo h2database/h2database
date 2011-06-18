@@ -95,12 +95,18 @@ public class LobStorage {
                 Statement stat = conn.createStatement();
                 // stat.execute("SET UNDO_LOG 0");
                 // stat.execute("SET REDO_LOG_BINARY 0");
-                stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS + "(ID BIGINT PRIMARY KEY, BYTE_COUNT BIGINT, TABLE INT) HIDDEN");
-                stat.execute("CREATE INDEX IF NOT EXISTS INFORMATION_SCHEMA.INDEX_LOB_TABLE ON " + LOBS + "(TABLE)");
-                stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP + "(LOB BIGINT, SEQ INT, OFFSET BIGINT, HASH INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
-                stat.execute("ALTER TABLE " + LOB_MAP + " ADD IF NOT EXISTS OFFSET BIGINT BEFORE HASH");
-                stat.execute("CREATE INDEX IF NOT EXISTS INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
-                stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA + "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
+                stat.execute("CREATE TABLE IF NOT EXISTS " + LOBS +
+                        "(ID BIGINT PRIMARY KEY, BYTE_COUNT BIGINT, TABLE INT) HIDDEN");
+                stat.execute("CREATE INDEX IF NOT EXISTS " +
+                        "INFORMATION_SCHEMA.INDEX_LOB_TABLE ON " + LOBS + "(TABLE)");
+                stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP +
+                        "(LOB BIGINT, SEQ INT, OFFSET BIGINT, HASH INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
+                stat.execute("ALTER TABLE " + LOB_MAP +
+                        " ADD IF NOT EXISTS OFFSET BIGINT BEFORE HASH");
+                stat.execute("CREATE INDEX IF NOT EXISTS " +
+                        "INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
+                stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA +
+                        "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
                 ResultSet rs;
                 rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
                 rs.next();

@@ -71,7 +71,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */
-    public static ValueLobDb create(int type, LobStorage lobStorage, String fileName, int tableId, long id, long precision) {
+    public static ValueLobDb create(int type, LobStorage lobStorage,
+            String fileName, int tableId, long id, long precision) {
         return new ValueLobDb(type, lobStorage, fileName, tableId, id, precision);
     }
 

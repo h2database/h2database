@@ -45,10 +45,14 @@ public class Fog implements BlockCipher {
         x1 = (x1 << s) | (x1 >>> (32 - s));
         x3 ^= k;
         x3 = (x3 << s) | (x3 >>> (32 - s));
-        out[off] = (byte) (x0 >> 24); out[off+1] = (byte) (x0 >> 16); out[off+2] = (byte) (x0 >> 8); out[off+3] = (byte) x0;
-        out[off+4] = (byte) (x1 >> 24); out[off+5] = (byte) (x1 >> 16); out[off+6] = (byte) (x1 >> 8); out[off+7] = (byte) x1;
-        out[off+8] = (byte) (x2 >> 24); out[off+9] = (byte) (x2 >> 16); out[off+10] = (byte) (x2 >> 8); out[off+11] = (byte) x2;
-        out[off+12] = (byte) (x3 >> 24); out[off+13] = (byte) (x3 >> 16); out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
+        out[off] = (byte) (x0 >> 24); out[off+1] = (byte) (x0 >> 16);
+        out[off+2] = (byte) (x0 >> 8); out[off+3] = (byte) x0;
+        out[off+4] = (byte) (x1 >> 24); out[off+5] = (byte) (x1 >> 16);
+        out[off+6] = (byte) (x1 >> 8); out[off+7] = (byte) x1;
+        out[off+8] = (byte) (x2 >> 24); out[off+9] = (byte) (x2 >> 16);
+        out[off+10] = (byte) (x2 >> 8); out[off+11] = (byte) x2;
+        out[off+12] = (byte) (x3 >> 24); out[off+13] = (byte) (x3 >> 16);
+        out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
     }
 
     private void decryptBlock(byte[] in, byte[] out, int off) {
@@ -67,10 +71,14 @@ public class Fog implements BlockCipher {
         x0 ^= k;
         x2 = (x2 << s) | (x2 >>> (32 - s));
         x2 ^= k;
-        out[off] = (byte) (x0 >> 24); out[off+1] = (byte) (x0 >> 16); out[off+2] = (byte) (x0 >> 8); out[off+3] = (byte) x0;
-        out[off+4] = (byte) (x1 >> 24); out[off+5] = (byte) (x1 >> 16); out[off+6] = (byte) (x1 >> 8); out[off+7] = (byte) x1;
-        out[off+8] = (byte) (x2 >> 24); out[off+9] = (byte) (x2 >> 16); out[off+10] = (byte) (x2 >> 8); out[off+11] = (byte) x2;
-        out[off+12] = (byte) (x3 >> 24); out[off+13] = (byte) (x3 >> 16); out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
+        out[off] = (byte) (x0 >> 24); out[off+1] = (byte) (x0 >> 16);
+        out[off+2] = (byte) (x0 >> 8); out[off+3] = (byte) x0;
+        out[off+4] = (byte) (x1 >> 24); out[off+5] = (byte) (x1 >> 16);
+        out[off+6] = (byte) (x1 >> 8); out[off+7] = (byte) x1;
+        out[off+8] = (byte) (x2 >> 24); out[off+9] = (byte) (x2 >> 16);
+        out[off+10] = (byte) (x2 >> 8); out[off+11] = (byte) x2;
+        out[off+12] = (byte) (x3 >> 24); out[off+13] = (byte) (x3 >> 16);
+        out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
     }
 
     public int getKeyLength() {

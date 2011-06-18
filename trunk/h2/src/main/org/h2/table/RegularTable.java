@@ -89,7 +89,10 @@ public class RegularTable extends TableBase {
             }
         }
         if (data.persistData && database.isPersistent()) {
-            mainIndex = new PageDataIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData), data.create, data.session);
+            mainIndex = new PageDataIndex(this, data.id,
+                    IndexColumn.wrap(getColumns()),
+                    IndexType.createScan(data.persistData),
+                    data.create, data.session);
             scanIndex = mainIndex;
         } else {
             scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData));
@@ -172,7 +175,9 @@ public class RegularTable extends TableBase {
             if (!(index instanceof PageDelegateIndex)) {
                 long rc = index.getRowCount(session);
                 if (rc != rowCount + offset) {
-                    DbException.throwInternalError("rowCount expected " + (rowCount + offset) + " got " + rc + " " + getName() + "." + index.getName());
+                    DbException.throwInternalError(
+                            "rowCount expected " + (rowCount + offset) +
+                            " got " + rc + " " + getName() + "." + index.getName());
                 }
             }
         }
@@ -600,7 +605,8 @@ public class RegularTable extends TableBase {
 
     private void traceLock(Session session, boolean exclusive, String s) {
         if (traceLock.isDebugEnabled()) {
-            traceLock.debug("{0} {1} {2} {3}", session.getId(), exclusive ? "exclusive write lock" : "shared read lock", s, getName());
+            traceLock.debug("{0} {1} {2} {3}", session.getId(),
+                    exclusive ? "exclusive write lock" : "shared read lock", s, getName());
         }
     }
 

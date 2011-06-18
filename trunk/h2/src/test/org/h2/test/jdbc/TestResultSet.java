@@ -215,7 +215,9 @@ public class TestResultSet extends TestBase {
     private void testOwnUpdates() throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         for (int i = 0; i < 3; i++) {
-            int type = i == 0 ? ResultSet.TYPE_FORWARD_ONLY : i == 1 ? ResultSet.TYPE_SCROLL_INSENSITIVE : ResultSet.TYPE_SCROLL_SENSITIVE;
+            int type = i == 0 ? ResultSet.TYPE_FORWARD_ONLY :
+                i == 1 ? ResultSet.TYPE_SCROLL_INSENSITIVE :
+                ResultSet.TYPE_SCROLL_SENSITIVE;
             assertTrue(meta.ownUpdatesAreVisible(type));
             assertFalse(meta.ownDeletesAreVisible(type));
             assertFalse(meta.ownInsertsAreVisible(type));

@@ -81,13 +81,18 @@ public class TestCallableStatement extends TestBase {
         call.setInt(1, 1);
         call.setString(2, "Hello");
         call.execute();
-        call = conn.prepareCall("SELECT * FROM TEST", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        call = conn.prepareCall("SELECT * FROM TEST",
+                ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_READ_ONLY);
         rs = call.executeQuery();
         rs.next();
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
-        call = conn.prepareCall("SELECT * FROM TEST", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
+        call = conn.prepareCall("SELECT * FROM TEST",
+                ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_READ_ONLY,
+                ResultSet.HOLD_CURSORS_OVER_COMMIT);
         rs = call.executeQuery();
         rs.next();
         assertEquals(1, rs.getInt(1));

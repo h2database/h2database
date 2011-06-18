@@ -76,7 +76,8 @@ public class TestReadOnly extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
-        stat.execute("create local temporary linked table test(null, 'jdbc:h2:mem:test3', 'sa', 'sa', 'INFORMATION_SCHEMA.TABLES')");
+        stat.execute("create local temporary linked table test(" +
+                "null, 'jdbc:h2:mem:test3', 'sa', 'sa', 'INFORMATION_SCHEMA.TABLES')");
         ResultSet rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
         conn.close();

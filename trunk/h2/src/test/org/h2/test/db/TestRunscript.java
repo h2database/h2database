@@ -184,12 +184,14 @@ public class TestRunscript extends TestBase implements Trigger {
         stat1.execute("create sequence testSeq start with 100 increment by 10");
         stat1.execute("create alias myTest for \"" + getClass().getName() + ".test\"");
         stat1.execute("create trigger myTrigger before insert on test nowait call \"" + getClass().getName() + "\"");
-        stat1.execute("create view testView as select * from test where 1=0 union all select * from test where 0=1");
+        stat1.execute("create view testView as select * from test where 1=0 union all " +
+                "select * from test where 0=1");
         stat1.execute("create user testAdmin salt '00' hash '01' admin");
         stat1.execute("create schema testSchema authorization testAdmin");
         stat1.execute("create table testSchema.parent(id int primary key, name varchar)");
         stat1.execute("create index idxname on testSchema.parent(name)");
-        stat1.execute("create table testSchema.child(id int primary key, parentId int, name varchar, foreign key(parentId) references parent(id))");
+        stat1.execute("create table testSchema.child(id int primary key, " +
+                "parentId int, name varchar, foreign key(parentId) references parent(id))");
         stat1.execute("create user testUser salt '02' hash '03'");
         stat1.execute("create role testRole");
         stat1.execute("grant all on testSchema.child to testUser");

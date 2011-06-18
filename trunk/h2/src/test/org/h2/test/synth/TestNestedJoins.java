@@ -310,11 +310,13 @@ public class TestNestedJoins extends TestBase {
         stat.execute("create table test(id int primary key, x int) as select x, x from system_range(1, 10)");
         stat.execute("create index on test(x)");
         stat.execute("create table o(id int primary key) as select x from system_range(1, 10)");
-        rs = stat.executeQuery("explain select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1");
+        rs = stat.executeQuery("explain select * from test a inner join " +
+                "test b on a.id=b.id inner join o on o.id=a.id where b.x=1");
         assertTrue(rs.next());
         sql = rs.getString(1);
         assertTrue("using table scan", sql.indexOf("tableScan") < 0);
-        rs = stat.executeQuery("explain select * from test a inner join test b on a.id=b.id left outer join o on o.id=a.id where b.x=1");
+        rs = stat.executeQuery("explain select * from test a inner join " +
+                "test b on a.id=b.id left outer join o on o.id=a.id where b.x=1");
         assertTrue(rs.next());
         sql = rs.getString(1);
         // TODO Support optimizing queries with both inner and outer joins
@@ -331,7 +333,8 @@ public class TestNestedJoins extends TestBase {
          */
         stat.execute("create table test(id int primary key)");
         stat.execute("insert into test values(1)");
-        rs = stat.executeQuery("select b.id from test a left outer join test b on a.id = b.id and not exists (select * from test c where c.id = b.id)");
+        rs = stat.executeQuery("select b.id from test a left outer join " +
+                "test b on a.id = b.id and not exists (select * from test c where c.id = b.id)");
         assertTrue(rs.next());
         sql = rs.getString(1);
         assertEquals(null, sql);
@@ -370,11 +373,15 @@ public class TestNestedJoins extends TestBase {
         stat.execute("insert into t2 values(1,1), (2,2)");
         stat.execute("insert into t3 values(1,1), (3,3)");
         stat.execute("insert into t4 values(1,1), (2,2), (3,3), (4,4)");
-        rs = stat.executeQuery("explain select distinct t1.a, t2.a, t3.a from t1 right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
+        rs = stat.executeQuery("explain select distinct t1.a, t2.a, t3.a from t1 " +
+                "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT DISTINCT T1.A, T2.A, T3.A FROM PUBLIC.T2 LEFT OUTER JOIN ( PUBLIC.T3 LEFT OUTER JOIN ( PUBLIC.T1 ) ON T1.B = T3.A ) ON T2.B = T1.A", sql);
-        rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
+        assertEquals("SELECT DISTINCT T1.A, T2.A, T3.A FROM PUBLIC.T2 " +
+                "LEFT OUTER JOIN ( PUBLIC.T3 LEFT OUTER JOIN ( PUBLIC.T1 ) " +
+                "ON T1.B = T3.A ) ON T2.B = T1.A", sql);
+        rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 " +
+                "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
         // expected: 1  1       1; null    2       null
         assertTrue(rs.next());
         assertEquals("1", rs.getString(1));
@@ -404,11 +411,14 @@ public class TestNestedJoins extends TestBase {
         stat.execute("insert into a values(1)");
         stat.execute("insert into b values(1)");
         stat.execute("insert into c values(1), (2)");
-        rs = stat.executeQuery("explain select a.x, b.x, c.x from a inner join b on a.x = b.x right outer join c on c.x = a.x");
+        rs = stat.executeQuery("explain select a.x, b.x, c.x from a " +
+                "inner join b on a.x = b.x right outer join c on c.x = a.x");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.C LEFT OUTER JOIN ( PUBLIC.A INNER JOIN PUBLIC.B ON A.X = B.X ) ON C.X = A.X", sql);
-        rs = stat.executeQuery("select a.x, b.x, c.x from a inner join b on a.x = b.x right outer join c on c.x = a.x");
+        assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.C LEFT OUTER JOIN " +
+                "( PUBLIC.A INNER JOIN PUBLIC.B ON A.X = B.X ) ON C.X = A.X", sql);
+        rs = stat.executeQuery("select a.x, b.x, c.x from a inner join b on a.x = b.x " +
+                "right outer join c on c.x = a.x");
         // expected result: 1   1       1; null    null    2
         assertTrue(rs.next());
         assertEquals("1", rs.getString(1));

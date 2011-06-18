@@ -96,7 +96,8 @@ public class TestFuzzOptimizations extends TestBase {
         Random seedGenerator = new Random();
         String[] columns = new String[] { "a", "b", "c" };
         String[] values = new String[] { null, "0", "0", "1", "2", "10", "a", "?" };
-        String[] compares = new String[] { "in(", "not in(", "=", "=", ">", "<", ">=", "<=", "<>", "in(select", "not in(select" };
+        String[] compares = new String[] { "in(", "not in(", "=", "=", ">",
+                "<", ">=", "<=", "<>", "in(select", "not in(select" };
         int size = getSize(100, 1000);
         for (int i = 0; i < size; i++) {
             long seed = seedGenerator.nextLong();

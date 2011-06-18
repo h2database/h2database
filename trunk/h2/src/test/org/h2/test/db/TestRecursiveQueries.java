@@ -65,7 +65,9 @@ public class TestRecursiveQueries extends TestBase {
         ResultSet rs;
 
         stat = conn.createStatement();
-        rs = stat.executeQuery("with recursive t(n) as (select 1 union all select n+1 from t where n<3) select * from t");
+        rs = stat.executeQuery("with recursive t(n) as " +
+                "(select 1 union all select n+1 from t where n<3) " +
+                "select * from t");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertTrue(rs.next());
@@ -74,7 +76,9 @@ public class TestRecursiveQueries extends TestBase {
         assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
 
-        prep = conn.prepareStatement("with recursive t(n) as (select 1 union all select n+1 from t where n<3) select * from t where n>?");
+        prep = conn.prepareStatement("with recursive t(n) as " +
+                "(select 1 union all select n+1 from t where n<3) " +
+                "select * from t where n>?");
         prep.setInt(1, 2);
         rs = prep.executeQuery();
         assertTrue(rs.next());
@@ -89,7 +93,9 @@ public class TestRecursiveQueries extends TestBase {
         assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
 
-        prep = conn.prepareStatement("with recursive t(n) as (select @start union all select n+@inc from t where n<@end) select * from t");
+        prep = conn.prepareStatement("with recursive t(n) as " +
+                "(select @start union all select n+@inc from t where n<@end) " +
+                "select * from t");
         prep2 = conn.prepareStatement("select @start:=?, @inc:=?, @end:=?");
         prep2.setInt(1, 10);
         prep2.setInt(2, 2);

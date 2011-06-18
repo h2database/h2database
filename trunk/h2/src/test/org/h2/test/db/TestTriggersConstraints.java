@@ -151,7 +151,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("drop table if exists test");
         stat.execute("create table test(id int)");
         stat.execute("create view test_view as select * from test");
-        stat.execute("create trigger test_view_insert instead of insert on test_view for each row call \"" + TestView.class.getName() + "\"");
+        stat.execute("create trigger test_view_insert " +
+                "instead of insert on test_view for each row call \"" + TestView.class.getName() + "\"");
         if (!config.memory) {
             conn.close();
             conn = getConnection("trigger");
@@ -219,7 +220,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat = conn.createStatement();
         stat.execute("drop table if exists meta_tables");
         stat.execute("create table meta_tables(name varchar)");
-        stat.execute("create trigger meta_tables_select before select on meta_tables call \"" + TestSelect.class.getName() + "\"");
+        stat.execute("create trigger meta_tables_select " +
+                "before select on meta_tables call \"" + TestSelect.class.getName() + "\"");
         ResultSet rs;
         rs = stat.executeQuery("select * from meta_tables");
         assertTrue(rs.next());
@@ -319,7 +321,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("create table test(id int primary key, parent int)");
-        stat.execute("alter table test add constraint test_parent_id foreign key(parent) references test (id) on delete cascade");
+        stat.execute("alter table test add constraint test_parent_id " +
+                "foreign key(parent) references test (id) on delete cascade");
         stat.execute("insert into test select x, x/2 from system_range(0, 100)");
         stat.execute("delete from test");
         assertSingleValue(stat, "select count(*) from test", 0);
@@ -336,28 +339,37 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         // CREATE TRIGGER trigger {BEFORE|AFTER}
         // {INSERT|UPDATE|DELETE|ROLLBACK} ON table
         // [FOR EACH ROW] [QUEUE n] [NOWAIT] CALL triggeredClass
-        stat.execute("CREATE TRIGGER IF NOT EXISTS INS_BEFORE BEFORE INSERT ON TEST FOR EACH ROW NOWAIT CALL \""
-                + getClass().getName() + "\"");
-        stat.execute("CREATE TRIGGER IF NOT EXISTS INS_BEFORE BEFORE INSERT ON TEST FOR EACH ROW NOWAIT CALL \""
-                + getClass().getName() + "\"");
-        stat.execute("CREATE TRIGGER INS_AFTER AFTER INSERT ON TEST FOR EACH ROW NOWAIT CALL \"" + getClass().getName()
-                + "\"");
-        stat.execute("CREATE TRIGGER UPD_BEFORE BEFORE UPDATE ON TEST FOR EACH ROW NOWAIT CALL \""
-                + getClass().getName() + "\"");
-        stat.execute("CREATE TRIGGER INS_AFTER_ROLLBACK AFTER INSERT, ROLLBACK ON TEST FOR EACH ROW NOWAIT CALL \"" + getClass().getName()
-                + "\"");
+        stat.execute("CREATE TRIGGER IF NOT EXISTS INS_BEFORE " +
+                "BEFORE INSERT ON TEST " +
+                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+        stat.execute("CREATE TRIGGER IF NOT EXISTS INS_BEFORE " +
+                "BEFORE INSERT ON TEST " +
+                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+        stat.execute("CREATE TRIGGER INS_AFTER " + "" +
+        		"AFTER INSERT ON TEST " +
+        		"FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+        stat.execute("CREATE TRIGGER UPD_BEFORE " +
+                "BEFORE UPDATE ON TEST " +
+                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+        stat.execute("CREATE TRIGGER INS_AFTER_ROLLBACK " +
+                "AFTER INSERT, ROLLBACK ON TEST " +
+                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         ResultSet rs;
         rs = stat.executeQuery("SCRIPT");
         checkRows(rs, new String[] {
-                "CREATE FORCE TRIGGER PUBLIC.INS_BEFORE BEFORE INSERT ON PUBLIC.TEST FOR EACH ROW NOWAIT CALL \""
-                        + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER AFTER INSERT ON PUBLIC.TEST FOR EACH ROW NOWAIT CALL \""
-                        + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.UPD_BEFORE BEFORE UPDATE ON PUBLIC.TEST FOR EACH ROW NOWAIT CALL \""
-                        + getClass().getName() + "\";",
-                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER_ROLLBACK AFTER INSERT, ROLLBACK ON PUBLIC.TEST FOR EACH ROW NOWAIT CALL \""
-                        + getClass().getName() + "\";",
+                "CREATE FORCE TRIGGER PUBLIC.INS_BEFORE " +
+                    "BEFORE INSERT ON PUBLIC.TEST " +
+                    "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
+                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER " +
+                    "AFTER INSERT ON PUBLIC.TEST " +
+                    "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
+                "CREATE FORCE TRIGGER PUBLIC.UPD_BEFORE " +
+                    "BEFORE UPDATE ON PUBLIC.TEST " +
+                    "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
+                "CREATE FORCE TRIGGER PUBLIC.INS_AFTER_ROLLBACK " +
+                    "AFTER INSERT, ROLLBACK ON PUBLIC.TEST " +
+                    "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";",
                         });
         while (rs.next()) {
             String sql = rs.getString(1);
@@ -468,10 +480,13 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         if (!"TEST".equals(tableName)) {
             throw new AssertionError("supposed to be TEST");
         }
-        if ((trigger.endsWith("AFTER") && before) || (trigger.endsWith("BEFORE") && !before)) {
+        if ((trigger.endsWith("AFTER") && before) ||
+                (trigger.endsWith("BEFORE") && !before)) {
             throw new AssertionError("triggerName: " + trigger + " before:" + before);
         }
-        if ((trigger.startsWith("UPD") && type != UPDATE) || (trigger.startsWith("INS") && type != INSERT) || (trigger.startsWith("DEL") && type != DELETE)) {
+        if ((trigger.startsWith("UPD") && type != UPDATE) ||
+                (trigger.startsWith("INS") && type != INSERT) ||
+                (trigger.startsWith("DEL") && type != DELETE)) {
             throw new AssertionError("triggerName: " + trigger + " type:" + type);
         }
     }

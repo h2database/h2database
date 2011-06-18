@@ -34,7 +34,9 @@ public class CheckTextFiles {
     private int spacesPerTab = 4;
     private boolean autoFix = true;
     private boolean useCRLF;
-    private String[] suffixIgnoreLicense = { "bat", "nsi", "txt", "properties", "xml", "java.sql.Driver", "task", "sh", "prefs" };
+    private String[] suffixIgnoreLicense = {
+            "bat", "nsi", "txt", "properties", "xml",
+            "java.sql.Driver", "task", "sh", "prefs" };
     private boolean hasError;
 
     /**

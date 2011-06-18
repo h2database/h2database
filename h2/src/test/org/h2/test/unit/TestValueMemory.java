@@ -72,7 +72,10 @@ public class TestValueMemory extends TestBase implements DataHandler {
         testCompare();
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
             Value v = create(i);
-            String s = "type: " + v.getType() + " calculated: " + v.getMemory() + " real: " + MemoryFootprint.getObjectSize(v) + " " + v.getClass().getName() + ": " + v.toString();
+            String s = "type: " + v.getType() +
+                    " calculated: " + v.getMemory() +
+                    " real: " + MemoryFootprint.getObjectSize(v) + " " +
+                    v.getClass().getName() + ": " + v.toString();
             trace(s);
         }
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
@@ -112,11 +115,15 @@ public class TestValueMemory extends TestBase implements DataHandler {
         System.gc();
         long used = Utils.getMemoryUsed() - first;
         memory /= 1024;
-        if (config.traceTest) {
-            trace("Type: " + type + " Used memory: " + used + " calculated: " + memory + " length: " + array.length + " size: " + size);
-        }
-        if (used > memory * 3) {
-            fail("Type: " + type + " Used memory: " + used + " calculated: " + memory + " length: " + array.length + " size: " + size);
+        if (config.traceTest || used > memory * 3) {
+            String msg = "Type: " + type + " Used memory: " + used +
+                    " calculated: " + memory + " length: " + array.length + " size: " + size;
+            if (config.traceTest) {
+                trace(msg);
+            }
+            if (used > memory * 3) {
+                fail(msg);
+            }
         }
     }
     private Value create(int type) throws SQLException {

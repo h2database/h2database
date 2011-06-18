@@ -320,7 +320,8 @@ public class H2Database {
      * @param conflictAlgorithm what conflict resolution to use
      * @return TODO
      */
-    public long insertWithOnConflict(String table, String nullColumnHack, ContentValues initialValues, int conflictAlgorithm) {
+    public long insertWithOnConflict(String table, String nullColumnHack,
+            ContentValues initialValues, int conflictAlgorithm) {
         return 0;
     }
 

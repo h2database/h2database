@@ -139,7 +139,8 @@ public class Doclet {
                 hasMethods = true;
             }
             String type = getTypeName(method.isStatic(), false, getReturnType(method));
-            writer.println("<tr id=\"__"+id+"\" onclick=\"return on("+ id +")\"><td class=\"return\">" + type + "</td><td class=\"method\">");
+            writer.println("<tr id=\"__"+id+"\" onclick=\"return on("+ id +")\">");
+            writer.println("<td class=\"return\">" + type + "</td><td class=\"method\">");
             Parameter[] params = method.parameters();
             StringBuilder buff = new StringBuilder();
             StringBuilder buffSignature = new StringBuilder(name);
@@ -311,7 +312,8 @@ public class Doclet {
             if (hasComment && !method.commentText().startsWith("[")) {
                 // [Not supported] and such are not problematic
                 addError("Undocumented parameter(s) (" +
-                        clazz.name() + ".java:" + method.position().line() + ") " + name + " documented: " + paramTags.length + " params: "+ params.length);
+                        clazz.name() + ".java:" + method.position().line() + ") " +
+                        name + " documented: " + paramTags.length + " params: "+ params.length);
             }
         }
         for (int j = 0; j < paramTags.length; j++) {
@@ -420,9 +422,14 @@ public class Doclet {
                 boolean setterOrGetter = name.startsWith("set") && method.parameters().length == 1;
                 setterOrGetter |= name.startsWith("get") && method.parameters().length == 0;
                 Type returnType = getReturnType(method);
-                setterOrGetter |= name.startsWith("is") && method.parameters().length == 0 && returnType != null && returnType.toString().equals("boolean");
+                setterOrGetter |= name.startsWith("is") &&
+                        method.parameters().length == 0 &&
+                        returnType != null &&
+                        returnType.toString().equals("boolean");
                 if (!setterOrGetter) {
-                    addError("Undocumented method " + " (" + clazz.name() + ".java:" + method.position().line() +") " + clazz + "." + name + " " + raw);
+                    addError("Undocumented method " +
+                            " (" + clazz.name() + ".java:" + method.position().line() +") " +
+                            clazz + "." + name + " " + raw);
                     return true;
                 }
             }

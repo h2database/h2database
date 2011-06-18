@@ -348,7 +348,11 @@ public class TestFileLockSerialized extends TestBase {
                                 ResultSet rs = c.createStatement().executeQuery("select id, id2 from test");
                                 while (rs.next()) {
                                     if (rs.getInt(1) != rs.getInt(2)) {
-                                        throw new Exception(Thread.currentThread().getId() + " nextInt: " + nextInt [0] + " rs.getInt(1): " + rs.getInt(1) + " rs.getInt(2): " + rs.getInt(2));
+                                        throw new Exception(
+                                                Thread.currentThread().getId() +
+                                                " nextInt: " + nextInt [0] +
+                                                " rs.getInt(1): " + rs.getInt(1) +
+                                                " rs.getInt(2): " + rs.getInt(2));
                                     }
                                 }
                                 nextInt[0]++;
@@ -532,7 +536,10 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
         int cacheSizeKb = withCache ? 5000 : 0;
 
-        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;CACHE_SIZE=" + cacheSizeKb;
+        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized" +
+                ";FILE_LOCK=SERIALIZED" +
+                ";OPEN_NEW=TRUE" +
+                ";CACHE_SIZE=" + cacheSizeKb;
         final boolean[] importFinished = { false };
         final Task importUpdate = new Task() {
             public void call() throws Exception {

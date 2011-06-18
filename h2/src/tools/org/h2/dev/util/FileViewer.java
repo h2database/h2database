@@ -86,7 +86,9 @@ public class FileViewer extends Tool {
         }
     }
 
-    private static void process(String fileName, String find, boolean head, boolean tail, long start, int lines, boolean quiet) throws IOException {
+    private static void process(String fileName, String find,
+            boolean head, boolean tail, long start, int lines,
+            boolean quiet) throws IOException {
         RandomAccessFile file = new RandomAccessFile(fileName, "r");
         long length = file.length();
         if (head) {

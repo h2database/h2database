@@ -60,7 +60,8 @@ public class OutputCatcher {
         File file = new File(fileName);
         file.getParentFile().mkdirs();
         PrintWriter writer = new PrintWriter(new FileOutputStream(file));
-        writer.write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n");
+        writer.write("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 " +
+                "Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n");
         writer.write("<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" xml:lang=\"en\">\n");
         writer.write("<head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" /><title>\n");
         writer.print(title);

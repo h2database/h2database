@@ -515,11 +515,17 @@ public class Utils {
      * @param params the method parameters
      * @return the return value from this call
      */
-    public static Object callMethod(Object instance, String methodName, Object... params) throws Exception {
+    public static Object callMethod(
+            Object instance,
+            String methodName,
+            Object... params) throws Exception {
         return classMethodInternal(methodName, instance.getClass(), instance, params);
     }
 
-    private static Object classMethodInternal(String methodName, Class<?> clazz, Object instance, Object... params) throws Exception {
+    private static Object classMethodInternal(
+            String methodName, Class<?> clazz,
+            Object instance,
+            Object... params) throws Exception {
         Method best = null;
         int bestMatch = 0;
         boolean isStatic = instance == null;

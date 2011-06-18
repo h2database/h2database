@@ -153,13 +153,65 @@ public class CipherFactory {
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             store.load(null, password.toCharArray());
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(
-                    StringUtils.convertHexToBytes("30820277020100300d06092a864886f70d0101010500048202613082025d02010002818100dc0a13c602b7141110eade2f051b54777b060d0f74e6a110f9cce81159f271ebc88d8e8aa1f743b505fc2e7dfe38d33b8d3f64d1b363d1af4d877833897954cbaec2fa384c22a415498cf306bb07ac09b76b001cd68bf77ea0a628f5101959cf2993a9c23dbee79b19305977f8715ae78d023471194cc900b231eecb0aaea98d02030100010281810099aa4ff4d0a09a5af0bd953cb10c4d08c3d98df565664ac5582e494314d5c3c92dddedd5d316a32a206be4ec084616fe57be15e27cad111aa3c21fa79e32258c6ca8430afc69eddd52d3b751b37da6b6860910b94653192c0db1d02abcfd6ce14c01f238eec7c20bd3bb750940004bacba2880349a9494d10e139ecb2355d101024100ffdc3defd9c05a2d377ef6019fa62b3fbd5b0020a04cc8533bca730e1f6fcf5dfceea1b044fbe17d9eababfbc7d955edad6bc60f9be826ad2c22ba77d19a9f65024100dc28d43fdbbc93852cc3567093157702bc16f156f709fb7db0d9eec028f41fd0edcd17224c866e66be1744141fb724a10fd741c8a96afdd9141b36d67fff6309024077b1cddbde0f69604bdcfe33263fb36ddf24aa3b9922327915b890f8a36648295d0139ecdf68c245652c4489c6257b58744fbdd961834a4cab201801a3b1e52d024100b17142e8991d1b350a0802624759d48ae2b8071a158ff91fabeb6a8f7c328e762143dc726b8529f42b1fab6220d1c676fdc27ba5d44e847c72c52064afd351a902407c6e23fe35bcfcd1a662aa82a2aa725fcece311644d5b6e3894853fd4ce9fe78218c957b1ff03fc9e5ef8ffeb6bd58235f6a215c97d354fdace7e781e4a63e8b"));
+                    StringUtils.convertHexToBytes(
+                            "30820277020100300d06092a864886f70d010101" +
+                            "0500048202613082025d02010002818100dc0a13" +
+                            "c602b7141110eade2f051b54777b060d0f74e6a1" +
+                            "10f9cce81159f271ebc88d8e8aa1f743b505fc2e" +
+                            "7dfe38d33b8d3f64d1b363d1af4d877833897954" +
+                            "cbaec2fa384c22a415498cf306bb07ac09b76b00" +
+                            "1cd68bf77ea0a628f5101959cf2993a9c23dbee7" +
+                            "9b19305977f8715ae78d023471194cc900b231ee" +
+                            "cb0aaea98d02030100010281810099aa4ff4d0a0" +
+                            "9a5af0bd953cb10c4d08c3d98df565664ac5582e" +
+                            "494314d5c3c92dddedd5d316a32a206be4ec0846" +
+                            "16fe57be15e27cad111aa3c21fa79e32258c6ca8" +
+                            "430afc69eddd52d3b751b37da6b6860910b94653" +
+                            "192c0db1d02abcfd6ce14c01f238eec7c20bd3bb" +
+                            "750940004bacba2880349a9494d10e139ecb2355" +
+                            "d101024100ffdc3defd9c05a2d377ef6019fa62b" +
+                            "3fbd5b0020a04cc8533bca730e1f6fcf5dfceea1" +
+                            "b044fbe17d9eababfbc7d955edad6bc60f9be826" +
+                            "ad2c22ba77d19a9f65024100dc28d43fdbbc9385" +
+                            "2cc3567093157702bc16f156f709fb7db0d9eec0" +
+                            "28f41fd0edcd17224c866e66be1744141fb724a1" +
+                            "0fd741c8a96afdd9141b36d67fff6309024077b1" +
+                            "cddbde0f69604bdcfe33263fb36ddf24aa3b9922" +
+                            "327915b890f8a36648295d0139ecdf68c245652c" +
+                            "4489c6257b58744fbdd961834a4cab201801a3b1" +
+                            "e52d024100b17142e8991d1b350a0802624759d4" +
+                            "8ae2b8071a158ff91fabeb6a8f7c328e762143dc" +
+                            "726b8529f42b1fab6220d1c676fdc27ba5d44e84" +
+                            "7c72c52064afd351a902407c6e23fe35bcfcd1a6" +
+                            "62aa82a2aa725fcece311644d5b6e3894853fd4c" +
+                            "e9fe78218c957b1ff03fc9e5ef8ffeb6bd58235f" +
+                            "6a215c97d354fdace7e781e4a63e8b"));
             PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
             Certificate[] certs = { CertificateFactory
                     .getInstance("X.509")
                     .generateCertificate(
                             new ByteArrayInputStream(
-                                    StringUtils.convertHexToBytes("3082018b3081f502044295ce6b300d06092a864886f70d0101040500300d310b3009060355040313024832301e170d3035303532363133323630335a170d3337303933303036353734375a300d310b300906035504031302483230819f300d06092a864886f70d010101050003818d0030818902818100dc0a13c602b7141110eade2f051b54777b060d0f74e6a110f9cce81159f271ebc88d8e8aa1f743b505fc2e7dfe38d33b8d3f64d1b363d1af4d877833897954cbaec2fa384c22a415498cf306bb07ac09b76b001cd68bf77ea0a628f5101959cf2993a9c23dbee79b19305977f8715ae78d023471194cc900b231eecb0aaea98d0203010001300d06092a864886f70d01010405000381810083f4401a279453701bef9a7681a5b8b24f153f7d18c7c892133d97bd5f13736be7505290a445a7d5ceb75522403e5097515cd966ded6351ff60d5193de34cd36e5cb04d380398e66286f99923fd92296645fd4ada45844d194dfd815e6cd57f385c117be982809028bba1116c85740b3d27a55b1a0948bf291ddba44bed337b9"))), };
+                                    StringUtils.convertHexToBytes(
+                            "3082018b3081f502044295ce6b300d06092a8648" +
+                            "86f70d0101040500300d310b3009060355040313" +
+                            "024832301e170d3035303532363133323630335a" +
+                            "170d3337303933303036353734375a300d310b30" +
+                            "0906035504031302483230819f300d06092a8648" +
+                            "86f70d010101050003818d0030818902818100dc" +
+                            "0a13c602b7141110eade2f051b54777b060d0f74" +
+                            "e6a110f9cce81159f271ebc88d8e8aa1f743b505" +
+                            "fc2e7dfe38d33b8d3f64d1b363d1af4d87783389" +
+                            "7954cbaec2fa384c22a415498cf306bb07ac09b7" +
+                            "6b001cd68bf77ea0a628f5101959cf2993a9c23d" +
+                            "bee79b19305977f8715ae78d023471194cc900b2" +
+                            "31eecb0aaea98d0203010001300d06092a864886" +
+                            "f70d01010405000381810083f4401a279453701b" +
+                            "ef9a7681a5b8b24f153f7d18c7c892133d97bd5f" +
+                            "13736be7505290a445a7d5ceb75522403e509751" +
+                            "5cd966ded6351ff60d5193de34cd36e5cb04d380" +
+                            "398e66286f99923fd92296645fd4ada45844d194" +
+                            "dfd815e6cd57f385c117be982809028bba1116c8" +
+                            "5740b3d27a55b1a0948bf291ddba44bed337b9"))), };
             store.setKeyEntry("h2", privateKey, password.toCharArray(), certs);
             // --- generated code end ---
             return store;

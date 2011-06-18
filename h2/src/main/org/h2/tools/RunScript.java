@@ -172,7 +172,8 @@ public class RunScript extends Tool {
         return rs;
     }
 
-    private void process(Connection conn, String fileName, boolean continueOnError, String charsetName) throws SQLException, IOException {
+    private void process(Connection conn, String fileName,
+            boolean continueOnError, String charsetName) throws SQLException, IOException {
         InputStream in = IOUtils.openFileInputStream(fileName);
         String path = IOUtils.getParent(fileName);
         try {
@@ -184,7 +185,8 @@ public class RunScript extends Tool {
         }
     }
 
-    private void process(Connection conn, boolean continueOnError, String path, Reader reader, String charsetName) throws SQLException, IOException {
+    private void process(Connection conn, boolean continueOnError,
+            String path, Reader reader, String charsetName) throws SQLException, IOException {
         Statement stat = conn.createStatement();
         ScriptReader r = new ScriptReader(reader);
         while (true) {
@@ -256,7 +258,8 @@ public class RunScript extends Tool {
         }
     }
 
-    private static void processRunscript(String url, String user, String password, String fileName, String options) throws SQLException {
+    private static void processRunscript(String url, String user, String password,
+            String fileName, String options) throws SQLException {
         Connection conn = null;
         Statement stat = null;
         try {
@@ -281,7 +284,8 @@ public class RunScript extends Tool {
      * @param charsetName the character set name or null for UTF-8
      * @param continueOnError if execution should be continued if an error occurs
      */
-    public static void execute(String url, String user, String password, String fileName, String charsetName, boolean continueOnError) throws SQLException {
+    public static void execute(String url, String user, String password,
+            String fileName, String charsetName, boolean continueOnError) throws SQLException {
         new RunScript().process(url, user, password, fileName, charsetName, continueOnError);
     }
 
@@ -295,7 +299,9 @@ public class RunScript extends Tool {
      * @param charsetName the character set name or null for UTF-8
      * @param continueOnError if execution should be continued if an error occurs
      */
-    void process(String url, String user, String password, String fileName, String charsetName, boolean continueOnError) throws SQLException {
+    void process(String url, String user, String password,
+            String fileName, String charsetName,
+            boolean continueOnError) throws SQLException {
         try {
             org.h2.Driver.load();
             Connection conn = DriverManager.getConnection(url, user, password);

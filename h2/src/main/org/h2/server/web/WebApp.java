@@ -465,7 +465,8 @@ public class WebApp {
         return "query.jsp";
     }
 
-    private static int addColumns(boolean mainSchema, DbTableOrView table, StringBuilder buff, int treeIndex, boolean showColumnTypes,
+    private static int addColumns(boolean mainSchema, DbTableOrView table,
+            StringBuilder buff, int treeIndex, boolean showColumnTypes,
             StringBuilder columnsBuffer) {
         DbColumn[] columns = table.columns;
         for (int i = 0; columns != null && i < columns.length; i++) {
@@ -509,7 +510,8 @@ public class WebApp {
         String columns;
     }
 
-    private static int addIndexes(boolean mainSchema, DatabaseMetaData meta, String table, String schema, StringBuilder buff, int treeIndex)
+    private static int addIndexes(boolean mainSchema, DatabaseMetaData meta,
+            String table, String schema, StringBuilder buff, int treeIndex)
             throws SQLException {
         ResultSet rs;
         try {
@@ -846,7 +848,8 @@ public class WebApp {
             long time = System.currentTimeMillis() - start;
             String success;
             if (time > 1000) {
-                success = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
+                success = "<a class=\"error\" href=\"#\" " +
+                    "onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
                     "${text.login.testSuccessful}</a>" +
                     "<span style=\"display: none;\" id=\"prof\"><br />" +
                     PageParser.escapeHtml(profOpen) +
@@ -1575,10 +1578,19 @@ public class WebApp {
                         append("<img onclick=\"javascript:editRow(").
                         append(rs.getRow()).
                         append(",'${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'").
-                        append(")\" width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" title=\"${text.resultEdit.edit}\" border=\"1\"/>").
+                        append(")\" width=16 height=16 src=\"ico_write.gif\" " +
+                                "onmouseover = \"this.className ='icon_hover'\" " +
+                                "onmouseout = \"this.className ='icon'\" " +
+                                "class=\"icon\" alt=\"${text.resultEdit.edit}\" " +
+                                "title=\"${text.resultEdit.edit}\" border=\"1\"/>").
                         append("<a href=\"editResult.do?op=2&row=").
                         append(rs.getRow()).
-                        append("&jsessionid=${sessionId}\" target=\"h2result\" ><img width=16 height=16 src=\"ico_remove.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.delete}\" title=\"${text.resultEdit.delete}\" border=\"1\" /></a>").
+                        append("&jsessionid=${sessionId}\" target=\"h2result\" >" +
+                                "<img width=16 height=16 src=\"ico_remove.gif\" " +
+                                "onmouseover = \"this.className ='icon_hover'\" " +
+                                "onmouseout = \"this.className ='icon'\" " +
+                                "class=\"icon\" alt=\"${text.resultEdit.delete}\" " +
+                                "title=\"${text.resultEdit.delete}\" border=\"1\" /></a>").
                         append("</td>");
                 }
                 for (int i = 0; i < columns; i++) {
@@ -1609,7 +1621,11 @@ public class WebApp {
         if (edit) {
             buff.append("<tr><td>").
                 append("<img onclick=\"javascript:editRow(-1, '${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'").
-                append(")\" width=16 height=16 src=\"ico_add.gif\" onmouseover = \"this.className ='icon_hover'\" onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.add}\" title=\"${text.resultEdit.add}\" border=\"1\"/>").
+                append(")\" width=16 height=16 src=\"ico_add.gif\" " +
+                        "onmouseover = \"this.className ='icon_hover'\" " +
+                        "onmouseout = \"this.className ='icon'\" " +
+                        "class=\"icon\" alt=\"${text.resultEdit.add}\" " +
+                        "title=\"${text.resultEdit.add}\" border=\"1\"/>").
                 append("</td>");
             for (int i = 0; i < columns; i++) {
                 buff.append("<td></td>");
@@ -1631,11 +1647,13 @@ public class WebApp {
         time = System.currentTimeMillis() - time;
         buff.append(time).append(" ms)");
         if (!edit && isUpdatable && allowEdit) {
-            buff.append("<br /><br /><form name=\"editResult\" method=\"post\" action=\"query.do?jsessionid=${sessionId}\" target=\"h2result\">" +
-                "<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />" +
-                "<input type=\"hidden\" name=\"sql\" value=\"@edit ").
-                append(PageParser.escapeHtmlData(sql)).
-                append("\" /></form>");
+            buff.append("<br /><br />" +
+                    "<form name=\"editResult\" method=\"post\" " +
+                    "action=\"query.do?jsessionid=${sessionId}\" target=\"h2result\">" +
+                    "<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />" +
+                    "<input type=\"hidden\" name=\"sql\" value=\"@edit ").
+            append(PageParser.escapeHtmlData(sql)).
+            append("\" /></form>");
         }
         return buff.toString();
     }

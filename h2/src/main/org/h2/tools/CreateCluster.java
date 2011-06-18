@@ -91,11 +91,13 @@ public class CreateCluster extends Tool {
      * @param serverList the server list
      * @throws SQLException
      */
-    public void execute(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
+    public void execute(String urlSource, String urlTarget,
+            String user, String password, String serverList) throws SQLException {
         process(urlSource, urlTarget, user, password, serverList);
     }
 
-    private void process(String urlSource, String urlTarget, String user, String password, String serverList) throws SQLException {
+    private void process(String urlSource, String urlTarget,
+            String user, String password, String serverList) throws SQLException {
         Connection connSource = null, connTarget = null;
         Statement statSource = null, statTarget = null;
         String scriptFile = "backup.sql";
@@ -106,7 +108,9 @@ public class CreateCluster extends Tool {
             // or if it exists (an old cluster instance), it is deleted
             boolean exists = true;
             try {
-                connTarget = DriverManager.getConnection(urlTarget + ";IFEXISTS=TRUE;CLUSTER=" + Constants.CLUSTERING_ENABLED, user, password);
+                connTarget = DriverManager.getConnection(urlTarget +
+                        ";IFEXISTS=TRUE;CLUSTER=" + Constants.CLUSTERING_ENABLED,
+                        user, password);
                 Statement stat = connTarget.createStatement();
                 stat.execute("DROP ALL OBJECTS DELETE FILES");
                 stat.close();

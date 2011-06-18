@@ -121,7 +121,8 @@ public class ChangeFileEncryption extends Tool {
      * @param quiet don't print progress information
      * @throws SQLException
      */
-    public static void execute(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
+    public static void execute(String dir, String db, String cipher,
+            char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
         try {
             new ChangeFileEncryption().process(dir, db, cipher, decryptPassword, encryptPassword, quiet);
         } catch (Exception e) {
@@ -129,7 +130,8 @@ public class ChangeFileEncryption extends Tool {
         }
     }
 
-    private void process(String dir, String db, String cipher, char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
+    private void process(String dir, String db, String cipher,
+            char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {
         dir = FileLister.getDir(dir);
         ChangeFileEncryption change = new ChangeFileEncryption();
         if (encryptPassword != null) {

@@ -481,7 +481,9 @@ public class IOUtils {
                 if (directory.isDirectory()) {
                     return;
                 }
-                throw new IOException("Could not create directory, because a file with the same name already exists: " + directory.getAbsolutePath());
+                throw new IOException("Could not create directory, " +
+                        "because a file with the same name already exists: " +
+                        directory.getAbsolutePath());
             }
             if (directory.mkdirs()) {
                 return;

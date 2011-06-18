@@ -289,7 +289,8 @@ public class PgServer implements Service {
             }
             return "";
         }
-        PreparedStatement prep = conn.prepareStatement("select column_name from information_schema.indexes where id=? and ordinal_position=?");
+        PreparedStatement prep = conn.prepareStatement(
+                "select column_name from information_schema.indexes where id=? and ordinal_position=?");
         prep.setInt(1, indexId);
         prep.setInt(2, ordinalPosition.intValue());
         ResultSet rs = prep.executeQuery();

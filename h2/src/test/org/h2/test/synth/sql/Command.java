@@ -15,8 +15,10 @@ import org.h2.util.StatementBuilder;
  * Represents a statement.
  */
 class Command {
-    private static final int CONNECT = 0, RESET = 1, DISCONNECT = 2, CREATE_TABLE = 3, INSERT = 4, DROP_TABLE = 5, SELECT = 6,
-            DELETE = 7, UPDATE = 8, COMMIT = 9, ROLLBACK = 10, AUTOCOMMIT_ON = 11, AUTOCOMMIT_OFF = 12,
+    private static final int CONNECT = 0, RESET = 1, DISCONNECT = 2,
+            CREATE_TABLE = 3, INSERT = 4, DROP_TABLE = 5, SELECT = 6,
+            DELETE = 7, UPDATE = 8, COMMIT = 9, ROLLBACK = 10,
+            AUTOCOMMIT_ON = 11, AUTOCOMMIT_OFF = 12,
             CREATE_INDEX = 13, DROP_INDEX = 14, END = 15;
 
     /**

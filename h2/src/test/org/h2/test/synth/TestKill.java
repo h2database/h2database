@@ -87,7 +87,9 @@ public class TestKill extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE IF NOT EXISTS ACCOUNT(ID INT PRIMARY KEY, SUM INT)");
         stat
-                .execute("CREATE TABLE IF NOT EXISTS LOG(ID IDENTITY, ACCOUNTID INT, AMOUNT INT, FOREIGN KEY(ACCOUNTID) REFERENCES ACCOUNT(ID))");
+                .execute("CREATE TABLE IF NOT EXISTS LOG(" +
+                        "ID IDENTITY, ACCOUNTID INT, AMOUNT INT, " +
+                        "FOREIGN KEY(ACCOUNTID) REFERENCES ACCOUNT(ID))");
         stat.execute("CREATE TABLE IF NOT EXISTS TEST_A(ID INT PRIMARY KEY, DATA VARCHAR)");
         stat.execute("CREATE TABLE IF NOT EXISTS TEST_B(ID INT PRIMARY KEY, DATA VARCHAR)");
     }

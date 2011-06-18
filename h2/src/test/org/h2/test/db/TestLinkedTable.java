@@ -446,12 +446,22 @@ public class TestLinkedTable extends TestBase {
         Connection conn = DriverManager.getConnection(url1, "sa1", "abc abc");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TEMP TABLE TEST_TEMP(ID INT PRIMARY KEY)");
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(200), XT TINYINT, XD DECIMAL(10,2), XTS TIMESTAMP, XBY BINARY(255), XBO BIT, XSM SMALLINT, XBI BIGINT, XBL BLOB, XDA DATE, XTI TIME, XCL CLOB, XDO DOUBLE)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, " +
+                "NAME VARCHAR(200), XT TINYINT, XD DECIMAL(10,2), " +
+                "XTS TIMESTAMP, XBY BINARY(255), XBO BIT, XSM SMALLINT, " +
+                "XBI BIGINT, XBL BLOB, XDA DATE, XTI TIME, XCL CLOB, XDO DOUBLE)");
         stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
-        stat.execute("INSERT INTO TEST VALUES(0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)");
-        stat.execute("INSERT INTO TEST VALUES(1, 'Hello', -1, 10.30, '2001-02-03 11:22:33.4455', X'FF0102', TRUE, 3000, 1234567890123456789, X'1122AA', DATE '0002-01-01', TIME '00:00:00', 'J\u00fcrg', 2.25)");
+        stat.execute("INSERT INTO TEST VALUES(0, NULL, NULL, NULL, NULL, " +
+                "NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello', -1, 10.30, " +
+                "'2001-02-03 11:22:33.4455', X'FF0102', TRUE, 3000, " +
+                "1234567890123456789, X'1122AA', DATE '0002-01-01', " +
+                "TIME '00:00:00', 'J\u00fcrg', 2.25)");
         testRow(stat, "TEST");
-        stat.execute("INSERT INTO TEST VALUES(2, 'World', 30, 100.05, '2005-12-31 12:34:56.789', X'FFEECC33', FALSE, 1, -1234567890123456789, X'4455FF', DATE '9999-12-31', TIME '23:59:59', 'George', -2.5)");
+        stat.execute("INSERT INTO TEST VALUES(2, 'World', 30, 100.05, " +
+                "'2005-12-31 12:34:56.789', X'FFEECC33', FALSE, 1, " +
+                "-1234567890123456789, X'4455FF', DATE '9999-12-31', " +
+                "TIME '23:59:59', 'George', -2.5)");
         testRow(stat, "TEST");
         stat.execute("SELECT * FROM TEST_TEMP");
         conn.close();
@@ -483,7 +493,10 @@ public class TestLinkedTable extends TestBase {
         conn = DriverManager.getConnection(url2, "sa2", "def def");
         stat = conn.createStatement();
 
-        stat.execute("INSERT INTO LINK_TEST VALUES(3, 'Link Test', 30, 100.05, '2005-12-31 12:34:56.789', X'FFEECC33', FALSE, 1, -1234567890123456789, X'4455FF', DATE '9999-12-31', TIME '23:59:59', 'George', -2.5)");
+        stat.execute("INSERT INTO LINK_TEST VALUES(3, 'Link Test', " +
+                "30, 100.05, '2005-12-31 12:34:56.789', X'FFEECC33', " +
+                "FALSE, 1, -1234567890123456789, X'4455FF', " +
+                "DATE '9999-12-31', TIME '23:59:59', 'George', -2.5)");
 
         rs = stat.executeQuery("SELECT COUNT(*) FROM LINK_TEST");
         rs.next();

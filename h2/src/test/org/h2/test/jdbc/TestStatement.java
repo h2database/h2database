@@ -173,7 +173,10 @@ public class TestStatement extends TestBase {
         stat.setFetchSize(0);
         assertEquals(SysProperties.SERVER_RESULT_SET_FETCH_SIZE, stat.getFetchSize());
         assertEquals(ResultSet.TYPE_FORWARD_ONLY, stat.getResultSetType());
-        Statement stat2 = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
+        Statement stat2 = conn.createStatement(
+                ResultSet.TYPE_SCROLL_SENSITIVE,
+                ResultSet.CONCUR_READ_ONLY,
+                ResultSet.HOLD_CURSORS_OVER_COMMIT);
         assertEquals(ResultSet.TYPE_SCROLL_SENSITIVE, stat2.getResultSetType());
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, stat2.getResultSetHoldability());
         assertEquals(ResultSet.CONCUR_READ_ONLY, stat2.getResultSetConcurrency());

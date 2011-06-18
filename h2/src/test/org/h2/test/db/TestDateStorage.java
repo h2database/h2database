@@ -122,7 +122,8 @@ public class TestDateStorage extends TestBase {
     }
 
     private static void test(int year, int month, int day, int hour) {
-        DateTimeUtils.parseDateTime(year + "-" + month + "-" + day + " " + hour + ":00:00", Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
+        DateTimeUtils.parseDateTime(year + "-" + month + "-" + day + " " + hour + ":00:00",
+                Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
     }
 
     private void testAllTimeZones() throws SQLException {

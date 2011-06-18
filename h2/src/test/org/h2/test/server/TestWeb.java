@@ -106,19 +106,25 @@ public class TestWeb extends TestBase {
             client.readSessionId(result);
             result = client.get(url, "tools.jsp");
             IOUtils.delete(getBaseDir() + "/backup.zip");
-            result = client.get(url, "tools.do?tool=Backup&args=-dir," + getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
+            result = client.get(url, "tools.do?tool=Backup&args=-dir," +
+                    getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
             deleteDb("web");
             assertTrue(IOUtils.exists(getBaseDir() + "/backup.zip"));
-            result = client.get(url, "tools.do?tool=DeleteDbFiles&args=-dir," + getBaseDir() + ",-db,web");
+            result = client.get(url, "tools.do?tool=DeleteDbFiles&args=-dir," +
+                    getBaseDir() + ",-db,web");
             assertFalse(IOUtils.exists(getBaseDir() + "/web.h2.db"));
-            result = client.get(url, "tools.do?tool=Restore&args=-dir," + getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
+            result = client.get(url, "tools.do?tool=Restore&args=-dir," +
+                    getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
             assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.db"));
             IOUtils.delete(getBaseDir() + "/web.h2.sql");
             IOUtils.delete(getBaseDir() + "/backup.zip");
-            result = client.get(url, "tools.do?tool=Recover&args=-dir," + getBaseDir() + ",-db,web");
+            result = client.get(url, "tools.do?tool=Recover&args=-dir," +
+                    getBaseDir() + ",-db,web");
             assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.sql"));
             IOUtils.delete(getBaseDir() + "/web.h2.sql");
-            result = client.get(url, "tools.do?tool=RunScript&args=-script," + getBaseDir() + "/web.h2.sql,-url," + getURL("web", true) + ",-user," + getUser() + ",-password," + getPassword());
+            result = client.get(url, "tools.do?tool=RunScript&args=-script," +
+                    getBaseDir() + "/web.h2.sql,-url," + getURL("web", true) +
+                    ",-user," + getUser() + ",-password," + getPassword());
             IOUtils.delete(getBaseDir() + "/web.h2.sql");
             assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.db"));
             deleteDb("web");
@@ -218,7 +224,8 @@ public class TestWeb extends TestBase {
             assertTrue(result.indexOf("Exception") < 0);
             result = client.get(url, "login.do?driver=org.h2.Driver&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
             result = client.get(url, "header.jsp");
-            result = client.get(url, "query.do?sql=create table test(id int primary key, name varchar);insert into test values(1, 'Hello')");
+            result = client.get(url, "query.do?sql=create table test(id int primary key, name varchar);" +
+                    "insert into test values(1, 'Hello')");
             result = client.get(url, "query.do?sql=create sequence test_sequence");
             result = client.get(url, "query.do?sql=create schema test_schema");
             result = client.get(url, "query.do?sql=create view test_view as select * from test");

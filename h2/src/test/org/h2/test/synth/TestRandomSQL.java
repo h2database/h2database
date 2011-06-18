@@ -38,7 +38,8 @@ public class TestRandomSQL extends TestBase {
 
     private void processException(String sql, SQLException e) {
         if (e.getSQLState().equals("HY000")) {
-            TestBase.logError("new TestRandomSQL().init(test).testCase(" + seed + ");  // FAIL: " + e.toString() + " sql: " + sql, e);
+            TestBase.logError("new TestRandomSQL().init(test).testCase(" + seed + ");  " +
+                    "// FAIL: " + e.toString() + " sql: " + sql, e);
             if (exitOnError) {
                 System.exit(0);
             }

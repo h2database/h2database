@@ -345,7 +345,8 @@ public class TestMetaData extends TestBase {
         ResultSet rs;
         stat = conn.createStatement();
         stat.execute("CREATE TABLE PARENT(A INT, B INT, PRIMARY KEY(A, B))");
-        stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, PA INT, PB INT, CONSTRAINT AB FOREIGN KEY(PA, PB) REFERENCES PARENT(A, B))");
+        stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, PA INT, PB INT, " +
+                "CONSTRAINT AB FOREIGN KEY(PA, PB) REFERENCES PARENT(A, B))");
         rs = meta.getCrossReference(null, "PUBLIC", "PARENT", null, "PUBLIC", "CHILD");
         checkCrossRef(rs);
         rs = meta.getImportedKeys(null, "PUBLIC", "CHILD");

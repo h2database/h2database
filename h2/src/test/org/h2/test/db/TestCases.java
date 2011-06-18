@@ -338,7 +338,8 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testCompareDoubleWithIntColumn(Statement stat, boolean pk, double x, boolean prepared) throws SQLException {
+    private void testCompareDoubleWithIntColumn(Statement stat, boolean pk,
+            double x, boolean prepared) throws SQLException {
         if (pk) {
             stat.execute("create table test(id int primary key)");
         } else {
@@ -347,7 +348,8 @@ public class TestCases extends TestBase {
         stat.execute("insert into test values(1)");
         ResultSet rs;
         if (prepared) {
-            PreparedStatement prep = stat.getConnection().prepareStatement("select * from test where id > ?");
+            PreparedStatement prep = stat.getConnection().prepareStatement(
+                    "select * from test where id > ?");
             prep.setDouble(1, x);
             rs = prep.executeQuery();
         } else {
@@ -815,11 +817,12 @@ public class TestCases extends TestBase {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ORDER_ID INT PRIMARY KEY, ORDER_DATE DATETIME, USER_ID INT ,"
-                + "DESCRIPTION VARCHAR, STATE VARCHAR, TRACKING_ID VARCHAR)");
+        stat.execute("CREATE TABLE TEST(ORDER_ID INT PRIMARY KEY, ORDER_DATE DATETIME, " +
+                "USER_ID INT, DESCRIPTION VARCHAR, STATE VARCHAR, TRACKING_ID VARCHAR)");
         Timestamp orderDate = Timestamp.valueOf("2005-05-21 17:46:00");
-        String sql = "insert into TEST (ORDER_ID,ORDER_DATE,USER_ID,DESCRIPTION,STATE,TRACKING_ID) "
-                + "select cast(? as int),cast(? as date),cast(? as int),cast(? as varchar),cast(? as varchar),cast(? as varchar) union all select ?,?,?,?,?,?";
+        String sql = "insert into TEST (ORDER_ID,ORDER_DATE,USER_ID,DESCRIPTION,STATE,TRACKING_ID) " +
+                "select cast(? as int),cast(? as date),cast(? as int),cast(? as varchar)," +
+                "cast(? as varchar),cast(? as varchar) union all select ?,?,?,?,?,?";
         PreparedStatement ps = conn.prepareStatement(sql);
         ps.setInt(1, 5555);
         ps.setTimestamp(2, orderDate);

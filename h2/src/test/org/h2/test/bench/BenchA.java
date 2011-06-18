@@ -118,11 +118,16 @@ public class BenchA implements Bench {
         int branch = random.nextInt(branches);
         int teller = random.nextInt(tellers);
 
-        PreparedStatement updateAccount = database.prepare("UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
-        PreparedStatement selectBalance = database.prepare("SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
-        PreparedStatement updateTeller = database.prepare("UPDATE TELLERS SET TBALANCE=TBALANCE+? WHERE TID=?");
-        PreparedStatement updateBranch = database.prepare("UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?");
-        PreparedStatement insertHistory = database.prepare("INSERT INTO HISTORY(AID,TID,BID,DELTA,HTIME,FILLER) VALUES(?,?,?,?,?,?)");
+        PreparedStatement updateAccount = database.prepare(
+                "UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?");
+        PreparedStatement selectBalance = database.prepare(
+                "SELECT ABALANCE FROM ACCOUNTS WHERE AID=?");
+        PreparedStatement updateTeller = database.prepare(
+                "UPDATE TELLERS SET TBALANCE=TBALANCE+? WHERE TID=?");
+        PreparedStatement updateBranch = database.prepare(
+                "UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?");
+        PreparedStatement insertHistory = database.prepare(
+                "INSERT INTO HISTORY(AID,TID,BID,DELTA,HTIME,FILLER) VALUES(?,?,?,?,?,?)");
         int accountsPerBranch = accounts / branches;
         database.setAutoCommit(false);
 

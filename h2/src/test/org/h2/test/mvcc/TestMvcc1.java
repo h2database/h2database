@@ -107,8 +107,10 @@ public class TestMvcc1 extends TestBase {
         c2.commit();
 
         // referential integrity problem
-        s1.execute("create table a (id integer identity not null, code varchar(10) not null, primary key(id))");
-        s1.execute("create table b (name varchar(100) not null, a integer, primary key(name), foreign key(a) references a(id))");
+        s1.execute("create table a (id integer identity not null, " +
+                "code varchar(10) not null, primary key(id))");
+        s1.execute("create table b (name varchar(100) not null, a integer, " +
+                "primary key(name), foreign key(a) references a(id))");
         s1.execute("insert into a(code) values('one')");
         try {
             s2.execute("insert into b values('un B', 1)");

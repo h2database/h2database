@@ -122,9 +122,13 @@ public class TestMultiOrder extends TestMultiThread {
         c.createStatement().execute("drop table customer if exists");
         c.createStatement().execute("drop table orders if exists");
         c.createStatement().execute("drop table orderLine if exists");
-        c.createStatement().execute("create table customer(id int primary key, name varchar, account decimal)");
-        c.createStatement().execute("create table orders(id int identity primary key, customer_id int, total decimal)");
-        c.createStatement().execute("create table orderLine(order_id int, line_id int, text varchar, amount decimal, primary key(order_id, line_id))");
+        c.createStatement().execute("create table customer(" +
+                "id int primary key, name varchar, account decimal)");
+        c.createStatement().execute("create table orders(" +
+                "id int identity primary key, customer_id int, total decimal)");
+        c.createStatement().execute("create table orderLine(" +
+                "order_id int, line_id int, text varchar, " +
+                "amount decimal, primary key(order_id, line_id))");
         c.close();
     }
 

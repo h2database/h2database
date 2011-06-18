@@ -565,7 +565,8 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("DROP TABLE TEST3");
     }
 
-    private void checkParameter(PreparedStatement prep, int index, String className, int type, String typeName, int precision, int scale) throws SQLException {
+    private void checkParameter(PreparedStatement prep, int index,
+            String className, int type, String typeName, int precision, int scale) throws SQLException {
         ParameterMetaData meta = prep.getParameterMetaData();
         assertEquals(className, meta.getParameterClassName(index));
         assertEquals(type, meta.getParameterType(index));
@@ -616,7 +617,8 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(1),(2),(3)");
         PreparedStatement prep;
         ResultSet rs;
-        prep = conn.prepareStatement("EXPLAIN SELECT COUNT(*) FROM TEST WHERE CASEWHEN(ID=1, ID, ID)=? GROUP BY ID");
+        prep = conn.prepareStatement("EXPLAIN SELECT COUNT(*) FROM TEST " +
+                "WHERE CASEWHEN(ID=1, ID, ID)=? GROUP BY ID");
         prep.setInt(1, 1);
         rs = prep.executeQuery();
         rs.next();
@@ -624,7 +626,8 @@ public class TestPreparedStatement extends TestBase {
         trace(plan);
         rs.close();
         prep = conn
-                .prepareStatement("EXPLAIN SELECT COUNT(*) FROM TEST WHERE CASE ID WHEN 1 THEN ID WHEN 2 THEN ID ELSE ID END=? GROUP BY ID");
+                .prepareStatement("EXPLAIN SELECT COUNT(*) FROM TEST " +
+                        "WHERE CASE ID WHEN 1 THEN ID WHEN 2 THEN ID ELSE ID END=? GROUP BY ID");
         prep.setInt(1, 1);
         rs = prep.executeQuery();
         rs.next();

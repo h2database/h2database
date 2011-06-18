@@ -773,7 +773,8 @@ public class TestLob extends TestBase {
         conn0.getAutoCommit();
         conn0.getAutoCommit();
         PreparedStatement prep2 = conn0
-                .prepareStatement("select c_.ID as ID0_0_, c_.DATA as S_, c_.CLOB_DATA as CLOB3_0_0_ from CLOB_ENTITY c_ where c_.ID=?");
+                .prepareStatement("select c_.ID as ID0_0_, c_.DATA as S_, " +
+                        "c_.CLOB_DATA as CLOB3_0_0_ from CLOB_ENTITY c_ where c_.ID=?");
         prep2.setLong(1, 1);
         ResultSet rs1 = prep2.executeQuery();
         rs1.next();

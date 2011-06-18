@@ -258,7 +258,8 @@ public class TestCsv extends TestBase {
 
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('" + file.getName() + "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', 'UTF8', ',', '\"', NULL, '\\N', '\n')");
+        stat.execute("call csvwrite('" + file.getName() +
+                "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', 'UTF8', ',', '\"', NULL, '\\N', '\n')");
         InputStreamReader reader = new InputStreamReader(fs.openFileInputStream(fileName));
         // on read, an empty string is treated like null,
         // but on write a null is always written with the nullString
@@ -358,8 +359,11 @@ public class TestCsv extends TestBase {
         assertEquals("It's nice", rs.getString(1));
         assertEquals("\nHello*\n", rs.getString(2));
         assertFalse(rs.next());
-        stat.execute("call csvwrite('" + fileName2 + "', 'select * from csvread(''" + fileName + "'', null, null, '';'', '''''''', ''\\'')', null, '+', '*', '#')");
-        rs = stat.executeQuery("select * from csvread('" + fileName2 + "', null, null, '+', '*', '#')");
+        stat.execute("call csvwrite('" + fileName2 +
+                "', 'select * from csvread(''" + fileName +
+                "'', null, null, '';'', '''''''', ''\\'')', null, '+', '*', '#')");
+        rs = stat.executeQuery("select * from csvread('" + fileName2 +
+                "', null, null, '+', '*', '#')");
         meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
         assertEquals("A", meta.getColumnLabel(1));
@@ -473,7 +477,8 @@ public class TestCsv extends TestBase {
         }
         long time;
         time = System.currentTimeMillis();
-        Csv.getInstance().write(conn, getBaseDir() + "/testRW.csv", "SELECT X ID, 'Ruebezahl' NAME FROM SYSTEM_RANGE(1, " + len + ")", "UTF8");
+        Csv.getInstance().write(conn, getBaseDir() + "/testRW.csv",
+                "SELECT X ID, 'Ruebezahl' NAME FROM SYSTEM_RANGE(1, " + len + ")", "UTF8");
         trace("write: " + (System.currentTimeMillis() - time));
         ResultSet rs;
         time = System.currentTimeMillis();

@@ -541,7 +541,8 @@ public class TestUpdatableResultSet extends TestBase {
         }
     }
 
-    private void assertState(ResultSet rs, boolean beforeFirst, boolean first, boolean last, boolean afterLast) throws SQLException {
+    private void assertState(ResultSet rs, boolean beforeFirst,
+            boolean first, boolean last, boolean afterLast) throws SQLException {
         assertEquals(beforeFirst, rs.isBeforeFirst());
         assertEquals(first, rs.isFirst());
         assertEquals(last, rs.isLast());

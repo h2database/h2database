@@ -271,7 +271,8 @@ public class TestOptimizations extends TestBase {
         stat.execute("create view test_view as select a.status, a.tag from accounts a, parent t where a.id = t.id");
         rs = stat.executeQuery("select * from test_view where status='X' and tag in ('A','B')");
         assertTrue(rs.next());
-        rs = stat.executeQuery("select * from (select a.status, a.tag from accounts a, parent t where a.id = t.id) x where status='X' and tag in ('A','B')");
+        rs = stat.executeQuery("select * from (select a.status, a.tag " +
+                "from accounts a, parent t where a.id = t.id) x where status='X' and tag in ('A','B')");
         assertTrue(rs.next());
 
         stat.execute("create table test(id int primary key, name varchar(255))");

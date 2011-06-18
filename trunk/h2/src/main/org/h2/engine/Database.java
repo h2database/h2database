@@ -172,6 +172,7 @@ public class Database implements DataHandler {
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
     private final int reconnectCheckDelay;
+    private int logMode;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -205,6 +206,7 @@ public class Database implements DataHandler {
             this.mode = Mode.getInstance(modeName);
         }
         this.multiVersion = ci.getProperty("MVCC", false);
+        this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
@@ -2039,6 +2041,7 @@ public class Database implements DataHandler {
             if (!readOnly && fileLockMethod == FileLock.LOCK_FS) {
                 pageStore.setLockFile(true);
             }
+            pageStore.setLogMode(logMode);
             pageStore.open();
         }
         return pageStore;
@@ -2267,6 +2270,7 @@ public class Database implements DataHandler {
                 // disabling a dangerous mode
                 trace.error(null, "log {0}", log);
             }
+            this.logMode = log;
             pageStore.setLogMode(log);
         }
     }

@@ -6,25 +6,26 @@
  */
 package org.h2.test.unit;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-
-import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
+import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueNull;
+import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
 /**
- * Tests the data parsing. The problem is that some dates are not allowed
+ * Tests the date parsing. The problem is that some dates are not allowed
  * because of the summer time change. Most countries change at 2 o'clock in the
  * morning to 3 o'clock, but some (for example Chile) change at midnight.
  * Non-lenient parsing would not work in this case.
@@ -37,13 +38,89 @@ public class TestDate extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
+        System.setProperty("h2.storeLocalTime", "true");
         TestBase.createCaller().init().test();
     }
 
     public void test() throws SQLException {
+        testTimeOperationsAcrossTimeZones();
         testDateTimeUtils();
-        testAllTimeZones();
-        testCurrentTimeZone();
+    }
+
+    private void testTimeOperationsAcrossTimeZones() {
+        if (!SysProperties.STORE_LOCAL_TIME) {
+            return;
+        }
+        TimeZone defaultTimeZone = TimeZone.getDefault();
+        ArrayList<TimeZone> distinct = TestDate.getDistinctTimeZones();
+        Data d = Data.create(null, 10240);
+        try {
+            for (TimeZone tz : distinct) {
+                TimeZone.setDefault(tz);
+                DateTimeUtils.resetCalendar();
+                d.reset();
+                for (int m = 1; m <= 12; m++) {
+                    for (int h = 0; h <= 23; h++) {
+                        if (h == 0 || h == 2 || h == 3) {
+                            // those hours may not exist for all days in all
+                            // timezones because of daylight saving
+                            continue;
+                        }
+                        String s = "2000-" + (m < 10 ? "0" + m : m) + "-01 " + (h < 10 ? "0" + h : h) + ":00:00.0";
+                        d.writeValue(ValueString.get(s));
+                        d.writeValue(ValueTimestamp.get(Timestamp.valueOf(s)));
+                    }
+                }
+                d.writeValue(ValueNull.INSTANCE);
+                d.reset();
+                for (TimeZone target : distinct) {
+                    if ("Pacific/Kiritimati".equals(target)) {
+                        // there is a problem with this time zone, but it seems
+                        // unrelated to this database (possibly wrong timezone
+                        // information?)
+                        continue;
+                    }
+                    TimeZone.setDefault(target);
+                    DateTimeUtils.resetCalendar();
+                    while (true) {
+                        Value v = d.readValue();
+                        if (v == ValueNull.INSTANCE) {
+                            break;
+                        }
+                        String a = v.getString();
+                        String b = d.readValue().getString();
+                        if (!a.equals(b)) {
+                            assertEquals("source: " + tz.getID() + " target: " + target.getID(), a, b);
+                        }
+                    }
+                }
+            }
+        } finally {
+            TimeZone.setDefault(defaultTimeZone);
+            DateTimeUtils.resetCalendar();
+        }
+    }
+
+    /**
+     * Get the list of timezones with distinct rules.
+     *
+     * @return the list
+     */
+    public static ArrayList<TimeZone> getDistinctTimeZones() {
+        ArrayList<TimeZone> distinct = New.arrayList();
+        for (String id : TimeZone.getAvailableIDs()) {
+            TimeZone t = TimeZone.getTimeZone(id);
+            for (TimeZone d : distinct) {
+                if (t.hasSameRules(d)) {
+                    t = null;
+                    break;
+                }
+            }
+            if (t != null) {
+                distinct.add(t);
+            }
+        }
+        return distinct;
     }
 
     private void testDateTimeUtils() {
@@ -68,65 +145,6 @@ public class TestDate extends TestBase {
         java.sql.Timestamp ts2a = DateTimeUtils.convertTimestampToCalendar(ts2, Calendar.getInstance());
         assertEquals("-999-08-07 13:14:15.16", ValueTimestamp.get(ts1a).getString());
         assertEquals("19999-08-07 13:14:15.16", ValueTimestamp.get(ts2a).getString());
-    }
-
-    private static void testCurrentTimeZone() {
-        for (int year = 1970; year < 2050; year += 3) {
-            for (int month = 1; month <= 12; month++) {
-                for (int day = 1; day < 29; day++) {
-                    for (int hour = 0; hour < 24; hour++) {
-                        test(year, month, day, hour);
-                    }
-                }
-            }
-        }
-    }
-
-    private static void test(int year, int month, int day, int hour) {
-        DateTimeUtils.parseDateTime(year + "-" + month + "-" + day + " " + hour + ":00:00", Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
-    }
-
-    private void testAllTimeZones() throws SQLException {
-        Connection conn = getConnection("date");
-        TimeZone defaultTimeZone = TimeZone.getDefault();
-        PreparedStatement prep = conn.prepareStatement("CALL CAST(? AS DATE)");
-        try {
-            String[] ids = TimeZone.getAvailableIDs();
-            for (int i = 0; i < ids.length; i++) {
-                TimeZone.setDefault(TimeZone.getTimeZone(ids[i]));
-                DateTimeUtils.resetCalendar();
-                for (int d = 101; d < 129; d++) {
-                    test(prep, d);
-                }
-            }
-        } finally {
-            TimeZone.setDefault(defaultTimeZone);
-            DateTimeUtils.resetCalendar();
-        }
-        conn.close();
-        deleteDb("date");
-    }
-
-    private void test(PreparedStatement prep, int d) throws SQLException {
-        String s = "2040-10-" + ("" + d).substring(1);
-        // some dates don't work in some versions of Java
-        //        java.sql.Date date = java.sql.Date.valueOf(s);
-        //        long time = date.getTime();
-        //        int plus = 0;
-        //        while (true) {
-        //            date = new java.sql.Date(time);
-        //            String x = date.toString();
-        //            if (x.equals(s)) {
-        //                break;
-        //            }
-        //            time += 1000;
-        //            plus += 1000;
-        //        }
-        prep.setString(1, s);
-        ResultSet rs = prep.executeQuery();
-        rs.next();
-        String t = rs.getString(1);
-        assertEquals(s, t);
     }
 
 }

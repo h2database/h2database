@@ -125,7 +125,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return the list of columns
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getTables(String catalogPattern, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
+    public ResultSet getTables(String catalogPattern, String schemaPattern,
+            String tableNamePattern, String[] types) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getTables(" + quote(catalogPattern) + ", " + quote(schemaPattern) + ", " + quote(tableNamePattern)
@@ -301,7 +302,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return the list of indexes and columns
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getIndexInfo(String catalogPattern, String schemaPattern, String tableName, boolean unique, boolean approximate)
+    public ResultSet getIndexInfo(String catalogPattern, String schemaPattern,
+            String tableName, boolean unique, boolean approximate)
             throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -829,7 +831,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * @return the list of privileges
      * @throws SQLException if the connection is closed
      */
-    public ResultSet getTablePrivileges(String catalogPattern, String schemaPattern, String tableNamePattern) throws SQLException {
+    public ResultSet getTablePrivileges(String catalogPattern, String schemaPattern,
+            String tableNamePattern) throws SQLException {
         try {
             if (isDebugEnabled()) {
                 debugCode("getTablePrivileges("

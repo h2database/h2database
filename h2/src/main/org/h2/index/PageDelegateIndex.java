@@ -22,7 +22,8 @@ public class PageDelegateIndex extends PageIndex {
 
     private final PageDataIndex mainIndex;
 
-    public PageDelegateIndex(RegularTable table, int id, String name, IndexType indexType, PageDataIndex mainIndex, boolean create, Session session) {
+    public PageDelegateIndex(RegularTable table, int id, String name,
+            IndexType indexType, PageDataIndex mainIndex, boolean create, Session session) {
         IndexColumn[] cols = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;

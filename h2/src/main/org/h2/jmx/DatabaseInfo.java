@@ -141,7 +141,8 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     }
 
     public long getFileSize() {
-        return database.isPersistent() ? (database.getPageStore().getPageCount() * database.getPageStore().getPageSize() / 1024) : 0;
+        return database.isPersistent() ?
+                (database.getPageStore().getPageCount() * database.getPageStore().getPageSize() / 1024) : 0;
     }
 
     public int getCacheSizeMax() {

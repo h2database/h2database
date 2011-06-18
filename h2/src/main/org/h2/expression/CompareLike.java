@@ -48,11 +48,13 @@ public class CompareLike extends Condition {
     private boolean fastCompare;
     private boolean invalidPattern;
 
-    public CompareLike(Database db, Expression left, Expression right, Expression escape, boolean regexp) {
+    public CompareLike(Database db, Expression left, Expression right,
+            Expression escape, boolean regexp) {
         this(db.getCompareMode(), db.getSettings().defaultEscape, left, right, escape, regexp);
     }
 
-    public CompareLike(CompareMode compareMode, String defaultEscape, Expression left, Expression right, Expression escape, boolean regexp) {
+    public CompareLike(CompareMode compareMode, String defaultEscape,
+            Expression left, Expression right, Expression escape, boolean regexp) {
         this.compareMode = compareMode;
         this.defaultEscape = defaultEscape;
         this.regexp = regexp;

@@ -816,7 +816,9 @@ public class Select extends Query {
             }
         }
         cost = preparePlan();
-        if (distinct && session.getDatabase().getSettings().optimizeDistinct && !isGroupQuery && filters.size() == 1 && expressions.size() == 1 && condition == null) {
+        if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
+                !isGroupQuery && filters.size() == 1 &&
+                expressions.size() == 1 && condition == null) {
             Expression expr = expressions.get(0);
             expr = expr.getNonAliasExpression();
             if (expr instanceof ExpressionColumn) {
@@ -828,7 +830,8 @@ public class Select extends Query {
                     boolean ascending = columnIndex.getIndexColumns()[0].sortType == SortOrder.ASCENDING;
                     Index current = topTableFilter.getIndex();
                     // if another index is faster
-                    if (columnIndex.canFindNext() && ascending && (current == null || current.getIndexType().isScan() || columnIndex == current)) {
+                    if (columnIndex.canFindNext() && ascending &&
+                            (current == null || current.getIndexType().isScan() || columnIndex == current)) {
                         IndexType type = columnIndex.getIndexType();
                         // hash indexes don't work, and unique single column indexes don't work
                         if (!type.isHash() && (!type.isUnique() || columnIndex.getColumns().length > 1)) {

@@ -76,7 +76,8 @@ public class JdbcDataSourceFactory implements ObjectFactory {
     public static TraceSystem getTraceSystem() {
         synchronized (JdbcDataSourceFactory.class) {
             if (cachedTraceSystem == null) {
-                cachedTraceSystem = new TraceSystem(SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE);
+                cachedTraceSystem = new TraceSystem(
+                        SysProperties.CLIENT_TRACE_DIRECTORY + "h2datasource" + Constants.SUFFIX_TRACE_FILE);
                 cachedTraceSystem.setLevelFile(SysProperties.DATASOURCE_TRACE_LEVEL);
             }
             return cachedTraceSystem;

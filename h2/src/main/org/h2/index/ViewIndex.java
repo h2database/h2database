@@ -36,7 +36,8 @@ public class ViewIndex extends BaseIndex {
     private final TableView view;
     private final String querySQL;
     private final ArrayList<Parameter> originalParameters;
-    private final SmallLRUCache<IntArray, CostElement> costCache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
+    private final SmallLRUCache<IntArray, CostElement> costCache =
+        SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private boolean recursive;
     private int[] indexMasks;
     private String planSQL;

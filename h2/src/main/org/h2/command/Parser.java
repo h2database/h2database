@@ -4165,7 +4165,9 @@ public class Parser {
     private CreateFunctionAlias parseCreateFunctionAlias(boolean force) {
         boolean ifNotExists = readIfNoExists();
         String aliasName = readIdentifierWithSchema();
-        if (isKeyword(aliasName) || Function.getFunction(database, aliasName) != null || Aggregate.getAggregateType(aliasName) >= 0) {
+        if (isKeyword(aliasName) ||
+                Function.getFunction(database, aliasName) != null ||
+                Aggregate.getAggregateType(aliasName) >= 0) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
         }
         CreateFunctionAlias command = new CreateFunctionAlias(session, getSchema());
@@ -4912,7 +4914,9 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         Schema schema = table.getSchema();
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-        command.setType(ifNotExists ? CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS : CommandInterface.ALTER_TABLE_ADD_COLUMN);
+        command.setType(ifNotExists ?
+                CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS :
+                CommandInterface.ALTER_TABLE_ADD_COLUMN);
         command.setTable(table);
         String columnName = readColumnIdentifier();
         Column column = parseColumnForTable(columnName, true);

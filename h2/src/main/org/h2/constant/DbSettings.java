@@ -7,7 +7,6 @@
 package org.h2.constant;
 
 import java.util.HashMap;
-import org.h2.engine.Constants;
 import org.h2.engine.SettingsBase;
 
 /**
@@ -48,7 +47,7 @@ public class DbSettings extends SettingsBase {
      * starting the database. It is not run on local temporary tables, and
      * tables that have a trigger on SELECT.
      */
-    public final int analyzeAuto = get("ANALYZE_AUTO", Constants.VERSION_MINOR >= 3 ? 2000 : 0);
+    public final int analyzeAuto = get("ANALYZE_AUTO", 2000);
 
     /**
      * Database setting <code>ANALYZE_SAMPLE</code> (default: 10000).<br />
@@ -101,7 +100,7 @@ public class DbSettings extends SettingsBase {
      * with older versions of H2 the default action is currently CASCADE. This will
      * change in a future version of H2.
      */
-    public final boolean dropRestrict = get("DROP_RESTRICT", Constants.VERSION_MINOR >= 3);
+    public final boolean dropRestrict = get("DROP_RESTRICT", true);
 
     /**
      * Database setting <code>EARLY_FILTER</code> (default: false).<br />
@@ -125,7 +124,7 @@ public class DbSettings extends SettingsBase {
      * will always include the schema name in the CREATE ALIAS statement.
      * This is not backward compatible with H2 versions 1.2.134 and older.
      */
-    public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", Constants.VERSION_MINOR >= 3);
+    public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", true);
 
     /**
      * Database setting <code>LARGE_RESULT_BUFFER_SIZE</code> (default: 4096).<br />
@@ -138,7 +137,7 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>LARGE_TRANSACTIONS</code> (default: true).<br />
      * Support very large transactions
      */
-    public final boolean largeTransactions = get("LARGE_TRANSACTIONS", Constants.VERSION_MINOR >= 3);
+    public final boolean largeTransactions = get("LARGE_TRANSACTIONS", true);
 
     /**
      * Database setting <code>MAX_COMPACT_COUNT</code>
@@ -160,7 +159,7 @@ public class DbSettings extends SettingsBase {
      * more than this number of rows are in a result set, a temporary table is
      * used.
      */
-    public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT", Constants.VERSION_MINOR >= 3 ? 10000 : Integer.MAX_VALUE);
+    public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT", 10000);
 
     /**
      * Database setting <code>MAX_QUERY_TIMEOUT</code> (default: 0).<br />
@@ -174,7 +173,7 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>NESTED_JOINS</code> (default: true).<br />
      * Whether nested joins should be supported.
      */
-    public final boolean nestedJoins = get("NESTED_JOINS", Constants.VERSION_MINOR >= 3);
+    public final boolean nestedJoins = get("NESTED_JOINS", true);
 
     /**
      * Database setting <code>OPTIMIZE_DISTINCT</code> (default: true).<br />
@@ -203,7 +202,7 @@ public class DbSettings extends SettingsBase {
      * Insert into table from query directly bypassing temporary disk storage.
      * This also applies to create table as select.
      */
-    public final boolean optimizeInsertFromSelect = get("OPTIMIZE_INSERT_FROM_SELECT", Constants.VERSION_MINOR >= 3);
+    public final boolean optimizeInsertFromSelect = get("OPTIMIZE_INSERT_FROM_SELECT", true);
 
     /**
      * Database setting <code>OPTIMIZE_IN_LIST</code> (default: true).<br />
@@ -217,7 +216,7 @@ public class DbSettings extends SettingsBase {
      * Optimize IN(SELECT ...) comparisons. This includes
      * optimization for SELECT, DELETE, and UPDATE.
      */
-    public final boolean optimizeInSelect = get("OPTIMIZE_IN_SELECT", Constants.VERSION_MINOR >= 3);
+    public final boolean optimizeInSelect = get("OPTIMIZE_IN_SELECT", true);
 
     /**
      * Database setting <code>OPTIMIZE_IS_NULL</code> (default: false).<br />
@@ -229,7 +228,7 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>OPTIMIZE_OR</code> (default: true).<br />
      * Convert (C=? OR C=?) to (C IN(?, ?)).
      */
-    public final boolean optimizeOr = get("OPTIMIZE_OR", Constants.VERSION_MINOR >= 3);
+    public final boolean optimizeOr = get("OPTIMIZE_OR", true);
 
     /**
      * Database setting <code>OPTIMIZE_TWO_EQUALS</code> (default: true).<br />
@@ -273,7 +272,7 @@ public class DbSettings extends SettingsBase {
      * SELECT statements are cached (excluding UNION and FOR UPDATE statements).
      * This works for both statements and prepared statement.
      */
-    public final int queryCacheSize = get("QUERY_CACHE_SIZE", Constants.VERSION_MINOR >= 3 ? 8 : 0);
+    public final int queryCacheSize = get("QUERY_CACHE_SIZE", 8);
 
     /**
      * Database setting <code>RECOMPILE_ALWAYS</code> (default: false).<br />
@@ -294,7 +293,7 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>ROWID</code> (default: true).<br />
      * If set, each table has a pseudo-column _ROWID_.
      */
-    public final boolean rowId = get("ROWID", Constants.VERSION_MINOR >= 3);
+    public final boolean rowId = get("ROWID", true);
 
     /**
      * Database setting <code>SELECT_FOR_UPDATE_MVCC</code>
@@ -302,7 +301,7 @@ public class DbSettings extends SettingsBase {
      * If set, SELECT .. FOR UPDATE queries lock only the selected rows when
      * using MVCC.
      */
-    public final boolean selectForUpdateMvcc = get("SELECT_FOR_UPDATE_MVCC", Constants.VERSION_MINOR >= 3);
+    public final boolean selectForUpdateMvcc = get("SELECT_FOR_UPDATE_MVCC", true);
 
     /**
      * Database setting <code>SHARE_LINKED_CONNECTIONS</code>

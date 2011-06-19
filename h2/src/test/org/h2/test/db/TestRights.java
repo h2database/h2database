@@ -46,13 +46,19 @@ public class TestRights extends TestBase {
     }
 
     private void testOpenNonAdminWithMode() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         deleteDb("rights");
-        Connection conn = getConnection("rights");
+        Connection conn = getConnection("rights;MODE=MYSQL");
         stat = conn.createStatement();
         stat.execute("create user test password 'test'");
-        Connection conn2 = getConnection("rights", "test", getPassword("test"));
+        Connection conn2 = getConnection("rights;MODE=MYSQL", "test", getPassword("test"));
         conn2.close();
         conn.close();
+        if (config.memory) {
+            return;
+        }
         // if opening alone
         conn2 = getConnection("rights;MODE=MYSQL", "test", getPassword("test"));
         conn2.close();

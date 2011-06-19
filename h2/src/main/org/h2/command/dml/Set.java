@@ -242,12 +242,14 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.MODE:
-            session.getUser().checkAdmin();
             Mode mode = Mode.getInstance(stringValue);
             if (mode == null) {
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1, stringValue);
             }
-            database.setMode(mode);
+            if (database.getMode() != mode) {
+                session.getUser().checkAdmin();
+                database.setMode(mode);
+            }
             break;
         case SetTypes.MULTI_THREADED: {
             session.getUser().checkAdmin();

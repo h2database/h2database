@@ -5,6 +5,7 @@
 21S02=A quantidade de colunas não corresponde
 22001=Valor muito longo para a coluna {0}: {1}
 22003=Valor númerico não esta dentro do limite: {0}
+22007=Não é possível converter {1} para {0}
 22012=Divisão por zero: {0}
 22018=Erro na conversão de dado, convertendo {0}
 22025=Erro em LIKE ESCAPE: {0}
@@ -33,9 +34,6 @@
 90004=Sequência Hexadecimal contêm caracteres inválidos: {0}
 90007=O objeto está fechado
 90008=Valor inválido {0} para o parâmetro {1}
-90009=Não é possível converter {0} para date, causa: {1}
-90010=Não é possível converter {0} para time, causa: {1}
-90011=Não é possível converter {0} para timestamp, causa: {1}
 90012=Parâmetro {0} não esta definido
 90013=Base de dados {0} não encontrada
 90014=Erro na conversão {0}

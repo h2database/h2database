@@ -9,7 +9,6 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
-import org.h2.constant.ErrorCode;
 import org.h2.util.DateTimeUtils;
 
 /**
@@ -41,7 +40,7 @@ public class ValueTime extends Value {
      * @return the time
      */
     public static Time parseTime(String s) {
-        return (Time) DateTimeUtils.parseDateTime(s, Value.TIME, ErrorCode.TIME_CONSTANT_2);
+        return (Time) DateTimeUtils.parseDateTime(s, Value.TIME);
     }
 
     public Time getTime() {

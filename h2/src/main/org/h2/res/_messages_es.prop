@@ -5,6 +5,7 @@
 21S02=La cantidad de columnas no coincide
 22001=Valor demasiado largo para la columna {0}: {1}
 22003=Valor numerico fuera de rango: {0}
+22007=Imposible interpretar la constante {0} {1}
 22012=División por cero: {0}
 22018=Conversión de datos fallida, convirtiendo {0}
 22025=Error en LIKE ESCAPE: {0}
@@ -33,9 +34,6 @@
 90004=Cadena Hexadecimal contiene caracteres invalidos: {0}
 90007=El objeto ya está cerrado
 90008=Valor Invalido {0} para el parametro {1}
-90009=Imposible interpretar la constante de fecha {0}, causa: {1}
-90010=Imposible interpretar la constante de hora {0}, causa: {1}
-90011=Imposible interpretar la constante de fecha y hora timestamp {0}, causa: {1}
 90012=Parametro {0} no está fijado
 90013=Database {0} no encontrada
 90014=Error interpretando {0}

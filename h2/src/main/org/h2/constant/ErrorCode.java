@@ -462,34 +462,16 @@ public class ErrorCode {
     public static final int INVALID_VALUE_2 = 90008;
 
     /**
-     * The error with code <code>90009</code> is thrown when
-     * a text can not be converted to a date constant.
-     * Example:
+     * The error with code <code>22007</code> is thrown when
+     * a text can not be converted to a date, time, or timestamp constant.
+     * Examples:
      * <pre>
      * CALL DATE '2007-January-01';
-     * </pre>
-     */
-    public static final int DATE_CONSTANT_2 = 90009;
-
-    /**
-     * The error with code <code>90010</code> is thrown when
-     * a text can not be converted to a time constant.
-     * Example:
-     * <pre>
      * CALL TIME '14:61:00';
-     * </pre>
-     */
-    public static final int TIME_CONSTANT_2 = 90010;
-
-    /**
-     * The error with code <code>90011</code> is thrown when
-     * a text can not be converted to a timestamp constant.
-     * Example:
-     * <pre>
      * CALL TIMESTAMP '2001-02-30 12:00:00';
      * </pre>
      */
-    public static final int TIMESTAMP_CONSTANT_2 = 90011;
+    public static final int INVALID_DATETIME_CONSTANT_2 = 22007;
 
     /**
      * The error with code <code>90012</code> is thrown when
@@ -1867,7 +1849,7 @@ public class ErrorCode {
      */
     public static final int RESULT_SET_READONLY = 90140;
 
-    // next are 90005, 90006, 90021, 90039, 90051, 90056, 90110, 90122, 90141
+    // next are 90005, 90006, 90009, 90010, 90011, 90021, 90039, 90051, 90056, 90110, 90122, 90141
 
     private ErrorCode() {
         // utility class

@@ -124,8 +124,8 @@ public class TestDate extends TestBase {
     }
 
     private void testDateTimeUtils() {
-        java.sql.Timestamp ts1 = (Timestamp) DateTimeUtils.parseDateTime("-999-08-07 13:14:15.16", Value.TIMESTAMP, 0);
-        java.sql.Timestamp ts2 = (Timestamp) DateTimeUtils.parseDateTime("19999-08-07 13:14:15.16", Value.TIMESTAMP, 0);
+        java.sql.Timestamp ts1 = (Timestamp) DateTimeUtils.parseDateTime("-999-08-07 13:14:15.16", Value.TIMESTAMP);
+        java.sql.Timestamp ts2 = (Timestamp) DateTimeUtils.parseDateTime("19999-08-07 13:14:15.16", Value.TIMESTAMP);
         java.sql.Time t1 = DateTimeUtils.cloneAndNormalizeTime(new java.sql.Time(ts1.getTime()));
         java.sql.Time t2 = DateTimeUtils.cloneAndNormalizeTime(new java.sql.Time(ts2.getTime()));
         java.sql.Date d1 = DateTimeUtils.cloneAndNormalizeDate(new java.sql.Date(ts1.getTime()));

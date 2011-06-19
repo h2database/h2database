@@ -5,6 +5,7 @@
 21S02=Niezgodna ilosc kolumn
 22001=Wartosc za dluga dla kolumny {0}: {1}
 22003=Wartosc numeryczna poza zakresem: {0}
+22007=#Cannot parse {0} constant {1}
 22012=Dzielenie przez zero: {0}
 22018=Blad konwersji danych {0}
 22025=Blad w LIKE ESCAPE: {0}
@@ -33,9 +34,6 @@
 90004=Hexadecimal string contains non hex character: {0}
 90007=Objekt jest zamkniety
 90008=Nieprawidlowa wartosc {0} parametru {1}
-90009=#Cannot parse date constant {0}, cause: {1}
-90010=#Cannot parse time constant {0}, cause: {1}
-90011=#Cannot parse timestamp constant {0}, cause: {1}
 90012=Parametr o numerze {0} nie jest ustalony
 90013=Baza danych {0} nie znaleziona
 90014=Blad parsowania {0}

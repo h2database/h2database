@@ -12,8 +12,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
-
-import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -79,7 +77,7 @@ public class ValueTimestamp extends Value {
      * @return the timestamp
      */
     public static Timestamp parseTimestamp(String s) {
-        return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
+        return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP);
     }
 
     public int getType() {

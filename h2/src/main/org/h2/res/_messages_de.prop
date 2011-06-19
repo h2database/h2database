@@ -5,6 +5,7 @@
 21S02=Anzahl der Felder stimmt nicht überein
 22001=Wert zu gross / lang für Feld {0}: {1}
 22003=Zahlenwert ausserhalb des Bereichs: {0}
+22007=Kann {0} {1} nicht umwandeln
 22012=Division durch 0: {0}
 22018=Datenumwandlungsfehler beim Umwandeln von {0}
 22025=Fehler in LIKE ESCAPE: {0}
@@ -33,9 +34,6 @@
 90004=Hexadezimal Zahl enthält unerlaubtes Zeichen: {0}
 90007=Das Objekt wurde bereits geschlossen
 90008=Unerlaubter Wert {0} für Parameter {1}
-90009=Kann Datum {0} nicht umwandeln, Grund: {1}
-90010=Kann Zeit {0} nicht umwandeln, Grund: {1}
-90011=Kann Zeitstempel {0} nicht umwandeln, Grund: {1}
 90012=Parameter {0} wurde nicht gesetzt
 90013=Datenbank {0} nicht gefunden
 90014=Fehler beim Parsen von {0}

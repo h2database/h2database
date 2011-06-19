@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The SQL state of the following exceptions has been changed:
+<ul><li>PgServer: non-admin users could not open a database.
+</li><li>Non-admin users could not open a database using a mode (MODE=xxx)
+    if the database was already open, even if the mode matched.
+</li><li>The SQL state of the following exceptions has been changed:
     From 90009, 90010, 90011 to 22007: "Cannot parse DATE/TIME/TIMESTAMP constant ...".
 </li><li>There is a problem when opening a database file in a timezone that has different
     daylight saving rules: the time part of dates where the daylight saving doesn't match

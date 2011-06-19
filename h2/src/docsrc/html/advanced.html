@@ -628,6 +628,10 @@ and the server, because the password is readable to the attacker.
 Also, it is currently not possible to use encrypted SSL connections.
 Therefore the ODBC driver should not be used where security is important.
 </p>
+<p>
+The first connection that opens a database using the PostgreSQL server needs to be an administrator user.
+Subsequent connections don't need to be opened by an administrator.
+</p>
 
 <h3>Using Microsoft Access</h3>
 <p>

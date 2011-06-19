@@ -61,8 +61,13 @@ public class TestPgServer extends TestBase {
         } catch (SQLException e) {
             assertKnownException(e);
         }
+        stat.execute("create user test password 'test'");
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("create index idx_test_name on test(name, id)");
+        stat.execute("grant all on test to test");
         conn.close();
-        conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
+
+        conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "test", "test");
         stat = conn.createStatement();
         ResultSet rs;
 
@@ -72,8 +77,6 @@ public class TestPgServer extends TestBase {
         assertEquals(6, rs.getInt(1));
         stat.execute("deallocate test");
 
-        stat.execute("create table test(id int primary key, name varchar)");
-        stat.execute("create index idx_test_name on test(name, id)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
         ParameterMetaData meta = prep.getParameterMetaData();
         assertEquals(2, meta.getParameterCount());

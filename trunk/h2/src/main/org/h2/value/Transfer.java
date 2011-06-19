@@ -332,7 +332,7 @@ public class Transfer {
             break;
         case Value.DATE:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                writeLong(DateTimeUtils.getTimeLocal(v.getTimeNoCopy()));
+                writeLong(DateTimeUtils.getTimeLocal(v.getDateNoCopy()));
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getDateNoCopy()));
             } else {

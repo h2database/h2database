@@ -34,6 +34,7 @@ public class TestRights extends TestBase {
     }
 
     public void test() throws SQLException {
+        testOpenNonAdminWithMode();
         testDisallowedTables();
         testDropOwnUser();
         testGetTables();
@@ -42,6 +43,26 @@ public class TestRights extends TestBase {
         testSchemaRenameUser();
         testAccessRights();
         deleteDb("rights");
+    }
+
+    private void testOpenNonAdminWithMode() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create user test password 'test'");
+        Connection conn2 = getConnection("rights", "test", getPassword("test"));
+        conn2.close();
+        conn.close();
+        // if opening alone
+        conn2 = getConnection("rights;MODE=MYSQL", "test", getPassword("test"));
+        conn2.close();
+        // if opening as the second connection
+        conn = getConnection("rights;MODE=MYSQL");
+        conn2 = getConnection("rights;MODE=MYSQL", "test", getPassword("test"));
+        conn2.close();
+        stat = conn.createStatement();
+        stat.execute("drop user test");
+        conn.close();
     }
 
     private void testDisallowedTables() throws SQLException {

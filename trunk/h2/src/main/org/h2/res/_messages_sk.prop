@@ -5,6 +5,7 @@
 21S02=Počet stĺpcov sa nezhoduje
 22001=Hodnota je príliš dlhá pre stĺpec {0}: {1}
 22003=Číselná hodnota mimo rozsah: {0}
+22007=Nemožem rozobrať {0} konštantu {1}
 22012=Delenie nulou: {0}
 22018=Chyba konverzie dát pre {0}
 22025=Chyba v LIKE ESCAPE: {0}
@@ -33,9 +34,6 @@
 90004=Hexadecimálny reťazec obsahuje nepovolené znaky pre šestnáskovú sústavu: {0}
 90007=Objekt už je zatvorený
 90008=Nesprávna hodnota {0} parametra {1}
-90009=Nemožem rozobrať dátumovú (date) konštantu {0}, dôvod: {1}
-90010=Nemožem rozobrať časovú (time) konštantu {0}, dôvod: {1}
-90011=Nemožem rozobrať časovú pečiatku (timestamp) {0}, dôvod: {1}
 90012=Parameter {0} nie je nastavený
 90013=Databáza {0} nenájdená
 90014=Chyba rozobrania (parse) {0}

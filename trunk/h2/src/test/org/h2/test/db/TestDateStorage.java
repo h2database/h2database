@@ -14,7 +14,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.TimeZone;
-import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.unit.TestDate;
@@ -123,7 +122,7 @@ public class TestDateStorage extends TestBase {
 
     private static void test(int year, int month, int day, int hour) {
         DateTimeUtils.parseDateTime(year + "-" + month + "-" + day + " " + hour + ":00:00",
-                Value.TIMESTAMP, ErrorCode.TIMESTAMP_CONSTANT_2);
+                Value.TIMESTAMP);
     }
 
     private void testAllTimeZones() throws SQLException {

@@ -149,18 +149,23 @@ public class TestDateStorage extends TestBase {
     private void test(PreparedStatement prep, int d) throws SQLException {
         String s = "2040-10-" + ("" + d).substring(1);
         // some dates don't work in some versions of Java
-        //        java.sql.Date date = java.sql.Date.valueOf(s);
-        //        long time = date.getTime();
-        //        int plus = 0;
-        //        while (true) {
-        //            date = new java.sql.Date(time);
-        //            String x = date.toString();
-        //            if (x.equals(s)) {
-        //                break;
-        //            }
-        //            time += 1000;
-        //            plus += 1000;
-        //        }
+        // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6772689
+        java.sql.Date date = java.sql.Date.valueOf(s);
+        long time = date.getTime();
+        int plus = 0;
+        while (true) {
+            date = new java.sql.Date(time);
+            String x = date.toString();
+            if (x.equals(s)) {
+                break;
+            }
+            time += 1000;
+            plus += 1000;
+        }
+        // if (!date.toString().equals(s)) {
+        //     println(TimeZone.getDefault().getDisplayName() + " " + s + " <> " + date.toString());
+        //     return;
+        // }
         prep.setString(1, s);
         ResultSet rs = prep.executeQuery();
         rs.next();

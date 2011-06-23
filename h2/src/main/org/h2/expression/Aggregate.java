@@ -548,7 +548,10 @@ public class Aggregate extends Expression {
         if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
             switch (type) {
             case COUNT:
-                return on.getNullable() == Column.NOT_NULLABLE && visitor.getTable().canGetRowCount();
+                if (!distinct && on.getNullable() == Column.NOT_NULLABLE) {
+                    return visitor.getTable().canGetRowCount();
+                }
+                return false;
             case COUNT_ALL:
                 return visitor.getTable().canGetRowCount();
             case MIN:

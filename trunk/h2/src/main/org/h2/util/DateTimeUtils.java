@@ -92,7 +92,7 @@ public class DateTimeUtils {
             cal.set(Calendar.ERA, GregorianCalendar.AD);
             // month is 0 based
             cal.set(DEFAULT_YEAR, DEFAULT_MONTH - 1, DEFAULT_DAY);
-            time = cal.getTime().getTime();
+            time = cal.getTimeInMillis();
         }
         return new Time(time);
     }

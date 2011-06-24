@@ -60,6 +60,7 @@ public class TestDateStorage extends TestBase {
         ArrayList<TimeZone> distinct = TestDate.getDistinctTimeZones();
         try {
             for (TimeZone tz : distinct) {
+                println("insert using " + tz.getID());
                 TimeZone.setDefault(tz);
                 DateTimeUtils.resetCalendar();
                 conn = getConnection(db);
@@ -75,6 +76,7 @@ public class TestDateStorage extends TestBase {
             }
             printTime("inserted");
             for (TimeZone target : distinct) {
+                println("select from " + target.getID());
                 if ("Pacific/Kiritimati".equals(target)) {
                     // there is a problem with this time zone, but it seems
                     // unrelated to this database (possibly wrong timezone
@@ -126,13 +128,17 @@ public class TestDateStorage extends TestBase {
     }
 
     private void testAllTimeZones() throws SQLException {
+        if (config.networked) {
+            return;
+        }
         Connection conn = getConnection("date");
         TimeZone defaultTimeZone = TimeZone.getDefault();
         PreparedStatement prep = conn.prepareStatement("CALL CAST(? AS DATE)");
         try {
-            String[] ids = TimeZone.getAvailableIDs();
-            for (int i = 0; i < ids.length; i++) {
-                TimeZone.setDefault(TimeZone.getTimeZone(ids[i]));
+            ArrayList<TimeZone> distinct = TestDate.getDistinctTimeZones();
+            for (TimeZone tz : distinct) {
+                println(tz.getID());
+                TimeZone.setDefault(tz);
                 DateTimeUtils.resetCalendar();
                 for (int d = 101; d < 129; d++) {
                     test(prep, d);
@@ -162,10 +168,10 @@ public class TestDateStorage extends TestBase {
             time += 1000;
             plus += 1000;
         }
-        // if (!date.toString().equals(s)) {
-        //     println(TimeZone.getDefault().getDisplayName() + " " + s + " <> " + date.toString());
-        //     return;
-        // }
+        if (!date.toString().equals(s)) {
+            println(TimeZone.getDefault().getDisplayName() + " " + s + " <> " + date.toString());
+            return;
+        }
         prep.setString(1, s);
         ResultSet rs = prep.executeQuery();
         rs.next();

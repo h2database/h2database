@@ -234,8 +234,6 @@ public class Transfer {
         if (len == -1) {
             return null;
         }
-        // TODO optimize: StringBuilder is synchronized, maybe use a char array
-        // (but that means more memory)
         StringBuilder buff = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
             buff.append(in.readChar());

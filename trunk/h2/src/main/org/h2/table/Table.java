@@ -1072,4 +1072,8 @@ public abstract class Table extends SchemaObjectBase {
         return isHidden;
     }
 
+    public void setHidden(boolean hidden) {
+        this.isHidden = hidden;
+    }
+
 }

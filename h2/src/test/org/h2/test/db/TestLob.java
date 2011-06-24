@@ -116,9 +116,9 @@ public class TestLob extends TestBase {
         }
         if (upgraded) {
             if (config.memory) {
-                stat.execute("update information_schema.lob_map set offset=null");
+                stat.execute("update information_schema.lob_map set pos=null");
             } else {
-                stat.execute("alter table information_schema.lob_map drop column offset");
+                stat.execute("alter table information_schema.lob_map drop column pos");
                 conn.close();
                 conn = getConnection("lob");
             }

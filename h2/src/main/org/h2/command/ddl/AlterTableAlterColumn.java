@@ -54,6 +54,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private Expression defaultExpression;
     private Expression newSelectivity;
     private String addBefore;
+    private boolean ifNotExists;
 
     public AlterTableAlterColumn(Session session, Schema schema) {
         super(session, schema);
@@ -124,15 +125,11 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_TABLE_ADD_COLUMN: {
+            if (ifNotExists && table.doesColumnExist(newColumn.getName())) {
+                break;
+            }
             convertAutoIncrementColumn(newColumn);
             copyData();
-            break;
-        }
-        case CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS: {
-            if (!table.doesColumnExist(newColumn.getName())) {
-                convertAutoIncrementColumn(newColumn);
-                copyData();
-            }
             break;
         }
         case CommandInterface.ALTER_TABLE_DROP_COLUMN: {
@@ -253,8 +250,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         if (type == CommandInterface.ALTER_TABLE_DROP_COLUMN) {
             int position = oldColumn.getColumnId();
             newColumns.remove(position);
-        } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN
-                || type == CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS) {
+        } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN) {
             int position;
             if (addBefore == null) {
                 position = columns.length;
@@ -281,6 +277,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         data.temporary = table.isTemporary();
         data.persistData = table.isPersistData();
         data.persistIndexes = table.isPersistIndexes();
+        data.isHidden = table.isHidden();
         data.create = true;
         data.session = session;
         Table newTable = getSchema().createTable(data);
@@ -292,8 +289,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (columnList.length() > 0) {
                 columnList.append(", ");
             }
-            if ((type == CommandInterface.ALTER_TABLE_ADD_COLUMN
-                || type == CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS) && nc == newColumn) {
+            if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN && nc == newColumn) {
                 Expression def = nc.getDefaultExpression();
                 columnList.append(def == null ? "NULL" : def.getSQL());
             } else {
@@ -458,6 +454,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
     public int getType() {
         return type;
+    }
+
+    public void setIfNotExists(boolean ifNotExists) {
+        this.ifNotExists = ifNotExists;
     }
 
 }

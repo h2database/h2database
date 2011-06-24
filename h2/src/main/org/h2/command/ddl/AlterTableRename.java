@@ -23,6 +23,7 @@ public class AlterTableRename extends SchemaCommand {
 
     private Table oldTable;
     private String newTableName;
+    private boolean hidden;
 
     public AlterTableRename(Session session, Schema schema) {
         super(session, schema);
@@ -39,12 +40,21 @@ public class AlterTableRename extends SchemaCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        if (getSchema().findTableOrView(session, newTableName) != null || newTableName.equals(oldTable.getName())) {
+        session.getUser().checkRight(oldTable, Right.ALL);
+        Table t = getSchema().findTableOrView(session, newTableName);
+        if (t != null && hidden && newTableName.equals(oldTable.getName())) {
+            if (!t.isHidden()) {
+                t.setHidden(hidden);
+                oldTable.setHidden(true);
+                db.update(session, oldTable);
+            }
+            return 0;
+        }
+        if (t != null || newTableName.equals(oldTable.getName())) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, newTableName);
         }
-        session.getUser().checkRight(oldTable, Right.ALL);
         if (oldTable.isTemporary()) {
-            throw DbException.getUnsupportedException("TEMP TABLE");
+            throw DbException.getUnsupportedException("temp table");
         }
         db.renameSchemaObject(session, oldTable, newTableName);
         return 0;
@@ -52,6 +62,10 @@ public class AlterTableRename extends SchemaCommand {
 
     public int getType() {
         return CommandInterface.ALTER_TABLE_RENAME;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
 }

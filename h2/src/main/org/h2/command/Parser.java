@@ -4799,6 +4799,7 @@ public class Parser {
             AlterTableRename command = new AlterTableRename(session, getSchema());
             command.setOldTable(table);
             command.setNewTableName(newName);
+            command.setHidden(readIf("HIDDEN"));
             return command;
         } else if (readIf("DROP")) {
             if (readIf("CONSTRAINT")) {
@@ -4817,10 +4818,14 @@ public class Parser {
                 return command;
             } else {
                 readIf("COLUMN");
+                boolean ifExists = readIfExists(false);
                 AlterTableAlterColumn command = new AlterTableAlterColumn(session, table.getSchema());
                 command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 String columnName = readColumnIdentifier();
                 command.setTable(table);
+                if (ifExists && !table.doesColumnExist(columnName)) {
+                    return new NoOperation(session);
+                }
                 command.setOldColumn(table.getColumn(columnName));
                 return command;
             }
@@ -4914,9 +4919,8 @@ public class Parser {
         boolean ifNotExists = readIfNoExists();
         Schema schema = table.getSchema();
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-        command.setType(ifNotExists ?
-                CommandInterface.ALTER_TABLE_ADD_COLUMN_IF_NOT_EXISTS :
-                CommandInterface.ALTER_TABLE_ADD_COLUMN);
+        command.setIfNotExists(ifNotExists);
+        command.setType(CommandInterface.ALTER_TABLE_ADD_COLUMN);
         command.setTable(table);
         String columnName = readColumnIdentifier();
         Column column = parseColumnForTable(columnName, true);
@@ -5124,13 +5128,7 @@ public class Parser {
         command.setIfNotExists(ifNotExists);
         command.setTableName(tableName);
         command.setComment(readCommentIf());
-        if (readIf("AS")) {
-            if (readIf("SORTED")) {
-                command.setSortedInsertMode(true);
-            }
-            command.setQuery(parseSelect());
-        } else {
-            read("(");
+        if (readIf("(")) {
             if (!readIf(")")) {
                 do {
                     DefineCommand c = parseAlterTableAddConstraintIf(tableName, schema);
@@ -5202,12 +5200,6 @@ public class Parser {
                     }
                 } while (readIfMore());
             }
-            if (readIf("AS")) {
-                if (readIf("SORTED")) {
-                    command.setSortedInsertMode(true);
-                }
-                command.setQuery(parseSelect());
-            }
         }
         if (readIf("ENGINE")) {
             command.setTableEngine(readUniqueIdentifier());
@@ -5237,6 +5229,12 @@ public class Parser {
         }
         if (readIf("HIDDEN")) {
             command.setHidden(true);
+        }
+        if (readIf("AS")) {
+            if (readIf("SORTED")) {
+                command.setSortedInsertMode(true);
+            }
+            command.setQuery(parseSelect());
         }
         return command;
     }

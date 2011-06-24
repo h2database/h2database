@@ -100,9 +100,11 @@ public class LobStorage {
                 stat.execute("CREATE INDEX IF NOT EXISTS " +
                         "INFORMATION_SCHEMA.INDEX_LOB_TABLE ON " + LOBS + "(TABLE)");
                 stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP +
-                        "(LOB BIGINT, SEQ INT, OFFSET BIGINT, HASH INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
-                stat.execute("ALTER TABLE " + LOB_MAP +
-                        " ADD IF NOT EXISTS OFFSET BIGINT BEFORE HASH");
+                        "(LOB BIGINT, SEQ INT, POS BIGINT, HASH INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
+                // TODO the column name OFFSET was used in version 1.3.156, so this can be remove in a later version
+                stat.execute("ALTER TABLE " + LOB_MAP + " RENAME TO " + LOB_MAP + " HIDDEN");
+                stat.execute("ALTER TABLE " + LOB_MAP + " ADD IF NOT EXISTS POS BIGINT BEFORE HASH");
+                stat.execute("ALTER TABLE " + LOB_MAP + " DROP COLUMN IF EXISTS \"OFFSET\"");
                 stat.execute("CREATE INDEX IF NOT EXISTS " +
                         "INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
                 stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_DATA +
@@ -213,31 +215,31 @@ public class LobStorage {
     }
 
     /**
-     * Retrieve the sequence id and offset that is smaller than the requested
-     * offset. Those values can be used to quickly skip to a given position
+     * Retrieve the sequence id and position that is smaller than the requested
+     * position. Those values can be used to quickly skip to a given position
      * without having to read all data.
      *
      * @param lob the lob
-     * @param offset the required offset
+     * @param pos the required position
      * @return null if the data is not available, or an array of two elements:
      *         the sequence, and the offset
      */
-    long[] skipBuffer(long lob, long offset) throws SQLException {
+    long[] skipBuffer(long lob, long pos) throws SQLException {
         synchronized (handler) {
-            String sql = "SELECT MAX(SEQ), MAX(OFFSET) FROM " + LOB_MAP +
-                    " WHERE LOB = ? AND OFFSET < ?";
+            String sql = "SELECT MAX(SEQ), MAX(POS) FROM " + LOB_MAP +
+                    " WHERE LOB = ? AND POS < ?";
             PreparedStatement prep = prepare(sql);
             prep.setLong(1, lob);
-            prep.setLong(2, offset);
+            prep.setLong(2, pos);
             ResultSet rs = prep.executeQuery();
             rs.next();
             int seq = rs.getInt(1);
-            offset = rs.getLong(2);
+            pos = rs.getLong(2);
             boolean wasNull = rs.wasNull();
             rs.close();
             reuse(sql, prep);
             // upgraded: offset not set
-            return wasNull ? null : new long[]{seq, offset};
+            return wasNull ? null : new long[]{seq, pos};
         }
     }
 
@@ -273,12 +275,12 @@ public class LobStorage {
             if (n > BLOCK_LENGTH) {
                 long toPos = length - remainingBytes + n;
                 try {
-                    long[] seqOffset = skipBuffer(lob, toPos);
-                    if (seqOffset == null) {
+                    long[] seqPos = skipBuffer(lob, toPos);
+                    if (seqPos == null) {
                         return super.skip(n);
                     }
-                    seq = (int) seqOffset[0];
-                    n = toPos - seqOffset[1];
+                    seq = (int) seqPos[0];
+                    n = toPos - seqPos[1];
                 } catch (SQLException e) {
                     throw DbException.convertToIOException(e);
                 }
@@ -541,8 +543,8 @@ public class LobStorage {
             try {
                 init();
                 long lobId = getNextLobId();
-                String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, OFFSET, HASH, BLOCK) " +
-                        "SELECT ?, SEQ, OFFSET, HASH, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?";
+                String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, POS, HASH, BLOCK) " +
+                        "SELECT ?, SEQ, POS, HASH, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?";
                 PreparedStatement prep = prepare(sql);
                 prep.setLong(1, lobId);
                 prep.setLong(2, oldLobId);
@@ -590,11 +592,11 @@ public class LobStorage {
      *
      * @param lobId the lob id
      * @param seq the sequence number
-     * @param offset the offset within the lob
+     * @param pos the position within the lob
      * @param b the data
      * @param compressAlgorithm the compression algorithm (may be null)
      */
-    void storeBlock(long lobId, int seq, long offset, byte[] b, String compressAlgorithm) throws SQLException {
+    void storeBlock(long lobId, int seq, long pos, byte[] b, String compressAlgorithm) throws SQLException {
         long block;
         boolean blockExists = false;
         if (compressAlgorithm != null) {
@@ -629,11 +631,11 @@ public class LobStorage {
                 prep.execute();
                 reuse(sql, prep);
             }
-            String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, OFFSET, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, POS, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
             PreparedStatement prep = prepare(sql);
             prep.setLong(1, lobId);
             prep.setInt(2, seq);
-            prep.setLong(3, offset);
+            prep.setLong(3, pos);
             prep.setLong(4, hash);
             prep.setLong(5, block);
             prep.execute();

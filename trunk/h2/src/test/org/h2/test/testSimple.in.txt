@@ -149,7 +149,7 @@ select * from test order by id;
 > 1;
 drop table test;
 
-create memory table test(id int) as select 1 from dual not persistent;
+create memory table test(id int) not persistent as select 1 from dual;
 insert into test values(1);
 select count(1) from test;
 > 2;

@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>PgServer: non-admin users could not open a database.
+<ul><li>The syntax for CREATE TABLE ... AS SELECT ... has been changed:
+    options such as NOT PERSISTENT are now before the query (AS SELECT), because otherwise
+    they might be interpreted as a part of the query.
+</li><li>With version 1.3.156, the DB2 mode could not be used with CLOB and BLOB data.
+</li><li>When upgrading from an older 1.3.x version to version 1.3.156,
+    CLOB and BLOB data was lost in many cases.
+</li><li>The optimization for COUNT(..) on columns that are not nullable
+    was also used for COUNT(DISTINCT ..), which is incorrect.
+</li><li>PgServer: non-admin users could not open a database.
 </li><li>Non-admin users could not open a database using a mode (MODE=xxx)
     if the database was already open, even if the mode matched.
 </li><li>The SQL state of the following exceptions has been changed:

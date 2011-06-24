@@ -117,6 +117,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Max memory rows / max undo log size: use block count / row size not row count.
 </li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2).
 </li><li>Implement point-in-time recovery.
+</li><li>Support PL/SQL (programming language / control flow statements).
 </li><li>LIKE: improved version for larger texts (currently using naive search).
 </li><li>Throw an exception when the application calls getInt on a Long (optional).
 </li><li>Default date format for input and output (local date constants).
@@ -321,7 +322,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Serialized file lock: support long running queries.
 </li><li>Network: use 127.0.0.1 if other addresses don't work.
 </li><li>Pluggable network protocol (currently  Socket/ServerSocket over TCP/IP) - see also TransportServer with master slave replication.
-</li><li>Select for update in mvcc mode: only lock the selected records.
 </li><li>Support reading JCR data: one table per node type; query table; cache option
 </li><li>OSGi: create a sample application, test, document.
 </li><li>help.csv: use complete examples for functions; run as test case.
@@ -543,10 +543,13 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL compatibility: support PgAdmin III (specially the function current_setting).
 </li><li>MySQL compatibility: support TIMESTAMPADD.
 </li><li>Support SELECT ... FOR UPDATE with joins (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby).
+</li><li>Support SELECT ... FOR UPDATE OF [field-list] (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby).
+</li><li>Support SELECT ... FOR UPDATE OF [table-list] (supported by PostgreSQL, HSQLDB, Sybase).
 </li><li>TRANSACTION_ID() for in-memory databases.
 </li><li>TRANSACTION_ID() should be long (same as HSQLDB and PostgreSQL).
 </li><li>Oracle compatibility: convert empty strings to null.
 </li><li>Support [INNER | OUTER] JOIN USING(column [,...]).
+</li><li>Support NATURAL [ { LEFT | RIGHT } [ OUTER ] | INNER ] JOIN (Derby, Oracle)
 </li></ul>
 
 <h2>Not Planned</h2>

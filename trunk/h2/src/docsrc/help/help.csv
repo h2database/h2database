@@ -275,7 +275,7 @@ ALTER TABLE TEST ALTER COLUMN NAME SET NULL;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE tableName DROP COLUMN columnName
+ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] columnName
 ","
 Removes a column from a table.
 This command commits an open transaction.
@@ -561,10 +561,9 @@ CREATE SEQUENCE SEQ_ID
 "Commands (DDL)","CREATE TABLE","
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
-{ { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
-    | { AS select } }
+[ ( { columnDefinition | constraint } [,...] ) ]
 [ ENGINE tableEngineName ] [ NOT PERSISTENT ] [ TRANSACTIONAL ]
-","
+[ AS select ]","
 Creates a new table.
 
 Cached tables (the default for regular tables) are persistent,
@@ -585,6 +584,9 @@ The table engine class must implement the interface ""org.h2.api.TableEngine"".
 
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.
+
+The column definition is optional if a query is specified.
+In that case the column list of the query is used.
 
 This command commits an open transaction, except when using
 TRANSACTIONAL (only supported for temporary tables).

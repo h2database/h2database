@@ -36,12 +36,26 @@ public class TestRecovery extends TestBase {
     }
 
     public void test() throws Exception {
+        testRecoverClob();
         testRecoverFulltext();
         testRedoTransactions();
         testCorrupt();
         testWithTransactionLog();
         testCompressedAndUncompressed();
         testRunScript();
+    }
+
+    private void testRecoverClob() throws Exception {
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        Connection conn = getConnection("recovery");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, data clob)");
+        stat.execute("insert into test values(1, space(100000))");
+        conn.close();
+        Recover.main("-dir", getBaseDir(), "-db", "recovery");
+        DeleteDbFiles.execute(getBaseDir(), "recovery", true);
+        conn = getConnection("recovery;init=runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        conn.close();
     }
 
     private void testRecoverFulltext() throws Exception {

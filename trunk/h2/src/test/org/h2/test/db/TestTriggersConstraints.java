@@ -346,8 +346,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                 "BEFORE INSERT ON TEST " +
                 "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
         stat.execute("CREATE TRIGGER INS_AFTER " + "" +
-        		"AFTER INSERT ON TEST " +
-        		"FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
+                "AFTER INSERT ON TEST " +
+                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");
         stat.execute("CREATE TRIGGER UPD_BEFORE " +
                 "BEFORE UPDATE ON TEST " +
                 "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\"");

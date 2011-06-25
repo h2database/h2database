@@ -122,9 +122,7 @@ public class TestSecurity extends TestBase {
         r = StringUtils.convertBytesToHex(data);
         assertEquals("3f5b8cc9ea855a0afa7347d23e8d664e", r);
 
-        // test vector from
-        // http://www.inconteam.com/index.php?option=com_content&view=article&
-        // id=55:aes-test-vectors&catid=41:encryption&Itemid=60#aes-ecb-128
+        // test vector
         test.setKey(StringUtils.convertHexToBytes("2b7e151628aed2a6abf7158809cf4f3c"));
         data = StringUtils.convertHexToBytes("6bc1bee22e409f96e93d7e117393172a");
         test.encrypt(data, 0, data.length);

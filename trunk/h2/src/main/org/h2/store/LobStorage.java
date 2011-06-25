@@ -101,7 +101,8 @@ public class LobStorage {
                         "INFORMATION_SCHEMA.INDEX_LOB_TABLE ON " + LOBS + "(TABLE)");
                 stat.execute("CREATE TABLE IF NOT EXISTS " + LOB_MAP +
                         "(LOB BIGINT, SEQ INT, POS BIGINT, HASH INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
-                // TODO the column name OFFSET was used in version 1.3.156, so this can be remove in a later version
+                // TODO the column name OFFSET was used in version 1.3.156,
+                // so this can be remove in a later version
                 stat.execute("ALTER TABLE " + LOB_MAP + " RENAME TO " + LOB_MAP + " HIDDEN");
                 stat.execute("ALTER TABLE " + LOB_MAP + " ADD IF NOT EXISTS POS BIGINT BEFORE HASH");
                 stat.execute("ALTER TABLE " + LOB_MAP + " DROP COLUMN IF EXISTS \"OFFSET\"");

@@ -200,6 +200,9 @@ public class Parser {
     public Prepared prepare(String sql) {
         Prepared p = parse(sql);
         p.prepare();
+        if (currentTokenType != END) {
+            throw getSyntaxError();
+        }
         return p;
     }
 
@@ -211,7 +214,8 @@ public class Parser {
      */
     public Command prepareCommand(String sql) {
         try {
-            Prepared p = prepare(sql);
+            Prepared p = parse(sql);
+            p.prepare();
             Command c = new CommandContainer(this, sql, p);
             p.setCommand(c);
             if (isToken(";")) {

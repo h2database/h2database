@@ -128,9 +128,6 @@ public class TestDateStorage extends TestBase {
     }
 
     private void testAllTimeZones() throws SQLException {
-        if (config.networked) {
-            return;
-        }
         Connection conn = getConnection("date");
         TimeZone defaultTimeZone = TimeZone.getDefault();
         PreparedStatement prep = conn.prepareStatement("CALL CAST(? AS DATE)");
@@ -169,14 +166,16 @@ public class TestDateStorage extends TestBase {
             plus += 1000;
         }
         if (!date.toString().equals(s)) {
-            println(TimeZone.getDefault().getDisplayName() + " " + s + " <> " + date.toString());
+            println(TimeZone.getDefault().getID() + " " + s + " <> " + date.toString());
             return;
         }
         prep.setString(1, s);
         ResultSet rs = prep.executeQuery();
         rs.next();
         String t = rs.getString(1);
-        assertEquals(s, t);
+        if (!s.equals(t)) {
+            assertEquals(TimeZone.getDefault().getID(), s, t);
+        }
     }
 
 }

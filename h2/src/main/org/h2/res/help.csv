@@ -99,7 +99,7 @@ ALTER TABLE tableName ALTER COLUMN columnName
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity."
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE tableName DROP COLUMN columnName
+ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] columnName
 ","
 Removes a column from a table."
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
@@ -190,10 +190,9 @@ Creates a new sequence."
 "Commands (DDL)","CREATE TABLE","
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
-{ { ( { columnDefinition | constraint } [,...] ) [ AS select ] }
-    | { AS select } }
+[ ( { columnDefinition | constraint } [,...] ) ]
 [ ENGINE tableEngineName ] [ NOT PERSISTENT ] [ TRANSACTIONAL ]
-","
+[ AS select ]","
 Creates a new table."
 "Commands (DDL)","CREATE TRIGGER","
 CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER | INSTEAD OF }

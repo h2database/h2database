@@ -34,13 +34,9 @@ Change Log
 </li><li>There is a problem when opening a database file in a timezone that has different
     daylight saving rules: the time part of dates where the daylight saving doesn't match
     will differ. This is not a problem within regions that use the same rules (such as, within
-    USA, or within Europe), even if the timezone itself is different. As a workaround, export the 
-    database to a SQL script using the old timezone, and create a new database in the new 
-    timezone. There is a new system property "h2.storeLocalTime" that takes daylight time 
-    saving into account when storing and reading, however database files that are created or 
-    modified with this flag set can not be opened with older versions of H2. The new storage 
-    format is already supported for reading however, so that this version is forward compatible.
-    The same problem occurs when accessing a database over TCP/IP if the client and server
+    USA, or within Europe), even if the timezone itself is different. As a workaround, export the
+    database to a SQL script using the old timezone, and create a new database in the new
+    timezone. The same problem occurs when accessing a database over TCP/IP if the client and server
     timezones use different rules, if an old server or client is used.
 </li></ul>
 

@@ -1849,7 +1849,8 @@ public class ErrorCode {
      */
     public static final int RESULT_SET_READONLY = 90140;
 
-    // next are 90005, 90006, 90009, 90010, 90011, 90021, 90039, 90051, 90056, 90110, 90122, 90141
+    // next are 90005, 90006, 90009, 90010, 90011, 90021, 90039,
+    // 90051, 90056, 90110, 90122, 90141
 
     private ErrorCode() {
         // utility class

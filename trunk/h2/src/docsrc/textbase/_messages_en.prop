@@ -5,6 +5,7 @@
 21S02=Column count does not match
 22001=Value too long for column {0}: {1}
 22003=Numeric value out of range: {0}
+22007=Cannot parse {0} constant {1}
 22012=Division by zero: {0}
 22018=Data conversion error converting {0}
 22025=Error in LIKE ESCAPE: {0}
@@ -33,9 +34,6 @@
 90004=Hexadecimal string contains non-hex character: {0}
 90007=The object is already closed
 90008=Invalid value {0} for parameter {1}
-90009=Cannot parse date constant {0}, cause: {1}
-90010=Cannot parse time constant {0}, cause: {1}
-90011=Cannot parse timestamp constant {0}, cause: {1}
 90012=Parameter {0} is not set
 90013=Database {0} not found
 90014=Error parsing {0}

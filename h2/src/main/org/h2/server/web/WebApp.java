@@ -287,7 +287,7 @@ public class WebApp {
                 String space = "";
                 if (sql.length() > 0) {
                     char last = sql.charAt(sql.length() - 1);
-                    if (!Character.isWhitespace(last) && (last != '.' && last >= ' ' && last != '\'' && last != '"')) {
+                    if (!Character.isSpaceChar(last) && (last != '.' && last >= ' ' && last != '\'' && last != '"')) {
                         space = " ";
                     }
                 }

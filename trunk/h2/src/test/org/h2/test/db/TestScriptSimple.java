@@ -59,7 +59,7 @@ public class TestScriptSimple extends TestBase {
                     while (rs.next()) {
                         String expected = reader.readStatement().trim();
                         String got = "> " + rs.getString(1);
-                        assertEquals(expected, got);
+                        assertEquals(sql, expected, got);
                     }
                 } else {
                     conn.createStatement().execute(sql);

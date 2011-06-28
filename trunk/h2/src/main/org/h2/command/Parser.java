@@ -2465,15 +2465,15 @@ public class Parser {
                     if (equalsToken("DATE", name)) {
                         String date = currentValue.getString();
                         read();
-                        r = ValueExpression.get(ValueDate.get(ValueDate.parseDate(date)));
+                        r = ValueExpression.get(ValueDate.parse(date));
                     } else if (equalsToken("TIME", name)) {
                         String time = currentValue.getString();
                         read();
-                        r = ValueExpression.get(ValueTime.get(ValueTime.parseTime(time)));
+                        r = ValueExpression.get(ValueTime.parse(time));
                     } else if (equalsToken("TIMESTAMP", name)) {
                         String timestamp = currentValue.getString();
                         read();
-                        r = ValueExpression.get(ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(timestamp)));
+                        r = ValueExpression.get(ValueTimestamp.parse(timestamp));
                     } else if (equalsToken("X", name)) {
                         read();
                         byte[] buffer = StringUtils.convertHexToBytes(currentValue.getString());
@@ -3231,7 +3231,7 @@ public class Parser {
                 } else if (c >= '0' && c <= '9') {
                     type = CHAR_VALUE;
                 } else {
-                    if (c <= ' ' || Character.isWhitespace(c)) {
+                    if (c <= ' ' || Character.isSpaceChar(c)) {
                         // whitespace
                     } else if (Character.isJavaIdentifierPart(c)) {
                         type = CHAR_NAME;

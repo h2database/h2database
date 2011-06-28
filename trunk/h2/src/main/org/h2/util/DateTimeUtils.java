@@ -34,6 +34,22 @@ public class DateTimeUtils {
     private static final int DEFAULT_DAY = 1;
     private static final int DEFAULT_HOUR = 0;
 
+    private static final int SHIFT_YEAR = 9;
+    private static final int SHIFT_MONTH = 5;
+
+    private static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
+    private static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
+
+    private static final int[] NORMAL_DAYS_PER_MONTH = {
+        0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+    };
+
+    /**
+     * Offsets of month within a year, starting with March, April,...
+     */
+    private static final int[] DAYS_OFFSET =
+        { 0, 31, 61, 92, 122, 153, 184, 214, 245, 275, 306, 337, 366 };
+
     private static int zoneOffset;
     private static Calendar cachedCalendar;
 
@@ -79,59 +95,13 @@ public class DateTimeUtils {
     }
 
     /**
-     * Clone a time object and reset the day to 1970-01-01.
-     *
-     * @param value the time value
-     * @return the time value without the date component
-     */
-    public static Time cloneAndNormalizeTime(Time value) {
-        Calendar cal = getCalendar();
-        long time;
-        synchronized (cal) {
-            cal.setTime(value);
-            cal.set(Calendar.ERA, GregorianCalendar.AD);
-            // month is 0 based
-            cal.set(DEFAULT_YEAR, DEFAULT_MONTH - 1, DEFAULT_DAY);
-            time = cal.getTimeInMillis();
-        }
-        return new Time(time);
-    }
-
-    /**
-     * Clone a date object and reset the hour, minutes, seconds, and
-     * milliseconds to zero.
-     *
-     * @param value the date value
-     * @return the date value at midnight
-     */
-    public static Date cloneAndNormalizeDate(Date value) {
-        Calendar cal = getCalendar();
-        long time;
-        synchronized (cal) {
-            cal.setTime(value);
-            // if we don't enable lenient processing, dates between
-            // 1916-06-03 and 1920-03-21,
-            // 1940-06-15, 1947-03-16, and
-            // 1966-05-22 to 1979-05-27 don't work
-            // (central european timezone CET)
-            cal.setLenient(true);
-            cal.set(Calendar.MILLISECOND, 0);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MINUTE, 0);
-            cal.set(Calendar.HOUR_OF_DAY, DEFAULT_HOUR);
-            time = cal.getTime().getTime();
-        }
-        return new Date(time);
-    }
-
-    /**
      * Convert the date from the specified time zone to UTC.
      *
      * @param x the date
      * @param source the calendar
      * @return the date in UTC
      */
-    public static Value convertDateToUniversal(Date x, Calendar source) {
+    public static Value convertDateToUTC(Date x, Calendar source) {
         return ValueDate.get(new Date(getUniversalTime(source, x)));
     }
 
@@ -142,7 +112,7 @@ public class DateTimeUtils {
      * @param source the calendar
      * @return the time in UTC
      */
-    public static Value convertTimeToUniversal(Time x, Calendar source) {
+    public static Value convertTimeToUTC(Time x, Calendar source) {
         return ValueTime.get(new Time(getUniversalTime(source, x)));
     }
 
@@ -157,7 +127,7 @@ public class DateTimeUtils {
         Timestamp y = new Timestamp(getUniversalTime(source, x));
         // fix the nano seconds
         y.setNanos(x.getNanos());
-        return ValueTimestamp.getNoCopy(y);
+        return ValueTimestamp.get(y);
     }
 
     /**
@@ -235,13 +205,13 @@ public class DateTimeUtils {
      * @param type the value type (Value.TIME, TIMESTAMP, or DATE)
      * @return the date object
      */
-    public static java.util.Date parseDateTime(String original, int type) {
+    public static Value parse(String original, int type) {
         String s = original;
         if (s == null) {
             return null;
         }
         try {
-            int timeStart = 0;
+            int timeStart;
             TimeZone tz = null;
             if (type == Value.TIME) {
                 timeStart = 0;
@@ -252,7 +222,6 @@ public class DateTimeUtils {
                     timeStart = s.indexOf('T') + 1;
                 }
             }
-
             int year = DEFAULT_YEAR, month = DEFAULT_MONTH, day = DEFAULT_DAY;
             if (type != Value.TIME) {
                 if (s.startsWith("+")) {
@@ -271,7 +240,8 @@ public class DateTimeUtils {
                 int end = timeStart == 0 ? s.length() : timeStart - 1;
                 day = Integer.parseInt(s.substring(s2 + 1, end));
             }
-            int hour = DEFAULT_HOUR, minute = 0, second = 0, nano = 0;
+            int hour = DEFAULT_HOUR, minute = 0, second = 0;
+            long  millis = 0, nanos = 0;
             int s1 = s.indexOf(':', timeStart);
             if (type == Value.TIME || (type == Value.TIMESTAMP && s1 >= 0)) {
                 int s2 = s.indexOf(':', s1 + 1);
@@ -280,7 +250,6 @@ public class DateTimeUtils {
                     throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                             DataType.getDataType(type).name, original);
                 }
-
                 if (s.endsWith("Z")) {
                     s = s.substring(0, s.length() - 1);
                     tz = TimeZone.getTimeZone("UTC");
@@ -300,7 +269,6 @@ public class DateTimeUtils {
                         s = s.substring(0, timeZoneStart).trim();
                     }
                 }
-
                 hour = Integer.parseInt(s.substring(timeStart, s1));
                 minute = Integer.parseInt(s.substring(s1 + 1, s2));
                 if (s3 < 0) {
@@ -308,51 +276,35 @@ public class DateTimeUtils {
                 } else {
                     second = Integer.parseInt(s.substring(s2 + 1, s3));
                     String n = (s + "000000000").substring(s3 + 1, s3 + 10);
-                    nano = Integer.parseInt(n);
+                    nanos = Integer.parseInt(n);
+                    millis = nanos / 1000000;
+                    nanos -= millis * 1000000;
                 }
             }
-            long time;
-            try {
-                time = getTime(false, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
-            } catch (IllegalArgumentException e) {
-                // special case: if the time simply doesn't exist because of
-                // daylight saving time changes, use the lenient version
-                String message = e.toString();
-                if (message.indexOf("HOUR_OF_DAY") > 0) {
-                    if (hour < 0 || hour > 23) {
-                        throw e;
-                    }
-                    time = getTime(true, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
-                } else if (message.indexOf("DAY_OF_MONTH") > 0) {
-                    int maxDay;
-                    if (month == 2) {
-                        maxDay = new GregorianCalendar().isLeapYear(year) ? 29 : 28;
-                    } else {
-                        maxDay = 30 + ((month + (month > 7 ? 1 : 0)) & 1);
-                    }
-                    if (day < 1 || day > maxDay) {
-                        throw e;
-                    }
-                    // DAY_OF_MONTH is thrown for years > 2037
-                    // using the timezone Brasilia and others,
-                    // for example for 2042-10-12 00:00:00.
-                    hour += 6;
-                    time = getTime(true, tz, year, month, day, hour, minute, second, type != Value.TIMESTAMP, nano);
-                } else {
-                    throw e;
-                }
+            if (!isValidDate(year, month, day)) {
+                throw new IllegalArgumentException(year + "-" + month + "-" + day);
             }
-            switch (type) {
-            case Value.DATE:
-                return new java.sql.Date(time);
-            case Value.TIME:
-                return new java.sql.Time(time);
-            case Value.TIMESTAMP: {
-                Timestamp ts = new Timestamp(time);
-                ts.setNanos(nano);
-                return ts;
+            if (!isValidTime(hour, minute, second)) {
+                throw new IllegalArgumentException(hour + ":" + minute + ":" + second);
             }
-            default:
+            long dateValue;
+            if (tz == null) {
+                dateValue = dateValue(year, month, day);
+            } else {
+                long ms = getMillis(tz, year, month, day, hour, minute, second, (int) millis);
+                ms = DateTimeUtils.getLocalTime(new Date(ms),
+                        Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+                dateValue = dateValueFromDate(ms);
+                // TODO verify this always works
+                hour =  minute =  second = 0;
+                millis = ms - absoluteDayFromDateValue(dateValue) * MILLIS_PER_DAY;
+            }
+            if (type == Value.DATE) {
+                return ValueDate.get(dateValue);
+            } else if (type == Value.TIMESTAMP) {
+                nanos += (((((hour * 60L) + minute) * 60) + second) * 1000 + millis) * 1000000;
+                return ValueTimestamp.get(dateValue, nanos);
+            } else {
                 throw DbException.throwInternalError("type:" + type);
             }
         } catch (IllegalArgumentException e) {
@@ -361,9 +313,86 @@ public class DateTimeUtils {
         }
     }
 
-    private static long getTime(boolean lenient, TimeZone tz,
+    public static long parseTime(String s) {
+        int hour = 0, minute = 0, second = 0, nanos = 0;
+        int s1 = s.indexOf(':');
+        int s2 = s.indexOf(':', s1 + 1);
+        int s3 = s.indexOf('.', s2 + 1);
+        if (s1 <= 0 || s2 <= s1) {
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                    "TIME", s);
+        }
+        try {
+            hour = Integer.parseInt(s.substring(0, s1));
+            minute = Integer.parseInt(s.substring(s1 + 1, s2));
+            if (s3 < 0) {
+                second = Integer.parseInt(s.substring(s2 + 1));
+            } else {
+                second = Integer.parseInt(s.substring(s2 + 1, s3));
+                String n = (s + "000000000").substring(s3 + 1, s3 + 10);
+                nanos = Integer.parseInt(n);
+            }
+        } catch (NumberFormatException e) {
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                    "TIME", s);
+        }
+        if (minute < 0 || minute >= 60 || second < 0 || second >= 60) {
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                    "TIME", s);
+        }
+        return ((((hour * 60L) + minute) * 60) + second) * 1000000000 + nanos;
+    }
+
+    /**
+     * Calculate the milliseconds for the given date and time in the specified timezone.
+     *
+     * @param tz the timezone
+     * @param year the absolute year (positive or negative)
+     * @param month the month (1-12)
+     * @param day the day (1-31)
+     * @param hour the hour (0-23)
+     * @param minute the minutes (0-59)
+     * @param second the number of seconds (0-59)
+     * @param millis the number of milliseconds
+     * @return the number of milliseconds
+     */
+    public static long getMillis(TimeZone tz, int year, int month, int day, int hour, int minute, int second, int millis) {
+        int todoInternal;
+        try {
+            return getTimeTry(false, tz, year, month, day, hour, minute, second, millis);
+        } catch (IllegalArgumentException e) {
+            // special case: if the time simply doesn't exist because of
+            // daylight saving time changes, use the lenient version
+            String message = e.toString();
+            if (message.indexOf("HOUR_OF_DAY") > 0) {
+                if (hour < 0 || hour > 23) {
+                    throw e;
+                }
+                return getTimeTry(true, tz, year, month, day, hour, minute, second, millis);
+            } else if (message.indexOf("DAY_OF_MONTH") > 0) {
+                int maxDay;
+                if (month == 2) {
+                    maxDay = new GregorianCalendar().isLeapYear(year) ? 29 : 28;
+                } else {
+                    maxDay = 30 + ((month + (month > 7 ? 1 : 0)) & 1);
+                }
+                if (day < 1 || day > maxDay) {
+                    throw e;
+                }
+                // DAY_OF_MONTH is thrown for years > 2037
+                // using the timezone Brasilia and others,
+                // for example for 2042-10-12 00:00:00.
+                hour += 6;
+                return getTimeTry(true, tz, year, month, day, hour, minute, second, millis);
+            } else {
+                return getTimeTry(true, tz, year, month, day, hour, minute, second, millis);
+            }
+        }
+    }
+
+    private static long getTimeTry(boolean lenient, TimeZone tz,
             int year, int month, int day, int hour, int minute, int second,
-            boolean setMillis, int nano) {
+            int millis) {
         Calendar c;
         if (tz == null) {
             c = getCalendar();
@@ -371,6 +400,7 @@ public class DateTimeUtils {
             c = Calendar.getInstance(tz);
         }
         synchronized (c) {
+            c.clear();
             c.setLenient(lenient);
             if (year <= 0) {
                 c.set(Calendar.ERA, GregorianCalendar.BC);
@@ -385,9 +415,7 @@ public class DateTimeUtils {
             c.set(Calendar.HOUR_OF_DAY, hour);
             c.set(Calendar.MINUTE, minute);
             c.set(Calendar.SECOND, second);
-            if (setMillis) {
-                c.set(Calendar.MILLISECOND, nano / 1000000);
-            }
+            c.set(Calendar.MILLISECOND, millis);
             return c.getTime().getTime();
         }
     }
@@ -402,19 +430,17 @@ public class DateTimeUtils {
      */
     public static int getDatePart(java.util.Date d, int field) {
         Calendar c = getCalendar();
-        int value;
         synchronized (c) {
             c.setTime(d);
-            value = c.get(field);
-        }
-        if (field == Calendar.MONTH) {
-            value++;
-        } else if (field == Calendar.YEAR) {
-            if (c.get(Calendar.ERA) == GregorianCalendar.BC) {
-                value = 1 - value;
+            if (field == Calendar.YEAR) {
+                return getYear(c);
             }
+            int value = c.get(field);
+            if (field == Calendar.MONTH) {
+                return value + 1;
+            }
+            return value;
         }
-        return value;
     }
 
     /**
@@ -423,26 +449,12 @@ public class DateTimeUtils {
      * @param calendar the calendar
      * @return the year
      */
-    public static int getYear(Calendar calendar) {
+    private static int getYear(Calendar calendar) {
         int year = calendar.get(Calendar.YEAR);
         if (calendar.get(Calendar.ERA) == GregorianCalendar.BC) {
             year = 1 - year;
         }
         return year;
-    }
-
-    /**
-     * Get the number of milliseconds since 1970-01-01 in the local timezone.
-     *
-     * @param d the date
-     * @return the milliseconds
-     */
-    public static long getTimeLocal(java.util.Date d) {
-        Calendar c = getCalendar();
-        synchronized (c) {
-            c.setTime(d);
-            return c.getTimeInMillis() + c.get(Calendar.ZONE_OFFSET) + c.get(Calendar.DST_OFFSET);
-        }
     }
 
     /**
@@ -458,28 +470,12 @@ public class DateTimeUtils {
 
     /**
      * Convert the number of milliseconds since 1970-01-01 in the local timezone
-     * to GMT.
+     * to UTC, but without daylight saving time into account.
      *
      * @param millis the number of milliseconds in the local timezone
-     * @return the number of milliseconds in GMT
+     * @return the number of milliseconds in UTC
      */
-    public static long getTimeGMT(long millis) {
-        Calendar c = getCalendar();
-        synchronized (c) {
-            c.setTimeInMillis(millis);
-            return c.getTime().getTime() - c.get(Calendar.ZONE_OFFSET) - c.get(Calendar.DST_OFFSET);
-        }
-    }
-
-    /**
-     * Convert the number of milliseconds since 1970-01-01 in the local timezone
-     * to GMT, but
-     * without daylight saving time into account.
-     *
-     * @param millis the number of milliseconds in the local timezone
-     * @return the number of milliseconds in GMT
-     */
-    public static long getTimeGMTWithoutDst(long millis) {
+    public static long getTimeUTCWithoutDst(long millis) {
         return millis - zoneOffset;
     }
 
@@ -535,7 +531,7 @@ public class DateTimeUtils {
         cal.setTimeInMillis(date.getTime());
         cal.setFirstDayOfWeek(Calendar.MONDAY);
         cal.setMinimalDaysInFirstWeek(4);
-        int year = cal.get(Calendar.YEAR);
+        int year = getYear(cal);
         int month = cal.get(Calendar.MONTH);
         int week = cal.get(Calendar.WEEK_OF_YEAR);
         if (month == 0 && week > 51) {
@@ -600,6 +596,252 @@ public class DateTimeUtils {
             return df;
         } catch (Exception e) {
             throw DbException.get(ErrorCode.PARSE_ERROR_1, e, format + "/" + locale + "/" + timeZone);
+        }
+    }
+
+    /**
+     * Verify if the specified date is valid.
+     *
+     * @param year the year
+     * @param month the month (January is 1)
+     * @param day the day (1 is the first of the month)
+     * @return true if it is valid
+     */
+    public static boolean isValidDate(int year, int month, int day) {
+        if (month < 1 || month > 12 || day < 1) {
+            return false;
+        }
+        if (year > 1582) {
+            // Gregorian calendar
+            if (month != 2) {
+                return day <= NORMAL_DAYS_PER_MONTH[month];
+            }
+            // February
+            if ((year & 3) != 0) {
+                return day <= 28;
+            }
+            return day <= ((year % 100 != 0) || (year % 400 == 0) ? 29 : 28);
+        } else if (year == 1582 && month == 10) {
+            // special case: days 1582-10-05 .. 1582-10-14 don't exist
+            return day <= 31 && (day < 5 || day > 14);
+        }
+        if (month != 2 && day <= NORMAL_DAYS_PER_MONTH[month]) {
+            return true;
+        }
+        return day <= ((year & 3) != 0 ? 28 : 29);
+    }
+
+    /**
+     * Verify if the specified time is valid.
+     *
+     * @param hour the hour
+     * @param minute the minute
+     * @param second the second
+     * @return true if it is valid
+     */
+    public static boolean isValidTime(int hour, int minute, int second) {
+        return hour >= 0 && hour < 24 &&
+            minute >= 0 && minute < 60 &&
+            second >= 0 && second < 60;
+    }
+
+    public static Date convertDateValueToDate(long dateValue) {
+        long millis = getMillis(TimeZone.getDefault(),
+                yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue), 0, 0, 0, 0);
+        return new Date(millis);
+    }
+
+    public static Timestamp convertDateValueToTimestamp(long dateValue, long nanos) {
+        long millis = nanos / 1000000;
+        nanos -= millis * 1000000;
+        long s = millis / 1000;
+        millis -= s * 1000;
+        long m = s / 60;
+        s -= m * 60;
+        long h = m / 60;
+        m -= h * 60;
+        long ms = getMillis(TimeZone.getDefault(),
+                yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue),
+                (int) h, (int) m, (int) s, 0);
+        Timestamp ts = new Timestamp(ms);
+        ts.setNanos((int) (nanos + millis * 1000000));
+        return ts;
+    }
+
+    public static Time convertNanoToTime(long nanos) {
+        long millis = nanos / 1000000;
+        long s = millis / 1000;
+        millis -= s * 1000;
+        long m = s / 60;
+        s -= m * 60;
+        long h = m / 60;
+        m -= h * 60;
+        long ms = getMillis(TimeZone.getDefault(),
+                1970, 1, 1, (int) (h % 24), (int) m, (int) s, (int) millis);
+        return new Time(ms);
+    }
+
+    private static int yearFromDateValue(long x) {
+        return (int) (x >>> SHIFT_YEAR);
+    }
+
+    private static int monthFromDateValue(long x) {
+        return (int) (x >>> SHIFT_MONTH) & 15;
+    }
+
+    public static int dayFromDateValue(long x) {
+        return (int) (x & 31);
+    }
+
+    public static long dateValue(long year, int month, int day) {
+        return (year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
+    }
+
+    public static long dateValueFromDate(long ms) {
+        Calendar cal = getCalendar();
+        synchronized (cal) {
+            cal.clear();
+            cal.setTimeInMillis(ms);
+            int year, month, day;
+            year = getYear(cal);
+            month = cal.get(Calendar.MONTH) + 1;
+            day = cal.get(Calendar.DAY_OF_MONTH);
+            return ((long) year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
+        }
+    }
+
+    public static long nanosFromDate(long ms) {
+        Calendar cal = getCalendar();
+        synchronized (cal) {
+            cal.clear();
+            cal.setTimeInMillis(ms);
+            int h = cal.get(Calendar.HOUR_OF_DAY);
+            int m = cal.get(Calendar.MINUTE);
+            int s = cal.get(Calendar.SECOND);
+            int millis = cal.get(Calendar.MILLISECOND);
+            return ((((((h * 60L) + m) * 60) + s) * 1000) + millis) * 1000000;
+        }
+    }
+
+    public static ValueTimestamp normalize(long absoluteDay, long nanos) {
+        if (nanos > NANOS_PER_DAY || nanos < 0) {
+            long d;
+            if (nanos > NANOS_PER_DAY) {
+                d = nanos / NANOS_PER_DAY;
+            } else {
+                d = (nanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
+            }
+            nanos -= d * NANOS_PER_DAY;
+            absoluteDay += d;
+        }
+        return ValueTimestamp.get(dateValueFromAbsoluteDay(absoluteDay), nanos);
+    }
+
+    public static long absoluteDayFromDateValue(long dateValue) {
+        long y = yearFromDateValue(dateValue);
+        int m = monthFromDateValue(dateValue);
+        int d = dayFromDateValue(dateValue);
+        if (m <= 2) {
+            y--;
+            m += 12;
+        }
+        long a = ((y * 2922L) >>> 3) + DAYS_OFFSET[m - 3] + d - 719484;
+        if (y <= 1582 && ((y < 1582) || (m * 100 + d < 1005))) {
+            // Julian calendar (cutover at 1582-10-04 / 1582-10-15)
+            a += 13;
+        } else if (y < 1901 || y > 2099) {
+            // Gregorian calendar (slow mode)
+            a += (y / 400) - (y / 100) + 15;
+        }
+        return a;
+    }
+
+    public static long dateValueFromAbsoluteDay(long absoluteDay) {
+        long d = absoluteDay + 719468;
+        long y100 = 0, offset;
+        if (d > 578040) {
+            // Gregorian calendar
+            long y400 = d / 146097;
+            d -= y400 * 146097;
+            y100 = d / 36524;
+            d -= y100 * 36524;
+            offset = y400 * 400 + y100 * 100;
+        } else {
+            // Julian calendar
+            d += 292200000002L;
+            offset = -800000000;
+        }
+        long y4 = d / 1461;
+        d -= y4 * 1461;
+        long y = d / 365;
+        d -= y * 365;
+        if (d == 0 && (y == 4 || y100 == 4)) {
+            y--;
+            d += 365;
+        }
+        y += offset + y4 * 4;
+        // month of a day
+        int m = ((int) d * 2 + 1) * 5 / 306;
+        d -= DAYS_OFFSET[m] - 1;
+        if (m >= 10) {
+            y++;
+            m -= 12;
+        }
+        return dateValue(y, m + 3, (int) d);
+    }
+
+    public static void appendDate(StringBuilder buff, long dateValue) {
+        int y = DateTimeUtils.yearFromDateValue(dateValue);
+        int m = DateTimeUtils.monthFromDateValue(dateValue);
+        int d = DateTimeUtils.dayFromDateValue(dateValue);
+        if (y > 0 && y < 10000) {
+            StringUtils.appendZeroPadded(buff, 4, y);
+        } else {
+            buff.append(y);
+        }
+        buff.append('-');
+        StringUtils.appendZeroPadded(buff, 2, m);
+        buff.append('-');
+        StringUtils.appendZeroPadded(buff, 2, d);
+    }
+
+    public static void appendTime(StringBuilder buff, long n, boolean alwaysAddMillis) {
+        long ms = n / 1000000;
+        n -= ms * 1000000;
+        long s = ms / 1000;
+        ms -= s * 1000;
+        long m = s / 60;
+        s -= m * 60;
+        long h = m / 60;
+        m -= h * 60;
+        if (h < 0) {
+            buff.append(h);
+        } else {
+            StringUtils.appendZeroPadded(buff, 2, h);
+        }
+        buff.append(':');
+        StringUtils.appendZeroPadded(buff, 2, m);
+        buff.append(':');
+        StringUtils.appendZeroPadded(buff, 2, s);
+        if (ms > 0 || n > 0) {
+            buff.append('.');
+            int start = buff.length();
+            StringUtils.appendZeroPadded(buff, 3, ms);
+            if (n > 0) {
+                StringUtils.appendZeroPadded(buff, 6, n);
+            }
+            for (int i = buff.length() - 1; i > start; i--) {
+                if (buff.charAt(i) != '0') {
+                    break;
+                }
+                buff.deleteCharAt(i);
+            }
+        } else if (alwaysAddMillis) {
+            buff.append(".0");
         }
     }
 

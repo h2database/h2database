@@ -966,7 +966,7 @@ means all literals are allowed (default).
 
 See also CREATE CONSTANT.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;ALLOW_LITERALS=NONE""
@@ -999,7 +999,7 @@ Using a very small value (specially 0) will reduce performance a lot.
 This setting only affects the database engine (the server in a client/server environment).
 It has no effect for in-memory databases.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;CACHE_SIZE=8192""
@@ -1049,7 +1049,7 @@ SET COMPRESS_LOB { NO | LZF | DEFLATE }
 Sets the compression algorithm for BLOB and CLOB data. Compression is usually
 slower, but needs less disk space. LZF is faster but uses more space.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 ","
@@ -1081,7 +1081,7 @@ number of seconds the database is left open after closing the last connection.
 If the application exits normally or System.exit is called, the database is
 closed immediately, even if a delay is set.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;DB_CLOSE_DELAY=-1""
@@ -1095,7 +1095,7 @@ SET DEFAULT LOCK_TIMEOUT int
 Sets the default lock timeout (in milliseconds) in this database that is used
 for the new sessions. The default value for this setting is 1000 (one second).
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 ","
@@ -1110,7 +1110,7 @@ Memory tables are kept fully in the main memory (including indexes), however
 the data is still stored in the database file. The size of memory tables is
 limited by the memory. The default is CACHED.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 It has no effect for in-memory databases.
@@ -1146,7 +1146,7 @@ case-insensitive. Already existing tables are not affected. The effect of
 case-insensitive columns is similar to using a collation with strength PRIMARY.
 Case-insensitive columns are compared faster than when using a collation.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 ","
@@ -1172,7 +1172,7 @@ LOG 2 (the default) means the transaction log is enabled, and FileDescriptor.syn
 for each checkpoint. This setting is about half as fast as LOG 1. Depending on the
 file system, this will also protect against power failure in the majority if cases.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is not persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;LOG=0""
@@ -1198,7 +1198,7 @@ application does not close all connections).
 The value 3 means table level locking, but read locks are released immediately
 (default; also known as READ_COMMITTED).
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;LOCK_MODE=3""
@@ -1226,7 +1226,7 @@ size are stored in a separate file, otherwise stored directly in the database
 (in-place). The default max size is 1024.
 This setting has no effect for in-memory databases.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 ","
@@ -1241,7 +1241,7 @@ limit, a new stream is created. Old streams (that are not used for recovery) are
 freed automatically. The default max size is 16 MB.
 This setting has no effect for in-memory databases.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 ","
@@ -1254,7 +1254,7 @@ SET MAX_MEMORY_ROWS int
 The maximum number of rows in a result set that are kept in-memory. If more rows
 are read, then the rows are buffered to disk. The default value is 10000.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 It has no effect for in-memory databases.
@@ -1271,7 +1271,7 @@ The default value is 50000.
 Changes to tables without a primary key can not be buffered to disk.
 This setting is not supported when using multi-version concurrency.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
 It has no effect for in-memory databases.
@@ -1287,7 +1287,7 @@ Operations that use more memory are buffered to disk, slowing down the
 operation. The default max size is 100000. 0 means no limit.
 
 This setting is not persistent.
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 It has no effect for in-memory databases.
 This setting can be appended to the database URL: ""jdbc:h2:test;MAX_OPERATION_MEMORY=10000""
 ","
@@ -1301,7 +1301,7 @@ Changes to another database compatibility mode. For details, see Compatibility
 Modes in the feature section.
 
 This setting is not persistent.
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting can be appended to the database URL: ""jdbc:h2:test;MODE=MYSQL""
 ","
@@ -1318,7 +1318,7 @@ only.
 This is a global setting, which means it is not possible to open multiple databases with different modes at the same time in the same virtual machine.
 This setting is not persistent, however the value is kept until the virtual machine exits or it is changed.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting can be appended to the database URL: ""jdbc:h2:test;MULTI_THREADED=1""
 ","
@@ -1332,7 +1332,7 @@ Enabled (1) or disabled (0) the result reuse optimization. If enabled,
 subqueries and views used as subqueries are only re-run if the data in one of
 the tables was changed. This option is enabled by default.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting can be appended to the database URL: ""jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0""
 ","
@@ -1371,7 +1371,7 @@ for one table.
 
 This setting is not persistent.
 This command commits an open transaction.
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 ","
 SET REFERENTIAL_INTEGRITY FALSE
 "
@@ -1434,7 +1434,7 @@ Sets the trace level for file the file or system out stream. Levels are: 0=off,
 To use SLF4J, append "";TRACE_LEVEL_FILE=4"" to the database URL when opening the database.
 
 This setting is not persistent.
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command does not commit a transaction, and rollback does not affect it.
 This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_LEVEL_SYSTEM_OUT=3""
 ","
@@ -1449,7 +1449,7 @@ renamed to .old and a new file is created. If another .old file exists, it is
 deleted. The default max size is 16 MB.
 
 This setting is persistent.
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_MAX_FILE_SIZE=3""
 ","
@@ -1474,7 +1474,7 @@ SET WRITE_DELAY int
 Set the maximum delay between a commit and flushing the log, in milliseconds.
 This setting is persistent. The default is 500 ms.
 
-Admin rights are required to execute this command.
+Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting can be appended to the database URL: ""jdbc:h2:test;WRITE_DELAY=0""
 ","

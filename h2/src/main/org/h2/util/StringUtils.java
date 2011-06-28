@@ -1009,4 +1009,28 @@ public class StringUtils {
         return true;
     }
 
+    /**
+     * Append a zero-padded number to a string builder.
+     *
+     * @param buff the string builder
+     * @param length the number of characters to append
+     * @param positiveValue the number to append
+     */
+    public static void appendZeroPadded(StringBuilder buff, int length, long positiveValue) {
+        if (length == 2) {
+            if (positiveValue < 10) {
+                buff.append('0');
+            }
+            buff.append(positiveValue);
+        } else {
+            String s = Long.toString(positiveValue);
+            length -= s.length();
+            while (length > 0) {
+                buff.append('0');
+                length--;
+            }
+            buff.append(s);
+        }
+    }
+
 }

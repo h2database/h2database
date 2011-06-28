@@ -176,7 +176,7 @@ public class DbContextRule implements Rule {
             throw DbException.throwInternalError("type=" + type);
         }
         if (!s.equals(query)) {
-            while (s.length() > 0 && Character.isWhitespace(s.charAt(0))) {
+            while (s.length() > 0 && Character.isSpaceChar(s.charAt(0))) {
                 s = s.substring(1);
             }
             sentence.setQuery(s);

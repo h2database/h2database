@@ -195,7 +195,7 @@ public class PrepareTranslation {
     private static String getSpace(String s, boolean start) {
         if (start) {
             for (int i = 0; i < s.length(); i++) {
-                if (!Character.isWhitespace(s.charAt(i))) {
+                if (!Character.isSpaceChar(s.charAt(i))) {
                     if (i == 0) {
                         return "";
                     }
@@ -205,7 +205,7 @@ public class PrepareTranslation {
             return s;
         }
         for (int i = s.length() - 1; i >= 0; i--) {
-            if (!Character.isWhitespace(s.charAt(i))) {
+            if (!Character.isSpaceChar(s.charAt(i))) {
                 if (i == s.length() - 1) {
                     return "";
                 }

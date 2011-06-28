@@ -108,7 +108,7 @@ public class RuleFixed implements Rule {
             }
             break;
         case ANY_WORD:
-            while (s.length() > 0 && !Character.isWhitespace(s.charAt(0))) {
+            while (s.length() > 0 && !Character.isSpaceChar(s.charAt(0))) {
                 s = s.substring(1);
             }
             if (s.length() == 0) {
@@ -182,7 +182,7 @@ public class RuleFixed implements Rule {
             throw new AssertionError("type="+type);
         }
         if (!s.equals(query)) {
-            while (s.length() > 0 && Character.isWhitespace(s.charAt(0))) {
+            while (s.length() > 0 && Character.isSpaceChar(s.charAt(0))) {
                 s = s.substring(1);
             }
             sentence.setQuery(s);

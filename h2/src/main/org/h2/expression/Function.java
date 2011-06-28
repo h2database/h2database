@@ -629,52 +629,52 @@ public class Function extends Expression implements FunctionCall {
             break;
         case DAY_NAME: {
             SimpleDateFormat dayName = new SimpleDateFormat("EEEE", Locale.ENGLISH);
-            result = ValueString.get(dayName.format(v0.getDateNoCopy()));
+            result = ValueString.get(dayName.format(v0.getDate()));
             break;
         }
         case DAY_OF_MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.DAY_OF_MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.DAY_OF_MONTH));
             break;
         case DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.DAY_OF_WEEK));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.DAY_OF_WEEK));
             break;
         case DAY_OF_YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.DAY_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.DAY_OF_YEAR));
             break;
         case HOUR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.HOUR_OF_DAY));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.HOUR_OF_DAY));
             break;
         case MINUTE:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.MINUTE));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.MINUTE));
             break;
         case MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.MONTH));
             break;
         case MONTH_NAME: {
             SimpleDateFormat monthName = new SimpleDateFormat("MMMM", Locale.ENGLISH);
-            result = ValueString.get(monthName.format(v0.getDateNoCopy()));
+            result = ValueString.get(monthName.format(v0.getDate()));
             break;
         }
         case QUARTER:
-            result = ValueInt.get((DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.MONTH) - 1) / 3 + 1);
+            result = ValueInt.get((DateTimeUtils.getDatePart(v0.getDate(), Calendar.MONTH) - 1) / 3 + 1);
             break;
         case SECOND:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestampNoCopy(), Calendar.SECOND));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.SECOND));
             break;
         case WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.WEEK_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.WEEK_OF_YEAR));
             break;
         case YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDateNoCopy(), Calendar.YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.YEAR));
             break;
         case ISO_YEAR:
-            result = ValueInt.get(DateTimeUtils.getIsoYear(v0.getDateNoCopy()));
+            result = ValueInt.get(DateTimeUtils.getIsoYear(v0.getDate()));
             break;
         case ISO_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoWeek(v0.getDateNoCopy()));
+            result = ValueInt.get(DateTimeUtils.getIsoWeek(v0.getDate()));
             break;
         case ISO_DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0.getDateNoCopy()));
+            result = ValueInt.get(DateTimeUtils.getIsoDayOfWeek(v0.getDate()));
             break;
         case CURDATE:
         case CURRENT_DATE: {
@@ -693,7 +693,7 @@ public class Function extends Expression implements FunctionCall {
         case NOW:
         case CURRENT_TIMESTAMP: {
             long now = session.getTransactionStart();
-            ValueTimestamp vt = ValueTimestamp.getNoCopy(new Timestamp(now));
+            ValueTimestamp vt = ValueTimestamp.get(new Timestamp(now));
             if (v0 != null) {
                 Mode mode = database.getMode();
                 vt = (ValueTimestamp) vt.convertScale(mode.convertOnlyToSmallerScale, v0.getInt());
@@ -1038,10 +1038,10 @@ public class Function extends Expression implements FunctionCall {
             break;
             // date
         case DATE_ADD:
-            result = ValueTimestamp.getNoCopy(dateadd(v0.getString(), v1.getInt(), v2.getTimestampNoCopy()));
+            result = ValueTimestamp.get(dateadd(v0.getString(), v1.getInt(), v2.getTimestamp()));
             break;
         case DATE_DIFF:
-            result = ValueLong.get(datediff(v0.getString(), v1.getTimestampNoCopy(), v2.getTimestampNoCopy()));
+            result = ValueLong.get(datediff(v0.getString(), v1.getTimestamp(), v2.getTimestamp()));
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
@@ -1065,7 +1065,7 @@ public class Function extends Expression implements FunctionCall {
                 String locale = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
                 String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
                 java.util.Date d = DateTimeUtils.parseDateTime(v0.getString(), v1.getString(), locale, tz);
-                result = ValueTimestamp.getNoCopy(new Timestamp(d.getTime()));
+                result = ValueTimestamp.get(new Timestamp(d.getTime()));
             }
             break;
         }

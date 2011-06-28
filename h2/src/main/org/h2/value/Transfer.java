@@ -320,27 +320,37 @@ public class Transfer {
             writeByte(v.getByte());
             break;
         case Value.TIME:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTimeNoCopy()));
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
+                writeLong(((ValueTime) v).getNanos());
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
             } else {
-                writeLong(v.getTimeNoCopy().getTime());
+                writeLong(v.getTime().getTime());
             }
             break;
         case Value.DATE:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getDateNoCopy()));
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
+                writeLong(((ValueDate) v).getDateValue());
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                writeLong(DateTimeUtils.getTimeLocalWithoutDst(v.getDate()));
             } else {
-                writeLong(v.getDateNoCopy().getTime());
+                writeLong(v.getDate().getTime());
             }
             break;
         case Value.TIMESTAMP: {
-            Timestamp ts = v.getTimestampNoCopy();
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
+                ValueTimestamp ts = (ValueTimestamp) v;
+                writeLong(ts.getDateValue());
+                writeLong(ts.getNanos());
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                Timestamp ts = v.getTimestamp();
                 writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
+                writeInt(ts.getNanos());
             } else {
+                Timestamp ts = v.getTimestamp();
                 writeLong(ts.getTime());
+                writeInt(ts.getNanos());
             }
-            writeInt(ts.getNanos());
             break;
         }
         case Value.DECIMAL:
@@ -460,24 +470,30 @@ public class Transfer {
         case Value.BYTE:
             return ValueByte.get(readByte());
         case Value.DATE:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                return ValueDate.getNoCopy(new Date(DateTimeUtils.getTimeGMTWithoutDst(readLong())));
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
+                return ValueDate.get(readLong());
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                return ValueDate.get(new Date(DateTimeUtils.getTimeUTCWithoutDst(readLong())));
             }
-            return ValueDate.getNoCopy(new Date(readLong()));
+            return ValueDate.get(new Date(readLong()));
         case Value.TIME:
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                return ValueTime.getNoCopy(new Time(DateTimeUtils.getTimeGMTWithoutDst(readLong())));
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
+                return ValueTime.get(readLong());
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                return ValueTime.get(new Time(DateTimeUtils.getTimeUTCWithoutDst(readLong())));
             }
-            return ValueTime.getNoCopy(new Time(readLong()));
+            return ValueTime.get(new Time(readLong()));
         case Value.TIMESTAMP: {
-            if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                Timestamp ts = new Timestamp(DateTimeUtils.getTimeGMTWithoutDst(readLong()));
+            if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
+                return ValueTimestamp.get(readLong(), readLong());
+            } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
+                Timestamp ts = new Timestamp(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
                 ts.setNanos(readInt());
-                return ValueTimestamp.getNoCopy(ts);
+                return ValueTimestamp.get(ts);
             }
             Timestamp ts = new Timestamp(readLong());
             ts.setNanos(readInt());
-            return ValueTimestamp.getNoCopy(ts);
+            return ValueTimestamp.get(ts);
         }
         case Value.DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));

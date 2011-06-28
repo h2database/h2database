@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.MathUtils;
 
 /**
  * Implementation of the TIME data type.
@@ -27,29 +28,28 @@ public class ValueTime extends Value {
      */
     static final int DISPLAY_SIZE = 8;
 
-    private final Time value;
+    private final long nanos;
 
-    private ValueTime(Time value) {
-        this.value = value;
+    private ValueTime(long nanos) {
+        this.nanos = nanos;
     }
 
     /**
-     * Parse a string to a java.sql.Time object.
+     * Parse a string to a ValueTime.
      *
      * @param s the string to parse
      * @return the time
      */
-    public static Time parseTime(String s) {
-        return (Time) DateTimeUtils.parseDateTime(s, Value.TIME);
+    public static ValueTime parse(String s) {
+        return new ValueTime(DateTimeUtils.parseTime(s));
     }
 
     public Time getTime() {
-        // this class is mutable - must copy the object
-        return (Time) value.clone();
+        return DateTimeUtils.convertNanoToTime(nanos);
     }
 
-    public Time getTimeNoCopy() {
-        return value;
+    public long getNanos() {
+        return nanos;
     }
 
     public String getSQL() {
@@ -61,12 +61,13 @@ public class ValueTime extends Value {
     }
 
     protected int compareSecure(Value o, CompareMode mode) {
-        ValueTime v = (ValueTime) o;
-        return Integer.signum(value.compareTo(v.value));
+        return MathUtils.compareLong(nanos, ((ValueTime) o).nanos);
     }
 
     public String getString() {
-        return value.toString();
+        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
+        DateTimeUtils.appendTime(buff, nanos, false);
+        return buff.toString();
     }
 
     public long getPrecision() {
@@ -74,7 +75,7 @@ public class ValueTime extends Value {
     }
 
     public int hashCode() {
-        return value.hashCode();
+        return (int) (nanos ^ (nanos >>> 32));
     }
 
     public Object getObject() {
@@ -82,30 +83,28 @@ public class ValueTime extends Value {
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setTime(parameterIndex, value);
+        prep.setTime(parameterIndex, getTime());
     }
 
     /**
      * Get or create a time value for the given time.
-     * Clone the time.
      *
      * @param time the time
      * @return the value
      */
     public static ValueTime get(Time time) {
-        time = DateTimeUtils.cloneAndNormalizeTime(time);
-        return getNoCopy(time);
+        long x = DateTimeUtils.nanosFromDate(time.getTime());
+        return get(x);
     }
 
     /**
-     * Get or create a time value for the given time.
-     * Do not clone the time.
+     * Get or create a time value.
      *
-     * @param time the time
+     * @param nanos the nanoseconds
      * @return the value
      */
-    public static ValueTime getNoCopy(Time time) {
-        return (ValueTime) Value.cache(new ValueTime(time));
+    public static ValueTime get(long nanos) {
+        return (ValueTime) Value.cache(new ValueTime(nanos));
     }
 
     public int getDisplaySize() {
@@ -113,31 +112,28 @@ public class ValueTime extends Value {
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueTime && value.equals(((ValueTime) other).value);
+        if (this == other) {
+            return true;
+        }
+        return other instanceof ValueTime && nanos == (((ValueTime) other).nanos);
     }
 
     public Value add(Value v) {
-        Time t = new Time(value.getTime() + v.getTime().getTime());
-        return ValueTime.get(t);
+        ValueTime t = (ValueTime) v.convertTo(Value.TIME);
+        return ValueTime.get(nanos + t.getNanos());
     }
 
     public Value subtract(Value v) {
-        Time t = new Time(value.getTime() - v.getTime().getTime());
-        return ValueTime.get(t);
+        ValueTime t = (ValueTime) v.convertTo(Value.TIME);
+        return ValueTime.get(nanos - t.getNanos());
     }
 
     public Value multiply(Value v) {
-        long zeroTime = ValueTime.get(new Time(0)).getDate().getTime();
-        long t = value.getTime() - zeroTime;
-        t = (long) (t * v.getDouble()) + zeroTime;
-        return ValueTime.get(new Time(t));
+        return ValueTime.get((long) (nanos * v.getDouble()));
     }
 
     public Value divide(Value v) {
-        long zeroTime = ValueTime.get(new Time(0)).getDate().getTime();
-        long t = value.getTime() - zeroTime;
-        t = (long) (t / v.getDouble()) + zeroTime;
-        return ValueTime.get(new Time(t));
+        return ValueTime.get((long) (nanos / v.getDouble()));
     }
 
 }

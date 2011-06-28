@@ -471,34 +471,38 @@ public class Data {
         case Value.TIME:
             if (SysProperties.STORE_LOCAL_TIME) {
                 writeByte((byte) LOCAL_TIME);
-                writeVarLong(DateTimeUtils.getTimeLocal(v.getTimeNoCopy()));
+                writeVarLong(((ValueTime) v).getNanos());
             } else {
                 writeByte((byte) type);
-                writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTimeNoCopy()));
+                writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
             }
             break;
         case Value.DATE: {
             if (SysProperties.STORE_LOCAL_TIME) {
                 writeByte((byte) LOCAL_DATE);
-                long x = DateTimeUtils.getTimeLocal(v.getDateNoCopy());
-                writeVarLong(x / MILLIS_PER_MINUTE);
+                long x = ((ValueDate) v).getDateValue();
+                writeVarLong(x);
             } else {
                 writeByte((byte) type);
-                long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDateNoCopy());
+                long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
                 writeVarLong(x / MILLIS_PER_MINUTE);
             }
             break;
         }
         case Value.TIMESTAMP: {
-            Timestamp ts = v.getTimestampNoCopy();
             if (SysProperties.STORE_LOCAL_TIME) {
                 writeByte((byte) LOCAL_TIMESTAMP);
-                writeVarLong(DateTimeUtils.getTimeLocal(ts));
+                ValueTimestamp ts = (ValueTimestamp) v;
+                long dateValue = ts.getDateValue();
+                long nanos = ts.getNanos();
+                writeVarLong(dateValue);
+                writeVarLong(nanos);
             } else {
+                Timestamp ts = v.getTimestamp();
                 writeByte((byte) type);
                 writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
+                writeVarInt(ts.getNanos());
             }
-            writeVarInt(ts.getNanos());
             break;
         }
         case Value.JAVA_OBJECT: {
@@ -679,28 +683,26 @@ public class Data {
             return ValueDecimal.get(new BigDecimal(b, scale));
         }
         case LOCAL_DATE: {
-            long x = readVarLong() * MILLIS_PER_MINUTE;
-            return ValueDate.getNoCopy(new Date(DateTimeUtils.getTimeGMT(x)));
+            return ValueDate.get(readVarLong());
         }
         case Value.DATE: {
             long x = readVarLong() * MILLIS_PER_MINUTE;
-            return ValueDate.getNoCopy(new Date(DateTimeUtils.getTimeGMTWithoutDst(x)));
+            return ValueDate.get(new Date(DateTimeUtils.getTimeUTCWithoutDst(x)));
         }
         case LOCAL_TIME:
-            // need to normalize the year, month and day
-            return ValueTime.get(new Time(DateTimeUtils.getTimeGMT(readVarLong())));
+            return ValueTime.get(readVarLong());
         case Value.TIME:
             // need to normalize the year, month and day
-            return ValueTime.get(new Time(DateTimeUtils.getTimeGMTWithoutDst(readVarLong())));
+            return ValueTime.get(new Time(DateTimeUtils.getTimeUTCWithoutDst(readVarLong())));
         case LOCAL_TIMESTAMP: {
-            Timestamp ts = new Timestamp(DateTimeUtils.getTimeGMT(readVarLong()));
-            ts.setNanos(readVarInt());
-            return ValueTimestamp.getNoCopy(ts);
+            long dateValue = readVarLong();
+            long nanos = readVarLong();
+            return ValueTimestamp.get(dateValue, nanos);
         }
         case Value.TIMESTAMP: {
-            Timestamp ts = new Timestamp(DateTimeUtils.getTimeGMTWithoutDst(readVarLong()));
+            Timestamp ts = new Timestamp(DateTimeUtils.getTimeUTCWithoutDst(readVarLong()));
             ts.setNanos(readVarInt());
-            return ValueTimestamp.getNoCopy(ts);
+            return ValueTimestamp.get(ts);
         }
         case Value.BYTES: {
             int len = readVarInt();
@@ -893,23 +895,25 @@ public class Data {
         }
         case Value.TIME:
             if (SysProperties.STORE_LOCAL_TIME) {
-                return 1 + getVarLongLen(DateTimeUtils.getTimeLocal(v.getTimeNoCopy()));
+                return 1 + getVarLongLen(((ValueTime) v).getNanos());
             }
-            return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTimeNoCopy()));
+            return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
         case Value.DATE: {
             if (SysProperties.STORE_LOCAL_TIME) {
-                long x = DateTimeUtils.getTimeLocal(v.getDateNoCopy());
-                return 1 + getVarLongLen(x / MILLIS_PER_MINUTE);
+                long dateValue = ((ValueDate) v).getDateValue();
+                return 1 + getVarLongLen(dateValue);
             }
-            long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDateNoCopy());
+            long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
             return 1 + getVarLongLen(x / MILLIS_PER_MINUTE);
         }
         case Value.TIMESTAMP: {
             if (SysProperties.STORE_LOCAL_TIME) {
-                Timestamp ts = v.getTimestampNoCopy();
-                return 1 + getVarLongLen(DateTimeUtils.getTimeLocal(ts)) + getVarIntLen(ts.getNanos());
+                ValueTimestamp ts = (ValueTimestamp) v;
+                long dateValue = ts.getDateValue();
+                long nanos = ts.getNanos();
+                return 1 + getVarLongLen(dateValue) + getVarLongLen(nanos);
             }
-            Timestamp ts = v.getTimestampNoCopy();
+            Timestamp ts = v.getTimestamp();
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) + getVarIntLen(ts.getNanos());
         }
         case Value.JAVA_OBJECT: {

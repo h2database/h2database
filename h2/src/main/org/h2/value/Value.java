@@ -24,6 +24,7 @@ import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -370,24 +371,12 @@ public abstract class Value {
         return ((ValueDate) convertTo(Value.DATE)).getDate();
     }
 
-    public Date getDateNoCopy() {
-        return ((ValueDate) convertTo(Value.DATE)).getDateNoCopy();
-    }
-
     public Time getTime() {
         return ((ValueTime) convertTo(Value.TIME)).getTime();
     }
 
-    public Time getTimeNoCopy() {
-        return ((ValueTime) convertTo(Value.TIME)).getTimeNoCopy();
-    }
-
     public Timestamp getTimestamp() {
         return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestamp();
-    }
-
-    public Timestamp getTimestampNoCopy() {
-        return ((ValueTimestamp) convertTo(Value.TIMESTAMP)).getTimestampNoCopy();
     }
 
     public byte[] getBytes() {
@@ -693,9 +682,11 @@ public abstract class Value {
             case DATE: {
                 switch (getType()) {
                 case TIME:
-                    return ValueDate.get(new Date(getTimeNoCopy().getTime()));
+                    // because the time has set the date to 1970-01-01,
+                    // this will be the result
+                    return ValueDate.get(DateTimeUtils.dateValue(1970, 1, 1));
                 case TIMESTAMP:
-                    return ValueDate.get(new Date(getTimestampNoCopy().getTime()));
+                    return ValueDate.get(((ValueTimestamp) this).getDateValue());
                 }
                 break;
             }
@@ -703,19 +694,22 @@ public abstract class Value {
                 switch (getType()) {
                 case DATE:
                     // need to normalize the year, month and day
-                    return ValueTime.get(new Time(getDateNoCopy().getTime()));
+                    // because a date has the time set to 0, the result will be 0
+                    return ValueTime.get(0);
                 case TIMESTAMP:
                     // need to normalize the year, month and day
-                    return ValueTime.get(new Time(getTimestampNoCopy().getTime()));
+                    return ValueTime.get(new Time(getTimestamp().getTime()));
                 }
                 break;
             }
             case TIMESTAMP: {
                 switch (getType()) {
                 case TIME:
-                    return ValueTimestamp.getNoCopy(new Timestamp(getTimeNoCopy().getTime()));
+                    // TODO
+                    return ValueTimestamp.get(new Timestamp(getTime().getTime()));
                 case DATE:
-                    return ValueTimestamp.getNoCopy(new Timestamp(getDateNoCopy().getTime()));
+                    // TODO
+                    return ValueTimestamp.get(new Timestamp(getDate().getTime()));
                 }
                 break;
             }
@@ -815,11 +809,11 @@ public abstract class Value {
             case DECIMAL:
                 return ValueDecimal.get(new BigDecimal(s.trim()));
             case TIME:
-                return ValueTime.getNoCopy(ValueTime.parseTime(s.trim()));
+                return ValueTime.parse(s.trim());
             case DATE:
-                return ValueDate.getNoCopy(ValueDate.parseDate(s.trim()));
+                return ValueDate.parse(s.trim());
             case TIMESTAMP:
-                return ValueTimestamp.getNoCopy(ValueTimestamp.parseTimestamp(s.trim()));
+                return ValueTimestamp.parse(s.trim());
             case BYTES:
                 return ValueBytes.getNoCopy(StringUtils.convertHexToBytes(s.trim()));
             case JAVA_OBJECT:

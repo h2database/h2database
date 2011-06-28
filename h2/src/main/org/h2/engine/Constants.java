@@ -57,6 +57,11 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_8 = 8;
 
     /**
+     * The TCP protocol version number 9.
+     */
+    public static final int TCP_PROTOCOL_VERSION_9 = 9;
+
+    /**
      * The major version of this database.
      */
     public static final int VERSION_MAJOR = 1;

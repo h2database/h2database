@@ -9,8 +9,8 @@ package org.h2.value;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Calendar;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.MathUtils;
 
 /**
  * Implementation of the DATE data type.
@@ -28,29 +28,29 @@ public class ValueDate extends Value {
      */
     static final int DISPLAY_SIZE = 10;
 
-    private final Date value;
+    private final long dateValue;
 
-    private ValueDate(Date value) {
-        this.value = value;
+    private ValueDate(long dateValue) {
+        this.dateValue = dateValue;
     }
 
     /**
-     * Parse a string to a java.sql.Date object.
+     * Parse a string to a ValueDate.
      *
      * @param s the string to parse
      * @return the date
      */
-    public static Date parseDate(String s) {
-        return (Date) DateTimeUtils.parseDateTime(s, Value.DATE);
+    public static ValueDate parse(String s) {
+        Value x = DateTimeUtils.parse(s, Value.DATE);
+        return (ValueDate) Value.cache(x);
     }
 
     public Date getDate() {
-        // this class is mutable - must copy the object
-        return (Date) value.clone();
+        return DateTimeUtils.convertDateValueToDate(dateValue);
     }
 
-    public Date getDateNoCopy() {
-        return value;
+    public long getDateValue() {
+        return dateValue;
     }
 
     public String getSQL() {
@@ -62,22 +62,13 @@ public class ValueDate extends Value {
     }
 
     protected int compareSecure(Value o, CompareMode mode) {
-        ValueDate v = (ValueDate) o;
-        return Integer.signum(value.compareTo(v.value));
+        return MathUtils.compareLong(dateValue, ((ValueDate) o).dateValue);
     }
 
     public String getString() {
-        String s = value.toString();
-        long time = value.getTime();
-        // special case: java.sql.Date doesn't format
-        // years below year 1 (BC) and years above 9999 correctly
-        if (time < ValueTimestamp.YEAR_ONE || time > ValueTimestamp.YEAR_9999) {
-            int year = DateTimeUtils.getDatePart(value, Calendar.YEAR);
-            if (year < 1 || year > 9999) {
-                s = year + s.substring(s.indexOf('-'));
-            }
-        }
-        return s;
+        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
+        DateTimeUtils.appendDate(buff, dateValue);
+        return buff.toString();
     }
 
     public long getPrecision() {
@@ -85,39 +76,36 @@ public class ValueDate extends Value {
     }
 
     public int hashCode() {
-        return value.hashCode();
+        return (int) (dateValue ^ (dateValue >>> 32));
     }
 
     public Object getObject() {
-        // this class is mutable - must copy the object
         return getDate();
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setDate(parameterIndex, value);
+        prep.setDate(parameterIndex, getDate());
     }
 
     /**
      * Get or create a date value for the given date.
-     * Clone the date.
      *
      * @param date the date
      * @return the value
      */
     public static ValueDate get(Date date) {
-        date = DateTimeUtils.cloneAndNormalizeDate(date);
-        return getNoCopy(date);
+        long x = DateTimeUtils.dateValueFromDate(date.getTime());
+        return get(x);
     }
 
     /**
      * Get or create a date value for the given date.
-     * Do not clone the date.
      *
-     * @param date the date
+     * @param dateValue the date value
      * @return the value
      */
-    public static ValueDate getNoCopy(Date date) {
-        return (ValueDate) Value.cache(new ValueDate(date));
+    public static ValueDate get(long dateValue) {
+        return (ValueDate) Value.cache(new ValueDate(dateValue));
     }
 
     public int getDisplaySize() {
@@ -125,7 +113,10 @@ public class ValueDate extends Value {
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueDate && value.equals(((ValueDate) other).value);
+        if (this == other) {
+            return true;
+        }
+        return other instanceof ValueDate && dateValue == (((ValueDate) other).dateValue);
     }
 
 }

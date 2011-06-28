@@ -9,9 +9,7 @@ package org.h2.value;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -37,33 +35,24 @@ public class ValueTimestamp extends Value {
      */
     static final int DEFAULT_SCALE = 10;
 
-    /**
-     * This is used to find out if a date is possibly BC. Because of time zone
-     * issues (the date is time zone specific), the second day is used. That
-     * means the value is not exact, but it does not need to be.
-     */
-    static final long YEAR_ONE = java.sql.Date.valueOf("0001-01-02").getTime();
+    private final long dateValue;
+    private final long nanos;
 
-    /**
-     * This is used to find out if the year is possibly larger than 9999.
-     * Because of time zone issues (the date is time zone specific), it's a few
-     * days before the last day. That means the value is not exact, but it does
-     * not need to be.
-     */
-    static final long YEAR_9999 = java.sql.Date.valueOf("9999-12-20").getTime();
-
-    private final Timestamp value;
-
-    private ValueTimestamp(Timestamp value) {
-        this.value = value;
+    private ValueTimestamp(long dateValue, long nanos) {
+        this.dateValue = dateValue;
+        this.nanos = nanos;
     }
 
     public Timestamp getTimestamp() {
-        return (Timestamp) value.clone();
+        return DateTimeUtils.convertDateValueToTimestamp(dateValue, nanos);
     }
 
-    public Timestamp getTimestampNoCopy() {
-        return value;
+    public long getDateValue() {
+        return dateValue;
+    }
+
+    public long getNanos() {
+        return nanos;
     }
 
     public String getSQL() {
@@ -71,13 +60,25 @@ public class ValueTimestamp extends Value {
     }
 
     /**
-     * Parse a string to a java.sql.Timestamp object.
+     * Get or create a date value for the given date.
+     *
+     * @param dateValue the date value
+     * @param nanos the nanoseconds
+     * @return the value
+     */
+    public static ValueTimestamp get(long dateValue, long nanos) {
+        return (ValueTimestamp) Value.cache(new ValueTimestamp(dateValue, nanos));
+    }
+
+    /**
+     * Parse a string to a ValueTimestamp.
      *
      * @param s the string to parse
-     * @return the timestamp
+     * @return the date
      */
-    public static Timestamp parseTimestamp(String s) {
-        return (Timestamp) DateTimeUtils.parseDateTime(s, Value.TIMESTAMP);
+    public static ValueTimestamp parse(String s) {
+        Value x = DateTimeUtils.parse(s, Value.TIMESTAMP);
+        return (ValueTimestamp) Value.cache(x);
     }
 
     public int getType() {
@@ -85,22 +86,21 @@ public class ValueTimestamp extends Value {
     }
 
     protected int compareSecure(Value o, CompareMode mode) {
-        ValueTimestamp v = (ValueTimestamp) o;
-        return Integer.signum(value.compareTo(v.value));
+        ValueTimestamp t = (ValueTimestamp) o;
+        int c = MathUtils.compareLong(dateValue, t.dateValue);
+        if (c != 0) {
+            return c;
+        }
+        return MathUtils.compareLong(nanos, t.nanos);
     }
 
     public String getString() {
-        String s = value.toString();
-        long time = value.getTime();
-        // special case: java.sql.Timestamp doesn't format
-        // years below year 1 (BC) correctly
-        if (time < YEAR_ONE) {
-            int year = DateTimeUtils.getDatePart(value, Calendar.YEAR);
-            if (year < 1) {
-                s = year + s.substring(s.indexOf('-'));
-            }
-        }
-        return s;
+        // TODO verify display size
+        StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
+        DateTimeUtils.appendDate(buff, dateValue);
+        buff.append(' ');
+        DateTimeUtils.appendTime(buff, nanos, true);
+        return buff.toString();
     }
 
     public long getPrecision() {
@@ -112,63 +112,48 @@ public class ValueTimestamp extends Value {
     }
 
     public int hashCode() {
-        return value.hashCode();
+        return (int) (dateValue ^ (dateValue >>> 32) ^ nanos ^ (nanos >>> 32));
     }
 
     public Object getObject() {
-        // this class is mutable - must copy the object
         return getTimestamp();
     }
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setTimestamp(parameterIndex, value);
+        prep.setTimestamp(parameterIndex, getTimestamp());
     }
 
     /**
      * Get or create a timestamp value for the given timestamp.
-     * Clone the timestamp.
      *
      * @param timestamp the timestamp
      * @return the value
      */
     public static ValueTimestamp get(Timestamp timestamp) {
-        timestamp = (Timestamp) timestamp.clone();
-        return getNoCopy(timestamp);
-    }
-
-    /**
-     * Get or create a timestamp value for the given timestamp.
-     * Do not clone the timestamp.
-     *
-     * @param timestamp the timestamp
-     * @return the value
-     */
-    public static ValueTimestamp getNoCopy(Timestamp timestamp) {
-        return (ValueTimestamp) Value.cache(new ValueTimestamp(timestamp));
+        long ms = timestamp.getTime();
+        long dateValue = DateTimeUtils.dateValueFromDate(ms);
+        long nanos = DateTimeUtils.nanosFromDate(ms);
+        nanos += timestamp.getNanos() % 1000000;
+        return get(dateValue, nanos);
     }
 
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
+        if (targetScale == DEFAULT_SCALE) {
+            return this;
+        }
         if (targetScale < 0 || targetScale > DEFAULT_SCALE) {
-            // TODO convertScale for Timestamps: may throw an exception?
             throw DbException.getInvalidValueException("scale", targetScale);
         }
-        int nanos = value.getNanos();
-        BigDecimal bd = BigDecimal.valueOf(nanos);
+        long n = nanos;
+        BigDecimal bd = BigDecimal.valueOf(n);
         bd = bd.movePointLeft(9);
         bd = MathUtils.setScale(bd, targetScale);
         bd = bd.movePointRight(9);
-        int n2 = bd.intValue();
-        if (n2 == nanos) {
+        long n2 = bd.longValue();
+        if (n2 == n) {
             return this;
         }
-        long t = value.getTime();
-        while (n2 >= 1000000000) {
-            t += 1000;
-            n2 -= 1000000000;
-        }
-        Timestamp t2 = new Timestamp(t);
-        t2.setNanos(n2);
-        return ValueTimestamp.getNoCopy(t2);
+        return get(dateValue, n2);
     }
 
     public int getDisplaySize() {
@@ -176,21 +161,29 @@ public class ValueTimestamp extends Value {
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueTimestamp && value.equals(((ValueTimestamp) other).value);
+        if (this == other) {
+            return true;
+        } else if (!(other instanceof ValueTimestamp)) {
+            return false;
+        }
+        ValueTimestamp x = (ValueTimestamp) other;
+        return dateValue == x.dateValue && nanos == x.nanos;
     }
 
     public Value add(Value v) {
-        long zeroTime = ValueTime.get(new Time(0)).getDate().getTime();
-        long t = value.getTime() - zeroTime + v.getTimestamp().getTime();
-        Timestamp ts = new Timestamp(t);
-        return ValueTimestamp.get(ts);
+        // TODO test sum of timestamps, dates, times
+        ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
+        long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+        long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
+        return DateTimeUtils.normalize(d1 + d2, nanos + t.nanos);
     }
 
     public Value subtract(Value v) {
-        long zeroTime = ValueTime.get(new Time(0)).getDate().getTime();
-        long t = value.getTime() + zeroTime - v.getTimestamp().getTime();
-        Timestamp ts = new Timestamp(t);
-        return ValueTimestamp.get(ts);
+        // TODO test sum of timestamps, dates, times
+        ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
+        long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
+        long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
+        return DateTimeUtils.normalize(d1 - d2, nanos - t.nanos);
     }
 
 }

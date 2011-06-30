@@ -35,6 +35,7 @@ public class TestAlterSchemaRename extends TestBase {
         deleteDb("alter");
         conn = getConnection("alter");
         stat = conn.createStatement();
+        testTryToRenameSystemSchemas();
         testSimpleRename();
         testRenameToExistingSchema();
         testCrossSchemaViews();
@@ -43,6 +44,21 @@ public class TestAlterSchemaRename extends TestBase {
         deleteDb("alter");
     }
 
+    private void testTryToRenameSystemSchemas() throws SQLException {
+        try {
+            stat.execute("alter schema information_schema rename to test_info");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, e.getErrorCode());
+        }
+        stat.execute("create sequence test_sequence");
+        try {
+            stat.execute("alter schema public rename to test_schema");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, e.getErrorCode());
+        }
+    }
 
     private void testSimpleRename() throws SQLException {
         stat.execute("create schema s1");

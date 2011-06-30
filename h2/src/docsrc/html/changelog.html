@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Date, time, and timestamp data type processing has been re-implemented.
+<ul><li>The PUBLIC schema could be renamed, which could result in a database that
+    can't be opened normally. Now it can no longer be renamed.
+    The schema INFORMATION_SCHEMA can also no longer be renamed.
+</li><li>Date, time, and timestamp data type processing has been re-implemented.
     Time now supports nanoseconds resolution and now now supports a wider range
     (negative and large values), similar to PostgreSQL.
 </li><li>SQL statements with a non-breaking space were considered invalid.

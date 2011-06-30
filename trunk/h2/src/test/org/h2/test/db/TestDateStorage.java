@@ -18,7 +18,7 @@ import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.unit.TestDate;
 import org.h2.util.DateTimeUtils;
-import org.h2.value.Value;
+import org.h2.value.ValueTimestamp;
 
 /**
  * Tests the date transfer and storage.
@@ -111,7 +111,7 @@ public class TestDateStorage extends TestBase {
     }
 
     private static void testCurrentTimeZone() {
-        for (int year = 1970; year < 2050; year += 3) {
+        for (int year = 1890; year < 2050; year += 3) {
             for (int month = 1; month <= 12; month++) {
                 for (int day = 1; day < 29; day++) {
                     for (int hour = 0; hour < 24; hour++) {
@@ -123,8 +123,7 @@ public class TestDateStorage extends TestBase {
     }
 
     private static void test(int year, int month, int day, int hour) {
-        DateTimeUtils.parse(year + "-" + month + "-" + day + " " + hour + ":00:00",
-                Value.TIMESTAMP);
+        ValueTimestamp.parse(year + "-" + month + "-" + day + " " + hour + ":00:00");
     }
 
     private void testAllTimeZones() throws SQLException {

@@ -9,8 +9,11 @@ package org.h2.value;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import org.h2.constant.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 
 /**
  * Implementation of the DATE data type.
@@ -41,8 +44,12 @@ public class ValueDate extends Value {
      * @return the date
      */
     public static ValueDate parse(String s) {
-        Value x = DateTimeUtils.parse(s, Value.DATE);
-        return (ValueDate) Value.cache(x);
+        try {
+            return get(DateTimeUtils.parseDateValue(s, 0, s.length()));
+        } catch (Exception e) {
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                    e, "DATE", s);
+        }
     }
 
     public Date getDate() {
@@ -67,7 +74,7 @@ public class ValueDate extends Value {
 
     public String getString() {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        DateTimeUtils.appendDate(buff, dateValue);
+        appendDate(buff, dateValue);
         return buff.toString();
     }
 
@@ -94,8 +101,7 @@ public class ValueDate extends Value {
      * @return the value
      */
     public static ValueDate get(Date date) {
-        long x = DateTimeUtils.dateValueFromDate(date.getTime());
-        return get(x);
+        return get(DateTimeUtils.dateValueFromDate(date.getTime()));
     }
 
     /**
@@ -117,6 +123,21 @@ public class ValueDate extends Value {
             return true;
         }
         return other instanceof ValueDate && dateValue == (((ValueDate) other).dateValue);
+    }
+
+    static void appendDate(StringBuilder buff, long dateValue) {
+        int y = DateTimeUtils.yearFromDateValue(dateValue);
+        int m = DateTimeUtils.monthFromDateValue(dateValue);
+        int d = DateTimeUtils.dayFromDateValue(dateValue);
+        if (y > 0 && y < 10000) {
+            StringUtils.appendZeroPadded(buff, 4, y);
+        } else {
+            buff.append(y);
+        }
+        buff.append('-');
+        StringUtils.appendZeroPadded(buff, 2, m);
+        buff.append('-');
+        StringUtils.appendZeroPadded(buff, 2, d);
     }
 
 }

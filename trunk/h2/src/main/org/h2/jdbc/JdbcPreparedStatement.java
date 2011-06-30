@@ -659,7 +659,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
             } else {
-                setParameter(parameterIndex, DateTimeUtils.convertTimestampToUniversal(x, calendar));
+                setParameter(parameterIndex, DateTimeUtils.convertTimestampToUTC(x, calendar));
             }
         } catch (Exception e) {
             throw logAndConvert(e);

@@ -7,9 +7,13 @@
 package org.h2.value;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.TimeZone;
+import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -71,14 +75,85 @@ public class ValueTimestamp extends Value {
     }
 
     /**
-     * Parse a string to a ValueTimestamp.
+     * Parse a string to a ValueTimestamp. This method supports the format
+     * +/-year-month-day hour:minute:seconds.fractional and an optional timezone
+     * part.
      *
      * @param s the string to parse
      * @return the date
      */
     public static ValueTimestamp parse(String s) {
-        Value x = DateTimeUtils.parse(s, Value.TIMESTAMP);
-        return (ValueTimestamp) Value.cache(x);
+        try {
+            return parseTry(s);
+        } catch (Exception e) {
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                    e, "TIMESTAMP", s);
+        }
+    }
+
+    private static ValueTimestamp parseTry(String s) {
+        int dateEnd = s.indexOf(' ');
+        if (dateEnd <= 0) {
+            // ISO 8601 compatibility
+            dateEnd = s.indexOf('T');
+        }
+        int timeStart;
+        if (dateEnd < 0) {
+            dateEnd = s.length();
+            timeStart = -1;
+        } else {
+            timeStart = dateEnd + 1;
+        }
+        long dateValue = DateTimeUtils.parseDateValue(s, 0, dateEnd);
+        long nanos;
+        if (timeStart < 0) {
+            nanos = 0;
+        } else {
+            int timeEnd = s.length();
+            TimeZone tz = null;
+            if (s.endsWith("Z")) {
+                tz = TimeZone.getTimeZone("UTC");
+                timeEnd--;
+                while (s.charAt(timeEnd - 1) == ' ') {
+                    timeEnd--;
+                }
+            } else {
+                int timeZoneStart = s.indexOf('+', dateEnd);
+                if (timeZoneStart < 0) {
+                    timeZoneStart = s.indexOf('-', dateEnd);
+                }
+                if (timeZoneStart >= 0) {
+                    String tzName = "GMT" + s.substring(timeZoneStart);
+                    tz = TimeZone.getTimeZone(tzName);
+                    if (!tz.getID().startsWith(tzName)) {
+                        throw new IllegalArgumentException(tzName);
+                    }
+                    timeEnd = timeZoneStart;
+                    while (s.charAt(timeEnd - 1) == ' ') {
+                        timeEnd--;
+                    }
+                }
+            }
+            nanos = DateTimeUtils.parseTimeNanos(s, dateEnd + 1, timeEnd, true);
+            if (tz != null) {
+                int year = DateTimeUtils.yearFromDateValue(dateValue);
+                int month = DateTimeUtils.monthFromDateValue(dateValue);
+                int day = DateTimeUtils.dayFromDateValue(dateValue);
+                long ms = nanos / 1000000;
+                nanos -= ms * 1000000;
+                long second = ms / 1000;
+                ms -= second * 1000;
+                int minute = (int) (second / 60);
+                second -= minute * 60;
+                int hour = minute / 60;
+                minute -= hour * 60;
+                long millis = DateTimeUtils.getMillis(tz, year, month, day, hour, minute, (int) second, (int) ms);
+                ms = DateTimeUtils.convertToLocal(new Date(millis), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+                dateValue = DateTimeUtils.dateValueFromDate(ms);
+                nanos += (ms - DateTimeUtils.absoluteDayFromDateValue(dateValue) * DateTimeUtils.MILLIS_PER_DAY) * 1000000;
+            }
+        }
+        return ValueTimestamp.get(dateValue, nanos);
     }
 
     public int getType() {
@@ -97,9 +172,9 @@ public class ValueTimestamp extends Value {
     public String getString() {
         // TODO verify display size
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        DateTimeUtils.appendDate(buff, dateValue);
+        ValueDate.appendDate(buff, dateValue);
         buff.append(' ');
-        DateTimeUtils.appendTime(buff, nanos, true);
+        ValueTime.appendTime(buff, nanos, true);
         return buff.toString();
     }
 
@@ -138,10 +213,10 @@ public class ValueTimestamp extends Value {
     }
 
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
-        if (targetScale == DEFAULT_SCALE) {
+        if (targetScale >= DEFAULT_SCALE) {
             return this;
         }
-        if (targetScale < 0 || targetScale > DEFAULT_SCALE) {
+        if (targetScale < 0) {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
         long n = nanos;
@@ -175,7 +250,7 @@ public class ValueTimestamp extends Value {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
         long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
-        return DateTimeUtils.normalize(d1 + d2, nanos + t.nanos);
+        return DateTimeUtils.normalizeTimestamp(d1 + d2, nanos + t.nanos);
     }
 
     public Value subtract(Value v) {
@@ -183,7 +258,7 @@ public class ValueTimestamp extends Value {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
         long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
-        return DateTimeUtils.normalize(d1 - d2, nanos - t.nanos);
+        return DateTimeUtils.normalizeTimestamp(d1 - d2, nanos - t.nanos);
     }
 
 }

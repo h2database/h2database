@@ -697,19 +697,16 @@ public abstract class Value {
                     // because a date has the time set to 0, the result will be 0
                     return ValueTime.get(0);
                 case TIMESTAMP:
-                    // need to normalize the year, month and day
-                    return ValueTime.get(new Time(getTimestamp().getTime()));
+                    return ValueTime.get(((ValueTimestamp) this).getNanos());
                 }
                 break;
             }
             case TIMESTAMP: {
                 switch (getType()) {
                 case TIME:
-                    // TODO
-                    return ValueTimestamp.get(new Timestamp(getTime().getTime()));
+                    return DateTimeUtils.normalizeTimestamp(0, ((ValueTime) this).getNanos());
                 case DATE:
-                    // TODO
-                    return ValueTimestamp.get(new Timestamp(getDate().getTime()));
+                    return ValueTimestamp.get(((ValueDate) this).getDateValue(), 0);
                 }
                 break;
             }

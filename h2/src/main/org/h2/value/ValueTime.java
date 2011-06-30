@@ -9,8 +9,11 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+import org.h2.constant.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 
 /**
  * Implementation of the TIME data type.
@@ -40,8 +43,14 @@ public class ValueTime extends Value {
      * @param s the string to parse
      * @return the time
      */
+
     public static ValueTime parse(String s) {
-        return new ValueTime(DateTimeUtils.parseTime(s));
+        try {
+            return get(DateTimeUtils.parseTimeNanos(s, 0, s.length(), false));
+        } catch (Exception e) {
+            throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
+                    e, "TIME", s);
+        }
     }
 
     public Time getTime() {
@@ -66,7 +75,7 @@ public class ValueTime extends Value {
 
     public String getString() {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
-        DateTimeUtils.appendTime(buff, nanos, false);
+        appendTime(buff, nanos, false);
         return buff.toString();
     }
 
@@ -93,8 +102,7 @@ public class ValueTime extends Value {
      * @return the value
      */
     public static ValueTime get(Time time) {
-        long x = DateTimeUtils.nanosFromDate(time.getTime());
-        return get(x);
+        return get(DateTimeUtils.nanosFromDate(time.getTime()));
     }
 
     /**
@@ -134,6 +142,48 @@ public class ValueTime extends Value {
 
     public Value divide(Value v) {
         return ValueTime.get((long) (nanos / v.getDouble()));
+    }
+
+    public int getSignum() {
+        return Long.signum(nanos);
+    }
+
+    public Value negate() {
+        return ValueTime.get(-nanos);
+    }
+
+    static void appendTime(StringBuilder buff, long n, boolean alwaysAddMillis) {
+        if (n < 0) {
+            buff.append('-');
+            n = -n;
+        }
+        long ms = n / 1000000;
+        n -= ms * 1000000;
+        long s = ms / 1000;
+        ms -= s * 1000;
+        long m = s / 60;
+        s -= m * 60;
+        long h = m / 60;
+        m -= h * 60;
+        StringUtils.appendZeroPadded(buff, 2, h);
+        buff.append(':');
+        StringUtils.appendZeroPadded(buff, 2, m);
+        buff.append(':');
+        StringUtils.appendZeroPadded(buff, 2, s);
+        if (alwaysAddMillis || ms > 0 || n > 0) {
+            buff.append('.');
+            int start = buff.length();
+            StringUtils.appendZeroPadded(buff, 3, ms);
+            if (n > 0) {
+                StringUtils.appendZeroPadded(buff, 6, n);
+            }
+            for (int i = buff.length() - 1; i > start; i--) {
+                if (buff.charAt(i) != '0') {
+                    break;
+                }
+                buff.deleteCharAt(i);
+            }
+        }
     }
 
 }

@@ -53,6 +53,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testCreateIndexOnLob();
         testBlobInputStreamSeek(true);
         testBlobInputStreamSeek(false);
         testDeadlock();
@@ -95,6 +96,22 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testCreateIndexOnLob() throws Exception {
+        deleteDb("lob");
+        Connection conn;
+        conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, name clob)");
+        try {
+            stat.execute("create index idx_n on test(name)");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
+        }
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testBlobInputStreamSeek(boolean upgraded) throws Exception {

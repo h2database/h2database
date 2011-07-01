@@ -51,6 +51,9 @@ public class PageBtreeIndex extends PageIndex {
         store.addIndex(this);
         if (create) {
             // new index
+            if (!database.isStarting()) {
+                checkIndexColumnTypes(columns);
+            }
             rootPageId = store.allocatePage();
             needRebuild = true;
             // TODO currently the head position is stored in the log
@@ -72,6 +75,15 @@ public class PageBtreeIndex extends PageIndex {
             trace.debug("opened {0} rows: {1}", getName() , rowCount);
         }
         memoryPerPage = (Constants.MEMORY_PAGE_BTREE + store.getPageSize()) >> 2;
+    }
+
+    private void checkIndexColumnTypes(IndexColumn[] columns) {
+        for (IndexColumn c : columns) {
+            int type = c.column.getType();
+            if (type == Value.CLOB || type == Value.BLOB) {
+                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "Index on BLOB or CLOB column: " + c.column.getCreateSQL());
+            }
+        }
     }
 
     public void add(Session session, Row row) {

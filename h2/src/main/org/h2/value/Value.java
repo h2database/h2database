@@ -684,9 +684,9 @@ public abstract class Value {
                 case TIME:
                     // because the time has set the date to 1970-01-01,
                     // this will be the result
-                    return ValueDate.get(DateTimeUtils.dateValue(1970, 1, 1));
+                    return ValueDate.fromDateValue(DateTimeUtils.dateValue(1970, 1, 1));
                 case TIMESTAMP:
-                    return ValueDate.get(((ValueTimestamp) this).getDateValue());
+                    return ValueDate.fromDateValue(((ValueTimestamp) this).getDateValue());
                 }
                 break;
             }
@@ -695,9 +695,9 @@ public abstract class Value {
                 case DATE:
                     // need to normalize the year, month and day
                     // because a date has the time set to 0, the result will be 0
-                    return ValueTime.get(0);
+                    return ValueTime.fromNanos(0);
                 case TIMESTAMP:
-                    return ValueTime.get(((ValueTimestamp) this).getNanos());
+                    return ValueTime.fromNanos(((ValueTimestamp) this).getNanos());
                 }
                 break;
             }
@@ -706,7 +706,7 @@ public abstract class Value {
                 case TIME:
                     return DateTimeUtils.normalizeTimestamp(0, ((ValueTime) this).getNanos());
                 case DATE:
-                    return ValueTimestamp.get(((ValueDate) this).getDateValue(), 0);
+                    return ValueTimestamp.fromDateValueAndNanos(((ValueDate) this).getDateValue(), 0);
                 }
                 break;
             }

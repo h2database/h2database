@@ -385,7 +385,7 @@ select count(scriptSimple.public.test.id) from scriptSimple.public.test;
 update scriptSimple.public.test set scriptSimple.public.test.id=1;
 drop table scriptSimple.public.test;
 
-select year(timestamp '2007-07-26 18:44:26.109000 +02:00');
+select year(timestamp '2007-07-26T18:44:26.109000+02:00');
 > 2007;
 
 create table test(id int primary key);

@@ -42,7 +42,6 @@ public class TestDateStorage extends TestBase {
         testCurrentTimeZone();
     }
 
-
     private void testMoveDatabaseToAnotherTimezone() throws SQLException {
         if (config.memory) {
             return;

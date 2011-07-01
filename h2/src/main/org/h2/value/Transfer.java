@@ -471,21 +471,21 @@ public class Transfer {
             return ValueByte.get(readByte());
         case Value.DATE:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                return ValueDate.get(readLong());
+                return ValueDate.fromDateValue(readLong());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 return ValueDate.get(new Date(DateTimeUtils.getTimeUTCWithoutDst(readLong())));
             }
             return ValueDate.get(new Date(readLong()));
         case Value.TIME:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                return ValueTime.get(readLong());
+                return ValueTime.fromNanos(readLong());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 return ValueTime.get(new Time(DateTimeUtils.getTimeUTCWithoutDst(readLong())));
             }
             return ValueTime.get(new Time(readLong()));
         case Value.TIMESTAMP: {
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                return ValueTimestamp.get(readLong(), readLong());
+                return ValueTimestamp.fromDateValueAndNanos(readLong(), readLong());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 Timestamp ts = new Timestamp(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
                 ts.setNanos(readInt());

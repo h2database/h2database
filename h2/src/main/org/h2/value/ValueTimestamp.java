@@ -47,22 +47,6 @@ public class ValueTimestamp extends Value {
         this.nanos = nanos;
     }
 
-    public Timestamp getTimestamp() {
-        return DateTimeUtils.convertDateValueToTimestamp(dateValue, nanos);
-    }
-
-    public long getDateValue() {
-        return dateValue;
-    }
-
-    public long getNanos() {
-        return nanos;
-    }
-
-    public String getSQL() {
-        return "TIMESTAMP '" + getString() + "'";
-    }
-
     /**
      * Get or create a date value for the given date.
      *
@@ -70,8 +54,22 @@ public class ValueTimestamp extends Value {
      * @param nanos the nanoseconds
      * @return the value
      */
-    public static ValueTimestamp get(long dateValue, long nanos) {
+    public static ValueTimestamp fromDateValueAndNanos(long dateValue, long nanos) {
         return (ValueTimestamp) Value.cache(new ValueTimestamp(dateValue, nanos));
+    }
+
+    /**
+     * Get or create a timestamp value for the given timestamp.
+     *
+     * @param timestamp the timestamp
+     * @return the value
+     */
+    public static ValueTimestamp get(Timestamp timestamp) {
+        long ms = timestamp.getTime();
+        long dateValue = DateTimeUtils.dateValueFromDate(ms);
+        long nanos = DateTimeUtils.nanosFromDate(ms);
+        nanos += timestamp.getNanos() % 1000000;
+        return fromDateValueAndNanos(dateValue, nanos);
     }
 
     /**
@@ -93,7 +91,7 @@ public class ValueTimestamp extends Value {
 
     private static ValueTimestamp parseTry(String s) {
         int dateEnd = s.indexOf(' ');
-        if (dateEnd <= 0) {
+        if (dateEnd < 0) {
             // ISO 8601 compatibility
             dateEnd = s.indexOf('T');
         }
@@ -114,9 +112,6 @@ public class ValueTimestamp extends Value {
             if (s.endsWith("Z")) {
                 tz = TimeZone.getTimeZone("UTC");
                 timeEnd--;
-                while (s.charAt(timeEnd - 1) == ' ') {
-                    timeEnd--;
-                }
             } else {
                 int timeZoneStart = s.indexOf('+', dateEnd);
                 if (timeZoneStart < 0) {
@@ -129,8 +124,15 @@ public class ValueTimestamp extends Value {
                         throw new IllegalArgumentException(tzName);
                     }
                     timeEnd = timeZoneStart;
-                    while (s.charAt(timeEnd - 1) == ' ') {
-                        timeEnd--;
+                } else {
+                    timeZoneStart = s.indexOf(' ', dateEnd + 1);
+                    if (timeZoneStart > 0) {
+                        String tzName = s.substring(timeZoneStart + 1);
+                        tz = TimeZone.getTimeZone(tzName);
+                        if (!tz.getID().startsWith(tzName)) {
+                            throw new IllegalArgumentException(tzName);
+                        }
+                        timeEnd = timeZoneStart;
                     }
                 }
             }
@@ -153,29 +155,35 @@ public class ValueTimestamp extends Value {
                 nanos += (ms - DateTimeUtils.absoluteDayFromDateValue(dateValue) * DateTimeUtils.MILLIS_PER_DAY) * 1000000;
             }
         }
-        return ValueTimestamp.get(dateValue, nanos);
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
+    }
+
+    public long getDateValue() {
+        return dateValue;
+    }
+
+    public long getNanos() {
+        return nanos;
+    }
+
+    public Timestamp getTimestamp() {
+        return DateTimeUtils.convertDateValueToTimestamp(dateValue, nanos);
     }
 
     public int getType() {
         return Value.TIMESTAMP;
     }
 
-    protected int compareSecure(Value o, CompareMode mode) {
-        ValueTimestamp t = (ValueTimestamp) o;
-        int c = MathUtils.compareLong(dateValue, t.dateValue);
-        if (c != 0) {
-            return c;
-        }
-        return MathUtils.compareLong(nanos, t.nanos);
-    }
-
     public String getString() {
-        // TODO verify display size
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
         ValueDate.appendDate(buff, dateValue);
         buff.append(' ');
         ValueTime.appendTime(buff, nanos, true);
         return buff.toString();
+    }
+
+    public String getSQL() {
+        return "TIMESTAMP '" + getString() + "'";
     }
 
     public long getPrecision() {
@@ -186,30 +194,8 @@ public class ValueTimestamp extends Value {
         return DEFAULT_SCALE;
     }
 
-    public int hashCode() {
-        return (int) (dateValue ^ (dateValue >>> 32) ^ nanos ^ (nanos >>> 32));
-    }
-
-    public Object getObject() {
-        return getTimestamp();
-    }
-
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        prep.setTimestamp(parameterIndex, getTimestamp());
-    }
-
-    /**
-     * Get or create a timestamp value for the given timestamp.
-     *
-     * @param timestamp the timestamp
-     * @return the value
-     */
-    public static ValueTimestamp get(Timestamp timestamp) {
-        long ms = timestamp.getTime();
-        long dateValue = DateTimeUtils.dateValueFromDate(ms);
-        long nanos = DateTimeUtils.nanosFromDate(ms);
-        nanos += timestamp.getNanos() % 1000000;
-        return get(dateValue, nanos);
+    public int getDisplaySize() {
+        return DISPLAY_SIZE;
     }
 
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
@@ -228,11 +214,16 @@ public class ValueTimestamp extends Value {
         if (n2 == n) {
             return this;
         }
-        return get(dateValue, n2);
+        return fromDateValueAndNanos(dateValue, n2);
     }
 
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
+    protected int compareSecure(Value o, CompareMode mode) {
+        ValueTimestamp t = (ValueTimestamp) o;
+        int c = MathUtils.compareLong(dateValue, t.dateValue);
+        if (c != 0) {
+            return c;
+        }
+        return MathUtils.compareLong(nanos, t.nanos);
     }
 
     public boolean equals(Object other) {
@@ -245,8 +236,19 @@ public class ValueTimestamp extends Value {
         return dateValue == x.dateValue && nanos == x.nanos;
     }
 
+    public int hashCode() {
+        return (int) (dateValue ^ (dateValue >>> 32) ^ nanos ^ (nanos >>> 32));
+    }
+
+    public Object getObject() {
+        return getTimestamp();
+    }
+
+    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        prep.setTimestamp(parameterIndex, getTimestamp());
+    }
+
     public Value add(Value v) {
-        // TODO test sum of timestamps, dates, times
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
         long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
@@ -254,7 +256,6 @@ public class ValueTimestamp extends Value {
     }
 
     public Value subtract(Value v) {
-        // TODO test sum of timestamps, dates, times
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
         long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);

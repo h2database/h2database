@@ -350,8 +350,8 @@ public class SysProperties {
 
     /**
      * System property <code>h2.storeLocalTime</code> (default: false).<br />
-     * Store the local time in milliseconds since 1970 in the database file. If
-     * disabled, the daylight saving offset is not taken into account.
+     * Store the local time. If disabled, the daylight saving offset is not
+     * taken into account.
      */
     public static final boolean STORE_LOCAL_TIME = Utils.getProperty("h2.storeLocalTime", false);
 

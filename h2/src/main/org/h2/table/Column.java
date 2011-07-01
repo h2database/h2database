@@ -6,8 +6,8 @@
  */
 package org.h2.table;
 
+import java.sql.Date;
 import java.sql.ResultSetMetaData;
-import java.sql.Time;
 import java.sql.Timestamp;
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
@@ -27,6 +27,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueDate;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -284,15 +285,11 @@ public class Column {
                     if (dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
                     } else if (dt.type == Value.TIMESTAMP) {
-                        // TODO
-                        value = ValueTimestamp.get(new Timestamp(System.currentTimeMillis()));
+                        value = ValueTimestamp.get(new Timestamp(session.getTransactionStart()));
                     } else if (dt.type == Value.TIME) {
-                        // TODO
-                        // need to normalize
-                        value = ValueTime.get(Time.valueOf("0:0:0"));
+                        value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {
-                        // TODO
-                        value = ValueTimestamp.get(new Timestamp(System.currentTimeMillis())).convertTo(dt.type);
+                        value = ValueDate.get(new Date(session.getTransactionStart()));
                     } else {
                         value = ValueString.get("").convertTo(type);
                     }

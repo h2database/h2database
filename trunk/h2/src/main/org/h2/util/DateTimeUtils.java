@@ -626,7 +626,7 @@ public class DateTimeUtils {
             nanos -= d * NANOS_PER_DAY;
             absoluteDay += d;
         }
-        return ValueTimestamp.get(dateValueFromAbsoluteDay(absoluteDay), nanos);
+        return ValueTimestamp.fromDateValueAndNanos(dateValueFromAbsoluteDay(absoluteDay), nanos);
     }
 
     public static long absoluteDayFromDateValue(long dateValue) {

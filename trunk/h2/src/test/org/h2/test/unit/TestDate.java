@@ -15,11 +15,11 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.h2.constant.SysProperties;
+import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.New;
-import org.h2.util.Profiler;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
@@ -48,24 +48,19 @@ public class TestDate extends TestBase {
     }
 
     public void test() throws SQLException {
-int test;
-//Profiler prof = new Profiler();
-//prof.startCollecting();
         testValueDate();
         testValueTime();
         testValueTimestamp();
         testValidDate();
         testAbsoluteDay();
-
         testCalculateLocalMillis();
         testTimeOperationsAcrossTimeZones();
         testDateTimeUtils();
-//System.out.println(prof.getTop(5));
     }
 
     private void testValueDate() {
         assertEquals("2000-01-01", ValueDate.get(Date.valueOf("2000-01-01")).getString());
-        assertEquals("0-00-00", ValueDate.get(0).getString());
+        assertEquals("0-00-00", ValueDate.fromDateValue(0).getString());
         assertEquals("9999-12-31", ValueDate.parse("9999-12-31").getString());
         assertEquals("-9999-12-31", ValueDate.parse("-9999-12-31").getString());
         assertEquals(
@@ -121,7 +116,7 @@ int test;
 
     private void testValueTime() {
         assertEquals("10:20:30", ValueTime.get(Time.valueOf("10:20:30")).getString());
-        assertEquals("00:00:00", ValueTime.get(0).getString());
+        assertEquals("00:00:00", ValueTime.fromNanos(0).getString());
         assertEquals("23:59:59", ValueTime.parse("23:59:59").getString());
         assertEquals("99:59:59", ValueTime.parse("99:59:59").getString());
         assertEquals("-99:02:03.001002003", ValueTime.parse("-99:02:03.001002003").getString());
@@ -184,7 +179,7 @@ int test;
                 Timestamp.valueOf("2001-02-03 04:05:06")).getString());
         assertEquals("2001-02-03 04:05:06.001002003", ValueTimestamp.get(
                 Timestamp.valueOf("2001-02-03 04:05:06.001002003")).getString());
-        assertEquals("0-00-00 00:00:00.0", ValueTimestamp.get(0, 0).getString());
+        assertEquals("0-00-00 00:00:00.0", ValueTimestamp.fromDateValueAndNanos(0, 0).getString());
         assertEquals("9999-12-31 23:59:59.0",
                 ValueTimestamp.parse("9999-12-31 23:59:59").getString());
 
@@ -262,6 +257,25 @@ int test;
         assertEquals("-1010-10-10 00:00:00.0",
                 ValueTimestamp.parse("-1010-10-10 10:10:10").subtract(
                 ValueTime.parse("10:10:10")).getString());
+
+        assertEquals(0, DateTimeUtils.absoluteDayFromDateValue(ValueTimestamp.parse("1970-01-01").getDateValue()));
+        assertEquals(0, ValueTimestamp.parse("1970-01-01").getNanos());
+        assertEquals(0, ValueTimestamp.parse("1970-01-01 00:00:00.000 UTC").getTimestamp().getTime());
+        assertEquals(0, ValueTimestamp.parse("+1970-01-01T00:00:00.000Z").getTimestamp().getTime());
+        assertEquals(0, ValueTimestamp.parse("1970-01-01T00:00:00.000+00:00").getTimestamp().getTime());
+        assertEquals(0, ValueTimestamp.parse("1970-01-01T00:00:00.000-00:00").getTimestamp().getTime());
+        try {
+            ValueTimestamp.parse("1970-01-01 00:00:00.000 ABC");
+            fail();
+        } catch (DbException e) {
+            // expected
+        }
+        try {
+            ValueTimestamp.parse("1970-01-01T00:00:00.000+ABC");
+            fail();
+        } catch (DbException e) {
+            // expected
+        }
     }
 
     private void testAbsoluteDay() {

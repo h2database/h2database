@@ -471,7 +471,12 @@ public class Data {
         case Value.TIME:
             if (SysProperties.STORE_LOCAL_TIME) {
                 writeByte((byte) LOCAL_TIME);
-                writeVarLong(((ValueTime) v).getNanos());
+                ValueTime t = (ValueTime) v;
+                long nanos = t.getNanos();
+                long millis = nanos / 1000000;
+                nanos -= millis * 1000000;
+                writeVarLong(millis);
+                writeVarLong(nanos);
             } else {
                 writeByte((byte) type);
                 writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
@@ -494,8 +499,11 @@ public class Data {
                 writeByte((byte) LOCAL_TIMESTAMP);
                 ValueTimestamp ts = (ValueTimestamp) v;
                 long dateValue = ts.getDateValue();
-                long nanos = ts.getNanos();
                 writeVarLong(dateValue);
+                long nanos = ts.getNanos();
+                long millis = nanos / 1000000;
+                nanos -= millis * 1000000;
+                writeVarLong(millis);
                 writeVarLong(nanos);
             } else {
                 Timestamp ts = v.getTimestamp();
@@ -683,21 +691,23 @@ public class Data {
             return ValueDecimal.get(new BigDecimal(b, scale));
         }
         case LOCAL_DATE: {
-            return ValueDate.get(readVarLong());
+            return ValueDate.fromDateValue(readVarLong());
         }
         case Value.DATE: {
             long x = readVarLong() * MILLIS_PER_MINUTE;
             return ValueDate.get(new Date(DateTimeUtils.getTimeUTCWithoutDst(x)));
         }
-        case LOCAL_TIME:
-            return ValueTime.get(readVarLong());
+        case LOCAL_TIME: {
+            long nanos = readVarLong() * 1000000 + readVarLong();
+            return ValueTime.fromNanos(nanos);
+        }
         case Value.TIME:
             // need to normalize the year, month and day
             return ValueTime.get(new Time(DateTimeUtils.getTimeUTCWithoutDst(readVarLong())));
         case LOCAL_TIMESTAMP: {
             long dateValue = readVarLong();
-            long nanos = readVarLong();
-            return ValueTimestamp.get(dateValue, nanos);
+            long nanos = readVarLong() * 1000000 + readVarLong();
+            return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
         }
         case Value.TIMESTAMP: {
             Timestamp ts = new Timestamp(DateTimeUtils.getTimeUTCWithoutDst(readVarLong()));
@@ -895,7 +905,10 @@ public class Data {
         }
         case Value.TIME:
             if (SysProperties.STORE_LOCAL_TIME) {
-                return 1 + getVarLongLen(((ValueTime) v).getNanos());
+                long nanos = ((ValueTime) v).getNanos();
+                long millis = nanos / 1000000;
+                nanos -= millis * 1000000;
+                return 1 + getVarLongLen(millis) + getVarLongLen(nanos);
             }
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
         case Value.DATE: {
@@ -911,7 +924,9 @@ public class Data {
                 ValueTimestamp ts = (ValueTimestamp) v;
                 long dateValue = ts.getDateValue();
                 long nanos = ts.getNanos();
-                return 1 + getVarLongLen(dateValue) + getVarLongLen(nanos);
+                long millis = nanos / 1000000;
+                nanos -= millis * 1000000;
+                return 1 + getVarLongLen(dateValue) + getVarLongLen(millis) + getVarLongLen(nanos);
             }
             Timestamp ts = v.getTimestamp();
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) + getVarIntLen(ts.getNanos());

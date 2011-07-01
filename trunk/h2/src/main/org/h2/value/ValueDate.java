@@ -38,6 +38,26 @@ public class ValueDate extends Value {
     }
 
     /**
+     * Get or create a date value for the given date.
+     *
+     * @param dateValue the date value
+     * @return the value
+     */
+    public static ValueDate fromDateValue(long dateValue) {
+        return (ValueDate) Value.cache(new ValueDate(dateValue));
+    }
+
+    /**
+     * Get or create a date value for the given date.
+     *
+     * @param date the date
+     * @return the value
+     */
+    public static ValueDate get(Date date) {
+        return fromDateValue(DateTimeUtils.dateValueFromDate(date.getTime()));
+    }
+
+    /**
      * Parse a string to a ValueDate.
      *
      * @param s the string to parse
@@ -45,31 +65,23 @@ public class ValueDate extends Value {
      */
     public static ValueDate parse(String s) {
         try {
-            return get(DateTimeUtils.parseDateValue(s, 0, s.length()));
+            return fromDateValue(DateTimeUtils.parseDateValue(s, 0, s.length()));
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                     e, "DATE", s);
         }
     }
 
-    public Date getDate() {
-        return DateTimeUtils.convertDateValueToDate(dateValue);
-    }
-
     public long getDateValue() {
         return dateValue;
     }
 
-    public String getSQL() {
-        return "DATE '" + getString() + "'";
+    public Date getDate() {
+        return DateTimeUtils.convertDateValueToDate(dateValue);
     }
 
     public int getType() {
         return Value.DATE;
-    }
-
-    protected int compareSecure(Value o, CompareMode mode) {
-        return MathUtils.compareLong(dateValue, ((ValueDate) o).dateValue);
     }
 
     public String getString() {
@@ -78,8 +90,27 @@ public class ValueDate extends Value {
         return buff.toString();
     }
 
+    public String getSQL() {
+        return "DATE '" + getString() + "'";
+    }
+
     public long getPrecision() {
         return PRECISION;
+    }
+
+    public int getDisplaySize() {
+        return DISPLAY_SIZE;
+    }
+
+    protected int compareSecure(Value o, CompareMode mode) {
+        return MathUtils.compareLong(dateValue, ((ValueDate) o).dateValue);
+    }
+
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        return other instanceof ValueDate && dateValue == (((ValueDate) other).dateValue);
     }
 
     public int hashCode() {
@@ -92,37 +123,6 @@ public class ValueDate extends Value {
 
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setDate(parameterIndex, getDate());
-    }
-
-    /**
-     * Get or create a date value for the given date.
-     *
-     * @param date the date
-     * @return the value
-     */
-    public static ValueDate get(Date date) {
-        return get(DateTimeUtils.dateValueFromDate(date.getTime()));
-    }
-
-    /**
-     * Get or create a date value for the given date.
-     *
-     * @param dateValue the date value
-     * @return the value
-     */
-    public static ValueDate get(long dateValue) {
-        return (ValueDate) Value.cache(new ValueDate(dateValue));
-    }
-
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
-    }
-
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        return other instanceof ValueDate && dateValue == (((ValueDate) other).dateValue);
     }
 
     static void appendDate(StringBuilder buff, long dateValue) {

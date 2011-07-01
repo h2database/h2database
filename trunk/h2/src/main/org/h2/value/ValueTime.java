@@ -38,6 +38,26 @@ public class ValueTime extends Value {
     }
 
     /**
+     * Get or create a time value.
+     *
+     * @param nanos the nanoseconds
+     * @return the value
+     */
+    public static ValueTime fromNanos(long nanos) {
+        return (ValueTime) Value.cache(new ValueTime(nanos));
+    }
+
+    /**
+     * Get or create a time value for the given time.
+     *
+     * @param time the time
+     * @return the value
+     */
+    public static ValueTime get(Time time) {
+        return fromNanos(DateTimeUtils.nanosFromDate(time.getTime()));
+    }
+
+    /**
      * Parse a string to a ValueTime.
      *
      * @param s the string to parse
@@ -46,31 +66,23 @@ public class ValueTime extends Value {
 
     public static ValueTime parse(String s) {
         try {
-            return get(DateTimeUtils.parseTimeNanos(s, 0, s.length(), false));
+            return fromNanos(DateTimeUtils.parseTimeNanos(s, 0, s.length(), false));
         } catch (Exception e) {
             throw DbException.get(ErrorCode.INVALID_DATETIME_CONSTANT_2,
                     e, "TIME", s);
         }
     }
 
-    public Time getTime() {
-        return DateTimeUtils.convertNanoToTime(nanos);
-    }
-
     public long getNanos() {
         return nanos;
     }
 
-    public String getSQL() {
-        return "TIME '" + getString() + "'";
+    public Time getTime() {
+        return DateTimeUtils.convertNanoToTime(nanos);
     }
 
     public int getType() {
         return Value.TIME;
-    }
-
-    protected int compareSecure(Value o, CompareMode mode) {
-        return MathUtils.compareLong(nanos, ((ValueTime) o).nanos);
     }
 
     public String getString() {
@@ -79,8 +91,27 @@ public class ValueTime extends Value {
         return buff.toString();
     }
 
+    public String getSQL() {
+        return "TIME '" + getString() + "'";
+    }
+
     public long getPrecision() {
         return PRECISION;
+    }
+
+    public int getDisplaySize() {
+        return DISPLAY_SIZE;
+    }
+
+    protected int compareSecure(Value o, CompareMode mode) {
+        return MathUtils.compareLong(nanos, ((ValueTime) o).nanos);
+    }
+
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        return other instanceof ValueTime && nanos == (((ValueTime) other).nanos);
     }
 
     public int hashCode() {
@@ -95,53 +126,22 @@ public class ValueTime extends Value {
         prep.setTime(parameterIndex, getTime());
     }
 
-    /**
-     * Get or create a time value for the given time.
-     *
-     * @param time the time
-     * @return the value
-     */
-    public static ValueTime get(Time time) {
-        return get(DateTimeUtils.nanosFromDate(time.getTime()));
-    }
-
-    /**
-     * Get or create a time value.
-     *
-     * @param nanos the nanoseconds
-     * @return the value
-     */
-    public static ValueTime get(long nanos) {
-        return (ValueTime) Value.cache(new ValueTime(nanos));
-    }
-
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
-    }
-
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        return other instanceof ValueTime && nanos == (((ValueTime) other).nanos);
-    }
-
     public Value add(Value v) {
         ValueTime t = (ValueTime) v.convertTo(Value.TIME);
-        return ValueTime.get(nanos + t.getNanos());
+        return ValueTime.fromNanos(nanos + t.getNanos());
     }
 
     public Value subtract(Value v) {
         ValueTime t = (ValueTime) v.convertTo(Value.TIME);
-        return ValueTime.get(nanos - t.getNanos());
+        return ValueTime.fromNanos(nanos - t.getNanos());
     }
 
     public Value multiply(Value v) {
-        return ValueTime.get((long) (nanos * v.getDouble()));
+        return ValueTime.fromNanos((long) (nanos * v.getDouble()));
     }
 
     public Value divide(Value v) {
-        return ValueTime.get((long) (nanos / v.getDouble()));
+        return ValueTime.fromNanos((long) (nanos / v.getDouble()));
     }
 
     public int getSignum() {
@@ -149,7 +149,7 @@ public class ValueTime extends Value {
     }
 
     public Value negate() {
-        return ValueTime.get(-nanos);
+        return ValueTime.fromNanos(-nanos);
     }
 
     static void appendTime(StringBuilder buff, long n, boolean alwaysAddMillis) {

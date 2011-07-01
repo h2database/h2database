@@ -18,9 +18,18 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The PUBLIC schema could be renamed, which could result in a database that
+<ul><li>It is now longer allowed to create an index on a CLOB or BLOB column
+    (except for in-memory databases or indexes), because recovery doesn't work
+    on such columns. Fulltext indexes on such column are still supported of course.
+</li><li>The PUBLIC schema could be renamed, which could result in a database that
     can't be opened normally. Now it can no longer be renamed.
     The schema INFORMATION_SCHEMA can also no longer be renamed.
+</li><li>Server mode: the problem with server and client using different 
+    timezones with different daylight saving rules has been solved
+    (this only applies when both the client and the server use this or a newer version).
+</li><li>There is a new system property "h2.storeLocalTime" to avoid 
+    problems opening a database file in a timezone that has different
+    daylight saving rules (see also below).
 </li><li>Date, time, and timestamp data type processing has been re-implemented.
     Time now supports nanoseconds resolution and now now supports a wider range
     (negative and large values), similar to PostgreSQL.

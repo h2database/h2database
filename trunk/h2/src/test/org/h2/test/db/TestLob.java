@@ -106,7 +106,9 @@ public class TestLob extends TestBase {
         stat.execute("create table test(id int, name clob)");
         try {
             stat.execute("create index idx_n on test(name)");
-            fail();
+            if (!config.memory) {
+                fail();
+            }
         } catch (SQLException e) {
             assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
         }
@@ -290,7 +292,7 @@ public class TestLob extends TestBase {
         Statement stat;
         conn = getConnection("lob");
         stat = conn.createStatement();
-        stat.execute("create table test(x clob unique)");
+        stat.execute("create memory table test(x clob unique)");
         stat.execute("insert into test values('hello')");
         stat.execute("insert into test values('world')");
         try {

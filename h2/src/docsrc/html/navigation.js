@@ -113,7 +113,7 @@ function highlightSearchTerms(body, searchText) {
 }
 
 function doHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag) {
-    if(searchTerm == undefined || searchTerm=="") {
+    if(searchTerm == undefined || searchTerm=="" || searchTerm.length < 3) {
         return bodyText;
     }
     var newText = "";

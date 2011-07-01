@@ -41,6 +41,9 @@ public class PageBtreeIndex extends PageIndex {
     public PageBtreeIndex(RegularTable table, int id, String indexName, IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, indexName, columns, indexType);
+        if (!database.isStarting() && create) {
+            checkIndexColumnTypes(columns);
+        }
         // int test;
         // trace.setLevel(TraceSystem.DEBUG);
         tableData = table;
@@ -51,9 +54,6 @@ public class PageBtreeIndex extends PageIndex {
         store.addIndex(this);
         if (create) {
             // new index
-            if (!database.isStarting()) {
-                checkIndexColumnTypes(columns);
-            }
             rootPageId = store.allocatePage();
             needRebuild = true;
             // TODO currently the head position is stored in the log

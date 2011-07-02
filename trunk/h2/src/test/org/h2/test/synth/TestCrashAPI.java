@@ -65,7 +65,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
     private ArrayList<String> statements = New.arrayList();
     private int openCount;
     private long callCount;
-    private volatile long maxWait = 5 * 60;
+    private volatile long maxWait = 60;
     private volatile boolean stopped;
     private volatile boolean running;
     private Thread mainThread;
@@ -90,15 +90,15 @@ public class TestCrashAPI extends TestBase implements Runnable {
                 maxWait++;
                 // ignore
             }
+            if (maxWait > 0 && maxWait <= 10) {
+                println("stopping...");
+                stopped = true;
+            }
         }
-        if (maxWait > 0 && maxWait <= 10) {
-            println("stopping...");
-            stopped = true;
-        } else if (maxWait == 0) {
-            println("stopping (force)...");
+        if (maxWait == 0 && running) {
             objects.clear();
             if (running) {
-                System.out.println("stopping main thread:");
+                println("stopping (force)...");
                 for (StackTraceElement e : mainThread.getStackTrace()) {
                     System.out.println(e.toString());
                 }
@@ -289,9 +289,14 @@ public class TestCrashAPI extends TestBase implements Runnable {
             // Thread.sleep(1);
             // }
 
-            if (objects.size() == 0 && !stopped) {
+            if (objects.size() == 0) {
                 try {
+long start = System.currentTimeMillis();
                     conn = getConnection(seed, false);
+long connectTime = System.currentTimeMillis() - start;
+if (connectTime > 2000) {
+    System.out.println("??? connected in " + connectTime);
+}
                 } catch (SQLException e) {
                     if ("08004".equals(e.getSQLState())) {
                         // Wrong user/password [08004]
@@ -302,7 +307,12 @@ public class TestCrashAPI extends TestBase implements Runnable {
                             break;
                         }
                         try {
+long start = System.currentTimeMillis();
                             conn = getConnection(seed, false);
+long connectTime = System.currentTimeMillis() - start;
+if (connectTime > 2000) {
+    System.out.println("??? connected2 in " + connectTime);
+}
                         } catch (Throwable t) {
                             printIfBad(seed, -i, -1, t);
                         }

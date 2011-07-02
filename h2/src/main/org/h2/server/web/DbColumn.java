@@ -22,15 +22,22 @@ class DbColumn {
     String name;
 
     /**
+     * The quoted table name.
+     */
+    String quotedName;
+
+    /**
      * The data type name (including precision and the NOT NULL flag if
      * applicable).
      */
     String dataType;
 
-    DbColumn(ResultSet rs, boolean isSQLite) throws SQLException {
+    DbColumn(DbContents contents, ResultSet rs) throws SQLException {
         name = rs.getString("COLUMN_NAME");
+        quotedName = contents.quoteIdentifier(name);
         String type = rs.getString("TYPE_NAME");
         int size = rs.getInt(DbContents.findColumn(rs, "COLUMN_SIZE", 7));
+        boolean isSQLite = contents.isSQLite;
         if (size > 0 && !isSQLite) {
             type += "(" + size;
             int prec = rs.getInt(DbContents.findColumn(rs, "DECIMAL_DIGITS", 9));

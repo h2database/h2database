@@ -6,11 +6,11 @@
  */
 
 td, input, select, textarea, body, code, pre {
-    font: 9pt/130% Tahoma, Arial, Helvetica, sans-serif;
+    font: 12px/1.4 Arial, sans-serif;
 }
 
 h1, h2, h3, h4, h5 {
-    font: 9pt Tahoma, Arial, Helvetica, sans-serif;
+    font: 12px/1.4 Arial, sans-serif;
     font-weight: bold;
 }
 
@@ -36,16 +36,16 @@ h1 {
     background-color: #0000bb;
     padding: 2px 4px 2px 4px;
     color: #fff;
-    font-size: 15pt;
+    font-size: 22px;
     line-height: normal;
 }
 
 h2 {
-    font-size: 13pt;
+    font-size: 19px;
 }
 
 h3 {
-    font-size: 10pt;
+    font-size: 16px;
 }
 
 li {
@@ -65,7 +65,6 @@ table {
 
 td {
     background-color: #ffffff;
-    font-size: 9pt;
     padding: 2px;
     text-align: left;
     vertical-align:top;
@@ -78,7 +77,6 @@ textarea {
 }
 
 th {
-    font-size: 9pt;
     font-weight: normal;
     text-align: left;
     background-color: #ece9d8;
@@ -144,17 +142,15 @@ tr.login {
 
 th.login {
     color: #ffffff;
-    font-size: 10pt;
     text-align: left;
     border: 0px;
     background-color: #ece9d8;
-    padding: 5px 10px;
+    padding: 4px 10px;
     background-image: url(background.gif);
 }
 
 td.login {
     background-color: #ece9d8;
-    font-size: 9pt;
     padding: 5px 10px;
     text-align: left;
     border: 0px;
@@ -191,7 +187,6 @@ table.empty {
 td.empty {
     background-color: #ffffff;
     border: 0px;
-    font-size: 9pt;
     padding: 5px 10px;
     text-align: left;
 }
@@ -205,7 +200,21 @@ p.error {
 }
 
 input.button {
-    padding: 1px;
+    padding: 3px;
+    background-color: #ece9d8;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #aca899;
+    border-bottom-color: #aca899;
+    -moz-border-radius: 1px;
+    -webkit-border-radius: 1px;
+    border-width: 1px;
+    border-style: solid;
+}
+
+input.button:active {
+    position:relative;
+    top:1px;
 }
 
 .tree {

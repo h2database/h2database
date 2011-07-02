@@ -1149,6 +1149,7 @@ Case-insensitive columns are compared faster than when using a collation.
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.
+This setting can be appended to the database URL: ""jdbc:h2:test;IGNORECASE=TRUE""
 ","
 SET IGNORECASE TRUE
 "

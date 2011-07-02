@@ -453,9 +453,11 @@ function processAsyncResponse() {
 </head>
     <body onresize="sizeTextArea();" onload="sizeTextArea();" style="margin: 0px; padding: 0px;">
         <form name="h2query" method="post" action="query.do?jsessionid=${sessionId}" target="h2result">
-            <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submit();sql.focus();return true;" />
-            <input type="button" class="button" value="${text.toolbar.clear}" onclick="javascript:sql.value='';keyUp();sql.focus();return true;" />
-            ${text.toolbar.sqlStatement}:
+            <span style="white-space:nowrap">
+                <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submit();sql.focus();return true;" />
+                <input type="button" class="button" value="${text.toolbar.clear}" onclick="javascript:sql.value='';keyUp();sql.focus();return true;" />
+                ${text.toolbar.sqlStatement}:
+            </span>
             <div style="display:none">
                 <iframe id="h2iframeTransport" src="" onload="showList(this.contentWindow.document.body.innerHTML);"></iframe>
             </div>

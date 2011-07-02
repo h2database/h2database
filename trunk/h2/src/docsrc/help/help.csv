@@ -1028,7 +1028,9 @@ SET [ DATABASE ] COLLATION
 ","
 Sets the collation used for comparing strings.
 This command can only be executed if there are no tables defined.
-See ""java.text.Collator"" for details about the supported collations and the STRENGTH.
+See ""java.text.Collator"" for details about the supported collations and the STRENGTH 
+(PRIMARY is usually case- and umlaut-insensitive; SECONDARY is case-insensitive but umlaut-sensitive; 
+TERTIARY is both case- and umlaut-sensitive; IDENTICAL is sensitive to all differences and only affects ordering).
 
 The ICU4J collator is used if it is in the classpath.
 It is also used if the collation name starts with ICU4J_
@@ -3317,7 +3319,7 @@ CALL ARRAY_GET(('Hello', 'World'), 2)
 "
 
 "Functions (System)","ARRAY_LENGTH","
-ARRAY_GET(arrayExpression)
+ARRAY_LENGTH(arrayExpression)
 ","
 Returns the length of an array.
 ","

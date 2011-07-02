@@ -10,12 +10,13 @@ Initial Developer: H2 Group
 
 <!-- [search] { -->
 <script type="text/javascript" src="navigation.js"></script>
-</head><body onload="highlight();">
+</head><body onload="highlight()" onscroll="scroll()">
 
 <table class="nav" onmousemove="return mouseMove(event)"><tr class="nav"><td class="nav" valign="top">
 <div id = "searchMenu" style="width: 180px; overflow: hidden;">
-<div class="menu">
+<div class="menu" style="white-space:nowrap;">
 <img src="images/h2-logo.png" alt="H2 database logo"  onclick="document.location='main.html'" width="136" height="74"/>
+&nbsp;&nbsp;<span id = "goTop" onclick="window.scrollTo(0,0)" style="color: #fff; position:fixed; font-size: 20px">&#x25b2;</span>
 </div>
 
 <form action="submit" onsubmit="return goFirst();">
@@ -36,7 +37,7 @@ translate -->
     </tr>
     <tr class="search">
         <td class="search" colspan="2">
-            <input id = "search" name="search" type="text" size="21" maxlength="100" onkeyup="listWords(this.value, '')" /><br />
+            <input id = "search" name="search" type="text" size="16" maxlength="100" onkeyup="listWords(this.value, '')" /><br />
             <input type="reset" id = "clear" style="display:none;" value="Clear" onclick="listWords('', '');" />
         </td>
     </tr>

@@ -5,6 +5,16 @@
  * Initial Developer: H2 Group
  */
 
+function scroll() {
+    var scroll = document.documentElement.scrollTop;
+    if (!scroll) {
+        scroll = document.body.scrollTop;
+    }
+    var c = 255 - Math.min(scroll / 4, 64);
+    var goTop = document.getElementById('goTop');
+    goTop.style.color = 'rgb(' + c + ',' + c + ',' + c + ')';
+}
+
 function loadFrameset() {
     var a = location.search.split('&');
     var page = decodeURIComponent(a[0].substr(1));

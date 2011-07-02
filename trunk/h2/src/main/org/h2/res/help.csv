@@ -1229,7 +1229,7 @@ ARRAY_GET(arrayExpression, indexExpression)
 ","
 Returns one element of an array."
 "Functions (System)","ARRAY_LENGTH","
-ARRAY_GET(arrayExpression)
+ARRAY_LENGTH(arrayExpression)
 ","
 Returns the length of an array."
 "Functions (System)","AUTOCOMMIT","

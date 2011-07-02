@@ -79,13 +79,18 @@ public class DbContextRule implements Rule {
             String best = null;
             DbTableOrView bestTable = null;
             for (DbTableOrView table : tables) {
+                String compare = up;
                 String name = StringUtils.toUpperEnglish(table.name);
-                if (up.startsWith(name)) {
+                if (table.quotedName.length() > name.length()) {
+                    name = table.quotedName;
+                    compare = query;
+                }
+                if (compare.startsWith(name)) {
                     if (best == null || name.length() > best.length()) {
                         best = name;
                         bestTable = table;
                     }
-                } else if (s.length() == 0 || name.startsWith(up)) {
+                } else if (s.length() == 0 || name.startsWith(compare)) {
                     if (s.length() < name.length()) {
                         sentence.add(table.quotedName, table.quotedName.substring(s.length()), Sentence.CONTEXT);
                     }
@@ -131,12 +136,17 @@ public class DbContextRule implements Rule {
             DbTableOrView last = sentence.getLastMatchedTable();
             if (last != null && last.columns != null) {
                 for (DbColumn column : last.columns) {
+                    String compare = up;
                     String name = StringUtils.toUpperEnglish(column.name);
-                    if (up.startsWith(name)) {
+                    if (column.quotedName.length() > name.length()) {
+                        name = column.quotedName;
+                        compare = query;
+                    }
+                    if (compare.startsWith(name)) {
                         String b = s.substring(name.length());
                         if (best == null || b.length() < best.length()) {
                             best = b;
-                        } else if (s.length() == 0 || name.startsWith(up)) {
+                        } else if (s.length() == 0 || name.startsWith(compare)) {
                             if (s.length() < name.length()) {
                                 sentence.add(column.name, column.name.substring(s.length()), Sentence.CONTEXT);
                             }

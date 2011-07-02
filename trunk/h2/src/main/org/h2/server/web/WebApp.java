@@ -475,7 +475,7 @@ public class WebApp {
                 columnsBuffer.append(' ');
             }
             columnsBuffer.append(column.name);
-            String col = StringUtils.urlEncode(PageParser.escapeJavaScript(column.name));
+            String col = escapeIdentifier(column.name);
             String level = mainSchema ? ", 1, 1" : ", 2, 2";
             buff.append("setNode(" + treeIndex + level + ", 'column', '" + PageParser.escapeJavaScript(column.name)
                     + "', 'javascript:ins(\\'" + col + "\\')');\n");
@@ -487,6 +487,10 @@ public class WebApp {
             }
         }
         return treeIndex;
+    }
+
+    private static String escapeIdentifier(String name) {
+        return StringUtils.urlEncode(PageParser.escapeJavaScript(name)).replace('+', ' ');
     }
 
     /**
@@ -595,7 +599,7 @@ public class WebApp {
             if (!mainSchema) {
                 tab = schema.quotedName + "." + tab;
             }
-            tab = StringUtils.urlEncode(PageParser.escapeJavaScript(tab));
+            tab = escapeIdentifier(tab);
             buff.append("setNode(" + treeIndex + indentation + " 'table', '" + PageParser.escapeJavaScript(table.name)
                     + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;
@@ -619,7 +623,7 @@ public class WebApp {
             if (!mainSchema) {
                 tab = view.schema.quotedName + "." + tab;
             }
-            tab = StringUtils.urlEncode(PageParser.escapeJavaScript(tab));
+            tab = escapeIdentifier(tab);
             buff.append("setNode(" + treeIndex + indentation + " 'view', '" + PageParser.escapeJavaScript(view.name)
                     + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;

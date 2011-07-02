@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>It is now longer allowed to create an index on a CLOB or BLOB column
+<ul><li>H2 Console autocomplete: the autocomplete feature didn't support quoted names.
+</li><li>It is now longer allowed to create an index on a CLOB or BLOB column
     (except for in-memory databases or indexes), because recovery doesn't work
     on such columns. Fulltext indexes on such column are still supported of course.
 </li><li>The PUBLIC schema could be renamed, which could result in a database that

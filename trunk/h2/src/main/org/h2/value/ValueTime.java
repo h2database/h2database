@@ -152,13 +152,20 @@ public class ValueTime extends Value {
         return ValueTime.fromNanos(-nanos);
     }
 
-    static void appendTime(StringBuilder buff, long n, boolean alwaysAddMillis) {
-        if (n < 0) {
+    /**
+     * Append a time to the string builder.
+     *
+     * @param buff the target string builder
+     * @param nanos the time in nanoseconds
+     * @param alwaysAddMillis whether to always add at least ".0"
+     */
+    static void appendTime(StringBuilder buff, long nanos, boolean alwaysAddMillis) {
+        if (nanos < 0) {
             buff.append('-');
-            n = -n;
+            nanos = -nanos;
         }
-        long ms = n / 1000000;
-        n -= ms * 1000000;
+        long ms = nanos / 1000000;
+        nanos -= ms * 1000000;
         long s = ms / 1000;
         ms -= s * 1000;
         long m = s / 60;
@@ -170,12 +177,12 @@ public class ValueTime extends Value {
         StringUtils.appendZeroPadded(buff, 2, m);
         buff.append(':');
         StringUtils.appendZeroPadded(buff, 2, s);
-        if (alwaysAddMillis || ms > 0 || n > 0) {
+        if (alwaysAddMillis || ms > 0 || nanos > 0) {
             buff.append('.');
             int start = buff.length();
             StringUtils.appendZeroPadded(buff, 3, ms);
-            if (n > 0) {
-                StringUtils.appendZeroPadded(buff, 6, n);
+            if (nanos > 0) {
+                StringUtils.appendZeroPadded(buff, 6, nanos);
             }
             for (int i = buff.length() - 1; i > start; i--) {
                 if (buff.charAt(i) != '0') {

@@ -40,6 +40,8 @@ public class TestCompatibility extends TestBase {
         testUniqueIndexOracle();
         testHsqlDb();
         testMySQL();
+        testDB2();
+        testDerby();
         testPlusSignAsConcatOperator();
 
         conn.close();
@@ -224,4 +226,37 @@ public class TestCompatibility extends TestBase {
 
     }
 
+    private void testDB2() throws SQLException {
+        conn = getConnection("compatibility;MODE=DB2");
+        ResultSet res = conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1");
+        res.next();
+        assertEquals("1", res.getString(1));
+        conn.close();
+        conn = getConnection("compatibility;MODE=MySQL");
+        try {
+            conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1");
+            fail();
+        } catch (SQLException e) {
+            // can't lookup sysibm.sysdummy1 on mode=MySQL etc.
+        }
+        conn.close();
+        conn = getConnection("compatibility");
+    }
+
+    private void testDerby() throws SQLException {
+        conn = getConnection("compatibility;MODE=Derby");
+        ResultSet res = conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1");
+        res.next();
+        assertEquals("1", res.getString(1));
+        conn.close();
+        conn = getConnection("compatibility;MODE=PostgreSQL");
+        try {
+            conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1");
+            fail();
+        } catch (SQLException e) {
+            // can't lookup sysibm.sysdummy1 on mode=MySQL etc.
+        }
+        conn.close();
+        conn = getConnection("compatibility");
+    }
 }

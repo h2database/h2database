@@ -367,7 +367,7 @@ public class TestDate extends TestBase {
         }
     }
 
-    static void testDate(int y, int m, int day) {
+    private static void testDate(int y, int m, int day) {
         long millis = DateTimeUtils.getMillis(TimeZone.getDefault(), y, m, day, 0, 0, 0, 0);
         String st = new java.sql.Date(millis).toString();
         int y2 = Integer.parseInt(st.substring(0, 4));

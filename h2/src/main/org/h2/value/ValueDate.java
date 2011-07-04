@@ -125,6 +125,12 @@ public class ValueDate extends Value {
         prep.setDate(parameterIndex, getDate());
     }
 
+    /**
+     * Append a date to the string builder.
+     *
+     * @param buff the target string builder
+     * @param dateValue the date value
+     */
     static void appendDate(StringBuilder buff, long dateValue) {
         int y = DateTimeUtils.yearFromDateValue(dateValue);
         int m = DateTimeUtils.monthFromDateValue(dateValue);

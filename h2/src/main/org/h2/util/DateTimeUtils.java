@@ -28,6 +28,9 @@ import org.h2.value.ValueTimestamp;
  */
 public class DateTimeUtils {
 
+    /**
+     * The number of milliseconds per day.
+     */
     public static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
 
     private static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
@@ -164,6 +167,13 @@ public class DateTimeUtils {
         }
     }
 
+    /**
+     * Convert a date to the specified time zone.
+     *
+     * @param x the date to convert
+     * @param target the calendar with the target timezone
+     * @return the milliseconds the milliseconds in UTC
+     */
     public static long convertToLocal(java.util.Date x, Calendar target) {
         if (target == null) {
             throw DbException.getInvalidValueException("calendar", null);
@@ -188,6 +198,15 @@ public class DateTimeUtils {
         to.set(Calendar.MILLISECOND, from.get(Calendar.MILLISECOND));
     }
 
+    /**
+     * Parse a date string. The format is: [+|-]year-month-day
+     *
+     * @param s the string to parse
+     * @param start the parse index start
+     * @param end the parse index end
+     * @return the date value
+     * @throws IllegalArgumentException if there is a problem
+     */
     public static long parseDateValue(String s, int start, int end) {
         if (s.charAt(start) == '+') {
             // +year
@@ -208,6 +227,17 @@ public class DateTimeUtils {
         return dateValue(year, month, day);
     }
 
+    /**
+     * Parse a time string. The format is: [-]hour:minute:second[.nanos]
+     *
+     * @param s the string to parse
+     * @param start the parse index start
+     * @param end the parse index end
+     * @param timeOfDay whether the result need to be within 0 (inclusive) and 1
+     *            day (exclusive)
+     * @return the time in nanoseconds
+     * @throws IllegalArgumentException if there is a problem
+     */
     public static long parseTimeNanos(String s, int start, int end, boolean timeOfDay) {
         int hour = 0, minute = 0, second = 0;
         long nanos = 0;
@@ -533,6 +563,12 @@ public class DateTimeUtils {
         return day <= ((year & 3) != 0 ? 28 : 29);
     }
 
+    /**
+     * Convert a date value to a date, using the default timezone.
+     *
+     * @param dateValue the date value
+     * @return the date
+     */
     public static Date convertDateValueToDate(long dateValue) {
         long millis = getMillis(TimeZone.getDefault(),
                 yearFromDateValue(dateValue),
@@ -541,6 +577,14 @@ public class DateTimeUtils {
         return new Date(millis);
     }
 
+    /**
+     * Convert a date value / time value to a timestamp, using the default
+     * timezone.
+     *
+     * @param dateValue the date value
+     * @param nanos the nanoseconds since midnight
+     * @return the timestamp
+     */
     public static Timestamp convertDateValueToTimestamp(long dateValue, long nanos) {
         long millis = nanos / 1000000;
         nanos -= millis * 1000000;
@@ -560,6 +604,13 @@ public class DateTimeUtils {
         return ts;
     }
 
+    /**
+     * Convert a time value to a time, using the default
+     * timezone.
+     *
+     * @param nanos the nanoseconds since midnight
+     * @return the time
+     */
     public static Time convertNanoToTime(long nanos) {
         long millis = nanos / 1000000;
         long s = millis / 1000;
@@ -573,22 +624,55 @@ public class DateTimeUtils {
         return new Time(ms);
     }
 
+    /**
+     * Get the year from a date value.
+     *
+     * @param x the date value
+     * @return the year
+     */
     public static int yearFromDateValue(long x) {
         return (int) (x >>> SHIFT_YEAR);
     }
 
+    /**
+     * Get the month from a date value.
+     *
+     * @param x the date value
+     * @return the month (1..12)
+     */
     public static int monthFromDateValue(long x) {
         return (int) (x >>> SHIFT_MONTH) & 15;
     }
 
+    /**
+     * Get the day of month from a date value.
+     *
+     * @param x the date value
+     * @return the day (1..31)
+     */
     public static int dayFromDateValue(long x) {
         return (int) (x & 31);
     }
 
+    /**
+     * Get the date value from a given date.
+     *
+     * @param year the year
+     * @param month the month (1..12)
+     * @param day the day (1..31)
+     * @return the date value
+     */
     public static long dateValue(long year, int month, int day) {
         return (year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
     }
 
+    /**
+     * Calculate the date value (in the default timezone) from a given time in
+     * milliseconds in UTC.
+     *
+     * @param ms the milliseconds
+     * @return the date value
+     */
     public static long dateValueFromDate(long ms) {
         Calendar cal = getCalendar();
         synchronized (cal) {
@@ -602,6 +686,13 @@ public class DateTimeUtils {
         }
     }
 
+    /**
+     * Calculate the nanoseconds since midnight (in the default timezone) from a
+     * given time in milliseconds in UTC.
+     *
+     * @param ms the milliseconds
+     * @return the date value
+     */
     public static long nanosFromDate(long ms) {
         Calendar cal = getCalendar();
         synchronized (cal) {
@@ -615,6 +706,13 @@ public class DateTimeUtils {
         }
     }
 
+    /**
+     * Calculate the normalized timestamp.
+     *
+     * @param absoluteDay the absolute day
+     * @param nanos the nanoseconds (may be negative or larger than one day)
+     * @return the timestamp
+     */
     public static ValueTimestamp normalizeTimestamp(long absoluteDay, long nanos) {
         if (nanos > NANOS_PER_DAY || nanos < 0) {
             long d;
@@ -629,6 +727,12 @@ public class DateTimeUtils {
         return ValueTimestamp.fromDateValueAndNanos(dateValueFromAbsoluteDay(absoluteDay), nanos);
     }
 
+    /**
+     * Calculate the absolute day from a date value.
+     *
+     * @param dateValue the date value
+     * @return the absolute day
+     */
     public static long absoluteDayFromDateValue(long dateValue) {
         long y = yearFromDateValue(dateValue);
         int m = monthFromDateValue(dateValue);
@@ -648,6 +752,12 @@ public class DateTimeUtils {
         return a;
     }
 
+    /**
+     * Calculate the date value from an absolute day.
+     *
+     * @param absoluteDay the absolute day
+     * @return the date value
+     */
     public static long dateValueFromAbsoluteDay(long absoluteDay) {
         long d = absoluteDay + 719468;
         long y100 = 0, offset;

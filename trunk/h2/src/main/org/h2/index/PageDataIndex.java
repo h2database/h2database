@@ -155,7 +155,9 @@ public class PageDataIndex extends PageIndex {
         if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
             sql +=  "(" + indexColumns[mainIndexColumn].getSQL() + ")";
         }
-        return DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
+        DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
+        e.setSource(this);
+        return e;
     }
 
     private void addTry(Session session, Row row) {

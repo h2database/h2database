@@ -8,8 +8,11 @@ package org.h2.test.mvcc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.CountDownLatch;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -28,10 +31,28 @@ public class TestMvccMultiThreaded extends TestBase {
     }
 
     public void test() throws Exception {
+        testMergeWithUniqueKeyViolation();
         testConcurrentMerge();
         testConcurrentUpdate("");
         // not supported currently
         // testConcurrentUpdate(";MULTI_THREADED=TRUE");
+    }
+
+    private void testMergeWithUniqueKeyViolation() throws Exception {
+        deleteDb("mvccMultiThreaded");
+        Connection conn = getConnection("mvccMultiThreaded");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(x int primary key, y int unique)");
+        stat.execute("insert into test values(1, 1)");
+        try {
+            stat.execute("merge into test values(2, 1)");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
+        }
+        stat.execute("merge into test values(1, 2)");
+        conn.close();
+
     }
 
     private void testConcurrentMerge() throws Exception {

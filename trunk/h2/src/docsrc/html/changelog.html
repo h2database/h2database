@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>IBM DB2 and Apache Derby compatibility: support the pseudo-table SYSIBM.SYSDUMMY1.
+<ul><li>MERGE: if a unique key was violated (but not the primary key or the key columns of the merge itself),
+    the wrong exception was thrown.
+</li><li>IBM DB2 and Apache Derby compatibility: support the pseudo-table SYSIBM.SYSDUMMY1.
 </li><li>ROWNUM() did not work in combination with IN(..). The following query did not work as expected:
     select * from (select rownum r from test) where r in (1, 2).
 </li><li>H2 Console autocomplete: the autocomplete feature didn't support quoted names.

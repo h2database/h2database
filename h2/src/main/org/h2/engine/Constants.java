@@ -480,7 +480,7 @@ public class Constants {
      * @return the version number
      */
     public static Object getVersionStable() {
-        return "1.2." + BUILD_ID_STABLE;
+        return "1.3." + BUILD_ID_STABLE;
     }
 
     /**

@@ -105,6 +105,11 @@ public class Mode {
     public boolean uniqueIndexSingleNullExceptAllColumnsAreNull;
 
     /**
+     * Support the pseudo-table SYSIBM.SYSDUMMY1.
+     */
+    public boolean sysDummy1;
+
+    /**
      * Text can be concatenated using '+'.
      */
     public boolean allowPlusForStringConcat;
@@ -119,11 +124,13 @@ public class Mode {
         mode = new Mode("DB2");
         mode.aliasColumnName = true;
         mode.supportOffsetFetch = true;
+        mode.sysDummy1 = true;
         add(mode);
 
         mode = new Mode("Derby");
         mode.aliasColumnName = true;
         mode.uniqueIndexSingleNull = true;
+        mode.sysDummy1 = true;
         add(mode);
 
         mode = new Mode("HSQLDB");

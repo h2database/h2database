@@ -171,10 +171,10 @@ td.login {
 }
 
 .icon_hover {
-    border-top-color:#ffffff;
-    border-left-color:#ffffff;
-    border-right-color:#aca899;
-    border-bottom-color:#aca899;
+    border-color:#aca899;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
     border-width:1px;
     border-style:solid;
 }
@@ -202,12 +202,10 @@ p.error {
 input.button {
     padding: 3px;
     background-color: #ece9d8;
-    border-top-color: #ffffff;
-    border-left-color: #ffffff;
-    border-right-color: #aca899;
-    border-bottom-color: #aca899;
-    -moz-border-radius: 1px;
-    -webkit-border-radius: 1px;
+    border-color: #aca899;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
     border-width: 1px;
     border-style: solid;
 }

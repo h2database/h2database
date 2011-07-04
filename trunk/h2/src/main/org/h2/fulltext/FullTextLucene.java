@@ -645,7 +645,7 @@ public class FullTextLucene extends FullText {
             try {
                 indexAccess.writer.addDocument(doc);
                 indexAccess.writer.commit();
-                //Recreate Searcher with the IndexWriter's reader.
+                // recreate Searcher with the IndexWriter's reader.
                 indexAccess.searcher.close();
                 indexAccess.reader.close();
                 IndexReader reader = indexAccess.writer.getReader();

@@ -162,8 +162,24 @@ public class Merge extends Prepared {
                 }
             } catch (DbException e) {
                 if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
-                    // concurrent merge or insert
-                    throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+                    // possibly a concurrent merge or insert
+                    Index index = (Index) e.getSource();
+                    if (index != null) {
+                        // verify the index columns match the key
+                        Column[] indexColumns = index.getColumns();
+                        boolean indexMatchesKeys = false;
+                        if (indexColumns.length <= keys.length) {
+                            for (int i = 0; i < indexColumns.length; i++) {
+                                if (indexColumns[i] != keys[i]) {
+                                    indexMatchesKeys = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (indexMatchesKeys) {
+                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+                        }
+                    }
                 }
                 throw e;
             }

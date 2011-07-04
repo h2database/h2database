@@ -1137,7 +1137,8 @@ public class Select extends Query {
         if (col.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
             comp = new Comparison(session, comparisonType, col, param);
         } else {
-            // add the parameters, so they can be set later
+            // this condition will always evaluate to true, but need to
+            // add the parameter, so it can be set later
             comp = new Comparison(session, Comparison.EQUAL_NULL_SAFE, param, param);
         }
         comp = comp.optimize(session);

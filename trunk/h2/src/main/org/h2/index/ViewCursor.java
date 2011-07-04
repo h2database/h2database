@@ -19,13 +19,18 @@ import org.h2.value.ValueNull;
  */
 public class ViewCursor implements Cursor {
 
-    private Table table;
-    private ResultInterface result;
+    private final Table table;
+    private final Index index;
+    private final ResultInterface result;
+    private final SearchRow first, last;
     private Row current;
 
-    ViewCursor(Table table, ResultInterface result) {
-        this.table = table;
+    ViewCursor(Index index, ResultInterface result, SearchRow first, SearchRow last) {
+        this.table = index.getTable();
+        this.index = index;
         this.result = result;
+        this.first = first;
+        this.last = last;
     }
 
     public Row get() {
@@ -37,19 +42,34 @@ public class ViewCursor implements Cursor {
     }
 
     public boolean next() {
-        boolean res = result.next();
-        if (!res) {
-            result.close();
-            current = null;
-            return false;
+        while (true) {
+            boolean res = result.next();
+            if (!res) {
+                result.close();
+                current = null;
+                return false;
+            }
+            current = table.getTemplateRow();
+            Value[] values = result.currentRow();
+            for (int i = 0, len = current.getColumnCount(); i < len; i++) {
+                Value v = i < values.length ? values[i] : ValueNull.INSTANCE;
+                current.setValue(i, v);
+            }
+            int comp;
+            if (first != null) {
+                comp = index.compareRows(current, first);
+                if (comp < 0) {
+                    continue;
+                }
+            }
+            if (last != null) {
+                comp = index.compareRows(current, last);
+                if (comp > 0) {
+                    continue;
+                }
+            }
+            return true;
         }
-        current = table.getTemplateRow();
-        Value[] values = result.currentRow();
-        for (int i = 0, len = current.getColumnCount(); i < len; i++) {
-            Value v = i < values.length ? values[i] : ValueNull.INSTANCE;
-            current.setValue(i, v);
-        }
-        return true;
     }
 
     public boolean previous() {

@@ -20,6 +20,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Column;
+import org.h2.table.IndexColumn;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
 import org.h2.util.New;
@@ -161,7 +162,7 @@ public class ViewIndex extends BaseIndex {
             ResultInterface recResult = view.getRecursiveResult();
             if (recResult != null) {
                 recResult.reset();
-                return new ViewCursor(table, recResult);
+                return new ViewCursor(this, recResult, first, last);
             }
             if (query == null) {
                 query = (Query) createSession.prepare(querySQL, true);
@@ -200,7 +201,7 @@ public class ViewIndex extends BaseIndex {
             }
             view.setRecursiveResult(null);
             result.done();
-            return new ViewCursor(table, result);
+            return new ViewCursor(this, result, first, last);
         }
         ArrayList<Parameter> paramList = query.getParameters();
         if (originalParameters != null) {
@@ -239,7 +240,7 @@ public class ViewIndex extends BaseIndex {
             }
         }
         ResultInterface result = query.query(0);
-        return new ViewCursor(table, result);
+        return new ViewCursor(this, result, first, last);
     }
 
     private static void setParameter(ArrayList<Parameter> paramList, int x, Value v) {
@@ -260,11 +261,13 @@ public class ViewIndex extends BaseIndex {
         int firstIndexParam = originalParameters == null ? 0 : originalParameters.size();
         firstIndexParam += view.getParameterOffset();
         IntArray paramIndex = new IntArray();
+        int indexColumnCount = 0;
         for (int i = 0; i < masks.length; i++) {
             int mask = masks[i];
             if (mask == 0) {
                 continue;
             }
+            indexColumnCount++;
             paramIndex.add(i);
             if ((mask & IndexCondition.RANGE) == IndexCondition.RANGE) {
                 // two parameters for range queries: >= x AND <= y
@@ -296,6 +299,35 @@ public class ViewIndex extends BaseIndex {
         }
         columns = new Column[columnList.size()];
         columnList.toArray(columns);
+
+        // reconstruct the index columns from the masks
+        this.indexColumns = new IndexColumn[indexColumnCount];
+        this.columnIds = new int[indexColumnCount];
+        for (int type = 0, indexColumnId = 0; type < 2; type++) {
+            for (int i = 0; i < masks.length; i++) {
+                int mask = masks[i];
+                if (mask == 0) {
+                    continue;
+                }
+                if (type == 0) {
+                    if ((mask & IndexCondition.EQUALITY) != IndexCondition.EQUALITY) {
+                        // the first columns need to be equality conditions
+                        continue;
+                    }
+                } else {
+                    if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
+                        // then only range conditions
+                        continue;
+                    }
+                }
+                IndexColumn c = new IndexColumn();
+                c.column = table.getColumn(i);
+                indexColumns[indexColumnId] = c;
+                columnIds[indexColumnId] = c.column.getColumnId();
+                indexColumnId++;
+            }
+        }
+
         String sql = q.getPlanSQL();
         q = (Query) session.prepare(sql, true);
         return q;

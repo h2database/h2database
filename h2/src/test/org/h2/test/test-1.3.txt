@@ -1,4 +1,24 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(x int) as select x from system_range(1, 2);
+> ok
+
+select * from (select rownum r from test) where r in (1, 2);
+> R
+> -
+> 1
+> 2
+> rows: 2
+
+select * from (select rownum r from test) where r = 1 or r = 2;
+> R
+> -
+> 1
+> 2
+> rows: 2
+
+drop table test;
+> ok
+
 select 2^2;
 > exception
 

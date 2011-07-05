@@ -14,7 +14,6 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -37,6 +36,7 @@ import org.h2.util.Utils;
  */
 public class Shell extends Tool implements Runnable {
 
+    private static final int MAX_ROW_BUFFER = 5000;
     private static final int HISTORY_COUNT = 20;
 
     private PrintStream err = System.err;
@@ -163,7 +163,6 @@ public class Shell extends Tool implements Runnable {
         println("help or ?      Display this help");
         println("list           Toggle result list / stack trace mode");
         println("maxwidth       Set maximum column width (default is 100)");
-        println("describe       Describe a table");
         println("autocommit     Enable or disable autocommit");
         println("history        Show the last 20 statements");
         println("quit or exit   Close the connection and exit");
@@ -205,15 +204,15 @@ public class Shell extends Tool implements Runnable {
                     line = line.substring(0, line.lastIndexOf(';'));
                     trimmed = trimmed.substring(0, trimmed.length() - 1);
                 }
-                String upper = trimmed.toUpperCase();
-                if ("EXIT".equals(upper) || "QUIT".equals(upper)) {
+                String lower = StringUtils.toLowerEnglish(trimmed);
+                if ("exit".equals(lower) || "quit".equals(lower)) {
                     break;
-                } else if ("HELP".equals(upper) || "?".equals(upper)) {
+                } else if ("help".equals(lower) || "?".equals(lower)) {
                     showHelp();
-                } else if ("LIST".equals(upper)) {
+                } else if ("list".equals(lower)) {
                     listMode = !listMode;
                     println("Result list mode is now " + (listMode ? "on" : "off"));
-                } else if ("HISTORY".equals(upper)) {
+                } else if ("history".equals(lower)) {
                     for (int i = 0, size = history.size(); i < size; i++) {
                         String s = history.get(i);
                         s = s.replace('\n', ' ').replace('\r', ' ');
@@ -224,66 +223,20 @@ public class Shell extends Tool implements Runnable {
                     } else {
                         println("No history");
                     }
-                } else if (upper.startsWith("DESCRIBE")) {
-                    String tableName = upper.substring("DESCRIBE".length()).trim();
-                    if (tableName.length() == 0) {
-                        println("Usage: describe [<schema name>.]<table name>");
-                        ResultSet rs = null;
-                        try {
-                            rs = stat.executeQuery(
-                                    "SELECT CAST(TABLE_SCHEMA AS VARCHAR(32)) AS \"Schema\", TABLE_NAME AS \"Table Name\" " +
-                                    "FROM INFORMATION_SCHEMA.TABLES ORDER BY TABLE_SCHEMA, TABLE_NAME");
-                            printResult(rs, false);
-                        } finally {
-                            JdbcUtils.closeSilently(rs);
-                        }
-                    } else {
-                        String schemaName = null;
-                        int dot = tableName.indexOf('.');
-                        if (dot >= 0) {
-                            schemaName = tableName.substring(0, dot);
-                            tableName = tableName.substring(dot + 1);
-                        }
-                        PreparedStatement prep = null;
-                        ResultSet rs = null;
-                        try {
-                            String sql = "SELECT CAST(COLUMN_NAME AS VARCHAR(32)) AS \"Column Name\", " +
-                                "CAST(TYPE_NAME AS VARCHAR(14)) AS \"Type\", " +
-                                "NUMERIC_PRECISION AS \"Precision\", " +
-                                "CAST(IS_NULLABLE AS VARCHAR(8)) AS \"Nullable\", " +
-                                "CAST(COLUMN_DEFAULT AS VARCHAR(20)) AS \"Default\" " +
-                                "FROM INFORMATION_SCHEMA.COLUMNS " +
-                                "WHERE UPPER(TABLE_NAME)=?";
-                            if (schemaName != null) {
-                                sql += " AND UPPER(TABLE_SCHEMA)=?";
-                            }
-                            sql += " ORDER BY ORDINAL_POSITION";
-                            prep = conn.prepareStatement(sql);
-                            prep.setString(1, tableName.toUpperCase());
-                            if (schemaName != null) {
-                                prep.setString(2, schemaName.toUpperCase());
-                            }
-                            rs = prep.executeQuery();
-                            printResult(rs, false);
-                        } finally {
-                            JdbcUtils.closeSilently(rs);
-                            JdbcUtils.closeSilently(prep);
-                        }
-                    }
-                } else if (upper.startsWith("AUTOCOMMIT")) {
-                    upper = upper.substring("AUTOCOMMIT".length()).trim();
-                    if ("TRUE".equals(upper)) {
+                } else if (lower.startsWith("autocommit")) {
+                    lower = lower.substring("autocommit".length()).trim();
+                    if ("true".equals(lower)) {
                         conn.setAutoCommit(true);
-                    } else if ("FALSE".equals(upper)) {
+                    } else if ("false".equals(lower)) {
                         conn.setAutoCommit(false);
                     } else {
                         println("Usage: autocommit [true|false]");
                     }
                     println("Autocommit is now " + conn.getAutoCommit());
-                } else if (upper.startsWith("MAXWIDTH")) {
-                    upper = upper.substring("MAXWIDTH".length()).trim();
+                } else if (lower.startsWith("maxwidth")) {
+                    lower = lower.substring("maxwidth".length()).trim();
                     try {
-                        maxColumnSize = Integer.parseInt(upper);
+                        maxColumnSize = Integer.parseInt(lower);
                     } catch (NumberFormatException e) {
                         println("Usage: maxwidth <integer value>");
                     }
@@ -493,32 +446,79 @@ public class Shell extends Tool implements Runnable {
     }
 
     private int printResult(ResultSet rs, boolean asList) throws SQLException {
+        if (asList) {
+            return printResultAsList(rs);
+        }
+        return printResultAsTable(rs);
+    }
+
+    private int printResultAsTable(ResultSet rs) throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
-        int longest = 0;
         int len = meta.getColumnCount();
+        boolean truncated = false;
+        ArrayList<String[]> rows = New.arrayList();
+        // buffer the header
         String[] columns = new String[len];
-        int[] columnSizes = new int[len];
         for (int i = 0; i < len; i++) {
             String s = meta.getColumnLabel(i + 1);
-            int l = s.length();
-            if (!asList) {
-                l = Math.max(l, meta.getColumnDisplaySize(i + 1));
-                l = Math.min(maxColumnSize, l);
-            }
-            if (s.length() > l) {
-                s = s.substring(0, l);
-            }
-            columns[i] = s;
-            columnSizes[i] = l;
-            longest = Math.max(longest, l);
+            columns[i] = s == null ? "" : s;
         }
-        StringBuilder buff = new StringBuilder();
-        if (!asList) {
+        rows.add(columns);
+        int rowCount = 0;
+        while (rs.next()) {
+            rowCount++;
+            truncated |= loadRow(rs, len, rows);
+            if (rowCount > MAX_ROW_BUFFER) {
+                printRows(rows, len);
+                rows.clear();
+            }
+        }
+        printRows(rows, len);
+        rows.clear();
+        if (truncated) {
+            println("(data is partially truncated)");
+        }
+        return rowCount;
+    }
+
+    private boolean loadRow(ResultSet rs, int len, ArrayList<String[]> rows) throws SQLException {
+        boolean truncated = false;
+        String[] row = new String[len];
+        for (int i = 0; i < len; i++) {
+            String s = rs.getString(i + 1);
+            if (s == null) {
+                s = "null";
+            }
+            // only truncate if more than one column
+            if (len > 1 && s.length() > maxColumnSize) {
+                s = s.substring(0, maxColumnSize);
+                truncated = true;
+            }
+            row[i] = s;
+        }
+        rows.add(row);
+        return truncated;
+    }
+
+    private int[] printRows(ArrayList<String[]> rows, int len) {
+        int[] columnSizes = new int[len];
+        for (int i = 0; i < len; i++) {
+            int max = 0;
+            for (String[] row : rows) {
+                max = Math.max(max, row[i].length());
+            }
+            if (len > 1) {
+                Math.min(maxColumnSize, max);
+            }
+            columnSizes[i] = max;
+        }
+        for (String[] row : rows) {
+            StringBuilder buff = new StringBuilder();
             for (int i = 0; i < len; i++) {
                 if (i > 0) {
-                    buff.append(boxVertical);
+                    buff.append(' ').append(boxVertical).append(' ');
                 }
-                String s = columns[i];
+                String s = row[i];
                 buff.append(s);
                 if (i < len - 1) {
                     for (int j = s.length(); j < columnSizes[i]; j++) {
@@ -528,59 +528,49 @@ public class Shell extends Tool implements Runnable {
             }
             println(buff.toString());
         }
-        boolean truncated = false;
+        return columnSizes;
+    }
+
+    private int printResultAsList(ResultSet rs) throws SQLException {
+        ResultSetMetaData meta = rs.getMetaData();
+        int longestLabel = 0;
+        int len = meta.getColumnCount();
+        String[] columns = new String[len];
+        for (int i = 0; i < len; i++) {
+            String s = meta.getColumnLabel(i + 1);
+            columns[i] = s;
+            longestLabel = Math.max(longestLabel, s.length());
+        }
+        StringBuilder buff = new StringBuilder();
         int rowCount = 0;
         while (rs.next()) {
             rowCount++;
             buff.setLength(0);
-            if (asList) {
-                if (rowCount > 1) {
-                    println("");
+            if (rowCount > 1) {
+                println("");
+            }
+            for (int i = 0; i < len; i++) {
+                if (i > 0) {
+                    buff.append('\n');
                 }
-                for (int i = 0; i < len; i++) {
-                    if (i > 0) {
-                        buff.append('\n');
-                    }
-                    String label = columns[i];
-                    buff.append(label);
-                    for (int j = label.length(); j < longest; j++) {
-                        buff.append(' ');
-                    }
-                    buff.append(": ").append(rs.getString(i + 1));
+                String label = columns[i];
+                buff.append(label);
+                for (int j = label.length(); j < longestLabel; j++) {
+                    buff.append(' ');
                 }
-            } else {
-                for (int i = 0; i < len; i++) {
-                    if (i > 0) {
-                        buff.append(boxVertical);
-                    }
-                    String s = rs.getString(i + 1);
-                    if (s == null) {
-                        s = "null";
-                    }
-                    int m = columnSizes[i];
-                    // only truncate if more than once column
-                    if (len > 1 && !asList && s.length() > m) {
-                        s = s.substring(0, m);
-                        truncated = true;
-                    }
-                    buff.append(s);
-                    if (i < len - 1) {
-                        for (int j = s.length(); j < m; j++) {
-                            buff.append(' ');
-                        }
-                    }
-                }
+                buff.append(": ").append(rs.getString(i + 1));
             }
             println(buff.toString());
         }
-        if (rowCount == 0 && asList) {
-            for (String label : columns) {
-                buff.append(label).append('\n');
+        if (rowCount == 0) {
+            for (int i = 0; i < len; i++) {
+                if (i > 0) {
+                    buff.append('\n');
+                }
+                String label = columns[i];
+                buff.append(label);
             }
             println(buff.toString());
-        }
-        if (truncated) {
-            println("(data is partially truncated)");
         }
         return rowCount;
     }

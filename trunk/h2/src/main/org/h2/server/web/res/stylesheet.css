@@ -172,9 +172,9 @@ td.login {
 
 .icon_hover {
     border-color:#aca899;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
+    border-radius: 2px;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
     border-width:1px;
     border-style:solid;
 }
@@ -203,11 +203,15 @@ input.button {
     padding: 3px;
     background-color: #ece9d8;
     border-color: #aca899;
-    border-radius: 3px;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
+    border-radius: 2px;
+    -moz-border-radius: 2px;
+    -webkit-border-radius: 2px;
     border-width: 1px;
     border-style: solid;
+}
+
+input.button:hover {
+    border-color: #5e5c55;
 }
 
 input.button:active {

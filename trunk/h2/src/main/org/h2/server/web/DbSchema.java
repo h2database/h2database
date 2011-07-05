@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * Contains meta data information about a database schema.
@@ -63,9 +64,9 @@ public class DbSchema {
         this.name = name;
         this.quotedName =  contents.quoteIdentifier(name);
         this.isDefault = isDefault;
-        if (name.toUpperCase().startsWith("INFO")) {
+        if (StringUtils.toUpperEnglish(name).startsWith("INFO")) {
             isSystem = true;
-        } else if (contents.isPostgreSQL && name.toUpperCase().startsWith("PG_")) {
+        } else if (contents.isPostgreSQL && StringUtils.toUpperEnglish(name).startsWith("PG_")) {
             isSystem = true;
         } else if (contents.isDerby && name.startsWith("SYS")) {
             isSystem = true;

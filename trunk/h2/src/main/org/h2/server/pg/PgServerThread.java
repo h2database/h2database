@@ -39,6 +39,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.ScriptReader;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -403,7 +404,7 @@ public class PgServerThread implements Runnable {
     }
 
     private String getSQL(String s) {
-        String lower = s.toLowerCase();
+        String lower = StringUtils.toLowerEnglish(s);
         if (lower.startsWith("show max_identifier_length")) {
             s = "CALL 63";
         } else if (lower.startsWith("set client_encoding to")) {
@@ -564,7 +565,7 @@ public class PgServerThread implements Runnable {
             startMessage('T');
             writeShort(columns);
             for (int i = 0; i < columns; i++) {
-                writeString(names[i].toLowerCase());
+                writeString(StringUtils.toLowerEnglish(names[i]));
                 // object ID
                 writeInt(0);
                 // attribute number of the column

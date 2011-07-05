@@ -187,7 +187,7 @@ public class Database implements DataHandler {
                 Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB2 : Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
         String lockMethodName = ci.getProperty("FILE_LOCK", null);
-        this.accessModeData = ci.getProperty("ACCESS_MODE_DATA", "rw").toLowerCase();
+        this.accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.cacheSize = ci.getProperty("CACHE_SIZE", Constants.CACHE_SIZE_DEFAULT);
         this.pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);

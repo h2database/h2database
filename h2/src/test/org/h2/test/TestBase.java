@@ -758,7 +758,7 @@ public abstract class TestBase {
      */
     protected void assertStartsWith(String text, String expectedStart) {
         if (!text.startsWith(expectedStart)) {
-            fail(text + " does not start with: " + expectedStart);
+            fail("[" + text + "] does not start with: [" + expectedStart + "]");
         }
     }
 

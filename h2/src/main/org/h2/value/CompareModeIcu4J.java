@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.Locale;
 import org.h2.message.DbException;
+import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -43,7 +44,7 @@ public class CompareModeIcu4J extends CompareMode {
             Class<?> collatorClass = Utils.loadUserClass("com.ibm.icu.text.Collator");
             Method getInstanceMethod = collatorClass.getMethod("getInstance", Locale.class);
             if (name.length() == 2) {
-                Locale locale = new Locale(name.toLowerCase(), "");
+                Locale locale = new Locale(StringUtils.toLowerEnglish(name), "");
                 if (compareLocaleNames(locale, name)) {
                     result = (Comparator<String>) getInstanceMethod.invoke(null, locale);
                 }
@@ -51,7 +52,7 @@ public class CompareModeIcu4J extends CompareMode {
                 // LL_CC (language_country)
                 int idx = name.indexOf('_');
                 if (idx >= 0) {
-                    String language = name.substring(0, idx).toLowerCase();
+                    String language = StringUtils.toLowerEnglish(name.substring(0, idx));
                     String country = name.substring(idx + 1);
                     Locale locale = new Locale(language, country);
                     if (compareLocaleNames(locale, name)) {

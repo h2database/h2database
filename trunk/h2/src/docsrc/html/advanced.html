@@ -183,6 +183,11 @@ creating a linked table to the same database,
 and creating a linked table to another database using the server mode if the other database is open in the same server
 (use the embedded mode instead).
 </p>
+<p>
+Data types that are not supported in H2 are also not supported for linked tables,
+for example unsigned data types if the value is outside the range of the signed type.
+In such cases, the columns needs to be cast to a supported type.
+</p>
 
 <h2 id="updatable_views">Updatable Views</h2>
 <p>

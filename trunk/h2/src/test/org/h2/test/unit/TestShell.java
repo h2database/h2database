@@ -56,6 +56,14 @@ public class TestShell extends TestBase {
         assertContains(s, "HI");
         assertContains(s, "Hello World");
         assertContains(s, "(1 row, ");
+
+        shell = new Shell();
+        buff = new ByteArrayOutputStream();
+        shell.setOut(new PrintStream(buff));
+        shell.runTool("-help");
+        s = new String(buff.toByteArray());
+        assertContains(s, "Interactive command line tool to access a database using JDBC.");
+
         test(true);
         test(false);
     }
@@ -106,7 +114,6 @@ public class TestShell extends TestBase {
         read("help or ?");
         read("list");
         read("maxwidth");
-        read("describe");
         read("autocommit");
         read("history");
         read("quit or exit");
@@ -133,6 +140,17 @@ public class TestShell extends TestBase {
         read("x");
         read("(data is partially truncated)");
         read("(1 row,");
+
+        testOut.println("select x, 's' s from system_range(0, 10001);");
+        read("sql> X    | S");
+        for (int i = 0; i < 10000; i++) {
+            read((i + "     ").substring(0, 4) + " | s");
+        }
+        for (int i = 10000; i <= 10001; i++) {
+            read((i + "     ").substring(0, 5) + " | s");
+        }
+        read("(10002 rows,");
+
         testOut.println("select error;");
         read("sql> Error:");
         if (read("").startsWith("Column \"ERROR\" not found")) {
@@ -142,10 +160,24 @@ public class TestShell extends TestBase {
         read("sql> ...>");
         testOut.println("insert into test values(1, 'Hello');");
         read("sql>");
-        testOut.println("select * from test;");
-        read("sql> ID");
-        read("1 ");
+        testOut.println("select null n, * from test;");
+        read("sql> N    | ID | NAME");
+        read("null | 1  | Hello");
         read("(1 row,");
+
+        // test history
+        for (int i = 0; i < 30; i++) {
+            testOut.println("select " + i + " ID from test;");
+            read("sql> ID");
+            read("" + i);
+            read("(1 row,");
+        }
+        testOut.println("20");
+        read("sql> select 10 ID from test");
+        read("ID");
+        read("10");
+        read("(1 row,");
+
         testOut.println("maxwidth");
         read("sql> Usage: maxwidth <integer value>");
         read("Maximum column width is now 100");
@@ -158,28 +190,29 @@ public class TestShell extends TestBase {
         read("sql> Autocommit is now false");
         testOut.println("autocommit true");
         read("sql> Autocommit is now true");
-        testOut.println("describe");
-        read("sql> Usage: describe [<schema name>.]<table name>");
-        read("Schema");
-        while (read("").startsWith("INFORMATION_SCHEMA")) {
-            // ignore
-        }
-        testOut.println("describe test");
-        read("sql> Column Name");
-        read("ID");
-        read("NAME");
-        testOut.println("describe public.test");
-        read("sql> Column Name");
-        read("ID");
-        read("NAME");
         testOut.println("\n;");
         read("sql>");
         testOut.println("list");
         read("sql> Result list mode is now on");
-        testOut.println("select 1 a, 2 b;");
-        read("sql> A: 1");
-        read("B: 2");
+
+        testOut.println("select 1 first, 2 second;");
+        read("sql> FIRST : 1");
+        read("SECOND: 2");
         read("(1 row, ");
+
+        testOut.println("select x from system_range(1, 3);");
+        read("sql> X: 1");
+        read("");
+        read("X: 2");
+        read("");
+        read("X: 3");
+        read("(3 rows, ");
+
+        testOut.println("select x, 2 as y from system_range(1, 3) where 1 = 0;");
+        read("sql> X");
+        read("Y");
+        read("(0 rows, ");
+
         testOut.println("list");
         read("sql> Result list mode is now off");
         testOut.println("help");
@@ -187,7 +220,6 @@ public class TestShell extends TestBase {
         read("help or ?");
         read("list");
         read("maxwidth");
-        read("describe");
         read("autocommit");
         read("history");
         read("quit or exit");

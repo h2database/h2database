@@ -37,7 +37,9 @@ public interface Trigger {
     /**
      * This method is called by the database engine once when initializing the
      * trigger. It is called when the trigger is created, as well as when the
-     * database is opened.
+     * database is opened. The type of operation is a bit field with the
+     * appropriate flags set. As an example, if the trigger is of type INSERT
+     * and UPDATE, then the parameter type is set to (INSERT | UPDATE).
      *
      * @param conn a connection to the database
      * @param schemaName the name of the schema
@@ -46,7 +48,8 @@ public interface Trigger {
      * @param tableName the name of the table
      * @param before whether the fire method is called before or after the
      *            operation is performed
-     * @param type the operation type: INSERT, UPDATE, or DELETE
+     * @param type the operation type: INSERT, UPDATE, DELETE, SELECT, or a
+     *            combination (this parameter is a bit field)
      */
     void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type)
         throws SQLException;

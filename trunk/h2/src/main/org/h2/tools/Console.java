@@ -397,7 +397,7 @@ ShutdownHandler {
             if (d.width >= 24 && d.height >= 24) {
                 iconFile = "/org/h2/res/h2-24.png";
             } else if (d.width >= 22 && d.height >= 22) {
-                iconFile = "/org/h2/res/h2-22.png";
+                iconFile = "/org/h2/res/h2-22-t.png";
             } else {
                 iconFile = "/org/h2/res/h2.png";
             }

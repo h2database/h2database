@@ -11,11 +11,13 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.sql.Types;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorage;
 import org.h2.test.TestBase;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.value.CompareMode;
@@ -32,6 +34,7 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueResultSet;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
@@ -196,6 +199,15 @@ public class TestDataPage extends TestBase implements DataHandler {
         }
         testValue(ValueArray.get(new Value[0]));
         testValue(ValueArray.get(new Value[] {ValueBoolean.get(true), ValueInt.get(10)}));
+
+
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("ID", Types.INTEGER, 0, 0);
+        rs.addColumn("NAME", Types.VARCHAR, 255, 0);
+        rs.addRow(1, "Hello");
+        rs.addRow(2, "World");
+        rs.addRow(3, "Peace");
+        testValue(ValueResultSet.get(rs));
     }
 
     private void testValue(Value v) {

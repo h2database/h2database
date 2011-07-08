@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.test.TestBase;
@@ -101,36 +102,24 @@ public class TestStatement extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(0, 'Hi')");
         Savepoint savepoint1 = conn.setSavepoint();
         int id1 = savepoint1.getSavepointId();
-        try {
-            savepoint1.getSavepointName();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.SAVEPOINT_IS_UNNAMED, savepoint1).
+                getSavepointName();
         stat.execute("DELETE FROM TEST");
         conn.rollback(savepoint1);
         stat.execute("UPDATE TEST SET NAME='Hello'");
         Savepoint savepoint2a = conn.setSavepoint();
         Savepoint savepoint2 = conn.setSavepoint();
         conn.releaseSavepoint(savepoint2a);
-        try {
-            savepoint2a.getSavepointId();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.SAVEPOINT_IS_INVALID_1, savepoint2a).
+                getSavepointId();
         int id2 = savepoint2.getSavepointId();
         assertTrue(id1 != id2);
         stat.execute("UPDATE TEST SET NAME='Hallo' WHERE NAME='Hello'");
         Savepoint savepointTest = conn.setSavepoint("Joe's");
         stat.execute("DELETE FROM TEST");
         assertEquals(savepointTest.getSavepointName(), "Joe's");
-        try {
-            savepointTest.getSavepointId();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.SAVEPOINT_IS_NAMED, savepointTest).
+                getSavepointId();
         conn.rollback(savepointTest);
         conn.commit();
         ResultSet rs = stat.executeQuery("SELECT NAME FROM TEST");
@@ -138,12 +127,8 @@ public class TestStatement extends TestBase {
         String name = rs.getString(1);
         assertEquals(name, "Hallo");
         assertFalse(rs.next());
-        try {
-            conn.rollback(savepoint2);
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.SAVEPOINT_IS_INVALID_1, conn).
+                rollback(savepoint2);
         stat.execute("DROP TABLE TEST");
         conn.setAutoCommit(true);
     }
@@ -209,13 +194,7 @@ public class TestStatement extends TestBase {
         assertTrue(stat.getQueryTimeout() == 10);
         stat.setQueryTimeout(0);
         assertTrue(stat.getQueryTimeout() == 0);
-        // this is supposed to throw an exception
-        try {
-            stat.setQueryTimeout(-1);
-            fail("setQueryTimeout(-1) didn't throw an exception");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat).setQueryTimeout(-1);
         assertTrue(stat.getQueryTimeout() == 0);
         trace("executeUpdate");
         count = stat.executeUpdate("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
@@ -235,13 +214,10 @@ public class TestStatement extends TestBase {
         assertEquals(0, count);
         count = stat.executeUpdate("DELETE FROM TEST WHERE ID=2");
         assertEquals(1, count);
-        try {
-            stat.executeUpdate("SELECT * FROM TEST");
-            fail("executeUpdate allowed SELECT");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace("no error - SELECT not allowed with executeUpdate");
-        }
+
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY, stat).
+                executeUpdate("SELECT * FROM TEST");
+
         count = stat.executeUpdate("DROP TABLE TEST");
         assertTrue(count == 0);
 
@@ -261,55 +237,29 @@ public class TestStatement extends TestBase {
         result = stat.execute("DROP TABLE TEST");
         assertTrue(!result);
 
-        trace("executeQuery");
-        try {
-            stat.executeQuery("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-            fail("executeQuery allowed CREATE TABLE");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace("no error - CREATE not allowed with executeQuery");
-        }
+        assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
+                executeQuery("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
+
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-        try {
-            stat.executeQuery("INSERT INTO TEST VALUES(1,'Hello')");
-            fail("executeQuery allowed INSERT");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace("no error - INSERT not allowed with executeQuery");
-        }
-        try {
-            stat.executeQuery("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
-            fail("executeQuery allowed UPDATE");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace("no error - UPDATE not allowed with executeQuery");
-        }
-        try {
-            stat.executeQuery("DELETE FROM TEST WHERE ID=3");
-            fail("executeQuery allowed DELETE");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace("no error - DELETE not allowed with executeQuery");
-        }
+
+        assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
+                executeQuery("INSERT INTO TEST VALUES(1,'Hello')");
+
+        assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
+                executeQuery("UPDATE TEST SET VALUE='LDBC' WHERE ID=2");
+
+        assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
+                executeQuery("DELETE FROM TEST WHERE ID=3");
+
         stat.executeQuery("SELECT * FROM TEST");
-        try {
-            stat.executeQuery("DROP TABLE TEST");
-            fail("executeQuery allowed DROP");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace("no error - DROP not allowed with executeQuery");
-        }
+
+        assertThrows(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY, stat).
+                executeQuery("DROP TABLE TEST");
+
         // getMoreResults
         rs = stat.executeQuery("SELECT * FROM TEST");
         assertFalse(stat.getMoreResults());
-        try {
-            // supposed to be closed now
-            rs.next();
-            fail("getMoreResults didn't close this result set");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace("no error - getMoreResults is supposed to close the result set");
-        }
+        assertThrows(ErrorCode.OBJECT_CLOSED, rs).next();
         assertTrue(stat.getUpdateCount() == -1);
         count = stat.executeUpdate("DELETE FROM TEST");
         assertFalse(stat.getMoreResults());

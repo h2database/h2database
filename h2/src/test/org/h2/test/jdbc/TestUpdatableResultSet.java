@@ -20,6 +20,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
@@ -187,14 +188,7 @@ public class TestUpdatableResultSet extends TestBase {
         assertEquals(1, rs.getRow());
 
         rs.next();
-
-        try {
-            rs.insertRow();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-
+        assertThrows(ErrorCode.RESULT_SET_READONLY, rs).insertRow();
         assertFalse(rs.isBeforeFirst());
         assertFalse(rs.isAfterLast());
         assertEquals(2, rs.getInt(1));
@@ -246,13 +240,8 @@ public class TestUpdatableResultSet extends TestBase {
         assertFalse(rs.absolute(4));
         assertEquals(0, rs.getRow());
 
-        try {
-            assertFalse(rs.absolute(0));
-            // actually, we allow it for compatibility
-            // error("absolute 0 not allowed");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        // allowed for compatibility
+        assertFalse(rs.absolute(0));
 
         assertTrue(rs.absolute(3));
         assertEquals(3, rs.getRow());

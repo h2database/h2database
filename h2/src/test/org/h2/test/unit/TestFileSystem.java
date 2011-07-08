@@ -220,12 +220,7 @@ public class TestFileSystem extends TestBase {
         assertEquals(10000, fo.length());
         fo.seek(20000);
         assertEquals(20000, fo.getFilePointer());
-        try {
-            fo.readFully(buffer, 0, 1);
-            fail();
-        } catch (EOFException e) {
-            // expected
-        }
+        assertThrows(EOFException.class, fo).readFully(buffer, 0, 1);
         assertEquals(fsBase + "/test", fo.getName().replace('\\', '/'));
         assertEquals("test", fs.getFileName(fo.getName()));
         assertEquals(fsBase, fs.getParent(fo.getName()).replace('\\', '/'));
@@ -238,18 +233,8 @@ public class TestFileSystem extends TestBase {
         byte[] test = new byte[10000];
         fo.readFully(test, 0, 10000);
         assertEquals(buffer, test);
-        try {
-            fo.write(test, 0, 10);
-            fail();
-        } catch (IOException e) {
-            // expected
-        }
-        try {
-            fo.setFileLength(10);
-            fail();
-        } catch (IOException e) {
-            // expected
-        }
+        assertThrows(IOException.class, fo).write(test, 0, 10);
+        assertThrows(IOException.class, fo).setFileLength(10);
         fo.close();
         long lastMod = fs.getLastModified(fsBase + "/test");
         if (lastMod < time - 1999) {
@@ -305,12 +290,7 @@ public class TestFileSystem extends TestBase {
         RandomAccessFile ra = new RandomAccessFile(file, "rw");
         fs.delete(s);
         FileObject f = fs.openFileObject(s, "rw");
-        try {
-            f.readFully(new byte[1], 0, 1);
-            fail();
-        } catch (EOFException e) {
-            // expected
-        }
+        assertThrows(EOFException.class, f).readFully(new byte[1], 0, 1);
         f.sync();
         Random random = new Random(seed);
         int size = getSize(100, 500);

@@ -17,6 +17,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import org.h2.api.DatabaseEventListener;
+import org.h2.constant.ErrorCode;
 import org.h2.result.Row;
 import org.h2.store.Page;
 import org.h2.test.TestBase;
@@ -269,18 +270,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         Statement stat2 = conn2.createStatement();
         stat2.execute("create table test2 as select x from system_range(1, 5000)");
         stat2.execute("shutdown immediately");
-        try {
-            conn.close();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            conn2.close();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn2).close();
     }
 
     private void testDuplicateKey() throws SQLException {
@@ -443,12 +434,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
         conn = getConnection(url);
-        try {
-            conn.createStatement().execute("INSERT INTO TEST VALUES(2, 'Hello')");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).
+                execute("INSERT INTO TEST VALUES(2, 'Hello')");
         conn.close();
     }
 
@@ -665,12 +652,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         stat.execute("INSERT INTO TEST VALUES(1)");
         conn.close();
         conn = getConnection("pageStore");
-        try {
-            conn.createStatement().execute("INSERT INTO TEST VALUES(1)");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).
+                execute("INSERT INTO TEST VALUES(1)");
         conn.close();
     }
 
@@ -683,11 +666,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(20, 100)");
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1000, 1100)");
         stat.execute("SHUTDOWN IMMEDIATELY");
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            // ignore
-        }
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
         conn = getConnection("pageStore");
         conn.close();
     }

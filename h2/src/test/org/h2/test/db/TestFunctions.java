@@ -132,11 +132,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         assertEquals(rs.getMetaData().getColumnType(2), rs.getMetaData().getColumnType(1));
 
-        try {
-            rs = stat.executeQuery("SELECT NVL2(num, num, txt1), num FROM testNvl2 where id = 7 order by id asc");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DATA_CONVERSION_ERROR_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, stat).
+                executeQuery("SELECT NVL2(num, num, txt1), num FROM testNvl2 where id = 7 order by id asc");
 
         // nvl2 should return expr2's datatype, if expr2 is character data.
         rs = stat.executeQuery("SELECT NVL2(1, 'test', 123), 'test' FROM dual");
@@ -601,14 +598,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         assertEquals("((1, Hello), (2, World))", rs.getString(1));
         assertFalse(rs.next());
-
-        try {
-            stat.executeQuery("CALL SELECT_F('ERROR')");
-            fail();
-        } catch (SQLException e) {
-            assertEquals("42001", e.getSQLState());
-        }
-
+        assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).
+                executeQuery("CALL SELECT_F('ERROR')");
         stat.execute("CREATE ALIAS SIMPLE FOR \"" + getClass().getName() + ".simpleResultSet\"");
         rs = stat.executeQuery("CALL SIMPLE(2, 1, 1, 1, 1, 1, 1, 1)");
         assertEquals(2, rs.getMetaData().getColumnCount());

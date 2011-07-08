@@ -86,12 +86,7 @@ public class TestRights extends TestBase {
 
         String sql = "select * from admin_only where 1=0";
         stat.execute(sql);
-        try {
-            stat2.execute(sql);
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat2).execute(sql);
 
         DatabaseMetaData meta = conn2.getMetaData();
         ResultSet rs;
@@ -119,12 +114,8 @@ public class TestRights extends TestBase {
         String user = getUser().toUpperCase();
         Connection conn = getConnection("rights");
         stat = conn.createStatement();
-        try {
-            stat.execute("DROP USER " + user);
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.CANNOT_DROP_CURRENT_USER, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.CANNOT_DROP_CURRENT_USER, stat).
+                execute("DROP USER " + user);
         stat.execute("CREATE USER TEST PASSWORD 'TEST' ADMIN");
         stat.execute("DROP USER " + user);
         conn.close();
@@ -176,12 +167,8 @@ public class TestRights extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT)");
         Connection conn2 = getConnection("rights", "READER", getPassword("READER"));
         Statement stat2 = conn2.createStatement();
-        try {
-            stat2.execute("SELECT * FROM TEST");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat2).
+                execute("SELECT * FROM TEST");
         stat2.execute("CREATE LOCAL TEMPORARY TABLE IF NOT EXISTS MY_TEST(ID INT)");
         stat2.execute("INSERT INTO MY_TEST VALUES(1)");
         stat2.execute("SELECT * FROM MY_TEST");
@@ -205,18 +192,10 @@ public class TestRights extends TestBase {
         conn = getConnection("rights");
         stat = conn.createStatement();
         stat.execute("select * from b.test");
-        try {
-            stat.execute("alter user test1 admin false");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            stat.execute("drop user test1");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.CANNOT_DROP_2, stat).
+                execute("alter user test1 admin false");
+        assertThrows(ErrorCode.CANNOT_DROP_2, stat).
+                execute("drop user test1");
         stat.execute("drop schema b");
         stat.execute("alter user test1 admin false");
         stat.execute("drop user test1");
@@ -256,7 +235,8 @@ public class TestRights extends TestBase {
         executeError("UPDATE TEST SET NAME=(SELECT PASSWORD FROM PASS)");
         executeError("DELETE FROM TEST WHERE NAME=(SELECT PASSWORD FROM PASS)");
         executeError("SELECT * FROM (SELECT * FROM PASS)");
-        executeError("CREATE VIEW X AS SELECT * FROM PASS_READER");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("CREATE VIEW X AS SELECT * FROM PASS_READER");
         conn.close();
 
         conn = getConnection("rights");
@@ -276,7 +256,8 @@ public class TestRights extends TestBase {
         executeSuccess("GRANT SELECT ON ROLE_TABLE TO TEST_ROLE");
         executeSuccess("GRANT UPDATE ON ROLE_TABLE TO TEST_ROLE");
         executeSuccess("REVOKE UPDATE ON ROLE_TABLE FROM TEST_ROLE");
-        executeError("REVOKE SELECT, SUB1 ON ROLE_TABLE FROM TEST_ROLE");
+        assertThrows(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED, stat).
+                execute("REVOKE SELECT, SUB1 ON ROLE_TABLE FROM TEST_ROLE");
         executeSuccess("GRANT TEST_ROLE TO TEST");
         executeSuccess("GRANT SELECT ON PUB_TABLE TO PUBLIC");
         executeSuccess("GRANT SELECT ON TEST TO TEST");
@@ -315,7 +296,8 @@ public class TestRights extends TestBase {
         conn = getConnection("rights;LOG=2", "TEST", getPassword("def"));
         stat = conn.createStatement();
 
-        executeError("SET DEFAULT_TABLE_TYPE MEMORY");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+                execute("SET DEFAULT_TABLE_TYPE MEMORY");
 
         executeSuccess("SELECT * FROM TEST");
         executeSuccess("SELECT * FROM SYSTEM_RANGE(1,2)");
@@ -330,15 +312,21 @@ public class TestRights extends TestBase {
         executeSuccess("SELECT * FROM SUB_TABLE");
         executeSuccess("INSERT INTO SUB_TABLE VALUES(1)");
         executeError("DELETE FROM SUB_TABLE");
-        executeError("UPDATE FROM SUB_TABLE");
+        executeError("UPDATE SUB_TABLE SET ID=0");
 
-        executeError("CREATE USER TEST3 PASSWORD 'def'");
-        executeError("ALTER USER TEST2 ADMIN FALSE");
-        executeError("ALTER USER TEST2 SET PASSWORD 'ghi'");
-        executeError("ALTER USER TEST2 RENAME TO TEST_X");
-        executeError("ALTER USER TEST RENAME TO TEST_X");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+                execute("CREATE USER TEST3 PASSWORD 'def'");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+                execute("ALTER USER TEST2 ADMIN FALSE");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+                execute("ALTER USER TEST2 SET PASSWORD 'ghi'");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+                execute("ALTER USER TEST2 RENAME TO TEST_X");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+                execute("ALTER USER TEST RENAME TO TEST_X");
         executeSuccess("ALTER USER TEST SET PASSWORD 'ghi'");
-        executeError("DROP USER TEST2");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+                execute("DROP USER TEST2");
 
         conn.close();
         conn = getConnection("rights");
@@ -372,13 +360,8 @@ public class TestRights extends TestBase {
         executeSuccess("DROP TABLE TEST");
     }
 
-    private void executeError(String sql) {
-        try {
-            stat.execute(sql);
-            fail("not admin");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+    private void executeError(String sql) throws SQLException {
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).execute(sql);
     }
 
     private void executeSuccess(String sql) throws SQLException {

@@ -106,13 +106,9 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("create table test(id int) as select 1");
         stat.execute("create trigger test_u before update on test " +
                 "for each row call \"" + DeleteTrigger.class.getName() + "\"");
-        try {
-            stat.execute("update test set id = 2");
-            fail();
-        } catch (SQLException e) {
-            // this threw a NullPointerException
-            assertKnownException(e);
-        }
+        // this threw a NullPointerException
+        assertThrows(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, stat).
+                execute("update test set id = 2");
         stat.execute("drop table test");
         conn.close();
     }
@@ -392,12 +388,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("DROP TRIGGER IF EXISTS INS_BEFORE");
         stat.execute("DROP TRIGGER IF EXISTS INS_BEFORE");
         stat.execute("DROP TRIGGER IF EXISTS INS_AFTER_ROLLBACK");
-        try {
-            stat.execute("DROP TRIGGER INS_BEFORE");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.TRIGGER_NOT_FOUND_1, stat).
+                execute("DROP TRIGGER INS_BEFORE");
         stat.execute("DROP TRIGGER  INS_AFTER");
         stat.execute("DROP TRIGGER  UPD_BEFORE");
         stat.execute("UPDATE TEST SET NAME=NAME||'-upd-no_trigger'");
@@ -420,7 +412,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
     }
 
-    public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
+    public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
         if (mustNotCallTrigger) {
             throw new AssertionError("must not be called now");
         }
@@ -452,27 +444,10 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         // ignore
     }
 
-    private void checkCommit(Connection conn) {
-        try {
-            conn.commit();
-            throw new AssertionError("Commit must not work here");
-        } catch (SQLException e) {
-            try {
-                assertKnownException(e);
-            } catch (Exception e2) {
-                throw new AssertionError("Unexpected: " + e.toString());
-            }
-        }
-        try {
-            conn.createStatement().execute("CREATE TABLE X(ID INT)");
-            throw new AssertionError("CREATE TABLE WORKED, but implicitly commits");
-        } catch (SQLException e) {
-            try {
-                assertKnownException(e);
-            } catch (Exception e2) {
-                throw new AssertionError("Unexpected: " + e.toString());
-            }
-        }
+    private void checkCommit(Connection conn) throws SQLException {
+        assertThrows(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED, conn).commit();
+        assertThrows(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED, conn.createStatement()).
+                execute("CREATE TABLE X(ID INT)");
     }
 
     public void init(Connection conn, String schemaName, String trigger, String tableName, boolean before, int type) {

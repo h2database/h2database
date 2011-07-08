@@ -1277,9 +1277,33 @@ public abstract class TestBase {
         memory.clear();
     }
 
+    protected <T> T assertThrows(final Class<?> exceptionClass, final T obj) {
+        return assertThrows(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread t, Throwable e) {
+                if (!exceptionClass.isAssignableFrom(e.getClass())) {
+                    e.printStackTrace();
+                    fail("Expected: " + exceptionClass + ", got: " + e);
+                }
+            }
+        }, exceptionClass.toString(), obj);
+    }
+
+    protected <T> T assertThrows(final int errorCode, final T obj) {
+        return assertThrows(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread t, Throwable e) {
+                if (!(e instanceof SQLException)) {
+                    e.printStackTrace();
+                    fail("Expected: SQLException, got: " + e);
+                }
+                SQLException s = (SQLException) e;
+                assertEquals(errorCode, s.getErrorCode());
+            }
+        }, "SQLException with error code " + errorCode, obj);
+    }
+
     @SuppressWarnings("unchecked")
     protected
-    <T> T assertThrows(final int errorCode, final T obj) {
+    <T> T assertThrows(final Thread.UncaughtExceptionHandler handler, final String expected, final T obj) {
         Class<?> c = obj.getClass();
         return (T) Proxy.newProxyInstance(c.getClassLoader(),
                 c.getInterfaces(), new InvocationHandler() {
@@ -1293,12 +1317,12 @@ public abstract class TestBase {
                 try {
                     called = null;
                     Object ret = method.invoke(obj, args);
-                    fail("The method " + method.getName() + " did not throw the exception with error code " +
-                            errorCode + ", but returned " + ret + " instead");
+                    fail(method.getDeclaringClass().getName() + "." + method.getName() +
+                            " did not throw an exception of type " + expected +
+                            ", but returned " + ret);
                     return ret;
                 } catch (InvocationTargetException e) {
-                    SQLException s = (SQLException) e.getTargetException();
-                    assertEquals(errorCode, s.getErrorCode());
+                    handler.uncaughtException(null, e.getTargetException());
                     Class<?> retClass = method.getReturnType();
                     if (!retClass.isPrimitive()) {
                         return null;

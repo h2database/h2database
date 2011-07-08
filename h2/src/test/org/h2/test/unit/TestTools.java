@@ -290,18 +290,10 @@ public class TestTools extends TestBase {
         assertTrue(ts == rs.getTimestamp("j"));
         assertTrue(ts == rs.getTimestamp(10));
 
-        try {
-            rs.getString(11);
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.INVALID_VALUE_2, e.getErrorCode());
-        }
-        try {
-            rs.getString("NOT_FOUND");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.INVALID_VALUE_2, (ResultSet) rs).
+                getString(11);
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, (ResultSet) rs).
+                getString("NOT_FOUND");
 
         // all 'updateX' methods are not supported
         for (Method m: rs.getClass().getMethods()) {
@@ -348,12 +340,8 @@ public class TestTools extends TestBase {
         assertFalse(rs.isClosed());
         assertEquals(1, rs.getRow());
         assertFalse(rs.next());
-        try {
-            rs.getInt(1);
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.NO_DATA_AVAILABLE, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.NO_DATA_AVAILABLE, (ResultSet) rs).
+                getInt(1);
         assertTrue(rs.isClosed());
         assertEquals(0, rs.getRow());
     }
@@ -367,8 +355,7 @@ public class TestTools extends TestBase {
     private void testWrongServer() throws Exception {
         try {
             // try to connect when the server is not running
-            Connection conn = getConnection("jdbc:h2:tcp://localhost:9001/test");
-            conn.close();
+            getConnection("jdbc:h2:tcp://localhost:9001/test");
             fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
@@ -386,8 +373,7 @@ public class TestTools extends TestBase {
         task.execute();
         Thread.sleep(100);
         try {
-            Connection conn = getConnection("jdbc:h2:tcp://localhost:9001/test");
-            conn.close();
+            getConnection("jdbc:h2:tcp://localhost:9001/test");
             fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());

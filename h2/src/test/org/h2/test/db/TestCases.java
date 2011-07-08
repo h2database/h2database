@@ -120,24 +120,16 @@ public class TestCases extends TestBase {
         // ensure the dependency is detected
         stat.execute("create alias is_positive as 'boolean isPositive(int x) { return x > 0; }'");
         stat.execute("create table a(a integer, constraint test check is_positive(a))");
-        try {
-            stat.execute("drop alias is_positive");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.CANNOT_DROP_2, stat).
+                execute("drop alias is_positive");
         stat.execute("drop table a");
         stat.execute("drop alias is_positive");
 
         // ensure trying to reference the table fails
         // (otherwise re-opening the database is not possible)
         stat.execute("create table test(id int primary key)");
-        try {
-            stat.execute("alter table test alter column id set default ifnull((select max(id) from test for update)+1, 0)");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.COLUMN_IS_REFERENCED_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
+                execute("alter table test alter column id set default ifnull((select max(id) from test for update)+1, 0)");
         stat.execute("drop table test");
         conn.close();
     }
@@ -253,28 +245,16 @@ public class TestCases extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table parent(id identity) as select 0");
         stat.execute("create table child(id identity, parent int references parent(id)) as select 0, 0");
-        try {
-            stat.execute("truncate table parent");
-            fail();
-        } catch (SQLException e) {
-            // expected
-        }
-        try {
-            stat.execute("delete from parent");
-            fail();
-        } catch (SQLException e) {
-            // expected
-        }
+        assertThrows(ErrorCode.CANNOT_TRUNCATE_1, stat).
+                execute("truncate table parent");
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, stat).
+                execute("delete from parent");
         stat.execute("alter table parent set referential_integrity false");
         stat.execute("delete from parent");
         stat.execute("truncate table parent");
         stat.execute("alter table parent set referential_integrity true");
-        try {
-            stat.execute("truncate table parent");
-            fail();
-        } catch (SQLException e) {
-            // expected
-        }
+        assertThrows(ErrorCode.CANNOT_TRUNCATE_1, stat).
+                execute("truncate table parent");
         stat.execute("set referential_integrity false");
         stat.execute("truncate table parent");
         conn.close();
@@ -577,11 +557,8 @@ public class TestCases extends TestBase {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("create table address(id identity, name varchar check? instr(value, '@') > 1)");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).
+                execute("create table address(id identity, name varchar check? instr(value, '@') > 1)");
         stat.execute("SET AUTOCOMMIT OFF; \n//create sequence if not exists object_id;\n");
         stat.execute("SET AUTOCOMMIT OFF;\n//create sequence if not exists object_id;\n");
         stat.execute("SET AUTOCOMMIT OFF; //create sequence if not exists object_id;");
@@ -736,12 +713,8 @@ public class TestCases extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity);");
         stat.execute("insert into test values(1);");
-        try {
-            stat.execute("alter table test add column name varchar not null;");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.NULL_NOT_ALLOWED, stat).
+                execute("alter table test add column name varchar not null;");
         conn.close();
         conn = getConnection("cases");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
@@ -763,12 +736,8 @@ public class TestCases extends TestBase {
         stat.execute("drop table test");
         stat.execute("create table test(id identity)");
         stat.execute("insert into test values(1)");
-        try {
-            stat.execute("alter table test alter column id date");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2, stat).
+                execute("alter table test alter column id date");
         conn.close();
         conn = getConnection("cases");
         rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
@@ -864,12 +833,8 @@ public class TestCases extends TestBase {
         conn.close();
         conn = getConnection("cases");
         stat = conn.createStatement();
-        try {
-            stat.execute("select * from abc");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("select * from abc");
         conn.close();
     }
 
@@ -1070,12 +1035,8 @@ public class TestCases extends TestBase {
         stat1.execute("SELECT * FROM TEST FOR UPDATE");
         Connection conn2 = getConnection("cases");
         Statement stat2 = conn2.createStatement();
-        try {
-            stat2.execute("UPDATE TEST SET ID=2");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).
+                execute("UPDATE TEST SET ID=2");
         conn1.commit();
         stat2.execute("UPDATE TEST SET ID=2");
         conn1.close();

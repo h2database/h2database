@@ -45,19 +45,11 @@ public class TestAlterSchemaRename extends TestBase {
     }
 
     private void testTryToRenameSystemSchemas() throws SQLException {
-        try {
-            stat.execute("alter schema information_schema rename to test_info");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, stat).
+                execute("alter schema information_schema rename to test_info");
         stat.execute("create sequence test_sequence");
-        try {
-            stat.execute("alter schema public rename to test_schema");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.SCHEMA_CAN_NOT_BE_DROPPED_1, stat).
+                execute("alter schema public rename to test_schema");
     }
 
     private void testSimpleRename() throws SQLException {
@@ -78,12 +70,8 @@ public class TestAlterSchemaRename extends TestBase {
     private void testRenameToExistingSchema() throws SQLException {
         stat.execute("create schema s1");
         stat.execute("create schema s2");
-        try {
-            stat.execute("alter schema s1 rename to s2");
-            fail("Exception should be thrown");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.SCHEMA_ALREADY_EXISTS_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.SCHEMA_ALREADY_EXISTS_1, stat).
+                execute("alter schema s1 rename to s2");
         stat.execute("drop schema s1");
         stat.execute("drop schema s2");
     }

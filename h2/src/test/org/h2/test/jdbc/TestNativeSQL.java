@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -232,12 +233,8 @@ public class TestNativeSQL extends TestBase {
         stat.setEscapeProcessing(true);
         stat.execute("CALL {d '2001-01-01'}");
         stat.setEscapeProcessing(false);
-        try {
-            stat.execute("CALL {d '2001-01-01'} // this is a test");
-            fail("expected error if setEscapeProcessing=false");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).
+                execute("CALL {d '2001-01-01'} // this is a test");
         assertFalse(conn.isClosed());
     }
 

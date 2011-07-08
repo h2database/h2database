@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.TreeSet;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
@@ -134,12 +135,7 @@ public class TestOptimizations extends TestBase {
         prep.execute();
         prep.close();
         prep = conn.prepareStatement("select ?");
-        try {
-            prep.execute();
-            fail("Parameter value still set");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, prep).execute();
         prep.close();
         conn.close();
     }

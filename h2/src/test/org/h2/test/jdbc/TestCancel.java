@@ -81,12 +81,8 @@ public class TestCancel extends TestBase {
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();
         stat.execute("set query_timeout 1");
-        try {
-            stat.execute("select count(*) from system_range(1, 1000000), system_range(1, 1000000)");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
+                execute("select count(*) from system_range(1, 1000000), system_range(1, 1000000)");
         stat.execute("set query_timeout 0");
         stat.execute("select count(*) from system_range(1, 1000), system_range(1, 1000)");
         conn.close();
@@ -119,12 +115,8 @@ public class TestCancel extends TestBase {
         ResultSet rs = s2.executeQuery("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'QUERY_TIMEOUT'");
         rs.next();
         assertEquals(1000, rs.getInt(1));
-        try {
-            stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
+                executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
         stat.setQueryTimeout(0);
         stat.execute("SET QUERY_TIMEOUT 1100");
         assertEquals(2, stat.getQueryTimeout());
@@ -136,12 +128,8 @@ public class TestCancel extends TestBase {
         Connection conn = getConnection("cancel");
         Statement stat = conn.createStatement();
         stat.execute("SET QUERY_TIMEOUT 10");
-        try {
-            stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
+                executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
         conn.close();
     }
 
@@ -149,12 +137,8 @@ public class TestCancel extends TestBase {
         deleteDb("cancel");
         Connection conn = getConnection("cancel;MAX_QUERY_TIMEOUT=10");
         Statement stat = conn.createStatement();
-        try {
-            stat.executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
+                executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
         conn.close();
     }
 
@@ -186,20 +170,16 @@ public class TestCancel extends TestBase {
             prep.execute();
         }
         trace("inserted");
-        // TODO test insert.. select
+        // TODO test insert into ... select
         for (int i = 1;;) {
             Statement query = conn.createStatement();
             CancelThread cancel = new CancelThread(query, i);
             visit(0);
             cancel.start();
             Thread.yield();
-            try {
-                query.executeQuery(
-                        "SELECT VISIT(ID), (SELECT SUM(X) FROM SYSTEM_RANGE(1, 10000) WHERE X<>ID) FROM TEST ORDER BY ID");
-            } catch (SQLException e) {
-                assertKnownException(e);
-                // ignore canceled statements
-            }
+            assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, query).
+                    executeQuery("SELECT VISIT(ID), (SELECT SUM(X) " +
+                            "FROM SYSTEM_RANGE(1, 10000) WHERE X<>ID) FROM TEST ORDER BY ID");
             cancel.stopNow();
             cancel.join();
             if (lastVisited == 0) {

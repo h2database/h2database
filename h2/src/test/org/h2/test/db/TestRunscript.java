@@ -215,12 +215,8 @@ public class TestRunscript extends TestBase implements Trigger {
             sql += " CIPHER AES PASSWORD 'wrongPassword'";
         }
         if (password) {
-            try {
-                stat2.execute(sql);
-                fail();
-            } catch (SQLException e) {
-                assertKnownException(e);
-            }
+            assertThrows(ErrorCode.FILE_ENCRYPTION_ERROR_1, stat2).
+                    execute(sql);
         }
         sql = "runscript from '" + getBaseDir() + "/backup.2.sql'";
         if (password) {

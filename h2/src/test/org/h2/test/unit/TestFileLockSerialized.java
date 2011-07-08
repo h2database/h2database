@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
@@ -225,12 +226,8 @@ public class TestFileLockSerialized extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         ((JdbcConnection) conn).setPowerOffCount(1);
-        try {
-            stat.execute("insert into test values(1)");
-            fail();
-        } catch (SQLException e) {
-            // ignore
-        }
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, stat).
+                execute("insert into test values(1)");
 
         Connection conn2 = DriverManager.getConnection(writeUrl, "sa", "sa");
         Statement stat2 = conn2.createStatement();
@@ -239,11 +236,7 @@ public class TestFileLockSerialized extends TestBase {
 
         conn2.close();
 
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            // ignore
-        }
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
     }
 
     private void testConcurrentReadWrite() throws Exception {

@@ -54,24 +54,20 @@ public class TestAlter extends TestBase {
 
         stat.execute("create table test(id int, name varchar(255))");
         stat.execute("alter table test add constraint x check (id > name)");
-        try {
-            // the constraint references multiple columns
-            stat.execute("alter table test drop column id");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.COLUMN_IS_REFERENCED_1, e.getErrorCode());
-        }
+
+        // the constraint references multiple columns
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
+                execute("alter table test drop column id");
+
         stat.execute("drop table test");
 
         stat.execute("create table test(id int, name varchar(255))");
         stat.execute("alter table test add constraint x unique(id, name)");
-        try {
-            // the constraint references multiple columns
-            stat.execute("alter table test drop column id");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.COLUMN_IS_REFERENCED_1, e.getErrorCode());
-        }
+
+        // the constraint references multiple columns
+        assertThrows(ErrorCode.COLUMN_IS_REFERENCED_1, stat).
+                execute("alter table test drop column id");
+
         stat.execute("drop table test");
 
         stat.execute("create table test(id int, name varchar(255))");
@@ -109,18 +105,12 @@ public class TestAlter extends TestBase {
 
     private void testAlterTableAlterColumn() throws SQLException {
         stat.execute("create table t(x varchar) as select 'x'");
-        try {
-            stat.execute("alter table t alter column x int");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DATA_CONVERSION_ERROR_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, stat).
+                execute("alter table t alter column x int");
         stat.execute("drop table t");
         stat.execute("create table t(id identity, x varchar) as select null, 'x'");
-        try {
-            stat.execute("alter table t alter column x int");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DATA_CONVERSION_ERROR_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, stat).
+                execute("alter table t alter column x int");
         stat.execute("drop table t");
     }
 

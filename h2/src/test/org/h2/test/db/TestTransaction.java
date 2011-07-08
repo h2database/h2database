@@ -101,12 +101,8 @@ public class TestTransaction extends TestBase {
         prep.execute();
         Connection conn2 = getConnection("transaction");
         conn2.setAutoCommit(false);
-        try {
-            conn2.createStatement().execute("select * from test for update");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.LOCK_TIMEOUT_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn2.createStatement()).
+                execute("select * from test for update");
         conn2.close();
         conn.close();
     }
@@ -126,15 +122,12 @@ public class TestTransaction extends TestBase {
         prep.execute();
         Connection conn2 = getConnection("transaction");
         conn2.setAutoCommit(false);
+        Statement stat2 = conn2.createStatement();
         if (config.mvcc && Constants.VERSION_MINOR >= 3) {
-            conn2.createStatement().execute("update test set name = 'Welt' where id = 2");
+            stat2.execute("update test set name = 'Welt' where id = 2");
         }
-        try {
-            conn2.createStatement().execute("update test set name = 'Hallo' where id = 1");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).
+                execute("update test set name = 'Hallo' where id = 1");
         conn2.close();
         conn.close();
     }
@@ -172,13 +165,9 @@ public class TestTransaction extends TestBase {
             conn = getConnection("transaction");
         }
         stat = conn.createStatement();
-        try {
-            stat.execute("delete from master");
-            fail();
-        } catch (SQLException ex) {
-            // ok
-            conn.rollback();
-        }
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, stat).
+                execute("delete from master");
+        conn.rollback();
         rs = stat.executeQuery("select * from master where id=1");
         assertResultRowCount(1, rs);
         rs = stat.executeQuery("select * from child1");
@@ -219,12 +208,8 @@ public class TestTransaction extends TestBase {
             conn = getConnection("transaction");
         }
         stat = conn.createStatement();
-        try {
-            stat.execute("delete from master");
-            fail();
-        } catch (SQLException ex) {
-            // ok
-        }
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, stat).
+                execute("delete from master");
         rs = stat.executeQuery("select * from master where id=1");
         assertResultRowCount(1, rs);
         rs = stat.executeQuery("select * from child1 where id=1");
@@ -268,12 +253,8 @@ public class TestTransaction extends TestBase {
         c2.setAutoCommit(false);
         s1.executeUpdate("insert into A(code) values('one')");
         Statement s2 = c2.createStatement();
-        try {
-            s2.executeUpdate("insert into B values('two', 1)");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, s2).
+                executeUpdate("insert into B values('two', 1)");
         c2.commit();
         c1.rollback();
         c1.close();
@@ -420,12 +401,7 @@ public class TestTransaction extends TestBase {
         result = New.arrayList();
         rs1 = s1.executeQuery("SELECT * FROM NEST1 ORDER BY ID");
         rs2 = s1.executeQuery("SELECT * FROM NEST2 ORDER BY ID");
-        try {
-            rs1.next();
-            fail("next worked on a closed result set");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.OBJECT_CLOSED, rs1).next();
         // this is already closed, so but closing again should no do any harm
         rs1.close();
         while (rs2.next()) {

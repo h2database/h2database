@@ -108,11 +108,8 @@ public class TestOldVersion extends TestBase {
     private void testOldClientNewServer() throws Exception {
         Server server = org.h2.tools.Server.createTcpServer("-tcpPort", "9001");
         server.start();
-        try {
-            driver.connect("jdbc:h2:tcp://localhost:9001/mem:test", null);
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DRIVER_VERSION_ERROR_2, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.DRIVER_VERSION_ERROR_2, driver).
+                connect("jdbc:h2:tcp://localhost:9001/mem:test", null);
         server.stop();
 
         Class<?> serverClass = cl.loadClass("org.h2.tools.Server");

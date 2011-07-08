@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -54,12 +55,8 @@ public class TestCompatibility extends TestBase {
         }
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key) as select 1");
-        try {
-            stat.execute("create domain int as varchar");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1, stat).
+                execute("create domain int as varchar");
         conn.close();
         conn = getConnection("compatibility");
         stat = conn.createStatement();
@@ -114,21 +111,13 @@ public class TestCompatibility extends TestBase {
         stat.execute("create table t2(c1 int, c2 int)");
         stat.execute("create unique index i2 on t2(c1, c2)");
         stat.execute("insert into t2 values (null, 1)");
-        try {
-            stat.execute("insert into t2 values (null, 1)");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).
+                execute("insert into t2 values (null, 1)");
         stat.execute("insert into t2 values (null, null)");
         stat.execute("insert into t2 values (null, null)");
         stat.execute("insert into t2 values (1, null)");
-        try {
-            stat.execute("insert into t2 values (1, null)");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).
+                execute("insert into t2 values (1, null)");
         stat.execute("DROP TABLE T2");
     }
 
@@ -233,12 +222,8 @@ public class TestCompatibility extends TestBase {
         assertEquals("1", res.getString(1));
         conn.close();
         conn = getConnection("compatibility;MODE=MySQL");
-        try {
-            conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1");
-            fail();
-        } catch (SQLException e) {
-            // can't lookup sysibm.sysdummy1 on mode=MySQL etc.
-        }
+        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn.createStatement()).
+                executeQuery("SELECT 1 FROM sysibm.sysdummy1");
         conn.close();
         conn = getConnection("compatibility");
     }
@@ -250,12 +235,8 @@ public class TestCompatibility extends TestBase {
         assertEquals("1", res.getString(1));
         conn.close();
         conn = getConnection("compatibility;MODE=PostgreSQL");
-        try {
-            conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1");
-            fail();
-        } catch (SQLException e) {
-            // can't lookup sysibm.sysdummy1 on mode=MySQL etc.
-        }
+        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn.createStatement()).
+                executeQuery("SELECT 1 FROM sysibm.sysdummy1");
         conn.close();
         conn = getConnection("compatibility");
     }

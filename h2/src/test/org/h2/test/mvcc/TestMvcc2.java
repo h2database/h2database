@@ -130,39 +130,19 @@ public class TestMvcc2 extends TestBase {
         stat.execute("insert into test select x, 'Hello' from system_range(1, 10)");
         stat.execute("select * from test where id = 3 for update");
         conn.commit();
-        try {
-            stat.execute("select sum(id) from test for update");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
-        try {
-            stat.execute("select distinct id from test for update");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
-        try {
-            stat.execute("select id from test group by id for update");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
-        try {
-            stat.execute("select t1.id from test t1, test t2 for update");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
+                execute("select sum(id) from test for update");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
+                execute("select distinct id from test for update");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
+                execute("select id from test group by id for update");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
+                execute("select t1.id from test t1, test t2 for update");
         stat.execute("select * from test where id = 3 for update");
         conn2.setAutoCommit(false);
         conn2.createStatement().execute("select * from test where id = 4 for update");
-        try {
-            conn2.createStatement().execute("select * from test where id = 3 for update");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.LOCK_TIMEOUT_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn2.createStatement()).
+                execute("select * from test where id = 3 for update");
         conn.close();
     }
 

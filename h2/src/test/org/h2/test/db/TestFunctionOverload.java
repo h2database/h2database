@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -49,12 +50,8 @@ public class TestFunctionOverload extends TestBase {
 
     private void testOverloadError() throws SQLException {
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("create alias overloadError for \"" + ME + ".overloadError\"");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2, stat).
+                execute("create alias overloadError for \"" + ME + ".overloadError\"");
     }
 
     private void testControl() throws SQLException {
@@ -98,15 +95,8 @@ public class TestFunctionOverload extends TestBase {
         assertEquals("1 arg", 1, rs.getInt(1));
         assertFalse("Second Row", rs.next());
         rs.close();
-
-        try {
-            rs = stat.executeQuery("select overload1or2Named(1, 2) from dual");
-            rs.close();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-
+        assertThrows(ErrorCode.METHOD_NOT_FOUND_1, stat).
+                executeQuery("select overload1or2Named(1, 2) from dual");
         stat.close();
     }
 

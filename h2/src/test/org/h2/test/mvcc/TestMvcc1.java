@@ -30,7 +30,9 @@ public class TestMvcc1 extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.mvcc = true;
+        test.test();
     }
 
     public void test() throws SQLException {
@@ -46,12 +48,8 @@ public class TestMvcc1 extends TestBase {
         ResultSet rs = stat.executeQuery("select * from information_schema.settings where name='MVCC'");
         rs.next();
         assertEquals("FALSE", rs.getString("VALUE"));
-        try {
-            stat.execute("SET MVCC TRUE");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, stat).
+                execute("SET MVCC TRUE");
         rs = stat.executeQuery("select * from information_schema.settings where name='MVCC'");
         rs.next();
         assertEquals("FALSE", rs.getString("VALUE"));
@@ -85,12 +83,8 @@ public class TestMvcc1 extends TestBase {
         c2.setAutoCommit(false);
 
         // table rollback problem
-        try {
-            s1.execute("create table b(primary key(x))");
-            fail();
-        } catch (SQLException e) {
-            // ok
-        }
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, s1).
+                execute("create table b(primary key(x))");
         s1.execute("create table a(id int as 1 unique)");
         s1.execute("drop table a");
 
@@ -112,12 +106,8 @@ public class TestMvcc1 extends TestBase {
         s1.execute("create table b (name varchar(100) not null, a integer, " +
                 "primary key(name), foreign key(a) references a(id))");
         s1.execute("insert into a(code) values('one')");
-        try {
-            s2.execute("insert into b values('un B', 1)");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, s2).
+                execute("insert into b values('un B', 1)");
         c2.commit();
         c1.rollback();
         s1.execute("drop table a, b");
@@ -127,13 +117,8 @@ public class TestMvcc1 extends TestBase {
         // when an uncommitted transaction changed something
         s1.execute("create table test(id int primary key)");
         s1.execute("insert into test values(1)");
-        try {
-            s2.execute("drop table test");
-            fail();
-        } catch (SQLException e) {
-            // lock timeout expected
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, s2).
+                execute("drop table test");
         c1.rollback();
         s2.execute("drop table test");
         c2.rollback();
@@ -154,13 +139,8 @@ public class TestMvcc1 extends TestBase {
         s1.execute("insert into test values(1, 'y')");
         c1.commit();
         s2.execute("select * from test where id = 1 for update");
-        try {
-            s1.execute("delete from test");
-            fail();
-        } catch (SQLException e) {
-            // lock timeout expected
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, s1).
+                execute("delete from test");
         c2.rollback();
         s1.execute("drop table test");
         c1.commit();
@@ -384,12 +364,8 @@ public class TestMvcc1 extends TestBase {
         s1.execute("create table test(id int primary key, name varchar(255))");
         s1.execute("insert into test values(1, 'Hello'), (2, 'World')");
         c1.commit();
-        try {
-            s1.execute("update test set id=2 where id=1");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, s1).
+                execute("update test set id=2 where id=1");
         rs = s1.executeQuery("select * from test order by id");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));

@@ -71,12 +71,8 @@ public class TestViewAlterTable extends TestBase {
         // simple
         stat.execute("create table test(id identity, name varchar) as select x, 'Hello'");
         stat.execute("create view test_view as select * from test");
-        try {
-            stat.execute("alter table test drop name");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.VIEW_IS_INVALID_2, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.VIEW_IS_INVALID_2, stat).
+                execute("alter table test drop name");
         ResultSet rs = stat.executeQuery("select * from test_view");
         assertTrue(rs.next());
         stat.execute("drop view test_view");
@@ -84,12 +80,9 @@ public class TestViewAlterTable extends TestBase {
 
         // nested
         createTestData();
-        try {
-            stat.execute("alter table test drop column a");
-            fail("Should throw exception because V1 uses column A");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.VIEW_IS_INVALID_2, e.getErrorCode());
-        }
+        // should throw exception because V1 uses column A
+        assertThrows(ErrorCode.VIEW_IS_INVALID_2, stat).
+                execute("alter table test drop column a");
         stat.execute("drop table test cascade");
     }
 
@@ -109,14 +102,11 @@ public class TestViewAlterTable extends TestBase {
         createTestData();
         stat.execute("create view v4 as select * from test");
         stat.execute("alter table test add d int default 6");
-        try {
-            stat.executeQuery("select d from v4");
-            // H2 doesn't remember v4 as 'select * from test',
-            // it instead remembers each individual column that was in 'test' when the
-            // view was originally created. This is consistent with PostgreSQL.
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
-        }
+        // H2 doesn't remember v4 as 'select * from test',
+        // it instead remembers each individual column that was in 'test' when the
+        // view was originally created. This is consistent with PostgreSQL.
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
+            executeQuery("select d from v4");
         checkViewRemainsValid();
     }
 

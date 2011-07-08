@@ -99,19 +99,16 @@ public class TestLob extends TestBase {
     }
 
     private void testCreateIndexOnLob() throws Exception {
+        if (!config.memory) {
+            return;
+        }
         deleteDb("lob");
         Connection conn;
         conn = getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name clob)");
-        try {
-            stat.execute("create index idx_n on test(name)");
-            if (!config.memory) {
-                fail();
-            }
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
+                execute("create index idx_n on test(name)");
         stat.execute("drop table test");
         conn.close();
     }
@@ -295,17 +292,11 @@ public class TestLob extends TestBase {
         stat.execute("create memory table test(x clob unique)");
         stat.execute("insert into test values('hello')");
         stat.execute("insert into test values('world')");
-        try {
-            stat.execute("insert into test values('world')");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).
+                execute("insert into test values('world')");
         stat.execute("insert into test values(space(10000) || 'a')");
-        try {
-            stat.execute("insert into test values(space(10000) || 'a')");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).
+                execute("insert into test values(space(10000) || 'a')");
         stat.execute("insert into test values(space(10000) || 'b')");
         conn.close();
     }

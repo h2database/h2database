@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -50,23 +51,13 @@ public class TestSQLInjection extends TestBase {
         stat.execute("CALL $$Hello World$$");
         stat.execute("SET ALLOW_LITERALS NUMBERS");
         stat.execute("CALL 123");
-        try {
-            stat.execute("CALL 'Hello'");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            stat.execute("CALL $$Hello World$$");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
+                execute("CALL 'Hello'");
+        assertThrows(ErrorCode.SYNTAX_ERROR_1, stat).
+                execute("CALL $$Hello World$$");
         stat.execute("SET ALLOW_LITERALS NONE");
-
         try {
-            assertTrue(checkPasswordInsecure("123456"));
+            checkPasswordInsecure("123456");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

@@ -15,6 +15,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import org.h2.constant.ErrorCode;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
@@ -217,24 +218,16 @@ public class TestLinkedTable extends TestBase {
         sa.execute("CREATE TABLE P.TEST(X INT)");
         sa.execute("INSERT INTO TEST VALUES(1)");
         sa.execute("INSERT INTO P.TEST VALUES(2)");
-        try {
-            sb.execute("CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.SCHEMA_NAME_MUST_MATCH, sb).
+                execute("CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
         sb.execute("CREATE LINKED TABLE T(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC', 'TEST')");
         sb.execute("CREATE LINKED TABLE T2(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'P', 'TEST')");
         assertSingleValue(sb, "SELECT * FROM T", 1);
         assertSingleValue(sb, "SELECT * FROM T2", 2);
         sa.execute("DROP ALL OBJECTS");
         sb.execute("DROP ALL OBJECTS");
-        try {
-            assertSingleValue(sa, "SELECT * FROM TEST", 0);
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, sa).
+                execute("SELECT * FROM TEST");
         ca.close();
         cb.close();
     }
@@ -361,12 +354,8 @@ public class TestLinkedTable extends TestBase {
         stat2.execute(link);
         stat2.executeUpdate("INSERT INTO TEST_LINK_U VALUES(1, 'Hello')");
         stat2.executeUpdate("INSERT INTO TEST_LINK_DI VALUES(2, 'World')");
-        try {
-            stat2.executeUpdate("UPDATE TEST_LINK_U SET ID=ID+1");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, stat2).
+                executeUpdate("UPDATE TEST_LINK_U SET ID=ID+1");
         stat2.executeUpdate("UPDATE TEST_LINK_DI SET ID=ID+1");
         stat2.executeUpdate("UPDATE TEST_LINK_U SET NAME=NAME || ID");
         ResultSet rs;
@@ -470,12 +459,8 @@ public class TestLinkedTable extends TestBase {
         conn = DriverManager.getConnection(url1, "sa1", "abc abc");
         stat = conn.createStatement();
         testRow(stat, "TEST");
-        try {
-            stat.execute("SELECT * FROM TEST_TEMP");
-            fail("temp table must not be persistent");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("SELECT * FROM TEST_TEMP");
         conn.close();
 
         conn = DriverManager.getConnection(url2, "sa2", "def def");

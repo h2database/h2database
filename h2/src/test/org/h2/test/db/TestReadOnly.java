@@ -64,18 +64,10 @@ public class TestReadOnly extends TestBase {
         conn.close();
         conn = getConnection("readonly;ACCESS_MODE_DATA=r");
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("CREATE TABLE TEST(ID INT)");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            stat.execute("SELECT * FROM TEST");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DATABASE_IS_READ_ONLY, stat).
+                execute("CREATE TABLE TEST(ID INT)");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("SELECT * FROM TEST");
         stat.execute("create local temporary linked table test(" +
                 "null, 'jdbc:h2:mem:test3', 'sa', 'sa', 'INFORMATION_SCHEMA.TABLES')");
         ResultSet rs = stat.executeQuery("select * from test");
@@ -117,12 +109,8 @@ public class TestReadOnly extends TestBase {
         assertTrue(conn.isReadOnly());
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
-        try {
-            stat.execute("DELETE FROM TEST");
-            fail("read only delete");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DATABASE_IS_READ_ONLY, stat).
+                execute("DELETE FROM TEST");
         conn.close();
 
         if (setReadOnly) {
@@ -132,12 +120,8 @@ public class TestReadOnly extends TestBase {
         }
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
-        try {
-            stat.execute("DELETE FROM TEST");
-            fail("read only delete");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DATABASE_IS_READ_ONLY, stat).
+                execute("DELETE FROM TEST");
         stat.execute("SET DB_CLOSE_DELAY=0");
         conn.close();
     }
@@ -158,6 +142,7 @@ public class TestReadOnly extends TestBase {
         stat.execute("insert into test select x from system_range(1, 11)");
         try {
             getConnection("readonly;ACCESS_MODE_DATA=r;OPEN_NEW=TRUE");
+            fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
         }

@@ -12,6 +12,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
@@ -231,18 +232,11 @@ public class TestConnectionPool extends TestBase {
             conn.close();
         }
         pool.dispose();
-        try {
-            pool.getConnection();
-            fail();
-        } catch (IllegalStateException e) {
-            // expected
-        }
-        try {
-            pool.getConnection(null, null);
-            fail();
-        } catch (UnsupportedOperationException e) {
-            // expected
-        }
+        DataSource ds = pool;
+        assertThrows(IllegalStateException.class, ds).
+                getConnection();
+        assertThrows(UnsupportedOperationException.class, ds).
+                getConnection(null, null);
     }
 
 }

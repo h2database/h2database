@@ -241,16 +241,11 @@ public class TestNestedJoins extends TestBase {
         ResultSet rs;
         String sql;
 
-        // Issue 288
-        try {
-            stat.execute("select 1 from dual a right outer join (select b.x from dual b) c on unknown.x = c.x, dual d");
-            fail();
-        } catch (SQLException e) {
-            // this threw a NullPointerException
-            assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
-        }
+        // issue 288
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
+                execute("select 1 from dual a right outer join (select b.x from dual b) c on unknown.x = c.x, dual d");
 
-        // Issue 288
+        // issue 288
         stat.execute("create table test(id int primary key)");
         stat.execute("insert into test values(1)");
         // this threw the exception Column "T.ID" must be in the GROUP BY list
@@ -258,14 +253,14 @@ public class TestNestedJoins extends TestBase {
                 "(select t2.id, count(*) c from test t2 group by t2.id) x on x.id = t.id " +
                 "where t.id = 1");
 
-        // The query plan of queries with subqueries
+        // the query plan of queries with subqueries
         // that contain nested joins was wrong
         stat.execute("select 1 from (select 2 from ((test t1 inner join test t2 " +
                 "on t1.id=t2.id) inner join test t3 on t3.id=t1.id)) x");
 
         stat.execute("drop table test");
 
-        // Issue 288
+        // issue 288
         /*
         create table test(id int);
         select 1 from test a right outer join test b on a.id = 1, test c;
@@ -319,7 +314,7 @@ public class TestNestedJoins extends TestBase {
                 "test b on a.id=b.id left outer join o on o.id=a.id where b.x=1");
         assertTrue(rs.next());
         sql = rs.getString(1);
-        // TODO Support optimizing queries with both inner and outer joins
+        // TODO support optimizing queries with both inner and outer joins
         // assertTrue("using table scan", sql.indexOf("tableScan") < 0);
         stat.execute("drop table test");
         stat.execute("drop table o");

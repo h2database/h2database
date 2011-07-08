@@ -31,6 +31,7 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.LobStorage;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.Utils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -894,7 +895,10 @@ public class DataType {
                 throw DbException.convert(e);
             }
         } else if (x instanceof ResultSet) {
-            return ValueResultSet.get((ResultSet) x);
+            if (x instanceof SimpleResultSet) {
+                return ValueResultSet.get((ResultSet) x);
+            }
+            return ValueResultSet.getCopy((ResultSet) x, 0);
         } else if (x instanceof UUID) {
             UUID u = (UUID) x;
             return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());

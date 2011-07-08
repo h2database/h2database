@@ -46,6 +46,7 @@ public class TestMetaData extends TestBase {
 
         conn = getConnection("metaData");
 
+        testColumnResultSetMeta();
         testColumnLobMeta();
         testColumnMetaData();
         testColumnPrecision();
@@ -212,6 +213,24 @@ public class TestMetaData extends TestBase {
 
         deleteDb("metaData");
 
+    }
+
+    private void testColumnResultSetMeta() throws SQLException {
+        stat = conn.createStatement();
+        stat.executeUpdate("create table test(data result_set)");
+        stat.execute("create alias x as 'ResultSet x(Connection conn, String sql) " +
+                "throws SQLException { return conn.createStatement(" +
+                "ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY).executeQuery(sql); }'");
+        stat.execute("insert into test values(select x('select x from system_range(1, 2)'))");
+        ResultSet rs = stat.executeQuery("select * from test");
+        ResultSetMetaData rsMeta = rs.getMetaData();
+        assertEquals("java.sql.ResultSet", rsMeta.getColumnClassName(1));
+        assertEquals(DataType.TYPE_RESULT_SET, rsMeta.getColumnType(1));
+        rs.next();
+        assertTrue(rs.getObject(1) instanceof java.sql.ResultSet);
+        assertEquals("org.h2.tools.SimpleResultSet", rs.getObject(1).getClass().getName());
+        stat.executeUpdate("drop alias x");
+        stat.executeUpdate("drop table test");
     }
 
     private void testColumnLobMeta() throws SQLException {
@@ -706,7 +725,7 @@ public class TestMetaData extends TestBase {
         assertResultSetMeta(rs, 14, new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "NON_UNIQUE",
                 "INDEX_QUALIFIER", "INDEX_NAME", "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
                 "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE"}, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                DataType.TYPE_BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
+                Types.BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
                 Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER}, null, null);
         assertResultSetOrdered(rs, new String[][] {
                 { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog, "IDX_DATE",
@@ -723,7 +742,7 @@ public class TestMetaData extends TestBase {
         assertResultSetMeta(rs, 14, new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "NON_UNIQUE",
                 "INDEX_QUALIFIER", "INDEX_NAME", "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
                 "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                DataType.TYPE_BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
+                Types.BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
                 Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER }, null, null);
         assertResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog,
                 "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther, "1", "ID", "A", "0", "0", "" } });
@@ -847,7 +866,7 @@ public class TestMetaData extends TestBase {
 
         rs = meta.getSchemas();
         assertResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM", "TABLE_CATALOG", "IS_DEFAULT" }, new int[] {
-                Types.VARCHAR, Types.VARCHAR, DataType.TYPE_BOOLEAN }, null, null);
+                Types.VARCHAR, Types.VARCHAR, Types.BOOLEAN }, null, null);
         assertTrue(rs.next());
         assertEquals("INFORMATION_SCHEMA", rs.getString(1));
         assertTrue(rs.next());
@@ -867,8 +886,8 @@ public class TestMetaData extends TestBase {
                 "LITERAL_SUFFIX", "CREATE_PARAMS", "NULLABLE", "CASE_SENSITIVE", "SEARCHABLE", "UNSIGNED_ATTRIBUTE",
                 "FIXED_PREC_SCALE", "AUTO_INCREMENT", "LOCAL_TYPE_NAME", "MINIMUM_SCALE", "MAXIMUM_SCALE",
                 "SQL_DATA_TYPE", "SQL_DATETIME_SUB", "NUM_PREC_RADIX" }, new int[] { Types.VARCHAR, Types.INTEGER,
-                Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, DataType.TYPE_BOOLEAN,
-                Types.SMALLINT, DataType.TYPE_BOOLEAN, DataType.TYPE_BOOLEAN, DataType.TYPE_BOOLEAN, Types.VARCHAR,
+                Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.BOOLEAN,
+                Types.SMALLINT, Types.BOOLEAN, Types.BOOLEAN, Types.BOOLEAN, Types.VARCHAR,
                 Types.SMALLINT, Types.SMALLINT, Types.INTEGER, Types.INTEGER, Types.INTEGER }, null, null);
 
         rs = meta.getTablePrivileges(null, null, null);

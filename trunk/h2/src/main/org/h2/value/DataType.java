@@ -898,7 +898,7 @@ public class DataType {
             if (x instanceof SimpleResultSet) {
                 return ValueResultSet.get((ResultSet) x);
             }
-            return ValueResultSet.getCopy((ResultSet) x, 0);
+            return ValueResultSet.getCopy((ResultSet) x, Integer.MAX_VALUE);
         } else if (x instanceof UUID) {
             UUID u = (UUID) x;
             return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());

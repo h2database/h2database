@@ -114,7 +114,7 @@ public class ValueResultSet extends Value {
     }
 
     protected int compareSecure(Value v, CompareMode mode) {
-        throw throwUnsupportedExceptionForType("<=>");
+        return this == v ? 0 : super.toString().compareTo(v.toString());
     }
 
     public boolean equals(Object other) {

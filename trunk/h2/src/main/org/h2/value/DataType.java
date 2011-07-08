@@ -42,40 +42,11 @@ import org.h2.util.StringUtils;
 public class DataType {
 
     /**
-     * This constant is used for JDK 1.3 compatibility
-     * and equal to java.sql.Types.BOOLEAN
+     * This constant is used to represent the type of a ResultSet. There is no
+     * equivalent java.sql.Types value, but Oracle uses it to represent a
+     * ResultSet (OracleTypes.CURSOR = -10).
      */
-    public static final int TYPE_BOOLEAN = 16;
-
-    /**
-     * This constant is used for JDK 1.3 compatibility
-     * and equal to java.sql.Types.DATALINK
-     */
-    public static final int TYPE_DATALINK = 70;
-
-    /**
-     * This constant is used for JDK 1.5 compatibility
-     * and equal to java.sql.Types.LONGNVARCHAR
-     */
-    public static final int TYPE_LONGNVARCHAR = -16;
-
-    /**
-     * This constant is used for JDK 1.5 compatibility
-     * and equal to java.sql.Types.NCHAR
-     */
-    public static final int TYPE_NCHAR = -15;
-
-    /**
-     * This constant is used for JDK 1.5 compatibility
-     * and equal to java.sql.Types.NVARCHAR
-     */
-    public static final int TYPE_NVARCHAR = -9;
-
-    /**
-     * This constant is used for JDK 1.5 compatibility
-     * and equal to java.sql.Types.NCLOB
-     */
-    public static final int TYPE_NCLOB = 2011;
+    public static final int TYPE_RESULT_SET = -10;
 
     /**
      * The list of types. An ArrayList so that Tomcat doesn't set it to null
@@ -222,7 +193,7 @@ public class DataType {
                 new String[]{"VARCHAR_IGNORECASE"},
                 48
         );
-        add(Value.BOOLEAN, DataType.TYPE_BOOLEAN, "Boolean",
+        add(Value.BOOLEAN, Types.BOOLEAN, "Boolean",
                 createDecimal(ValueBoolean.PRECISION, ValueBoolean.PRECISION, 0, ValueBoolean.DISPLAY_SIZE, false, false),
                 new String[]{"BOOLEAN", "BIT", "BOOL"},
                 // the value is always in the cache
@@ -354,7 +325,7 @@ public class DataType {
                 32
         );
         dataType = new DataType();
-        add(Value.RESULT_SET, 0, "ResultSet",
+        add(Value.RESULT_SET, DataType.TYPE_RESULT_SET, "ResultSet",
                 dataType,
                 new String[]{"RESULT_SET"},
                 400
@@ -604,6 +575,13 @@ public class DataType {
                 v = ValueArray.get(values);
                 break;
             }
+            case Value.RESULT_SET: {
+                ResultSet x = (ResultSet) rs.getObject(columnIndex);
+                if (x == null) {
+                    return ValueNull.INSTANCE;
+                }
+                return ValueResultSet.get(rs);
+            }
             default:
                 throw DbException.throwInternalError("type="+type);
             }
@@ -727,18 +705,18 @@ public class DataType {
     public static int convertSQLTypeToValueType(int sqlType) {
         switch(sqlType) {
         case Types.CHAR:
-        case DataType.TYPE_NCHAR:
+        case Types.NCHAR:
             return Value.STRING_FIXED;
         case Types.VARCHAR:
         case Types.LONGVARCHAR:
-        case DataType.TYPE_NVARCHAR:
-        case DataType.TYPE_LONGNVARCHAR:
+        case Types.NVARCHAR:
+        case Types.LONGNVARCHAR:
             return Value.STRING;
         case Types.NUMERIC:
         case Types.DECIMAL:
             return Value.DECIMAL;
         case Types.BIT:
-        case DataType.TYPE_BOOLEAN:
+        case Types.BOOLEAN:
             return Value.BOOLEAN;
         case Types.INTEGER:
             return Value.INT;
@@ -769,12 +747,14 @@ public class DataType {
         case Types.BLOB:
             return Value.BLOB;
         case Types.CLOB:
-        case DataType.TYPE_NCLOB:
+        case Types.NCLOB:
             return Value.CLOB;
         case Types.NULL:
             return Value.NULL;
         case Types.ARRAY:
             return Value.ARRAY;
+        case DataType.TYPE_RESULT_SET:
+            return Value.RESULT_SET;
         default:
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "" + sqlType);
         }

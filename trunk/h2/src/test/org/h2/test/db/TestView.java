@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -74,12 +75,8 @@ public class TestView extends TestBase {
         stat.execute("INSERT INTO Test(f1, f2) VALUES ('value1','value3')");
         PreparedStatement ps = conn.prepareStatement("CREATE VIEW Test_View AS SELECT f2 FROM Test WHERE f1=?");
         ps.setString(1, "value1");
-        try {
-            ps.executeUpdate();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, ps).
+                executeUpdate();
         // ResultSet rs;
         // rs = stat.executeQuery("SELECT * FROM Test_View");
         // assertTrue(rs.next());

@@ -125,12 +125,8 @@ public class TestPreparedStatement extends TestBase {
     }
 
     private void testExecuteUpdateCall(Connection conn) throws SQLException {
-        Statement stat = conn.createStatement();
-        try {
-            stat.executeUpdate("CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DATA_CONVERSION_ERROR_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, conn.createStatement()).
+                executeUpdate("CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)");
     }
 
     private void testPrepareExecute(Connection conn) throws SQLException {
@@ -185,20 +181,9 @@ public class TestPreparedStatement extends TestBase {
 
     private void testExecuteErrorTwice(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("CREATE TABLE BAD AS SELECT A");
-        try {
-            prep.execute();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            prep.execute();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, prep).execute();
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, prep).execute();
     }
-
 
     private void testTempView(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
@@ -293,15 +278,8 @@ public class TestPreparedStatement extends TestBase {
     }
 
     private void testUnknownDataType(Connection conn) throws SQLException {
-        try {
-            PreparedStatement prep = conn.prepareStatement(
-            "SELECT * FROM (SELECT ? FROM DUAL)");
-            prep.setInt(1, 1);
-            prep.execute();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.UNKNOWN_DATA_TYPE_1, conn).
+            prepareStatement("SELECT * FROM (SELECT ? FROM DUAL)");
         PreparedStatement prep = conn.prepareStatement("SELECT -?");
         prep.setInt(1, 1);
         prep.execute();
@@ -528,25 +506,10 @@ public class TestPreparedStatement extends TestBase {
         assertEquals(0, pm.getScale(1));
         assertEquals(ResultSetMetaData.columnNullableUnknown, pm.isNullable(1));
         assertEquals(pm.isSigned(1), true);
-        try {
-            pm.getPrecision(0);
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            pm.getPrecision(4);
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.INVALID_VALUE_2, pm).getPrecision(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, pm).getPrecision(4);
         prep.close();
-        try {
-            pm.getPrecision(1);
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.OBJECT_CLOSED, pm).getPrecision(1);
 
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST3(ID INT, NAME VARCHAR(255), DATA DECIMAL(10,2))");
@@ -653,12 +616,8 @@ public class TestPreparedStatement extends TestBase {
         prep.setString(1, "Hello");
         rs = prep.executeQuery();
         assertFalse(rs.next());
-        try {
-            conn.prepareStatement("select ? from dual union select ? from dual");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.UNKNOWN_DATA_TYPE_1, conn).
+                prepareStatement("select ? from dual union select ? from dual");
         prep = conn.prepareStatement("select cast(? as varchar) from dual union select ? from dual");
         assertEquals(2, prep.getParameterMetaData().getParameterCount());
         prep.setString(1, "a");

@@ -34,8 +34,7 @@ public class TestExclusive extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("set exclusive true");
         try {
-            Connection conn2 = getConnection("exclusive");
-            conn2.close();
+            getConnection("exclusive");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);

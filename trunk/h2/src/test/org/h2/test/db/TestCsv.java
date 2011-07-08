@@ -166,8 +166,8 @@ public class TestCsv extends TestBase {
             fail();
         } catch (DbException e) {
             assertEquals(ErrorCode.UNSUPPORTED_SETTING_1, e.getErrorCode());
-            assertEquals('a', csv.getEscapeCharacter());
         }
+        assertEquals('a', csv.getEscapeCharacter());
     }
 
     private void testPseudoBom() throws Exception {

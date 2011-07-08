@@ -176,12 +176,8 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
 
         conn.setAutoCommit(false);
         restart();
-        try {
-            conn.createStatement().execute("select * from test");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.CONNECTION_BROKEN_1, conn.createStatement()).
+                execute("select * from test");
 
         conn.close();
         if (autoServer) {

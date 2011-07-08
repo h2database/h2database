@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
@@ -113,12 +114,7 @@ public class TestPageStoreCoverage extends TestBase {
         stat.execute("drop table test2");
         stat.execute("insert into test select null, space(10) from system_range(1, 10)");
         stat.execute("shutdown immediately");
-        try {
-            conn.close();
-            fail();
-        } catch (SQLException e) {
-            // ignore
-        }
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
         conn = getConnection(URL);
         stat = conn.createStatement();
         stat.execute("drop all objects");
@@ -134,12 +130,7 @@ public class TestPageStoreCoverage extends TestBase {
             stat.execute("create table test" + i + "(id identity, name varchar)");
         }
         stat.execute("shutdown immediately");
-        try {
-            conn.close();
-            fail();
-        } catch (SQLException e) {
-            // ignore
-        }
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
         conn = getConnection(URL);
         conn.createStatement().execute("drop all objects");
         conn.close();

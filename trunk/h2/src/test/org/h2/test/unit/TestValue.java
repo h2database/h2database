@@ -80,6 +80,7 @@ public class TestValue extends TestBase {
         assertEquals("1234567890.1234567", v.convertPrecision(10, true).getString());
         try {
             v.convertPrecision(10, false);
+            fail();
         } catch (DbException e) {
             assertEquals(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, e.getErrorCode());
         }

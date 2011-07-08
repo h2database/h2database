@@ -339,8 +339,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
 
-        int todoTestBoth;
-        System.setProperty("h2.storeLocalTime", "true");
+        // System.setProperty("h2.storeLocalTime", "true");
 
         // speedup
         // System.setProperty("h2.syncMethod", "");

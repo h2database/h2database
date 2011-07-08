@@ -14,6 +14,7 @@ import java.util.Properties;
 
 import org.h2.Driver;
 import org.h2.api.DatabaseEventListener;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -126,11 +127,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         stat.execute("insert into test values(2)");
         stat.execute("checkpoint sync");
         stat.execute("shutdown immediately");
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
         // now the index should be re-built
         conn = DriverManager.getConnection(url, p);
         conn.close();

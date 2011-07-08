@@ -55,12 +55,8 @@ public class TestPgServer extends TestBase {
     private void testPgClient() throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("select ***");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(SQLException.class, stat).
+                execute("select ***");
         stat.execute("create user test password 'test'");
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("create index idx_test_name on test(name, id)");

@@ -54,9 +54,12 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         }
         deleteDb("openClose");
         Connection conn;
-        conn = DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS");
+        conn = DriverManager.getConnection(
+                "jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS");
         try {
-            DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS;OPEN_NEW=TRUE");
+            DriverManager.getConnection(
+                    "jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS;OPEN_NEW=TRUE");
+            fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
         }

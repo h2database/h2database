@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -92,30 +93,20 @@ public class TestZloty extends TestBase {
         prep.setBigDecimal(2, new BigDecimal("10.0"));
         prep.execute();
         prep.setInt(1, 2);
-        try {
-            prep.setBigDecimal(2, new ZlotyBigDecimal("11.0"));
-            prep.execute();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.INVALID_CLASS_2, prep).
+                setBigDecimal(2, new ZlotyBigDecimal("11.0"));
 
         prep.setInt(1, 3);
-        try {
-            BigDecimal value = new BigDecimal("12.100000") {
+        BigDecimal value = new BigDecimal("12.100000") {
 
-                private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-                public String toString() {
-                    return "12,100000 EURO";
-                }
-            };
-            prep.setBigDecimal(2, value);
-            prep.execute();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+            public String toString() {
+                return "12,100000 EURO";
+            }
+        };
+        assertThrows(ErrorCode.INVALID_CLASS_2, prep).
+                setBigDecimal(2, value);
 
         conn.close();
     }

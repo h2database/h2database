@@ -52,13 +52,8 @@ public class TestOutOfMemory extends TestBase {
                 fail();
             } catch (SQLException e) {
                 assertEquals(ErrorCode.OUT_OF_MEMORY, e.getErrorCode());
-                try {
-                    conn.close();
-                    fail();
-                } catch (SQLException e2) {
-                    assertEquals(ErrorCode.DATABASE_IS_CLOSED, e2.getErrorCode());
-                }
             }
+            assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
             freeMemory();
             conn = null;
             conn = getConnection("outOfMemory");
@@ -70,7 +65,7 @@ public class TestOutOfMemory extends TestBase {
             try {
                 conn.close();
             } catch (SQLException e) {
-                // out of memory will close the database
+                // out of memory will / may close the database
                 assertKnownException(e);
             }
         }

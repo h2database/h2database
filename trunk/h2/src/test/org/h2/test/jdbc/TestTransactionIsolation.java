@@ -9,6 +9,7 @@ package org.h2.test.jdbc;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -66,12 +67,8 @@ public class TestTransactionIsolation extends TestBase {
 
         // serializable: write lock
         conn1.createStatement().executeUpdate("UPDATE TEST SET ID=2");
-        try {
-            assertSingleValue(conn2.createStatement(), "SELECT * FROM TEST", 1);
-            fail("Expected lock timeout");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn2.createStatement()).
+                executeQuery("SELECT * FROM TEST");
         conn1.commit();
         conn2.commit();
 
@@ -88,12 +85,8 @@ public class TestTransactionIsolation extends TestBase {
         assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 3);
         assertSingleValue(conn2.createStatement(), "SELECT * FROM TEST", 3);
         conn2.createStatement().executeUpdate("UPDATE TEST SET ID=4");
-        try {
-            conn1.createStatement().executeUpdate("DELETE FROM TEST");
-            fail("Expected lock timeout");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn1.createStatement()).
+                executeUpdate("DELETE FROM TEST");
         conn2.commit();
         conn1.commit();
         assertSingleValue(conn1.createStatement(), "SELECT * FROM TEST", 4);

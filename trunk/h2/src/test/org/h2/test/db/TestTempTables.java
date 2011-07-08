@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
@@ -185,12 +186,8 @@ public class TestTempTables extends TestBase {
         stat.execute("drop index idx1");
         stat.execute("create index idx1 on test(id)");
         stat.execute("insert into test select x from system_range(1, 10)");
-        try {
-            stat.execute("alter table test add column x int");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
+                execute("alter table test add column x int");
         stat.execute("drop table test");
     }
 
@@ -255,12 +252,9 @@ public class TestTempTables extends TestBase {
         rs = s1.executeQuery("select * from test_temp");
         assertResultRowCount(1, rs);
         c1.commit();
-        try {
-            s1.executeQuery("select * from test_temp");
-            fail("test_temp should have been dropped automatically");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        // test_temp should have been dropped automatically
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, s1).
+                executeQuery("select * from test_temp");
     }
 
 }

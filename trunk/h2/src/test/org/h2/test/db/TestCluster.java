@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.CreateCluster;
 import org.h2.tools.DeleteDbFiles;
@@ -231,13 +232,9 @@ public class TestCluster extends TestBase {
                 serverList);
 
         // check the original connection is closed
-        try {
-            stat.execute("select * from test");
-            fail();
-        } catch (SQLException e) {
-            // expected
-            JdbcUtils.closeSilently(conn);
-        }
+        assertThrows(ErrorCode.CONNECTION_BROKEN_1, stat).
+                execute("select * from test");
+        JdbcUtils.closeSilently(conn);
 
         // test the cluster connection
         Connection connApp = DriverManager.getConnection(urlCluster + ";AUTO_RECONNECT=TRUE", user, password);

@@ -18,6 +18,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
+import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 
@@ -65,49 +66,45 @@ public class TestLobApi extends TestBase {
         stat = conn.createStatement();
         stat.execute("create table test(id identity, c clob, b blob)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(null, ?, ?)");
-        try {
-            prep.setCharacterStream(1, new Reader() {
-                int pos;
-                public int read(char[] buff, int off, int len) throws IOException {
-                    pos += len;
-                    if (pos > 100001) {
-                        if (ioException) {
-                            throw new IOException("");
+
+        assertThrows(ErrorCode.IO_EXCEPTION_2, prep).
+                setCharacterStream(1, new Reader() {
+                    int pos;
+                    public int read(char[] buff, int off, int len) throws IOException {
+                        pos += len;
+                        if (pos > 100001) {
+                            if (ioException) {
+                                throw new IOException("");
+                            }
+                            throw new IllegalStateException();
                         }
-                        throw new IllegalStateException();
+                        return len;
                     }
-                    return len;
-                }
-                public void close() throws IOException {
-                    // nothing to do
-                }
-            }, -1);
-            fail();
-        } catch (Exception e) {
-            // expected
-        }
+                    public void close() throws IOException {
+                        // nothing to do
+                    }
+                }, -1);
+
         prep.setString(1, new String(new char[10000]));
         prep.setBytes(2, new byte[0]);
         prep.execute();
         prep.setString(1, "");
-        try {
-            prep.setBinaryStream(2, new InputStream() {
-                int pos;
-                public int read() throws IOException {
-                    pos++;
-                    if (pos > 100001) {
-                        if (ioException) {
-                            throw new IOException("");
+
+        assertThrows(ErrorCode.IO_EXCEPTION_2, prep).
+                setBinaryStream(2, new InputStream() {
+                    int pos;
+                    public int read() throws IOException {
+                        pos++;
+                        if (pos > 100001) {
+                            if (ioException) {
+                                throw new IOException("");
+                            }
+                            throw new IllegalStateException();
                         }
-                        throw new IllegalStateException();
+                        return 0;
                     }
-                    return 0;
-                }
-            }, -1);
-            fail();
-        } catch (Exception e) {
-            // expected
-        }
+                }, -1);
+
         prep.setBytes(2, new byte[10000]);
         prep.execute();
         ResultSet rs = stat.executeQuery("select c, b from test order by id");

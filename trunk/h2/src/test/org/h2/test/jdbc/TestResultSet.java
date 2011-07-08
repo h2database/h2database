@@ -28,6 +28,7 @@ import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
 
@@ -453,24 +454,9 @@ public class TestResultSet extends TestBase {
         // 0 should be an allowed value (but it's not defined what is actually
         // means)
         rs.setFetchSize(0);
-        trace("after set to 0, fetch size=" + rs.getFetchSize());
-        // this should break
-        try {
-            rs.setFetchSize(-1);
-            fail("fetch size -1 is not allowed");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace(e.toString());
-        }
-        trace("after try to set to -1, fetch size=" + rs.getFetchSize());
-        try {
-            rs.setFetchSize(100);
-            fail("fetch size 100 is bigger than maxrows - not allowed");
-        } catch (SQLException e) {
-            assertKnownException(e);
-            trace(e.toString());
-        }
-        trace("after try set to 100, fetch size=" + rs.getFetchSize());
+        assertThrows(ErrorCode.INVALID_VALUE_2, rs).setFetchSize(-1);
+        // fetch size 100 is bigger than maxrows - not allowed
+        assertThrows(ErrorCode.INVALID_VALUE_2, rs).setFetchSize(100);
         rs.setFetchSize(6);
 
         assertTrue(rs.getRow() == 1);

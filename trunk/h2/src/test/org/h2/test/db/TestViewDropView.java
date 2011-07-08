@@ -48,12 +48,8 @@ public class TestViewDropView extends TestBase {
     }
 
     private void testCreateForceView() throws SQLException {
-        try {
-            stat.execute("create view test_view as select * from test");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("create view test_view as select * from test");
         stat.execute("create force view test_view as select * from test");
         stat.execute("create table test(id int)");
         stat.execute("alter view test_view recompile");
@@ -71,64 +67,34 @@ public class TestViewDropView extends TestBase {
         ResultSet rs = stat.executeQuery("select value from information_schema.settings where name = 'DROP_RESTRICT'");
         rs.next();
         boolean dropRestrict = rs.getBoolean(1);
-
-        try {
-            // Should fail because have dependencies
-            stat.execute("drop view v1");
-            if (dropRestrict) {
-                fail();
-            }
-        } catch (SQLException e) {
-            if (!dropRestrict) {
-                assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
-            }
-        }
-
         if (dropRestrict) {
+            // should fail because have dependencies
+            assertThrows(ErrorCode.CANNOT_DROP_2, stat).
+                execute("drop view v1");
+        } else {
+            stat.execute("drop view v1");
             checkViewRemainsValid();
         }
     }
 
     private void testDropViewRestrict() throws SQLException {
         createTestData();
-
-        try {
-            // Should fail because have dependencies
-            stat.execute("drop view v1 restrict");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.CANNOT_DROP_2, e.getErrorCode());
-        }
-
+        // should fail because have dependencies
+        assertThrows(ErrorCode.CANNOT_DROP_2, stat).
+            execute("drop view v1 restrict");
         checkViewRemainsValid();
     }
 
     private void testDropViewCascade() throws SQLException {
         createTestData();
-
         stat.execute("drop view v1 cascade");
-
-        try {
-            stat.execute("select * from v1");
-            fail("Exception should be thrown - v1 should be deleted");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e.getErrorCode());
-        }
-
-        try {
-            stat.execute("select * from v2");
-            fail("Exception should be thrown - v2 should be deleted");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e.getErrorCode());
-        }
-
-        try {
-            stat.execute("select * from v3");
-            fail("Exception should be thrown - v3 should be deleted");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e.getErrorCode());
-        }
-
+        // v1, v2, v3 should be deleted
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("select * from v1");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("select * from v2");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("select * from v3");
         stat.execute("drop table test");
     }
 
@@ -142,16 +108,11 @@ public class TestViewDropView extends TestBase {
 
     private void testCreateOrReplaceViewWithNowInvalidDependentViews() throws SQLException {
         createTestData();
-
-        try {
-            // v2 and v3 need more than just "c", so we should get an error
-            stat.execute("create or replace view v1 as select c from test");
-            fail("Exception should be thrown - dependent views need more columns than just 'c'");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
-        }
-
-        // Make sure our old views come back ok
+        // v2 and v3 need more than just "c", so we should get an error
+        // dependent views need more columns than just 'c'
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
+                execute("create or replace view v1 as select c from test");
+        // make sure our old views come back ok
         checkViewRemainsValid();
     }
 
@@ -161,18 +122,9 @@ public class TestViewDropView extends TestBase {
         // v2 and v3 need more than just "c",
         // but we want to force the creation of v1 anyway
         stat.execute("create or replace force view v1 as select c from test");
-
-        try {
-            // now v2 and v3 are broken, but they still exist
-            ResultSet rs = stat.executeQuery("select b from v2");
-            assertTrue(rs.next());
-            assertEquals(1, rs.getInt(1));
-            assertFalse(rs.next());
-
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e.getErrorCode());
-        }
-
+        // now v2 and v3 are broken, but they still exist
+        assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
+                executeQuery("select b from v2");
         stat.execute("drop table test cascade");
     }
 

@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -43,18 +44,8 @@ public class TestAutoRecompile extends TestBase {
 
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, 2, 3)");
         stat.execute("ALTER TABLE TEST ADD COLUMN Z INT");
-        try {
-            prep.execute();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            prep.execute();
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH, prep).execute();
+        assertThrows(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH, prep).execute();
         conn.close();
         deleteDb("autoRecompile");
     }

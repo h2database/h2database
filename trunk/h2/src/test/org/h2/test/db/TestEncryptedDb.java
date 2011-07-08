@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -39,11 +40,7 @@ public class TestEncryptedDb extends TestBase {
         stat.execute("SET WRITE_DELAY 0");
         stat.execute("INSERT INTO TEST VALUES(1)");
         stat.execute("SHUTDOWN IMMEDIATELY");
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
 
         try {
             getConnection("encrypted;CIPHER=AES", "sa", "1234 1234");

@@ -8,7 +8,6 @@ package org.h2.test.mvcc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.CountDownLatch;
 
@@ -44,12 +43,8 @@ public class TestMvccMultiThreaded extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(x int primary key, y int unique)");
         stat.execute("insert into test values(1, 1)");
-        try {
-            stat.execute("merge into test values(2, 1)");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).
+                execute("merge into test values(2, 1)");
         stat.execute("merge into test values(1, 2)");
         conn.close();
 

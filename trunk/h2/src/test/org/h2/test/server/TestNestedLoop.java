@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -39,20 +40,10 @@ public class TestNestedLoop extends TestBase {
         }
         ResultSet rs = stat.executeQuery("select id from test");
         stat.executeQuery("select id from test");
-        try {
-            rs.next();
-            fail("Result set should be closed");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.OBJECT_CLOSED, rs).next();
         rs = stat.executeQuery("select id from test");
         stat.close();
-        try {
-            rs.next();
-            fail("Result set should be closed");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.OBJECT_CLOSED, rs).next();
         stat = conn.createStatement();
         rs = stat.executeQuery("select id from test");
         Statement stat2 = conn.createStatement();

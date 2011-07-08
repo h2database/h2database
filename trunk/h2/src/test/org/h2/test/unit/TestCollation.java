@@ -7,7 +7,6 @@
 package org.h2.test.unit;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
@@ -30,19 +29,12 @@ public class TestCollation extends TestBase {
         deleteDb("collation");
         Connection conn = getConnection("collation");
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("set collation xyz");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.INVALID_VALUE_2, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat).
+                execute("set collation xyz");
         stat.execute("set collation en");
         stat.execute("set collation default_en");
-        try {
-            stat.execute("set collation icu4j_en");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.CLASS_NOT_FOUND_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.CLASS_NOT_FOUND_1, stat).
+                execute("set collation icu4j_en");
         conn.close();
         deleteDb("collation");
     }

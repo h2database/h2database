@@ -22,6 +22,7 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
+import org.h2.constant.ErrorCode;
 import org.h2.server.web.DbStarter;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -200,13 +201,8 @@ public class TestServlet extends TestBase {
         stat2.execute("SELECT * FROM T");
         stat2.execute("DROP TABLE T");
 
-        try {
-            stat1.execute("SELECT * FROM T");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat1).
+                execute("SELECT * FROM T");
         conn2.close();
 
         listener.contextDestroyed(event);
@@ -220,12 +216,8 @@ public class TestServlet extends TestBase {
         }
 
         // connection must be closed
-        try {
-            stat1.execute("SELECT * FROM DUAL");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.OBJECT_CLOSED, stat1).
+                execute("SELECT * FROM DUAL");
 
         deleteDb("servlet");
 

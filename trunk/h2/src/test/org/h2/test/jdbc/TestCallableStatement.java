@@ -138,21 +138,12 @@ public class TestCallableStatement extends TestBase {
         }
         // test for exceptions after closing
         call.close();
-        try {
-            call.executeUpdate();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.OBJECT_CLOSED, e.getErrorCode());
-        }
-        try {
-            call.registerOutParameter(1, Types.INTEGER);
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.OBJECT_CLOSED, e.getErrorCode());
-        }
-        try {
-            call.getString("X");
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.OBJECT_CLOSED, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.OBJECT_CLOSED, call).
+                executeUpdate();
+        assertThrows(ErrorCode.OBJECT_CLOSED, call).
+                registerOutParameter(1, Types.INTEGER);
+        assertThrows(ErrorCode.OBJECT_CLOSED, call).
+                getString("X");
     }
 
     /**

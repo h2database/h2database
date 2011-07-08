@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -70,12 +71,8 @@ public class TestRowLocks extends TestBase {
         assertEquals("Hello", getSingleValue(s2, "SELECT NAME FROM TEST WHERE ID=1"));
 
         s2.execute("UPDATE TEST SET NAME='Hallo' WHERE ID=2");
-        try {
-            s2.executeUpdate("UPDATE TEST SET NAME='Hi' WHERE ID=1");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, s2).
+                executeUpdate("UPDATE TEST SET NAME='Hi' WHERE ID=1");
         c1.commit();
         c2.commit();
 

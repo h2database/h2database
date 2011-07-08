@@ -202,6 +202,7 @@ public class TestDataPage extends TestBase implements DataHandler {
 
 
         SimpleResultSet rs = new SimpleResultSet();
+        rs.setAutoClose(false);
         rs.addColumn("ID", Types.INTEGER, 0, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         rs.addRow(1, "Hello");

@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -1271,6 +1275,55 @@ public abstract class TestBase {
      */
     protected void freeMemory() {
         memory.clear();
+    }
+
+    @SuppressWarnings("unchecked")
+    protected
+    <T> T assertThrows(final int errorCode, final T obj) {
+        Class<?> c = obj.getClass();
+        return (T) Proxy.newProxyInstance(c.getClassLoader(),
+                c.getInterfaces(), new InvocationHandler() {
+            private Exception called = new Exception("No method called");
+            public void finalize() {
+                if (called != null) {
+                    called.printStackTrace(System.err);
+                }
+            }
+            public Object invoke(Object proxy, Method method, Object[] args) throws Exception {
+                try {
+                    called = null;
+                    Object ret = method.invoke(obj, args);
+                    fail("The method " + method.getName() + " did not throw the exception with error code " +
+                            errorCode + ", but returned " + ret + " instead");
+                    return ret;
+                } catch (InvocationTargetException e) {
+                    SQLException s = (SQLException) e.getTargetException();
+                    assertEquals(errorCode, s.getErrorCode());
+                    Class<?> retClass = method.getReturnType();
+                    if (!retClass.isPrimitive()) {
+                        return null;
+                    }
+                    if (retClass == boolean.class) {
+                        return false;
+                    } else if (retClass == byte.class) {
+                        return (byte) 0;
+                    } else if (retClass == char.class) {
+                        return (char) 0;
+                    } else if (retClass == short.class) {
+                        return (short) 0;
+                    } else if (retClass == int.class) {
+                        return 0;
+                    } else if (retClass == long.class) {
+                        return 0L;
+                    } else if (retClass == float.class) {
+                        return 0F;
+                    } else if (retClass == double.class) {
+                        return 0D;
+                    }
+                    return null;
+                }
+            }
+        });
     }
 
 }

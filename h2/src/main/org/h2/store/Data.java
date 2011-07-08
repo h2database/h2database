@@ -15,15 +15,20 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -39,6 +44,7 @@ import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueResultSet;
 import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueStringFixed;
@@ -635,6 +641,35 @@ public class Data {
             }
             break;
         }
+        case Value.RESULT_SET: {
+            writeByte((byte) type);
+            try {
+                ResultSet rs = ((ValueResultSet) v).getResultSet();
+                rs.beforeFirst();
+                ResultSetMetaData meta = rs.getMetaData();
+                int columnCount = meta.getColumnCount();
+                writeVarInt(columnCount);
+                for (int i = 0; i < columnCount; i++) {
+                    writeString(meta.getColumnName(i + 1));
+                    writeVarInt(meta.getColumnType(i + 1));
+                    writeVarInt(meta.getPrecision(i + 1));
+                    writeVarInt(meta.getScale(i + 1));
+                }
+                while (rs.next()) {
+                    writeByte((byte) 1);
+                    for (int i = 0; i < columnCount; i++) {
+                        int t = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
+                        Value val = DataType.readValue(null, rs, i + 1, t);
+                        writeValue(val);
+                    }
+                }
+                writeByte((byte) 0);
+                rs.beforeFirst();
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+            break;
+        }
         default:
             DbException.throwInternalError("type=" + v.getType());
         }
@@ -785,6 +820,24 @@ public class Data {
                 list[i] = readValue();
             }
             return ValueArray.get(list);
+        }
+        case Value.RESULT_SET: {
+            SimpleResultSet rs = new SimpleResultSet();
+            int columns = readVarInt();
+            for (int i = 0; i < columns; i++) {
+                rs.addColumn(readString(), readVarInt(), readVarInt(), readVarInt());
+            }
+            while (true) {
+                if (readByte() == 0) {
+                    break;
+                }
+                Object[] o = new Object[columns];
+                for (int i = 0; i < columns; i++) {
+                    o[i] = readValue().getObject();
+                }
+                rs.addRow(o);
+            }
+            return ValueResultSet.get(rs);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
@@ -989,6 +1042,35 @@ public class Data {
             int len = 1 + getVarIntLen(list.length);
             for (Value x : list) {
                 len += getValueLen(x, handler);
+            }
+            return len;
+        }
+        case Value.RESULT_SET: {
+            int len = 1;
+            try {
+                ResultSet rs = ((ValueResultSet) v).getResultSet();
+                rs.beforeFirst();
+                ResultSetMetaData meta = rs.getMetaData();
+                int columnCount = meta.getColumnCount();
+                len += getVarIntLen(columnCount);
+                for (int i = 0; i < columnCount; i++) {
+                    len += getStringLen(meta.getColumnName(i + 1));
+                    len += getVarIntLen(meta.getColumnType(i + 1));
+                    len += getVarIntLen(meta.getPrecision(i + 1));
+                    len += getVarIntLen(meta.getScale(i + 1));
+                }
+                while (rs.next()) {
+                    len++;
+                    for (int i = 0; i < columnCount; i++) {
+                        int t = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
+                        Value val = DataType.readValue(null, rs, i + 1, t);
+                        len += getValueLen(val, handler);
+                    }
+                }
+                len++;
+                rs.beforeFirst();
+            } catch (SQLException e) {
+                throw DbException.convert(e);
             }
             return len;
         }

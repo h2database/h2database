@@ -39,7 +39,6 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-import org.h2.value.DataType;
 
 /**
  * This class implements the native full text search.
@@ -368,7 +367,7 @@ public class FullText {
         }
         switch (type) {
         case Types.BIT:
-        case DataType.TYPE_BOOLEAN:
+        case Types.BOOLEAN:
         case Types.INTEGER:
         case Types.BIGINT:
         case Types.DECIMAL:
@@ -404,7 +403,7 @@ public class FullText {
         case Types.REF:
         case Types.NULL:
         case Types.ARRAY:
-        case DataType.TYPE_DATALINK:
+        case Types.DATALINK:
         case Types.DISTINCT:
             throw throwException("Unsupported column data type: " + type);
         default:
@@ -470,7 +469,7 @@ public class FullText {
         }
         switch (type) {
         case Types.BIT:
-        case DataType.TYPE_BOOLEAN:
+        case Types.BOOLEAN:
         case Types.INTEGER:
         case Types.BIGINT:
         case Types.DECIMAL:
@@ -500,7 +499,7 @@ public class FullText {
         case Types.REF:
         case Types.NULL:
         case Types.ARRAY:
-        case DataType.TYPE_DATALINK:
+        case Types.DATALINK:
         case Types.DISTINCT:
             throw throwException("Unsupported key data type: " + type);
         default:

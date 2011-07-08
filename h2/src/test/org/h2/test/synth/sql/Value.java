@@ -15,8 +15,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
-import org.h2.value.DataType;
-
 /**
  * Represents a simple value.
  */
@@ -65,7 +63,7 @@ public class Value {
             return getTimeSQL((Time) data);
         case Types.TIMESTAMP:
             return getTimestampSQL((Timestamp) data);
-        case DataType.TYPE_BOOLEAN:
+        case Types.BOOLEAN:
         case Types.BIT:
             return (String) data;
         default:
@@ -184,7 +182,7 @@ public class Value {
         case Types.NULL:
             data = null;
             break;
-        case DataType.TYPE_BOOLEAN:
+        case Types.BOOLEAN:
         case Types.BIT:
             data = rs.getBoolean(index) ? "TRUE" : "FALSE";
             break;
@@ -243,7 +241,7 @@ public class Value {
         case Types.INTEGER:
             data = randomInt(config);
             break;
-        case DataType.TYPE_BOOLEAN:
+        case Types.BOOLEAN:
         case Types.BIT:
             data = config.random().getBoolean(50) ? "TRUE" : "FALSE";
             break;

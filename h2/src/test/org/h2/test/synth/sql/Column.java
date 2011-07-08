@@ -10,15 +10,13 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import org.h2.value.DataType;
-
 /**
  * A column of a table.
  */
 class Column {
 
     private static final int[] TYPES = { Types.INTEGER, Types.VARCHAR, Types.DECIMAL, Types.DATE, Types.TIME,
-            Types.TIMESTAMP, DataType.TYPE_BOOLEAN, Types.BINARY, Types.VARBINARY, Types.CLOB, Types.BLOB,
+            Types.TIMESTAMP, Types.BOOLEAN, Types.BINARY, Types.VARBINARY, Types.CLOB, Types.BLOB,
             Types.DOUBLE, Types.BIGINT, Types.TIMESTAMP, Types.BIT, };
 
     private TestSynth config;
@@ -61,7 +59,7 @@ class Column {
         case Types.REAL:
         case Types.OTHER:
         case Types.BIT:
-        case DataType.TYPE_BOOLEAN:
+        case Types.BOOLEAN:
             break;
         default:
             throw new AssertionError("type=" + type);
@@ -92,7 +90,7 @@ class Column {
             case Types.TIMESTAMP:
             case Types.DOUBLE:
             case Types.BIGINT:
-            case DataType.TYPE_BOOLEAN:
+            case Types.BOOLEAN:
             case Types.BIT:
                 return true;
             case Types.BINARY:
@@ -151,7 +149,7 @@ class Column {
             return "DOUBLE";
         case Types.BIGINT:
             return "BIGINT";
-        case DataType.TYPE_BOOLEAN:
+        case Types.BOOLEAN:
         case Types.BIT:
             return "BOOLEAN";
         default:

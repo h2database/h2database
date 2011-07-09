@@ -531,6 +531,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     (compatibility with MySQL, PostgreSQL, HSQLDB; not Derby).
 </li><li>ARRAY data type: support Integer[] and so on in Java functions (currently only Object[] is supported).
 </li><li>MySQL compatibility: LOCK TABLES a READ, b READ - see also http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html
+</li><li>Oracle compatibility: convert empty strings to null.
 </li><li>The HTML to PDF converter should use http://code.google.com/p/wkhtmltopdf/
 </li><li>Issue 303: automatically convert "X NOT IN(SELECT...)" to "NOT EXISTS(...)".
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.name=t2.name where t1.id=t2.id.
@@ -548,10 +549,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support SELECT ... FOR UPDATE OF [table-list] (supported by PostgreSQL, HSQLDB, Sybase).
 </li><li>TRANSACTION_ID() for in-memory databases.
 </li><li>TRANSACTION_ID() should be long (same as HSQLDB and PostgreSQL).
-</li><li>Oracle compatibility: convert empty strings to null.
 </li><li>Support [INNER | OUTER] JOIN USING(column [,...]).
 </li><li>Support NATURAL [ { LEFT | RIGHT } [ OUTER ] | INNER ] JOIN (Derby, Oracle)
 </li><li>GROUP BY columnNumber (similar to ORDER BY columnNumber) (MySQL, PostgreSQL, SQLite; not by HSQLDB and Derby).
+</li><li>Sybase / MS SQL Server compatiblitiy: CONVERT(..) parameters are swapped.
 </li></ul>
 
 <h2>Not Planned</h2>

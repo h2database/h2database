@@ -54,15 +54,9 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         }
         deleteDb("openClose");
         Connection conn;
-        conn = DriverManager.getConnection(
-                "jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS");
-        try {
-            DriverManager.getConnection(
-                    "jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS;OPEN_NEW=TRUE");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
-        }
+        conn = getConnection("jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS");
+        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, (TestBase) this).
+                getConnection("jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS;OPEN_NEW=TRUE");
         conn.close();
     }
 
@@ -78,12 +72,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         FileObject f = FileSystem.getInstance(getBaseDir()).openFileObject(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
         f.setFileLength(f.length() * 2);
         f.close();
-        try {
-            DriverManager.getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.IO_EXCEPTION_2, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.IO_EXCEPTION_2, (TestBase) this).
+                getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
         FileSystem.getInstance("split:").delete("split:" + getBaseDir() + "/openClose2.h2.db");
     }
 

@@ -99,7 +99,7 @@ public class TestLob extends TestBase {
     }
 
     private void testCreateIndexOnLob() throws Exception {
-        if (!config.memory) {
+        if (config.memory) {
             return;
         }
         deleteDb("lob");

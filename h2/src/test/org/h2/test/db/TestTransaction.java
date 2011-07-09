@@ -253,8 +253,13 @@ public class TestTransaction extends TestBase {
         c2.setAutoCommit(false);
         s1.executeUpdate("insert into A(code) values('one')");
         Statement s2 = c2.createStatement();
-        assertThrows(ErrorCode.LOCK_TIMEOUT_1, s2).
-                executeUpdate("insert into B values('two', 1)");
+        if (config.mvcc) {
+            assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, s2).
+                    executeUpdate("insert into B values('two', 1)");
+        } else {
+            assertThrows(ErrorCode.LOCK_TIMEOUT_1, s2).
+                    executeUpdate("insert into B values('two', 1)");
+        }
         c2.commit();
         c1.rollback();
         c1.close();

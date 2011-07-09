@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,6 +31,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
 import org.h2.store.fs.FileSystemSplit;
+import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.RecordingFileSystem;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
@@ -1302,11 +1304,9 @@ public abstract class TestBase {
     }
 
     @SuppressWarnings("unchecked")
-    protected
-    <T> T assertThrows(final Thread.UncaughtExceptionHandler handler, final String expected, final T obj) {
+    protected <T> T assertThrows(final Thread.UncaughtExceptionHandler handler, final String expected, final T obj) {
         Class<?> c = obj.getClass();
-        return (T) Proxy.newProxyInstance(c.getClassLoader(),
-                c.getInterfaces(), new InvocationHandler() {
+        InvocationHandler ih = new InvocationHandler() {
             private Exception called = new Exception("No method called");
             public void finalize() {
                 if (called != null) {
@@ -1347,7 +1347,19 @@ public abstract class TestBase {
                     return null;
                 }
             }
-        });
+        };
+        if (obj == this) {
+            // class proxies
+            try {
+                Class<?> pc = ProxyCodeGenerator.getClassProxy(TestBase.class);
+                Constructor cons = pc.getConstructor(new Class<?>[] { InvocationHandler.class });
+                return (T) cons.newInstance(new Object[] { ih });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return (T) Proxy.newProxyInstance(c.getClassLoader(),
+                c.getInterfaces(), ih);
     }
 
 }

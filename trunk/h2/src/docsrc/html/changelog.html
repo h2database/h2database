@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>String.toUpperCase() was used a few places, which is problematic when using the Turkish locale.
+<ul><li>Simplified test cases using assertThrows(...).
+</li><li>A Java function that returns a result set that was generated using the provided connection
+    could cause an internal error in some cases. Now such result sets are copied early on.
+</li><li>Data type RESULT_SET: information_schema.function_aliases returned type 0; now type -10 is returned (the same as Oracle: OracleTypes.CURSOR = -10).
+</li><li>Data type RESULT_SET: tables with columns of type RESULT_SET could be created, but no data could be persisted in this column.
+</li><li>H2 Console: improved system tray icon for Mac OS X (transparent background).
+</li><li>String.toUpperCase() was used a few places, which is problematic when using the Turkish locale.
     The method has been replaced with toUpperCase(Locale.ENGLISH) to solve such problems.
 </li><li>Shell tool: the built-in command "distinct" has been removed 
     (use the SQL statements "show tables" / "show columns from tableName" instead).

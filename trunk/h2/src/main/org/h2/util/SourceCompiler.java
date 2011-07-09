@@ -69,7 +69,7 @@ public class SourceCompiler {
      * @param packageAndClassName the class name
      * @return the class
      */
-    private Class<?> getClass(String packageAndClassName) throws ClassNotFoundException {
+    public Class<?> getClass(String packageAndClassName) throws ClassNotFoundException {
 
         Class<?> compiledClass = compiled.get(packageAndClassName);
         if (compiledClass != null) {
@@ -150,22 +150,26 @@ public class SourceCompiler {
             OutputStream f = IOUtils.openFileOutputStream(javaFile.getAbsolutePath(), false);
             PrintWriter out = new PrintWriter(IOUtils.getBufferedWriter(f));
             classFile.delete();
-            int endImport = source.indexOf("@CODE");
-            String importCode = "import java.util.*;\n" +
-                "import java.math.*;\n" +
-                "import java.sql.*;\n";
-            if (endImport >= 0) {
-                importCode = source.substring(0, endImport);
-                source = source.substring("@CODE".length() + endImport);
+            if (source.startsWith("package ")) {
+                out.println(source);
+            } else {
+                int endImport = source.indexOf("@CODE");
+                String importCode = "import java.util.*;\n" +
+                    "import java.math.*;\n" +
+                    "import java.sql.*;\n";
+                if (endImport >= 0) {
+                    importCode = source.substring(0, endImport);
+                    source = source.substring("@CODE".length() + endImport);
+                }
+                if (packageName != null) {
+                    out.println("package " + packageName + ";");
+                }
+                out.println(importCode);
+                out.println("public class "+ className +" {\n" +
+                        "    public static " +
+                        source + "\n" +
+                        "}\n");
             }
-            if (packageName != null) {
-                out.println("package " + packageName + ";");
-            }
-            out.println(importCode);
-            out.println("public class "+ className +" {\n" +
-                    "    public static " +
-                    source + "\n" +
-                    "}\n");
             out.close();
             if (JAVAC_SUN != null) {
                 javacSun(javaFile);
@@ -209,7 +213,9 @@ public class SourceCompiler {
 
     private void throwSyntaxError(ByteArrayOutputStream out) {
         String err = StringUtils.utf8Decode(out.toByteArray());
-        if (err.length() > 0) {
+        if (err.startsWith("Note:")) {
+            // unchecked or unsafe operations - just a warning
+        } else if (err.length() > 0) {
             err = StringUtils.replaceAll(err, compileDir, "");
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, err);
         }

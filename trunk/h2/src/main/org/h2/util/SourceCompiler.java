@@ -46,8 +46,6 @@ public class SourceCompiler {
         try {
             clazz = Class.forName("com.sun.tools.javac.Main");
         } catch (Exception e) {
-            int todoTesting;
-            e.printStackTrace();
             clazz = null;
         }
         JAVAC_SUN = clazz;

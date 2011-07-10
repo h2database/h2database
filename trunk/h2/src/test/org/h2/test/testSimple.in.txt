@@ -1,3 +1,5 @@
+select sum(mod(x, 2) = 1) from system_range(1, 10);
+> 5;
 create table a(x int);
 create table b(x int);
 select count(*) from (select b.x from a left join b);

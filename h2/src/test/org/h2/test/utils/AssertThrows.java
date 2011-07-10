@@ -6,6 +6,9 @@
  */
 package org.h2.test.utils;
 
+import java.sql.SQLException;
+import org.h2.message.DbException;
+
 /**
  * Helper class to simplify negative testing. Usage:
  * <pre>
@@ -19,6 +22,11 @@ public abstract class AssertThrows {
     public AssertThrows(final Class<? extends Exception> expectedExceptionClass) {
         this(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(Thread t, Throwable e) {
+                if (e == null) {
+                    throw new AssertionError("Expected an exception of type " +
+                            expectedExceptionClass.getSimpleName() +
+                            ", but no exception was thrown");
+                }
                 if (!expectedExceptionClass.isAssignableFrom(e.getClass())) {
                     AssertionError ae = new AssertionError(
                             "Expected an exception of type\n" +
@@ -30,23 +38,47 @@ public abstract class AssertThrows {
                     throw ae;
                 }
             }
-        }, "Expected an exception of type " +
-                expectedExceptionClass.getSimpleName() +
-                ", but the test was successful");
+        });
     }
 
     public AssertThrows() {
         this(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(Thread t, Throwable e) {
+                if (e != null) {
+                    throw new AssertionError(
+                            "Expected an exception to be thrown, but the test was successful");
+                }
                 // all exceptions are fine
             }
-        }, "Expected an exception to be thrown, but the test was successful");
+        });
     }
 
-    private AssertThrows(Thread.UncaughtExceptionHandler handler, String expected) {
+    public AssertThrows(final int expectedErrorCode) {
+        this(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread t, Throwable e) {
+                int errorCode;
+                if (e instanceof DbException) {
+                    errorCode = ((DbException) e).getErrorCode();
+                } else if (e instanceof SQLException) {
+                    errorCode = ((SQLException) e).getErrorCode();
+                } else {
+                    errorCode = 0;
+                }
+                if (errorCode != expectedErrorCode) {
+                    AssertionError ae = new AssertionError(
+                            "Expected an SQLException or DbException with error code " + expectedErrorCode);
+                    ae.initCause(e);
+                    throw ae;
+                }
+            }
+        });
+    }
+
+
+    private AssertThrows(Thread.UncaughtExceptionHandler handler) {
         try {
             test();
-            throw new AssertionError(expected);
+            handler.uncaughtException(null, null);
         } catch (Exception e) {
             handler.uncaughtException(null, e);
         }

@@ -11,7 +11,6 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.ConnectionInfo;
 
 import java.io.File;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -39,13 +38,13 @@ public class TestConnectionInfo extends TestBase {
 
     private void testConnectInitError() throws Exception {
         try {
-            DriverManager.getConnection("jdbc:h2:mem:;init=error");
+            getConnection("jdbc:h2:mem:;init=error");
             fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.SYNTAX_ERROR_2, e.getErrorCode());
         }
         try {
-            DriverManager.getConnection("jdbc:h2:mem:;init=runscript from 'wrong.file'");
+            getConnection("jdbc:h2:mem:;init=runscript from 'wrong.file'");
             fail();
         } catch (SQLException e) {
             assertEquals(ErrorCode.IO_EXCEPTION_2, e.getErrorCode());

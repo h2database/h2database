@@ -159,9 +159,9 @@ public class TestViewDropView extends TestBase {
 
         ResultSet d = conn.getMetaData().getTables(null, null, null, null);
         while (d.next()) {
-            if (!d.getString(2).equals("INFORMATION_SCHEMA")) {
-                fail("Should have no tables left in the database, not: " + d.getString(2) + "." + d.getString(3));
-            }
+            // should have no tables left in the database
+            assertEquals(d.getString(2) + "." + d.getString(3),
+                    "INFORMATION_SCHEMA", d.getString(2));
         }
     }
 }

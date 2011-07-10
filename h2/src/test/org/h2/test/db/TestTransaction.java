@@ -381,9 +381,8 @@ public class TestTransaction extends TestBase {
                 result.add(table + "." + column);
             }
         }
-        if (result.size() != 4) {
-            fail("Wrong result, should be NEST1.ID, NEST1.NAME, NEST2.ID, NEST2.NAME but is " + result);
-        }
+        // should be NEST1.ID, NEST1.NAME, NEST2.ID, NEST2.NAME
+        assertEquals(result.toString(), 4, result.size());
         result = New.arrayList();
         test(stat, "INSERT INTO NEST1 VALUES(1,'A')");
         test(stat, "INSERT INTO NEST1 VALUES(2,'B')");
@@ -400,9 +399,8 @@ public class TestTransaction extends TestBase {
                 result.add(v1 + "/" + v2);
             }
         }
-        if (result.size() != 4) {
-            fail("Wrong result, should be A/1, A/2, B/1, B/2 but is " + result);
-        }
+        // should be A/1, A/2, B/1, B/2
+        assertEquals(result.toString(), 4, result.size());
         result = New.arrayList();
         rs1 = s1.executeQuery("SELECT * FROM NEST1 ORDER BY ID");
         rs2 = s1.executeQuery("SELECT * FROM NEST2 ORDER BY ID");
@@ -413,9 +411,8 @@ public class TestTransaction extends TestBase {
             String v1 = rs2.getString("VALUE");
             result.add(v1);
         }
-        if (result.size() != 2) {
-            fail("Wrong result, should be A, B but is " + result);
-        }
+        // should be A, B
+        assertEquals(result.toString(), 2, result.size());
         test(stat, "DROP TABLE NEST1");
         test(stat, "DROP TABLE NEST2");
     }
@@ -424,9 +421,7 @@ public class TestTransaction extends TestBase {
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
         String s = rs.getString(1);
-        if (s == null ? (data != null) : (!s.equals(data))) {
-            fail("s= " + s + " should be: " + data);
-        }
+        assertEquals(data, s);
     }
 
     private void test(Statement stat, String sql) throws SQLException {

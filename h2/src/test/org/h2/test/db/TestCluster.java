@@ -321,15 +321,16 @@ public class TestCluster extends TestBase {
         Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2, "-baseDir", getBaseDir() + "/node2").start();
 
         // try to connect in standalone mode - should fail
+        // should not be able to connect in standalone mode
         try {
-            DriverManager.getConnection("jdbc:h2:tcp://localhost:"+port1+"/test", user, password);
-            fail("should not be able to connect in standalone mode");
+            getConnection("jdbc:h2:tcp://localhost:"+port1+"/test", user, password);
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
         try {
-            DriverManager.getConnection("jdbc:h2:tcp://localhost:"+port2+"/test", user, password);
-            fail("should not be able to connect in standalone mode");
+            getConnection("jdbc:h2:tcp://localhost:"+port2+"/test", user, password);
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

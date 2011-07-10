@@ -310,9 +310,7 @@ public class TestPowerOff extends TestBase {
         int state;
         Database.setInitialPowerOffCount(0);
         Connection conn = getConnection(url);
-        if (((JdbcConnection) conn).getPowerOffCount() != 0) {
-            fail("power off count is not 0");
-        }
+        assertEquals(0, ((JdbcConnection) conn).getPowerOffCount());
         Statement stat = conn.createStatement();
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getTables(null, null, "TEST", null);

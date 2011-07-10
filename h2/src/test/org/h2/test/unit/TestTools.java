@@ -35,6 +35,7 @@ import org.h2.store.FileLister;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.trace.Player;
+import org.h2.test.utils.AssertThrows;
 import org.h2.tools.Backup;
 import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.Console;
@@ -431,7 +432,7 @@ public class TestTools extends TestBase {
         result = runServer(0, new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef"});
         assertTrue(result.indexOf("Shutting down") >= 0);
         try {
-            DriverManager.getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
+            getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
@@ -458,7 +459,7 @@ public class TestTools extends TestBase {
         assertTrue(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
         try {
-            DriverManager.getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
+            getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
             fail();
         } catch (SQLException e) {
             assertKnownException(e);
@@ -739,7 +740,7 @@ public class TestTools extends TestBase {
         org.h2.Driver.load();
         String url = "jdbc:h2:" + getBaseDir() + "/utils";
         String user = "sa", password = "abc";
-        String fileName = getBaseDir() + "/b2.zip";
+        final String fileName = getBaseDir() + "/b2.zip";
         DeleteDbFiles.main("-dir", getBaseDir(), "-db", "utils", "-quiet");
         Connection conn = DriverManager.getConnection(url, user, password);
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
@@ -752,20 +753,19 @@ public class TestTools extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         assertTrue(rs.next());
         assertFalse(rs.next());
-        try {
-            // must fail when the database is in use
-            Backup.main("-file", fileName, "-dir", getBaseDir(), "-db", "utils");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        new AssertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1) {
+            public void test() throws SQLException {
+                // must fail when the database is in use
+                Backup.main("-file", fileName, "-dir", getBaseDir(), "-db", "utils");
+            }
+        };
         conn.close();
         DeleteDbFiles.main("-dir", getBaseDir(), "-db", "utils", "-quiet");
     }
 
     private void testChangeFileEncryption(boolean split) throws SQLException {
         org.h2.Driver.load();
-        String dir = (split ? "split:19:" : "") + getBaseDir();
+        final String dir = (split ? "split:19:" : "") + getBaseDir();
         String url = "jdbc:h2:" + dir;
         DeleteDbFiles.execute(dir, "utils", true);
         Connection conn = DriverManager.getConnection(url + "/utils;CIPHER=XTEA", "sa", "abc 123");
@@ -780,13 +780,12 @@ public class TestTools extends TestBase {
         conn = DriverManager.getConnection(url + "/utils;CIPHER=AES", "sa", "def 123");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
-        try {
-            args = new String[] { "-dir", dir, "-db", "utils", "-cipher", "AES", "-decrypt", "def", "-quiet" };
-            ChangeFileEncryption.main(args);
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        new AssertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1) {
+            public void test() throws SQLException {
+                ChangeFileEncryption.main(new String[] {
+                    "-dir", dir, "-db", "utils", "-cipher", "AES", "-decrypt", "def", "-quiet" });
+            }
+        };
         conn.close();
         args = new String[] { "-dir", dir, "-db", "utils", "-quiet" };
         DeleteDbFiles.main(args);
@@ -807,28 +806,27 @@ public class TestTools extends TestBase {
                         "-tcpPassword", "abc",
                         "-baseDir", getBaseDir(),
                         "-tcpPort", "9192").start();
+        // should not be able to create new db
         try {
-            DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
-            fail("should not be able to create new db");
+            getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
         } catch (SQLException e) {
             assertKnownException(e);
         }
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
-        try {
-            Server.shutdownTcpServer("tcp://localhost:9192", "", true, false);
-            fail("shouldn't work and should throw an exception");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        new AssertThrows(ErrorCode.WRONG_USER_OR_PASSWORD) {
+            public void test() throws SQLException {
+                Server.shutdownTcpServer("tcp://localhost:9192", "", true, false);
+        }};
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         // conn.close();
         Server.shutdownTcpServer("tcp://localhost:9192", "abc", true, false);
         // check that the database is closed
         deleteDb("test");
+        // server must have been closed
         try {
-            DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-            fail("server must have been closed");
+            getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }
@@ -847,8 +845,8 @@ public class TestTools extends TestBase {
         conn.close();
 
         try {
-            DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
-            fail("Should throw an exception!");
+            getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.Random;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
+import org.h2.test.utils.AssertThrows;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 
@@ -45,18 +46,12 @@ public class TestStringUtils extends TestBase {
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("face"));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("fAcE"));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("FaCe"));
-        try {
+        new AssertThrows(DbException.class) { public void test() {
             StringUtils.convertHexToBytes("120");
-            fail();
-        } catch (DbException e) {
-            assertKnownException(DbException.toSQLException(e));
-        }
-        try {
+        }};
+        new AssertThrows(DbException.class) { public void test() {
             StringUtils.convertHexToBytes("fast");
-            fail();
-        } catch (DbException e) {
-            assertKnownException(DbException.toSQLException(e));
-        }
+        }};
     }
 
     private void testPad() {

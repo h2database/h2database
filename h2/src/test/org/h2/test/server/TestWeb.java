@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.test.TestBase;
+import org.h2.test.utils.AssertThrows;
 import org.h2.tools.Server;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
@@ -50,24 +51,18 @@ public class TestWeb extends TestBase {
     }
 
     private void testWrongParameters() throws Exception {
-        try {
-            Server.createPgServer("-pgPort 8182");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
-        try {
-            Server.createTcpServer("-tcpPort 8182");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
-        try {
+        new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
+            public void test() throws SQLException {
+                Server.createPgServer("-pgPort 8182");
+        }};
+        new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
+            public void test() throws SQLException {
+                Server.createTcpServer("-tcpPort 8182");
+        }};
+        new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
+            public void test() throws SQLException {
             Server.createWebServer("-webPort=8182");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
+        }};
     }
 
     private void testAlreadyRunning() throws Exception {

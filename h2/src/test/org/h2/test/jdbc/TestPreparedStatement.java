@@ -763,13 +763,8 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(prep.execute());
         rs = prep.getResultSet();
         assertFalse(prep.getMoreResults());
-        try {
-            // supposed to be closed now
-            rs.next();
-            fail("getMoreResults didn't close this result set");
-        } catch (SQLException e) {
-            trace("no error - getMoreResults is supposed to close the result set");
-        }
+        // supposed to be closed now
+        assertThrows(ErrorCode.OBJECT_CLOSED, rs).next();
         assertTrue(prep.getUpdateCount() == -1);
         prep = conn.prepareStatement("DELETE FROM TEST");
         prep.executeUpdate();

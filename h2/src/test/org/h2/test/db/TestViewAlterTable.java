@@ -185,9 +185,9 @@ public class TestViewAlterTable extends TestBase {
 
         rs = conn.getMetaData().getTables(null, null, null, null);
         while (rs.next()) {
-            if (!rs.getString(2).equals("INFORMATION_SCHEMA")) {
-                fail("Should have no tables left in the database, not: " + rs.getString(2) + "." + rs.getString(3));
-            }
+            // should have no tables left in the database
+            assertEquals(rs.getString(2) + "." + rs.getString(3),
+                    "INFORMATION_SCHEMA", rs.getString(2));
         }
 
     }

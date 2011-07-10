@@ -165,9 +165,7 @@ public class TestBatchUpdates extends TestBase {
         conn = getConnection("batchUpdates");
         stat = conn.createStatement();
         DatabaseMetaData meta = conn.getMetaData();
-        if (!meta.supportsBatchUpdates()) {
-            fail("does not support BatchUpdates");
-        }
+        assertTrue(meta.supportsBatchUpdates());
         stat.executeUpdate("CREATE TABLE TEST(KEY_ID INT PRIMARY KEY,"
                 + "C_NAME VARCHAR(255),PRICE DECIMAL(20,2),TYPE_ID INT)");
         String newName = null;
@@ -231,11 +229,7 @@ public class TestBatchUpdates extends TestBase {
         // System.out.println("upc="+p.executeUpdate());
 
         trace("updateCount length:" + updateCountLen);
-        if (updateCountLen != 3) {
-            fail("updateCount: " + updateCountLen);
-        } else {
-            trace("addBatch add the SQL statements to Batch ");
-        }
+        assertEquals(3, updateCountLen);
         String query1 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=2";
         String query2 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=3";
         String query3 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=4";
@@ -268,11 +262,7 @@ public class TestBatchUpdates extends TestBase {
         int[] updateCount = stat.executeBatch();
         updCountLength = updateCount.length;
         trace("updateCount Length:" + updCountLength);
-        if (updCountLength != 3) {
-            fail("addBatch " + updCountLength);
-        } else {
-            trace("addBatch add the SQL statements to Batch ");
-        }
+        assertEquals(3, updCountLength);
         String query1 = "SELECT COUNT(*) FROM TEST WHERE TYPE_ID=1";
         ResultSet rs = stat.executeQuery(query1);
         rs.next();
@@ -285,9 +275,7 @@ public class TestBatchUpdates extends TestBase {
         for (int j = 0; j < updateCount.length; j++) {
             trace("Update Count:" + updateCount[j]);
             trace("Returned Value : " + retValue[j]);
-            if (updateCount[j] != retValue[j]) {
-                fail("j=" + j + " right:" + retValue[j]);
-            }
+            assertEquals("j:" + j, retValue[j], updateCount[j]);
         }
     }
 
@@ -303,18 +291,11 @@ public class TestBatchUpdates extends TestBase {
         prep.setInt(1, 4);
         prep.addBatch();
         prep.clearBatch();
-        int[] updateCount = prep.executeBatch();
-        int updCountLength = updateCount.length;
-        if (updCountLength == 0) {
-            trace("clearBatch Method clears the current Batch ");
-        } else {
-            fail("clearBatch " + updCountLength);
-        }
+        assertEquals(0, prep.executeBatch().length);
     }
 
     private void testClearBatch02() throws SQLException {
         trace("testClearBatch02");
-        int updCountLength = 0;
         String sUpdCoffee = COFFEE_UPDATE1;
         String sInsCoffee = COFFEE_INSERT1;
         String sDelCoffee = COFFEE_DELETE1;
@@ -322,14 +303,7 @@ public class TestBatchUpdates extends TestBase {
         stat.addBatch(sDelCoffee);
         stat.addBatch(sInsCoffee);
         stat.clearBatch();
-        int[] updateCount = stat.executeBatch();
-        updCountLength = updateCount.length;
-        trace("updateCount Length:" + updCountLength);
-        if (updCountLength == 0) {
-            trace("clearBatch Method clears the current Batch ");
-        } else {
-            fail("clearBatch");
-        }
+        assertEquals(0, stat.executeBatch().length);
     }
 
     private void testExecuteBatch01() throws SQLException {
@@ -563,7 +537,7 @@ public class TestBatchUpdates extends TestBase {
             rs.close();
             stat.close();
             trace("Count val is: " + count);
-            // Make sure that we have the correct error code for
+            // make sure that we have the correct error code for
             // the failed update.
             if (!(batchUpdates[1] == -3 && count == 1)) {
                 fail("insert failed");

@@ -225,9 +225,7 @@ public class TestMemoryUsage extends TestBase {
             prep.setInt(1, i);
             ResultSet rs = prep.executeQuery();
             rs.next();
-            if (rs.next()) {
-                fail("one row expected, got more");
-            }
+            assertFalse(rs.next());
             if (i % 50000 == 0) {
                 trace("  " + (100 * i / len) + "%");
             }
@@ -242,9 +240,7 @@ public class TestMemoryUsage extends TestBase {
             prep.setInt(1, random.nextInt(len));
             ResultSet rs = prep.executeQuery();
             rs.next();
-            if (rs.next()) {
-                fail("one row expected, got more");
-            }
+            assertFalse(rs.next());
             if (i % 50000 == 0) {
                 trace("  " + (100 * i / len) + "%");
             }

@@ -47,7 +47,7 @@ public class TestAutoServer extends TestBase {
         };
         for (String url : urls) {
             try {
-                DriverManager.getConnection(url);
+                getConnection(url);
                 fail(url);
             } catch (SQLException e) {
                 assertKnownException(e);

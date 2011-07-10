@@ -73,8 +73,8 @@ public class TestSQLInjection extends TestBase {
         reconnect("sqlInjection");
 
         try {
-            assertTrue(checkPasswordInsecure("123456"));
-            fail("Should fail now");
+            checkPasswordInsecure("123456");
+            fail();
         } catch (SQLException e) {
             assertKnownException(e);
         }

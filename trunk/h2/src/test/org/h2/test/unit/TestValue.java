@@ -16,8 +16,8 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
 import org.h2.constant.ErrorCode;
-import org.h2.message.DbException;
 import org.h2.test.TestBase;
+import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -75,15 +75,12 @@ public class TestValue extends TestBase {
         assertEquals(32, v.convertPrecision(10, false).getBytes()[9]);
         assertEquals(10, v.convertPrecision(10, true).getPrecision());
 
-        v = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
-        assertEquals(19, v.getPrecision());
-        assertEquals("1234567890.1234567", v.convertPrecision(10, true).getString());
-        try {
-            v.convertPrecision(10, false);
-            fail();
-        } catch (DbException e) {
-            assertEquals(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, e.getErrorCode());
-        }
+        final Value vd = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
+        assertEquals(19, vd.getPrecision());
+        assertEquals("1234567890.1234567", vd.convertPrecision(10, true).getString());
+        new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) { public void test() {
+            vd.convertPrecision(10, false);
+        }};
 
         v = ValueLobDb.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
         assertEquals(100, v.getPrecision());
@@ -230,29 +227,23 @@ public class TestValue extends TestBase {
     }
 
     private void testModulusDouble() {
-        ValueDouble vd1 = ValueDouble.get(12);
+        final ValueDouble vd1 = ValueDouble.get(12);
+        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { public void test() {
+            vd1.modulus(ValueDouble.get(0));
+        }};
         ValueDouble vd2 = ValueDouble.get(10);
         ValueDouble vd3 = vd1.modulus(vd2);
         assertEquals(2, vd3.getDouble());
-        try {
-            vd1.modulus(ValueDouble.get(0));
-            fail();
-        } catch (DbException e) {
-            assertEquals(ErrorCode.DIVISION_BY_ZERO_1, e.getErrorCode());
-        }
     }
 
     private void testModulusDecimal() {
-        ValueDecimal vd1 = ValueDecimal.get(new BigDecimal(12));
+        final ValueDecimal vd1 = ValueDecimal.get(new BigDecimal(12));
+        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { public void test() {
+            vd1.modulus(ValueDecimal.get(new BigDecimal(0)));
+        }};
         ValueDecimal vd2 = ValueDecimal.get(new BigDecimal(10));
         ValueDecimal vd3 = vd1.modulus(vd2);
         assertEquals(2, vd3.getDouble());
-        try {
-            vd1.modulus(ValueDecimal.get(new BigDecimal(0)));
-            fail();
-        } catch (DbException e) {
-            assertEquals(ErrorCode.DIVISION_BY_ZERO_1, e.getErrorCode());
-        }
     }
 
     private void testModulusOperator() throws SQLException {

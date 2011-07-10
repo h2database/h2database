@@ -217,7 +217,7 @@ public abstract class TestBase {
      *
      * @return the directory, possibly including file system prefix
      */
-    protected String getBaseDir() {
+    public String getBaseDir() {
         String dir = baseDir;
         if (config != null) {
             if (config.record) {

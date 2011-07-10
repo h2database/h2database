@@ -66,12 +66,10 @@ public class TestFileLock extends TestBase implements Runnable {
         String url = "jdbc:h2:" + getBaseDir() + "/fileLock;FILE_LOCK=FS;OPEN_NEW=TRUE";
         Connection conn = DriverManager.getConnection(url);
         try {
-            DriverManager.getConnection(url);
+            getConnection(url);
             fail();
         } catch (SQLException e) {
-            if (e.getErrorCode() != ErrorCode.DATABASE_ALREADY_OPEN_1) {
-                throw e;
-            }
+            assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
         }
         conn.close();
     }

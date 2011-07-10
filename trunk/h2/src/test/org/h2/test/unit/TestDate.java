@@ -14,10 +14,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.test.TestBase;
+import org.h2.test.utils.AssertThrows;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
@@ -264,18 +265,12 @@ public class TestDate extends TestBase {
         assertEquals(0, ValueTimestamp.parse("+1970-01-01T00:00:00.000Z").getTimestamp().getTime());
         assertEquals(0, ValueTimestamp.parse("1970-01-01T00:00:00.000+00:00").getTimestamp().getTime());
         assertEquals(0, ValueTimestamp.parse("1970-01-01T00:00:00.000-00:00").getTimestamp().getTime());
-        try {
+        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) { public void test() {
             ValueTimestamp.parse("1970-01-01 00:00:00.000 ABC");
-            fail();
-        } catch (DbException e) {
-            // expected
-        }
-        try {
+        }};
+        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) { public void test() {
             ValueTimestamp.parse("1970-01-01T00:00:00.000+ABC");
-            fail();
-        } catch (DbException e) {
-            // expected
-        }
+        }};
     }
 
     private void testAbsoluteDay() {

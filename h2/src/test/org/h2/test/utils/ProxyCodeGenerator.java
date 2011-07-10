@@ -158,15 +158,11 @@ public class ProxyCodeGenerator {
             }
             writer.print(")");
             Class<?>[] ec = m.getExceptionTypes();
+            writer.print(" throws RuntimeException");
             if (ec.length > 0) {
-                writer.print(" throws ");
-                int ic = 0;
                 for (Class<?> e : ec) {
-                    if (ic > 0) {
-                        writer.print(", ");
-                    }
+                    writer.print(", ");
                     writer.print(getClassName(e));
-                    ic++;
                 }
             }
             writer.println(" {");

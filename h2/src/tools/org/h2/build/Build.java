@@ -110,7 +110,8 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-            File.pathSeparator + "ext/slf4j-nop-1.6.0.jar";
+            File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+            File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
         exec("java", args("-Xmx128m", "-cp", cp, "emma", "run",
                 "-cp", "temp",
                 "-sp", "src/main",

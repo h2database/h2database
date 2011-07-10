@@ -7,7 +7,7 @@
 package org.h2.test.utils;
 
 /**
- * Helper class to for negative testing. Usage:
+ * Helper class to simplify negative testing. Usage:
  * <pre>
  * new AssertThrows() { public void test() {
  *     Integer.parseInt("not a number");

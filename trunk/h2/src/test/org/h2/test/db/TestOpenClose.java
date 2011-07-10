@@ -76,12 +76,15 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         FileObject f = FileSystem.getInstance(getBaseDir()).openFileObject(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
         f.setFileLength(f.length() * 2);
         f.close();
-        try {
-            getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.IO_EXCEPTION_2, e.getErrorCode());
-        }
+int testing;
+        assertThrows(ErrorCode.IO_EXCEPTION_2, (TestBase) this).
+                getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
+//        try {
+//            getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
+//            fail();
+//        } catch (SQLException e) {
+//            assertEquals(ErrorCode.IO_EXCEPTION_2, e.getErrorCode());
+//        }
         FileSystem.getInstance("split:").delete("split:" + getBaseDir() + "/openClose2.h2.db");
     }
 

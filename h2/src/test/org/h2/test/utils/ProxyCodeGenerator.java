@@ -11,10 +11,9 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.TreeSet;
-import org.h2.test.TestBase;
 import org.h2.util.New;
 import org.h2.util.SourceCompiler;
 
@@ -27,7 +26,7 @@ public class ProxyCodeGenerator {
     static HashMap<Class<?>, Class<?>> proxyMap = New.hashMap();
 
     private TreeSet<String> imports = new TreeSet<String>();
-    private ArrayList<Method> methods = new ArrayList<Method>();
+    private TreeMap<String, Method> methods = new TreeMap<String, Method>();
     private String packageName;
     private String className;
     private Class<?> extendsClass;
@@ -39,7 +38,7 @@ public class ProxyCodeGenerator {
         }
         ProxyCodeGenerator cg = new ProxyCodeGenerator();
         cg.setPackageName("bytecode");
-        cg.generateClassProxy(TestBase.class);
+        cg.generateClassProxy(c);
         StringWriter sw = new StringWriter();
         cg.write(new PrintWriter(sw));
         String code = sw.toString();
@@ -76,16 +75,22 @@ public class ProxyCodeGenerator {
         addImport(clazz);
         className = getClassName(clazz) + "Proxy";
         extendsClass = clazz;
-        for (Method m : clazz.getDeclaredMethods()) {
-            if (!Modifier.isStatic(m.getModifiers())) {
-                if (!Modifier.isPrivate(m.getModifiers())) {
+        int finalOrStaticOrPrivate = Modifier.FINAL | Modifier.STATIC | Modifier.PRIVATE;
+        while (clazz != null) {
+            for (Method m : clazz.getDeclaredMethods()) {
+                if ((m.getModifiers() & finalOrStaticOrPrivate) == 0) {
                     addMethod(m);
                 }
             }
+            clazz = clazz.getSuperclass();
         }
     }
 
     void addMethod(Method m) {
+        if (methods.containsKey(getMethodName(m))) {
+            // already declared in a subclass
+            return;
+        }
         addImport(m.getReturnType());
         for (Class<?> c : m.getParameterTypes()) {
             addImport(c);
@@ -93,9 +98,21 @@ public class ProxyCodeGenerator {
         for (Class<?> c : m.getExceptionTypes()) {
             addImport(c);
         }
-        methods.add(m);
+        methods.put(getMethodName(m), m);
 
     }
+
+    private String getMethodName(Method m) {
+        StringBuilder buff = new StringBuilder();
+        buff.append(m.getReturnType()).append(' ');
+        buff.append(m.getName());
+        for (Class<?> p : m.getParameterTypes()) {
+            buff.append(' ');
+            buff.append(p.getName());
+        }
+        return buff.toString();
+    }
+
     void addImport(Class<?> c) {
         while (c.isArray()) {
             c = c.getComponentType();
@@ -144,7 +161,7 @@ public class ProxyCodeGenerator {
         writer.println("    private static <T extends RuntimeException> T convertException(Throwable e) {");
         writer.println("        return (T) e;");
         writer.println("    }");
-        for (Method m : methods) {
+        for (Method m : methods.values()) {
             Class<?> retClass = m.getReturnType();
             writer.print("    public " + getClassName(retClass) +
                 " " + m.getName() + "(");

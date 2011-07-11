@@ -1298,7 +1298,12 @@ public abstract class TestBase {
                     fail("Expected: SQLException, got: " + e);
                 }
                 SQLException s = (SQLException) e;
-                assertEquals(errorCode, s.getErrorCode());
+                if (errorCode != s.getErrorCode()) {
+                    AssertionError ae = new AssertionError(
+                            "Expected an SQLException with error code " + errorCode);
+                    ae.initCause(e);
+                    throw ae;
+                }
             }
         }, "SQLException with error code " + errorCode, obj);
     }
@@ -1351,7 +1356,7 @@ public abstract class TestBase {
         if (obj == this) {
             // class proxies
             try {
-                Class<?> pc = ProxyCodeGenerator.getClassProxy(TestBase.class);
+                Class<?> pc = ProxyCodeGenerator.getClassProxy(getClass());
                 Constructor cons = pc.getConstructor(new Class<?>[] { InvocationHandler.class });
                 return (T) cons.newInstance(new Object[] { ih });
             } catch (Exception e) {

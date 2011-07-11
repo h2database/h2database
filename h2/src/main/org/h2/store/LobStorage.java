@@ -505,7 +505,7 @@ public class LobStorage {
                 if (lobId != -1) {
                     removeLob(lobId);
                 }
-                throw DbException.convertIOException(e, "adding blob");
+                throw DbException.convertIOException(e, null);
             }
         } catch (SQLException e) {
             throw DbException.convert(e);

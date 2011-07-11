@@ -141,7 +141,7 @@ public class PageOutputStream {
 
     private void storePage() {
         if (trace.isDebugEnabled()) {
-            trace.debug("pageOut.storePage {0}", data);
+            trace.debug("pageOut.storePage " + data);
         }
         data.write();
     }
@@ -173,7 +173,7 @@ public class PageOutputStream {
      */
     void fillPage() {
         if (trace.isDebugEnabled()) {
-            trace.debug("pageOut.storePage fill {0}", data.getPos());
+            trace.debug("pageOut.storePage fill " + data.getPos());
         }
         reserve(data.getRemaining() + 1);
         reserved -= data.getRemaining();

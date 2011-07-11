@@ -67,7 +67,7 @@ public class TestLobApi extends TestBase {
         stat.execute("create table test(id identity, c clob, b blob)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(null, ?, ?)");
 
-        assertThrows(ErrorCode.IO_EXCEPTION_2, prep).
+        assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
                 setCharacterStream(1, new Reader() {
                     int pos;
                     public int read(char[] buff, int off, int len) throws IOException {
@@ -90,7 +90,7 @@ public class TestLobApi extends TestBase {
         prep.execute();
         prep.setString(1, "");
 
-        assertThrows(ErrorCode.IO_EXCEPTION_2, prep).
+        assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
                 setBinaryStream(2, new InputStream() {
                     int pos;
                     public int read() throws IOException {

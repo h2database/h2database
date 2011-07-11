@@ -208,7 +208,7 @@ public class FileLock implements Runnable {
             }
             lastWrite = fs.getLastModified(fileName);
             if (trace.isDebugEnabled()) {
-                trace.debug("save {0}", properties);
+                trace.debug("save " + properties);
             }
             return properties;
         } catch (IOException e) {
@@ -260,7 +260,7 @@ public class FileLock implements Runnable {
         try {
             Properties p2 = SortedProperties.loadProperties(fileName);
             if (trace.isDebugEnabled()) {
-                trace.debug("load {0}", p2);
+                trace.debug("load " + p2);
             }
             return p2;
         } catch (IOException e) {

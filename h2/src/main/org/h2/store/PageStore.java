@@ -425,7 +425,7 @@ public class PageStore implements CacheWriter {
                 freed.clear(i);
             } else if (!freed.get(i)) {
                 if (trace.isDebugEnabled()) {
-                    trace.debug("free {0}", i);
+                    trace.debug("free " + i);
                 }
                 file.seek((long) i << pageSizeShift);
                 file.readFully(test, 0, 16);
@@ -602,7 +602,7 @@ public class PageStore implements CacheWriter {
         pageCount = newPageCount;
         // the easiest way to remove superfluous entries
         freeLists.clear();
-        trace.debug("pageCount:{0}", pageCount);
+        trace.debug("pageCount: " + pageCount);
         long newLength = (long) pageCount << pageSizeShift;
         if (file.length() != newLength) {
             file.setLength(newLength);
@@ -630,7 +630,9 @@ public class PageStore implements CacheWriter {
         if (f != null) {
             DbException.throwInternalError("not free: " + f);
         }
-        trace.debug("swap {0} and {1} via {2}", a, b, free);
+        if (trace.isDebugEnabled()) {
+            trace.debug("swap " + a + " and " + b + " via " + free);
+        }
         Page pageA = null;
         if (isUsed(a)) {
             pageA = getPage(a);
@@ -675,7 +677,9 @@ public class PageStore implements CacheWriter {
                 freePage(full);
             }
         } else {
-            trace.debug("move {0} to {1}", p.getPos(), free);
+            if (trace.isDebugEnabled()) {
+                trace.debug("move " + p.getPos() + " to " + free);
+            }
             try {
                 p.moveTo(systemSession, free);
             } finally {
@@ -899,7 +903,7 @@ public class PageStore implements CacheWriter {
      */
     void setLogFirstPage(int logKey, int trunkPageId, int dataPageId) {
         if (trace.isDebugEnabled()) {
-            trace.debug("setLogFirstPage key: {0} trunk: {1} data: {2}", logKey, trunkPageId, dataPageId);
+            trace.debug("setLogFirstPage key: " + logKey + " trunk: "+ trunkPageId +" data: " + dataPageId);
         }
         this.logKey = logKey;
         this.logFirstTrunkPage = trunkPageId;
@@ -970,7 +974,7 @@ public class PageStore implements CacheWriter {
     public synchronized void writeBack(CacheObject obj) {
         Page record = (Page) obj;
         if (trace.isDebugEnabled()) {
-            trace.debug("writeBack {0}", record);
+            trace.debug("writeBack " + record);
         }
         record.write();
         record.setChanged(false);
@@ -1007,7 +1011,7 @@ public class PageStore implements CacheWriter {
     public synchronized void update(Page page) {
         if (trace.isDebugEnabled()) {
             if (!page.isChanged()) {
-                trace.debug("updateRecord {0}", page.toString());
+                trace.debug("updateRecord " + page.toString());
             }
         }
         checkOpen();
@@ -1199,7 +1203,7 @@ public class PageStore implements CacheWriter {
      */
     void freeUnused(int pageId) {
         if (trace.isDebugEnabled()) {
-            trace.debug("freeUnused {0}", pageId);
+            trace.debug("freeUnused " + pageId);
         }
         cache.remove(pageId);
         freePage(pageId);
@@ -1313,7 +1317,7 @@ public class PageStore implements CacheWriter {
         if (reservedPages != null) {
             for (int r : reservedPages.keySet()) {
                 if (trace.isDebugEnabled()) {
-                    trace.debug("reserve {0}", r);
+                    trace.debug("reserve " + r);
                 }
                 allocatePage(r);
             }
@@ -1557,7 +1561,8 @@ public class PageStore implements CacheWriter {
         String[] ops = StringUtils.arraySplit(options, ',', false);
         Index meta;
         if (trace.isDebugEnabled()) {
-            trace.debug("addMeta id={0} type={1} root={2} parent={3} columns={4}", id, type, rootPageId, parent, columnList);
+            trace.debug("addMeta id="+ id +" type=" + type +
+                    " root=" + rootPageId + " parent=" + parent + " columns=" + columnList);
         }
         if (redo && rootPageId != 0) {
             // ensure the page is empty, but not used by regular data

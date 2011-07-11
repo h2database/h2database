@@ -109,7 +109,7 @@ public class PageInputStream extends InputStream {
             }
         }
         if (trace.isDebugEnabled()) {
-            trace.debug("pageIn.readPage {0}", next);
+            trace.debug("pageIn.readPage " + next);
         }
         dataPage = -1;
         data = null;

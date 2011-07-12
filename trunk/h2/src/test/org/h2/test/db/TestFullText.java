@@ -131,8 +131,19 @@ public class TestFullText extends TestBase {
         assertEquals("TEST", rs.getString(2));
         assertEquals("(ID)", rs.getString(3));
         assertEquals("(1)", rs.getString(4));
+
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH('this', 0, 0)");
         assertFalse(rs.next());
+
+        conn.setAutoCommit(false);
+        stat.execute("delete from test");
+        rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('Welcome', 0, 0)");
+        assertFalse(rs.next());
+        conn.rollback();
+        rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('Welcome', 0, 0)");
+        assertTrue(rs.next());
+        conn.setAutoCommit(true);
+
         conn.close();
     }
 

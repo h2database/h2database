@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Simplified test cases using assertThrows(...).
+<ul><li>DATABASE_TO_UPPER: when set to false, all identifier names (table names, column names) 
+    are case sensitive (except aggregate, built-in functions, data types, and keywords).
+    This is for improved compatibility with MySQL and PostgreSQL.
+</li><li>When upgrading from an older 1.3.x version to version 1.3.157, when using BLOB or CLOB data,
+    the database could only be opened once.
+</li><li>SUM on a boolean expression will now count the number of 'true' rows.
+</li><li>Simplified test cases using assertThrows(...).
 </li><li>A Java function that returns a result set that was generated using the provided connection
     could cause an internal error in some cases. Now such result sets are copied early on.
 </li><li>Data type RESULT_SET: information_schema.function_aliases returned type 0; now type -10 is returned (the same as Oracle: OracleTypes.CURSOR = -10).

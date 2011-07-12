@@ -59,7 +59,9 @@ public class DbSettings extends SettingsBase {
      * Database setting <code>DATABASE_TO_UPPER</code> (default: true).<br />
      * Database short names are converted to uppercase for the DATABASE()
      * function, and in the CATALOG column of all database meta data methods.
-     * Setting this to "false" is experimental.
+     * Setting this to "false" is experimental. When set to false, all
+     * identifier names (table names, column names) are case sensitive (except
+     * aggregate, built-in functions, data types, and keywords).
      */
     public final boolean databaseToUpper = get("DATABASE_TO_UPPER", true);
 

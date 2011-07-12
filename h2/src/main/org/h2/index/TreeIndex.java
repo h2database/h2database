@@ -25,6 +25,7 @@ public class TreeIndex extends BaseIndex {
     private TreeNode root;
     private RegularTable tableData;
     private long rowCount;
+    private boolean closed;
 
     public TreeIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
         initBaseIndex(table, id, indexName, columns, indexType);
@@ -33,9 +34,13 @@ public class TreeIndex extends BaseIndex {
 
     public void close(Session session) {
         root = null;
+        closed = true;
     }
 
     public void add(Session session, Row row) {
+        if (closed) {
+            throw DbException.throwInternalError();
+        }
         TreeNode i = new TreeNode(row);
         TreeNode n = root, x = n;
         boolean isLeft = true;
@@ -136,6 +141,9 @@ public class TreeIndex extends BaseIndex {
     }
 
     public void remove(Session session, Row row) {
+        if (closed) {
+            throw DbException.throwInternalError();
+        }
         TreeNode x = findFirstNode(row, true);
         if (x == null) {
             throw DbException.throwInternalError("not found!");
@@ -326,6 +334,9 @@ public class TreeIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) {
+        if (closed) {
+            throw DbException.throwInternalError();
+        }
         if (first) {
             // TODO optimization: this loops through NULL
             Cursor cursor = find(session, null, null);

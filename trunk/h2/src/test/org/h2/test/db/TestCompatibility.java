@@ -34,6 +34,8 @@ public class TestCompatibility extends TestBase {
     public void test() throws SQLException {
         deleteDb("compatibility");
 
+        testCaseSensitiveIdentifiers();
+
         conn = getConnection("compatibility");
         testDomain();
         testColumnAlias();
@@ -47,6 +49,22 @@ public class TestCompatibility extends TestBase {
 
         conn.close();
         deleteDb("compatibility");
+    }
+
+    private void testCaseSensitiveIdentifiers() throws SQLException {
+        Connection c = getConnection("compatibility;DATABASE_TO_UPPER=FALSE");
+        Statement stat = c.createStatement();
+        stat.execute("create table test(id int primary key, name varchar) as select 1, 'hello'");
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        assertEquals("id", rs.getMetaData().getColumnLabel(1));
+        assertEquals("name", rs.getMetaData().getColumnLabel(2));
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
+                execute("select * from TEST");
+        stat.execute("select COUNT(*), count(*), Count(*), Sum(id) from test");
+        stat.execute("select LENGTH(name), length(name), Length(name) from test");
+        stat.execute("drop table test");
+        c.close();
     }
 
     private void testDomain() throws SQLException {

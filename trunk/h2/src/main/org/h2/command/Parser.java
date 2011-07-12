@@ -2138,11 +2138,19 @@ public class Parser {
         return agg;
     }
 
+    private int getAggregateType(String name) {
+        if (!identifiersToUpper) {
+            // if not yet converted to uppercase, do it now
+            name = StringUtils.toUpperEnglish(name);
+        }
+        return Aggregate.getAggregateType(name);
+    }
+
     private Expression readFunction(Schema schema, String name) {
         if (schema != null) {
             return readJavaFunction(schema, name);
         }
-        int agg = Aggregate.getAggregateType(name);
+        int agg = getAggregateType(name);
         if (agg >= 0) {
             return readAggregate(agg);
         }
@@ -4057,7 +4065,7 @@ public class Parser {
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
         String name = readIdentifierWithSchema();
-        if (isKeyword(name) || Function.getFunction(database, name) != null || Aggregate.getAggregateType(name) >= 0) {
+        if (isKeyword(name) || Function.getFunction(database, name) != null || getAggregateType(name) >= 0) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, name);
         }
         command.setName(name);
@@ -4175,7 +4183,7 @@ public class Parser {
         String aliasName = readIdentifierWithSchema();
         if (isKeyword(aliasName) ||
                 Function.getFunction(database, aliasName) != null ||
-                Aggregate.getAggregateType(aliasName) >= 0) {
+                getAggregateType(aliasName) >= 0) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, aliasName);
         }
         CreateFunctionAlias command = new CreateFunctionAlias(session, getSchema());

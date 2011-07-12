@@ -393,6 +393,10 @@ public class Function extends Expression implements FunctionCall {
      * @return the function object or null
      */
     public static Function getFunction(Database database, String name) {
+        if (!database.getSettings().databaseToUpper) {
+            // if not yet converted to uppercase, do it now
+            name = StringUtils.toUpperEnglish(name);
+        }
         FunctionInfo info = getFunctionInfo(name);
         if (info == null) {
             return null;

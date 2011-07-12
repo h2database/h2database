@@ -36,6 +36,9 @@ public class ProxyCodeGenerator {
         if (p != null) {
             return p;
         }
+        // TODO how to extend a class with private constructor
+        // TODO call right constructor
+        // TODO use the right package
         ProxyCodeGenerator cg = new ProxyCodeGenerator();
         cg.setPackageName("bytecode");
         cg.generateClassProxy(c);
@@ -44,6 +47,7 @@ public class ProxyCodeGenerator {
         String code = sw.toString();
         String proxy = "bytecode."+ c.getSimpleName() + "Proxy";
         compiler.setSource(proxy, code);
+        // System.out.println(code);
         Class<?> px = compiler.getClass(proxy);
         proxyMap.put(c, px);
         return px;

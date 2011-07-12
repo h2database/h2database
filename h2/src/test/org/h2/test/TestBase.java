@@ -1355,7 +1355,7 @@ public abstract class TestBase {
             }
         };
         Class<?>[] interfaces = c.getInterfaces();
-        if (Modifier.isFinal(c.getModifiers()) || interfaces.length > 0) {
+        if (Modifier.isFinal(c.getModifiers()) || (interfaces.length > 0 && getClass() != c)) {
             // interface class proxies
             if (interfaces.length == 0) {
                 throw new RuntimeException("Can not create a proxy for the class " +

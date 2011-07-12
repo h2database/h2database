@@ -159,11 +159,21 @@ public class ProxyCodeGenerator {
         writer.println("    }");
         writer.println("    @SuppressWarnings(\"unchecked\")");
         writer.println("    private static <T extends RuntimeException> T convertException(Throwable e) {");
+        writer.println("        if (e instanceof Error) {");
+        writer.println("            throw (Error) e;");
+        writer.println("        }");
         writer.println("        return (T) e;");
         writer.println("    }");
         for (Method m : methods.values()) {
             Class<?> retClass = m.getReturnType();
-            writer.print("    public " + getClassName(retClass) +
+            writer.print("    ");
+            if (Modifier.isProtected(m.getModifiers())) {
+                // 'public' would also work
+                writer.print("protected ");
+            } else {
+                writer.print("public ");
+            }
+            writer.print(getClassName(retClass) +
                 " " + m.getName() + "(");
             int i = 0;
             for (Class<?> p : m.getParameterTypes()) {
@@ -192,7 +202,7 @@ public class ProxyCodeGenerator {
                 } else if (retClass == byte.class) {
                     writer.print("Byte");
                 } else if (retClass == char.class) {
-                    writer.print("Char");
+                    writer.print("Character");
                 } else if (retClass == short.class) {
                     writer.print("Short");
                 } else if (retClass == int.class) {
@@ -210,7 +220,7 @@ public class ProxyCodeGenerator {
             }
             writer.print("ih.invoke(this, ");
             writer.println(getClassName(m.getDeclaringClass()) +
-                    ".class.getMethod(\"" + m.getName() +
+                    ".class.getDeclaredMethod(\"" + m.getName() +
                     "\",");
             writer.print("                new Class[] {");
             i = 0;

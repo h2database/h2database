@@ -16,6 +16,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -1353,18 +1354,23 @@ public abstract class TestBase {
                 }
             }
         };
-        if (obj == this) {
-            // class proxies
-            try {
-                Class<?> pc = ProxyCodeGenerator.getClassProxy(getClass());
-                Constructor cons = pc.getConstructor(new Class<?>[] { InvocationHandler.class });
-                return (T) cons.newInstance(new Object[] { ih });
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        Class<?>[] interfaces = c.getInterfaces();
+        if (Modifier.isFinal(c.getModifiers())) {
+            // interface class proxies
+            if (interfaces.length == 0) {
+                throw new RuntimeException("Can not create a proxy for the class " +
+                        c.getSimpleName() +
+                        " because it doesn't implement any interfaces and is final");
             }
+            return (T) Proxy.newProxyInstance(c.getClassLoader(), interfaces, ih);
         }
-        return (T) Proxy.newProxyInstance(c.getClassLoader(),
-                c.getInterfaces(), ih);
+        try {
+            Class<?> pc = ProxyCodeGenerator.getClassProxy(c);
+            Constructor cons = pc.getConstructor(new Class<?>[] { InvocationHandler.class });
+            return (T) cons.newInstance(new Object[] { ih });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

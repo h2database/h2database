@@ -322,18 +322,10 @@ public class TestCluster extends TestBase {
 
         // try to connect in standalone mode - should fail
         // should not be able to connect in standalone mode
-        try {
-            getConnection("jdbc:h2:tcp://localhost:"+port1+"/test", user, password);
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            getConnection("jdbc:h2:tcp://localhost:"+port2+"/test", user, password);
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, this).
+                getConnection("jdbc:h2:tcp://localhost:"+port1+"/test", user, password);
+        assertThrows(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, this).
+                getConnection("jdbc:h2:tcp://localhost:"+port2+"/test", user, password);
 
         // test a cluster connection
         conn = DriverManager.getConnection("jdbc:h2:tcp://" + serverList + "/test", user, password);

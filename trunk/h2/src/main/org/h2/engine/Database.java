@@ -1037,6 +1037,18 @@ public class Database implements DataHandler {
             }
             closing = true;
         }
+        // remove all session variables
+        if (persistent) {
+            boolean lobStorageIsUsed = infoSchema.findTableOrView(systemSession, LobStorage.LOB_DATA_TABLE) != null;
+            if (lobStorageIsUsed) {
+                try {
+                    getLobStorage();
+                    lobStorage.removeAllForTable(LobStorage.TABLE_ID_SESSION_VARIABLE);
+                } catch (DbException e) {
+                    trace.error(e, "close");
+                }
+            }
+        }
         try {
             if (systemSession != null) {
                 if (powerOffCount != -1) {
@@ -1067,18 +1079,6 @@ public class Database implements DataHandler {
             }
         } catch (DbException e) {
             trace.error(e, "close");
-        }
-        // remove all session variables
-        if (persistent) {
-            boolean lobStorageIsUsed = infoSchema.findTableOrView(systemSession, LobStorage.LOB_DATA_TABLE) != null;
-            if (lobStorageIsUsed) {
-                try {
-                    getLobStorage();
-                    lobStorage.removeAllForTable(LobStorage.TABLE_ID_SESSION_VARIABLE);
-                } catch (DbException e) {
-                    trace.error(e, "close");
-                }
-            }
         }
         tempFileDeleter.deleteAll();
         try {

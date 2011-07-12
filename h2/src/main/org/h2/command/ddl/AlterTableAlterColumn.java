@@ -373,7 +373,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String newTableName = newTable.getName();
         Database db = sourceTable.getDatabase();
         // save the real table under a temporary name
-        db.renameSchemaObject(session, sourceTable, db.getTempTableName(sourceTableName, session));
+        String temp = db.getTempTableName(sourceTableName, session);
+        db.renameSchemaObject(session, sourceTable, temp);
         try {
             // have our new table impersonate the target table
             db.renameSchemaObject(session, newTable, sourceTableName);

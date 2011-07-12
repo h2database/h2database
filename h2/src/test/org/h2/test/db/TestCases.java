@@ -505,16 +505,11 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testInvalidDatabaseName() {
+    private void testInvalidDatabaseName() throws SQLException {
         if (config.memory) {
             return;
         }
-        try {
-            getConnection("cases/");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.INVALID_DATABASE_NAME_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.INVALID_DATABASE_NAME_1, this).getConnection("cases/");
     }
 
     private void testReuseSpace() throws SQLException {

@@ -256,6 +256,9 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
 
         public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
+            if (oldRow != null || newRow != null) {
+                throw new SQLException("old and new must be null");
+            }
             conn.createStatement().execute("delete from meta_tables");
             prepMeta.execute();
         }

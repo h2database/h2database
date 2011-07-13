@@ -19,6 +19,12 @@ import org.h2.message.DbException;
  */
 public abstract class AssertThrows {
 
+    /**
+     * Create a new assertion object, and call the test method to verify the
+     * expected exception is thrown.
+     *
+     * @param expectedExceptionClass the expected exception class
+     */
     public AssertThrows(final Class<? extends Exception> expectedExceptionClass) {
         this(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(Thread t, Throwable e) {
@@ -33,7 +39,7 @@ public abstract class AssertThrows {
                             expectedExceptionClass.getSimpleName() +
                             " to be thrown, but the method under test threw an exception of type\n" +
                             e.getClass().getSimpleName() +
-                            " (see in the 'Caused by' for the exception tha was thrown)");
+                            " (see in the 'Caused by' for the exception that was thrown)");
                     ae.initCause(e);
                     throw ae;
                 }
@@ -41,6 +47,10 @@ public abstract class AssertThrows {
         });
     }
 
+    /**
+     * Create a new assertion object, and call the test method to verify the
+     * expected exception is thrown.
+     */
     public AssertThrows() {
         this(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(Thread t, Throwable e) {
@@ -53,6 +63,12 @@ public abstract class AssertThrows {
         });
     }
 
+    /**
+     * Create a new assertion object, and call the test method to verify the
+     * expected exception is thrown.
+     *
+     * @param expectedErrorCode the error code of the exception
+     */
     public AssertThrows(final int expectedErrorCode) {
         this(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(Thread t, Throwable e) {
@@ -74,7 +90,6 @@ public abstract class AssertThrows {
         });
     }
 
-
     private AssertThrows(Thread.UncaughtExceptionHandler handler) {
         try {
             test();
@@ -84,6 +99,11 @@ public abstract class AssertThrows {
         }
     }
 
+    /**
+     * The test method that is called.
+     *
+     * @throws Exception the exception
+     */
     public abstract void test() throws Exception;
 
 }

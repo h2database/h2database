@@ -1280,6 +1280,14 @@ public abstract class TestBase {
         memory.clear();
     }
 
+    /**
+     * Verify the next method call on the object will throw an exception.
+     *
+     * @param <T> the class of the object
+     * @param exceptionClass the expected exception class to be thrown
+     * @param obj the object to wrap
+     * @return a proxy for the object
+     */
     protected <T> T assertThrows(final Class<?> exceptionClass, final T obj) {
         return assertThrows(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(Thread t, Throwable e) {
@@ -1291,6 +1299,14 @@ public abstract class TestBase {
         }, exceptionClass.toString(), obj);
     }
 
+    /**
+     * Verify the next method call on the object will throw an exception.
+     *
+     * @param <T> the class of the object
+     * @param errorCode the expected error code
+     * @param obj the object to wrap
+     * @return a proxy for the object
+     */
     protected <T> T assertThrows(final int errorCode, final T obj) {
         return assertThrows(new Thread.UncaughtExceptionHandler() {
             public void uncaughtException(Thread t, Throwable e) {
@@ -1309,6 +1325,16 @@ public abstract class TestBase {
         }, "SQLException with error code " + errorCode, obj);
     }
 
+    /**
+     * Verify the next method call on the object will throw an exception.
+     *
+     * @param <T> the class of the object
+     * @param handler the exception handler to call
+     * @param expected the message to print if the method didn't throw an
+     *            exception
+     * @param obj the object to wrap
+     * @return a proxy for the object
+     */
     @SuppressWarnings("unchecked")
     protected <T> T assertThrows(final Thread.UncaughtExceptionHandler handler, final String expected, final T obj) {
         Class<?> c = obj.getClass();

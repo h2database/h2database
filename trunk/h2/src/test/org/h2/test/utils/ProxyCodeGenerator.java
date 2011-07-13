@@ -22,8 +22,8 @@ import org.h2.util.SourceCompiler;
  */
 public class ProxyCodeGenerator {
 
-    static SourceCompiler compiler = new SourceCompiler();
-    static HashMap<Class<?>, Class<?>> proxyMap = New.hashMap();
+    private static SourceCompiler compiler = new SourceCompiler();
+    private static HashMap<Class<?>, Class<?>> proxyMap = New.hashMap();
 
     private TreeSet<String> imports = new TreeSet<String>();
     private TreeMap<String, Method> methods = new TreeMap<String, Method>();
@@ -31,6 +31,12 @@ public class ProxyCodeGenerator {
     private String className;
     private Class<?> extendsClass;
 
+    /**
+     * Generate a proxy class. The returned class extends the given class.
+     *
+     * @param c the class to extend
+     * @return the proxy class
+     */
     public static Class<?> getClassProxy(Class<?> c) throws ClassNotFoundException {
         Class<?> p = proxyMap.get(c);
         if (p != null) {
@@ -53,10 +59,16 @@ public class ProxyCodeGenerator {
         return px;
     }
 
-    void setPackageName(String packageName) {
+    private void setPackageName(String packageName) {
         this.packageName = packageName;
     }
 
+    /**
+     * Generate a class that implements all static methods of the given class,
+     * but as non-static.
+     *
+     * @param c the class to extend
+     */
     void generateStaticProxy(Class<?> clazz) {
         imports.clear();
         addImport(InvocationHandler.class);
@@ -72,7 +84,7 @@ public class ProxyCodeGenerator {
         }
     }
 
-    void generateClassProxy(Class<?> clazz) {
+    private void generateClassProxy(Class<?> clazz) {
         imports.clear();
         addImport(InvocationHandler.class);
         addImport(Method.class);
@@ -90,7 +102,7 @@ public class ProxyCodeGenerator {
         }
     }
 
-    void addMethod(Method m) {
+    private void addMethod(Method m) {
         if (methods.containsKey(getMethodName(m))) {
             // already declared in a subclass
             return;
@@ -117,7 +129,7 @@ public class ProxyCodeGenerator {
         return buff.toString();
     }
 
-    void addImport(Class<?> c) {
+    private void addImport(Class<?> c) {
         while (c.isArray()) {
             c = c.getComponentType();
         }
@@ -127,6 +139,7 @@ public class ProxyCodeGenerator {
             }
         }
     }
+
     private static String getClassName(Class<?> c) {
         String s = c.getSimpleName();
         while (true) {
@@ -138,7 +151,8 @@ public class ProxyCodeGenerator {
         }
         return s;
     }
-    void write(PrintWriter writer) {
+
+    private void write(PrintWriter writer) {
         if (packageName != null) {
             writer.println("package " + packageName + ";");
         }

@@ -18,7 +18,7 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>DATABASE_TO_UPPER: when set to false, all identifier names (table names, column names) 
+<ul><li>DATABASE_TO_UPPER: when set to false, all identifier names (table names, column names)
     are case sensitive (except aggregate, built-in functions, data types, and keywords).
     This is for improved compatibility with MySQL and PostgreSQL.
 </li><li>When upgrading from an older 1.3.x version to version 1.3.157, when using BLOB or CLOB data,
@@ -32,7 +32,7 @@ Change Log
 </li><li>H2 Console: improved system tray icon for Mac OS X (transparent background).
 </li><li>String.toUpperCase() was used a few places, which is problematic when using the Turkish locale.
     The method has been replaced with toUpperCase(Locale.ENGLISH) to solve such problems.
-</li><li>Shell tool: the built-in command "distinct" has been removed 
+</li><li>Shell tool: the built-in command "distinct" has been removed
     (use the SQL statements "show tables" / "show columns from tableName" instead).
     The result set formatting has been improved.
 </li><li>MERGE: if a unique key was violated (but not the primary key or the key columns of the merge itself),

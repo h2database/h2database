@@ -79,12 +79,14 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
     private int activeConnections;
     private boolean isDisposed;
 
-    private JdbcConnectionPool(ConnectionPoolDataSource dataSource) {
+    protected JdbcConnectionPool(ConnectionPoolDataSource dataSource) {
         this.dataSource = dataSource;
-        try {
-            logWriter = dataSource.getLogWriter();
-        } catch (SQLException e) {
-            // ignore
+        if (dataSource != null) {
+            try {
+                logWriter = dataSource.getLogWriter();
+            } catch (SQLException e) {
+                // ignore
+            }
         }
     }
 

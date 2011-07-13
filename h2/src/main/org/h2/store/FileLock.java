@@ -112,7 +112,7 @@ public class FileLock implements Runnable {
      * @param sleep the number of milliseconds to sleep
      */
     public FileLock(TraceSystem traceSystem, String fileName, int sleep) {
-        this.trace = traceSystem.getTrace(Trace.FILE_LOCK);
+        this.trace = traceSystem == null ? null : traceSystem.getTrace(Trace.FILE_LOCK);
         this.fileName = fileName;
         this.sleep = sleep;
     }

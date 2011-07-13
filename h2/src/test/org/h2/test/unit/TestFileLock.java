@@ -8,8 +8,6 @@ package org.h2.test.unit;
 
 import java.io.File;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
@@ -64,13 +62,9 @@ public class TestFileLock extends TestBase implements Runnable {
     private void testFsFileLock() throws Exception {
         deleteDb("fileLock");
         String url = "jdbc:h2:" + getBaseDir() + "/fileLock;FILE_LOCK=FS;OPEN_NEW=TRUE";
-        Connection conn = DriverManager.getConnection(url);
-        try {
-            getConnection(url);
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
-        }
+        Connection conn = getConnection(url);
+        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
+                getConnection(url);
         conn.close();
     }
 
@@ -88,12 +82,9 @@ public class TestFileLock extends TestBase implements Runnable {
         FileLock lock1 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
         FileLock lock2 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
         lock1.lock(FileLock.LOCK_FILE);
-        try {
-            lock2.lock(FileLock.LOCK_FILE);
-            fail();
-        } catch (Exception e) {
-            // expected
-        }
+        createClassProxy(FileLock.class);
+        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, lock2).
+                lock(FileLock.LOCK_FILE);
         lock1.unlock();
         lock2 = new FileLock(new TraceSystem(null), getFile(), Constants.LOCK_SLEEP);
         lock2.lock(FileLock.LOCK_FILE);

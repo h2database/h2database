@@ -65,27 +65,15 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         Server tcp = Server.createTcpServer().start();
         try {
             Connection conn = getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE");
-            try {
-                getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
-                fail();
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
-            }
-            try {
-                getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
-                fail();
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
-            }
+            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
+                    getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
+            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
+                    getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
             conn.close();
 
             conn = getConnection("jdbc:h2:tcp://localhost/" + getBaseDir() + "/autoReconnect");
-            try {
-                getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
-                fail();
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.DATABASE_ALREADY_OPEN_1, e.getErrorCode());
-            }
+            assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
+                    getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
             conn.close();
         } finally {
             tcp.stop();

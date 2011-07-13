@@ -29,11 +29,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
 import org.h2.store.fs.FileSystemSplit;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.RecordingFileSystem;
+import org.h2.test.utils.ResultVerifier;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 
@@ -1284,45 +1286,64 @@ public abstract class TestBase {
      * Verify the next method call on the object will throw an exception.
      *
      * @param <T> the class of the object
-     * @param exceptionClass the expected exception class to be thrown
+     * @param expectedExceptionClass the expected exception class to be thrown
      * @param obj the object to wrap
      * @return a proxy for the object
      */
-    protected <T> T assertThrows(final Class<?> exceptionClass, final T obj) {
-        return assertThrows(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable e) {
-                if (!exceptionClass.isAssignableFrom(e.getClass())) {
-                    e.printStackTrace();
-                    fail("Expected: " + exceptionClass + ", got: " + e);
+    protected <T> T assertThrows(final Class<?> expectedExceptionClass, final T obj) {
+        return assertThrows(new ResultVerifier() {
+            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+                if (t == null) {
+                    throw new AssertionError("Expected an exception of type " +
+                            expectedExceptionClass.getSimpleName() +
+                            " to be thrown, but the method returned " +
+                            returnValue +
+                           " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
                 }
+                if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
+                    AssertionError ae = new AssertionError(
+                            "Expected an exception of type\n" +
+                            expectedExceptionClass.getSimpleName() +
+                            " to be thrown, but the method under test threw an exception of type\n" +
+                            t.getClass().getSimpleName() +
+                            " (see in the 'Caused by' for the exception that was thrown) " +
+                            " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                    ae.initCause(t);
+                    throw ae;
+                }
+                return false;
             }
-        }, exceptionClass.toString(), obj);
+        }, obj);
     }
 
     /**
      * Verify the next method call on the object will throw an exception.
      *
      * @param <T> the class of the object
-     * @param errorCode the expected error code
+     * @param expectedErrorCode the expected error code
      * @param obj the object to wrap
      * @return a proxy for the object
      */
-    protected <T> T assertThrows(final int errorCode, final T obj) {
-        return assertThrows(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable e) {
-                if (!(e instanceof SQLException)) {
-                    e.printStackTrace();
-                    fail("Expected: SQLException, got: " + e);
+    protected <T> T assertThrows(final int expectedErrorCode, final T obj) {
+        return assertThrows(new ResultVerifier() {
+            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+                int errorCode;
+                if (t instanceof DbException) {
+                    errorCode = ((DbException) t).getErrorCode();
+                } else if (t instanceof SQLException) {
+                    errorCode = ((SQLException) t).getErrorCode();
+                } else {
+                    errorCode = 0;
                 }
-                SQLException s = (SQLException) e;
-                if (errorCode != s.getErrorCode()) {
+                if (errorCode != expectedErrorCode) {
                     AssertionError ae = new AssertionError(
-                            "Expected an SQLException with error code " + errorCode);
-                    ae.initCause(e);
+                            "Expected an SQLException or DbException with error code " + expectedErrorCode);
+                    ae.initCause(t);
                     throw ae;
                 }
+                return false;
             }
-        }, "SQLException with error code " + errorCode, obj);
+        }, obj);
     }
 
     /**
@@ -1330,13 +1351,11 @@ public abstract class TestBase {
      *
      * @param <T> the class of the object
      * @param handler the exception handler to call
-     * @param expected the message to print if the method didn't throw an
-     *            exception
      * @param obj the object to wrap
      * @return a proxy for the object
      */
     @SuppressWarnings("unchecked")
-    protected <T> T assertThrows(final Thread.UncaughtExceptionHandler handler, final String expected, final T obj) {
+    protected <T> T assertThrows(final ResultVerifier verifier, final T obj) {
         Class<?> c = obj.getClass();
         InvocationHandler ih = new InvocationHandler() {
             private Exception called = new Exception("No method called");
@@ -1349,12 +1368,10 @@ public abstract class TestBase {
                 try {
                     called = null;
                     Object ret = method.invoke(obj, args);
-                    fail(method.getDeclaringClass().getName() + "." + method.getName() +
-                            " did not throw an exception of type " + expected +
-                            ", but returned " + ret);
+                    verifier.verify(ret, null, method, args);
                     return ret;
                 } catch (InvocationTargetException e) {
-                    handler.uncaughtException(null, e.getTargetException());
+                    verifier.verify(null, e.getTargetException(), method, args);
                     Class<?> retClass = method.getReturnType();
                     if (!retClass.isPrimitive()) {
                         return null;
@@ -1380,20 +1397,35 @@ public abstract class TestBase {
                 }
             }
         };
-        Class<?>[] interfaces = c.getInterfaces();
-        if (Modifier.isFinal(c.getModifiers()) || (interfaces.length > 0 && getClass() != c)) {
-            // interface class proxies
-            if (interfaces.length == 0) {
-                throw new RuntimeException("Can not create a proxy for the class " +
-                        c.getSimpleName() +
-                        " because it doesn't implement any interfaces and is final");
+        if (!ProxyCodeGenerator.isGenerated(c)) {
+            Class<?>[] interfaces = c.getInterfaces();
+            if (Modifier.isFinal(c.getModifiers()) || (interfaces.length > 0 && getClass() != c)) {
+                // interface class proxies
+                if (interfaces.length == 0) {
+                    throw new RuntimeException("Can not create a proxy for the class " +
+                            c.getSimpleName() +
+                            " because it doesn't implement any interfaces and is final");
+                }
+                return (T) Proxy.newProxyInstance(c.getClassLoader(), interfaces, ih);
             }
-            return (T) Proxy.newProxyInstance(c.getClassLoader(), interfaces, ih);
         }
         try {
             Class<?> pc = ProxyCodeGenerator.getClassProxy(c);
             Constructor cons = pc.getConstructor(new Class<?>[] { InvocationHandler.class });
             return (T) cons.newInstance(new Object[] { ih });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Create a proxy class that extends the given class.
+     *
+     * @param clazz the class
+     */
+    protected void createClassProxy(Class<?> clazz) {
+        try {
+            ProxyCodeGenerator.getClassProxy(clazz);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

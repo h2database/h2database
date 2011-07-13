@@ -42,12 +42,8 @@ public class TestEncryptedDb extends TestBase {
         stat.execute("SHUTDOWN IMMEDIATELY");
         assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
 
-        try {
-            getConnection("encrypted;CIPHER=AES", "sa", "1234 1234");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.FILE_ENCRYPTION_ERROR_1, this).
+                getConnection("encrypted;CIPHER=AES", "sa", "1234 1234");
 
         conn = getConnection("encrypted;CIPHER=AES", "sa", "123 123");
         stat = conn.createStatement();

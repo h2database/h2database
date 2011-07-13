@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.upgrade.DbUpgrade;
 import org.h2.util.IOUtils;
@@ -75,12 +76,9 @@ public class TestUpgrade extends TestBase {
         out = IOUtils.openFileOutputStream(getBaseDir() + "/upgrade.index.db", false);
         out.write(new byte[10000]);
         out.close();
-        try {
-            getConnection("upgrade");
-            fail();
-        } catch (Exception e) {
-            // expected
-        }
+        assertThrows(ErrorCode.FILE_VERSION_ERROR_1, this).
+                getConnection("upgrade");
+
         assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.data.db"));
         assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.index.db"));
         deleteDb("upgrade");

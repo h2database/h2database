@@ -120,12 +120,8 @@ public class TestRights extends TestBase {
         stat.execute("DROP USER " + user);
         conn.close();
         if (!config.memory) {
-            try {
-                getConnection("rights");
-                fail();
-            } catch (SQLException e) {
-                assertKnownException(e);
-            }
+            assertThrows(ErrorCode.WRONG_USER_OR_PASSWORD, this).
+                    getConnection("rights");
         }
     }
 

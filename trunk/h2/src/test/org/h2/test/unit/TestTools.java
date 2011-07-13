@@ -109,12 +109,9 @@ public class TestTools extends TestBase {
         s2.stop();
         s1 = Server.createTcpServer("-tcpPort", "9123").start();
         assertEquals(9123, s1.getPort());
-        try {
-            s2 = Server.createTcpServer("-tcpPort", "9123").start();
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.EXCEPTION_OPENING_PORT_2, e.getErrorCode());
-        }
+        createClassProxy(Server.class);
+        assertThrows(ErrorCode.EXCEPTION_OPENING_PORT_2,
+                Server.createTcpServer("-tcpPort", "9123")).start();
         s1.stop();
     }
 
@@ -156,13 +153,9 @@ public class TestTools extends TestBase {
 
             // trying to use the same port for two services should fail,
             // but also stop the first service
-            try {
-                c.runTool("-web", "-webPort", "9002", "-tcp", "-tcpPort", "9002");
-                fail();
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.EXCEPTION_OPENING_PORT_2, e.getErrorCode());
-            }
-
+            createClassProxy(c.getClass());
+            assertThrows(ErrorCode.EXCEPTION_OPENING_PORT_2, c).
+                    runTool("-web", "-webPort", "9002", "-tcp", "-tcpPort", "9002");
             c.runTool("-web", "-webPort", "9002");
             c.shutdown();
 
@@ -190,12 +183,9 @@ public class TestTools extends TestBase {
         rs = new SimpleResultSet();
         rs.addColumn(null, 0, 0, 0);
         rs.addRow(1);
-        try {
-            rs.addColumn(null, 0, 0, 0);
-            fail();
-        } catch (IllegalStateException e) {
-            // ignore
-        }
+        createClassProxy(rs.getClass());
+        assertThrows(IllegalStateException.class, rs).
+                addColumn(null, 0, 0, 0);
         rs.next();
         assertEquals(1, rs.getInt(1));
         assertEquals("1", rs.getString(1));
@@ -354,13 +344,9 @@ public class TestTools extends TestBase {
     }
 
     private void testWrongServer() throws Exception {
-        try {
-            // try to connect when the server is not running
-            getConnection("jdbc:h2:tcp://localhost:9001/test");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
-        }
+        // try to connect when the server is not running
+        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
+                getConnection("jdbc:h2:tcp://localhost:9001/test");
         final ServerSocket serverSocket = new ServerSocket(9001);
         Task task = new Task() {
             public void call() throws Exception {
@@ -431,12 +417,8 @@ public class TestTools extends TestBase {
 
         result = runServer(0, new String[]{"-tcpShutdown", "ssl://localhost:9001", "-tcpPassword", "abcdef"});
         assertTrue(result.indexOf("Shutting down") >= 0);
-        try {
-            getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
+                getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
 
         result = runServer(0, new String[]{
                         "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
@@ -458,12 +440,8 @@ public class TestTools extends TestBase {
         result = runServer(0, new String[]{"-tcpShutdown", "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"});
         assertTrue(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
-        try {
-            getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
+                getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
     }
 
     private String runServer(int exitCode, String... args) {
@@ -824,17 +802,9 @@ public class TestTools extends TestBase {
         // check that the database is closed
         deleteDb("test");
         // server must have been closed
-        try {
-            getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            // ignore
-        }
+        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
+                getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
+        JdbcUtils.closeSilently(conn);
         // Test filesystem prefix and escape from baseDir
         deleteDb("testSplit");
         server = Server.createTcpServer(
@@ -844,12 +814,8 @@ public class TestTools extends TestBase {
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/split:testSplit", "sa", "");
         conn.close();
 
-        try {
-            getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.IO_EXCEPTION_1, this).
+                getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
 
         server.stop();
         deleteDb("testSplit");

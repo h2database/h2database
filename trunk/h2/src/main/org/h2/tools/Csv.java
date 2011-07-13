@@ -69,8 +69,8 @@ public class Csv implements SimpleRowSource {
     private Writer output;
     private boolean endOfLine, endOfFile;
 
-    private Csv() {
-        // don't allow construction
+    protected Csv() {
+        // don't allow construction by normal code
     }
 
     /**

@@ -6,6 +6,7 @@
  */
 package org.h2.test.utils;
 
+import java.lang.reflect.Method;
 import java.sql.SQLException;
 import org.h2.message.DbException;
 
@@ -26,23 +27,27 @@ public abstract class AssertThrows {
      * @param expectedExceptionClass the expected exception class
      */
     public AssertThrows(final Class<? extends Exception> expectedExceptionClass) {
-        this(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable e) {
-                if (e == null) {
+        this(new ResultVerifier() {
+            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+                if (t == null) {
                     throw new AssertionError("Expected an exception of type " +
                             expectedExceptionClass.getSimpleName() +
-                            ", but no exception was thrown");
+                            " to be thrown, but the method returned " +
+                            returnValue +
+                           " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
                 }
-                if (!expectedExceptionClass.isAssignableFrom(e.getClass())) {
+                if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
                     AssertionError ae = new AssertionError(
                             "Expected an exception of type\n" +
                             expectedExceptionClass.getSimpleName() +
                             " to be thrown, but the method under test threw an exception of type\n" +
-                            e.getClass().getSimpleName() +
-                            " (see in the 'Caused by' for the exception that was thrown)");
-                    ae.initCause(e);
+                            t.getClass().getSimpleName() +
+                            " (see in the 'Caused by' for the exception that was thrown) " +
+                            " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                    ae.initCause(t);
                     throw ae;
                 }
+                return false;
             }
         });
     }
@@ -52,13 +57,16 @@ public abstract class AssertThrows {
      * expected exception is thrown.
      */
     public AssertThrows() {
-        this(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable e) {
-                if (e != null) {
+        this(new ResultVerifier() {
+            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+                if (t != null) {
                     throw new AssertionError(
-                            "Expected an exception to be thrown, but the test was successful");
+                            "Expected an exception to be thrown, but the method returned " +
+                            returnValue +
+                            " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
                 }
                 // all exceptions are fine
+                return false;
             }
         });
     }
@@ -70,32 +78,35 @@ public abstract class AssertThrows {
      * @param expectedErrorCode the error code of the exception
      */
     public AssertThrows(final int expectedErrorCode) {
-        this(new Thread.UncaughtExceptionHandler() {
-            public void uncaughtException(Thread t, Throwable e) {
+        this(new ResultVerifier() {
+            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
                 int errorCode;
-                if (e instanceof DbException) {
-                    errorCode = ((DbException) e).getErrorCode();
-                } else if (e instanceof SQLException) {
-                    errorCode = ((SQLException) e).getErrorCode();
+                if (t instanceof DbException) {
+                    errorCode = ((DbException) t).getErrorCode();
+                } else if (t instanceof SQLException) {
+                    errorCode = ((SQLException) t).getErrorCode();
                 } else {
                     errorCode = 0;
                 }
                 if (errorCode != expectedErrorCode) {
                     AssertionError ae = new AssertionError(
-                            "Expected an SQLException or DbException with error code " + expectedErrorCode);
-                    ae.initCause(e);
+                            "Expected an SQLException or DbException with error code " +
+                            expectedErrorCode +
+                            " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                    ae.initCause(t);
                     throw ae;
                 }
+                return false;
             }
         });
     }
 
-    private AssertThrows(Thread.UncaughtExceptionHandler handler) {
+    private AssertThrows(ResultVerifier verifier) {
         try {
             test();
-            handler.uncaughtException(null, null);
+            verifier.verify(null, null, null);
         } catch (Exception e) {
-            handler.uncaughtException(null, e);
+            verifier.verify(null, e, null);
         }
     }
 

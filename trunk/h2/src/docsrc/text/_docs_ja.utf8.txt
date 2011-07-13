@@ -521,7 +521,7 @@ Database
 # The database name. This can include connections settings. By default, the database is stored in the current working directory where the Server is started except when the -baseDir setting is used. The name must be at least 3 characters. 
 
 @advanced_1174_td
-#Servername #localhost
+#Servername
 
 @advanced_1175_td
 localhost
@@ -533,7 +533,7 @@ localhost
 デフォルトでは、リモート接続のみ許可されています。
 
 @advanced_1178_td
-#Username #sa
+#Username
 
 @advanced_1179_td
 sa
@@ -545,7 +545,7 @@ sa
 #SSL
 
 @advanced_1182_td
-#false (disabled) #現時点で、SSLはサポートされていません。
+#false (disabled)
 
 @advanced_1183_td
 現時点で、SSLはサポートされていません。
@@ -1211,31 +1211,31 @@ SSL/TLS 接続
 AES-128
 
 @advanced_1404_td
-#A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a> #Birthday Paradox
+#A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
 @advanced_1405_td
 Birthday Paradox
 
 @advanced_1406_td
-#Describes the higher than expected probability that two persons in a room have the same birthday. Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a> #Digest
+#Describes the higher than expected probability that two persons in a room have the same birthday. Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
 @advanced_1407_td
 Digest
 
 @advanced_1408_td
-#Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a> #GCJ
+#Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
 @advanced_1409_td
 GCJ
 
 @advanced_1410_td
-#Compiler for Java. <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a> #HTTPS
+#Compiler for Java. <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a>
 
 @advanced_1411_td
 HTTPS
 
 @advanced_1412_td
-#A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a> #Modes of Operation
+#A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
 @advanced_1413_td
 Modes of Operation
@@ -1247,31 +1247,31 @@ Modes of Operation
 Salt
 
 @advanced_1416_td
-#Random number to increase the security of passwords. See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a> #SHA-256
+#Random number to increase the security of passwords. See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
 @advanced_1417_td
 SHA-256
 
 @advanced_1418_td
-#A cryptographic one-way hash function. See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a> #SQLインジェクション
+#A cryptographic one-way hash function. See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
 @advanced_1419_td
 SQLインジェクション
 
 @advanced_1420_td
-#A security vulnerability where an application embeds SQL statements or expressions in user input. See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a> #Watermark Attack (透かし攻撃)
+#A security vulnerability where an application embeds SQL statements or expressions in user input. See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
 @advanced_1421_td
 Watermark Attack (透かし攻撃)
 
 @advanced_1422_td
-#Security problem of certain encryption programs where the existence of certain data can be proven without decrypting. For more information, search in the internet for 'watermark attack cryptoloop' #SSL/TLS
+#Security problem of certain encryption programs where the existence of certain data can be proven without decrypting. For more information, search in the internet for 'watermark attack cryptoloop'
 
 @advanced_1423_td
 SSL/TLS
 
 @advanced_1424_td
-#Secure Sockets Layer / Transport Layer Security. See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a> #XTEA
+#Secure Sockets Layer / Transport Layer Security. See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
 @advanced_1425_td
 XTEA
@@ -4979,7 +4979,7 @@ Write
 # Here is an example how to use this mode. Application 1 and 2 are not necessarily started on the same computer, but they need to have access to the database files. Application 1 and 2 are typically two different processes (however they could run within the same process). 
 
 @features_1513_h2
-#Page Size #トレースオプションを使用する
+#Page Size
 
 @features_1514_p
 # The page size for new databases is 2 KB (2048), unless the system property <code>h2.pageSize</code> is set to a different value, or the page size is set explicitly in the database URL using <code>PAGE_SIZE=</code>. The page size of existing databases can not be changed. 
@@ -5138,7 +5138,7 @@ computed column / ベースインデックスの機能
 # The following template is used to create a complete Java class: 
 
 @features_1566_h3
-#Method Overloading #データタイプマッピング関数
+#Method Overloading
 
 @features_1567_p
 # Multiple methods may be bound to a SQL function if the class is already compiled and included in the classpath. Each Java method must have a different number of arguments. Method overloading is not supported when declaring functions as source code. 
@@ -5165,7 +5165,7 @@ computed column / ベースインデックスの機能
 # If a function throws an exception, then the current statement is rolled back and the exception is thrown to the application. SQLException are directly re-thrown to the calling application; all other exceptions are first converted to a SQLException. 
 
 @features_1575_h3
-#Functions Returning a Result Set #SimpleResultSetを使用する
+#Functions Returning a Result Set
 
 @features_1576_p
 # Functions may returns a result set. Such a function can be called with the <code>CALL</code> statement: 

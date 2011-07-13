@@ -75,54 +75,16 @@ public class TestMultiDimension extends TestBase {
             assertEquals(y, tool.deinterleave(3, xyz, 1));
             assertEquals(z, tool.deinterleave(3, xyz, 2));
         }
-        try {
-            m.getMaxValue(1);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            m.getMaxValue(33);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            m.normalize(2, 10, 11, 12);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            m.normalize(2, 5, 10, 0);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            m.normalize(2, 10, 0, 9);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            m.interleave(-1, 5);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            m.interleave(5, -1);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            m.interleave(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
+        createClassProxy(MultiDimension.class);
+        assertThrows(IllegalArgumentException.class, m).getMaxValue(1);
+        assertThrows(IllegalArgumentException.class, m).getMaxValue(33);
+        assertThrows(IllegalArgumentException.class, m).normalize(2, 10, 11, 12);
+        assertThrows(IllegalArgumentException.class, m).normalize(2, 5, 10, 0);
+        assertThrows(IllegalArgumentException.class, m).normalize(2, 10, 0, 9);
+        assertThrows(IllegalArgumentException.class, m).interleave(-1, 5);
+        assertThrows(IllegalArgumentException.class, m).interleave(5, -1);
+        assertThrows(IllegalArgumentException.class, m).
+                interleave(Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE);
     }
 
     private void testPerformance2d() throws SQLException {

@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -33,12 +34,8 @@ public class TestExclusive extends TestBase {
         Connection conn = getConnection("exclusive");
         Statement stat = conn.createStatement();
         stat.execute("set exclusive true");
-        try {
-            getConnection("exclusive");
-            fail();
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        assertThrows(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE, this).
+                getConnection("exclusive");
 
         stat.execute("set exclusive false");
         Connection conn2 = getConnection("exclusive");

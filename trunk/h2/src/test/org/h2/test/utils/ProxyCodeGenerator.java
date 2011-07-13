@@ -8,6 +8,7 @@ package org.h2.test.utils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -30,6 +31,17 @@ public class ProxyCodeGenerator {
     private String packageName;
     private String className;
     private Class<?> extendsClass;
+    private Constructor<?> constructor;
+
+    /**
+     * Check whether there is already a proxy class generated.
+     *
+     * @param c the class
+     * @return true if yes
+     */
+    public static boolean isGenerated(Class<?> c) {
+        return proxyMap.containsKey(c);
+    }
 
     /**
      * Generate a proxy class. The returned class extends the given class.
@@ -91,14 +103,27 @@ public class ProxyCodeGenerator {
         addImport(clazz);
         className = getClassName(clazz) + "Proxy";
         extendsClass = clazz;
-        int finalOrStaticOrPrivate = Modifier.FINAL | Modifier.STATIC | Modifier.PRIVATE;
-        while (clazz != null) {
-            for (Method m : clazz.getDeclaredMethods()) {
-                if ((m.getModifiers() & finalOrStaticOrPrivate) == 0) {
+        int doNotOverride = Modifier.FINAL | Modifier.STATIC |
+                Modifier.PRIVATE | Modifier.ABSTRACT | Modifier.VOLATILE;
+        Class<?> dc = clazz;
+        while (dc != null) {
+            addImport(dc);
+            for (Method m : dc.getDeclaredMethods()) {
+                if ((m.getModifiers() & doNotOverride) == 0) {
                     addMethod(m);
                 }
             }
-            clazz = clazz.getSuperclass();
+            dc = dc.getSuperclass();
+        }
+        for (Constructor<?> c : clazz.getDeclaredConstructors()) {
+            if (Modifier.isPrivate(c.getModifiers())) {
+                continue;
+            }
+            if (constructor == null) {
+                constructor = c;
+            } else if (c.getParameterTypes().length < constructor.getParameterTypes().length) {
+                constructor = c;
+            }
         }
     }
 
@@ -115,7 +140,6 @@ public class ProxyCodeGenerator {
             addImport(c);
         }
         methods.put(getMethodName(m), m);
-
     }
 
     private String getMethodName(Method m) {
@@ -173,6 +197,38 @@ public class ProxyCodeGenerator {
         writer.println("            }});");
         writer.println("    }");
         writer.println("    public " + className + "(InvocationHandler ih) {");
+        if (constructor != null) {
+            writer.print("        super(");
+            int i = 0;
+            for (Class<?> p : constructor.getParameterTypes()) {
+                if (i > 0) {
+                    writer.print(", ");
+                }
+                if (p.isPrimitive()) {
+                    if (p == boolean.class) {
+                        writer.print("false");
+                    } else if (p == byte.class) {
+                        writer.print("(byte) 0");
+                    } else if (p == char.class) {
+                        writer.print("(char) 0");
+                    } else if (p == short.class) {
+                        writer.print("(short) 0");
+                    } else if (p == int.class) {
+                        writer.print("0");
+                    } else if (p == long.class) {
+                        writer.print("0L");
+                    } else if (p == float.class) {
+                        writer.print("0F");
+                    } else if (p == double.class) {
+                        writer.print("0D");
+                    }
+                } else {
+                    writer.print("null");
+                }
+                i++;
+            }
+            writer.println(");");
+        }
         writer.println("        this.ih = ih;");
         writer.println("    }");
         writer.println("    @SuppressWarnings(\"unchecked\")");
@@ -265,6 +321,20 @@ public class ProxyCodeGenerator {
         }
         writer.println("}");
         writer.flush();
+    }
+
+    public static String methodCallFormatter(Method m, Object... args) {
+        StringBuilder buff = new StringBuilder();
+        buff.append(m.getName()).append('(');
+        for (int i = 0; i < args.length; i++) {
+            Object a = args[i];
+            if (i > 0) {
+                buff.append(", ");
+            }
+            buff.append(a == null ? "null" : a.toString());
+        }
+        buff.append(")");
+        return buff.toString();
     }
 
 }

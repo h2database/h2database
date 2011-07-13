@@ -6,13 +6,11 @@
  */
 package org.h2.test.unit;
 
-import org.h2.test.TestBase;
+import java.io.File;
+import java.util.Properties;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.ConnectionInfo;
-
-import java.io.File;
-import java.sql.SQLException;
-import java.util.Properties;
+import org.h2.test.TestBase;
 
 /**
  * Test the ConnectionInfo class.
@@ -37,18 +35,10 @@ public class TestConnectionInfo extends TestBase {
     }
 
     private void testConnectInitError() throws Exception {
-        try {
-            getConnection("jdbc:h2:mem:;init=error");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.SYNTAX_ERROR_2, e.getErrorCode());
-        }
-        try {
-            getConnection("jdbc:h2:mem:;init=runscript from 'wrong.file'");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.IO_EXCEPTION_2, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.SYNTAX_ERROR_2, this).
+                getConnection("jdbc:h2:mem:;init=error");
+        assertThrows(ErrorCode.IO_EXCEPTION_2, this).
+                getConnection("jdbc:h2:mem:;init=runscript from 'wrong.file'");
     }
 
     private void testConnectionInfo() throws Exception {

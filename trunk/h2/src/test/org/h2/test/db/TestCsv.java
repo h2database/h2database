@@ -24,7 +24,6 @@ import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.message.DbException;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
@@ -38,7 +37,6 @@ import org.h2.util.StringUtils;
  *
  * @author Thomas Mueller
  * @author Sylvain Cuaz (testNull)
- *
  */
 public class TestCsv extends TestBase {
 
@@ -72,17 +70,18 @@ public class TestCsv extends TestBase {
     }
 
     private void testPreserveWhitespace() throws Exception {
-        OutputStream out = IOUtils.openFileOutputStream(getBaseDir()+"/test.tsv", false);
+        OutputStream out = IOUtils.openFileOutputStream(getBaseDir() + "/test.tsv", false);
         out.write("a,b\n 1 , 2 \n".getBytes());
         out.close();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv')");
+        rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
         rs.next();
         assertEquals("1", rs.getString(1));
         assertEquals("2", rs.getString(2));
-        rs = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv', null, 'preserveWhitespace=true')");
+        rs = stat.executeQuery("select * from csvread('" + getBaseDir()
+                + "/test.tsv', null, 'preserveWhitespace=true')");
         rs.next();
         assertEquals(" 1 ", rs.getString(1));
         assertEquals(" 2 ", rs.getString(2));
@@ -90,20 +89,20 @@ public class TestCsv extends TestBase {
     }
 
     private void testChangeData() throws Exception {
-        OutputStream out = IOUtils.openFileOutputStream(getBaseDir()+"/test.tsv", false);
+        OutputStream out = IOUtils.openFileOutputStream(getBaseDir() + "/test.tsv", false);
         out.write("a,b,c,d,e,f,g\n1".getBytes());
         out.close();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv')");
+        ResultSet rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
         assertEquals(7, rs.getMetaData().getColumnCount());
         assertEquals("A", rs.getMetaData().getColumnLabel(1));
         rs.next();
         assertEquals(1, rs.getInt(1));
-        out = IOUtils.openFileOutputStream(getBaseDir()+"/test.tsv", false);
+        out = IOUtils.openFileOutputStream(getBaseDir() + "/test.tsv", false);
         out.write("x".getBytes());
         out.close();
-        rs = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv')");
+        rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
         assertEquals(1, rs.getMetaData().getColumnCount());
         assertEquals("X", rs.getMetaData().getColumnLabel(1));
         assertFalse(rs.next());
@@ -134,9 +133,8 @@ public class TestCsv extends TestBase {
         assertEquals('"', csv.getLineCommentCharacter());
         assertEquals(" \\ ", csv.getLineSeparator());
 
-        charset = csv.setOptions("escape=1x fieldDelimiter=2x fieldSeparator=3x " +
-                "lineComment=4x lineSeparator=5x " +
-                "null=6x rowSeparator=7x charset=8x preserveWhitespace=true");
+        charset = csv.setOptions("escape=1x fieldDelimiter=2x fieldSeparator=3x " + "lineComment=4x lineSeparator=5x "
+                + "null=6x rowSeparator=7x charset=8x preserveWhitespace=true");
         assertEquals('1', csv.getEscapeCharacter());
         assertEquals('2', csv.getFieldDelimiter());
         assertEquals('3', csv.getFieldSeparatorRead());
@@ -148,9 +146,8 @@ public class TestCsv extends TestBase {
         assertEquals("8x", charset);
         assertTrue(csv.getPreserveWhitespace());
 
-        charset = csv.setOptions("escape= fieldDelimiter= fieldSeparator= " +
-                "lineComment= lineSeparator=\r\n " +
-                "null=\0 rowSeparator= charset=");
+        charset = csv.setOptions("escape= fieldDelimiter= fieldSeparator= " + "lineComment= lineSeparator=\r\n "
+                + "null=\0 rowSeparator= charset=");
         assertEquals(0, csv.getEscapeCharacter());
         assertEquals(0, csv.getFieldDelimiter());
         assertEquals(0, csv.getFieldSeparatorRead());
@@ -161,12 +158,8 @@ public class TestCsv extends TestBase {
         assertEquals("", csv.getRowSeparatorWrite());
         assertEquals("", charset);
 
-        try {
-            csv.setOptions("escape=a error=b");
-            fail();
-        } catch (DbException e) {
-            assertEquals(ErrorCode.UNSUPPORTED_SETTING_1, e.getErrorCode());
-        }
+        createClassProxy(Csv.class);
+        assertThrows(ErrorCode.UNSUPPORTED_SETTING_1, csv).setOptions("escape=a error=b");
         assertEquals('a', csv.getEscapeCharacter());
     }
 
@@ -198,7 +191,7 @@ public class TestCsv extends TestBase {
         assertEquals("A", rs.getMetaData().getColumnName(1));
         assertEquals("A1", rs.getMetaData().getColumnName(2));
 
-        rs = Csv.getInstance().read(new StringReader("1,2"), new String[]{"", null});
+        rs = Csv.getInstance().read(new StringReader("1,2"), new String[] { "", null });
         assertEquals("C1", rs.getMetaData().getColumnName(1));
         assertEquals("C2", rs.getMetaData().getColumnName(2));
     }
@@ -213,11 +206,11 @@ public class TestCsv extends TestBase {
         stat.execute("create temporary table test (a int, b int, c int)");
         stat.execute("insert into test values(1,2,3)");
         stat.execute("insert into test values(4,null,5)");
-        stat.execute("call csvwrite('"+getBaseDir()+"/test.tsv','select * from test',null,' ')");
+        stat.execute("call csvwrite('" + getBaseDir() + "/test.tsv','select * from test',null,' ')");
         ResultSet rs1 = stat.executeQuery("select * from test");
-        assertResultSetOrdered(rs1, new String[][]{new String[]{"1", "2", "3"}, new String[]{"4", null, "5"}});
-        ResultSet rs2 = stat.executeQuery("select * from csvread('"+getBaseDir()+"/test.tsv',null,null,' ')");
-        assertResultSetOrdered(rs2, new String[][]{new String[]{"1", "2", "3"}, new String[]{"4", null, "5"}});
+        assertResultSetOrdered(rs1, new String[][] { new String[] { "1", "2", "3" }, new String[] { "4", null, "5" } });
+        ResultSet rs2 = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv',null,null,' ')");
+        assertResultSetOrdered(rs2, new String[][] { new String[] { "1", "2", "3" }, new String[] { "4", null, "5" } });
         conn.close();
         IOUtils.delete(f.getAbsolutePath());
         IOUtils.delete(getBaseDir() + "/test.tsv");
@@ -284,7 +277,7 @@ public class TestCsv extends TestBase {
             String a = randomData(random), b = randomData(random);
             prep.setString(1, a);
             prep.setString(2, b);
-            list.add(new String[]{a, b});
+            list.add(new String[] { a, b });
             prep.execute();
         }
         stat.execute("CALL CSVWRITE('" + getBaseDir() + "/test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
@@ -321,7 +314,8 @@ public class TestCsv extends TestBase {
         IOUtils.delete(fileName);
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('"+fileName+"', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
+        stat.execute("call csvwrite('" + fileName
+                + "', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
         InputStreamReader reader = new InputStreamReader(IOUtils.openFileInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
         text = StringUtils.replaceAll(text, "\n", " ");

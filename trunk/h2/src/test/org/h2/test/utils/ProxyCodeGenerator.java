@@ -165,6 +165,13 @@ public class ProxyCodeGenerator {
     }
 
     private static String getClassName(Class<?> c) {
+        return getClassName(c, false);
+    }
+
+    private static String getClassName(Class<?> c, boolean varArg) {
+        if (varArg) {
+            c = c.getComponentType();
+        }
         String s = c.getSimpleName();
         while (true) {
             c = c.getEnclosingClass();
@@ -172,6 +179,9 @@ public class ProxyCodeGenerator {
                 break;
             }
             s = c.getSimpleName() + "." + s;
+        }
+        if (varArg) {
+            return s + "...";
         }
         return s;
     }
@@ -249,13 +259,14 @@ public class ProxyCodeGenerator {
             }
             writer.print(getClassName(retClass) +
                 " " + m.getName() + "(");
-            int i = 0;
-            for (Class<?> p : m.getParameterTypes()) {
+            Class<?>[] pc = m.getParameterTypes();
+            for (int i = 0; i < pc.length; i++) {
+                Class<?> p = pc[i];
                 if (i > 0) {
                     writer.print(", ");
                 }
-                writer.print(getClassName(p) + " p" + i);
-                i++;
+                boolean varArg = i == pc.length - 1 && m.isVarArgs();
+                writer.print(getClassName(p, varArg) + " p" + i);
             }
             writer.print(")");
             Class<?>[] ec = m.getExceptionTypes();
@@ -297,7 +308,7 @@ public class ProxyCodeGenerator {
                     ".class.getDeclaredMethod(\"" + m.getName() +
                     "\",");
             writer.print("                new Class[] {");
-            i = 0;
+            int i = 0;
             for (Class<?> p : m.getParameterTypes()) {
                 if (i > 0) {
                     writer.print(", ");

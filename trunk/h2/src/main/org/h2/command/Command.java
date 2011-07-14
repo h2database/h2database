@@ -251,20 +251,26 @@ public abstract class Command implements CommandInterface {
         if (e.getErrorCode() != ErrorCode.CONCURRENT_UPDATE_1) {
             throw e;
         }
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime() / 1000000;
         if (start != 0 && now - start > session.getLockTimeout()) {
             throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, e.getCause(), "");
         }
-        try {
-            Database database = session.getDatabase();
-            int sleep = 1 + MathUtils.randomInt(10);
-            if (database.isMultiThreaded()) {
-                Thread.sleep(sleep);
-            } else {
-                database.wait(sleep);
+        Database database = session.getDatabase();
+        int sleep = 1 + MathUtils.randomInt(10);
+        while (true) {
+            try {
+                if (database.isMultiThreaded()) {
+                    Thread.sleep(sleep);
+                } else {
+                    database.wait(sleep);
+                }
+            } catch (InterruptedException e1) {
+                // ignore
             }
-        } catch (InterruptedException e1) {
-            // ignore
+            long slept = System.nanoTime() / 1000000 - now;
+            if (slept >= sleep) {
+                break;
+            }
         }
         return start == 0 ? now : start;
     }

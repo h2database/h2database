@@ -6,14 +6,17 @@
  */
 package org.h2.test.db;
 
+import java.io.Reader;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
- * Test the deadlock detection mechanism.
+ * Test for deadlocks in the code, and test the deadlock detection mechanism.
  */
 public class TestDeadlock extends TestBase {
 
@@ -44,12 +47,53 @@ public class TestDeadlock extends TestBase {
 
     public void test() throws Exception {
         deleteDb("deadlock");
+        testConcurrentLobReadAndTempResultTableDelete();
         testDiningPhilosophers();
         testLockUpgrade();
         testThreePhilosophers();
         testNoDeadlock();
         testThreeSome();
         deleteDb("deadlock");
+    }
+
+    private void testConcurrentLobReadAndTempResultTableDelete() throws Exception {
+        deleteDb("deadlock");
+        String url = "deadlock;MAX_MEMORY_ROWS_DISTINCT=10";
+        Connection conn, conn2;
+        Statement stat2;
+        conn = getConnection(url);
+        conn2 = getConnection(url);
+        final Statement stat = conn.createStatement();
+        stat2 = conn2.createStatement();
+        stat.execute("create table test(id int primary key, name varchar) as " +
+                "select x, 'Hello' from system_range(1,20)");
+        stat2.execute("create table test_clob(id int primary key, data clob) as " +
+                "select 1, space(10000)");
+        ResultSet rs2 = stat2.executeQuery("select * from test_clob");
+        rs2.next();
+        Task t = new Task() {
+            public void call() throws Exception {
+                while (!stop) {
+                    stat.execute("select * from (select distinct id from test)");
+                }
+            }
+        };
+        t.execute();
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < 1000) {
+            Reader r = rs2.getCharacterStream(2);
+            char[] buff = new char[1024];
+            while (true) {
+                int x = r.read(buff);
+                if (x < 0) {
+                    break;
+                }
+            }
+        }
+        t.get();
+        stat.execute("drop all objects");
+        conn.close();
+        conn2.close();
     }
 
     private void initTest() throws SQLException {

@@ -37,7 +37,6 @@ public class Analyze extends DefineCommand {
         session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
-        // TODO do we need to lock the table?
         for (Table table : db.getAllTablesAndViews(false)) {
             analyzeTable(session, table, sampleRows, true);
         }

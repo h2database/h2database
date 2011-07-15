@@ -82,6 +82,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Cost for embedded temporary view is calculated wrong, if result is constant.
 </li><li>Count index range query (count(*) where id between 10 and 20).
 </li><li>Performance: update in-place.
+</li><li>Clustering: when a database is back alive, automatically synchronize with the master (requires readable transaction log).
 </li><li>Database file name suffix: a way to use no or a different suffix (for example using a slash).
 </li><li>Eclipse plugin.
 </li><li>Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait].
@@ -102,7 +103,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero. HSQLDB: 0.0e1 / 0.0e1 is NaN.
 </li><li>Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R).
 </li><li>Custom class loader to reload functions on demand.
-</li><li>Clustering: when a database is back alive, automatically synchronize with the master.
 </li><li>Test http://mysql-je.sourceforge.net/
 </li><li>H2 Console: the webclient could support more features like phpMyAdmin.
 </li><li>Support Oracle functions: TRUNC, NVL2, TO_CHAR, TO_DATE, TO_NUMBER.
@@ -553,6 +553,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support NATURAL [ { LEFT | RIGHT } [ OUTER ] | INNER ] JOIN (Derby, Oracle)
 </li><li>GROUP BY columnNumber (similar to ORDER BY columnNumber) (MySQL, PostgreSQL, SQLite; not by HSQLDB and Derby).
 </li><li>Sybase / MS SQL Server compatibility: CONVERT(..) parameters are swapped.
+</li><li>Index conditions: WHERE AGE>1 should not scan though all rows with AGE=1.
 </li></ul>
 
 <h2>Not Planned</h2>

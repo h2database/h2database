@@ -3627,11 +3627,11 @@ READONLY()
 "
 
 "Functions (System)","ROWNUM","
-ROWNUM()
+{ ROWNUM() } | { ROW_NUMBER() OVER() } 
 ","
 Returns the number of the current row.
-This method returns an int.
-This function is supported for SELECT statements, as well as for DELETE and UPDATE.
+This method returns a long.
+It is supported for SELECT statements, as well as for DELETE and UPDATE.
 The first row has the row number 1, and is calculated before ordering and grouping the result set,
 but after evaluating index conditions (even when the  index conditions are specified in an outer query).
 To get the row number after ordering and grouping, use a subquery.

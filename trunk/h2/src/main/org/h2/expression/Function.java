@@ -97,6 +97,8 @@ public class Function extends Expression implements FunctionCall {
             LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228;
 
+    public static final int ROW_NUMBER = 300;
+
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
 
@@ -336,6 +338,9 @@ public class Function extends Expression implements FunctionCall {
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
         addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
+
+        // pseudo function
+        addFunctionWithNull("ROW_NUMBER", ROW_NUMBER, 0, Value.LONG);
     }
 
     protected Function(Database database, FunctionInfo info) {

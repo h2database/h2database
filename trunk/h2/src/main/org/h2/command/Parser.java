@@ -2275,6 +2275,12 @@ public class Parser {
             tf.setColumns(columns);
             break;
         }
+        case Function.ROW_NUMBER:
+            read(")");
+            read("OVER");
+            read("(");
+            read(")");
+            return new Rownum(currentSelect == null ? currentPrepared : currentSelect);
         default:
             if (!readIf(")")) {
                 int i = 0;

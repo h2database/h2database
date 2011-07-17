@@ -135,6 +135,9 @@ public class TestFullText extends TestBase {
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH('this', 0, 0)");
         assertFalse(rs.next());
 
+        conn.close();
+        conn = getConnection("fullTextNative");
+        stat = conn.createStatement();
         conn.setAutoCommit(false);
         stat.execute("delete from test");
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('Welcome', 0, 0)");

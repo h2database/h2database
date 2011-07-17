@@ -41,7 +41,7 @@ public interface Trigger {
      * appropriate flags set. As an example, if the trigger is of type INSERT
      * and UPDATE, then the parameter type is set to (INSERT | UPDATE).
      *
-     * @param conn a connection to the database
+     * @param conn a connection to the database (a system connection)
      * @param schemaName the name of the schema
      * @param triggerName the name of the trigger used in the CREATE TRIGGER
      *            statement

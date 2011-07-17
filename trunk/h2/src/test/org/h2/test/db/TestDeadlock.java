@@ -47,6 +47,7 @@ public class TestDeadlock extends TestBase {
 
     public void test() throws Exception {
         deleteDb("deadlock");
+        testDeadlockInFulltextSearch();
         testConcurrentLobReadAndTempResultTableDelete();
         testDiningPhilosophers();
         testLockUpgrade();
@@ -54,6 +55,39 @@ public class TestDeadlock extends TestBase {
         testNoDeadlock();
         testThreeSome();
         deleteDb("deadlock");
+    }
+
+    private void testDeadlockInFulltextSearch() throws SQLException {
+        deleteDb("deadlock");
+        String url = "deadlock";
+        Connection conn, conn2;
+        conn = getConnection(url);
+        conn2 = getConnection(url);
+        final Statement stat = conn.createStatement();
+        Statement stat2 = conn2.createStatement();
+        stat.execute("create alias if not exists ft_init for \"org.h2.fulltext.FullText.init\"");
+        stat.execute("call ft_init()");
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("call ft_create_index('PUBLIC', 'TEST', null)");
+        Task t = new Task() {
+            public void call() throws Exception {
+                while (!stop) {
+                    stat.executeQuery("select * from test");
+                }
+            }
+        };
+        t.execute();
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < 1000) {
+            stat2.execute("insert into test values(1, 'Hello')");
+            stat2.execute("delete from test");
+        }
+        t.get();
+        conn2.close();
+        conn.close();
+        conn = getConnection(url);
+        conn.createStatement().execute("drop all objects");
+        conn.close();
     }
 
     private void testConcurrentLobReadAndTempResultTableDelete() throws Exception {

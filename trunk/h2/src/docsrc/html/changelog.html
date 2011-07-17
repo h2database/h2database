@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>DATABASE_TO_UPPER: when set to false, all identifier names (table names, column names)
+<ul><li>Fulltext search (native): after re-opening the connection once the fulltext index was created,
+    transaction rollbacks did not roll back the modifications in the index.
+</li><li>Support for ROW_NUMBER() OVER() as an alias for ROWNUM() 
+    for compatibility with PostgreSQL and Apache Derby.
+</li><li>Issue 325: a deadlock in the fulltext search could occur if the connection that was
+    used while initializing the fulltext search was later used to query the database.
+    This was actually not only a problem for fulltext search, but also for other triggers
+    that used the initializing connection later on.
+</li><li>DATABASE_TO_UPPER: when set to false, all identifier names (table names, column names)
     are case sensitive (except aggregate, built-in functions, data types, and keywords).
     This is for improved compatibility with MySQL and PostgreSQL.
 </li><li>When upgrading from an older 1.3.x version to version 1.3.157, when using BLOB or CLOB data,

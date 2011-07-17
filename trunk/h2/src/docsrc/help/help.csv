@@ -3627,7 +3627,7 @@ READONLY()
 "
 
 "Functions (System)","ROWNUM","
-{ ROWNUM() } | { ROW_NUMBER() OVER() } 
+{ ROWNUM() } | { ROW_NUMBER() OVER() }
 ","
 Returns the number of the current row.
 This method returns a long.

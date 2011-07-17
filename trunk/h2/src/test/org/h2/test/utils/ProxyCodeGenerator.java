@@ -334,7 +334,14 @@ public class ProxyCodeGenerator {
         writer.flush();
     }
 
-    public static String methodCallFormatter(Method m, Object... args) {
+    /**
+     * Format a method call, including arguments, for an exception message.
+     *
+     * @param m the method
+     * @param args the arguments
+     * @return the formatted string
+     */
+    public static String formatMethodCall(Method m, Object... args) {
         StringBuilder buff = new StringBuilder();
         buff.append(m.getName()).append('(');
         for (int i = 0; i < args.length; i++) {

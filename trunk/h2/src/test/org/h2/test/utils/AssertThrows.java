@@ -34,7 +34,7 @@ public abstract class AssertThrows {
                             expectedExceptionClass.getSimpleName() +
                             " to be thrown, but the method returned " +
                             returnValue +
-                           " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
                 }
                 if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
                     AssertionError ae = new AssertionError(
@@ -43,7 +43,7 @@ public abstract class AssertThrows {
                             " to be thrown, but the method under test threw an exception of type\n" +
                             t.getClass().getSimpleName() +
                             " (see in the 'Caused by' for the exception that was thrown) " +
-                            " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
                     ae.initCause(t);
                     throw ae;
                 }
@@ -63,7 +63,7 @@ public abstract class AssertThrows {
                     throw new AssertionError(
                             "Expected an exception to be thrown, but the method returned " +
                             returnValue +
-                            " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
                 }
                 // all exceptions are fine
                 return false;
@@ -92,7 +92,7 @@ public abstract class AssertThrows {
                     AssertionError ae = new AssertionError(
                             "Expected an SQLException or DbException with error code " +
                             expectedErrorCode +
-                            " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
                     ae.initCause(t);
                     throw ae;
                 }

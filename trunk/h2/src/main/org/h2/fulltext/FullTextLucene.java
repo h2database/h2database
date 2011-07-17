@@ -230,10 +230,8 @@ public class FullTextLucene extends FullText {
         String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
         StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
-        // unlike the native fulltext search, the trigger is also called on
-        // rollback because transaction rollback will not undo the changes in
-        // the Lucene index (but it will undo the changes in the native fulltext
-        // index, as those operations are part of the transaction)
+        // the trigger is also called on rollback because transaction rollback
+        // will not undo the changes in the Lucene index
         buff.append(trigger).
             append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ").
             append(StringUtils.quoteIdentifier(schema)).

@@ -59,11 +59,12 @@ public class TriggerObject extends SchemaObjectBase {
         this.insteadOf = insteadOf;
     }
 
-    private synchronized void load(Session session) {
+    private synchronized void load() {
         if (triggerCallback != null) {
             return;
         }
         try {
+            Session session = database.getSystemSession();
             Connection c2 = session.createConnection(false);
             Object obj = Utils.loadUserClass(triggerClassName).newInstance();
             triggerCallback = (Trigger) obj;
@@ -87,7 +88,7 @@ public class TriggerObject extends SchemaObjectBase {
     public void setTriggerClassName(Session session, String triggerClassName, boolean force) {
         this.triggerClassName = triggerClassName;
         try {
-            load(session);
+            load();
         } catch (DbException e) {
             if (!force) {
                 throw e;
@@ -108,7 +109,7 @@ public class TriggerObject extends SchemaObjectBase {
         if (rowBased || before != beforeAction || (typeMask & type) == 0) {
             return;
         }
-        load(session);
+        load();
         Connection c2 = session.createConnection(false);
         boolean old = false;
         if (type != Trigger.SELECT) {
@@ -161,7 +162,7 @@ public class TriggerObject extends SchemaObjectBase {
         if (rollback && !onRollback) {
             return false;
         }
-        load(session);
+        load();
         Object[] oldList;
         Object[] newList;
         boolean fire = false;

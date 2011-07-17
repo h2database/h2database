@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.158 (2011-07-17)</h2>
 <ul><li>Fulltext search (native): after re-opening the connection once the fulltext index was created,
     a transaction rollback did not roll back the modifications in the index.
 </li><li>Support for ROW_NUMBER() OVER() as an alias for ROWNUM()
@@ -811,81 +815,6 @@ Change Log
     classes (v 1.2.128) connect to the database. The automatic upgrade .jar file must be present, and the url
     must contain NO_UPGRADE=TRUE
 </li><li>The automatic upgrade temporary script file is now encrypted.
-</li></ul>
-
-<h2>Version 1.2.139 (2010-07-10)</h2>
-<ul><li>There was a bug in the internal IntIntHashMap. There were no known side effects however.
-</li><li>ANALYZE now uses less memory.
-</li><li>Memory mapped file system: improved error messages if there is a problem.
-</li><li>The Lucene fulltext search did not work well
-    when using special file systems such as split or nioMapped.
-</li><li>The memory mapped file system (nioMapped: file prefix) couldn't seek past the file length.
-</li><li>Some file system operations did not work with stacked file systems
-    (for example split and nioMapped). This also affected the DeleteDbFiles tool.
-</li><li>New experimental query cache.
-    The cache is only used if the SQL statement and all parameters match.
-    Each session has it's own cache with the given size.
-    Only the last returned result per query is cached.
-    Only SELECT statements are cached (excluding UNION and FOR UPDATE statements).
-    This works for both statements and prepared statement.
-    To enable, set the system property h2.commandCacheSize to a value larger than 0.
-    There is currently no plan to enable this option by default in future versions.
-</li><li>Conditions with many OR operations could throw an UnsupportedOperationException if
-    h2.optimizeOr was enabled.
-</li><li>XA connection: after transaction commit or rollback,
-    the physical connection is set into autocommit mode.
-</li><li>MULTI_THREADED did not work correctly and could throw the exception
-    "try to add a record twice" for larger databases because cache access was not correctly synchronized.
-</li><li>Automatic database upgrade from non page store is now possible. If the
-    classes from the h2mig_pagestore_addon.jar file are in the classpath, the database will be converted to the current
-    page store format automatically. The file can be found here:
-    <a href="http://h2database.com/h2mig_pagestore_addon.jar">http://h2database.com/h2mig_pagestore_addon.jar</a>
-</li><li>The MultiDimension tools was extended with a few helper methods.
-    The API was unified a bit.
-</li><li>ODBC: MS Access could not link to a table with unique index or primary key.
-    To solve this problem, index meta data is currently disabled for ODBC.
-    When using the new H2 version to access a database over ODBC, the PostgreSQL catalog
-    is automatically upgraded. Using a database with an upgraded PostgreSQL catalog
-    with an older version of H2 is still possible, but not over ODBC.
-</li><li>ODBC: MS Access could not link to a table with a name containing '_'.
-</li><li>ODBC: additional connection settings can now be added to the database name.
-    Example: ~/test;cipher=xtea. Therefore, encrypted databases are supported.
-</li><li>Local temporary tables can now be created without having to commit a transaction
-    using CREATE LOCAL TEMPORARY TABLE TEMP(ID INT PRIMARY KEY) TRANSACTIONAL.
-</li><li>New system property h2.dropRestrict (default false) to change the
-    default action for DROP TABLE and DROP VIEW (false for CASCADE, true for RESTRICT).
-    The plan is to enable this property by default in version 1.3.x.
-</li><li>DROP TABLE now also supports CASCADE (still the default) and RESTRICT.
-</li><li>The wrong exception was thrown when trying to connect to a server if the server was not running.
-</li><li>UNION queries where the first query contains a nested query were parsed incorrectly.
-    Example: "select 1 from (select 2 from dual) union select 3 from dual" was parsed as
-    "select 1 from ((select 2 from dual) union select 3 from dual)". Fixed.
-</li><li>Support ALTER SCHEMA name RENAME TO newName (rename schema). (patch from Kerry Sainsbury)
-</li></ul>
-
-<h2>Version 1.2.138 (2010-06-27)</h2>
-<ul><li>Referential integrity: it was not allowed to delete a row with NULL in the parent table,
-    if there was a row with NULL in the child table.
-</li><li>Experimental feature to support case sensitive catalog names
-    and database names using the DATABASE() method.
-    To use this feature, set the system property h2.databaseToUpper to false.
-    The plan is to set the property to false by default in version 1.3.x.
-    Issue 204 - thanks to Sylvain Cuaz (ILM Informatique) for the patch.
-</li><li>Experimental feature to support nested joins.
-    To enable, set the system property h2.nestedJoins to true.
-    If enabled, nested joins and right outer joins should work as expected (issues 145, 177, and 203).
-    The plan is to enable this feature by default in version 1.3.x.
-</li><li>New sample application: CachedPreparedStatements.
-</li><li>When creating functions within a schema, those functions could not be used
-    in views, nested queries, and constraints. Fixed.
-</li><li>The benchmarks have been run using recent database versions.
-</li><li>Version 1.2.137 could still not be converted to Java 1.4
-    (because the Retrotranslator doesn't support BigDecimal.precision).
-</li><li>Cluster: non-admin users could not connect when one of the cluster node was stopped. Issue 206.
-</li><li>DROP VIEW now supports the CASCADE and RESTRICT clauses (patch from Kerry Sainsbury)
-</li><li>CREATE VIEW now supports the OR REPLACE clause (patch from Kerry Sainsbury)
-</li><li>Build tool: ability to only run one test using the -Dtest=className setting.
-    eg: build -Dtest=org.h2.test.db.TestViewDropView test (patch from Kerry Sainsbury).
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

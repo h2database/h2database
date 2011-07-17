@@ -1298,7 +1298,7 @@ public abstract class TestBase {
                             expectedExceptionClass.getSimpleName() +
                             " to be thrown, but the method returned " +
                             returnValue +
-                           " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
                 }
                 if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
                     AssertionError ae = new AssertionError(
@@ -1307,7 +1307,7 @@ public abstract class TestBase {
                             " to be thrown, but the method under test threw an exception of type\n" +
                             t.getClass().getSimpleName() +
                             " (see in the 'Caused by' for the exception that was thrown) " +
-                            " for " + ProxyCodeGenerator.methodCallFormatter(m, args));
+                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
                     ae.initCause(t);
                     throw ae;
                 }
@@ -1350,7 +1350,7 @@ public abstract class TestBase {
      * Verify the next method call on the object will throw an exception.
      *
      * @param <T> the class of the object
-     * @param handler the exception handler to call
+     * @param verifier the result verifier to call
      * @param obj the object to wrap
      * @return a proxy for the object
      */

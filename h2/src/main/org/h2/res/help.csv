@@ -1334,7 +1334,7 @@ READONLY()
 ","
 Returns true if the database is read-only."
 "Functions (System)","ROWNUM","
-ROWNUM()
+{ ROWNUM() } | { ROW_NUMBER() OVER() }
 ","
 Returns the number of the current row."
 "Functions (System)","SCHEMA","

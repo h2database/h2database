@@ -19,8 +19,8 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>Fulltext search (native): after re-opening the connection once the fulltext index was created,
-    transaction rollbacks did not roll back the modifications in the index.
-</li><li>Support for ROW_NUMBER() OVER() as an alias for ROWNUM() 
+    a transaction rollback did not roll back the modifications in the index.
+</li><li>Support for ROW_NUMBER() OVER() as an alias for ROWNUM()
     for compatibility with PostgreSQL and Apache Derby.
 </li><li>Issue 325: a deadlock in the fulltext search could occur if the connection that was
     used while initializing the fulltext search was later used to query the database.

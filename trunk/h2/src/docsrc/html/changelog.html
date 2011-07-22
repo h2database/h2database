@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>The SQL statement "shutdown defag" could corrupt the database if the process was killed
+    while the shutdown was in progress. The same problem could occur when the database
+    setting "defrag_always" was used.
 </li></ul>
 
 <h2>Version 1.3.158 (2011-07-17)</h2>

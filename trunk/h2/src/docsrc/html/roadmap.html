@@ -186,7 +186,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support multiple directories (on different hard drives) for the same database
 </li><li>Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response
 </li><li>Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
-</li><li>Support native XML data type
+</li><li>Support native XML data type - see http://en.wikipedia.org/wiki/SQL/XML
 </li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Time based cache writing (one second after writing the log)
@@ -531,7 +531,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     (compatibility with MySQL, PostgreSQL, HSQLDB; not Derby).
 </li><li>ARRAY data type: support Integer[] and so on in Java functions (currently only Object[] is supported).
 </li><li>MySQL compatibility: LOCK TABLES a READ, b READ - see also http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html
-</li><li>Oracle compatibility: convert empty strings to null.
+</li><li>Oracle compatibility: convert empty strings to null. Also convert an empty byte array to null, but not empty varray.
 </li><li>The HTML to PDF converter should use http://code.google.com/p/wkhtmltopdf/
 </li><li>Issue 303: automatically convert "X NOT IN(SELECT...)" to "NOT EXISTS(...)".
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.name=t2.name where t1.id=t2.id.
@@ -554,6 +554,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>GROUP BY columnNumber (similar to ORDER BY columnNumber) (MySQL, PostgreSQL, SQLite; not by HSQLDB and Derby).
 </li><li>Sybase / MS SQL Server compatibility: CONVERT(..) parameters are swapped.
 </li><li>Index conditions: WHERE AGE>1 should not scan through all rows with AGE=1.
+</li><li>PHP support: H2 should support PDO, or test with PostgreSQL PDO.
 </li></ul>
 
 <h2>Not Planned</h2>

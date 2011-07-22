@@ -538,7 +538,6 @@ public class PageStore implements CacheWriter {
             int target = MIN_PAGE_COUNT - 1;
             int temp = 0;
             for (int i = 0, size = recordedPagesList.size(); i < size; i++) {
-                writeBack();
                 int source = recordedPagesList.get(i);
                 Page pageSource = getPage(source);
                 if (!pageSource.canMove()) {

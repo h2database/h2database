@@ -52,6 +52,9 @@ public class TestStringUtils extends TestBase {
         new AssertThrows(DbException.class) { public void test() {
             StringUtils.convertHexToBytes("fast");
         }};
+        new AssertThrows(DbException.class) { public void test() {
+            StringUtils.convertHexToBytes("012=abcf");
+        }};
     }
 
     private void testPad() {

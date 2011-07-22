@@ -66,9 +66,9 @@ public class ValueTimestamp extends Value {
      */
     public static ValueTimestamp get(Timestamp timestamp) {
         long ms = timestamp.getTime();
+        long nanos = timestamp.getNanos() % 1000000;
         long dateValue = DateTimeUtils.dateValueFromDate(ms);
-        long nanos = DateTimeUtils.nanosFromDate(ms);
-        nanos += timestamp.getNanos() % 1000000;
+        nanos += DateTimeUtils.nanosFromDate(ms);
         return fromDateValueAndNanos(dateValue, nanos);
     }
 

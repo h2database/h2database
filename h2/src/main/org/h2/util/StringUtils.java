@@ -23,6 +23,19 @@ public class StringUtils {
     private static SoftReference<String[]> softCache = new SoftReference<String[]>(null);
     private static long softCacheCreated;
     private static final char[] HEX = "0123456789abcdef".toCharArray();
+    private static final int[] HEX_DECODE = new int['f' + 1];
+
+    static {
+        for (int i = 0; i < HEX_DECODE.length; i++) {
+            HEX_DECODE[i] = -1;
+        }
+        for (int i = 0; i <= 9; i++) {
+            HEX_DECODE[i + '0'] = i;
+        }
+        for (int i = 0; i <= 5; i++) {
+            HEX_DECODE[i + 'a'] = HEX_DECODE[i + 'A'] = i + 10;
+        }
+    }
 
     private StringUtils() {
         // utility class
@@ -944,23 +957,21 @@ public class StringUtils {
         }
         len /= 2;
         byte[] buff = new byte[len];
-        for (int i = 0; i < len; i++) {
-            buff[i] = (byte) ((getHexDigit(s, i + i) << 4) | getHexDigit(s, i + i + 1));
-        }
-        return buff;
-    }
-
-    private static int getHexDigit(String s, int i) {
-        char c = s.charAt(i);
-        if (c >= '0' && c <= '9') {
-            return c - '0';
-        } else if (c >= 'a' && c <= 'f') {
-            return c - 'a' + 0xa;
-        } else if (c >= 'A' && c <= 'F') {
-            return c - 'A' + 0xa;
-        } else {
+        int mask = 0;
+        int[] hex = HEX_DECODE;
+        try {
+            for (int i = 0; i < len; i++) {
+                int d = hex[s.charAt(i + i)] << 4 | hex[s.charAt(i + i + 1)];
+                mask |= d;
+                buff[i] = (byte) d;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
             throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
         }
+        if ((mask & ~255) != 0) {
+            throw DbException.get(ErrorCode.HEX_STRING_WRONG_1, s);
+        }
+        return buff;
     }
 
     /**

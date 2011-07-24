@@ -17,8 +17,10 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
+import org.h2.store.fs.RecordingFileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
+import org.h2.util.RecoverTester;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -75,6 +77,16 @@ public class ConnectionInfo implements Cloneable {
         convertPasswords();
         name = url.substring(Constants.START_URL.length());
         parseName();
+        String recoverTest = removeProperty("RECOVER_TEST", null);
+        if (recoverTest != null) {
+            RecoverTester tester = RecoverTester.getInstance();
+            if (StringUtils.isNumber(recoverTest)) {
+                tester.setTestEvery(Integer.parseInt(recoverTest));
+            }
+            name = RecordingFileSystem.PREFIX + name;
+            RecordingFileSystem.register();
+            RecordingFileSystem.setRecorder(tester);
+        }
     }
 
     static {
@@ -82,9 +94,10 @@ public class ConnectionInfo implements Cloneable {
         HashSet<String> set = KNOWN_SETTINGS;
         set.addAll(list);
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
-                "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS", "IFEXISTS",
-                "INIT", "PASSWORD", "RECOVER", "USER", "AUTO_SERVER", "NO_UPGRADE",
-                "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX" };
+                "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
+                "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
+                "USER", "AUTO_SERVER", "NO_UPGRADE", "AUTO_RECONNECT",
+                "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX" };
         for (String key : connectionTime) {
             if (SysProperties.CHECK && set.contains(key)) {
                 DbException.throwInternalError(key);

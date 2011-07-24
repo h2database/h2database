@@ -4,10 +4,9 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.utils;
+package org.h2.store.fs;
 
 import java.io.IOException;
-import org.h2.store.fs.FileObject;
 
 /**
  * A file object that records all write operations and can re-play them.

@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.utils;
+package org.h2.store.fs;
 
 /**
  * A recorder for the recording file system.

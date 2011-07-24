@@ -32,9 +32,7 @@ public abstract class AssertThrows {
                 if (t == null) {
                     throw new AssertionError("Expected an exception of type " +
                             expectedExceptionClass.getSimpleName() +
-                            " to be thrown, but the method returned " +
-                            returnValue +
-                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
+                            " to be thrown, but the method returned successfully");
                 }
                 if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
                     AssertionError ae = new AssertionError(
@@ -42,8 +40,7 @@ public abstract class AssertThrows {
                             expectedExceptionClass.getSimpleName() +
                             " to be thrown, but the method under test threw an exception of type\n" +
                             t.getClass().getSimpleName() +
-                            " (see in the 'Caused by' for the exception that was thrown) " +
-                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
+                            " (see in the 'Caused by' for the exception that was thrown)");
                     ae.initCause(t);
                     throw ae;
                 }
@@ -61,9 +58,7 @@ public abstract class AssertThrows {
             public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
                 if (t != null) {
                     throw new AssertionError(
-                            "Expected an exception to be thrown, but the method returned " +
-                            returnValue +
-                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
+                            "Expected an exception to be thrown, but the method returned successfully");
                 }
                 // all exceptions are fine
                 return false;

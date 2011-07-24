@@ -87,6 +87,7 @@ public class FileSystemMemory extends FileSystem {
     }
 
     public String[] listFiles(String path) {
+        path = getCanonicalPath(path);
         ArrayList<String> list = New.arrayList();
         synchronized (MEMORY_FILES) {
             for (String name : MEMORY_FILES.tailMap(path).keySet()) {

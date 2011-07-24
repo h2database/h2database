@@ -44,6 +44,7 @@ public class TestFileSystem extends TestBase {
     }
 
     public void test() throws Exception {
+        testMemFsDir();
         testClasspath();
         FileSystemCrypt.register();
         // DebugFileSystem.register().setTrace(true);
@@ -81,6 +82,15 @@ public class TestFileSystem extends TestBase {
         } finally {
             IOUtils.delete(getBaseDir() + "/fs");
         }
+    }
+
+    private void testMemFsDir() throws IOException {
+        String dir = "memFS:data/test";
+        FileSystem fs = FileSystem.getInstance(dir);
+        fs.openFileOutputStream("memFS:data/test/a.txt", false).close();
+        String[] list = fs.listFiles("memFS:data/test");
+        assertEquals(1, list.length);
+        fs.deleteRecursive("memFS:", false);
     }
 
     private void testClasspath() throws IOException {

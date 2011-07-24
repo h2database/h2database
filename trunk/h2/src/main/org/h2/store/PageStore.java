@@ -510,6 +510,7 @@ public class PageStore implements CacheWriter {
             }
         }
         if (isDefrag) {
+            log.checkpoint();
             writeBack();
             cache.clear();
             ArrayList<Table> tables = database.getAllTablesAndViews(false);
@@ -538,6 +539,8 @@ public class PageStore implements CacheWriter {
             int target = MIN_PAGE_COUNT - 1;
             int temp = 0;
             for (int i = 0, size = recordedPagesList.size(); i < size; i++) {
+                log.checkpoint();
+                writeBack();
                 int source = recordedPagesList.get(i);
                 Page pageSource = getPage(source);
                 if (!pageSource.canMove()) {

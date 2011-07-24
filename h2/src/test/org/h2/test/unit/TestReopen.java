@@ -15,13 +15,14 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.store.fs.Recorder;
+import org.h2.store.fs.RecordingFileSystem;
 import org.h2.test.TestBase;
-import org.h2.test.utils.Recorder;
-import org.h2.test.utils.RecordingFileSystem;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.Profiler;
+import org.h2.util.Utils;
 
 /**
  * A test that calls another test, and after each write operation to the
@@ -29,11 +30,12 @@ import org.h2.util.Profiler;
  */
 public class TestReopen extends TestBase implements Recorder {
 
-    private static final int MAX_FILE_SIZE = 8 * 1024 * 1024;
+    // TODO this is largely a copy of org.h2.util.RecoverTester
+
     private String testDatabase = "memFS:" + TestBase.BASE_TEST_DIR + "/reopen";
-    private long lastCheck;
-    private int writeCount = Integer.parseInt(System.getProperty("reopenOffset", "0"));
-    private int testEvery = 1 << Integer.parseInt(System.getProperty("reopenShift", "8"));
+    private int writeCount = Utils.getProperty("h2.reopenOffset", 0);
+    private int testEvery = 1 << Utils.getProperty("h2.reopenShift", 6);
+    private long maxFileSize = Utils.getProperty("h2.reopenMaxFileSize", Integer.MAX_VALUE) * 1024L * 1024;
     private int verifyCount;
     private HashSet<String> knownErrors = New.hashSet();
     private volatile boolean testing;
@@ -83,20 +85,15 @@ public class TestReopen extends TestBase implements Recorder {
 
     private synchronized void logDb(String fileName) {
         writeCount++;
-        if ((writeCount & 1023) == 0) {
-            long now = System.currentTimeMillis();
-            if (now > lastCheck + 5000) {
-                System.out.println("+ write #" + writeCount + " verify #" + verifyCount);
-                lastCheck = now;
-            }
-        }
         if ((writeCount & (testEvery - 1)) != 0) {
             return;
         }
-        if (IOUtils.length(fileName) > MAX_FILE_SIZE) {
+        if (IOUtils.length(fileName) > maxFileSize) {
             // System.out.println(fileName + " " + IOUtils.length(fileName));
             return;
         }
+        System.out.println("+ write #" + writeCount + " verify #" + verifyCount);
+
         try {
             IOUtils.copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
             verifyCount++;

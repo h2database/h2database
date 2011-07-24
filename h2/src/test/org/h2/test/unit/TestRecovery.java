@@ -36,6 +36,7 @@ public class TestRecovery extends TestBase {
     }
 
     public void test() throws Exception {
+        testRecoverTestMode();
         testRecoverClob();
         testRecoverFulltext();
         testRedoTransactions();
@@ -43,6 +44,21 @@ public class TestRecovery extends TestBase {
         testWithTransactionLog();
         testCompressedAndUncompressed();
         testRunScript();
+    }
+
+    private void testRecoverTestMode() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        String recoverTestLog = getBaseDir() + "/recovery.h2.db.log";
+        IOUtils.delete(recoverTestLog);
+        deleteDb("recovery");
+        Connection conn = getConnection("recovery;RECOVER_TEST=1");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, name varchar)");
+        stat.execute("drop all objects delete files");
+        conn.close();
+        assertTrue(IOUtils.exists(recoverTestLog));
     }
 
     private void testRecoverClob() throws Exception {

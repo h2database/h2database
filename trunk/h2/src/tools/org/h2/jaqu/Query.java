@@ -11,15 +11,17 @@ import java.lang.reflect.Field;
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import org.h2.jaqu.bytecode.ClassReader;
 import org.h2.jaqu.util.StatementLogger;
-import org.h2.jaqu.util.JdbcUtils;
-import org.h2.jaqu.util.Utils;
+import org.h2.jaqu.util.ClassUtils;
 //## Java 1.5 end ##
+import org.h2.util.JdbcUtils;
+import org.h2.util.New;
 
 /**
  * This class represents a query.
@@ -31,11 +33,11 @@ public class Query<T> {
 
     private Db db;
     private SelectTable<T> from;
-    private ArrayList<Token> conditions = Utils.newArrayList();
-    private ArrayList<UpdateColumn> updateColumnDeclarations = Utils.newArrayList();
-    private ArrayList<SelectTable<?>> joins = Utils.newArrayList();
-    private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = Utils.newIdentityHashMap();
-    private ArrayList<OrderExpression<T>> orderByList = Utils.newArrayList();
+    private ArrayList<Token> conditions = New.arrayList();
+    private ArrayList<UpdateColumn> updateColumnDeclarations = New.arrayList();
+    private ArrayList<SelectTable<?>> joins = New.arrayList();
+    private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = ClassUtils.newIdentityHashMap();
+    private ArrayList<OrderExpression<T>> orderByList = New.arrayList();
     private Object[] groupByExpressions;
     private long limit;
     private long offset;
@@ -58,14 +60,17 @@ public class Query<T> {
         stat.appendSQL("COUNT(*) ");
         appendFromWhere(stat);
         ResultSet rs = stat.executeQuery();
+        Statement s = null;
         try {
+            s = rs.getStatement();
             rs.next();
             long value = rs.getLong(1);
             return value;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            JdbcUtils.closeSilently(rs, true);
+            JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(s);
         }
     }
 
@@ -95,13 +100,15 @@ public class Query<T> {
     }
 
     private List<T> select(boolean distinct) {
-        List<T> result = Utils.newArrayList();
+        List<T> result = New.arrayList();
         TableDefinition<T> def = from.getAliasDefinition();
         SQLStatement stat = getSelectStatement(distinct);
         def.appendSelectList(stat);
         appendFromWhere(stat);
         ResultSet rs = stat.executeQuery();
+        Statement s = null;
         try {
+            s = rs.getStatement();
             while (rs.next()) {
                 T item = from.newObject();
                 from.getAliasDefinition().readRow(item, rs);
@@ -110,7 +117,8 @@ public class Query<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            JdbcUtils.closeSilently(rs, true);
+            JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(s);
         }
         return result;
     }
@@ -163,7 +171,7 @@ public class Query<T> {
     @SuppressWarnings("unchecked")
     private <X, Z> List<X> select(Z x, boolean distinct) {
         Class<?> clazz = x.getClass();
-        if (Utils.isSimpleType(clazz)) {
+        if (ClassUtils.isSimpleType(clazz)) {
             return selectSimple((X) x, distinct);
         }
         clazz = clazz.getSuperclass();
@@ -171,22 +179,25 @@ public class Query<T> {
     }
 
     private <X> List<X> select(Class<X> clazz, X x, boolean distinct) {
-        List<X> result = Utils.newArrayList();
+        List<X> result = New.arrayList();
         TableDefinition<X> def = db.define(clazz);
         SQLStatement stat = getSelectStatement(distinct);
         def.appendSelectList(stat, this, x);
         appendFromWhere(stat);
         ResultSet rs = stat.executeQuery();
+        Statement s = null;
         try {
+            s = rs.getStatement();
             while (rs.next()) {
-                X row = Utils.newObject(clazz);
+                X row = ClassUtils.newObject(clazz);
                 def.readRow(row, rs);
                 result.add(row);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            JdbcUtils.closeSilently(rs, true);
+            JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(s);
         }
         return result;
     }
@@ -197,15 +208,17 @@ public class Query<T> {
         appendSQL(stat, x);
         appendFromWhere(stat);
         ResultSet rs = stat.executeQuery();
-        List<X> result = Utils.newArrayList();
+        List<X> result = New.arrayList();
+        Statement s = null;
         try {
+            s = rs.getStatement();
             while (rs.next()) {
                 try {
                     X value;
                     Object o = rs.getObject(1);
                     int convertHereIsProbablyWrong;
                     if (Clob.class.isAssignableFrom(o.getClass())) {
-                        value = (X) Utils.convert(o, String.class);
+                        value = (X) ClassUtils.convert(o, String.class);
                     } else {
                         value = (X) o;
                     }
@@ -217,7 +230,8 @@ public class Query<T> {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
-            JdbcUtils.closeSilently(rs, true);
+            JdbcUtils.closeSilently(rs);
+            JdbcUtils.closeSilently(s);
         }
         return result;
     }
@@ -236,7 +250,7 @@ public class Query<T> {
     }
 
     public <A> QueryWhere<T> where(Filter filter) {
-        HashMap<String, Object> fieldMap = Utils.newHashMap();
+        HashMap<String, Object> fieldMap = New.hashMap();
         for (Field f : filter.getClass().getDeclaredFields()) {
             f.setAccessible(true);
             try {

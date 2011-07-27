@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 import org.h2.jaqu.Db;
 import org.h2.jaqu.DbInspector;
 import org.h2.message.DbException;
+import org.h2.util.JdbcUtils;
+import org.h2.util.StringUtils;
 
 /**
  * Generates JaQu models.

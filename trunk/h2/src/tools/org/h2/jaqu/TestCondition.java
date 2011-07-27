@@ -6,7 +6,7 @@
  */
 package org.h2.jaqu;
 
-import org.h2.jaqu.util.Utils;
+import org.h2.jaqu.util.ClassUtils;
 
 /**
  * This class represents an incomplete condition.
@@ -23,7 +23,7 @@ public class TestCondition<A> {
     }
 
     public Boolean is(A y) {
-        Boolean o = Utils.newObject(Boolean.class);
+        Boolean o = ClassUtils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("=", x, y) {
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
@@ -36,7 +36,7 @@ public class TestCondition<A> {
     }
 
     public Boolean bigger(A y) {
-        Boolean o = Utils.newObject(Boolean.class);
+        Boolean o = ClassUtils.newObject(Boolean.class);
         return Db.registerToken(o, new Function(">", x, y) {
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
@@ -49,7 +49,7 @@ public class TestCondition<A> {
     }
 
     public Boolean biggerEqual(A y) {
-        Boolean o = Utils.newObject(Boolean.class);
+        Boolean o = ClassUtils.newObject(Boolean.class);
         return Db.registerToken(o, new Function(">=", x, y) {
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
@@ -62,7 +62,7 @@ public class TestCondition<A> {
     }
 
     public Boolean smaller(A y) {
-        Boolean o = Utils.newObject(Boolean.class);
+        Boolean o = ClassUtils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("<", x, y) {
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
@@ -75,7 +75,7 @@ public class TestCondition<A> {
     }
 
     public Boolean smallerEqual(A y) {
-        Boolean o = Utils.newObject(Boolean.class);
+        Boolean o = ClassUtils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("<=", x, y) {
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
@@ -88,7 +88,7 @@ public class TestCondition<A> {
     }
 
     public Boolean like(A pattern) {
-        Boolean o = Utils.newObject(Boolean.class);
+        Boolean o = ClassUtils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("LIKE", x, pattern) {
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");

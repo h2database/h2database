@@ -13,9 +13,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import org.h2.jaqu.Table.JQTable;
-import org.h2.jaqu.util.JdbcUtils;
-import org.h2.jaqu.util.StringUtils;
-import org.h2.jaqu.util.Utils;
+import org.h2.util.JdbcUtils;
+import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * Class to inspect a model and a database for the purposes of model validation
@@ -58,7 +58,7 @@ public class DbInspector {
     public List<String> generateModel(String schema, String table,
             String packageName, boolean annotateSchema, boolean trimStrings) {
         try {
-            List<String> models = Utils.newArrayList();
+            List<String> models = New.arrayList();
             List<TableInspector> tables = getTables(schema, table);
             for (TableInspector t : tables) {
                 t.read(metaData);
@@ -131,7 +131,7 @@ public class DbInspector {
         ResultSet rs = null;
         try {
             rs = getMetaData().getSchemas();
-            ArrayList<String> schemaList = Utils.newArrayList();
+            ArrayList<String> schemaList = New.arrayList();
             while (rs.next()) {
                 schemaList.add(rs.getString("TABLE_SCHEM"));
             }
@@ -139,7 +139,7 @@ public class DbInspector {
 
             String jaquTables = DbVersion.class.getAnnotation(JQTable.class).name();
 
-            List<TableInspector> tables = Utils.newArrayList();
+            List<TableInspector> tables = New.arrayList();
             if (schemaList.size() == 0) {
                 schemaList.add(null);
             }
@@ -159,7 +159,7 @@ public class DbInspector {
                 return tables;
             }
             // schema subset OR table subset OR exact match
-            List<TableInspector> matches = Utils.newArrayList();
+            List<TableInspector> matches = New.arrayList();
             for (TableInspector t : tables) {
                 if (t.matches(schema, table)) {
                     matches.add(t);

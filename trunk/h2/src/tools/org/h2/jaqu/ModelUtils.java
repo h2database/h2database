@@ -6,7 +6,6 @@
  */
 package org.h2.jaqu;
 
-import static org.h2.jaqu.util.StringUtils.isNullOrEmpty;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -208,7 +207,7 @@ public class ModelUtils {
      * @return true if it is
      */
     static boolean isProperlyFormattedDefaultValue(String defaultValue) {
-        if (isNullOrEmpty(defaultValue)) {
+        if (StringUtils.isNullOrEmpty(defaultValue)) {
             return true;
         }
         Pattern literalDefault = Pattern.compile("'.*'");

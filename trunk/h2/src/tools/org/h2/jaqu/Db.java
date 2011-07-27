@@ -24,11 +24,11 @@ import org.h2.jaqu.DbUpgrader.DefaultDbUpgrader;
 import org.h2.jaqu.SQLDialect.DefaultSQLDialect;
 import org.h2.jaqu.Table.JQDatabase;
 import org.h2.jaqu.Table.JQTable;
-import org.h2.jaqu.util.JdbcUtils;
-import org.h2.jaqu.util.StringUtils;
-import org.h2.jaqu.util.Utils;
 import org.h2.jaqu.util.WeakIdentityHashMap;
 //## Java 1.5 end ##
+import org.h2.util.JdbcUtils;
+import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * This class represents a connection to a database.
@@ -46,8 +46,7 @@ public class Db {
         Collections.synchronizedMap(new WeakIdentityHashMap<Object, Token>());
 
     private final Connection conn;
-    private final Map<Class<?>, TableDefinition<?>> classMap =
-        Utils.newHashMap();
+    private final Map<Class<?>, TableDefinition<?>> classMap = New.hashMap();
     private final SQLDialect dialect;
     private DbUpgrader dbUpgrader = new DefaultDbUpgrader();
     private final Set<Class<?>> upgradeChecked = Collections.synchronizedSet(new HashSet<Class<?>>());

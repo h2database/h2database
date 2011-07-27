@@ -8,9 +8,8 @@ package org.h2.jaqu;
 
 //## Java 1.5 begin ##
 import java.util.ArrayList;
-
 import org.h2.jaqu.util.ClassUtils;
-import org.h2.jaqu.util.Utils;
+import org.h2.util.New;
 //## Java 1.5 end ##
 
 /**
@@ -28,7 +27,7 @@ class SelectTable <T> {
     private String as;
     private TableDefinition<T> aliasDef;
     private boolean outerJoin;
-    private ArrayList<Token> joinConditions = Utils.newArrayList();
+    private ArrayList<Token> joinConditions = New.arrayList();
     private T alias;
 
     @SuppressWarnings("unchecked")
@@ -46,7 +45,7 @@ class SelectTable <T> {
     }
 
     T newObject() {
-        return Utils.newObject(clazz);
+        return ClassUtils.newObject(clazz);
     }
 
     TableDefinition<T> getAliasDefinition() {

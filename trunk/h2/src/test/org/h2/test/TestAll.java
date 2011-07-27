@@ -380,7 +380,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 System.setProperty("h2.lobInDatabase", "true");
                 System.setProperty("h2.analyzeAuto", "100");
                 System.setProperty("h2.pageSize", "64");
-                System.setProperty("h2.reopenShift", "0");
+                System.setProperty("h2.reopenShift", "3");
                 RecordingFileSystem.register();
                 test.record = true;
                 TestReopen reopen = new TestReopen();

@@ -35,6 +35,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.util.DateTimeUtils.cachedCalendar",
         "org.h2.util.MathUtils.cachedSecureRandom",
         "org.h2.util.NetUtils.cachedLocalAddress",
+        "org.h2.util.RecoverTester.instance",
         "org.h2.util.StringUtils.softCache",
         "org.h2.util.Utils.allowedClassNames",
         "org.h2.util.Utils.allowedClassNamePrefixes",

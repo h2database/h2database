@@ -374,6 +374,14 @@ public class SysProperties {
     public static final boolean TRACE_IO = Utils.getProperty("h2.traceIO", false);
 
     /**
+     * System property <code>h2.urlMap</code> (default: null).<br />
+     * A properties file that contains a mapping between database URLs. New
+     * connections are written into the file. An empty value in the map means no
+     * redirection is used for the given URL.
+     */
+    public static final String URL_MAP = Utils.getProperty("h2.urlMap", null);
+
+    /**
      * System property <code>h2.webMaxValueLength</code> (default: 100000).<br />
      * The H2 Console will abbreviate (truncate) result values larger than this size.
      * The data in the database is not truncated, it is only to avoid out of memory

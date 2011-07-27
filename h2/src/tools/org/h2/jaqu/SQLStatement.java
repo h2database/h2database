@@ -11,8 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import org.h2.jaqu.util.JdbcUtils;
 //## Java 1.5 end ##
+import org.h2.util.JdbcUtils;
 
 /**
  * This class represents a parameterized SQL statement.

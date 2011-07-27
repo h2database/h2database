@@ -7,8 +7,8 @@
 package org.h2.jaqu;
 
 import org.h2.jaqu.TableDefinition.IndexDefinition;
-import org.h2.jaqu.util.StatementBuilder;
-import org.h2.jaqu.util.StringUtils;
+import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
 
 /**
  * This interface defines points where JaQu can build different statements

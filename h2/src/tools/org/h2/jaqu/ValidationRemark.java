@@ -8,7 +8,7 @@ package org.h2.jaqu;
 
 import org.h2.jaqu.TableDefinition.FieldDefinition;
 import org.h2.jaqu.TableInspector.ColumnInspector;
-import org.h2.jaqu.util.StringUtils;
+import org.h2.util.StringUtils;
 
 /**
  * A validation remark is a result of running a model validation. Each remark

@@ -22,10 +22,11 @@ import org.h2.jaqu.Table.JQIndex;
 import org.h2.jaqu.Table.JQSchema;
 import org.h2.jaqu.Table.JQTable;
 import org.h2.jaqu.util.StatementLogger;
-import org.h2.jaqu.util.StatementBuilder;
-import org.h2.jaqu.util.StringUtils;
-import org.h2.jaqu.util.Utils;
+import org.h2.jaqu.util.ClassUtils;
 //## Java 1.5 end ##
+import org.h2.util.New;
+import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
 
 /**
  * A table definition contains the index definitions of a table, the field
@@ -73,7 +74,7 @@ class TableDefinition<T> {
         }
 
         void initWithNewObject(Object obj) {
-            Object o = Utils.newObject(field.getType());
+            Object o = ClassUtils.newObject(field.getType());
             setValue(obj, o);
         }
 
@@ -82,7 +83,7 @@ class TableDefinition<T> {
                 if (!field.isAccessible()) {
                     field.setAccessible(true);
                 }
-                o = Utils.convert(o, field.getType());
+                o = ClassUtils.convert(o, field.getType());
                 field.set(obj, o);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -103,12 +104,12 @@ class TableDefinition<T> {
     int tableVersion;
     private boolean createTableIfRequired = true;
     private Class<T> clazz;
-    private ArrayList<FieldDefinition> fields = Utils.newArrayList();
+    private ArrayList<FieldDefinition> fields = New.arrayList();
     private IdentityHashMap<Object, FieldDefinition> fieldMap =
-            Utils.newIdentityHashMap();
+            ClassUtils.newIdentityHashMap();
 
     private List<String> primaryKeyColumnNames;
-    private ArrayList<IndexDefinition> indexes = Utils.newArrayList();
+    private ArrayList<IndexDefinition> indexes = New.arrayList();
     private boolean memoryTable;
 
     TableDefinition(Class<T> clazz) {
@@ -149,7 +150,7 @@ class TableDefinition<T> {
      * @param columnNames the ordered list of column names
      */
     void setPrimaryKey(List<String> columnNames) {
-        primaryKeyColumnNames = Utils.newArrayList(columnNames);
+        primaryKeyColumnNames = New.arrayList(columnNames);
         // set isPrimaryKey flag for all field definitions
         for (FieldDefinition fieldDefinition : fieldMap.values()) {
             fieldDefinition.isPrimaryKey = this.primaryKeyColumnNames
@@ -163,7 +164,7 @@ class TableDefinition<T> {
     }
 
     private ArrayList<String> mapColumnNames(Object[] columns) {
-        ArrayList<String> columnNames = Utils.newArrayList();
+        ArrayList<String> columnNames = New.arrayList();
         for (Object column : columns) {
             columnNames.add(getColumnName(column));
         }
@@ -190,7 +191,7 @@ class TableDefinition<T> {
     void addIndex(IndexType type, List<String> columnNames) {
         IndexDefinition index = new IndexDefinition();
         index.indexName = tableName + "_" + indexes.size();
-        index.columnNames = Utils.newArrayList(columnNames);
+        index.columnNames = New.arrayList(columnNames);
         index.type = type;
         indexes.add(index);
     }
@@ -216,7 +217,7 @@ class TableDefinition<T> {
             strictTypeMapping = tableAnnotation.strictTypeMapping();
         }
 
-        List<Field> classFields = Utils.newArrayList();
+        List<Field> classFields = New.arrayList();
         classFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         if (inheritColumns) {
             Class<?> superClass = clazz.getSuperclass();
@@ -261,7 +262,7 @@ class TableDefinition<T> {
                 fields.add(fieldDef);
             }
         }
-        List<String> primaryKey = Utils.newArrayList();
+        List<String> primaryKey = New.arrayList();
         for (FieldDefinition fieldDef : fields) {
             if (fieldDef.isPrimaryKey) {
                 primaryKey.add(fieldDef.columnName);
@@ -372,7 +373,7 @@ class TableDefinition<T> {
                 stat.addParameter(value);
             }
         }
-        Object alias = Utils.newObject(obj.getClass());
+        Object alias = ClassUtils.newObject(obj.getClass());
         Query<Object> query = Query.from(db, alias);
         boolean firstCondition = true;
         for (FieldDefinition field : fields) {
@@ -403,7 +404,7 @@ class TableDefinition<T> {
         StatementBuilder buff = new StatementBuilder("DELETE FROM ");
         buff.append(db.getDialect().getTableName(schemaName, tableName));
         buff.resetCount();
-        Object alias = Utils.newObject(obj.getClass());
+        Object alias = ClassUtils.newObject(obj.getClass());
         Query<Object> query = Query.from(db, alias);
         boolean firstCondition = true;
         for (FieldDefinition field : fields) {
@@ -506,7 +507,7 @@ class TableDefinition<T> {
      * @return the column list
      */
     private List<String> getColumns(String index) {
-        List<String> cols = Utils.newArrayList();
+        List<String> cols = New.arrayList();
         if (index == null || index.length() == 0) {
             return null;
         }
@@ -579,7 +580,7 @@ class TableDefinition<T> {
     }
 
     List<IndexDefinition> getIndexes(IndexType type) {
-        List<IndexDefinition> list = Utils.newArrayList();
+        List<IndexDefinition> list = New.arrayList();
         for (IndexDefinition def:indexes) {
             if (def.type.equals(type)) {
                 list.add(def);

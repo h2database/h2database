@@ -26,7 +26,7 @@ import org.h2.tools.Recover;
  */
 public class RecoverTester implements Recorder {
 
-    private static final RecoverTester INSTANCE = new RecoverTester();
+    private static RecoverTester instance;
 
     private String testDatabase = "memFS:reopen";
     private int writeCount = Utils.getProperty("h2.recoverTestOffset", 0);
@@ -36,8 +36,11 @@ public class RecoverTester implements Recorder {
     private HashSet<String> knownErrors = New.hashSet();
     private volatile boolean testing;
 
-    public static RecoverTester getInstance() {
-        return INSTANCE;
+    public static synchronized RecoverTester getInstance() {
+        if (instance == null) {
+            instance = new RecoverTester();
+        }
+        return instance;
     }
 
     public void log(int op, String fileName, byte[] data, long x) {
@@ -85,6 +88,7 @@ public class RecoverTester implements Recorder {
             Database database = new Database(ci, null);
             // close the database
             Session session = database.getSystemSession();
+            session.prepare("script to '" + testDatabase + ".sql'").query(0);            
             session.prepare("shutdown immediately").update();
             database.removeSession(null);
             // everything OK - return

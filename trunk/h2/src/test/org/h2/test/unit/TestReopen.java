@@ -106,6 +106,7 @@ public class TestReopen extends TestBase implements Recorder {
             Database database = new Database(ci, null);
             // close the database
             Session session = database.getSystemSession();
+            session.prepare("script to '" + testDatabase + ".sql'").query(0);
             session.prepare("shutdown immediately").update();
             database.removeSession(null);
             // everything OK - return

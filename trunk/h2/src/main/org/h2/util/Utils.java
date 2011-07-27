@@ -502,7 +502,7 @@ public class Utils {
         int lastDot = classAndMethod.lastIndexOf('.');
         String className = classAndMethod.substring(0, lastDot);
         String methodName = classAndMethod.substring(lastDot + 1);
-        return classMethodInternal(methodName, Class.forName(className), null, params);
+        return callMethod(null, Class.forName(className), methodName, params);
     }
 
     /**
@@ -519,12 +519,12 @@ public class Utils {
             Object instance,
             String methodName,
             Object... params) throws Exception {
-        return classMethodInternal(methodName, instance.getClass(), instance, params);
+        return callMethod(instance, instance.getClass(), methodName, params);
     }
 
-    private static Object classMethodInternal(
-            String methodName, Class<?> clazz,
-            Object instance,
+    private static Object callMethod(
+            Object instance, Class<?> clazz,
+            String methodName,
             Object... params) throws Exception {
         Method best = null;
         int bestMatch = 0;
@@ -575,9 +575,12 @@ public class Utils {
             int points = 1;
             for (int i = 0; i < len; i++) {
                 Class<?> pc = getNonPrimitiveClass(params[i]);
-                Class<?> vc = values[i].getClass();
+                Object v = values[i];
+                Class<?> vc = v == null ? null : v.getClass();
                 if (pc == vc) {
                     points++;
+                } else if (vc == null) {
+                    // can't verify
                 } else if (!pc.isAssignableFrom(vc)) {
                     return 0;
                 }

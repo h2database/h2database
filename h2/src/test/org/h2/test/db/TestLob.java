@@ -53,6 +53,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testLobSkipPastEnd();
         testCreateIndexOnLob();
         testBlobInputStreamSeek(true);
         testBlobInputStreamSeek(false);
@@ -96,6 +97,42 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         IOUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testLobSkipPastEnd() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn;
+        conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, data blob)");
+        byte[] data = new byte[150000];
+        new Random(0).nextBytes(data);
+        PreparedStatement prep = conn.prepareStatement("insert into test values(1, ?)");
+        prep.setBytes(1, data);
+        prep.execute();
+        ResultSet rs = stat.executeQuery("select data from test");
+        rs.next();
+        for (int blockSize = 1; blockSize < 100000; blockSize *= 10) {
+            for (int i = 0; i < data.length; i += 1000) {
+                InputStream in = rs.getBinaryStream(1);
+                in.skip(i);
+                byte[] d2 = new byte[data.length];
+                int l = in.read(d2, i, blockSize);
+                if (i >= data.length) {
+                    assertEquals(-1, l);
+                } else if (i + blockSize >= data.length) {
+                    assertEquals(data.length - i, l);
+                }
+                for (int j = i; j < blockSize && j < d2.length; j++) {
+                    assertEquals(data[j], d2[j]);
+                }
+            }
+        }
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testCreateIndexOnLob() throws Exception {

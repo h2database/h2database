@@ -249,11 +249,34 @@ public class LobStorage {
      */
     public class LobInputStream extends InputStream {
 
-        private byte[] buffer;
+        /**
+         * The size of the blob.
+         */
         private long length;
-        private int pos;
+
+        /**
+         * The remaining bytes in the blob.
+         */
         private long remainingBytes;
+
+        /**
+         * The temporary buffer.
+         */
+        private byte[] buffer;
+
+        /**
+         * The position within the buffer.
+         */
+        private int pos;
+
+        /**
+         * The blob id.
+         */
         private long lob;
+
+        /**
+         * The blob sequence id.
+         */
         private int seq;
 
         public LobInputStream(long lob, long byteCount) {
@@ -281,7 +304,9 @@ public class LobStorage {
                         return super.skip(n);
                     }
                     seq = (int) seqPos[0];
-                    n = toPos - seqPos[1];
+                    long p = seqPos[1];
+                    remainingBytes = length - p;
+                    n = toPos - p;
                 } catch (SQLException e) {
                     throw DbException.convertToIOException(e);
                 }

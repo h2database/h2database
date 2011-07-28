@@ -48,7 +48,7 @@ public class TestLob extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
-        // test.config.big = true;
+        test.config.big = true;
         test.test();
     }
 
@@ -120,7 +120,8 @@ public class TestLob extends TestBase {
                 InputStream in = rs.getBinaryStream(1);
                 in.skip(i);
                 byte[] d2 = new byte[data.length];
-                int l = in.read(d2, i, blockSize);
+                int l = Math.min(blockSize, d2.length - i);
+                l = in.read(d2, i, l);
                 if (i >= data.length) {
                     assertEquals(-1, l);
                 } else if (i + blockSize >= data.length) {

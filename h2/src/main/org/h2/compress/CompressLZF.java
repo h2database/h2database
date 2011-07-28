@@ -152,6 +152,11 @@ public final class CompressLZF implements Compressor {
             int off = hash(future);
             int ref = hashTab[off];
             hashTab[off] = inPos;
+            // if (ref < inPos
+            //       && ref > 0
+            //       && (off = inPos - ref - 1) < MAX_OFF
+            //       && in[ref + 2] == p2
+            //       && (((in[ref] & 255) << 8) | (in[ref + 1] & 255)) == ((future >> 8) & 0xffff)) {
             if (ref < inPos
                         && ref > 0
                         && (off = inPos - ref - 1) < MAX_OFF
@@ -230,6 +235,7 @@ public final class CompressLZF implements Compressor {
     }
 
     public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) {
+        // if ((inPos | outPos | outLen) < 0) {
         if (inPos < 0 || outPos < 0 || outLen < 0) {
             throw new IllegalArgumentException();
         }

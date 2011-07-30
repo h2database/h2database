@@ -6,6 +6,7 @@
  */
 package org.h2.engine;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import org.h2.store.fs.RecordingFileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.RecoverTester;
+import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -66,6 +68,7 @@ public class ConnectionInfo implements Cloneable {
      * @param info the connection properties
      */
     public ConnectionInfo(String u, Properties info) {
+        u = remapURL(u);
         this.originalURL = u;
         if (!u.startsWith(Constants.START_URL)) {
             throw DbException.getInvalidValueException("url", u);
@@ -597,6 +600,26 @@ public class ConnectionInfo implements Cloneable {
             }
         }
         return DbSettings.getInstance(s);
+    }
+
+    private static String remapURL(String url) {
+        String urlMap = SysProperties.URL_MAP;
+        if (urlMap != null && urlMap.length() > 0) {
+            try {
+                SortedProperties prop;
+                prop = SortedProperties.loadProperties(urlMap);
+                String url2 = prop.getProperty(url);
+                if (url2 == null) {
+                    prop.put(url, "");
+                    prop.store(urlMap);
+                } else {
+                    return url2;
+                }
+            } catch (IOException e) {
+                throw DbException.convert(e);
+            }
+        }
+        return url;
     }
 
 }

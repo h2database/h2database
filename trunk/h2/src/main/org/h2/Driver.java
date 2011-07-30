@@ -11,13 +11,11 @@ import java.sql.DriverManager;
 import java.sql.DriverPropertyInfo;
 import java.sql.SQLException;
 import java.util.Properties;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.upgrade.DbUpgrade;
-import org.h2.util.SortedProperties;
 
 /*## Java 1.7 begin ##
 import java.util.logging.Logger;
@@ -63,17 +61,6 @@ public class Driver implements java.sql.Driver {
             }
             if (!acceptsURL(url)) {
                 return null;
-            }
-            String urlMap = SysProperties.URL_MAP;
-            if (urlMap != null && urlMap.length() > 0) {
-                SortedProperties prop = SortedProperties.loadProperties(urlMap);
-                String url2 = prop.getProperty(url);
-                if (url2 == null) {
-                    prop.put(url, "");
-                    prop.store(urlMap);
-                } else {
-                    url = url2;
-                }
             }
             if (url.equals(DEFAULT_URL)) {
                 return DEFAULT_CONNECTION.get();

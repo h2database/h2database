@@ -15,6 +15,7 @@ import java.util.StringTokenizer;
 
 import org.h2.build.BuildBase;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * The spell checker makes sure that each word used in the source code
@@ -48,12 +49,12 @@ public class SpellChecker {
      * @param args the command line parameters
      */
     public static void main(String... args) throws IOException {
-        String dir = "src";
-        new SpellChecker().run("tools/org/h2/build/doc/dictionary.txt", dir);
+        String dir = Utils.getProperty("spellcheckDir", "src");
+        new SpellChecker().run("src/tools/org/h2/build/doc/dictionary.txt", dir);
     }
 
     private void run(String dictionaryFileName, String dir) throws IOException {
-        process(new File(dir + "/" + dictionaryFileName));
+        process(new File(dictionaryFileName));
         process(new File(dir));
         if (printDictionary) {
             System.out.println("USED WORDS");

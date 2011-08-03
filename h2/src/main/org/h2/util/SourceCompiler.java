@@ -204,20 +204,11 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            throwSyntaxError(buff);
+            String err = new String(buff.toByteArray(), "UTF-8");
+            throwSyntaxError(err);
             return p.exitValue();
         } catch (Exception e) {
             throw DbException.convert(e);
-        }
-    }
-
-    private void throwSyntaxError(ByteArrayOutputStream out) {
-        String err = StringUtils.utf8Decode(out.toByteArray());
-        if (err.startsWith("Note:")) {
-            // unchecked or unsafe operations - just a warning
-        } else if (err.length() > 0) {
-            err = StringUtils.replaceAll(err, compileDir, "");
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, err);
         }
     }
 
@@ -235,18 +226,29 @@ public class SourceCompiler {
         PrintStream temp = new PrintStream(buff);
         try {
             System.setErr(temp);
-            Method compile = JAVAC_SUN.getMethod("compile", String[].class);
+            Method compile;
+            compile = JAVAC_SUN.getMethod("compile", String[].class);
             Object javac = JAVAC_SUN.newInstance();
             compile.invoke(javac, (Object) new String[] {
                     "-sourcepath", compileDir,
                     "-d", compileDir,
                     "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });
-            throwSyntaxError(buff);
+            String err = new String(buff.toByteArray(), "UTF-8");
+            throwSyntaxError(err);
         } catch (Exception e) {
             throw DbException.convert(e);
         } finally {
             System.setErr(old);
+        }
+    }
+
+    private void throwSyntaxError(String err) {
+        if (err.startsWith("Note:")) {
+            // unchecked or unsafe operations - just a warning
+        } else if (err.length() > 0) {
+            err = StringUtils.replaceAll(err, compileDir, "");
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, err);
         }
     }
 

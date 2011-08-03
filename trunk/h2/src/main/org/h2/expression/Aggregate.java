@@ -462,6 +462,9 @@ public class Aggregate extends Expression {
 
     private String getSQLGroupConcat() {
         StatementBuilder buff = new StatementBuilder("GROUP_CONCAT(");
+        if (distinct) {
+            buff.append("DISTINCT ");
+        }
         buff.append(on.getSQL());
         if (orderList != null) {
             buff.append(" ORDER BY ");

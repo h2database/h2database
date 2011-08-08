@@ -1696,8 +1696,10 @@ The following options are supported:
 ""lineSeparator"", ""null"", ""rowSeparator"" (not set by default),
 ""preserveWhitespace"" (true or false; disabled by default).
 For a newline or other special character, use STRINGDECODE as in the example above.
-A space needs to be escaped with a backslash (""'\ '"").
-A backslash needs to be escaped with another backslash (""'\\'"").
+A space needs to be escaped with a backslash (""'\ '""), and 
+a backslash needs to be escaped with another backslash (""'\\'"").
+All other characters are not to be escaped, that means
+newline and tab characters are written as such.
 ","
 CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|');
 "
@@ -3438,10 +3440,10 @@ Admin rights are required to execute this command.
 ","
 CALL CSVREAD('test.csv');
 -- Read a file containing the columns ID, NAME with
--- UTF-8 encoding and the pipe (|) as field separator
-CALL CSVREAD('test2.csv', 'ID|NAME', 'UTF-8', '|');
--- Read a semicolon-separated file
-SELECT * FROM CSVREAD('data/test.csv', NULL, NULL, ';');
+CALL CSVREAD('test2.csv', 'ID|NAME', 'charset=UTF-8 fieldSeparator=|');
+SELECT * FROM CSVREAD('data/test.csv', null, 'rowSeparator=;');
+-- Read a tab-separated file
+SELECT * FROM CSVREAD('data/test.tsv', null, 'rowSeparator=' || CHAR(9));
 SELECT ""Last Name"" FROM CSVREAD('address.csv');
 SELECT ""Last Name"" FROM CSVREAD('classpath:/org/acme/data/address.csv');
 "
@@ -3463,9 +3465,10 @@ system (system property ""line.separator"").
 The returned value is the number or rows written.
 Admin rights are required to execute this command.
 ","
-CALL CSVWRITE('test.csv', 'SELECT * FROM TEST');
--- Write a file with UTF-8 encoding and the pipe (|) as field separator
-CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'UTF-8', '|');
+CALL CSVWRITE('data/test.csv', 'SELECT * FROM TEST');
+CALL CSVWRITE('data/test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|');
+-- Write a tab-separated file
+CALL CSVWRITE('data/test.tsv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=' || CHAR(9));
 "
 
 "Functions (System)","DATABASE","

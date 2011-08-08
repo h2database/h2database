@@ -613,7 +613,10 @@ public class ConnectionInfo implements Cloneable {
                     prop.put(url, "");
                     prop.store(urlMap);
                 } else {
-                    return url2;
+                    url2 = url2.trim();
+                    if (url2.length() > 0) {
+                        return url2;
+                    }
                 }
             } catch (IOException e) {
                 throw DbException.convert(e);

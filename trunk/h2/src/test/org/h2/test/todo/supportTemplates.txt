@@ -55,6 +55,7 @@ Important corruption problems were fixed in version 1.2.135 and version 1.2.140 
 I am very interested in analyzing and solving this problem. Corruption problems have top priority for me. I have a few questions:
 
 - Could you send the full stack trace of the exception including message text?
+- Did you use SHUTDOWN DEFRAG?
 - What is your database URL?
 - How many connections does your application use concurrently?
 - Do you use temporary tables?

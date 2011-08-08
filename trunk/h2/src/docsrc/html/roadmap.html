@@ -188,6 +188,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server)
 </li><li>Support native XML data type - see http://en.wikipedia.org/wiki/SQL/XML
 </li><li>Support triggers with a string property or option: SpringTrigger, OSGITrigger
+</li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Time based cache writing (one second after writing the log)
 </li><li>Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
@@ -201,7 +202,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     (HSQLDB: long; PostgreSQL: integer out of range)
 </li><li>Provide an Java SQL builder with standard and H2 syntax
 </li><li>Trace: write OS, file system, JVM,... when opening the database
-</li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Support indexes for views (probably requires materialized views)
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
 </li><li>Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
@@ -291,6 +291,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Auto-server: add option to define the IP address range or list.
 </li><li>Index creation using deterministic functions.
 </li><li>ANALYZE: for unique indexes that allow null, count the number of null.
+</li><li>MySQL compatibility: multi-table delete: DELETE .. FROM .. [,...] USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
 </li><li>AUTO_SERVER: support changing IP addresses (disable a network while the database is open).
 </li><li>Avoid using java.util.Calendar internally because it's slow, complicated, and buggy.
 </li><li>Support TRUNCATE .. CASCADE like PostgreSQL.
@@ -318,7 +319,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL).
 </li><li>Optimization for multi-column IN: use an index if possible. Example: (A, B) IN((1, 2), (2, 3)).
 </li><li>Optimization for EXISTS: convert to inner join or IN(..) if possible.
-</li><li>MySQL compatibility: multi-table delete: DELETE .. FROM .. [,...] USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html
 </li><li>Functions: support hashcode(value); cryptographic and fast
 </li><li>Serialized file lock: support long running queries.
 </li><li>Network: use 127.0.0.1 if other addresses don't work.

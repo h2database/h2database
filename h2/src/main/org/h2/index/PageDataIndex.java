@@ -362,6 +362,8 @@ public class PageDataIndex extends PageIndex {
         store.logTruncate(session, tableData.getId());
         removeAllRows();
         if (tableData.getContainsLargeObject() && tableData.isPersistData()) {
+            // unfortunately, the data is gone on rollback
+            session.commit(false);
             database.getLobStorage().removeAllForTable(table.getId());
         }
         if (multiVersion) {

@@ -653,6 +653,11 @@ public class RegularTable extends TableBase {
     }
 
     public void removeChildrenAndResources(Session session) {
+        if (containsLargeObject) {
+            // unfortunately, the data is gone on rollback
+            truncate(session);
+            database.getLobStorage().removeAllForTable(getId());
+        }
         super.removeChildrenAndResources(session);
         // go backwards because database.removeIndex will call table.removeIndex
         while (indexes.size() > 1) {
@@ -671,9 +676,6 @@ public class RegularTable extends TableBase {
         }
         scanIndex.remove(session);
         database.removeMeta(session, getId());
-        if (containsLargeObject) {
-            database.getLobStorage().removeAllForTable(getId());
-        }
         scanIndex = null;
         lockExclusive = null;
         lockShared = null;

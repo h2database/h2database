@@ -171,7 +171,7 @@ public class WebApp {
         for (String value : elements) {
             buff.append("<option value=\"").
                 append(PageParser.escapeHtmlData(value)).
-                append("\"");
+                append('\"');
             if (value.equals(selected)) {
                 buff.append(" selected");
             }
@@ -187,7 +187,7 @@ public class WebApp {
         for (String[] n : elements) {
             buff.append("<option value=\"").
                 append(PageParser.escapeHtmlData(n[0])).
-                append("\"");
+                append('\"');
             if (n[0].equals(selected)) {
                 buff.append(" selected");
             }

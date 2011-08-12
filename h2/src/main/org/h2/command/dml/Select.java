@@ -981,7 +981,7 @@ public class Select extends Query {
         }
         for (int i = 0; i < visibleColumnCount; i++) {
             buff.appendExceptFirst(",");
-            buff.append("\n");
+            buff.append('\n');
             buff.append(StringUtils.indent(exprList[i].getSQL(), 4, false));
         }
         buff.append("\nFROM ");

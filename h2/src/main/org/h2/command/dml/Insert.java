@@ -187,7 +187,7 @@ public class Insert extends Prepared implements ResultTarget {
             buff.append("VALUES ");
             int row = 0;
             if (list.size() > 1) {
-                buff.append("\n");
+                buff.append('\n');
             }
             for (Expression[] expr : list) {
                 if (row++ > 0) {

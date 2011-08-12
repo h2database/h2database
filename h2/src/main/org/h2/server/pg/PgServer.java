@@ -187,9 +187,8 @@ public class PgServer implements Service {
                     PgServerThread c = new PgServerThread(s, this);
                     running.add(c);
                     c.setProcessId(running.size());
-                    Thread thread = new Thread(c);
+                    Thread thread = new Thread(c, threadName+" thread");
                     thread.setDaemon(isDaemon);
-                    thread.setName(threadName+" thread");
                     c.setThread(thread);
                     thread.start();
                 }

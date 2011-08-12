@@ -161,17 +161,17 @@ public class RuleFixed implements Rule {
             }
             break;
         case OPEN_BRACKET:
-            if (s.startsWith("[")) {
-                s = s.substring(1);
-            } else if (s.length() == 0) {
+            if (s.length() == 0) {
                 sentence.add("[", "[", Sentence.KEYWORD);
+            } else if (s.charAt(0) == '[') {
+                s = s.substring(1);
             }
             break;
         case CLOSE_BRACKET:
-            if (s.startsWith("]")) {
-                s = s.substring(1);
-            } else if (s.length() == 0) {
+            if (s.length() == 0) {
                 sentence.add("]", "]", Sentence.KEYWORD);
+            } else if (s.charAt(0) == ']') {
+                s = s.substring(1);
             }
             break;
         // no autocomplete support for comments

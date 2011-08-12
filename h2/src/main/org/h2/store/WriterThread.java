@@ -60,8 +60,7 @@ public class WriterThread implements Runnable {
     public static WriterThread create(Database database, int writeDelay) {
         try {
             WriterThread writer = new WriterThread(database, writeDelay);
-            writer.thread = new Thread(writer);
-            writer.thread.setName("H2 Log Writer " + database.getShortName());
+            writer.thread = new Thread(writer, "H2 Log Writer " + database.getShortName());
             writer.thread.setDaemon(true);
             return writer;
         } catch (AccessControlException e) {

@@ -77,8 +77,7 @@ public class Profiler implements Runnable {
      * Start collecting profiling data.
      */
     public void startCollecting() {
-        thread = new Thread(this);
-        thread.setName("Profiler");
+        thread = new Thread(this, "Profiler");
         thread.setDaemon(true);
         thread.start();
     }

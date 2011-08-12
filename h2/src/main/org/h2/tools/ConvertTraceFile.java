@@ -166,7 +166,7 @@ public class ConvertTraceFile extends Tool {
             }
         }
         javaWriter.println("    }");
-        javaWriter.println("}");
+        javaWriter.println('}');
         reader.close();
         javaWriter.close();
         if (stats.size() > 0) {

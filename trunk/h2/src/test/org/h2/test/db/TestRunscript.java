@@ -227,7 +227,7 @@ public class TestRunscript extends TestBase implements Trigger {
 
         assertEqualDatabases(stat1, stat2);
 
-        if (!config.memory) {
+        if (!config.memory && !config.reopen) {
             conn1.close();
 
             if (config.cipher != null) {

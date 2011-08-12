@@ -223,7 +223,7 @@ public abstract class TestBase {
     public String getBaseDir() {
         String dir = baseDir;
         if (config != null) {
-            if (config.record) {
+            if (config.reopen) {
                 dir = RecordingFileSystem.PREFIX + "memFS:" + dir;
             }
             if (config.splitFileSystem) {

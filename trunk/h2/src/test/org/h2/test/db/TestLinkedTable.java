@@ -422,7 +422,7 @@ public class TestLinkedTable extends TestBase {
     }
 
     private void testLinkTable() throws SQLException {
-        if (config.memory || config.networked) {
+        if (config.memory || config.networked || config.reopen) {
             return;
         }
 

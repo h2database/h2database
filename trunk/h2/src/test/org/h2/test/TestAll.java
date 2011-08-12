@@ -253,7 +253,7 @@ java org.h2.test.TestAll timer
     /**
      * Test using the recording file system.
      */
-    public boolean record;
+    public boolean reopen;
 
     /**
      * Test the split file system.
@@ -331,7 +331,7 @@ java org.h2.test.TestAll timer
     }
 
     private static void run(String... args) throws Exception {
-        SelfDestructor.startCountdown(3 * 60);
+        SelfDestructor.startCountdown(4 * 60);
         long time = System.currentTimeMillis();
         printSystemInfo();
         System.setProperty("h2.maxMemoryRowsDistinct", "128");
@@ -380,9 +380,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 System.setProperty("h2.lobInDatabase", "true");
                 System.setProperty("h2.analyzeAuto", "100");
                 System.setProperty("h2.pageSize", "64");
-                System.setProperty("h2.reopenShift", "3");
+                System.setProperty("h2.reopenShift", "5");
                 RecordingFileSystem.register();
-                test.record = true;
+                test.reopen = true;
                 TestReopen reopen = new TestReopen();
                 RecordingFileSystem.setRecorder(reopen);
                 test.runTests();

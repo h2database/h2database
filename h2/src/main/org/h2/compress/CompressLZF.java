@@ -156,7 +156,8 @@ public final class CompressLZF implements Compressor {
             //       && ref > 0
             //       && (off = inPos - ref - 1) < MAX_OFF
             //       && in[ref + 2] == p2
-            //       && (((in[ref] & 255) << 8) | (in[ref + 1] & 255)) == ((future >> 8) & 0xffff)) {
+            //       && (((in[ref] & 255) << 8) | (in[ref + 1] & 255)) ==
+            //           ((future >> 8) & 0xffff)) {
             if (ref < inPos
                         && ref > 0
                         && (off = inPos - ref - 1) < MAX_OFF

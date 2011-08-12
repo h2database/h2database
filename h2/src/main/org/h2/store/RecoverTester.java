@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.util;
+package org.h2.store;
 
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -18,7 +18,12 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.store.fs.Recorder;
+import org.h2.store.fs.RecordingFileSystem;
 import org.h2.tools.Recover;
+import org.h2.util.IOUtils;
+import org.h2.util.New;
+import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * A tool that simulates a crash while writing to the database, and then
@@ -35,6 +40,19 @@ public class RecoverTester implements Recorder {
     private int verifyCount;
     private HashSet<String> knownErrors = New.hashSet();
     private volatile boolean testing;
+
+    /**
+     * Initialize the recover test.
+     *
+     * @param recoverTest the value of the recover test parameter
+     */
+    public static synchronized void init(String recoverTest) {
+        RecoverTester tester = RecoverTester.getInstance();
+        if (StringUtils.isNumber(recoverTest)) {
+            tester.setTestEvery(Integer.parseInt(recoverTest));
+        }
+        RecordingFileSystem.setRecorder(tester);
+    }
 
     public static synchronized RecoverTester getInstance() {
         if (instance == null) {
@@ -88,7 +106,7 @@ public class RecoverTester implements Recorder {
             Database database = new Database(ci, null);
             // close the database
             Session session = database.getSystemSession();
-            session.prepare("script to '" + testDatabase + ".sql'").query(0);            
+            session.prepare("script to '" + testDatabase + ".sql'").query(0);
             session.prepare("shutdown immediately").update();
             database.removeSession(null);
             // everything OK - return

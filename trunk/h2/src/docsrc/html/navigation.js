@@ -174,8 +174,9 @@ function mouseMove(e) {
         dragSize += x - dragStart;
         dragStart = x;
         document.getElementById('searchMenu').style.width=dragSize + 'px';
+        return false;
     }
-    return false;
+    return true;
 }
 
 function switchBnf(x) {

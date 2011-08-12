@@ -72,7 +72,7 @@ public class MathUtils {
             };
 
             try {
-                Thread t = new Thread(runnable);
+                Thread t = new Thread(runnable, "Generate Seed");
                 // let the process terminate even if generating the seed is really slow
                 t.setDaemon(true);
                 t.start();

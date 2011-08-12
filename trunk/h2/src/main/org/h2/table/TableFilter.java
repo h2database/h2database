@@ -630,12 +630,12 @@ public class TableFilter implements ColumnResolver {
             TableFilter n = nestedJoin;
             do {
                 buffNested.append(n.getPlanSQL(n != nestedJoin));
-                buffNested.append("\n");
+                buffNested.append('\n');
                 n = n.getJoin();
             } while (n != null);
             buff.append("(\n");
             buff.append(StringUtils.indent(buffNested.toString(), 4, false));
-            buff.append(")");
+            buff.append(')');
             if (isJoin) {
                 buff.append(" ON ");
                 if (joinCondition == null) {
@@ -653,7 +653,7 @@ public class TableFilter implements ColumnResolver {
             buff.append(' ').append(Parser.quoteIdentifier(alias));
         }
         if (index != null) {
-            buff.append("\n");
+            buff.append('\n');
             StatementBuilder planBuff = new StatementBuilder();
             planBuff.append(index.getPlanSQL());
             if (indexConditions.size() > 0) {
@@ -680,7 +680,7 @@ public class TableFilter implements ColumnResolver {
             }
         }
         if (filterCondition != null) {
-            buff.append("\n");
+            buff.append('\n');
             String condition = StringUtils.unEnclose(filterCondition.getSQL());
             condition = "/* WHERE " + StringUtils.quoteRemarkSQL(condition) + "\n*/";
             buff.append(StringUtils.indent(condition, 4, false));

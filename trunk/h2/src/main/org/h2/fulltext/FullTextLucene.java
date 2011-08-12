@@ -239,7 +239,7 @@ public class FullTextLucene extends FullText {
             append(StringUtils.quoteIdentifier(table)).
             append(" FOR EACH ROW CALL \"").
             append(FullTextLucene.FullTextTrigger.class.getName()).
-            append("\"");
+            append('\"');
         stat.execute(buff.toString());
     }
 

@@ -373,7 +373,7 @@ public class Shell extends Tool implements Runnable {
         } catch (Exception e) {
             // ignore, use the default solution
         }
-        Thread passwordHider = new Thread(this);
+        Thread passwordHider = new Thread(this, "Password hider");
         stopHide = false;
         passwordHider.start();
         print("Password  > ");

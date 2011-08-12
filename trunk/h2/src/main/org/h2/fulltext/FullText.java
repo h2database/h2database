@@ -739,7 +739,7 @@ public class FullText {
                 append(StringUtils.quoteIdentifier(table)).
                 append(" FOR EACH ROW CALL \"").
                 append(FullText.FullTextTrigger.class.getName()).
-                append("\"");
+                append('\"');
             stat.execute(buff.toString());
         }
     }

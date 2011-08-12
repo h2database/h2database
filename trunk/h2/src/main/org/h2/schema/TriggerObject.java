@@ -189,9 +189,7 @@ public class TriggerObject extends SchemaObjectBase {
         Object[] newListBackup;
         if (before && newList != null) {
             newListBackup = new Object[newList.length];
-            for (int i = 0; i < newList.length; i++) {
-                newListBackup[i] = newList[i];
-            }
+            System.arraycopy(newList, 0, newListBackup, 0, newList.length);
         } else {
             newListBackup = null;
         }

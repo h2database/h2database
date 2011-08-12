@@ -114,7 +114,7 @@ public class Delete extends Prepared {
             buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT (").append(StringUtils.unEnclose(limitExpr.getSQL())).append(")");
+            buff.append("\nLIMIT (").append(StringUtils.unEnclose(limitExpr.getSQL())).append(')');
         }
         return buff.toString();
     }

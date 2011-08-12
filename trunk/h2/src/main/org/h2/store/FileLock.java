@@ -348,8 +348,7 @@ public class FileLock implements Runnable {
             fileName = null;
             throw getExceptionFatal("Concurrent update", null);
         }
-        watchdog = new Thread(this);
-        watchdog.setName("H2 File Lock Watchdog " + fileName);
+        watchdog = new Thread(this, "H2 File Lock Watchdog " + fileName);
         watchdog.setDaemon(true);
         watchdog.setPriority(Thread.MAX_PRIORITY - 1);
         watchdog.start();
@@ -421,9 +420,8 @@ public class FileLock implements Runnable {
             return;
         }
         save();
-        watchdog = new Thread(this);
+        watchdog = new Thread(this, "H2 File Lock Watchdog (Socket) " + fileName);
         watchdog.setDaemon(true);
-        watchdog.setName("H2 File Lock Watchdog (Socket) " + fileName);
         watchdog.start();
     }
 

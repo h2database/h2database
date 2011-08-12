@@ -360,10 +360,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         try {
             started = true;
             service.start();
-            Thread t = new Thread(this);
-            t.setDaemon(service.isDaemon());
             String name = service.getName() + " (" + service.getURL() + ")";
-            t.setName(name);
+            Thread t = new Thread(this, name);
+            t.setDaemon(service.isDaemon());
             t.start();
             for (int i = 1; i < 64; i += i) {
                 wait(i);
@@ -374,7 +373,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             if (isRunning(true)) {
                 return this;
             }
-            throw DbException.get(ErrorCode.EXCEPTION_OPENING_PORT_2, name, "timeout");
+            throw DbException.get(ErrorCode.EXCEPTION_OPENING_PORT_2, name, "timeout; " +
+                    "please check your network configuration, specially the file /etc/hosts");
         } catch (DbException e) {
             throw DbException.toSQLException(e);
         }

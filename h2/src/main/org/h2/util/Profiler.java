@@ -21,7 +21,7 @@ public class Profiler implements Runnable {
     private static Instrumentation instrumentation;
     private static final int MAX_ELEMENTS = 1000;
 
-    public int interval = 10;
+    public int interval = 2;
     public int depth = 32;
     public boolean paused;
 

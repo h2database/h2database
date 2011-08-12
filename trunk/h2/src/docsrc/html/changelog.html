@@ -18,13 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.159 (2011-08-12)</h2>
 <ul><li>Creating a temporary table with the option 'transactional' will now also create the indexes
     in transactional mode, if the indexes are included in the 'create table' statement as follows:
     "create local temporary table temp(id int primary key, name varchar, constraint x index(name)) transactional".
 </li><li>The database file size grows now 35%, but at most 256 MB at a time.
 </li><li>Improved error message on network configuration problems.
 </li><li>The build now support an offline build using ./build.sh offline.
-    This will list the required dependencies if jar files are missing. 
+    This will list the required dependencies if jar files are missing.
 </li><li>The BLOB / CLOB data was dropped a little bit before the table was dropped.
     This could cause "lob not found" errors when the process was killed while a table was dropped.
 </li><li>"group_concat(distinct ...)" did not work correctly in a view or subquery (the 'distinct' was lost). Example:
@@ -33,13 +37,13 @@ Change Log
     "h2.urlMap", which points to a properties file with database URL mappings.
 </li><li>When using InputStream.skip, trying to read past the end of a BLOB failed with
     the exception "IO Exception: Missing lob entry: ..." [90028-...].
-</li><li>The in-memory file system "memFS:" now has limitted support for directories.
+</li><li>The in-memory file system "memFS:" now has limited support for directories.
 </li><li>To test recovery, append ;RECOVER_TEST=64 to the database URL.
     This will simulate an application crash after each 64 writes to the database file.
     A log file named databaseName.h2.db.log is created that lists the operations.
     The recovery is tested using an in-memory file system, that means it may require a larger heap setting.
 </li><li>Converting a hex string to a byte array is now faster.
-</li><li>The SQL statement "shutdown defag" could corrupt the database if the process was killed
+</li><li>The SQL statement "shutdown defrag" could corrupt the database if the process was killed
     while the shutdown was in progress. The same problem could occur when the database
     setting "defrag_always" was used.
 </li></ul>
@@ -784,60 +788,6 @@ Change Log
 </li><li>The command line tools now say so if the source directory of an option doesn't exist.
 </li><li>It is now allowed to truncate a table if referential integrity has been disabled for this table or database.
 </li><li>For unencrypted databases, the automatic upgrade temporary script file is now unencrypted again.
-</li></ul>
-
-<h2>Version 1.2.140 (2010-07-25)</h2>
-<ul><li>The default MAX_LOG_SIZE is now 16 MB instead of 2 MB. Some uses cases are 3 times faster now.
-</li><li>Improved cache memory usage calculation.
-</li><li>Only resources that are actually used are loaded in memory.
-    This can reduce the memory usage by about 400 KB.
-</li><li>Profiling: the jar file can now be installed as an agent using
-    java -javaagent:h2*.jar - this was be used to more accurately calculate the memory footprint of the cache.
-    It has no effect when using H2 (using this feature in an application is not needed and not recommended).
-</li><li>The cache was not used efficiently when reading
-    (behaving like a FIFO cache instead of an LRU cache).
-</li><li>Storing lobs in the database has been changed. It is now faster.
-    Unfortunately, the change is not backward compatible; if you have used h2.lobInDatabase before
-    you will need to re-build the database.
-</li><li>SHUTDOWN COMPACT is now faster.
-</li><li>H2 Console: requesting the status did not always show the window on top of others.
-</li><li>H2 Console: on some system, the browser windows got opened when requesting a new one.
-</li><li>The built-in profiling tool now uses a default stack depth of 32 elements and a default interval of 10 ms.
-</li><li>Database files now grows in 1 MB blocks (and at least 20% at a time),
-    instead of always 256 KB. This speeds up loading a new database.
-</li><li>H2 Console: new built-in command @sleep to help profile another session.
-</li><li>For improved performance, LOG=0 and LOG=1 are again supported.
-    LOG=0 means the transaction log is disabled completely (fastest; for loading a database).
-    LOG=1 means the transaction log is enabled, but FileDescriptor.sync is disabled (if no protection against power failure is required).
-    LOG=2 is the default (transaction log is enabled, FileDescriptor.sync for each checkpoint).
-</li><li>After deleting a lot of data (for example by dropping or altering tables, or indexes,
-    or after a large transaction), opening a large database was very slow. Fixed.
-</li><li>When killing the process after creating and dropping many tables (specially temporary tables),
-    the database could not be opened sometimes.
-</li><li>CAST(NULL AS ...) doesn't forget the data type, precision, and scale any longer.
-</li><li>Experimental support for recursive queries (see 'Advanced' - 'Recursive Queries' for details).
-</li><li>Problems with JDK 1.6.0_18 have been reports in the class StringUtils.quoteRemarkSQL. This method is now changed.
-</li><li>The "small jar" distribution did not include the CompressTool,
-    which was required for some operations. Fixed.
-</li><li>The build tool now supports (minimalistic) shell mode, started using ./build.sh -
-</li><li>IS NULL comparison with nested queries and linked tables did not work.
-    Example: select * from (select x from test) where x is null.
-</li><li>Support for null-safe equals. This includes the ANSI SQL standard syntax
-    A IS [NOT] DISTINCT FROM B as well as the shorter A IS [NOT] B.
-</li><li>Primary key violations threw a strange exception message when using a single column INT or BIGINT key.
-</li><li>EXPLAIN ANALYZE now also lists the number of pages read from the file.
-</li><li>Memory mapped files: There was a bug in version 1.2.139 so that memory mapped files
-    could only be used together with split, for example: split:nioMapped: - the problem is now solved.
-    It is still a good idea to use split:nioMapped: to work around the 2 GB limitation of memory mapped files.
-</li><li>Memory mapped files: the system property h2.nioCleanerHack is now disabled by default
-    because it was not always working as expected. Now System.gc() is used in a loop until the
-    buffer is garbage collected. This of course is also not a nice solution, but the only one known to work.
-    See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
-</li><li>Bugfixes for the automatic 1.1 db migration.
-</li><li>If an old 1.1 database file version is found on connect, it is now possible to let the old h2
-    classes (v 1.2.128) connect to the database. The automatic upgrade .jar file must be present, and the url
-    must contain NO_UPGRADE=TRUE
-</li><li>The automatic upgrade temporary script file is now encrypted.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

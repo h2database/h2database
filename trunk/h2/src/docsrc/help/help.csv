@@ -1696,7 +1696,7 @@ The following options are supported:
 ""lineSeparator"", ""null"", ""rowSeparator"" (not set by default),
 ""preserveWhitespace"" (true or false; disabled by default).
 For a newline or other special character, use STRINGDECODE as in the example above.
-A space needs to be escaped with a backslash (""'\ '""), and 
+A space needs to be escaped with a backslash (""'\ '""), and
 a backslash needs to be escaped with another backslash (""'\\'"").
 All other characters are not to be escaped, that means
 newline and tab characters are written as such.

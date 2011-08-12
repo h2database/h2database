@@ -52,7 +52,9 @@ public class CreateIndex extends SchemaCommand {
     }
 
     public int update() {
-        session.commit(true);
+        if (!transactional) {
+            session.commit(true);
+        }
         Database db = session.getDatabase();
         boolean persistent = db.isPersistent();
         Table table = getSchema().getTableOrView(session, tableName);

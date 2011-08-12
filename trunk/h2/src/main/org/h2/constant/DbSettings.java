@@ -248,10 +248,10 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>PAGE_STORE_MAX_GROWTH</code>
-     * (default: Integer.MAX_VALUE).<br />
+     * (default: 128 * 1024).<br />
      * The maximum number of pages the file grows at any time.
      */
-    public final int pageStoreMaxGrowth = get("PAGE_STORE_MAX_GROWTH", Integer.MAX_VALUE);
+    public final int pageStoreMaxGrowth = get("PAGE_STORE_MAX_GROWTH", 128 * 1024);
 
     /**
      * Database setting <code>PAGE_STORE_INTERNAL_COUNT</code>

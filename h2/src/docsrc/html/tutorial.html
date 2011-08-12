@@ -38,6 +38,8 @@ Tutorial
     Using Apache ActiveMQ</a><br />
 <a href="#using_netbeans">
     Using H2 within NetBeans</a><br />
+<a href="#using_jooq">
+    Using H2 with jOOQ</a><br />
 <a href="#web_applications">
     Using Databases in Web Applications</a><br />
 <a href="#android">
@@ -626,6 +628,56 @@ There is a known issue when using the Netbeans SQL Execution Window:
 before executing a query, another query in the form <code>SELECT COUNT(*) FROM &lt;query&gt;</code> is run.
 This is a problem for queries that modify state, such as <code>SELECT SEQ.NEXTVAL</code>.
 In this case, two sequence values are allocated instead of just one.
+</p>
+
+<h2 id="using_jooq">Using H2 with jOOQ</h2>
+<p>
+jOOQ adds a thin layer on top of JDBC, allowing for type-safe SQL construction, 
+including advanced SQL, stored procedures and advanced data types. 
+jOOQ takes your database schema as a base for code generation. 
+If this is your example schema:
+</p>
+<pre>
+CREATE TABLE USER (ID INT, NAME VARCHAR(50));
+</pre>
+<p>
+then run the jOOQ code generator on the command line using this command:
+</p>
+<pre>
+java -cp jooq.jar;jooq-meta.jar;jooq-codegen.jar;h2-1.3.158.jar;.
+org.jooq.util.GenerationTool /codegen.properties
+</pre>
+<p>
+...where <code>codegen.properties</code> contains this information
+</p>
+<pre>
+jdbc.Driver=org.h2.Driver
+jdbc.URL=jdbc:h2:~/test
+jdbc.Schema=PUBLIC
+jdbc.User=sa
+jdbc.Password=
+generator=org.jooq.util.DefaultGenerator
+generator.database=org.jooq.util.h2.H2Database
+generator.database.includes=.*
+generator.database.excludes=
+generator.generate.relations=true
+generator.target.package=org.jooq.h2.generated
+generator.target.directory=./src
+</pre>
+<p>
+Using the generated source, you can query the database as follows:
+</p>
+<pre>
+Factory create = new H2Factory(connection);
+Result<UserRecord> result =
+create.selectFrom(USER)
+     .where(NAME.like("Johnny%"))
+     .orderBy(ID)
+     .fetch();
+</pre>
+<p>
+See more details on <a href="http://www.jooq.org">jOOQ Homepage</a>
+and in the <a href="http://sourceforge.net/apps/trac/jooq/wiki/Manual/META/Configuration">jOOQ Manual</a>
 </p>
 
 <h2 id="web_applications">Using Databases in Web Applications</h2>

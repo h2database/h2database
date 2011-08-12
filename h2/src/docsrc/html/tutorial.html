@@ -632,9 +632,9 @@ In this case, two sequence values are allocated instead of just one.
 
 <h2 id="using_jooq">Using H2 with jOOQ</h2>
 <p>
-jOOQ adds a thin layer on top of JDBC, allowing for type-safe SQL construction, 
-including advanced SQL, stored procedures and advanced data types. 
-jOOQ takes your database schema as a base for code generation. 
+jOOQ adds a thin layer on top of JDBC, allowing for type-safe SQL construction,
+including advanced SQL, stored procedures and advanced data types.
+jOOQ takes your database schema as a base for code generation.
 If this is your example schema:
 </p>
 <pre>
@@ -669,11 +669,11 @@ Using the generated source, you can query the database as follows:
 </p>
 <pre>
 Factory create = new H2Factory(connection);
-Result<UserRecord> result =
+Result&lt;UserRecord&gt; result =
 create.selectFrom(USER)
-     .where(NAME.like("Johnny%"))
-     .orderBy(ID)
-     .fetch();
+    .where(NAME.like("Johnny%"))
+    .orderBy(ID)
+    .fetch();
 </pre>
 <p>
 See more details on <a href="http://www.jooq.org">jOOQ Homepage</a>

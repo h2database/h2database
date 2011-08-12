@@ -4983,11 +4983,13 @@ public class Parser {
     private DefineCommand parseAlterTableAddConstraintIf(String tableName, Schema schema) {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
+        boolean allowIndexDefinition = database.getMode().indexDefinitionInCreateTable;
         if (readIf("CONSTRAINT")) {
             ifNotExists = readIfNoExists();
             constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             comment = readCommentIf();
+            allowIndexDefinition = true;
         }
         if (readIf("PRIMARY")) {
             read("KEY");
@@ -5006,7 +5008,7 @@ public class Parser {
                 command.setIndex(getSchema().findIndex(session, indexName));
             }
             return command;
-        } else if (database.getMode().indexDefinitionInCreateTable && (readIf("INDEX") || readIf("KEY"))) {
+        } else if (allowIndexDefinition && (readIf("INDEX") || readIf("KEY"))) {
             // MySQL
             CreateIndex command = new CreateIndex(session, schema);
             command.setComment(comment);

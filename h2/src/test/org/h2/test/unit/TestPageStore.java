@@ -139,6 +139,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testDefrag() throws SQLException {
+        if (config.reopen) {
+            return;
+        }
         deleteDb("pageStore");
         Connection conn = getConnection("pageStore;LOG=0;UNDO_LOG=0;LOCK_MODE=0");
         Statement stat = conn.createStatement();
@@ -213,7 +216,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         long after = System.currentTimeMillis();
         // it's hard to test - basically it shouldn't checkpoint too often
         if (after - before > 10000) {
-            if (!config.record) {
+            if (!config.reopen) {
                 fail("Checkpoint took " + (after - before) + " ms");
             }
         }

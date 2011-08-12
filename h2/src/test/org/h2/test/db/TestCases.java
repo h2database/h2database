@@ -676,7 +676,7 @@ public class TestCases extends TestBase {
         }
         time = System.currentTimeMillis() - time;
         if (time > 5000) {
-            if (!config.record) {
+            if (!config.reopen) {
                 fail("closing took " + time);
             }
         }

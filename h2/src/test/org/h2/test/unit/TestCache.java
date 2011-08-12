@@ -52,7 +52,7 @@ public class TestCache extends TestBase implements CacheWriter {
     }
 
     private void testTQ() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.reopen) {
             return;
         }
         deleteDb("cache");

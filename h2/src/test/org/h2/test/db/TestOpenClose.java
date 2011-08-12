@@ -61,7 +61,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
     }
 
     private void testErrorMessageWrongSplit() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.reopen) {
             return;
         }
         FileSystem.getInstance("split:").delete("split:" + getBaseDir() + "/openClose2.h2.db");

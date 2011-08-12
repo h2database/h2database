@@ -33,6 +33,9 @@ public class TestSQLInjection extends TestBase {
     }
 
     public void test() throws SQLException {
+        if (config.reopen) {
+            return;
+        }
         deleteDb("sqlInjection");
         reconnect("sqlInjection");
         stat.execute("DROP TABLE IF EXISTS USERS");

@@ -53,7 +53,7 @@ public class TestReopen extends TestBase implements Recorder {
         System.setProperty("h2.delayWrongPasswordMin", "0");
         RecordingFileSystem.register();
         RecordingFileSystem.setRecorder(this);
-        config.record = true;
+        config.reopen = true;
 
         long time = System.currentTimeMillis();
         Profiler p = new Profiler();
@@ -120,6 +120,7 @@ public class TestReopen extends TestBase implements Recorder {
                 return;
             }
             e.printStackTrace(System.out);
+            throw e;
         } catch (Exception e) {
             // failed
             int errorCode = 0;

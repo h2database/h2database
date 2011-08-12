@@ -21,7 +21,6 @@ import org.h2.security.SHA256;
 import org.h2.store.fs.RecordingFileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
-import org.h2.util.RecoverTester;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -82,13 +81,13 @@ public class ConnectionInfo implements Cloneable {
         parseName();
         String recoverTest = removeProperty("RECOVER_TEST", null);
         if (recoverTest != null) {
-            RecoverTester tester = RecoverTester.getInstance();
-            if (StringUtils.isNumber(recoverTest)) {
-                tester.setTestEvery(Integer.parseInt(recoverTest));
+            RecordingFileSystem.register();
+            try {
+                Utils.callStaticMethod("org.h2.store.RecoverTester.init", recoverTest);
+            } catch (Exception e) {
+                throw DbException.convert(e);
             }
             name = RecordingFileSystem.PREFIX + name;
-            RecordingFileSystem.register();
-            RecordingFileSystem.setRecorder(tester);
         }
     }
 

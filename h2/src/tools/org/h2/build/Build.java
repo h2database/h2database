@@ -22,6 +22,8 @@ import org.h2.build.code.SwitchSource;
  */
 public class Build extends BuildBase {
 
+    private boolean filesMissing;
+
     /**
      * Run the build.
      *
@@ -226,19 +228,37 @@ public class Build extends BuildBase {
      * dependencies. The database can be used without any dependencies.
      */
     public void download() {
-        downloadUsingMaven("ext/servlet-api-2.4.jar", "javax/servlet", "servlet-api", "2.4",
-                "3fc542fe8bb8164e8d3e840fe7403bc0518053c0");
+        downloadOrVerify(false);
+    }
+
+    private void downloadOrVerify(boolean offline) {
+        downloadOrVerify("ext/servlet-api-2.4.jar", "javax/servlet", "servlet-api", "2.4",
+                "3fc542fe8bb8164e8d3e840fe7403bc0518053c0", offline);
         if (getLuceneVersion() == 3) {
-            downloadUsingMaven("ext/lucene-core-3.0.2.jar", "org/apache/lucene", "lucene-core", "3.0.2",
-                    "c2b48995ab855c1b9ea13867a0f976c994e0105d");
+            downloadOrVerify("ext/lucene-core-3.0.2.jar", "org/apache/lucene", "lucene-core", "3.0.2",
+                    "c2b48995ab855c1b9ea13867a0f976c994e0105d", offline);
         } else {
-            downloadUsingMaven("ext/lucene-core-2.2.0.jar", "org/apache/lucene", "lucene-core", "2.2.0",
-                    "47b6eee2e17bd68911e7045896a1c09de0b2dda8");
+            downloadOrVerify("ext/lucene-core-2.2.0.jar", "org/apache/lucene", "lucene-core", "2.2.0",
+                    "47b6eee2e17bd68911e7045896a1c09de0b2dda8", offline);
         }
-        downloadUsingMaven("ext/slf4j-api-1.6.0.jar", "org/slf4j", "slf4j-api", "1.6.0",
-                "b353147a7d51fcfcd818d8aa6784839783db0915");
-        downloadUsingMaven("ext/org.osgi.core-1.2.0.jar", "org/apache/felix", "org.osgi.core", "1.2.0",
-                "3006beb1ca6a83449def6127dad3c060148a0209");
+        downloadOrVerify("ext/slf4j-api-1.6.0.jar", "org/slf4j", "slf4j-api", "1.6.0",
+                "b353147a7d51fcfcd818d8aa6784839783db0915", offline);
+        downloadOrVerify("ext/org.osgi.core-1.2.0.jar", "org/apache/felix", "org.osgi.core", "1.2.0",
+                "3006beb1ca6a83449def6127dad3c060148a0209", offline);
+    }
+
+    private void downloadOrVerify(String target, String group, String artifact,
+            String version, String sha1Checksum, boolean offline) {
+        if (offline) {
+            File targetFile = new File(target);
+            if (targetFile.exists()) {
+                return;
+            }
+            println("Missing file: " + target);
+            filesMissing = true;
+        } else {
+            downloadUsingMaven(target, group, artifact, version, sha1Checksum);
+        }
     }
 
     private void downloadTest() {
@@ -595,6 +615,21 @@ public class Build extends BuildBase {
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
                 "-DgroupId=com.h2database"));
+    }
+
+    /**
+     * Build the jar file without downloading any files over the network. If the
+     * required files are missing, they are are listed, and the jar file is not
+     * built.
+     */
+    public void offline() {
+        downloadOrVerify(true);
+        if (filesMissing) {
+            println("Required files are missing");
+            println("Both Lucene 2 and 3 are supported using -Dlucene=x (x=2 or 3)");
+        } else {
+            jar();
+        }
     }
 
     private void resources(boolean clientOnly, boolean basicOnly) {

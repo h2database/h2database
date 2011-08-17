@@ -1152,6 +1152,7 @@ If IGNORECASE is enabled, text columns in newly created tables will be
 case-insensitive. Already existing tables are not affected. The effect of
 case-insensitive columns is similar to using a collation with strength PRIMARY.
 Case-insensitive columns are compared faster than when using a collation.
+String literals and parameters are however still considered case sensitive even if this option is set.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.

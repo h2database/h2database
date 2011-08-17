@@ -401,6 +401,8 @@ MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND()</code> [when not usi
 Those functions should not be used directly in modifying statements
 (for example <code>INSERT, UPDATE, MERGE</code>). However, they can be used
 in read-only statements and the result can then be used for modifying statements.
+Using auto-increment and identity columns is currently not supported.
+Instead, sequence values need to be manually requested and then used to insert data (using two statements).
 </p>
 <p>
 When using the cluster modes, result sets are read fully in memory by the client, so that
@@ -482,6 +484,13 @@ There are various tools available to do that. The Java Service Wrapper from
 is included in the installation. Batch files are provided to install, start, stop and uninstall the
 H2 Database Engine Service. This service contains the TCP Server and the H2 Console web application.
 The batch files are located in the directory <code>h2/service</code>.
+</p>
+<p>
+When running the database as a service, absolute path should be used.
+Using <code>~</code> in the database URL is problematic in this case,
+because it means to use the home directory of the current user. 
+The service might run without or with the wrong user, so that
+the database files might end up in an unexpected place.
 </p>
 
 <h3>Install the Service</h3>
@@ -1409,7 +1418,8 @@ and the recursion needs to be on the second part of the query.
 No tables or views with the name of the table expression may exist.
 Different table expression names need to be used when using multiple distinct table
 expressions within the same transaction and for the same session.
-All columns of the table expression are of type <code>VARCHAR</code>.
+All columns of the table expression are of type <code>VARCHAR</code>,
+and may need to be cast to the required data type.
 Views with recursive queries are not supported.
 Subqueries and <code>INSERT INTO ... FROM</code> with recursive queries are not supported.
 Parameters are only supported within the last <code>SELECT</code> statement

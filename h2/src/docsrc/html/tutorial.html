@@ -954,10 +954,10 @@ and then execute the SQL script using the new engine.
 
 <h3>Backup using the Script Tool</h3>
 <p>
-There are different ways to backup a database. For example, it is possible to copy the database files.
-However, this is not recommended while the database is in use. Also, the database files are not human readable
-and quite large. The recommended way to backup a database is to create a compressed SQL script file.
-This can be done using the <code>Script</code> tool:
+The recommended way to backup a database is to create a compressed SQL script file.
+This will result in a small, human readable, and database version independent backup.
+Creating the script will also verify the checksums of the database file.
+The <code>Script</code> tool is ran as follows:
 </p>
 <pre>
 java org.h2.tools.Script -url jdbc:h2:~/test -user sa -script test.zip -options compression zip
@@ -989,7 +989,7 @@ need to be available on the server side.
 <h3>Online Backup</h3>
 <p>
 The <code>BACKUP</code> SQL statement and the <code>Backup</code> tool both create a zip file
-with all database files. However, the contents of this file are not human readable.
+with the database file. However, the contents of this file are not human readable.
 </p><p>
 The resulting backup is transactionally consistent, meaning the consistency and atomicity rules apply.
 </p>
@@ -1002,8 +1002,8 @@ the database must not be in use while running this program.
 </p>
 <p>
 Creating a backup by copying the database files while the database is running is not supported,
-except if the file systems support creating snapshots. The problem is that it can't
-be guaranteed that the data is copied in the right order.
+except if the file systems support creating snapshots. 
+With other file systems, it can't be guaranteed that the data is copied in the right order.
 </p>
 
 <h2 id="command_line_tools">Command Line Tools</h2>

@@ -300,6 +300,13 @@ H2 1.3,
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
+<td>Window Functions</td>
+<td class="compareN">No *15</td>
+<td class="compareN">No *15</td>
+<td class="compareN">No</td>
+<td class="compareY">Yes</td>
+<td class="compareN">No</td>
+</tr><tr>
 <td>Temporary Tables</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes *4</td>
@@ -366,6 +373,7 @@ H2 1.3,
 *12 Derby doesn't support the <code>EXPLAIN</code> statement, but it supports runtime statistics and retrieving statement execution plans.<br />
 *13 Derby doesn't support the syntax <code>LIMIT .. [OFFSET ..]</code>, however it supports <code>FETCH FIRST .. ROW[S] ONLY</code>.<br />
 *14 Using collations.
+*15 Derby and H2 support <code>ROW_NUMBER() OVER()</code>.
 </p>
 
 <h3>DaffodilDb and One$Db</h3>
@@ -969,11 +977,10 @@ without problems.
 
 <h3>Backup</h3>
 <p>
-When the database is closed, it is possible to backup the database files. Please note that index
-files do not need to be backed up, because they contain redundant data, and will be recreated
-automatically if they don't exist.
+When the database is closed, it is possible to backup the database files.
 </p><p>
-To backup data while the database is running, the SQL command <code>SCRIPT</code> can be used.
+To backup data while the database is running, 
+the SQL commands <code>SCRIPT</code> and <code>BACKUP</code> can be used.
 </p>
 
 <h2 id="logging_recovery">Logging and Recovery</h2>

@@ -11,12 +11,12 @@
 22025=Fehler in LIKE ESCAPE: {0}
 23502=NULL nicht zulässig für Feld {0}
 23503=Referentielle Integrität verletzt: {0}
-23505=Eindeutiger Index oder Primarschlüssel verletzt: {0}
+23505=Eindeutiger Index oder Primärschlüssel verletzt: {0}
 23506=Referentielle Integrität verletzt: {0}
 23507=Kein Vorgabewert für Feld {0}
 23513=Bedingung verletzt: {0}
 28000=Falscher Benutzer Name oder Passwort
-40001=Eine Verklemmung (Deadlock) ist aufgetreten. Die aktuelle Transaktion wurde rlückgängig gemacht. Details: {0}
+40001=Eine Verklemmung (Deadlock) ist aufgetreten. Die aktuelle Transaktion wurde rückgängig gemacht. Details: {0}
 42000=Syntax Fehler in SQL Befehl {0}
 42001=Syntax Fehler in SQL Befehl {0}; erwartet {1}
 42S01=Tabelle {0} besteht bereits

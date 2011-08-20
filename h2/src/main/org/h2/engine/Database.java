@@ -1266,7 +1266,9 @@ public class Database implements DataHandler {
     /**
      * Get all tables and views.
      *
-     * @param includeMeta whether to include the meta data tables
+     * @param includeMeta whether to force including the meta data tables (if
+     *            true, metadata tables are always included; if false, metadata
+     *            tables are only included if they are already initialized)
      * @return all objects of that type
      */
     public ArrayList<Table> getAllTablesAndViews(boolean includeMeta) {

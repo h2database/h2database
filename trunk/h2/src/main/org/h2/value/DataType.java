@@ -704,6 +704,9 @@ public class DataType {
      * @return the data type object
      */
     public static DataType getDataType(int type) {
+        if (type == Value.UNKNOWN) {
+            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?");
+        }
         DataType dt = TYPES_BY_VALUE_TYPE.get(type);
         if (dt == null) {
             dt = TYPES_BY_VALUE_TYPE.get(Value.NULL);

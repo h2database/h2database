@@ -310,10 +310,16 @@ public abstract class Value {
      * @return the higher value type of the two
      */
     public static int getHigherOrder(int t1, int t2) {
-        if (t1 == t2) {
-            if (t1 == Value.UNKNOWN) {
+        if (t1 == Value.UNKNOWN || t2 == Value.UNKNOWN) {
+            if (t1 == t2) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, ?");
+            } else if (t1 == Value.NULL) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "NULL, ?");
+            } else if (t2 == Value.NULL) {
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?, NULL");
             }
+        }
+        if (t1 == t2) {
             return t1;
         }
         int o1 = getOrder(t1);

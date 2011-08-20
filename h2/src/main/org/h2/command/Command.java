@@ -172,6 +172,10 @@ public abstract class Command implements CommandInterface {
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
+        boolean writing = !isReadOnly();
+        if (writing) {
+            database.beforeWriting();
+        }
         synchronized (sync) {
             session.setCurrentCommand(this);
             try {
@@ -191,6 +195,9 @@ public abstract class Command implements CommandInterface {
                 throw e;
             } finally {
                 stop();
+                if (writing) {
+                    database.afterWriting();
+                }
             }
         }
     }

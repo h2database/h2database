@@ -20,6 +20,8 @@ import org.h2.value.ValueNull;
 class CommandContainer extends Command {
 
     private Prepared prepared;
+    private boolean readOnlyKnown;
+    private boolean readOnly;
 
     CommandContainer(Parser parser, String sql, Prepared prepared) {
         super(parser, sql);
@@ -83,7 +85,11 @@ class CommandContainer extends Command {
     }
 
     public boolean isReadOnly() {
-        return prepared.isReadOnly();
+        if (!readOnlyKnown) {
+            readOnly = prepared.isReadOnly();
+            readOnlyKnown = true;
+        }
+        return readOnly;
     }
 
     public ResultInterface queryMeta() {

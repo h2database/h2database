@@ -112,7 +112,7 @@ public class Explain extends Prepared {
     }
 
     public boolean isReadOnly() {
-        return true;
+        return command.isReadOnly();
     }
 
     public int getType() {

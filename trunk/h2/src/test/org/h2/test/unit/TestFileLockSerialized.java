@@ -38,6 +38,8 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     public void test() throws Exception {
+        println("testSequence");
+        testSequence();
         println("testAutoIncrement");
         testAutoIncrement();
         println("testSequenceFlush");
@@ -71,6 +73,21 @@ public class TestFileLockSerialized extends TestBase {
         println("testConcurrentReadWrite");
         testConcurrentReadWrite();
         deleteDb("fileLockSerialized");
+    }
+
+    private void testSequence() throws Exception {
+        deleteDb("fileLockSerialized");
+        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized" +
+                ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;RECONNECT_CHECK_DELAY=10";
+        ResultSet rs;
+        Connection conn1 = DriverManager.getConnection(url);
+        Statement stat1 = conn1.createStatement();
+        stat1.execute("create sequence seq");
+        // 5 times RECONNECT_CHECK_DELAY
+        Thread.sleep(100);
+        rs = stat1.executeQuery("call seq.nextval");
+        rs.next();
+        conn1.close();
     }
 
     private void testSequenceFlush() throws Exception {

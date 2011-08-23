@@ -1698,11 +1698,14 @@ public class Function extends Expression implements FunctionCall {
             p = 0;
             d = 0;
             for (Expression e : args) {
-                if (e != ValueExpression.getNull() && e.getType() != Value.UNKNOWN) {
-                    t = Value.getHigherOrder(t, e.getType());
-                    s = Math.max(s, e.getScale());
-                    p = Math.max(p, e.getPrecision());
-                    d = Math.max(d, e.getDisplaySize());
+                if (e != ValueExpression.getNull()) {
+                    int type = e.getType();
+                    if (type != Value.UNKNOWN && type != Value.NULL) {
+                        t = Value.getHigherOrder(t, type);
+                        s = Math.max(s, e.getScale());
+                        p = Math.max(p, e.getPrecision());
+                        d = Math.max(d, e.getDisplaySize());
+                    }
                 }
             }
             if (t == Value.UNKNOWN) {

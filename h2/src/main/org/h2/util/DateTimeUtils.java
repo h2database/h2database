@@ -158,7 +158,7 @@ public class DateTimeUtils {
                 (int) h, (int) m, (int) s, (int) millis);
         long ms = cal.getTimeInMillis();
         Timestamp x = new Timestamp(ms);
-        x.setNanos((int) nanos);
+        x.setNanos((int) (nanos + millis * 1000000));
         return x;
     }
 
@@ -226,7 +226,7 @@ public class DateTimeUtils {
         to.set(Calendar.SECOND, from.get(Calendar.SECOND));
         to.set(Calendar.MILLISECOND, from.get(Calendar.MILLISECOND));
     }
-    
+
     /**
      * Convert the timestamp using the specified calendar.
      *

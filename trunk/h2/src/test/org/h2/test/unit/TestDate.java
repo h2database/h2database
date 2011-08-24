@@ -463,10 +463,10 @@ public class TestDate extends TestBase {
         assertEquals("19999-08-07 13:14:15.16", ts2.getString());
         assertEquals("19999-08-07", d2.getString());
         assertEquals("13:14:15.16", t2.getString());
-        java.sql.Timestamp ts1a = DateTimeUtils.convertTimestampToCalendar(ts1.getTimestamp(), Calendar.getInstance());
-        java.sql.Timestamp ts2a = DateTimeUtils.convertTimestampToCalendar(ts2.getTimestamp(), Calendar.getInstance());
-        assertEquals("-999-08-07 13:14:15.16", ValueTimestamp.get(ts1a).getString());
-        assertEquals("19999-08-07 13:14:15.16", ValueTimestamp.get(ts2a).getString());
+        ValueTimestamp ts1a = DateTimeUtils.convertTimestamp(ts1.getTimestamp(), Calendar.getInstance());
+        ValueTimestamp ts2a = DateTimeUtils.convertTimestamp(ts2.getTimestamp(), Calendar.getInstance());
+        assertEquals("-999-08-07 13:14:15.16", ts1a.getString());
+        assertEquals("19999-08-07 13:14:15.16", ts2a.getString());
     }
 
 }

@@ -20,6 +20,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
@@ -75,96 +76,124 @@ public class DateTimeUtils {
     /**
      * Convert the date to the specified time zone.
      *
-     * @param x the date
+     * @param value the date (might be ValueNull)
      * @param calendar the calendar
      * @return the date using the correct time zone
      */
-    public static Date convertDateToCalendar(Date x, Calendar calendar) {
-        return x == null ? null : new Date(convertToLocal(x, calendar));
+    public static Date convertDate(Value value, Calendar calendar) {
+        if (value == ValueNull.INSTANCE) {
+            return null;
+        }
+        ValueDate d = (ValueDate) value.convertTo(Value.DATE);
+        Calendar cal = (Calendar) calendar.clone();
+        cal.clear();
+        cal.setLenient(true);
+        long dateValue = d.getDateValue();
+        setCalendarFields(cal, yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue),
+                0, 0, 0, 0);
+        long ms = cal.getTimeInMillis();
+        return new Date(ms);
     }
 
     /**
      * Convert the time to the specified time zone.
      *
-     * @param x the time
+     * @param value the time (might be ValueNull)
      * @param calendar the calendar
      * @return the time using the correct time zone
      */
-    public static Time convertTimeToCalendar(Time x, Calendar calendar) {
-        return x == null ? null : new Time(convertToLocal(x, calendar));
+    public static Time convertTime(Value value, Calendar calendar) {
+        if (value == ValueNull.INSTANCE) {
+            return null;
+        }
+        ValueTime t = (ValueTime) value.convertTo(Value.TIME);
+        Calendar cal = (Calendar) calendar.clone();
+        cal.clear();
+        cal.setLenient(true);
+        long nanos = t.getNanos();
+        long millis = nanos / 1000000;
+        nanos -= millis * 1000000;
+        long s = millis / 1000;
+        millis -= s * 1000;
+        long m = s / 60;
+        s -= m * 60;
+        long h = m / 60;
+        m -= h * 60;
+        setCalendarFields(cal, 1970, 1, 1,
+                (int) h, (int) m, (int) s, (int) millis);
+        long ms = cal.getTimeInMillis();
+        return new Time(ms);
     }
 
     /**
      * Convert the timestamp to the specified time zone.
      *
-     * @param x the timestamp
+     * @param value the timestamp (might be ValueNull)
      * @param calendar the calendar
      * @return the timestamp using the correct time zone
      */
-    public static Timestamp convertTimestampToCalendar(Timestamp x, Calendar calendar) {
-        if (x != null) {
-            Timestamp y = new Timestamp(convertToLocal(x, calendar));
-            // fix the nano seconds
-            y.setNanos(x.getNanos());
-            x = y;
+    public static Timestamp convertTimestamp(Value value, Calendar calendar) {
+        if (value == ValueNull.INSTANCE) {
+            return null;
         }
+        ValueTimestamp ts = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+        Calendar cal = (Calendar) calendar.clone();
+        cal.clear();
+        cal.setLenient(true);
+        long dateValue = ts.getDateValue();
+        long nanos = ts.getNanos();
+        long millis = nanos / 1000000;
+        nanos -= millis * 1000000;
+        long s = millis / 1000;
+        millis -= s * 1000;
+        long m = s / 60;
+        s -= m * 60;
+        long h = m / 60;
+        m -= h * 60;
+        setCalendarFields(cal, yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue),
+                (int) h, (int) m, (int) s, (int) millis);
+        long ms = cal.getTimeInMillis();
+        Timestamp x = new Timestamp(ms);
+        x.setNanos((int) nanos);
         return x;
     }
 
     /**
-     * Convert the date from the specified time zone to UTC.
+     * Convert the date using the specified calendar.
      *
      * @param x the date
-     * @param source the calendar
-     * @return the date in UTC
+     * @param calendar the calendar
+     * @return the date
      */
-    public static Value convertDateToUTC(Date x, Calendar source) {
-        return ValueDate.get(new Date(convertToUTC(x, source)));
-    }
-
-    /**
-     * Convert the time from the specified time zone to UTC.
-     *
-     * @param x the time
-     * @param source the calendar
-     * @return the time in UTC
-     */
-    public static Value convertTimeToUTC(Time x, Calendar source) {
-        return ValueTime.get(new Time(convertToUTC(x, source)));
-    }
-
-    /**
-     * Convert the timestamp from the specified time zone to UTC.
-     *
-     * @param x the time
-     * @param source the calendar
-     * @return the timestamp in UTC
-     */
-    public static Value convertTimestampToUTC(Timestamp x, Calendar source) {
-        Timestamp y = new Timestamp(convertToUTC(x, source));
-        // fix the nano seconds
-        y.setNanos(x.getNanos());
-        return ValueTimestamp.get(y);
-    }
-
-    /**
-     * Convert the date value to UTC using the given calendar.
-     *
-     * @param x the date
-     * @param source the source calendar
-     * @return the UTC number of milliseconds.
-     */
-    private static long convertToUTC(java.util.Date x, Calendar source) {
-        if (source == null) {
+    public static ValueDate convertDate(Date x, Calendar calendar) {
+        if (calendar == null) {
             throw DbException.getInvalidValueException("calendar", null);
         }
-        source = (Calendar) source.clone();
-        Calendar universal = getCalendar();
-        synchronized (universal) {
-            source.setTime(x);
-            convertTime(source, universal);
-            return universal.getTime().getTime();
+        Calendar cal = (Calendar) calendar.clone();
+        cal.setTimeInMillis(x.getTime());
+        long dateValue = dateValueFromCalendar(cal);
+        return ValueDate.fromDateValue(dateValue);
+    }
+
+    /**
+     * Convert the time using the specified calendar.
+     *
+     * @param x the time
+     * @param calendar the calendar
+     * @return the time
+     */
+    public static ValueTime convertTime(Time x, Calendar calendar) {
+        if (calendar == null) {
+            throw DbException.getInvalidValueException("calendar", null);
         }
+        Calendar cal = (Calendar) calendar.clone();
+        cal.setTimeInMillis(x.getTime());
+        long nanos = nanosFromCalendar(cal);
+        return ValueTime.fromNanos(nanos);
     }
 
     /**
@@ -196,6 +225,25 @@ public class DateTimeUtils {
         to.set(Calendar.MINUTE, from.get(Calendar.MINUTE));
         to.set(Calendar.SECOND, from.get(Calendar.SECOND));
         to.set(Calendar.MILLISECOND, from.get(Calendar.MILLISECOND));
+    }
+    
+    /**
+     * Convert the timestamp using the specified calendar.
+     *
+     * @param x the time
+     * @param calendar the calendar
+     * @return the timestamp
+     */
+    public static ValueTimestamp convertTimestamp(Timestamp x, Calendar calendar) {
+        if (calendar == null) {
+            throw DbException.getInvalidValueException("calendar", null);
+        }
+        Calendar cal = (Calendar) calendar.clone();
+        cal.setTimeInMillis(x.getTime());
+        long dateValue = dateValueFromCalendar(cal);
+        long nanos = nanosFromCalendar(cal);
+        nanos += x.getNanos() % 1000000;
+        return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
     }
 
     /**
@@ -335,22 +383,27 @@ public class DateTimeUtils {
         synchronized (c) {
             c.clear();
             c.setLenient(lenient);
-            if (year <= 0) {
-                c.set(Calendar.ERA, GregorianCalendar.BC);
-                c.set(Calendar.YEAR, 1 - year);
-            } else {
-                c.set(Calendar.ERA, GregorianCalendar.AD);
-                c.set(Calendar.YEAR, year);
-            }
-            // january is 0
-            c.set(Calendar.MONTH, month - 1);
-            c.set(Calendar.DAY_OF_MONTH, day);
-            c.set(Calendar.HOUR_OF_DAY, hour);
-            c.set(Calendar.MINUTE, minute);
-            c.set(Calendar.SECOND, second);
-            c.set(Calendar.MILLISECOND, millis);
+            setCalendarFields(c, year, month, day, hour, minute, second, millis);
             return c.getTime().getTime();
         }
+    }
+
+    private static void setCalendarFields(Calendar cal, int year, int month, int day,
+            int hour, int minute, int second, int millis) {
+        if (year <= 0) {
+            cal.set(Calendar.ERA, GregorianCalendar.BC);
+            cal.set(Calendar.YEAR, 1 - year);
+        } else {
+            cal.set(Calendar.ERA, GregorianCalendar.AD);
+            cal.set(Calendar.YEAR, year);
+        }
+        // january is 0
+        cal.set(Calendar.MONTH, month - 1);
+        cal.set(Calendar.DAY_OF_MONTH, day);
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, minute);
+        cal.set(Calendar.SECOND, second);
+        cal.set(Calendar.MILLISECOND, millis);
     }
 
     /**
@@ -678,12 +731,22 @@ public class DateTimeUtils {
         synchronized (cal) {
             cal.clear();
             cal.setTimeInMillis(ms);
-            int year, month, day;
-            year = getYear(cal);
-            month = cal.get(Calendar.MONTH) + 1;
-            day = cal.get(Calendar.DAY_OF_MONTH);
-            return ((long) year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
+            return dateValueFromCalendar(cal);
         }
+    }
+
+    /**
+     * Calculate the date value from a given calendar.
+     *
+     * @param cal the calendar
+     * @return the date value
+     */
+    private static long dateValueFromCalendar(Calendar cal) {
+        int year, month, day;
+        year = getYear(cal);
+        month = cal.get(Calendar.MONTH) + 1;
+        day = cal.get(Calendar.DAY_OF_MONTH);
+        return ((long) year << SHIFT_YEAR) | (month << SHIFT_MONTH) | day;
     }
 
     /**
@@ -691,19 +754,29 @@ public class DateTimeUtils {
      * given time in milliseconds in UTC.
      *
      * @param ms the milliseconds
-     * @return the date value
+     * @return the nanoseconds
      */
     public static long nanosFromDate(long ms) {
         Calendar cal = getCalendar();
         synchronized (cal) {
             cal.clear();
             cal.setTimeInMillis(ms);
-            int h = cal.get(Calendar.HOUR_OF_DAY);
-            int m = cal.get(Calendar.MINUTE);
-            int s = cal.get(Calendar.SECOND);
-            int millis = cal.get(Calendar.MILLISECOND);
-            return ((((((h * 60L) + m) * 60) + s) * 1000) + millis) * 1000000;
+            return nanosFromCalendar(cal);
         }
+    }
+
+    /**
+     * Calculate the nanoseconds since midnight from a given calendar.
+     *
+     * @param cal the calendar
+     * @return the nanoseconds
+     */
+    private static long nanosFromCalendar(Calendar cal) {
+        int h = cal.get(Calendar.HOUR_OF_DAY);
+        int m = cal.get(Calendar.MINUTE);
+        int s = cal.get(Calendar.SECOND);
+        int millis = cal.get(Calendar.MILLISECOND);
+        return ((((((h * 60L) + m) * 60) + s) * 1000) + millis) * 1000000;
     }
 
     /**

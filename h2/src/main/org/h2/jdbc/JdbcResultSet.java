@@ -806,8 +806,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("getDate(" + columnIndex + ", calendar)");
             }
-            Date x = get(columnIndex).getDate();
-            return DateTimeUtils.convertDateToCalendar(x, calendar);
+            return DateTimeUtils.convertDate(get(columnIndex), calendar);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -828,8 +827,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("getDate(" + StringUtils.quoteJavaString(columnLabel) + ", calendar)");
             }
-            Date x = get(columnLabel).getDate();
-            return DateTimeUtils.convertDateToCalendar(x, calendar);
+            return DateTimeUtils.convertDate(get(columnLabel), calendar);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -850,8 +848,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("getTime(" + columnIndex + ", calendar)");
             }
-            Time x = get(columnIndex).getTime();
-            return DateTimeUtils.convertTimeToCalendar(x, calendar);
+            return DateTimeUtils.convertTime(get(columnIndex), calendar);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -872,8 +869,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("getTime(" + StringUtils.quoteJavaString(columnLabel) + ", calendar)");
             }
-            Time x = get(columnLabel).getTime();
-            return DateTimeUtils.convertTimeToCalendar(x, calendar);
+            return DateTimeUtils.convertTime(get(columnLabel), calendar);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -894,8 +890,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("getTimestamp(" + columnIndex + ", calendar)");
             }
-            Timestamp x = get(columnIndex).getTimestamp();
-            return DateTimeUtils.convertTimestampToCalendar(x, calendar);
+            Value value = get(columnIndex);
+            return DateTimeUtils.convertTimestamp(value, calendar);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -915,8 +911,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             if (isDebugEnabled()) {
                 debugCode("getTimestamp(" + StringUtils.quoteJavaString(columnLabel) + ", calendar)");
             }
-            Timestamp x = get(columnLabel).getTimestamp();
-            return DateTimeUtils.convertTimestampToCalendar(x, calendar);
+            Value value = get(columnLabel);
+            return DateTimeUtils.convertTimestamp(value, calendar);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

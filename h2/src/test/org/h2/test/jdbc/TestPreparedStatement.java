@@ -11,18 +11,25 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
 import java.util.UUID;
 import org.h2.api.Trigger;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.Task;
 
 /**
@@ -44,6 +51,7 @@ public class TestPreparedStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testDateTimeTimestampWithCalendar(conn);
         testCallTablePrepared(conn);
         testValues(conn);
         testToString(conn);
@@ -79,6 +87,95 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
         deleteDb("preparedStatement");
+    }
+
+    private void testDateTimeTimestampWithCalendar(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("create table ts(x timestamp primary key)");
+        stat.execute("create table t(x time primary key)");
+        stat.execute("create table d(x date)");
+        Calendar utcCalendar = new GregorianCalendar(new SimpleTimeZone(0, "Z"));
+        TimeZone old = TimeZone.getDefault();
+        DateTimeUtils.resetCalendar();
+        TimeZone.setDefault(TimeZone.getTimeZone("PST"));
+        try {
+            Timestamp ts1 = Timestamp.valueOf("2010-03-13 18:15:00");
+            Time t1 = new Time(ts1.getTime());
+            Date d1 = new Date(ts1.getTime());
+            // when converted to UTC, this is 03:15, which doesn't actually exist
+            // because of summer time change at that day
+            Timestamp ts2 = Timestamp.valueOf("2010-03-13 19:15:00");
+            Time t2 = new Time(ts2.getTime());
+            Date d2 = new Date(ts2.getTime());
+            PreparedStatement prep;
+            ResultSet rs;
+            prep = conn.prepareStatement("insert into ts values(?)");
+            prep.setTimestamp(1, ts1, utcCalendar);
+            prep.execute();
+            prep.setTimestamp(1, ts2, utcCalendar);
+            prep.execute();
+            prep = conn.prepareStatement("insert into t values(?)");
+            prep.setTime(1, t1, utcCalendar);
+            prep.execute();
+            prep.setTime(1, t2, utcCalendar);
+            prep.execute();
+            prep = conn.prepareStatement("insert into d values(?)");
+            prep.setDate(1, d1, utcCalendar);
+            prep.execute();
+            prep.setDate(1, d2, utcCalendar);
+            prep.execute();
+            rs = stat.executeQuery("select * from ts order by x");
+            rs.next();
+            assertEquals("2010-03-14 02:15:00.0", rs.getString(1));
+            assertEquals("2010-03-13 18:15:00.0", rs.getTimestamp(1, utcCalendar).toString());
+            assertEquals("2010-03-14 03:15:00.0", rs.getTimestamp(1).toString());
+            assertEquals("2010-03-14 02:15:00.0", rs.getString("x"));
+            assertEquals("2010-03-13 18:15:00.0", rs.getTimestamp("x", utcCalendar).toString());
+            assertEquals("2010-03-14 03:15:00.0", rs.getTimestamp("x").toString());
+            rs.next();
+            assertEquals("2010-03-14 03:15:00.0", rs.getString(1));
+            assertEquals("2010-03-13 19:15:00.0", rs.getTimestamp(1, utcCalendar).toString());
+            assertEquals("2010-03-14 03:15:00.0", rs.getTimestamp(1).toString());
+            assertEquals("2010-03-14 03:15:00.0", rs.getString("x"));
+            assertEquals("2010-03-13 19:15:00.0", rs.getTimestamp("x", utcCalendar).toString());
+            assertEquals("2010-03-14 03:15:00.0", rs.getTimestamp("x").toString());
+            rs = stat.executeQuery("select * from t order by x");
+            rs.next();
+            assertEquals("02:15:00", rs.getString(1));
+            assertEquals("18:15:00", rs.getTime(1, utcCalendar).toString());
+            assertEquals("02:15:00", rs.getTime(1).toString());
+            assertEquals("02:15:00", rs.getString("x"));
+            assertEquals("18:15:00", rs.getTime("x", utcCalendar).toString());
+            assertEquals("02:15:00", rs.getTime("x").toString());
+            rs.next();
+            assertEquals("03:15:00", rs.getString(1));
+            assertEquals("19:15:00", rs.getTime(1, utcCalendar).toString());
+            assertEquals("03:15:00", rs.getTime(1).toString());
+            assertEquals("03:15:00", rs.getString("x"));
+            assertEquals("19:15:00", rs.getTime("x", utcCalendar).toString());
+            assertEquals("03:15:00", rs.getTime("x").toString());
+            rs = stat.executeQuery("select * from d order by x");
+            rs.next();
+            assertEquals("2010-03-14", rs.getString(1));
+            assertEquals("2010-03-13", rs.getDate(1, utcCalendar).toString());
+            assertEquals("2010-03-14", rs.getDate(1).toString());
+            assertEquals("2010-03-14", rs.getString("x"));
+            assertEquals("2010-03-13", rs.getDate("x", utcCalendar).toString());
+            assertEquals("2010-03-14", rs.getDate("x").toString());
+            rs.next();
+            assertEquals("2010-03-14", rs.getString(1));
+            assertEquals("2010-03-13", rs.getDate(1, utcCalendar).toString());
+            assertEquals("2010-03-14", rs.getDate(1).toString());
+            assertEquals("2010-03-14", rs.getString("x"));
+            assertEquals("2010-03-13", rs.getDate("x", utcCalendar).toString());
+            assertEquals("2010-03-14", rs.getDate("x").toString());
+        } finally {
+            TimeZone.setDefault(old);
+            DateTimeUtils.resetCalendar();
+        }
+        stat.execute("drop table ts");
+        stat.execute("drop table t");
+        stat.execute("drop table d");
     }
 
     private void testCallTablePrepared(Connection conn) throws SQLException {

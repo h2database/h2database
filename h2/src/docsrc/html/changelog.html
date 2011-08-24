@@ -18,7 +18,15 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>The JDBC methods PreparedStatement.setTimestamp, setTime, and setDate with a calendar,
+    and the methods ResultSet.getTimestamp, getTime, and getDate with a calendar converted
+    the value in the wrong way, so that for some timestamps the converted value was wrong
+    (where summertime starts, one hour per year).
+</li><li>Invalid tables names in 'order by' columns were not detected in some cases. Example:
+    select x from dual order by y.x
+</li><li>Issue 329: CASE expression: data type problem is not detected.
+</li><li>Issue 311: File lock mode serialized: selecting the next value from a sequence didn't work
+    after a pause, because the database thought this is a read-only operation.
 </li></ul>
 
 <h2>Version 1.3.159 (2011-08-13)</h2>

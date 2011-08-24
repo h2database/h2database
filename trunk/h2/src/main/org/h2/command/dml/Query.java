@@ -321,7 +321,8 @@ public abstract class Query extends Prepared {
             ArrayList<String> expressionSQL,
             ArrayList<SelectOrderBy> orderList,
             int visible,
-            boolean mustBeInResult) {
+            boolean mustBeInResult,
+            ArrayList<TableFilter> filters) {
         for (SelectOrderBy o : orderList) {
             Expression e = o.expression;
             if (e == null) {
@@ -334,6 +335,7 @@ public abstract class Query extends Prepared {
             boolean isAlias = false;
             int idx = expressions.size();
             if (e instanceof ExpressionColumn) {
+                // order by expression
                 ExpressionColumn exprCol = (ExpressionColumn) e;
                 String tableAlias = exprCol.getOriginalTableAliasName();
                 String col = exprCol.getOriginalColumnName();
@@ -341,12 +343,23 @@ public abstract class Query extends Prepared {
                     boolean found = false;
                     Expression ec = expressions.get(j);
                     if (ec instanceof ExpressionColumn) {
+                        // select expression
                         ExpressionColumn c = (ExpressionColumn) ec;
                         found = col.equals(c.getColumnName());
-                        if (tableAlias != null && found) {
+                        if (found && tableAlias != null) {
                             String ca = c.getOriginalTableAliasName();
-                            if (ca != null) {
-                                found = tableAlias.equals(ca);
+                            if (ca == null) {
+                                found = false;
+                                // select id from test order by test.id
+                                for (int i = 0, size = filters.size(); i < size; i++) {
+                                    TableFilter f = filters.get(i);
+                                    if (f.getTableAlias().equals(tableAlias)) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                            } else {
+                                found = ca.equals(tableAlias);
                             }
                         }
                     } else if (!(ec instanceof Alias)) {

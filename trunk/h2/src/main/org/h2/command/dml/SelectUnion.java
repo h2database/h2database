@@ -286,7 +286,7 @@ public class SelectUnion extends Query {
             expressions.add(e);
         }
         if (orderList != null) {
-            initOrder(expressions, null, orderList, getColumnCount(), true);
+            initOrder(expressions, null, orderList, getColumnCount(), true, null);
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }

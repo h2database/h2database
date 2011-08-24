@@ -291,12 +291,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
             if (objects.size() == 0) {
                 try {
-long start = System.currentTimeMillis();
                     conn = getConnection(seed, false);
-long connectTime = System.currentTimeMillis() - start;
-if (connectTime > 2000) {
-    System.out.println("??? connected in " + connectTime);
-}
                 } catch (SQLException e) {
                     if ("08004".equals(e.getSQLState())) {
                         // Wrong user/password [08004]

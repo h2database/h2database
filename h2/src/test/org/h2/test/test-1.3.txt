@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select x from dual order by y.x;
+> exception
+
 create table test(id int primary key, name varchar(255), row_number int);
 > ok
 

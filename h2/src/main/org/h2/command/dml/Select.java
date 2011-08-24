@@ -706,7 +706,7 @@ public class Select extends Query {
             expressionSQL = null;
         }
         if (orderList != null) {
-            initOrder(expressions, expressionSQL, orderList, visibleColumnCount, distinct);
+            initOrder(expressions, expressionSQL, orderList, visibleColumnCount, distinct, filters);
         }
         distinctColumnCount = expressions.size();
         if (having != null) {

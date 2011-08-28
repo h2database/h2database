@@ -99,6 +99,7 @@ public class DropTable extends SchemaCommand {
         if (table != null) {
             table.setModified();
             Database db = session.getDatabase();
+            db.lockMeta(session);
             db.removeSchemaObject(session, table);
         }
         if (next != null) {

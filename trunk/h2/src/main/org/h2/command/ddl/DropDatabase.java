@@ -45,6 +45,7 @@ public class DropDatabase extends DefineCommand {
         session.getUser().checkAdmin();
         session.commit(true);
         Database db = session.getDatabase();
+        db.lockMeta(session);
         // TODO local temp tables are not removed
         for (Schema schema : db.getAllSchemas()) {
             if (schema.canDrop()) {

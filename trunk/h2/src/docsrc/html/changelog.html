@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The JDBC methods PreparedStatement.setTimestamp, setTime, and setDate with a calendar,
+<ul><li>Issue 335: Could not run DROP ALL OBJECTS DELETE FILES on older databases with CLOB or BLOB data.
+    The problem was that the metadata table was not locked in some cases, so that
+    a rollback could result in a corrupt database in a database if the lob storage was upgraded.
+</li><li>Source code switching using //## has been simplified.
+    The Java 1.5 tag has been removed because is no longer needed.
+</li><li>The JDBC methods PreparedStatement.setTimestamp, setTime, and setDate with a calendar,
     and the methods ResultSet.getTimestamp, getTime, and getDate with a calendar converted
     the value in the wrong way, so that for some timestamps the converted value was wrong
     (where summertime starts, one hour per year).

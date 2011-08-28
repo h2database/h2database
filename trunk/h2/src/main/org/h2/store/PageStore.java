@@ -1674,6 +1674,11 @@ public class PageStore implements CacheWriter {
         if (table.isTemporary()) {
             options += "temp";
         }
+        if (SysProperties.CHECK) {
+            if (!table.isTemporary()) {
+                database.verifyMetaLocked(session);
+            }
+        }
         options += ",";
         if (index instanceof PageDelegateIndex) {
             options += "d";
@@ -1696,6 +1701,11 @@ public class PageStore implements CacheWriter {
      * @param session the session
      */
     public synchronized void removeMeta(Index index, Session session) {
+        if (SysProperties.CHECK) {
+            if (!index.getTable().isTemporary()) {
+                database.verifyMetaLocked(session);
+            }
+        }
         if (!recoveryRunning) {
             removeMetaIndex(index, session);
             metaObjects.remove(index.getId());
@@ -1894,6 +1904,10 @@ public class PageStore implements CacheWriter {
             }
         }
         return f;
+    }
+
+    public Session getSystemSession() {
+        return systemSession;
     }
 
 }

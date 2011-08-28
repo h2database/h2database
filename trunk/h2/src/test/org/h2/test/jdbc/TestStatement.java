@@ -137,11 +137,9 @@ public class TestStatement extends TestBase {
 
         Statement stat = conn.createStatement();
 
-        //## Java 1.4 begin ##
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
         conn.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
         assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT, conn.getHoldability());
-        //## Java 1.4 end ##
 
         // ignored
         stat.setCursorName("x");

@@ -444,9 +444,9 @@ public class TestMetaData extends TestBase {
             assertEquals(meta.getDatabaseMajorVersion(), meta.getDriverMajorVersion());
             assertEquals(meta.getDatabaseMinorVersion(), meta.getDriverMinorVersion());
             int majorVersion = 3;
-            //## Java 1.6 begin ##
+            //## Java 1.6 ##
             majorVersion = 4;
-            //## Java 1.6 end ##
+            //*/
             assertEquals(majorVersion, meta.getJDBCMajorVersion());
             assertEquals(0, meta.getJDBCMinorVersion());
         }

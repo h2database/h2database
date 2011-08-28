@@ -59,15 +59,12 @@ public class SwitchSource {
         if (version == null) {
             // ok
         } else if ("1.5".equals(version)) {
-            enable.add("Java 1.5");
             disable.add("Java 1.6");
             disable.add("Java 1.7");
         } else if ("1.6".equals(version)) {
-            enable.add("Java 1.5");
             enable.add("Java 1.6");
             disable.add("Java 1.7");
         } else if (version.compareTo("1.7") >= 0) {
-            enable.add("Java 1.5");
             enable.add("Java 1.6");
             enable.add("Java 1.7");
         } else {
@@ -129,14 +126,11 @@ public class SwitchSource {
         }
         String source = new String(buffer);
         String target = source;
-        target = replaceAll(target, "//##", "//##");
         for (String x : enable) {
-            target = replaceAll(target, "/*## " + x + " begin ##", "//## " + x + " begin ##");
-            target = replaceAll(target, "## " + x + " end ##*/", "//## " + x + " end ##");
+            target = replaceAll(target, "/*## " + x + " ##", "//## " + x + " ##");
         }
         for (String x : disable) {
-            target = replaceAll(target, "//## " + x + " begin ##", "/*## " + x + " begin ##");
-            target = replaceAll(target, "//## " + x + " end ##", "## " + x + " end ##*/");
+            target = replaceAll(target, "//## " + x + " ##", "/*## " + x + " ##");
         }
         if (!source.equals(target)) {
             String name = f.getPath();

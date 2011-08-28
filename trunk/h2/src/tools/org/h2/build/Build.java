@@ -133,11 +133,10 @@ public class Build extends BuildBase {
         try {
             String version = System.getProperty("version");
             String check = enableCheck ? "+CHECK" : "-CHECK";
-            String noCheck = enableCheck ? "-NO_CHECK" : "+NO_CHECK";
             if (version == null) {
-                SwitchSource.main("-dir", "src", "-auto", check, noCheck);
+                SwitchSource.main("-dir", "src", "-auto", check);
             } else {
-                SwitchSource.main("-dir", "src", "-version", version, check, noCheck);
+                SwitchSource.main("-dir", "src", "-version", version, check);
             }
             SwitchSource.main("-dir", "src", "-LUCENE2", "-LUCENE3", "+LUCENE" + getLuceneVersion());
         } catch (IOException e) {

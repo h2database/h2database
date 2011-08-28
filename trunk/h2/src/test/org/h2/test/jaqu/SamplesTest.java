@@ -30,9 +30,7 @@ public class SamplesTest extends TestBase {
     /**
      * This object represents a database (actually a connection to the database).
      */
-//## Java 1.5 begin ##
     Db db;
-//## Java 1.5 end ##
 
     /**
      * This method is called when executing this application from the command
@@ -45,7 +43,6 @@ public class SamplesTest extends TestBase {
     }
 
     public void test() {
-//## Java 1.5 begin ##
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());
         db.insertAll(Customer.getList());
@@ -81,7 +78,6 @@ public class SamplesTest extends TestBase {
         testLimitOffset();
         testKeyRetrieval();
         db.close();
-//## Java 1.5 end ##
     }
 
     /**
@@ -93,7 +89,6 @@ public class SamplesTest extends TestBase {
         public Integer id;
     }
 
-//## Java 1.5 begin ##
     private void testReverseColumns() {
         db.executeUpdate("create table TestReverse(id int, name varchar, additional varchar)");
         TestReverse t = new TestReverse();
@@ -104,10 +99,8 @@ public class SamplesTest extends TestBase {
         assertEquals(t.name, check.name);
         assertEquals(t.id, check.id);
     }
-//## Java 1.5 end ##
 
 
-//## Java 1.5 begin ##
     private void testWhereSimple2() {
 
 //            var soldOutProducts =
@@ -175,7 +168,6 @@ public class SamplesTest extends TestBase {
             assertEquals(products.get(i).productName, productNames.get(i));
         }
     }
-//## Java 1.5 end ##
 
     /**
      * A result set class containing the product name and price.
@@ -186,7 +178,6 @@ public class SamplesTest extends TestBase {
         public Double price;
     }
 
-//## Java 1.5 begin ##
     private void testAnonymousTypes3() {
 
 //        var productInfos =
@@ -216,7 +207,6 @@ public class SamplesTest extends TestBase {
             assertEquals(p2.unitPrice, pr.price);
         }
     }
-//## Java 1.5 end ##
 
     /**
      * A result set class containing customer data and the order total.
@@ -230,7 +220,6 @@ public class SamplesTest extends TestBase {
         }
     }
 
-//## Java 1.5 begin ##
     private void testSelectManyCompoundFrom2() {
 
 //        var orders =
@@ -407,7 +396,6 @@ public class SamplesTest extends TestBase {
             assertTrue("Failed to add key.  Duplicate?", uniqueKeys.add(l));
         }
     }
-//## Java 1.5 end ##
 
     /**
      * A result set class containing product groups.
@@ -420,7 +408,6 @@ public class SamplesTest extends TestBase {
         }
     }
 
-//## Java 1.5 begin ##
     private void testGroup() {
 
 //      var orderGroups =
@@ -446,5 +433,4 @@ public class SamplesTest extends TestBase {
                 list.toString());
     }
 
-//## Java 1.5 end ##
 }

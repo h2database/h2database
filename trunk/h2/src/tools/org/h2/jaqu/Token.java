@@ -16,7 +16,5 @@ public interface Token {
      * @param stat the statement to append the SQL to
      * @param query the query to use
      */
-//## Java 1.5 begin ##
     <T> void appendSQL(SQLStatement stat, Query<T> query);
-//## Java 1.5 end ##
 }

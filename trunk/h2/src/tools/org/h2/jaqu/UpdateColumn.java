@@ -17,8 +17,6 @@ public interface UpdateColumn {
      *
      * @param stat the statement to append the SQL to
      */
-//## Java 1.5 begin ##
     void appendSQL(SQLStatement stat);
-//## Java 1.5 end ##
 
 }

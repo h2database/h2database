@@ -6,17 +6,14 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.5 begin ##
 import java.util.Arrays;
 import java.util.List;
 import org.h2.jaqu.Table.JQColumn;
 import org.h2.jaqu.Table.JQTable;
-//## Java 1.5 end ##
 
 /**
  * A table containing product data.
  */
-//## Java 1.5 begin ##
 @JQTable(createIfRequired = false)
 public class ProductNoCreateTable {
 
@@ -47,4 +44,3 @@ public class ProductNoCreateTable {
     }
 
 }
-//## Java 1.5 end ##

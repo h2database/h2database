@@ -9,7 +9,6 @@ package org.h2.jaqu;
 /**
  * An enumeration of compare operations.
  */
-//## Java 1.5 begin ##
 enum CompareType {
     EQUAL("=", true),
     BIGGER(">", true),
@@ -38,5 +37,4 @@ enum CompareType {
     }
 
 }
-//## Java 1.5 end ##
 

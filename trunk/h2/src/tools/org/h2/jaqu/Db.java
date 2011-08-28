@@ -6,7 +6,6 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.5 begin ##
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,7 +24,6 @@ import org.h2.jaqu.SQLDialect.DefaultSQLDialect;
 import org.h2.jaqu.Table.JQDatabase;
 import org.h2.jaqu.Table.JQTable;
 import org.h2.jaqu.util.WeakIdentityHashMap;
-//## Java 1.5 end ##
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -33,7 +31,6 @@ import org.h2.util.StringUtils;
 /**
  * This class represents a connection to a database.
  */
-//## Java 1.5 begin ##
 public class Db {
 
     /**
@@ -349,4 +346,3 @@ public class Db {
 //    }
 
 }
-//## Java 1.5 end ##

@@ -6,7 +6,6 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.5 begin ##
 import java.util.Arrays;
 import java.util.List;
 import org.h2.jaqu.Table.JQColumn;
@@ -16,7 +15,6 @@ import org.h2.jaqu.Table.JQTable;
 /**
  * A table containing product data.
  */
-//## Java 1.5 begin ##
 @JQTable(annotationsOnly = false)
 @JQIndex(standard = "name, cat")
 public class ProductMixedAnnotation {
@@ -81,4 +79,3 @@ public class ProductMixedAnnotation {
     }
 
 }
-//## Java 1.5 end ##

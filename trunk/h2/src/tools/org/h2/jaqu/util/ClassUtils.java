@@ -6,62 +6,25 @@
  */
 package org.h2.jaqu.util;
 
-//## Java 1.5 begin ##
-import java.io.IOException;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Clob;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.util.IOUtils;
-//## Java 1.5 end ##
 
 /**
  * Generic utility methods.
  */
 public class ClassUtils {
-//## Java 1.5 begin ##
 
     private static final AtomicLong COUNTER = new AtomicLong(0);
 
     private static final boolean MAKE_ACCESSIBLE = true;
-
-    private static final int BUFFER_BLOCK_SIZE = 4 * 1024;
-
-//    public static <T> ArrayList<T> newArrayList() {
-//        return new ArrayList<T>();
-//    }
-//
-//    public static <T> ArrayList<T> newArrayList(Collection<T> c) {
-//        return new ArrayList<T>(c);
-//    }
-//
-//    public static <T> HashSet<T> newHashSet() {
-//        return new HashSet<T>();
-//    }
-
-//    public static <T> HashSet<T> newHashSet(Collection<T> list) {
-//        return new HashSet<T>(list);
-//    }
-//
-//    public static <A, B> HashMap<A, B> newHashMap() {
-//        return new HashMap<A, B>();
-//    }
-//
-//    public static <A, B> Map<A, B> newSynchronizedHashMap() {
-//        HashMap<A, B> map = newHashMap();
-//        return Collections.synchronizedMap(map);
-//    }
 
     public static <A, B> IdentityHashMap<A, B> newIdentityHashMap() {
         return new IdentityHashMap<A, B>();
@@ -188,5 +151,4 @@ public class ClassUtils {
         return (Class<X>) x.getClass();
     }
 
-//## Java 1.5 end ##
 }

@@ -6,18 +6,15 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.5 begin ##
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-//## Java 1.5 end ##
 import org.h2.util.JdbcUtils;
 
 /**
  * This class represents a parameterized SQL statement.
  */
-//## Java 1.5 begin ##
 public class SQLStatement {
     private Db db;
     private StringBuilder buff = new StringBuilder();
@@ -112,4 +109,3 @@ public class SQLStatement {
     }
 
 }
-//## Java 1.5 end ##

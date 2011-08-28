@@ -6,7 +6,6 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.5 begin ##
 import static org.h2.jaqu.Define.*;
 
 import java.math.BigDecimal;
@@ -15,12 +14,10 @@ import java.util.Date;
 import java.util.List;
 
 import org.h2.jaqu.Table;
-//## Java 1.5 end ##
 
 /**
  * A table containing order data.
  */
-//## Java 1.5 begin ##
 
 public class Order implements Table {
     public String customerId;
@@ -59,4 +56,3 @@ public class Order implements Table {
     }
 
 }
-//## Java 1.5 end ##

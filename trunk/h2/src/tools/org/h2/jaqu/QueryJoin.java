@@ -9,7 +9,6 @@ package org.h2.jaqu;
 /**
  * This class represents a query with a join.
  */
-//## Java 1.5 begin ##
 public class QueryJoin {
 
     private Query<?> query;
@@ -24,4 +23,3 @@ public class QueryJoin {
         return new QueryJoinCondition<A>(query, join, x);
     }
 }
-//## Java 1.5 end ##

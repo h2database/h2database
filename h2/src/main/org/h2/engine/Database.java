@@ -614,6 +614,7 @@ public class Database implements DataHandler {
             if (settings.get(name) == null) {
                 Setting setting = new Setting(this, allocateObjectId(), name);
                 setting.setIntValue(Constants.BUILD_ID);
+                lockMeta(systemSession);
                 addDatabaseObject(systemSession, setting);
             }
             // mark all ids used in the page store
@@ -627,6 +628,7 @@ public class Database implements DataHandler {
                 }
             }
         }
+        getLobStorage().init();
         systemSession.commit(true);
         trace.info("opened {0}", databaseName);
         afterWriting();
@@ -710,13 +712,36 @@ public class Database implements DataHandler {
             MetaRecord rec = new MetaRecord(obj);
             rec.setRecord(r);
             objectIds.set(id);
-            meta.lock(session, true, true);
+            if (SysProperties.CHECK) {
+                verifyMetaLocked(session);
+            }
             meta.addRow(session, r);
             if (isMultiVersion()) {
                 // TODO this should work without MVCC, but avoid risks at the moment
                 session.log(meta, UndoLogRecord.INSERT, r);
             }
         }
+    }
+
+    public void verifyMetaLocked(Session session) {
+        if (!lockMeta(session) && lockMode != 0) {
+            throw DbException.throwInternalError();
+        }
+    }
+
+    /**
+     * Lock the metadata table for updates.
+     *
+     * @param session the session
+     * @return whether it was already locked before by this session
+     */
+    public synchronized boolean lockMeta(Session session) {
+        if (meta == null) {
+            return true;
+        }
+        boolean wasLocked = meta.isLockedExclusivelyBy(session);
+        meta.lock(session, true, true);
+        return wasLocked;
     }
 
     /**
@@ -729,10 +754,14 @@ public class Database implements DataHandler {
         if (id > 0 && !starting) {
             SearchRow r = meta.getTemplateSimpleRow(false);
             r.setValue(0, ValueInt.get(id));
-            boolean wasLocked = meta.isLockedExclusivelyBy(session);
-            meta.lock(session, true, true);
+            boolean wasLocked = lockMeta(session);
             Cursor cursor = metaIdIndex.find(session, r, r);
             if (cursor.next()) {
+                if (SysProperties.CHECK) {
+                    if (lockMode != 0 && !wasLocked) {
+                        throw DbException.throwInternalError();
+                    }
+                }
                 Row found = cursor.get();
                 meta.removeRow(session, found);
                 if (isMultiVersion()) {
@@ -798,6 +827,7 @@ public class Database implements DataHandler {
         if (id > 0 && !starting) {
             checkWritingAllowed();
         }
+        lockMeta(session);
         obj.getSchema().add(obj);
         addMeta(session, obj);
     }
@@ -824,6 +854,7 @@ public class Database implements DataHandler {
         if (SysProperties.CHECK && map.get(name) != null) {
             DbException.throwInternalError("object already exists");
         }
+        lockMeta(session);
         addMeta(session, obj);
         map.put(name, obj);
     }
@@ -1131,6 +1162,7 @@ public class Database implements DataHandler {
                 try {
                     pageStore.checkpoint();
                     if (!readOnly) {
+                        lockMeta(pageStore.getSystemSession());
                         pageStore.compact(compactMode);
                     }
                 } catch (DbException e) {
@@ -1357,6 +1389,7 @@ public class Database implements DataHandler {
      * @param obj the database object
      */
     public synchronized void update(Session session, DbObject obj) {
+        lockMeta(session);
         int id = obj.getId();
         removeMeta(session, id);
         addMeta(session, obj);
@@ -1413,6 +1446,7 @@ public class Database implements DataHandler {
         }
         obj.checkRename();
         int id = obj.getId();
+        lockMeta(session);
         removeMeta(session, id);
         map.remove(obj.getName());
         obj.rename(newName);
@@ -1479,6 +1513,7 @@ public class Database implements DataHandler {
             DbException.throwInternalError("not found: " + objName);
         }
         Comment comment = findComment(obj);
+        lockMeta(session);
         if (comment != null) {
             removeDatabaseObject(session, comment);
         }
@@ -1550,6 +1585,7 @@ public class Database implements DataHandler {
             }
         }
         checkWritingAllowed();
+        lockMeta(session);
         Comment comment = findComment(obj);
         if (comment != null) {
             removeDatabaseObject(session, comment);
@@ -1592,6 +1628,7 @@ public class Database implements DataHandler {
     }
 
     public synchronized void setMasterUser(User user) {
+        lockMeta(systemSession);
         addDatabaseObject(systemSession, user);
         systemSession.commit(true);
     }

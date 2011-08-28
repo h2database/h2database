@@ -529,6 +529,9 @@ public class Schema extends DbObjectBase {
      */
     public Table createTable(CreateTableData data) {
         synchronized (database) {
+            if (!data.temporary || data.globalTemporary) {
+                database.lockMeta(data.session);
+            }
             data.schema = this;
             if (data.tableEngine != null) {
                 TableEngine engine;

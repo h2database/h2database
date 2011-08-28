@@ -19,7 +19,6 @@ import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
@@ -78,14 +77,6 @@ public class RegularTable extends TableBase {
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType())) {
                 containsLargeObject = true;
-            }
-        }
-        if (containsLargeObject) {
-            Database db = data.session.getDatabase();
-            if (!db.isStarting()) {
-                // the lob tables are already created
-                // if the database is starting
-                db.getLobStorage().init();
             }
         }
         if (data.persistData && database.isPersistent()) {
@@ -211,6 +202,10 @@ public class RegularTable extends TableBase {
                 column.setPrimaryKey(true);
             }
         }
+        boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
+        if (!isSessionTemporary) {
+            database.lockMeta(session);
+        }
         Index index;
         if (isPersistIndexes() && indexType.isPersistent()) {
             int mainIndexColumn;
@@ -280,11 +275,10 @@ public class RegularTable extends TableBase {
                 throw e;
             }
         }
-        boolean temporary = isTemporary();
-        index.setTemporary(temporary);
+        index.setTemporary(isTemporary());
         if (index.getCreateSQL() != null) {
             index.setComment(indexComment);
-            if (temporary && !isGlobalTemporary()) {
+            if (isSessionTemporary) {
                 session.addLocalTempTableIndex(index);
             } else {
                 database.addSchemaObject(session, index);
@@ -657,6 +651,7 @@ public class RegularTable extends TableBase {
             // unfortunately, the data is gone on rollback
             truncate(session);
             database.getLobStorage().removeAllForTable(getId());
+            database.lockMeta(session);
         }
         super.removeChildrenAndResources(session);
         // go backwards because database.removeIndex will call table.removeIndex

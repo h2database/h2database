@@ -127,6 +127,10 @@ public class CreateTable extends SchemaCommand {
         data.id = getObjectId();
         data.create = create;
         data.session = session;
+        boolean isSessionTemporary = data.temporary && !data.globalTemporary;
+        if (!isSessionTemporary) {
+            db.lockMeta(session);
+        }
         Table table = getSchema().createTable(data);
         ArrayList<Sequence> sequences = New.arrayList();
         for (Column c : data.columns) {
@@ -140,7 +144,7 @@ public class CreateTable extends SchemaCommand {
             }
         }
         table.setComment(comment);
-        if (data.temporary && !data.globalTemporary) {
+        if (isSessionTemporary) {
             if (onCommitDrop) {
                 table.setOnCommitDrop(true);
             }
@@ -149,6 +153,7 @@ public class CreateTable extends SchemaCommand {
             }
             session.addLocalTempTable(table);
         } else {
+            db.lockMeta(session);
             db.addSchemaObject(session, table);
         }
         try {

@@ -6,10 +6,8 @@
  */
 package org.h2.test.jaqu;
 
-//## Java 1.5 begin ##
 import java.util.Arrays;
 import java.util.List;
-//## Java 1.5 end ##
 
 /**
  * A table containing customer data.
@@ -32,7 +30,6 @@ public class Customer {
         return customerId;
     }
 
-//## Java 1.5 begin ##
     public static List<Customer> getList() {
         Customer[] list = {
                 new Customer("ALFKI", "WA"),
@@ -40,5 +37,5 @@ public class Customer {
                 new Customer("ANTON", "CA") };
         return Arrays.asList(list);
     }
-//## Java 1.5 end ##
+
 }

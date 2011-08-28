@@ -11,7 +11,6 @@ package org.h2.jaqu;
  *
  * @param <A> the incomplete condition data type
  */
-//## Java 1.5 begin ##
 public class QueryJoinCondition<A> {
 
     private Query<?> query;
@@ -29,4 +28,3 @@ public class QueryJoinCondition<A> {
         return query;
     }
 }
-//## Java 1.5 end ##

@@ -22,9 +22,7 @@ public class AnnotationsTest extends TestBase {
     /**
      * This object represents a database (actually a connection to the database).
      */
-//## Java 1.5 begin ##
     private Db db;
-//## Java 1.5 end ##
 
     /**
      * This method is called when executing this application from the command
@@ -37,7 +35,6 @@ public class AnnotationsTest extends TestBase {
     }
 
     public void test() throws SQLException {
-//## Java 1.5 begin ##
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());
         db.insertAll(ProductAnnotationOnly.getList());
@@ -49,7 +46,6 @@ public class AnnotationsTest extends TestBase {
         testCreateTableIfRequiredAnnotation();
         testColumnInheritanceAnnotation();
         db.close();
-//## Java 1.5 end ##
     }
 
     private void testIndexCreation() throws SQLException {

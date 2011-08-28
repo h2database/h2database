@@ -6,7 +6,6 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.5 begin ##
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
@@ -23,7 +22,6 @@ import org.h2.jaqu.Table.JQSchema;
 import org.h2.jaqu.Table.JQTable;
 import org.h2.jaqu.util.StatementLogger;
 import org.h2.jaqu.util.ClassUtils;
-//## Java 1.5 end ##
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -34,26 +32,21 @@ import org.h2.util.StringUtils;
  *
  * @param <T> the table type
  */
-//## Java 1.5 begin ##
 class TableDefinition<T> {
-//## Java 1.5 end ##
 
     /**
      * The meta data of an index.
      */
-//## Java 1.5 begin ##
     static class IndexDefinition {
         IndexType type;
         String indexName;
 
         List<String> columnNames;
     }
-//## Java 1.5 end ##
 
     /**
      * The meta data of a field.
      */
-//## Java 1.5 begin ##
     static class FieldDefinition {
         String columnName;
         Field field;
@@ -644,4 +637,3 @@ class TableDefinition<T> {
     }
 
 }
-//## Java 1.5 end ##

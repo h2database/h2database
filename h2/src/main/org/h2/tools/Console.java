@@ -6,7 +6,7 @@
  */
 package org.h2.tools;
 
-//## AWT begin ##
+//## AWT ##
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -44,12 +44,12 @@ import org.h2.util.Utils;
  * @author Thomas Mueller, Ridvan Agar
  */
 public class Console extends Tool implements
-//## AWT begin ##
+//## AWT ##
 ActionListener, MouseListener, WindowListener,
-//## AWT end ##
+//*/
 ShutdownHandler {
 
-//## AWT begin ##
+//## AWT ##
     private Frame frame;
     private boolean trayIconUsed;
     private Font font;
@@ -57,7 +57,7 @@ ShutdownHandler {
     private TextField urlText;
     private Object tray;
     private Object trayIcon;
-//## AWT end ##
+//*/
     private Server web, tcp, pg;
     private boolean isWindows;
     private long lastOpen;
@@ -238,7 +238,7 @@ ShutdownHandler {
             }
         }
 
-//## AWT begin ##
+//## AWT ##
         if (toolStart && webRunning && !GraphicsEnvironment.isHeadless()) {
             loadFont();
             try {
@@ -249,7 +249,7 @@ ShutdownHandler {
                 e.printStackTrace();
             }
         }
-//## AWT end ##
+//*/
 
         // start browser in any case (even if the server is already running)
         // because some people don't look at the output,
@@ -332,7 +332,7 @@ ShutdownHandler {
             pg.stop();
             pg = null;
         }
-//## AWT begin ##
+//## AWT ##
         if (frame != null) {
             frame.dispose();
             frame = null;
@@ -350,11 +350,11 @@ ShutdownHandler {
             }
             System.gc();
         }
-//## AWT end ##
+//*/
         // System.exit(0);
     }
 
-//## AWT begin ##
+//## AWT ##
     private void loadFont() {
         if (isWindows) {
             font = new Font("Dialog", Font.PLAIN, 11);
@@ -519,7 +519,7 @@ ShutdownHandler {
             }
         }
     }
-//## AWT end ##
+//*/
 
     private void openBrowser(String url) {
         try {
@@ -532,7 +532,7 @@ ShutdownHandler {
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         if ("exit".equals(command)) {
@@ -546,59 +546,59 @@ ShutdownHandler {
             startBrowser();
         }
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void mouseClicked(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             startBrowser();
         }
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void mouseEntered(MouseEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void mouseExited(MouseEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void mousePressed(MouseEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void mouseReleased(MouseEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void windowClosing(WindowEvent e) {
         if (trayIconUsed) {
             frame.dispose();
@@ -607,60 +607,60 @@ ShutdownHandler {
             shutdown();
         }
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void windowActivated(WindowEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void windowClosed(WindowEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void windowDeactivated(WindowEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void windowDeiconified(WindowEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void windowIconified(WindowEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
     /**
      * INTERNAL
      */
-//## AWT begin ##
+//## AWT ##
     public void windowOpened(WindowEvent e) {
         // nothing to do
     }
-//## AWT end ##
+//*/
 
 }

@@ -12,7 +12,6 @@ package org.h2.jaqu;
  * @param <T> the return type of the query
  * @param <A> the incomplete condition data type
  */
-//## Java 1.5 begin ##
 public class QueryCondition<T, A> {
 
     private Query<T> query;
@@ -60,4 +59,3 @@ public class QueryCondition<T, A> {
     }
 
 }
-//## Java 1.5 end ##

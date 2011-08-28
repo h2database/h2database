@@ -6,7 +6,6 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.5 begin ##
 import java.lang.reflect.Field;
 import java.sql.Clob;
 import java.sql.ResultSet;
@@ -19,7 +18,6 @@ import java.util.List;
 import org.h2.jaqu.bytecode.ClassReader;
 import org.h2.jaqu.util.StatementLogger;
 import org.h2.jaqu.util.ClassUtils;
-//## Java 1.5 end ##
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 
@@ -28,7 +26,6 @@ import org.h2.util.New;
  *
  * @param <T> the return type
  */
-//## Java 1.5 begin ##
 public class Query<T> {
 
     private Db db;
@@ -280,14 +277,12 @@ public class Query<T> {
         addConditionToken(token);
         return new QueryWhere<T>(this);
     }
-//## Java 1.5 end ##
 
     /**
      * Sets the Limit and Offset of a query.
      *
      * @return the query
      */
-//## Java 1.5 begin ##
     public Query<T> limit(long limit) {
         this.limit = limit;
         return this;
@@ -297,7 +292,6 @@ public class Query<T> {
         this.offset = offset;
         return this;
     }
-//## Java 1.5 end ##
 
     /**
      * Order by a number of columns.
@@ -305,7 +299,6 @@ public class Query<T> {
      * @param expressions the columns
      * @return the query
      */
-//## Java 1.5 begin ##
     public Query<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
             OrderExpression<T> e =
@@ -408,7 +401,6 @@ public class Query<T> {
         }
         StatementLogger.select(stat.getSQL());
     }
-//## Java 1.5 end ##
 
     /**
      * Join another table.
@@ -416,7 +408,6 @@ public class Query<T> {
      * @param alias an alias for the table to join
      * @return the joined query
      */
-//## Java 1.5 begin ##
     @SuppressWarnings("unchecked")
     public <U> QueryJoin innerJoin(U alias) {
         TableDefinition<T> def = (TableDefinition<T>) db.define(alias.getClass());
@@ -443,4 +434,3 @@ public class Query<T> {
     }
 
 }
-//## Java 1.5 end ##

@@ -6,12 +6,10 @@
  */
 package org.h2.jaqu.util;
 
-//## Java 1.5 begin ##
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-//## Java 1.5 end ##
 
 /**
  * This hash map uses weak references, so that elements that are no longer
@@ -22,7 +20,6 @@ import java.util.Set;
  * @param <K> the keys
  * @param <V> the value
  */
-//## Java 1.5 begin ##
 public class WeakIdentityHashMap<K, V> implements Map<K, V> {
 
     private static final int MAX_LOAD = 90;
@@ -229,4 +226,3 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     }
 
 }
-//## Java 1.5 end ##

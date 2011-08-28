@@ -12,7 +12,6 @@ package org.h2.jaqu;
  * @param <T> the query type
  * @param <A> the new value data type
  */
-//## Java 1.5 begin ##
 public class UpdateColumnIncrement<T, A> implements UpdateColumn {
 
     private Query<T> query;
@@ -40,4 +39,3 @@ public class UpdateColumnIncrement<T, A> implements UpdateColumn {
     }
 
 }
-//## Java 1.5 end ##

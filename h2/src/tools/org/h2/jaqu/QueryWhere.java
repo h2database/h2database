@@ -6,16 +6,13 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.5 begin ##
 import java.util.List;
-//## Java 1.5 end ##
 
 /**
  * This class represents a query with a condition.
  *
  * @param <T> the return type
  */
-//## Java 1.5 begin ##
 public class QueryWhere<T> {
 
     Query<T> query;
@@ -77,7 +74,6 @@ public class QueryWhere<T> {
         return query.selectDistinct();
     }
 
-//## Java 1.5 end ##
 
     /**
      * Order by a number of columns.
@@ -85,7 +81,6 @@ public class QueryWhere<T> {
      * @param expressions the order by expressions
      * @return the query
      */
-//## Java 1.5 begin ##
     public QueryWhere<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
             OrderExpression<T> e =
@@ -143,4 +138,3 @@ public class QueryWhere<T> {
     }
 
 }
-//## Java 1.5 end ##

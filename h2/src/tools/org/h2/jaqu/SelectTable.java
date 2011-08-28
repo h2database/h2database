@@ -6,18 +6,15 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.5 begin ##
 import java.util.ArrayList;
 import org.h2.jaqu.util.ClassUtils;
 import org.h2.util.New;
-//## Java 1.5 end ##
 
 /**
  * This class represents a table in a query.
  *
  * @param <T> the table class
  */
-//## Java 1.5 begin ##
 class SelectTable <T> {
 
     private static int asCounter;
@@ -101,4 +98,3 @@ class SelectTable <T> {
     }
 
 }
-//## Java 1.5 end ##

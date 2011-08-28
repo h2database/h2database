@@ -6,16 +6,13 @@
  */
 package org.h2.jaqu;
 
-//## Java 1.5 begin ##
 import org.h2.jaqu.TableDefinition.FieldDefinition;
-//## Java 1.5 end ##
 
 /**
  * This class represents a column of a table in a query.
  *
  * @param <T> the table data type
  */
-//## Java 1.5 begin ##
 class SelectColumn<T> {
     private SelectTable<T> selectTable;
     private FieldDefinition fieldDef;
@@ -45,4 +42,3 @@ class SelectColumn<T> {
         return fieldDef.getValue(selectTable.getCurrent());
     }
 }
-//## Java 1.5 end ##

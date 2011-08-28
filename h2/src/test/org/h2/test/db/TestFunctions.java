@@ -372,7 +372,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     private void testVarArgs() throws SQLException {
-//## Java 1.5 begin ##
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS mean FOR \"" +
@@ -428,7 +427,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("BB: 15", rs.getString(3));
         assertEquals("CCC: 20", rs.getString(4));
         conn.close();
-//## Java 1.5 end ##
     }
 
     private void testFileRead() throws Exception {
@@ -983,7 +981,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param values the values
      * @return the mean value
      */
-//## Java 1.5 begin ##
     public static double mean(double... values) {
         double sum = 0;
         for (double x : values) {
@@ -991,7 +988,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
         return sum / values.length;
     }
-//## Java 1.5 end ##
 
     /**
      * This method is called via reflection from the database.
@@ -1000,7 +996,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param values the values
      * @return the mean value
      */
-//## Java 1.5 begin ##
     public static double mean2(Connection conn, double... values) {
         conn.getClass();
         double sum = 0;
@@ -1009,7 +1004,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
         return sum / values.length;
     }
-//## Java 1.5 end ##
 
     /**
      * This method is called via reflection from the database.
@@ -1018,7 +1012,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param values the values
      * @return the text
      */
-//## Java 1.5 begin ##
     public static String printMean(String prefix, double... values) {
         double sum = 0;
         for (double x : values) {
@@ -1026,7 +1019,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
         return prefix + ": " + (int) (sum / values.length);
     }
-//## Java 1.5 end ##
 
     /**
      * This method is called via reflection from the database.

@@ -11,7 +11,6 @@ package org.h2.jaqu;
  *
  * @param <T> the query data type
  */
-//## Java 1.5 begin ##
 class OrderExpression<T> {
     private Query<T> query;
     private Object expression;
@@ -42,4 +41,3 @@ class OrderExpression<T> {
     }
 
 }
-//## Java 1.5 end ##

@@ -9,7 +9,6 @@ package org.h2.jaqu;
 /**
  * An OR or an AND condition.
  */
-//## Java 1.5 begin ##
 enum ConditionAndOr implements Token {
     AND("AND"),
     OR("OR");
@@ -25,4 +24,3 @@ enum ConditionAndOr implements Token {
     }
 
 }
-//## Java 1.5 end ##

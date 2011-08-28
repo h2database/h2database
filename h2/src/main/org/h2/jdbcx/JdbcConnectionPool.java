@@ -31,13 +31,13 @@ import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import org.h2.util.New;
 
-//## Java 1.6 begin ##
+//## Java 1.6 ##
 import org.h2.message.DbException;
-//## Java 1.6 end ##
+//*/
 
-/*## Java 1.7 begin ##
+/*## Java 1.7 ##
 import java.util.logging.Logger;
-## Java 1.7 end ##*/
+//*/
 
 /**
  * A simple standalone JDBC connection pool.
@@ -310,31 +310,31 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      *
      * @param iface the class
      */
-//## Java 1.6 begin ##
+//## Java 1.6 ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw DbException.getUnsupportedException("unwrap");
     }
-//## Java 1.6 end ##
+//*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      *
      * @param iface the class
      */
-//## Java 1.6 begin ##
+//## Java 1.6 ##
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw DbException.getUnsupportedException("isWrapperFor");
     }
-//## Java 1.6 end ##
+//*/
 
     /**
      * [Not supported]
      */
-/*## Java 1.7 begin ##
+/*## Java 1.7 ##
     public Logger getParentLogger() {
         return null;
     }
-## Java 1.7 end ##*/
+//*/
 
 
 }

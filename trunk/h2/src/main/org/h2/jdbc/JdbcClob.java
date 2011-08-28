@@ -16,9 +16,9 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.sql.Clob;
-//## Java 1.6 begin ##
+//## Java 1.6 ##
 import java.sql.NClob;
-//## Java 1.6 end ##
+//*/
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
@@ -32,9 +32,9 @@ import org.h2.value.Value;
  * Represents a CLOB value.
  */
 public class JdbcClob extends TraceObject implements Clob
-//## Java 1.6 begin ##
+//## Java 1.6 ##
     , NClob
-//## Java 1.6 end ##
+//*/
 {
 
     Value value;
@@ -256,11 +256,11 @@ public class JdbcClob extends TraceObject implements Clob
     /**
      * [Not supported] Returns the reader, starting from an offset.
      */
-//## Java 1.6 begin ##
+//## Java 1.6 ##
     public Reader getCharacterStream(long pos, long length) throws SQLException {
         throw unsupported("LOB subset");
     }
-//## Java 1.6 end ##
+//*/
 
     private void checkClosed() {
         conn.checkClosed();

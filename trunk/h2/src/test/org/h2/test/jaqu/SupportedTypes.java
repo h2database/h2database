@@ -7,6 +7,7 @@
 package org.h2.test.jaqu;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Random;
 import org.h2.jaqu.Table.JQColumn;
@@ -100,11 +101,13 @@ public class SupportedTypes {
         same &= myFloat.equals(s.myFloat);
         same &= myDouble.equals(s.myDouble);
         same &= myBigDecimal.equals(s.myBigDecimal);
-        same &= myUtilDate.getTime() == s.myUtilDate.getTime();
-        same &= mySqlTimestamp.getTime() == s.mySqlTimestamp.getTime();
+        Timestamp a = new Timestamp(myUtilDate.getTime());
+        same &= a.toString().equals(s.myUtilDate.toString());
+        same &= mySqlTimestamp.toString().equals(s.mySqlTimestamp.toString());
         same &= mySqlDate.toString().equals(s.mySqlDate.toString());
         same &= mySqlTime.toString().equals(s.mySqlTime.toString());
         same &= myString.equals(s.myString);
+        same &= true;
         return same;
     }
 

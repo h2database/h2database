@@ -82,7 +82,9 @@ public class ModelsTest extends TestBase {
         for (int i = 0; i < original.size(); i++) {
             SupportedTypes o = original.get(i);
             SupportedTypes r = retrieved.get(i);
-            assertTrue(o.equivalentTo(r));
+            if (!o.equivalentTo(r)) {
+                assertTrue(o.equivalentTo(r));
+            }
         }
     }
 

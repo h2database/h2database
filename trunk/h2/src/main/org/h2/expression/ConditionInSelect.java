@@ -45,20 +45,16 @@ public class ConditionInSelect extends Condition {
         LocalResult rows = query.query(0);
         session.addTemporaryResult(rows);
         Value l = left.getValue(session);
+        if (rows.getRowCount() == 0) {
+            return ValueBoolean.get(all);
+        } else if (l == ValueNull.INSTANCE) {
+            return l;
+        }
         if (!session.getDatabase().getSettings().optimizeInSelect) {
             return getValueSlow(rows, l);
         }
-        if (compareType != Comparison.EQUAL && compareType != Comparison.EQUAL_NULL_SAFE) {
+        if (all || (compareType != Comparison.EQUAL && compareType != Comparison.EQUAL_NULL_SAFE)) {
             return getValueSlow(rows, l);
-        }
-        if (rows.getRowCount() == 0) {
-            return ValueBoolean.get(false);
-        }
-        if (l == ValueNull.INSTANCE) {
-            return l;
-        }
-        if (all && rows.getRowCount() > 1) {
-            return ValueBoolean.get(false);
         }
         int dataType = rows.getColumnType(0);
         if (dataType == Value.NULL) {
@@ -75,16 +71,11 @@ public class ConditionInSelect extends Condition {
     }
 
     private Value getValueSlow(LocalResult rows, Value l) {
+        // this only returns the correct result if the result has at least one
+        // row, and if l is not null
         boolean hasNull = false;
         boolean result = all;
-        boolean hasRow = false;
         while (rows.next()) {
-            if (!hasRow) {
-                if (l == ValueNull.INSTANCE) {
-                    return l;
-                }
-                hasRow = true;
-            }
             boolean value;
             Value r = rows.currentRow()[0];
             if (r == ValueNull.INSTANCE) {
@@ -100,9 +91,6 @@ public class ConditionInSelect extends Condition {
                 result = true;
                 break;
             }
-        }
-        if (!hasRow) {
-            return ValueBoolean.get(false);
         }
         if (!result && hasNull) {
             return ValueNull.INSTANCE;

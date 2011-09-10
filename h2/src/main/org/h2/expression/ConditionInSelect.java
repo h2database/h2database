@@ -121,7 +121,17 @@ public class ConditionInSelect extends Condition {
     }
 
     public String getSQL() {
-        return "(" + left.getSQL() + " IN(\n" + StringUtils.indent(query.getPlanSQL(), 4, false) + "))";
+        StringBuilder buff = new StringBuilder();
+        buff.append('(').append(left.getSQL()).append(' ');
+        if (all) {
+            buff.append(Comparison.getCompareOperator(compareType)).
+                append(" ALL");
+        } else {
+            buff.append("IN");
+        }
+        buff.append("(\n").append(StringUtils.indent(query.getPlanSQL(), 4, false)).
+            append("))");
+        return buff.toString();
     }
 
     public void updateAggregate(Session session) {

@@ -1,4 +1,26 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(name varchar(255));
+> ok
+
+insert into test values('a'), ('b'), ('c');
+> update count: 3
+
+select name from test where name > all(select name from test where name<'b');
+> NAME
+> ----
+> b
+> c
+> rows: 2
+
+select count(*) from (select name from test where name > all(select name from test where name<'b')) x;
+> COUNT(*)
+> --------
+> 2
+> rows: 1
+
+drop table test;
+> ok
+
 create table test(id int) as select 1;
 > ok
 

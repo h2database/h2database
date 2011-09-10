@@ -114,30 +114,6 @@ public class Comparison extends Condition {
     public String getSQL() {
         String sql;
         switch (compareType) {
-        case EQUAL:
-            sql = left.getSQL() + " = " + right.getSQL();
-            break;
-        case EQUAL_NULL_SAFE:
-            sql = left.getSQL() + " IS " + right.getSQL();
-            break;
-        case BIGGER_EQUAL:
-            sql = left.getSQL() + " >= " + right.getSQL();
-            break;
-        case BIGGER:
-            sql = left.getSQL() + " > " + right.getSQL();
-            break;
-        case SMALLER_EQUAL:
-            sql = left.getSQL() + " <= " + right.getSQL();
-            break;
-        case SMALLER:
-            sql = left.getSQL() + " < " + right.getSQL();
-            break;
-        case NOT_EQUAL:
-            sql = left.getSQL() + " <> " + right.getSQL();
-            break;
-        case NOT_EQUAL_NULL_SAFE:
-            sql = left.getSQL() + " IS NOT " + right.getSQL();
-            break;
         case IS_NULL:
             sql = left.getSQL() + " IS NULL";
             break;
@@ -145,9 +121,32 @@ public class Comparison extends Condition {
             sql = left.getSQL() + " IS NOT NULL";
             break;
         default:
-            throw DbException.throwInternalError("compareType=" + compareType);
+            sql = left.getSQL() + " " + getCompareOperator(compareType) + " " + right.getSQL();
         }
         return "(" + sql + ")";
+    }
+
+    static String getCompareOperator(int compareType) {
+        switch (compareType) {
+        case EQUAL:
+            return "=";
+        case EQUAL_NULL_SAFE:
+            return "IS";
+        case BIGGER_EQUAL:
+            return ">=";
+        case BIGGER:
+            return ">";
+        case SMALLER_EQUAL:
+            return "<=";
+        case SMALLER:
+            return "<";
+        case NOT_EQUAL:
+            return "<>";
+        case NOT_EQUAL_NULL_SAFE:
+            return "IS NOT";
+        default:
+            throw DbException.throwInternalError("compareType=" + compareType);
+        }
     }
 
     public Expression optimize(Session session) {

@@ -599,9 +599,11 @@ CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER | INSTEAD OF }
 { INSERT | UPDATE | DELETE | SELECT | ROLLBACK } [,...] ON tableName [ FOR EACH ROW ]
 [ QUEUE int ] [ NOWAIT ] CALL triggeredClassName
 ","
-Creates a new trigger. The trigger class must be public. Inner classes are not supported.
-The class must be available in the classpath of the
-database engine (when using the server mode, it must be in the classpath of the server).
+Creates a new trigger.
+The trigger class must be public and implement ""org.h2.api.Trigger"".
+Inner classes are not supported.
+The class must be available in the classpath of the database engine
+(when using the server mode, it must be in the classpath of the server).
 
 BEFORE triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;
@@ -1598,6 +1600,9 @@ The computed column expression is evaluated and assigned whenever the row change
 Identity and auto-increment columns are columns with a sequence as the
 default. The column declared as the identity columns is implicitly the
 primary key column of this table (unlike auto-increment columns).
+
+Check constraints can reference columns of the table,
+and they can reference objects that exist while the statement is executed.
 ","
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
 CREATE TABLE TEST(ID BIGINT IDENTITY);
@@ -2252,9 +2257,12 @@ UUID
 "Data Types","ARRAY Type","
 ARRAY
 ","
-An array of values. Use a value list (1, 2) or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values.
-
+An array of values.
 Mapped to ""java.lang.Object[]"" (arrays of any non-primitive type are also supported).
+
+
+Use a value list (1, 2) or ""PreparedStatement.setObject(.., new Object[] {..})"" to store values,
+and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the values.
 ","
 ARRAY
 "

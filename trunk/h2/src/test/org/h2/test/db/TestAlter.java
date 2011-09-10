@@ -35,6 +35,7 @@ public class TestAlter extends TestBase {
         deleteDb("alter");
         conn = getConnection("alter");
         stat = conn.createStatement();
+        testAlterTableAlterColumnAsSelfColumn();
         testAlterTableDropColumnWithReferences();
         testAlterTableAlterColumn();
         testAlterTableDropIdentityColumn();
@@ -43,8 +44,18 @@ public class TestAlter extends TestBase {
         deleteDb("alter");
     }
 
-    private void testAlterTableDropColumnWithReferences() throws SQLException {
+    private void testAlterTableAlterColumnAsSelfColumn() throws SQLException {
+        stat.execute("create table test(id int, name varchar)");
+        stat.execute("alter table test alter column id int as id+1");
+        stat.execute("insert into test values(1, 'Hello')");
+        stat.execute("update test set name='World'");
+        ResultSet rs = stat.executeQuery("select * from test");
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+        stat.execute("drop table test");
+    }
 
+    private void testAlterTableDropColumnWithReferences() throws SQLException {
         stat.execute("create table parent(id int, b int)");
         stat.execute("create table child(p int primary key)");
         stat.execute("alter table child add foreign key(p) references parent(id)");

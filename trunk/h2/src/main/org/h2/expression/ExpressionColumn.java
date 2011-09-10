@@ -266,7 +266,9 @@ public class ExpressionColumn extends Expression {
         case ExpressionVisitor.NOT_FROM_RESOLVER:
             return columnResolver != visitor.getResolver();
         case ExpressionVisitor.GET_DEPENDENCIES:
-            visitor.addDependency(column.getTable());
+            if (column != null) {
+                visitor.addDependency(column.getTable());
+            }
             return true;
         case ExpressionVisitor.GET_COLUMNS:
             visitor.addColumn(column);

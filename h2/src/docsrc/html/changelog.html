@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 335: Could not run DROP ALL OBJECTS DELETE FILES on older databases with CLOB or BLOB data.
+<ul><li>Comparison with "x = all(select ...)" or similar returned the wrong result for some cases
+    (for example if the subquery returned no rows, or multiple rows with the same value, or null, or if x was null).
+</li><li>Issue 335: Could not run DROP ALL OBJECTS DELETE FILES on older databases with CLOB or BLOB data.
     The problem was that the metadata table was not locked in some cases, so that
     a rollback could result in a corrupt database in a database if the lob storage was upgraded.
 </li><li>Source code switching using //## has been simplified.

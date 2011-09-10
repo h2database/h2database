@@ -1,4 +1,65 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int) as select 1;
+> ok
+
+select * from test where id >= all(select id from test where 1=0);
+> ID
+> --
+> 1
+> rows: 1
+
+select * from test where id = all(select id from test where 1=0);
+> ID
+> --
+> 1
+> rows: 1
+
+select * from test where id = all(select id from test union all select id from test);
+> ID
+> --
+> 1
+> rows: 1
+
+select * from test where null >= all(select id from test where 1=0);
+> ID
+> --
+> 1
+> rows: 1
+
+select * from test where null = all(select id from test where 1=0);
+> ID
+> --
+> 1
+> rows: 1
+
+select * from test where null = all(select id from test union all select id from test);
+> ID
+> --
+> rows: 0
+
+select * from test where id >= all(select cast(null as int) from test);
+> ID
+> --
+> rows: 0
+
+select * from test where id = all(select null from test union all select id from test);
+> ID
+> --
+> rows: 0
+
+select * from test where null >= all(select cast(null as int) from test);
+> ID
+> --
+> rows: 0
+
+select * from test where null = all(select null from test union all select id from test);
+> ID
+> --
+> rows: 0
+
+drop table test;
+> ok
+
 select x from dual order by y.x;
 > exception
 

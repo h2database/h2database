@@ -723,6 +723,11 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Verify the meta table is locked.
+     *
+     * @param session the session
+     */
     public void verifyMetaLocked(Session session) {
         if (!lockMeta(session) && lockMode != 0) {
             throw DbException.throwInternalError();

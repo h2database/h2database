@@ -126,6 +126,12 @@ public class Comparison extends Condition {
         return "(" + sql + ")";
     }
 
+    /**
+     * Get the comparison operator string ("=", ">",...).
+     *
+     * @param compareType the compare type
+     * @return the string
+     */
     static String getCompareOperator(int compareType) {
         switch (compareType) {
         case EQUAL:

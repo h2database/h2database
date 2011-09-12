@@ -13,11 +13,11 @@ import java.sql.Statement;
 
 import org.h2.api.Trigger;
 import org.h2.constant.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.ChangeFileEncryption;
 import org.h2.tools.Recover;
 import org.h2.util.Task;
-import org.h2.util.IOUtils;
 
 /**
  * Tests the RUNSCRIPT SQL statement.
@@ -119,8 +119,8 @@ public class TestRunscript extends TestBase implements Trigger {
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
 
         conn.close();
-        IOUtils.delete(getBaseDir() + "/backup.sql");
-        IOUtils.delete(getBaseDir() + "/backup2.sql");
+        FileUtils.delete(getBaseDir() + "/backup.sql");
+        FileUtils.delete(getBaseDir() + "/backup2.sql");
     }
 
     private void testEncoding() throws SQLException {
@@ -139,7 +139,7 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("runscript from '"+getBaseDir()+"/backup.sql' charset 'UTF-8'");
         stat.execute("select * from \"t\u00f6\"");
         conn.close();
-        IOUtils.delete(getBaseDir() + "/backup.sql");
+        FileUtils.delete(getBaseDir() + "/backup.sql");
     }
 
     /**
@@ -169,7 +169,7 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("runscript from '" + getBaseDir() + "/backup.sql'");
         conn.close();
         deleteDb("runscriptRestore");
-        IOUtils.delete(getBaseDir() + "/backup.sql");
+        FileUtils.delete(getBaseDir() + "/backup.sql");
     }
 
     private void test(boolean password) throws SQLException {
@@ -260,8 +260,8 @@ public class TestRunscript extends TestBase implements Trigger {
         conn2.close();
         deleteDb("runscriptRestore");
         deleteDb("runscriptRestoreRecover");
-        IOUtils.delete(getBaseDir() + "/backup.2.sql");
-        IOUtils.delete(getBaseDir() + "/backup.3.sql");
+        FileUtils.delete(getBaseDir() + "/backup.2.sql");
+        FileUtils.delete(getBaseDir() + "/backup.3.sql");
 
     }
 

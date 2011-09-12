@@ -41,11 +41,11 @@ public class FileSystemMemory extends FileSystem {
         return INSTANCE;
     }
 
-    public long length(String fileName) {
+    public long size(String fileName) {
         return getMemoryFile(fileName).length();
     }
 
-    public void rename(String oldName, String newName) {
+    public void moveTo(String oldName, String newName) {
         oldName = getCanonicalPath(oldName);
         newName = getCanonicalPath(newName);
         synchronized (MEMORY_FILES) {
@@ -56,7 +56,7 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public boolean createNewFile(String fileName) {
+    public boolean createFile(String fileName) {
         synchronized (MEMORY_FILES) {
             if (exists(fileName)) {
                 return false;
@@ -142,7 +142,7 @@ public class FileSystemMemory extends FileSystem {
         return true;
     }
 
-    public long getLastModified(String fileName) {
+    public long lastModified(String fileName) {
         return getMemoryFile(fileName).getLastModified();
     }
 
@@ -154,9 +154,9 @@ public class FileSystemMemory extends FileSystem {
         // TODO directories are not really supported
     }
 
-    public String getFileName(String name) {
-        int idx = Math.max(name.indexOf(':'), name.lastIndexOf('/'));
-        return idx < 0 ? name : name.substring(idx + 1);
+    public String getName(String path) {
+        int idx = Math.max(path.indexOf(':'), path.lastIndexOf('/'));
+        return idx < 0 ? path : path.substring(idx + 1);
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
@@ -165,7 +165,7 @@ public class FileSystemMemory extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(String fileName, boolean append) {
         try {
             FileObjectMemoryData obj = getMemoryFile(fileName);
             FileObjectMemory m = new FileObjectMemory(obj, false);
@@ -175,7 +175,7 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public InputStream openFileInputStream(String fileName) {
+    public InputStream newInputStream(String fileName) {
         FileObjectMemoryData obj = getMemoryFile(fileName);
         FileObjectMemory m = new FileObjectMemory(obj, true);
         return new FileObjectInputStream(m);

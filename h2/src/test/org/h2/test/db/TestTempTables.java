@@ -12,8 +12,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 
 /**
  * Temporary table tests.
@@ -171,11 +171,11 @@ public class TestTempTables extends TestBase {
             // expected
         }
         String dbName = getBaseDir() + "/tempTables" + Constants.SUFFIX_PAGE_FILE;
-        long before = IOUtils.length(dbName);
+        long before = FileUtils.size(dbName);
         assertTrue(before > 0);
         conn = getConnection("tempTables");
         conn.close();
-        long after = IOUtils.length(dbName);
+        long after = FileUtils.size(dbName);
         assertEquals(after, before);
     }
 

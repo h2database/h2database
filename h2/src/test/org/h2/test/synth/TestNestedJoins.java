@@ -17,8 +17,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.ScriptReader;
 
@@ -160,7 +160,7 @@ public class TestNestedJoins extends TestBase {
             } catch (Exception e) {
                 // ignore
             }
-            IOUtils.deleteRecursive(getBaseDir() + "/derby", false);
+            FileUtils.deleteRecursive(getBaseDir() + "/derby", false);
         } catch (Exception e) {
             e.printStackTrace();
             // database not installed - ok

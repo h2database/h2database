@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
@@ -50,14 +51,14 @@ public class TestRecovery extends TestBase {
             return;
         }
         String recoverTestLog = getBaseDir() + "/recovery.h2.db.log";
-        IOUtils.delete(recoverTestLog);
+        FileUtils.delete(recoverTestLog);
         deleteDb("recovery");
         Connection conn = getConnection("recovery;RECOVER_TEST=1");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar)");
         stat.execute("drop all objects delete files");
         conn.close();
-        assertTrue(IOUtils.exists(recoverTestLog));
+        assertTrue(FileUtils.exists(recoverTestLog));
     }
 
     private void testRecoverClob() throws Exception {
@@ -133,7 +134,7 @@ public class TestRecovery extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar) as select 1, 'Hello World1'");
         conn.close();
-        FileObject f = IOUtils.openFileObject(getBaseDir() + "/recovery.h2.db", "rw");
+        FileObject f = FileUtils.openFileObject(getBaseDir() + "/recovery.h2.db", "rw");
         byte[] buff = new byte[Constants.DEFAULT_PAGE_SIZE];
         while (f.getFilePointer() < f.length()) {
             f.readFully(buff, 0, buff.length);
@@ -147,7 +148,7 @@ public class TestRecovery extends TestBase {
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
         String script = IOUtils.readStringAndClose(
                 new InputStreamReader(
-                IOUtils.openFileInputStream(getBaseDir() + "/recovery.h2.sql")), -1);
+                FileUtils.newInputStream(getBaseDir() + "/recovery.h2.sql")), -1);
         assertContains(script, "checksum mismatch");
         assertContains(script, "dump:");
         assertContains(script, "Hello World2");
@@ -275,9 +276,9 @@ public class TestRecovery extends TestBase {
 
         deleteDb("recovery");
         deleteDb("recovery2");
-        IOUtils.delete(getBaseDir() + "/recovery.h2.sql");
+        FileUtils.delete(getBaseDir() + "/recovery.h2.sql");
         String dir = getBaseDir() + "/recovery.lobs.db";
-        IOUtils.deleteRecursive(dir, false);
+        FileUtils.deleteRecursive(dir, false);
     }
 
 }

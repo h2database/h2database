@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 
 /**
@@ -94,7 +95,7 @@ public class FtpData extends Thread {
         connect();
         try {
             InputStream in = socket.getInputStream();
-            OutputStream out = IOUtils.openFileOutputStream(fileName, false);
+            OutputStream out = FileUtils.newOutputStream(fileName, false);
             IOUtils.copy(in, out);
             out.close();
         } finally {
@@ -115,7 +116,7 @@ public class FtpData extends Thread {
         connect();
         try {
             OutputStream out = socket.getOutputStream();
-            InputStream in = IOUtils.openFileInputStream(fileName);
+            InputStream in = FileUtils.newInputStream(fileName);
             IOUtils.skipFully(in, skip);
             IOUtils.copy(in, out);
             in.close();

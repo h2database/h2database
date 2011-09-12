@@ -34,6 +34,7 @@ import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
+import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.LinkSchema;
@@ -42,7 +43,6 @@ import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -1171,7 +1171,7 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v0.getString();
             boolean blob = argList.length == 1;
             try {
-                InputStream in = new AutoCloseInputStream(IOUtils.openFileInputStream(fileName));
+                InputStream in = new AutoCloseInputStream(FileUtils.newInputStream(fileName));
                 if (blob) {
                     result = database.getLobStorage().createBlob(in, -1);
                 } else {

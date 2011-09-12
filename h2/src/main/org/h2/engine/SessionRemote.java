@@ -23,7 +23,7 @@ import org.h2.message.TraceSystem;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorage;
-import org.h2.util.IOUtils;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
@@ -320,7 +320,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             int level = Integer.parseInt(traceLevelFile);
             String prefix = getFilePrefix(SysProperties.CLIENT_TRACE_DIRECTORY);
             try {
-                String file = IOUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
+                String file = FileUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
                 traceSystem.setFileName(file);
                 traceSystem.setLevelFile(level);
             } catch (IOException e) {
@@ -604,7 +604,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     }
 
     public FileStore openFile(String name, String mode, boolean mustExist) {
-        if (mustExist && !IOUtils.exists(name)) {
+        if (mustExist && !FileUtils.exists(name)) {
             throw DbException.get(ErrorCode.FILE_NOT_FOUND_1, name);
         }
         FileStore store;

@@ -12,8 +12,8 @@ import java.io.Writer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 
 /**
  * Tests INIT command within embedded/server mode.
@@ -35,16 +35,16 @@ public class TestInit extends TestBase {
         String init2 = getBaseDir() + "/test-init-2.sql";
 
         // Create two scripts that we will run via "INIT"
-        IOUtils.createDirectories(IOUtils.getParent(init1));
+        FileUtils.createDirectories(FileUtils.getParent(init1));
 
-        Writer w = new OutputStreamWriter(IOUtils.openFileOutputStream(init1, false));
+        Writer w = new OutputStreamWriter(FileUtils.newOutputStream(init1, false));
 
         PrintWriter writer = new PrintWriter(w);
         writer.println("create table test(id int identity, name varchar);");
         writer.println("insert into test(name) values('cat');");
         writer.close();
 
-        w = new OutputStreamWriter(IOUtils.openFileOutputStream(init2, false));
+        w = new OutputStreamWriter(FileUtils.newOutputStream(init2, false));
         writer = new PrintWriter(w);
         writer.println("insert into test(name) values('dog');");
         writer.close();
@@ -72,8 +72,8 @@ public class TestInit extends TestBase {
         conn.close();
         deleteDb("initDb");
 
-        IOUtils.delete(init1);
-        IOUtils.delete(init2);
+        FileUtils.delete(init1);
+        FileUtils.delete(init2);
     }
 
 }

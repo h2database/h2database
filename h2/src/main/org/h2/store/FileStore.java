@@ -14,7 +14,7 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileObject;
-import org.h2.util.IOUtils;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
 
@@ -77,14 +77,14 @@ public class FileStore {
             tempFileDeleter = handler.getTempFileDeleter();
         }
         try {
-            boolean exists = IOUtils.exists(name);
-            if (exists && !IOUtils.canWrite(name)) {
+            boolean exists = FileUtils.exists(name);
+            if (exists && !FileUtils.canWrite(name)) {
                 mode = "r";
                 this.mode = mode;
             } else {
-                IOUtils.createDirectories(IOUtils.getParent(name));
+                FileUtils.createDirectories(FileUtils.getParent(name));
             }
-            file = IOUtils.openFileObject(name, mode);
+            file = FileUtils.openFileObject(name, mode);
             if (mode.length() > 2) {
                 synchronousMode = true;
             }
@@ -492,7 +492,7 @@ public class FileStore {
      */
     public void openFile() throws IOException {
         if (file == null) {
-            file = IOUtils.openFileObject(name, mode);
+            file = FileUtils.openFileObject(name, mode);
             file.seek(filePos);
         }
     }

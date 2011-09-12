@@ -28,6 +28,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.Task;
@@ -96,7 +97,7 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
-        IOUtils.deleteRecursive(TEMP_DIR, true);
+        FileUtils.deleteRecursive(TEMP_DIR, true);
     }
 
     private void testLobSkipPastEnd() throws Exception {
@@ -384,21 +385,21 @@ public class TestLob extends TestBase {
 
         stat.execute("create table test(id int primary key, name clob)");
         stat.execute("insert into test values(1, space(10000))");
-        assertEquals(1, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        assertEquals(1, FileUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
         stat.execute("drop table test");
-        assertEquals(0, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        assertEquals(0, FileUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
 
         stat.execute("create table test(id int primary key, name clob)");
         stat.execute("insert into test values(1, space(10000))");
-        assertEquals(1, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        assertEquals(1, FileUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
         stat.execute("drop all objects");
-        assertEquals(0, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        assertEquals(0, FileUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
 
         stat.execute("create table test(id int primary key, name clob)");
         stat.execute("insert into test values(1, space(10000))");
-        assertEquals(1, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        assertEquals(1, FileUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
         stat.execute("truncate table test");
-        assertEquals(0, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        assertEquals(0, FileUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
 
         conn.close();
     }
@@ -438,9 +439,9 @@ public class TestLob extends TestBase {
 
     private void testTempFilesDeleted() throws Exception {
         String[] list;
-        IOUtils.deleteRecursive(TEMP_DIR, true);
+        FileUtils.deleteRecursive(TEMP_DIR, true);
         IOUtils.mkdirs(new File(TEMP_DIR));
-        list = IOUtils.listFiles(TEMP_DIR);
+        list = FileUtils.listFiles(TEMP_DIR);
         if (list.length > 0) {
             fail("Unexpected temp file: " + list[0]);
         }
@@ -456,7 +457,7 @@ public class TestLob extends TestBase {
         rs.getCharacterStream("name").close();
         rs.close();
         conn.close();
-        list = IOUtils.listFiles(TEMP_DIR);
+        list = FileUtils.listFiles(TEMP_DIR);
         if (list.length > 0) {
             fail("Unexpected temp file: " + list[0]);
         }
@@ -502,10 +503,10 @@ public class TestLob extends TestBase {
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("create table test(data clob) as select space(100000) from dual");
-        assertEquals(1, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        assertEquals(1, FileUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
         stat.execute("delete from test");
         conn.close();
-        assertEquals(0, IOUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
+        assertEquals(0, FileUtils.listFiles(getBaseDir() + "/lob.lobs.db").length);
     }
 
     private void testLobServerMemory() throws SQLException {

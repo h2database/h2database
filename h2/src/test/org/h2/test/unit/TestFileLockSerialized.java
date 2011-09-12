@@ -17,8 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.Task;
 
@@ -222,7 +222,7 @@ public class TestFileLockSerialized extends TestBase {
         SortedProperties p = SortedProperties.loadProperties(propFile);
         p.setProperty("changePending", "true");
         p.setProperty("modificationDataId", "1000");
-        OutputStream out = IOUtils.openFileOutputStream(propFile, false);
+        OutputStream out = FileUtils.newOutputStream(propFile, false);
         try {
             p.store(out, "test");
         } finally {
@@ -604,7 +604,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        List<String> filesWithoutSerialized = Arrays.asList(IOUtils.listFiles(getBaseDir()));
+        List<String> filesWithoutSerialized = Arrays.asList(FileUtils.listFiles(getBaseDir()));
         deleteDb("fileLockSerialized");
 
         // with serialized
@@ -616,7 +616,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        List<String> filesWithSerialized = Arrays.asList(IOUtils.listFiles(getBaseDir()));
+        List<String> filesWithSerialized = Arrays.asList(FileUtils.listFiles(getBaseDir()));
         if (filesWithoutSerialized.size() !=  filesWithSerialized.size()) {
             for (int i = 0; i < filesWithoutSerialized.size(); i++) {
                 if (!filesWithSerialized.contains(filesWithoutSerialized.get(i))) {

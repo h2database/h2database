@@ -14,8 +14,8 @@ import java.io.OutputStream;
 import java.util.Random;
 import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 
 /**
  * Tests the LZF stream.
@@ -53,18 +53,18 @@ public class TestStreams extends TestBase {
 
     private void testLZFStreamClose() throws IOException {
         String fileName = getBaseDir() + "/temp";
-        IOUtils.createDirectories(IOUtils.getParent(fileName));
-        OutputStream fo = IOUtils.openFileOutputStream(fileName, false);
+        FileUtils.createDirectories(FileUtils.getParent(fileName));
+        OutputStream fo = FileUtils.newOutputStream(fileName, false);
         LZFOutputStream out = new LZFOutputStream(fo);
         out.write("Hello".getBytes());
         out.close();
-        InputStream fi = IOUtils.openFileInputStream(fileName);
+        InputStream fi = FileUtils.newInputStream(fileName);
         LZFInputStream in = new LZFInputStream(fi);
         byte[] buff = new byte[100];
         assertEquals(5, in.read(buff));
         in.read();
         in.close();
-        IOUtils.delete(getBaseDir() + "/temp");
+        FileUtils.delete(getBaseDir() + "/temp");
     }
 
     private void testLZFStreams() throws IOException {

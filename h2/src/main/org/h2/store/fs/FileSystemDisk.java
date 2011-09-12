@@ -44,7 +44,7 @@ public class FileSystemDisk extends FileSystem {
         return INSTANCE;
     }
 
-    public long length(String fileName) {
+    public long size(String fileName) {
         fileName = translateFileName(fileName);
         return new File(fileName).length();
     }
@@ -78,7 +78,7 @@ public class FileSystemDisk extends FileSystem {
         return fileName;
     }
 
-    public void rename(String oldName, String newName) {
+    public void moveTo(String oldName, String newName) {
         oldName = translateFileName(oldName);
         newName = translateFileName(newName);
         File oldFile = new File(oldName);
@@ -119,7 +119,7 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public boolean createNewFile(String fileName) {
+    public boolean createFile(String fileName) {
         fileName = translateFileName(fileName);
         File file = new File(fileName);
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
@@ -221,6 +221,11 @@ public class FileSystemDisk extends FileSystem {
         return f.exists() && !canWriteInternal(f);
     }
 
+    public boolean canWrite(String fileName) {
+        fileName = translateFileName(fileName);
+        return canWriteInternal(new File(fileName));
+    }
+
     public boolean setReadOnly(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);
@@ -253,14 +258,9 @@ public class FileSystemDisk extends FileSystem {
         return file.isAbsolute();
     }
 
-    public long getLastModified(String fileName) {
+    public long lastModified(String fileName) {
         fileName = translateFileName(fileName);
         return new File(fileName).lastModified();
-    }
-
-    public boolean canWrite(String fileName) {
-        fileName = translateFileName(fileName);
-        return canWriteInternal(new File(fileName));
     }
 
     private static boolean canWriteInternal(File file) {
@@ -308,9 +308,9 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public String getFileName(String name) {
-        name = translateFileName(name);
-        return new File(name).getName();
+    public String getName(String path) {
+        path = translateFileName(path);
+        return new File(path).getName();
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
@@ -323,13 +323,13 @@ public class FileSystemDisk extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(String fileName, boolean append) {
         fileName = translateFileName(fileName);
         try {
             File file = new File(fileName);
             File parent = file.getParentFile();
             if (parent != null) {
-                IOUtils.createDirectories(parent.getAbsolutePath());
+                FileUtils.createDirectories(parent.getAbsolutePath());
             }
             FileOutputStream out = new FileOutputStream(fileName, append);
             IOUtils.trace("openFileOutputStream", fileName, out);
@@ -344,7 +344,7 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public InputStream openFileInputStream(String fileName) throws IOException {
+    public InputStream newInputStream(String fileName) throws IOException {
         if (fileName.indexOf(':') > 1) {
             // if the : is in position 1, a windows file access is assumed: C:.. or D:
             if (fileName.startsWith(CLASSPATH_PREFIX)) {

@@ -37,7 +37,7 @@ public class FileSystemZip extends FileSystem {
         // ignore
     }
 
-    public boolean createNewFile(String fileName) {
+    public boolean createFile(String fileName) {
         throw DbException.getUnsupportedException("write");
     }
 
@@ -69,7 +69,7 @@ public class FileSystemZip extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public String getFileName(String name) {
+    public String getName(String name) {
         name = getEntryName(name);
         if (name.endsWith("/")) {
             name = name.substring(0, name.length() - 1);
@@ -81,7 +81,7 @@ public class FileSystemZip extends FileSystem {
         return name;
     }
 
-    public long getLastModified(String fileName) {
+    public long lastModified(String fileName) {
         return 0;
     }
 
@@ -132,7 +132,7 @@ public class FileSystemZip extends FileSystem {
         return true;
     }
 
-    public long length(String fileName) {
+    public long size(String fileName) {
         try {
             ZipFile file = openZipFile(fileName);
             ZipEntry entry = file.getEntry(getEntryName(fileName));
@@ -181,7 +181,7 @@ public class FileSystemZip extends FileSystem {
         return fileName;
     }
 
-    public InputStream openFileInputStream(String fileName) throws IOException {
+    public InputStream newInputStream(String fileName) throws IOException {
         FileObject file = openFileObject(fileName, "r");
         return new FileObjectInputStream(file);
     }
@@ -195,11 +195,11 @@ public class FileSystemZip extends FileSystem {
         return new FileObjectZip(file, entry);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(String fileName, boolean append) {
         throw DbException.getUnsupportedException("write");
     }
 
-    public void rename(String oldName, String newName) {
+    public void moveTo(String oldName, String newName) {
         throw DbException.getUnsupportedException("write");
     }
 

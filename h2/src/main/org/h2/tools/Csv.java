@@ -29,6 +29,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
@@ -254,7 +255,7 @@ public class Csv implements SimpleRowSource {
     private void initWrite() throws IOException {
         if (output == null) {
             try {
-                OutputStream out = IOUtils.openFileOutputStream(fileName, false);
+                OutputStream out = FileUtils.newOutputStream(fileName, false);
                 out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE);
                 output = new BufferedWriter(new OutputStreamWriter(out, characterSet));
             } catch (Exception e) {
@@ -315,7 +316,7 @@ public class Csv implements SimpleRowSource {
     private void initRead() throws IOException {
         if (input == null) {
             try {
-                InputStream in = IOUtils.openFileInputStream(fileName);
+                InputStream in = FileUtils.newInputStream(fileName);
                 in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
                 input = new InputStreamReader(in, characterSet);
             } catch (IOException e) {

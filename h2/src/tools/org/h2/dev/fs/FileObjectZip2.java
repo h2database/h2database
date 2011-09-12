@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.util.zip.ZipInputStream;
 
 import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 
 /**
@@ -62,7 +63,7 @@ public class FileObjectZip2 implements FileObject {
             in = null;
         }
         if (in == null) {
-            in = IOUtils.openFileInputStream(fullName);
+            in = FileUtils.newInputStream(fullName);
             inPos = 0;
         }
         if (inPos < pos) {

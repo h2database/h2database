@@ -9,8 +9,8 @@ package org.h2.test.unit;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import org.h2.message.TraceSystem;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 
 /**
  * Tests the trace system
@@ -54,13 +54,13 @@ public class TestTraceSystem extends TestBase {
 
     private void testReadOnly() throws Exception {
         String readOnlyFile = getBaseDir() + "/readOnly.log";
-        IOUtils.delete(readOnlyFile);
-        IOUtils.openFileOutputStream(readOnlyFile, false).close();
-        IOUtils.setReadOnly(readOnlyFile);
+        FileUtils.delete(readOnlyFile);
+        FileUtils.newOutputStream(readOnlyFile, false).close();
+        FileUtils.setReadOnly(readOnlyFile);
         TraceSystem ts = new TraceSystem(readOnlyFile);
         ts.setLevelFile(TraceSystem.INFO);
         ts.getTrace("test").info("test");
-        IOUtils.delete(readOnlyFile);
+        FileUtils.delete(readOnlyFile);
         ts.close();
     }
 

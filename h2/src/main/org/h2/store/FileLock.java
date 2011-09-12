@@ -21,7 +21,7 @@ import org.h2.engine.SessionRemote;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
-import org.h2.util.IOUtils;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.SortedProperties;
@@ -150,7 +150,7 @@ public class FileLock implements Runnable {
         try {
             if (fileName != null) {
                 if (load().equals(properties)) {
-                    IOUtils.delete(fileName);
+                    FileUtils.delete(fileName);
                 }
             }
             if (serverSocket != null) {
@@ -194,13 +194,13 @@ public class FileLock implements Runnable {
      */
     public Properties save() {
         try {
-            OutputStream out = IOUtils.openFileOutputStream(fileName, false);
+            OutputStream out = FileUtils.newOutputStream(fileName, false);
             try {
                 properties.store(out, MAGIC);
             } finally {
                 out.close();
             }
-            lastWrite = IOUtils.getLastModified(fileName);
+            lastWrite = FileUtils.lastModified(fileName);
             if (trace.isDebugEnabled()) {
                 trace.debug("save " + properties);
             }
@@ -264,7 +264,7 @@ public class FileLock implements Runnable {
 
     private void waitUntilOld() {
         for (int i = 0; i < 2 * TIME_GRANULARITY / SLEEP_GAP; i++) {
-            long last = IOUtils.getLastModified(fileName);
+            long last = FileUtils.lastModified(fileName);
             long dist = System.currentTimeMillis() - last;
             if (dist < -TIME_GRANULARITY) {
                 // lock file modified in the future -
@@ -296,8 +296,8 @@ public class FileLock implements Runnable {
 
     private void lockSerialized() {
         method = SERIALIZED;
-        IOUtils.createDirectories(IOUtils.getParent(fileName));
-        if (IOUtils.createNewFile(fileName)) {
+        FileUtils.createDirectories(FileUtils.getParent(fileName));
+        if (FileUtils.createFile(fileName)) {
             properties = new SortedProperties();
             properties.setProperty("method", String.valueOf(method));
             setUniqueId();
@@ -319,8 +319,8 @@ public class FileLock implements Runnable {
         properties = new SortedProperties();
         properties.setProperty("method", String.valueOf(method));
         setUniqueId();
-        IOUtils.createDirectories(IOUtils.getParent(fileName));
-        if (!IOUtils.createNewFile(fileName)) {
+        FileUtils.createDirectories(FileUtils.getParent(fileName));
+        if (!FileUtils.createFile(fileName)) {
             waitUntilOld();
             String m2 = load().getProperty("method", FILE);
             if (!m2.equals(FILE)) {
@@ -331,8 +331,8 @@ public class FileLock implements Runnable {
             if (!load().equals(properties)) {
                 throw getExceptionAlreadyInUse("Locked by another process");
             }
-            IOUtils.delete(fileName);
-            if (!IOUtils.createNewFile(fileName)) {
+            FileUtils.delete(fileName);
+            if (!FileUtils.createFile(fileName)) {
                 throw getExceptionFatal("Another process was faster", null);
             }
         }
@@ -356,10 +356,10 @@ public class FileLock implements Runnable {
         // if this returns 127.0.0.1,
         // the computer is probably not networked
         ipAddress = NetUtils.getLocalAddress();
-        IOUtils.createDirectories(IOUtils.getParent(fileName));
-        if (!IOUtils.createNewFile(fileName)) {
+        FileUtils.createDirectories(FileUtils.getParent(fileName));
+        if (!FileUtils.createFile(fileName)) {
             waitUntilOld();
-            long read = IOUtils.getLastModified(fileName);
+            long read = FileUtils.lastModified(fileName);
             Properties p2 = load();
             String m2 = p2.getProperty("method", SOCKET);
             if (m2.equals(FILE)) {
@@ -393,11 +393,11 @@ public class FileLock implements Runnable {
                     throw getExceptionFatal("IOException", null);
                 }
             }
-            if (read != IOUtils.getLastModified(fileName)) {
+            if (read != FileUtils.lastModified(fileName)) {
                 throw getExceptionFatal("Concurrent update", null);
             }
-            IOUtils.delete(fileName);
-            if (!IOUtils.createNewFile(fileName)) {
+            FileUtils.delete(fileName);
+            if (!FileUtils.createFile(fileName)) {
                 throw getExceptionFatal("Another process was faster", null);
             }
         }
@@ -480,7 +480,7 @@ public class FileLock implements Runnable {
             while (fileName != null) {
                 // trace.debug("watchdog check");
                 try {
-                    if (!IOUtils.exists(fileName) || IOUtils.getLastModified(fileName) != lastWrite) {
+                    if (!FileUtils.exists(fileName) || FileUtils.lastModified(fileName) != lastWrite) {
                         save();
                     }
                     Thread.sleep(sleep);

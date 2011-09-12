@@ -19,6 +19,7 @@ import java.sql.Statement;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -174,8 +175,8 @@ public class RunScript extends Tool {
 
     private void process(Connection conn, String fileName,
             boolean continueOnError, String charsetName) throws SQLException, IOException {
-        InputStream in = IOUtils.openFileInputStream(fileName);
-        String path = IOUtils.getParent(fileName);
+        InputStream in = FileUtils.newInputStream(fileName);
+        String path = FileUtils.getParent(fileName);
         try {
             in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
             Reader reader = new InputStreamReader(in, charsetName);
@@ -198,7 +199,7 @@ public class RunScript extends Tool {
             if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).startsWith("@INCLUDE")) {
                 sql = trim;
                 sql = sql.substring("@INCLUDE".length()).trim();
-                if (!IOUtils.isAbsolute(sql)) {
+                if (!FileUtils.isAbsolute(sql)) {
                     sql = path + SysProperties.FILE_SEPARATOR + sql;
                 }
                 process(conn, sql, continueOnError, charsetName);

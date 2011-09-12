@@ -24,6 +24,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import org.h2.dev.ftp.FtpClient;
 import org.h2.engine.Constants;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.OutputCatcher;
 import org.h2.util.IOUtils;
 import org.h2.util.ScriptReader;
@@ -73,9 +74,9 @@ public class UploadBuild {
             new File("details").mkdir();
             zip("details/coverage_files.zip", "coverage", true);
             zip("coverage.zip", "details", false);
-            IOUtils.delete("coverage.txt");
-            IOUtils.delete("details/coverage_files.zip");
-            IOUtils.delete("details");
+            FileUtils.delete("coverage.txt");
+            FileUtils.delete("details/coverage_files.zip");
+            FileUtils.delete("details");
             if (ftp.exists("/httpdocs", "coverage")) {
                 ftp.removeDirectoryRecursive("/httpdocs/coverage");
             }
@@ -150,13 +151,13 @@ public class UploadBuild {
         ftp.store("/httpdocs/automated/news.xml", new ByteArrayInputStream(content.getBytes()));
         ftp.store("/httpdocs/html/testOutput.html", new ByteArrayInputStream(testOutput.getBytes()));
         String jarFileName = "bin/h2-" + Constants.getVersion() + ".jar";
-        if (IOUtils.exists(jarFileName)) {
+        if (FileUtils.exists(jarFileName)) {
             ftp.store("/httpdocs/automated/h2-latest.jar", new FileInputStream(jarFileName));
         }
         if (coverage) {
             ftp.store("/httpdocs/coverage/overview.html", new FileInputStream("coverage/overview.html"));
             ftp.store("/httpdocs/coverage/coverage.zip", new FileInputStream("coverage.zip"));
-            IOUtils.delete("coverage.zip");
+            FileUtils.delete("coverage.zip");
         }
         ftp.close();
     }

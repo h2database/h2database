@@ -16,6 +16,7 @@ import java.util.zip.ZipInputStream;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
@@ -74,7 +75,7 @@ public class Restore extends Tool {
     private static String getOriginalDbName(String fileName, String db) throws IOException {
         InputStream in = null;
         try {
-            in = IOUtils.openFileInputStream(fileName);
+            in = FileUtils.newInputStream(fileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             String originalDbName = null;
             boolean multiple = false;
@@ -137,7 +138,7 @@ public class Restore extends Tool {
     public static void execute(String zipFileName, String directory, String db, boolean quiet) {
         InputStream in = null;
         try {
-            if (!IOUtils.exists(zipFileName)) {
+            if (!FileUtils.exists(zipFileName)) {
                 throw new IOException("File not found: " + zipFileName);
             }
             String originalDbName = null;
@@ -152,7 +153,7 @@ public class Restore extends Tool {
                 }
                 originalDbLen = originalDbName.length();
             }
-            in = IOUtils.openFileInputStream(zipFileName);
+            in = FileUtils.newInputStream(zipFileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             while (true) {
                 ZipEntry entry = zipIn.getNextEntry();
@@ -176,7 +177,7 @@ public class Restore extends Tool {
                 if (copy) {
                     OutputStream o = null;
                     try {
-                        o = IOUtils.openFileOutputStream(directory + SysProperties.FILE_SEPARATOR + fileName, false);
+                        o = FileUtils.newOutputStream(directory + SysProperties.FILE_SEPARATOR + fileName, false);
                         IOUtils.copy(zipIn, o);
                         o.close();
                     } finally {

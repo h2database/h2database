@@ -96,12 +96,12 @@ public abstract class FileSystem {
     protected abstract boolean accepts(String fileName);
 
     /**
-     * Get the length of a file.
+     * Get the size of a file in bytes
      *
      * @param fileName the file name
-     * @return the length in bytes
+     * @return the size in bytes
      */
-    public abstract long length(String fileName);
+    public abstract long size(String fileName);
 
     /**
      * Rename a file if this is allowed.
@@ -109,7 +109,7 @@ public abstract class FileSystem {
      * @param oldName the old fully qualified file name
      * @param newName the new fully qualified file name
      */
-    public abstract void rename(String oldName, String newName);
+    public abstract void moveTo(String oldName, String newName);
 
     /**
      * Create a new file.
@@ -117,7 +117,7 @@ public abstract class FileSystem {
      * @param fileName the file name
      * @return true if creating was successful
      */
-    public abstract boolean createNewFile(String fileName);
+    public abstract boolean createFile(String fileName);
 
     /**
      * Checks if a file exists.
@@ -196,7 +196,7 @@ public abstract class FileSystem {
      * @param fileName the file name
      * @return the last modified date
      */
-    public abstract long getLastModified(String fileName);
+    public abstract long lastModified(String fileName);
 
     /**
      * Check if the file is writable.
@@ -214,12 +214,12 @@ public abstract class FileSystem {
     public abstract void createDirectory(String directoryName);
 
     /**
-     * Get the file name (without directory part).
+     * Get the file or directory name (the last element of the path).
      *
-     * @param name the directory and file name
+     * @param path the directory and file name
      * @return just the file name
      */
-    public abstract String getFileName(String name);
+    public abstract String getName(String path);
 
     /**
      * Check if a file starts with a given prefix.
@@ -238,7 +238,7 @@ public abstract class FileSystem {
      *            truncated first
      * @return the output stream
      */
-    public abstract OutputStream openFileOutputStream(String fileName, boolean append);
+    public abstract OutputStream newOutputStream(String fileName, boolean append);
 
     /**
      * Open a random access file object.
@@ -255,7 +255,7 @@ public abstract class FileSystem {
      * @param fileName the file name
      * @return the input stream
      */
-    public abstract InputStream openFileInputStream(String fileName) throws IOException;
+    public abstract InputStream newInputStream(String fileName) throws IOException;
 
     /**
      * Disable the ability to write.

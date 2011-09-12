@@ -24,6 +24,7 @@ import java.util.Vector;
 import java.util.Map.Entry;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
+import org.h2.store.fs.FileUtils;
 
 /**
  * Sorted properties file.
@@ -86,10 +87,10 @@ public class SortedProperties extends Properties {
      */
     public static synchronized SortedProperties loadProperties(String fileName) throws IOException {
         SortedProperties prop = new SortedProperties();
-        if (IOUtils.exists(fileName)) {
+        if (FileUtils.exists(fileName)) {
             InputStream in = null;
             try {
-                in = IOUtils.openFileInputStream(fileName);
+                in = FileUtils.newInputStream(fileName);
                 prop.load(in);
             } finally {
                 if (in != null) {
@@ -113,7 +114,7 @@ public class SortedProperties extends Properties {
         LineNumberReader r = new LineNumberReader(reader);
         Writer w;
         try {
-            w = new OutputStreamWriter(IOUtils.openFileOutputStream(fileName, false));
+            w = new OutputStreamWriter(FileUtils.newOutputStream(fileName, false));
         } catch (Exception e) {
             throw DbException.convertToIOException(e);
         }

@@ -46,9 +46,9 @@ public class RecordingFileSystem extends FileSystemWrapper {
         super.createDirectory(directoryName);
     }
 
-    public boolean createNewFile(String fileName) {
+    public boolean createFile(String fileName) {
         log(Recorder.CREATE_NEW_FILE, unwrap(fileName));
-        return super.createNewFile(fileName);
+        return super.createFile(fileName);
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
@@ -66,14 +66,14 @@ public class RecordingFileSystem extends FileSystemWrapper {
         return new RecordingFileObject(this, super.openFileObject(fileName, mode));
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(String fileName, boolean append) {
         log(Recorder.OPEN_OUTPUT_STREAM, unwrap(fileName));
-        return super.openFileOutputStream(fileName, append);
+        return super.newOutputStream(fileName, append);
     }
 
-    public void rename(String oldName, String newName) {
+    public void moveTo(String oldName, String newName) {
         log(Recorder.RENAME, unwrap(oldName) + ":" + unwrap(newName));
-        super.rename(oldName, newName);
+        super.moveTo(oldName, newName);
     }
 
     public boolean tryDelete(String fileName) {

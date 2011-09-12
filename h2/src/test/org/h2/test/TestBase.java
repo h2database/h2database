@@ -33,11 +33,11 @@ import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
 import org.h2.store.fs.FileSystemSplit;
+import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.RecordingFileSystem;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.util.IOUtils;
 
 /**
  * The base class for all tests.
@@ -153,8 +153,8 @@ public abstract class TestBase {
             }
         } finally {
             try {
-                IOUtils.deleteRecursive("memFS:", false);
-                IOUtils.deleteRecursive("memLZF:", false);
+                FileUtils.deleteRecursive("memFS:", false);
+                FileUtils.deleteRecursive("memLZF:", false);
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }

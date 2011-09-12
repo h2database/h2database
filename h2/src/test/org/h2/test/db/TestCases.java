@@ -19,8 +19,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 
 /**
  * Various test cases.
@@ -534,7 +534,7 @@ public class TestCases extends TestBase {
             stat.execute("script to '" + getBaseDir() + "/test.sql'");
         }
         conn.close();
-        IOUtils.delete(getBaseDir() + "/test.sql");
+        FileUtils.delete(getBaseDir() + "/test.sql");
     }
 
     private void testDeleteGroup() throws SQLException {
@@ -1218,7 +1218,7 @@ public class TestCases extends TestBase {
 
         conn.close();
 
-        String[] list = IOUtils.listFiles(getBaseDir() + "/cases.lobs.db");
+        String[] list = FileUtils.listFiles(getBaseDir() + "/cases.lobs.db");
         if (list != null && list.length > 0) {
             fail("Lob file was not deleted");
         }

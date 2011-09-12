@@ -9,7 +9,6 @@ package org.h2.store.fs;
 import java.io.EOFException;
 import java.io.IOException;
 import org.h2.message.DbException;
-import org.h2.util.IOUtils;
 
 /**
  * A file that may be split into multiple smaller files.
@@ -102,7 +101,7 @@ public class FileObjectSplit implements FileObject {
                 list[i].setFileLength(0);
                 list[i].close();
                 try {
-                    IOUtils.delete(list[i].getName());
+                    FileUtils.delete(list[i].getName());
                 } catch (DbException e) {
                     throw DbException.convertToIOException(e);
                 }

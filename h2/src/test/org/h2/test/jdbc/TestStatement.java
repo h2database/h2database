@@ -14,8 +14,8 @@ import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcStatement;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 
 /**
  * Tests for the Statement implementation.
@@ -64,13 +64,13 @@ public class TestStatement extends TestBase {
         } catch (SQLException e) {
             // ignore
         }
-        long lengthBefore = IOUtils.length(fileName);
+        long lengthBefore = FileUtils.size(fileName);
         try {
             stat.execute("ERROR");
         } catch (SQLException e) {
             // ignore
         }
-        long error = IOUtils.length(fileName);
+        long error = FileUtils.size(fileName);
         assertSmaller(lengthBefore, error);
         lengthBefore = error;
         try {
@@ -78,7 +78,7 @@ public class TestStatement extends TestBase {
         } catch (SQLException e) {
             // ignore
         }
-        error = IOUtils.length(fileName);
+        error = FileUtils.size(fileName);
         assertEquals(lengthBefore, error);
         stat.execute("DROP TABLE TEST IF EXISTS");
     }

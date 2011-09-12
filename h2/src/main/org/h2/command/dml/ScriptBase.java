@@ -26,6 +26,7 @@ import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
 import org.h2.store.LobStorage;
+import org.h2.store.fs.FileUtils;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
@@ -103,7 +104,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
     void deleteStore() {
         String file = getFileName();
         if (file != null) {
-            IOUtils.delete(file);
+            FileUtils.delete(file);
         }
     }
 
@@ -130,7 +131,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
             // always use a big buffer, otherwise end-of-block is written a lot
             out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE_COMPRESS);
         } else {
-            OutputStream o = IOUtils.openFileOutputStream(file, false);
+            OutputStream o = FileUtils.newOutputStream(file, false);
             out = new BufferedOutputStream(o, Constants.IO_BUFFER_SIZE);
             out = CompressTool.wrapOutputStream(out, compressionAlgorithm, SCRIPT_SQL);
         }
@@ -150,7 +151,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         } else {
             InputStream inStream;
             try {
-                inStream = IOUtils.openFileInputStream(file);
+                inStream = FileUtils.newInputStream(file);
             } catch (IOException e) {
                 throw DbException.convertIOException(e, file);
             }

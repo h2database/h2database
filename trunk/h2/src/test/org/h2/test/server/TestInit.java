@@ -35,7 +35,7 @@ public class TestInit extends TestBase {
         String init2 = getBaseDir() + "/test-init-2.sql";
 
         // Create two scripts that we will run via "INIT"
-        IOUtils.createDirs(init1);
+        IOUtils.createDirectories(IOUtils.getParent(init1));
 
         Writer w = new OutputStreamWriter(IOUtils.openFileOutputStream(init1, false));
 

@@ -53,7 +53,7 @@ public class TestStreams extends TestBase {
 
     private void testLZFStreamClose() throws IOException {
         String fileName = getBaseDir() + "/temp";
-        IOUtils.createDirs(fileName);
+        IOUtils.createDirectories(IOUtils.getParent(fileName));
         OutputStream fo = IOUtils.openFileOutputStream(fileName, false);
         LZFOutputStream out = new LZFOutputStream(fo);
         out.write("Hello".getBytes());

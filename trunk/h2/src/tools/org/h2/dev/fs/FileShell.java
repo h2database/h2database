@@ -225,9 +225,9 @@ public class FileShell extends Tool {
                 println(buff.toString());
             }
         } else if ("mkdir".equals(c)) {
-            String dir = getFile(list[i++] + "/dummy");
+            String dir = getFile(list[i++]);
             end(list, i);
-            IOUtils.createDirs(dir);
+            IOUtils.createDirectories(dir);
         } else if ("mv".equals(c)) {
             String source = getFile(list[i++]);
             String target = getFile(list[i++]);

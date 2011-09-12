@@ -22,6 +22,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileSystem;
+import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.SortedProperties;
@@ -302,7 +303,7 @@ public class FileLock implements Runnable {
 
     private void lockSerialized() {
         method = SERIALIZED;
-        fs.createDirs(fileName);
+        IOUtils.createDirectories(fs.getParent(fileName));
         if (fs.createNewFile(fileName)) {
             properties = new SortedProperties();
             properties.setProperty("method", String.valueOf(method));
@@ -325,7 +326,7 @@ public class FileLock implements Runnable {
         properties = new SortedProperties();
         properties.setProperty("method", String.valueOf(method));
         setUniqueId();
-        fs.createDirs(fileName);
+        IOUtils.createDirectories(fs.getParent(fileName));
         if (!fs.createNewFile(fileName)) {
             waitUntilOld();
             String m2 = load().getProperty("method", FILE);
@@ -362,7 +363,7 @@ public class FileLock implements Runnable {
         // if this returns 127.0.0.1,
         // the computer is probably not networked
         ipAddress = NetUtils.getLocalAddress();
-        fs.createDirs(fileName);
+        IOUtils.createDirectories(fs.getParent(fileName));
         if (!fs.createNewFile(fileName)) {
             waitUntilOld();
             long read = fs.getLastModified(fileName);

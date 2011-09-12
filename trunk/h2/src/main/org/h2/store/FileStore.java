@@ -15,6 +15,7 @@ import org.h2.message.DbException;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
+import org.h2.util.IOUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
 
@@ -83,7 +84,7 @@ public class FileStore {
                 mode = "r";
                 this.mode = mode;
             } else {
-                fs.createDirs(name);
+                IOUtils.createDirectories(fs.getParent(name));
             }
             file = fs.openFileObject(name, mode);
             if (mode.length() > 2) {

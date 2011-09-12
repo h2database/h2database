@@ -215,23 +215,6 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public void deleteRecursive(String fileName, boolean tryOnly) {
-        fileName = translateFileName(fileName);
-        if (IOUtils.isDirectory(fileName)) {
-            String[] list = listFiles(fileName);
-            if (list != null) {
-                for (String l : list) {
-                    deleteRecursive(l, tryOnly);
-                }
-            }
-        }
-        if (tryOnly) {
-            tryDelete(fileName);
-        } else {
-            delete(fileName);
-        }
-    }
-
     public boolean isReadOnly(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);
@@ -310,22 +293,18 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public void createDirs(String fileName) {
-        fileName = translateFileName(fileName);
-        File f = new File(fileName);
+    public void createDirectory(String directoryName) {
+        directoryName = translateFileName(directoryName);
+        File f = new File(directoryName);
         if (!f.exists()) {
-            String parent = f.getParent();
-            if (parent == null) {
-                return;
-            }
-            File dir = new File(parent);
+            File dir = new File(directoryName);
             for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-                if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
+                if ((dir.exists() && dir.isDirectory()) || dir.mkdir()) {
                     return;
                 }
                 wait(i);
             }
-            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, parent);
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, directoryName);
         }
     }
 
@@ -348,7 +327,10 @@ public class FileSystemDisk extends FileSystem {
         fileName = translateFileName(fileName);
         try {
             File file = new File(fileName);
-            createDirs(file.getAbsolutePath());
+            File parent = file.getParentFile();
+            if (parent != null) {
+                IOUtils.createDirectories(parent.getAbsolutePath());
+            }
             FileOutputStream out = new FileOutputStream(fileName, append);
             IOUtils.trace("openFileOutputStream", fileName, out);
             return out;

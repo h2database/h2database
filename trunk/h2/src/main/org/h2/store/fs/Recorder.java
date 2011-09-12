@@ -18,9 +18,9 @@ public interface Recorder {
     int COPY = 3;
 
     /**
-     * Create all parent directories.
+     * Create a directory.
      */
-    int CREATE_DIRS = 4;
+    int CREATE_DIRECTORY = 4;
 
     /**
      * Create a new file.
@@ -38,20 +38,15 @@ public interface Recorder {
     int DELETE = 7;
 
     /**
-     * Delete all files and directories recursively.
-     */
-    int DELETE_RECURSIVE = 8;
-
-    /**
      * Open a file output stream.
      */
-    int OPEN_OUTPUT_STREAM = 9;
+    int OPEN_OUTPUT_STREAM = 8;
 
     /**
      * Rename a file. The file name contains the source and the target file
      * separated with a colon.
      */
-    int RENAME = 10;
+    int RENAME = 9;
 
     /**
      * Set the length of the file.

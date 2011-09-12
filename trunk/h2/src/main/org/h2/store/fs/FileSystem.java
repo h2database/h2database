@@ -151,14 +151,6 @@ public abstract class FileSystem {
     public abstract String[] listFiles(String directory);
 
     /**
-     * Delete a directory or file and all subdirectories and files.
-     *
-     * @param directory the directory
-     * @param tryOnly whether errors should  be ignored
-     */
-    public abstract void deleteRecursive(String directory, boolean tryOnly);
-
-    /**
      * Check if a file is read-only.
      *
      * @param fileName the file name
@@ -215,11 +207,11 @@ public abstract class FileSystem {
     public abstract boolean canWrite(String fileName);
 
     /**
-     * Create all required directories that are required for this file.
+     * Create a directory (all required parent directories already exist).
      *
-     * @param fileName the file name (not directory name)
+     * @param directoryName the directory name
      */
-    public abstract void createDirs(String fileName);
+    public abstract void createDirectory(String directoryName);
 
     /**
      * Get the file name (without directory part).

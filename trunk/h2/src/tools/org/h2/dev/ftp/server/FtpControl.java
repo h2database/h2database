@@ -16,6 +16,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileSystem;
+import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -355,7 +356,7 @@ public class FtpControl extends Thread {
         boolean ok = false;
         if (!readonly) {
             try {
-                fs.createDirs(fileName + "/x");
+                IOUtils.createDirectories(fileName);
                 reply(257, StringUtils.quoteIdentifier(param) + " directory");
                 ok = true;
             } catch (Exception e) {

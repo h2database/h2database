@@ -41,9 +41,9 @@ public class RecordingFileSystem extends FileSystemWrapper {
         RecordingFileSystem.recorder = recorder;
     }
 
-    public void createDirs(String fileName) {
-        log(Recorder.CREATE_DIRS, unwrap(fileName));
-        super.createDirs(fileName);
+    public void createDirectories(String directoryName) {
+        log(Recorder.CREATE_DIRECTORY, unwrap(directoryName));
+        super.createDirectory(directoryName);
     }
 
     public boolean createNewFile(String fileName) {
@@ -60,11 +60,6 @@ public class RecordingFileSystem extends FileSystemWrapper {
     public void delete(String fileName) {
         log(Recorder.DELETE, unwrap(fileName));
         super.delete(fileName);
-    }
-
-    public void deleteRecursive(String directory, boolean tryOnly) {
-        log(Recorder.DELETE_RECURSIVE, unwrap(directory));
-        super.deleteRecursive(directory, tryOnly);
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {

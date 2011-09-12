@@ -61,13 +61,13 @@ public class FileSystemSplit extends FileSystemWrapper {
         }
     }
 
-    public long getLastModified(String fileName) {
+    public long lastModified(String fileName) {
         fileName = unwrap(fileName);
         long lastModified = 0;
         for (int i = 0;; i++) {
             String f = getFileName(fileName, i);
             if (getInstance(fileName).exists(f)) {
-                long l = getInstance(fileName).getLastModified(fileName);
+                long l = getInstance(fileName).lastModified(fileName);
                 lastModified = Math.max(lastModified, l);
             } else {
                 break;
@@ -76,13 +76,13 @@ public class FileSystemSplit extends FileSystemWrapper {
         return lastModified;
     }
 
-    public long length(String fileName) {
+    public long size(String fileName) {
         fileName = unwrap(fileName);
         long length = 0;
         for (int i = 0;; i++) {
             String f = getFileName(fileName, i);
             if (getInstance(fileName).exists(f)) {
-                length += getInstance(fileName).length(f);
+                length += getInstance(fileName).size(f);
             } else {
                 break;
             }
@@ -107,13 +107,13 @@ public class FileSystemSplit extends FileSystemWrapper {
         return array;
     }
 
-    public InputStream openFileInputStream(String fileName) throws IOException {
+    public InputStream newInputStream(String fileName) throws IOException {
         fileName = unwrap(fileName);
-        InputStream input = getInstance(fileName).openFileInputStream(fileName);
+        InputStream input = getInstance(fileName).newInputStream(fileName);
         for (int i = 1;; i++) {
             String f = getFileName(fileName, i);
             if (getInstance(f).exists(f)) {
-                InputStream i2 = getInstance(f).openFileInputStream(f);
+                InputStream i2 = getInstance(f).newInputStream(f);
                 input = new SequenceInputStream(input, i2);
             } else {
                 break;
@@ -175,7 +175,7 @@ public class FileSystemSplit extends FileSystemWrapper {
         throw new IOException(message);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(String fileName, boolean append) {
         try {
             return new FileObjectOutputStream(openFileObject(fileName, "rw"), append);
         } catch (IOException e) {
@@ -183,14 +183,14 @@ public class FileSystemSplit extends FileSystemWrapper {
         }
     }
 
-    public void rename(String oldName, String newName) {
+    public void moveTo(String oldName, String newName) {
         oldName = unwrap(oldName);
         newName = unwrap(newName);
         for (int i = 0;; i++) {
             String o = getFileName(oldName, i);
             if (getInstance(o).exists(o)) {
                 String n = getFileName(newName, i);
-                getInstance(n).rename(o, n);
+                getInstance(n).moveTo(o, n);
             } else {
                 break;
             }

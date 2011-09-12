@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.HashMap;
-import org.h2.util.IOUtils;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
 
 /**
@@ -102,7 +102,7 @@ public class Player {
 
     private void runFile(String fileName) throws IOException {
         LineNumberReader reader = new LineNumberReader(new BufferedReader(
-                new InputStreamReader(IOUtils.openFileInputStream(fileName))));
+                new InputStreamReader(FileUtils.newInputStream(fileName))));
         while (true) {
             String line = reader.readLine();
             if (line == null) {

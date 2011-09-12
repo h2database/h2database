@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import org.h2.server.Service;
+import org.h2.store.fs.FileUtils;
 import org.h2.tools.Server;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
@@ -218,17 +219,17 @@ public class FtpServer extends Tool implements Service {
     }
 
     private void appendFile(StringBuilder buff, String fileName) {
-        buff.append(IOUtils.isDirectory(fileName) ? 'd' : '-');
+        buff.append(FileUtils.isDirectory(fileName) ? 'd' : '-');
         buff.append('r');
-        buff.append(IOUtils.canWrite(fileName) ? 'w' : '-');
+        buff.append(FileUtils.canWrite(fileName) ? 'w' : '-');
         buff.append("------- 1 owner group ");
-        String size = String.valueOf(IOUtils.length(fileName));
+        String size = String.valueOf(FileUtils.size(fileName));
         for (int i = size.length(); i < 15; i++) {
             buff.append(' ');
         }
         buff.append(size);
         buff.append(' ');
-        Date now = new Date(), mod = new Date(IOUtils.getLastModified(fileName));
+        Date now = new Date(), mod = new Date(FileUtils.lastModified(fileName));
         String date;
         if (mod.after(now) || Math.abs((now.getTime() - mod.getTime()) / 1000 / 60 / 60 / 24) > 180) {
             synchronized (dateFormatOld) {
@@ -241,7 +242,7 @@ public class FtpServer extends Tool implements Service {
         }
         buff.append(date);
         buff.append(' ');
-        buff.append(IOUtils.getFileName(fileName));
+        buff.append(FileUtils.getName(fileName));
         buff.append("\r\n");
     }
 
@@ -254,7 +255,7 @@ public class FtpServer extends Tool implements Service {
      */
     String formatLastModified(String fileName) {
         synchronized (dateFormat) {
-            return dateFormat.format(new Date(IOUtils.getLastModified(fileName)));
+            return dateFormat.format(new Date(FileUtils.lastModified(fileName)));
         }
     }
 
@@ -291,8 +292,8 @@ public class FtpServer extends Tool implements Service {
      */
     String getDirectoryListing(String directory, boolean listDirectories) {
         StringBuilder buff = new StringBuilder();
-        for (String fileName : IOUtils.listFiles(directory)) {
-            if (!IOUtils.isDirectory(fileName) || (IOUtils.isDirectory(fileName) && listDirectories)) {
+        for (String fileName : FileUtils.listFiles(directory)) {
+            if (!FileUtils.isDirectory(fileName) || (FileUtils.isDirectory(fileName) && listDirectories)) {
                 appendFile(buff, fileName);
             }
         }
@@ -326,7 +327,7 @@ public class FtpServer extends Tool implements Service {
             if ("-ftpPort".equals(a)) {
                 port = Integer.decode(args[++i]);
             } else if ("-ftpDir".equals(a)) {
-                root = IOUtils.getCanonicalPath(args[++i]);
+                root = FileUtils.getCanonicalPath(args[++i]);
             } else if ("-ftpRead".equals(a)) {
                 readUserName = args[++i];
             } else if ("-ftpWrite".equals(a)) {
@@ -350,8 +351,8 @@ public class FtpServer extends Tool implements Service {
     }
 
     public void start() {
-        root = IOUtils.getCanonicalPath(root);
-        IOUtils.createDirectories(root);
+        root = FileUtils.getCanonicalPath(root);
+        FileUtils.createDirectories(root);
         serverSocket = NetUtils.createServerSocket(port, false);
         port = serverSocket.getLocalPort();
     }
@@ -465,7 +466,7 @@ public class FtpServer extends Tool implements Service {
         private void openOutput() {
             if (outFile != null) {
                 try {
-                    this.out = IOUtils.openFileOutputStream(outFile, false);
+                    this.out = FileUtils.newOutputStream(outFile, false);
                 } catch (Exception e) {
                     // ignore
                 }

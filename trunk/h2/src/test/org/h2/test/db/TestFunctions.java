@@ -27,6 +27,7 @@ import java.util.Properties;
 import java.util.UUID;
 import org.h2.api.AggregateFunction;
 import org.h2.constant.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
@@ -72,7 +73,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testValue();
         testNvl2();
         deleteDb("functions");
-        IOUtils.deleteRecursive(TEMP_DIR, true);
+        FileUtils.deleteRecursive(TEMP_DIR, true);
     }
 
     private void testFunctionTable() throws SQLException {
@@ -434,12 +435,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Statement stat = conn.createStatement();
         String fileName = getBaseDir() + "/test.txt";
         Properties prop = System.getProperties();
-        OutputStream out = IOUtils.openFileOutputStream(fileName, false);
+        OutputStream out = FileUtils.newOutputStream(fileName, false);
         prop.store(out, "");
         out.close();
         ResultSet rs = stat.executeQuery("SELECT LENGTH(FILE_READ('" + fileName + "')) LEN");
         rs.next();
-        assertEquals(IOUtils.length(fileName), rs.getInt(1));
+        assertEquals(FileUtils.size(fileName), rs.getInt(1));
         rs = stat.executeQuery("SELECT FILE_READ('" + fileName + "') PROP");
         rs.next();
         Properties p2 = new Properties();
@@ -448,11 +449,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs = stat.executeQuery("SELECT FILE_READ('" + fileName + "', NULL) PROP");
         rs.next();
         String ps = rs.getString(1);
-        InputStreamReader r = new InputStreamReader(IOUtils.openFileInputStream(fileName));
+        InputStreamReader r = new InputStreamReader(FileUtils.newInputStream(fileName));
         String ps2 = IOUtils.readStringAndClose(r, -1);
         assertEquals(ps, ps2);
         conn.close();
-        IOUtils.delete(fileName);
+        FileUtils.delete(fileName);
     }
 
     /**

@@ -32,6 +32,7 @@ import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
@@ -606,7 +607,7 @@ public class WebServer implements Service {
                 }
             }
             if (!"null".equals(serverPropertiesDir)) {
-                OutputStream out = IOUtils.openFileOutputStream(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME, false);
+                OutputStream out = FileUtils.newOutputStream(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME, false);
                 prop.store(out, "H2 Server Properties");
                 out.close();
             }
@@ -712,11 +713,11 @@ public class WebServer implements Service {
                 try {
                     SortedProperties sp = new SortedProperties();
                     if (file.exists()) {
-                        InputStream in = IOUtils.openFileInputStream(file.getName());
+                        InputStream in = FileUtils.newInputStream(file.getName());
                         sp.load(in);
                         translation.putAll(sp);
                     } else {
-                        OutputStream out = IOUtils.openFileOutputStream(file.getName(), false);
+                        OutputStream out = FileUtils.newOutputStream(file.getName(), false);
                         sp.putAll(translation);
                         sp.store(out, "Translation");
                     }

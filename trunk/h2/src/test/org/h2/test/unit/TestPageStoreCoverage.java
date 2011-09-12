@@ -13,9 +13,9 @@ import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
-import org.h2.util.IOUtils;
 
 /**
  * Test the page store.
@@ -216,7 +216,7 @@ public class TestPageStoreCoverage extends TestBase {
         conn.createStatement().execute("drop table test");
         conn2.close();
         conn.close();
-        IOUtils.delete(getBaseDir() + "/backup.zip");
+        FileUtils.delete(getBaseDir() + "/backup.zip");
         deleteDb("pageStore2");
     }
 
@@ -229,11 +229,11 @@ public class TestPageStoreCoverage extends TestBase {
         stat.execute("drop table if exists INFORMATION_SCHEMA.LOB_DATA");
         stat.execute("drop table if exists INFORMATION_SCHEMA.LOB_MAP");
         conn.close();
-        FileObject f = IOUtils.openFileObject(fileName, "rw");
+        FileObject f = FileUtils.openFileObject(fileName, "rw");
         // create a new database
         conn = getConnection("pageStore");
         conn.close();
-        f = IOUtils.openFileObject(fileName, "rw");
+        f = FileUtils.openFileObject(fileName, "rw");
         f.setFileLength(16);
         // create a new database
         conn = getConnection("pageStore");

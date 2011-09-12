@@ -13,9 +13,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.upgrade.DbUpgrade;
-import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 
 /**
@@ -51,13 +51,13 @@ public class TestUpgrade extends TestBase {
                 getBaseDir() + "/upgrade;PAGE_STORE=FALSE", getUser(), getPassword());
         conn.createStatement().execute("create table test(data clob) as select space(100000)");
         conn.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.data.db"));
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.index.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.data.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.index.db"));
         DbUpgrade.setDeleteOldDb(true);
         DbUpgrade.setScriptInTempDir(true);
         conn = getConnection("upgrade");
-        assertFalse(IOUtils.exists(getBaseDir() + "/upgrade.data.db"));
-        assertFalse(IOUtils.exists(getBaseDir() + "/upgrade.index.db"));
+        assertFalse(FileUtils.exists(getBaseDir() + "/upgrade.data.db"));
+        assertFalse(FileUtils.exists(getBaseDir() + "/upgrade.index.db"));
         ResultSet rs = conn.createStatement().executeQuery("select * from test");
         rs.next();
         assertEquals(new String(new char[100000]).replace((char) 0, ' '), rs.getString(1));
@@ -70,17 +70,17 @@ public class TestUpgrade extends TestBase {
     private void testErrorUpgrading() throws Exception {
         deleteDb("upgrade");
         OutputStream out;
-        out = IOUtils.openFileOutputStream(getBaseDir() + "/upgrade.data.db", false);
+        out = FileUtils.newOutputStream(getBaseDir() + "/upgrade.data.db", false);
         out.write(new byte[10000]);
         out.close();
-        out = IOUtils.openFileOutputStream(getBaseDir() + "/upgrade.index.db", false);
+        out = FileUtils.newOutputStream(getBaseDir() + "/upgrade.index.db", false);
         out.write(new byte[10000]);
         out.close();
         assertThrows(ErrorCode.FILE_VERSION_ERROR_1, this).
                 getConnection("upgrade");
 
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.data.db"));
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.index.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.data.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.index.db"));
         deleteDb("upgrade");
     }
 
@@ -88,12 +88,12 @@ public class TestUpgrade extends TestBase {
         deleteDb("upgrade");
         Connection conn = getConnection("upgrade");
         conn.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.h2.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.h2.db"));
         deleteDb("upgrade");
 
         conn = getConnection("upgrade;NO_UPGRADE=TRUE");
         conn.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.h2.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.h2.db"));
         deleteDb("upgrade");
     }
 
@@ -113,7 +113,7 @@ public class TestUpgrade extends TestBase {
         statOld.execute("create table testOld(id int)");
         connOld.close();
         connOld2.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgradeOld.data.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgradeOld.data.db"));
 
         // Create new DB
         Connection connNew = DriverManager.getConnection("jdbc:h2:" +
@@ -130,8 +130,8 @@ public class TestUpgrade extends TestBase {
         statNew.executeQuery("select * from linkedTestOld");
         connNew.close();
         connNew2.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgradeOld.data.db"));
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.h2.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgradeOld.data.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.h2.db"));
 
         connNew = DriverManager.getConnection("jdbc:h2:" +
                 getBaseDir() + "/upgrade" + additionalParameters);
@@ -145,8 +145,8 @@ public class TestUpgrade extends TestBase {
         statNew.executeQuery("select * from linkedTestOld");
         connNew.close();
         connNew2.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgradeOld.h2.db"));
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.h2.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgradeOld.h2.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.h2.db"));
 
         deleteDb("upgrade");
         deleteDb("upgradeOld");
@@ -164,14 +164,14 @@ public class TestUpgrade extends TestBase {
         statOld.execute("create table test(id int)");
         connOld.close();
         connOld2.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.data.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.data.db"));
 
         // Upgrade
         Connection connOldViaNew = DriverManager.getConnection("jdbc:h2:" + getBaseDir() + "/upgrade;ifexists=true");
         Statement statOldViaNew = connOldViaNew.createStatement();
         statOldViaNew.executeQuery("select * from test");
         connOldViaNew.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.h2.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.h2.db"));
 
         deleteDb("upgrade");
     }
@@ -186,7 +186,7 @@ public class TestUpgrade extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
         conn.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.data.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.data.db"));
 
         // Connect to old DB with upgrade
         conn = DriverManager.getConnection("jdbc:h2:" +
@@ -194,7 +194,7 @@ public class TestUpgrade extends TestBase {
         stat = conn.createStatement();
         stat.executeQuery("select * from test");
         conn.close();
-        assertTrue(IOUtils.exists(getBaseDir() + "/upgrade.h2.db"));
+        assertTrue(FileUtils.exists(getBaseDir() + "/upgrade.h2.db"));
 
         deleteDb("upgrade");
     }
@@ -207,9 +207,9 @@ public class TestUpgrade extends TestBase {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
-        IOUtils.delete(getBaseDir() + "/" + dbName + ".data.db.backup");
-        IOUtils.delete(getBaseDir() + "/" + dbName + ".index.db.backup");
-        IOUtils.deleteRecursive(getBaseDir() + "/" + dbName + ".lobs.db.backup", false);
+        FileUtils.delete(getBaseDir() + "/" + dbName + ".data.db.backup");
+        FileUtils.delete(getBaseDir() + "/" + dbName + ".index.db.backup");
+        FileUtils.deleteRecursive(getBaseDir() + "/" + dbName + ".lobs.db.backup", false);
     }
 
 }

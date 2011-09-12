@@ -11,10 +11,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.SysProperties;
 import org.h2.store.fs.FileSystemMemory;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 
 /**
@@ -60,7 +60,7 @@ public class TestRandomSQL extends TestBase {
             DeleteDbFiles.execute("memFS:/", name, true);
         } else {
             DeleteDbFiles.execute(getBaseDir() + "/dataRandomSQL", null, true);
-            IOUtils.delete(getBaseDir() + "/dataRandomSQL");
+            FileUtils.delete(getBaseDir() + "/dataRandomSQL");
         }
     }
 

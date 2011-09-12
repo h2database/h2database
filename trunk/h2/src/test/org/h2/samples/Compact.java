@@ -11,10 +11,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.store.fs.FileUtils;
 import org.h2.tools.Script;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.RunScript;
-import org.h2.util.IOUtils;
 
 /**
  * This sample application shows how to compact the database files.
@@ -58,7 +58,7 @@ public class Compact {
         Script.execute(url, user, password, file);
         DeleteDbFiles.execute(dir, dbName, true);
         RunScript.execute(url, user, password, file, null, false);
-        IOUtils.delete(file);
+        FileUtils.delete(file);
     }
 
 }

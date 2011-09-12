@@ -70,9 +70,9 @@ public class DebugFileSystem extends FileSystemWrapper {
         super.createDirectory(directoryName);
     }
 
-    public boolean createNewFile(String fileName) {
-        trace(fileName, "createNewFile");
-        return super.createNewFile(fileName);
+    public boolean createFile(String fileName) {
+        trace(fileName, "createFile");
+        return super.createFile(fileName);
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
@@ -96,14 +96,14 @@ public class DebugFileSystem extends FileSystemWrapper {
         return super.fileStartsWith(fileName, prefix);
     }
 
-    public String getFileName(String name) {
-        trace(name, "getFileName");
-        return super.getFileName(name);
+    public String getName(String path) {
+        trace(path, "getName");
+        return super.getName(path);
     }
 
-    public long getLastModified(String fileName) {
-        trace(fileName, "getLastModified");
-        return super.getLastModified(fileName);
+    public long lastModified(String fileName) {
+        trace(fileName, "lastModified");
+        return super.lastModified(fileName);
     }
 
     public String getParent(String fileName) {
@@ -131,9 +131,9 @@ public class DebugFileSystem extends FileSystemWrapper {
         return super.setReadOnly(fileName);
     }
 
-    public long length(String fileName) {
-        trace(fileName, "length");
-        return super.length(fileName);
+    public long size(String fileName) {
+        trace(fileName, "size");
+        return super.size(fileName);
     }
 
     public String[] listFiles(String directory) {
@@ -142,13 +142,13 @@ public class DebugFileSystem extends FileSystemWrapper {
     }
 
     public String getCanonicalPath(String fileName) {
-        trace(fileName, "normalize");
+        trace(fileName, "getCanonicalPath");
         return super.getCanonicalPath(fileName);
     }
 
-    public InputStream openFileInputStream(final String fileName) throws IOException {
-        trace(fileName, "openFileInputStream");
-        InputStream in = super.openFileInputStream(fileName);
+    public InputStream newInputStream(final String fileName) throws IOException {
+        trace(fileName, "newInputStream");
+        InputStream in = super.newInputStream(fileName);
         if (!trace) {
             return in;
         }
@@ -175,14 +175,14 @@ public class DebugFileSystem extends FileSystemWrapper {
         return new DebugFileObject(this, super.openFileObject(fileName, mode));
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
-        trace(fileName, "openFileOutputStream", append);
-        return super.openFileOutputStream(fileName, append);
+    public OutputStream newOutputStream(String fileName, boolean append) {
+        trace(fileName, "newOutputStream", append);
+        return super.newOutputStream(fileName, append);
     }
 
-    public void rename(String oldName, String newName) {
-        trace(oldName, "rename", unwrap(newName));
-        super.rename(oldName, newName);
+    public void moveTo(String oldName, String newName) {
+        trace(oldName, "moveTo", unwrap(newName));
+        super.moveTo(oldName, newName);
     }
 
     public boolean tryDelete(String fileName) {

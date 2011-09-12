@@ -20,8 +20,8 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
 import org.h2.result.Row;
 import org.h2.store.Page;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -530,7 +530,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             stat = conn.createStatement();
             stat.execute("script to '" + getBaseDir() + "/pageStore.sql'");
             conn.close();
-            IOUtils.delete(getBaseDir() + "/pageStore.sql");
+            FileUtils.delete(getBaseDir() + "/pageStore.sql");
         } catch (Exception e) {
             try {
                 stat.execute("shutdown immediately");

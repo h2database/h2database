@@ -32,6 +32,7 @@ import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.trace.Player;
 import org.h2.test.utils.AssertThrows;
@@ -47,7 +48,6 @@ import org.h2.tools.Script;
 import org.h2.tools.Server;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleResultSet.SimpleArray;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Task;
 
@@ -95,9 +95,9 @@ public class TestTools extends TestBase {
         testRecover();
         testSimpleResultSet();
         deleteDb("utils");
-        IOUtils.delete(getBaseDir() + "/b2.sql");
-        IOUtils.delete(getBaseDir() + "/b2.sql.txt");
-        IOUtils.delete(getBaseDir() + "/b2.zip");
+        FileUtils.delete(getBaseDir() + "/b2.sql");
+        FileUtils.delete(getBaseDir() + "/b2.sql.txt");
+        FileUtils.delete(getBaseDir() + "/b2.zip");
     }
 
     private void testTcpServerWithoutPort() throws Exception {
@@ -492,14 +492,14 @@ public class TestTools extends TestBase {
         ConvertTraceFile.main("-traceFile", getBaseDir() + "/toolsConvertTraceFile.trace.db",
                 "-javaClass", getBaseDir() + "/Test",
                 "-script", getBaseDir() + "/test.sql");
-        IOUtils.delete(getBaseDir() + "/Test.java");
+        FileUtils.delete(getBaseDir() + "/Test.java");
 
         String trace = getBaseDir() + "/toolsConvertTraceFile.trace.db";
-        assertTrue(IOUtils.exists(trace));
+        assertTrue(FileUtils.exists(trace));
         String newTrace = getBaseDir() + "/test.trace.db";
-        IOUtils.delete(newTrace);
-        assertFalse(IOUtils.exists(newTrace));
-        IOUtils.rename(trace, newTrace);
+        FileUtils.delete(newTrace);
+        assertFalse(FileUtils.exists(newTrace));
+        FileUtils.moveTo(trace, newTrace);
         deleteDb("toolsConvertTraceFile");
         Player.main(getBaseDir() + "/test.trace.db");
         testTraceFile(url);
@@ -509,8 +509,8 @@ public class TestTools extends TestBase {
         testTraceFile(url);
 
         deleteDb("toolsConvertTraceFile");
-        IOUtils.delete(getBaseDir() + "/toolsConvertTraceFile.h2.sql");
-        IOUtils.delete(getBaseDir() + "/test.sql");
+        FileUtils.delete(getBaseDir() + "/toolsConvertTraceFile.h2.sql");
+        FileUtils.delete(getBaseDir() + "/test.sql");
     }
 
     private void testTraceFile(String url) throws SQLException {
@@ -559,7 +559,7 @@ public class TestTools extends TestBase {
         assertEquals("Hello", rs.getString(2));
         conn.close();
         deleteDb("toolsRemove");
-        IOUtils.delete(getBaseDir() + "/toolsRemove.h2.sql");
+        FileUtils.delete(getBaseDir() + "/toolsRemove.h2.sql");
     }
 
     private void testRecover() throws SQLException {
@@ -585,8 +585,8 @@ public class TestTools extends TestBase {
         // deleteDb("toolsRecover");
         ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(), "toolsRecover", true);
         for (String fileName : list) {
-            if (!IOUtils.isDirectory(fileName)) {
-                IOUtils.delete(fileName);
+            if (!FileUtils.isDirectory(fileName)) {
+                FileUtils.delete(fileName);
             }
         }
 
@@ -610,9 +610,9 @@ public class TestTools extends TestBase {
         assertFalse(rs.next());
         conn.close();
         deleteDb("toolsRecover");
-        IOUtils.delete(getBaseDir() + "/toolsRecover.h2.sql");
+        FileUtils.delete(getBaseDir() + "/toolsRecover.h2.sql");
         String dir = getBaseDir() + "/toolsRecover.lobs.db";
-        IOUtils.deleteRecursive(dir, false);
+        FileUtils.deleteRecursive(dir, false);
     }
 
     private void testManagementDb() throws SQLException {

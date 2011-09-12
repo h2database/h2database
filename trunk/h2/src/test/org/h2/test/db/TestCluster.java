@@ -14,11 +14,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.h2.constant.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.CreateCluster;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 
 /**
@@ -382,8 +382,8 @@ public class TestCluster extends TestBase {
     private void deleteFiles() throws SQLException {
         DeleteDbFiles.main("-dir", getBaseDir() + "/node1", "-quiet");
         DeleteDbFiles.main("-dir", getBaseDir() + "/node2", "-quiet");
-        IOUtils.delete(getBaseDir() + "/node1");
-        IOUtils.delete(getBaseDir() + "/node2");
+        FileUtils.delete(getBaseDir() + "/node1");
+        FileUtils.delete(getBaseDir() + "/node2");
     }
 
     private void check(Connection conn, int len, String expectedCluster) throws SQLException {

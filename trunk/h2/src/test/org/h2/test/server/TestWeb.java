@@ -17,6 +17,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.Server;
@@ -100,28 +101,28 @@ public class TestWeb extends TestBase {
             result = client.get(url);
             client.readSessionId(result);
             result = client.get(url, "tools.jsp");
-            IOUtils.delete(getBaseDir() + "/backup.zip");
+            FileUtils.delete(getBaseDir() + "/backup.zip");
             result = client.get(url, "tools.do?tool=Backup&args=-dir," +
                     getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
             deleteDb("web");
-            assertTrue(IOUtils.exists(getBaseDir() + "/backup.zip"));
+            assertTrue(FileUtils.exists(getBaseDir() + "/backup.zip"));
             result = client.get(url, "tools.do?tool=DeleteDbFiles&args=-dir," +
                     getBaseDir() + ",-db,web");
-            assertFalse(IOUtils.exists(getBaseDir() + "/web.h2.db"));
+            assertFalse(FileUtils.exists(getBaseDir() + "/web.h2.db"));
             result = client.get(url, "tools.do?tool=Restore&args=-dir," +
                     getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
-            assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.db"));
-            IOUtils.delete(getBaseDir() + "/web.h2.sql");
-            IOUtils.delete(getBaseDir() + "/backup.zip");
+            assertTrue(FileUtils.exists(getBaseDir() + "/web.h2.db"));
+            FileUtils.delete(getBaseDir() + "/web.h2.sql");
+            FileUtils.delete(getBaseDir() + "/backup.zip");
             result = client.get(url, "tools.do?tool=Recover&args=-dir," +
                     getBaseDir() + ",-db,web");
-            assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.sql"));
-            IOUtils.delete(getBaseDir() + "/web.h2.sql");
+            assertTrue(FileUtils.exists(getBaseDir() + "/web.h2.sql"));
+            FileUtils.delete(getBaseDir() + "/web.h2.sql");
             result = client.get(url, "tools.do?tool=RunScript&args=-script," +
                     getBaseDir() + "/web.h2.sql,-url," + getURL("web", true) +
                     ",-user," + getUser() + ",-password," + getPassword());
-            IOUtils.delete(getBaseDir() + "/web.h2.sql");
-            assertTrue(IOUtils.exists(getBaseDir() + "/web.h2.db"));
+            FileUtils.delete(getBaseDir() + "/web.h2.sql");
+            assertTrue(FileUtils.exists(getBaseDir() + "/web.h2.db"));
             deleteDb("web");
         } finally {
             server.shutdown();
@@ -151,7 +152,7 @@ public class TestWeb extends TestBase {
             new File("transfer/testUpload.txt").delete();
         } finally {
             server.shutdown();
-            IOUtils.deleteRecursive("transfer", true);
+            FileUtils.deleteRecursive("transfer", true);
         }
     }
 

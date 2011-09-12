@@ -25,6 +25,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -126,7 +127,7 @@ public class FileShell extends Tool {
         if (reader == null) {
             reader = new BufferedReader(new InputStreamReader(in));
         }
-        println(IOUtils.getCanonicalPath(currentWorkingDirectory));
+        println(FileUtils.getCanonicalPath(currentWorkingDirectory));
         while (true) {
             try {
                 print("> ");
@@ -179,7 +180,7 @@ public class FileShell extends Tool {
         } else if ("cd".equals(c)) {
             String dir = getFile(list[i++]);
             end(list, i);
-            if (IOUtils.isDirectory(dir)) {
+            if (FileUtils.isDirectory(dir)) {
                 currentWorkingDirectory = dir;
                 println(dir);
             } else {
@@ -190,7 +191,7 @@ public class FileShell extends Tool {
             String file = getFile(list[i++]);
             end(list, i);
             if ("-w".equals(mode)) {
-                boolean success = IOUtils.setReadOnly(file);
+                boolean success = FileUtils.setReadOnly(file);
                 println(success ? "Success" : "Failed");
             } else {
                 println("Unsupported mode: " + mode);
@@ -199,7 +200,7 @@ public class FileShell extends Tool {
             String source = getFile(list[i++]);
             String target = getFile(list[i++]);
             end(list, i);
-            IOUtils.copy(source, target);
+            FileUtils.copy(source, target);
         } else if ("head".equals(c)) {
             String file = getFile(list[i++]);
             end(list, i);
@@ -211,51 +212,51 @@ public class FileShell extends Tool {
             }
             end(list, i);
             println(dir);
-            for (String file : IOUtils.listFiles(dir)) {
+            for (String file : FileUtils.listFiles(dir)) {
                 StringBuilder buff = new StringBuilder();
-                buff.append(IOUtils.isDirectory(file) ? "d" : "-");
-                buff.append(IOUtils.isReadOnly(file) ? "r-" : "rw");
+                buff.append(FileUtils.isDirectory(file) ? "d" : "-");
+                buff.append(FileUtils.isReadOnly(file) ? "r-" : "rw");
                 buff.append(' ');
-                buff.append(String.format("%10d", IOUtils.length(file)));
+                buff.append(String.format("%10d", FileUtils.size(file)));
                 buff.append(' ');
-                long lastMod = IOUtils.getLastModified(file);
+                long lastMod = FileUtils.lastModified(file);
                 buff.append(new Timestamp(lastMod).toString());
                 buff.append(' ');
-                buff.append(IOUtils.getFileName(file));
+                buff.append(FileUtils.getName(file));
                 println(buff.toString());
             }
         } else if ("mkdir".equals(c)) {
             String dir = getFile(list[i++]);
             end(list, i);
-            IOUtils.createDirectories(dir);
+            FileUtils.createDirectories(dir);
         } else if ("mv".equals(c)) {
             String source = getFile(list[i++]);
             String target = getFile(list[i++]);
             end(list, i);
-            IOUtils.rename(source, target);
+            FileUtils.moveTo(source, target);
         } else if ("pwd".equals(c)) {
             end(list, i);
-            println(IOUtils.getCanonicalPath(currentWorkingDirectory));
+            println(FileUtils.getCanonicalPath(currentWorkingDirectory));
         } else if ("rm".equals(c)) {
             if ("-r".equals(list[i])) {
                 i++;
                 String dir = getFile(list[i++]);
                 end(list, i);
-                IOUtils.deleteRecursive(dir, true);
+                FileUtils.deleteRecursive(dir, true);
             } else if ("-rf".equals(list[i])) {
                 i++;
                 String dir = getFile(list[i++]);
                 end(list, i);
-                IOUtils.deleteRecursive(dir, false);
+                FileUtils.deleteRecursive(dir, false);
             } else {
                 String file = getFile(list[i++]);
                 end(list, i);
-                IOUtils.delete(file);
+                FileUtils.delete(file);
             }
         } else if ("touch".equals(c)) {
             String file = getFile(list[i++]);
             end(list, i);
-            truncate(file, IOUtils.length(file));
+            truncate(file, FileUtils.size(file));
         } else if ("truncate".equals(c)) {
             if ("-s".equals(list[i])) {
                 i++;
@@ -291,15 +292,15 @@ public class FileShell extends Tool {
     }
 
     private void cat(String fileName, long length) {
-        if (!IOUtils.exists(fileName)) {
+        if (!FileUtils.exists(fileName)) {
             print("No such file: " + fileName);
         }
-        if (IOUtils.isDirectory(fileName)) {
+        if (FileUtils.isDirectory(fileName)) {
             print("Is a directory: " + fileName);
         }
         InputStream in = null;
         try {
-            in = IOUtils.openFileInputStream(fileName);
+            in = FileUtils.newInputStream(fileName);
             IOUtils.copy(in, out, length);
         } catch (IOException e) {
             error(e);
@@ -312,7 +313,7 @@ public class FileShell extends Tool {
     private void truncate(String fileName, long length) {
         FileObject f = null;
         try {
-            f = IOUtils.openFileObject(fileName, "rw");
+            f = FileUtils.openFileObject(fileName, "rw");
             f.setFileLength(length);
         } catch (IOException e) {
             error(e);
@@ -333,22 +334,22 @@ public class FileShell extends Tool {
     }
 
     private void zip(String zipFileName, String base, ArrayList<String> source) {
-        if (IOUtils.exists(zipFileName)) {
-            IOUtils.delete(zipFileName);
+        if (FileUtils.exists(zipFileName)) {
+            FileUtils.delete(zipFileName);
         }
         OutputStream fileOut = null;
         try {
-            fileOut = IOUtils.openFileOutputStream(zipFileName, false);
+            fileOut = FileUtils.newOutputStream(zipFileName, false);
             ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             for (String fileName : source) {
-                String f = IOUtils.getCanonicalPath(fileName);
+                String f = FileUtils.getCanonicalPath(fileName);
                 if (!f.startsWith(base)) {
                     DbException.throwInternalError(f + " does not start with " + base);
                 }
                 if (f.endsWith(zipFileName)) {
                     continue;
                 }
-                if (IOUtils.isDirectory(fileName)) {
+                if (FileUtils.isDirectory(fileName)) {
                     continue;
                 }
                 f = f.substring(base.length());
@@ -357,7 +358,7 @@ public class FileShell extends Tool {
                 zipOut.putNextEntry(entry);
                 InputStream in = null;
                 try {
-                    in = IOUtils.openFileInputStream(fileName);
+                    in = FileUtils.newInputStream(fileName);
                     IOUtils.copyAndCloseInput(in, zipOut);
                 } catch (FileNotFoundException e) {
                     // the file could have been deleted in the meantime
@@ -379,7 +380,7 @@ public class FileShell extends Tool {
     private void unzip(String zipFileName, String targetDir) {
         InputStream in = null;
         try {
-            in = IOUtils.openFileInputStream(zipFileName);
+            in = FileUtils.newInputStream(zipFileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             while (true) {
                 ZipEntry entry = zipIn.getNextEntry();
@@ -395,7 +396,7 @@ public class FileShell extends Tool {
                 }
                 OutputStream o = null;
                 try {
-                    o = IOUtils.openFileOutputStream(targetDir + SysProperties.FILE_SEPARATOR + fileName, false);
+                    o = FileUtils.newOutputStream(targetDir + SysProperties.FILE_SEPARATOR + fileName, false);
                     IOUtils.copy(zipIn, o);
                     o.close();
                 } finally {
@@ -419,7 +420,7 @@ public class FileShell extends Tool {
                 break;
             }
             c = getFile(c);
-            if (!IOUtils.exists(c)) {
+            if (!FileUtils.exists(c)) {
                 throw new IOException("File not found: " + c);
             }
             if (recursive) {
@@ -432,8 +433,8 @@ public class FileShell extends Tool {
     }
 
     private void addFilesRecursive(String f, ArrayList<String> target) {
-        if (IOUtils.isDirectory(f)) {
-            for (String c : IOUtils.listFiles(f)) {
+        if (FileUtils.isDirectory(f)) {
+            for (String c : FileUtils.listFiles(f)) {
                 addFilesRecursive(c, target);
             }
         } else {
@@ -442,13 +443,13 @@ public class FileShell extends Tool {
     }
 
     private String getFile(String f) {
-        if (IOUtils.isAbsolute(f)) {
+        if (FileUtils.isAbsolute(f)) {
             return f;
         }
-        String unwrapped = IOUtils.unwrap(f);
+        String unwrapped = FileUtils.unwrap(f);
         String prefix = f.substring(0, f.length() - unwrapped.length());
         f = prefix + currentWorkingDirectory + SysProperties.FILE_SEPARATOR + unwrapped;
-        return IOUtils.getCanonicalPath(f);
+        return FileUtils.getCanonicalPath(f);
     }
 
     private void showHelp() {

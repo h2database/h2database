@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileUtils;
 
 /**
  * This class deletes temporary files when they are not used any longer.
@@ -64,10 +65,10 @@ public class TempFileDeleter {
                 fileName = f2;
             }
         }
-        if (fileName != null && IOUtils.exists(fileName)) {
+        if (fileName != null && FileUtils.exists(fileName)) {
             try {
                 IOUtils.trace("TempFileDeleter.deleteFile", fileName, null);
-                IOUtils.tryDelete(fileName);
+                FileUtils.tryDelete(fileName);
             } catch (Exception e) {
                 // TODO log such errors?
             }

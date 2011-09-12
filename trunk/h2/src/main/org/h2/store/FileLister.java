@@ -13,7 +13,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
-import org.h2.util.IOUtils;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
 
 /**
@@ -58,7 +58,7 @@ public class FileLister {
         if (dir == null || dir.equals("")) {
             return ".";
         }
-        return IOUtils.getCanonicalPath(dir);
+        return FileUtils.getCanonicalPath(dir);
     }
 
     /**
@@ -73,13 +73,13 @@ public class FileLister {
      */
     public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) {
         ArrayList<String> files = New.arrayList();
-        String start = db == null ? null : IOUtils.getCanonicalPath(dir + "/" + db);
-        String[] list = IOUtils.listFiles(dir);
+        String start = db == null ? null : FileUtils.getCanonicalPath(dir + "/" + db);
+        String[] list = FileUtils.listFiles(dir);
         for (int i = 0; list != null && i < list.length; i++) {
             String f = list[i];
             boolean ok = false;
             if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
-                if (start == null || IOUtils.fileStartsWith(f, start + ".")) {
+                if (start == null || FileUtils.fileStartsWith(f, start + ".")) {
                     files.addAll(getDatabaseFiles(f, null, all));
                     ok = true;
                 }
@@ -97,7 +97,7 @@ public class FileLister {
                 }
             }
             if (ok) {
-                if (db == null || IOUtils.fileStartsWith(f, start + ".")) {
+                if (db == null || FileUtils.fileStartsWith(f, start + ".")) {
                     String fileName = f;
                     files.add(fileName);
                 }

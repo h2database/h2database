@@ -25,7 +25,6 @@ import java.io.Writer;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileSystem;
 
 /**
@@ -426,21 +425,6 @@ public class IOUtils {
     }
 
     /**
-     * Create an input stream to read from a string. The string is converted to
-     * a byte array using UTF-8 encoding.
-     * If the string is null, this method returns null.
-     *
-     * @param s the string
-     * @return the input stream
-     */
-    public static InputStream getInputStreamFromString(String s) {
-        if (s == null) {
-            return null;
-        }
-        return new ByteArrayInputStream(StringUtils.utf8Encode(s));
-    }
-
-    /**
      * Create a reader to read from a string.
      * If the string is null, this method returns null.
      *
@@ -474,6 +458,7 @@ public class IOUtils {
      * @throws IOException
      */
     public static void mkdirs(File directory) throws IOException {
+        int todo;
         // loop, to deal with race conditions (if another thread creates or
         // deletes the same directory at the same time).
         for (int i = 0; i < 5; i++) {
@@ -523,261 +508,6 @@ public class IOUtils {
     }
 
     /**
-     * Get the file name (without directory part).
-     *
-     * @param name the directory and file name
-     * @return just the file name
-     */
-    public static String getFileName(String name) {
-        return getFileSystem(name).getFileName(name);
-    }
-
-    /**
-     * Check if the file is writable.
-     *
-     * @param fileName the file name
-     * @return if the file is writable
-     */
-    public static boolean canWrite(String fileName) {
-        return getFileSystem(fileName).canWrite(fileName);
-    }
-
-    /**
-     * Disable the ability to write.
-     *
-     * @param fileName the file name
-     * @return true if the call was successful
-     */
-    public static boolean setReadOnly(String fileName) {
-        return getFileSystem(fileName).setReadOnly(fileName);
-    }
-
-    /**
-     * Copy a file from one directory to another, or to another file.
-     *
-     * @param original the original file name
-     * @param copy the file name of the copy
-     */
-    public static void copy(String original, String copy) throws IOException {
-        InputStream in = openFileInputStream(original);
-        OutputStream out = openFileOutputStream(copy, false);
-        copyAndClose(in, out);
-    }
-
-    /**
-     * Create a new file.
-     *
-     * @param fileName the file name
-     * @return true if creating was successful
-     */
-    public static boolean createNewFile(String fileName) {
-        return getFileSystem(fileName).createNewFile(fileName);
-    }
-
-    /**
-     * Open a random access file object.
-     *
-     * @param fileName the file name
-     * @param mode the access mode. Supported are r, rw, rws, rwd
-     * @return the file object
-     */
-    public static FileObject openFileObject(String fileName, String mode) throws IOException {
-        return getFileSystem(fileName).openFileObject(fileName, mode);
-    }
-
-    /**
-     * Normalize a file name.
-     *
-     * @param fileName the file name
-     * @return the normalized file name
-     */
-    public static String getCanonicalPath(String fileName) {
-        return getFileSystem(fileName).getCanonicalPath(fileName);
-    }
-
-    /**
-     * Try to delete a file.
-     *
-     * @param fileName the file name
-     * @return true if it worked
-     */
-    public static boolean tryDelete(String fileName) {
-        return getFileSystem(fileName).tryDelete(fileName);
-    }
-
-    /**
-     * Check if a file is read-only.
-     *
-     * @param fileName the file name
-     * @return if it is read only
-     */
-    public static boolean isReadOnly(String fileName) {
-        return getFileSystem(fileName).isReadOnly(fileName);
-    }
-
-    /**
-     * Checks if a file exists.
-     *
-     * @param fileName the file name
-     * @return true if it exists
-     */
-    public static boolean exists(String fileName) {
-        return getFileSystem(fileName).exists(fileName);
-    }
-
-    /**
-     * Get the length of a file.
-     *
-     * @param fileName the file name
-     * @return the length in bytes
-     */
-    public static long length(String fileName) {
-        return getFileSystem(fileName).length(fileName);
-    }
-
-    /**
-     * Create a new temporary file.
-     *
-     * @param prefix the prefix of the file name (including directory name if
-     *            required)
-     * @param suffix the suffix
-     * @param deleteOnExit if the file should be deleted when the virtual
-     *            machine exists
-     * @param inTempDir if the file should be stored in the temporary directory
-     * @return the name of the created file
-     */
-    public static String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
-            throws IOException {
-        return getFileSystem(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
-    }
-
-    /**
-     * Get the parent directory of a file or directory.
-     *
-     * @param fileName the file or directory name
-     * @return the parent directory name
-     */
-    public static String getParent(String fileName) {
-        return getFileSystem(fileName).getParent(fileName);
-    }
-
-    /**
-     * List the files in the given directory.
-     *
-     * @param path the directory
-     * @return the list of fully qualified file names
-     */
-    public static String[] listFiles(String path) {
-        return getFileSystem(path).listFiles(path);
-    }
-
-    /**
-     * Check if it is a file or a directory.
-     *
-     * @param fileName the file or directory name
-     * @return true if it is a directory
-     */
-    public static boolean isDirectory(String fileName) {
-        return getFileSystem(fileName).isDirectory(fileName);
-    }
-
-    /**
-     * Check if the file name includes a path.
-     *
-     * @param fileName the file name
-     * @return if the file name is absolute
-     */
-    public static boolean isAbsolute(String fileName) {
-        return getFileSystem(fileName).isAbsolute(fileName);
-    }
-
-    /**
-     * Check if a file starts with a given prefix.
-     *
-     * @param fileName the complete file name
-     * @param prefix the prefix
-     * @return true if it starts with the prefix
-     */
-    public static boolean fileStartsWith(String fileName, String prefix) {
-        return getFileSystem(fileName).fileStartsWith(fileName, prefix);
-    }
-
-    /**
-     * Create an input stream to read from the file.
-     *
-     * @param fileName the file name
-     * @return the input stream
-     */
-    public static InputStream openFileInputStream(String fileName) throws IOException {
-        return getFileSystem(fileName).openFileInputStream(fileName);
-    }
-
-    /**
-     * Create an output stream to write into the file.
-     *
-     * @param fileName the file name
-     * @param append if true, the file will grow, if false, the file will be
-     *            truncated first
-     * @return the output stream
-     */
-    public static OutputStream openFileOutputStream(String fileName, boolean append) {
-        return getFileSystem(fileName).openFileOutputStream(fileName, append);
-    }
-
-    /**
-     * Rename a file if this is allowed.
-     *
-     * @param oldName the old fully qualified file name
-     * @param newName the new fully qualified file name
-     */
-    public static void rename(String oldName, String newName) {
-        getFileSystem(oldName).rename(oldName, newName);
-    }
-
-    /**
-     * Create a directory (all required parent directories already exist).
-     *
-     * @param directoryName the directory name
-     */
-    public static void createDirectory(String directoryName) {
-        getFileSystem(directoryName).createDirectory(directoryName);
-    }
-
-    /**
-     * Delete a file.
-     *
-     * @param fileName the file name
-     */
-    public static void delete(String fileName) {
-        getFileSystem(fileName).delete(fileName);
-    }
-
-    /**
-     * Get the last modified date of a file.
-     *
-     * @param fileName the file name
-     * @return the last modified date
-     */
-    public static long getLastModified(String fileName) {
-        return getFileSystem(fileName).getLastModified(fileName);
-    }
-
-    /**
-     * Get the unwrapped file name (without wrapper prefixes if wrapping /
-     * delegating file systems are used).
-     *
-     * @param fileName the file name
-     * @return the unwrapped
-     */
-    public static String unwrap(String fileName) {
-        return getFileSystem(fileName).unwrap(fileName);
-    }
-
-    private static FileSystem getFileSystem(String fileName) {
-        return FileSystem.getInstance(fileName);
-    }
-
-    /**
      * Trace input or output operations if enabled.
      *
      * @param method the method from where this method was called
@@ -791,37 +521,18 @@ public class IOUtils {
     }
 
     /**
-     * Delete a directory or file and all subdirectories and files.
+     * Create an input stream to read from a string. The string is converted to
+     * a byte array using UTF-8 encoding.
+     * If the string is null, this method returns null.
      *
-     * @param path the path
-     * @param tryOnly whether errors should  be ignored
+     * @param s the string
+     * @return the input stream
      */
-    public static void deleteRecursive(String path, boolean tryOnly) {
-        if (exists(path)) {
-            if (isDirectory(path)) {
-                for (String s : listFiles(path)) {
-                    deleteRecursive(s, tryOnly);
-                }
-            }
-            if (tryOnly) {
-                tryDelete(path);
-            } else {
-                delete(path);
-            }
+    public static InputStream getInputStreamFromString(String s) {
+        if (s == null) {
+            return null;
         }
-    }
-
-    /**
-     * Create the directory and all required parent directories.
-     *
-     * @param dir the directory name
-     */
-    public static void createDirectories(String dir) {
-        String parent = getParent(dir);
-        if (!exists(parent)) {
-            createDirectories(parent);
-        }
-        createDirectory(dir);
+        return new ByteArrayInputStream(StringUtils.utf8Encode(s));
     }
 
 }

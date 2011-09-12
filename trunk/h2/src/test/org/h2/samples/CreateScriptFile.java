@@ -22,10 +22,10 @@ import org.h2.security.SHA256;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
+import org.h2.store.fs.FileUtils;
 import org.h2.tools.CompressTool;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
-import org.h2.util.IOUtils;
 
 /**
  * This sample application shows how to manually
@@ -109,13 +109,13 @@ public class CreateScriptFile {
             OutputStream out;
             if (cipher != null) {
                 byte[] key = SHA256.getKeyPasswordHash("script", password.toCharArray());
-                IOUtils.delete(fileName);
+                FileUtils.delete(fileName);
                 FileStore store = FileStore.open(null, fileName, "rw", cipher, key);
                 store.init();
                 out = new FileStoreOutputStream(store, null, compressionAlgorithm);
                 out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE_COMPRESS);
             } else {
-                out = IOUtils.openFileOutputStream(fileName, false);
+                out = FileUtils.newOutputStream(fileName, false);
                 out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE);
                 out = CompressTool.wrapOutputStream(out, compressionAlgorithm, "script.sql");
             }
@@ -148,7 +148,7 @@ public class CreateScriptFile {
                 in = new FileStoreInputStream(store, null, compressionAlgorithm != null, false);
                 in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE_COMPRESS);
             } else {
-                in = IOUtils.openFileInputStream(fileName);
+                in = FileUtils.newInputStream(fileName);
                 in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
                 in = CompressTool.wrapInputStream(in, compressionAlgorithm, "script.sql");
                 if (in == null) {

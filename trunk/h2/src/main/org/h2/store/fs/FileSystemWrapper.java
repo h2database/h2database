@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import org.h2.message.DbException;
-import org.h2.util.IOUtils;
 
 /**
  * The base class for wrapping / delegating file systems such as
@@ -26,68 +25,68 @@ public abstract class FileSystemWrapper extends FileSystem {
     protected abstract String getPrefix();
 
     public boolean canWrite(String fileName) {
-        return IOUtils.canWrite(unwrap(fileName));
+        return FileUtils.canWrite(unwrap(fileName));
     }
 
     public boolean setReadOnly(String fileName) {
-        return IOUtils.setReadOnly(unwrap(fileName));
+        return FileUtils.setReadOnly(unwrap(fileName));
     }
 
     public void createDirectory(String directoryName) {
-        IOUtils.createDirectory(unwrap(directoryName));
+        FileUtils.createDirectory(unwrap(directoryName));
     }
 
-    public boolean createNewFile(String fileName) {
-        return IOUtils.createNewFile(unwrap(fileName));
+    public boolean createFile(String fileName) {
+        return FileUtils.createFile(unwrap(fileName));
     }
 
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
-        return wrap(IOUtils.createTempFile(unwrap(prefix), suffix, deleteOnExit, inTempDir));
+        return wrap(FileUtils.createTempFile(unwrap(prefix), suffix, deleteOnExit, inTempDir));
     }
 
     public void delete(String fileName) {
-        IOUtils.delete(unwrap(fileName));
+        FileUtils.delete(unwrap(fileName));
     }
 
     public boolean exists(String fileName) {
-        return IOUtils.exists(unwrap(fileName));
+        return FileUtils.exists(unwrap(fileName));
     }
 
     public boolean fileStartsWith(String fileName, String prefix) {
-        return IOUtils.fileStartsWith(unwrap(fileName), unwrap(prefix));
+        return FileUtils.fileStartsWith(unwrap(fileName), unwrap(prefix));
     }
 
-    public String getFileName(String name) {
-        return IOUtils.getFileName(unwrap(name));
+    public String getName(String path) {
+        return FileUtils.getName(unwrap(path));
     }
 
-    public long getLastModified(String fileName) {
-        return IOUtils.getLastModified(unwrap(fileName));
+    public long lastModified(String fileName) {
+        return FileUtils.lastModified(unwrap(fileName));
     }
 
     public String getParent(String fileName) {
-        return wrap(IOUtils.getParent(unwrap(fileName)));
+        return wrap(FileUtils.getParent(unwrap(fileName)));
     }
 
     public boolean isAbsolute(String fileName) {
-        return IOUtils.isAbsolute(unwrap(fileName));
+        return FileUtils.isAbsolute(unwrap(fileName));
     }
 
     public boolean isDirectory(String fileName) {
-        return IOUtils.isDirectory(unwrap(fileName));
+        return FileUtils.isDirectory(unwrap(fileName));
     }
 
     public boolean isReadOnly(String fileName) {
-        return IOUtils.isReadOnly(unwrap(fileName));
+        return FileUtils.isReadOnly(unwrap(fileName));
     }
 
-    public long length(String fileName) {
-        return IOUtils.length(unwrap(fileName));
+    public long size(String fileName) {
+        return FileUtils.size(unwrap(fileName));
     }
 
     public String[] listFiles(String directory) {
-        String[] array = IOUtils.listFiles(unwrap(directory));
+        String[] array = FileUtils.listFiles(unwrap(directory));
         for (int i = 0; i < array.length; i++) {
             array[i] = wrap(array[i]);
         }
@@ -95,27 +94,27 @@ public abstract class FileSystemWrapper extends FileSystem {
     }
 
     public String getCanonicalPath(String fileName) {
-        return wrap(IOUtils.getCanonicalPath(unwrap(fileName)));
+        return wrap(FileUtils.getCanonicalPath(unwrap(fileName)));
     }
 
-    public InputStream openFileInputStream(String fileName) throws IOException {
-        return IOUtils.openFileInputStream(unwrap(fileName));
+    public InputStream newInputStream(String fileName) throws IOException {
+        return FileUtils.newInputStream(unwrap(fileName));
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
-        return IOUtils.openFileObject(unwrap(fileName), mode);
+        return FileUtils.openFileObject(unwrap(fileName), mode);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
-        return IOUtils.openFileOutputStream(unwrap(fileName), append);
+    public OutputStream newOutputStream(String fileName, boolean append) {
+        return FileUtils.newOutputStream(unwrap(fileName), append);
     }
 
-    public void rename(String oldName, String newName) {
-        IOUtils.rename(unwrap(oldName), unwrap(newName));
+    public void moveTo(String oldName, String newName) {
+        FileUtils.moveTo(unwrap(oldName), unwrap(newName));
     }
 
     public boolean tryDelete(String fileName) {
-        return IOUtils.tryDelete(unwrap(fileName));
+        return FileUtils.tryDelete(unwrap(fileName));
     }
 
     protected boolean accepts(String fileName) {

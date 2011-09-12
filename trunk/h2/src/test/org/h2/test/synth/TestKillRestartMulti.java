@@ -16,10 +16,10 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import org.h2.constant.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
-import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -112,9 +112,9 @@ public class TestKillRestartMulti extends TestBase {
                 conn.close();
                 conn = openConnection();
                 conn.close();
-                IOUtils.delete(backup);
+                FileUtils.delete(backup);
             } catch (SQLException e) {
-                IOUtils.rename(backup, backup + ".error");
+                FileUtils.moveTo(backup, backup + ".error");
                 throw e;
             }
         }

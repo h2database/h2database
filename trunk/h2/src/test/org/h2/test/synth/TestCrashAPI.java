@@ -34,6 +34,7 @@ import java.util.Map;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.db.TestScript;
@@ -41,7 +42,6 @@ import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Restore;
-import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 
@@ -214,11 +214,11 @@ public class TestCrashAPI extends TestBase implements Runnable {
         try {
             conn = DriverManager.getConnection(url, "sa", getPassword(""));
             // delete the backup if opening was successful
-            IOUtils.delete(fileName);
+            FileUtils.delete(fileName);
         } catch (SQLException e) {
             if (e.getErrorCode() == ErrorCode.WRONG_USER_OR_PASSWORD) {
                 // delete if the password changed
-                IOUtils.delete(fileName);
+                FileUtils.delete(fileName);
             }
             throw e;
         }

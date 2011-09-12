@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.Driver;
 import org.h2.engine.Constants;
+import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.RecordingFileSystem;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
@@ -164,7 +165,6 @@ import org.h2.test.utils.OutputCatcher;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
-import org.h2.util.IOUtils;
 import org.h2.util.Profiler;
 import org.h2.util.Utils;
 import org.h2.util.StringUtils;
@@ -714,9 +714,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     void beforeTest() throws SQLException {
         Driver.load();
-        IOUtils.deleteRecursive(TestBase.BASE_TEST_DIR, true);
+        FileUtils.deleteRecursive(TestBase.BASE_TEST_DIR, true);
         DeleteDbFiles.execute(TestBase.BASE_TEST_DIR, null, true);
-        IOUtils.deleteRecursive("trace.db", false);
+        FileUtils.deleteRecursive("trace.db", false);
         if (networked) {
             String[] args = ssl ? new String[] { "-tcpSSL", "true", "-tcpPort", "9192" } : new String[] { "-tcpPort",
                     "9192" };
@@ -731,11 +731,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void afterTest() {
-        IOUtils.deleteRecursive("trace.db", true);
+        FileUtils.deleteRecursive("trace.db", true);
         if (networked && server != null) {
             server.stop();
         }
-        IOUtils.deleteRecursive(TestBase.BASE_TEST_DIR, true);
+        FileUtils.deleteRecursive(TestBase.BASE_TEST_DIR, true);
     }
 
     /**

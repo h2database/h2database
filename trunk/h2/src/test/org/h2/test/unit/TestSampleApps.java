@@ -14,6 +14,7 @@ import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
@@ -101,7 +102,7 @@ public class TestSampleApps extends TestBase {
                 org.h2.tools.ChangeFileEncryption.class);
         testApp("Deletes all files belonging to a database.*",
                 org.h2.tools.DeleteDbFiles.class, "-help");
-        IOUtils.delete(getBaseDir() + "/optimizations.sql");
+        FileUtils.delete(getBaseDir() + "/optimizations.sql");
     }
 
     private void testApp(String expected, Class<?> clazz, String... args) throws Exception {

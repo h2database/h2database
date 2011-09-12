@@ -19,7 +19,7 @@ import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileObjectInputStream;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemDisk;
-import org.h2.util.IOUtils;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
 
 /**
@@ -52,7 +52,7 @@ public class FileSystemZip2 extends FileSystem {
         // ignore
     }
 
-    public boolean createNewFile(String fileName) {
+    public boolean createFile(String fileName) {
         throw DbException.getUnsupportedException("write");
     }
 
@@ -97,7 +97,7 @@ public class FileSystemZip2 extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public String getFileName(String name) {
+    public String getName(String name) {
         name = getEntryName(name);
         if (name.endsWith("/")) {
             name = name.substring(0, name.length() - 1);
@@ -109,7 +109,7 @@ public class FileSystemZip2 extends FileSystem {
         return name;
     }
 
-    public long getLastModified(String fileName) {
+    public long lastModified(String fileName) {
         return 0;
     }
 
@@ -167,7 +167,7 @@ public class FileSystemZip2 extends FileSystem {
         return true;
     }
 
-    public long length(String fileName) {
+    public long size(String fileName) {
         try {
             String entryName = getEntryName(fileName);
             ZipInputStream file = openZip(fileName);
@@ -239,7 +239,7 @@ public class FileSystemZip2 extends FileSystem {
         return fileName;
     }
 
-    public InputStream openFileInputStream(String fileName) throws IOException {
+    public InputStream newInputStream(String fileName) throws IOException {
         FileObject file = openFileObject(fileName, "r");
         return new FileObjectInputStream(file);
     }
@@ -256,7 +256,7 @@ public class FileSystemZip2 extends FileSystem {
                 break;
             }
             if (entry.getName().equals(entryName)) {
-                return new FileObjectZip2(fileName, entryName, in, length(fileName));
+                return new FileObjectZip2(fileName, entryName, in, size(fileName));
             }
             in.closeEntry();
         }
@@ -264,11 +264,11 @@ public class FileSystemZip2 extends FileSystem {
         throw new FileNotFoundException(fileName);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(String fileName, boolean append) {
         throw DbException.getUnsupportedException("write");
     }
 
-    public void rename(String oldName, String newName) {
+    public void moveTo(String oldName, String newName) {
         throw DbException.getUnsupportedException("write");
     }
 
@@ -303,7 +303,7 @@ public class FileSystemZip2 extends FileSystem {
 
     private ZipInputStream openZip(String fileName) throws IOException {
         fileName = unwrap(fileName);
-        return new ZipInputStream(IOUtils.openFileInputStream(fileName));
+        return new ZipInputStream(FileUtils.newInputStream(fileName));
     }
 
     protected boolean accepts(String fileName) {

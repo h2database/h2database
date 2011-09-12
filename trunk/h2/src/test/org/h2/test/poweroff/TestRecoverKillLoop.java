@@ -8,9 +8,9 @@ package org.h2.test.poweroff;
 
 import java.io.InputStream;
 import java.util.Random;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.synth.OutputCatcher;
-import org.h2.util.IOUtils;
 
 /**
  * Run the TestRecover test case in a loop. The process is killed after 10
@@ -33,7 +33,7 @@ public class TestRecoverKillLoop extends TestBase {
     }
 
     private void runTest(int count) throws Exception {
-        IOUtils.deleteRecursive("data/db", false);
+        FileUtils.deleteRecursive("data/db", false);
         Random random = new Random(1);
         for (int i = 0; i < count; i++) {
             String[] procDef = {

@@ -36,6 +36,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
@@ -45,7 +46,6 @@ import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheWriter;
-import org.h2.util.IOUtils;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
 import org.h2.util.New;
@@ -261,8 +261,8 @@ public class PageStore implements CacheWriter {
     public synchronized void open() {
         try {
             metaRootPageId.put(META_TABLE_ID, PAGE_ID_META_ROOT);
-            if (IOUtils.exists(fileName)) {
-                long length = IOUtils.length(fileName);
+            if (FileUtils.exists(fileName)) {
+                long length = FileUtils.size(fileName);
                 if (length < MIN_PAGE_COUNT * PAGE_SIZE_MIN) {
                     if (database.isReadOnly()) {
                         throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName + " length: " + length);
@@ -334,7 +334,7 @@ public class PageStore implements CacheWriter {
             }
             file.releaseLock();
             file.close();
-            IOUtils.delete(fileName);
+            FileUtils.delete(fileName);
             openNew();
             return;
         }

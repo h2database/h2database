@@ -24,6 +24,7 @@ import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
@@ -68,7 +69,7 @@ public class TestCsv extends TestBase {
     }
 
     private void testPreserveWhitespace() throws Exception {
-        OutputStream out = IOUtils.openFileOutputStream(getBaseDir() + "/test.tsv", false);
+        OutputStream out = FileUtils.newOutputStream(getBaseDir() + "/test.tsv", false);
         out.write("a,b\n 1 , 2 \n".getBytes());
         out.close();
         Connection conn = getConnection("csv");
@@ -87,7 +88,7 @@ public class TestCsv extends TestBase {
     }
 
     private void testChangeData() throws Exception {
-        OutputStream out = IOUtils.openFileOutputStream(getBaseDir() + "/test.tsv", false);
+        OutputStream out = FileUtils.newOutputStream(getBaseDir() + "/test.tsv", false);
         out.write("a,b,c,d,e,f,g\n1".getBytes());
         out.close();
         Connection conn = getConnection("csv");
@@ -97,7 +98,7 @@ public class TestCsv extends TestBase {
         assertEquals("A", rs.getMetaData().getColumnLabel(1));
         rs.next();
         assertEquals(1, rs.getInt(1));
-        out = IOUtils.openFileOutputStream(getBaseDir() + "/test.tsv", false);
+        out = FileUtils.newOutputStream(getBaseDir() + "/test.tsv", false);
         out.write("x".getBytes());
         out.close();
         rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
@@ -197,7 +198,7 @@ public class TestCsv extends TestBase {
     private void testSpaceSeparated() throws SQLException {
         deleteDb("csv");
         File f = new File(getBaseDir() + "/testSpace.csv");
-        IOUtils.delete(f.getAbsolutePath());
+        FileUtils.delete(f.getAbsolutePath());
 
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
@@ -210,8 +211,8 @@ public class TestCsv extends TestBase {
         ResultSet rs2 = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv',null,null,' ')");
         assertResultSetOrdered(rs2, new String[][] { new String[] { "1", "2", "3" }, new String[] { "4", null, "5" } });
         conn.close();
-        IOUtils.delete(f.getAbsolutePath());
-        IOUtils.delete(getBaseDir() + "/test.tsv");
+        FileUtils.delete(f.getAbsolutePath());
+        FileUtils.delete(getBaseDir() + "/test.tsv");
     }
 
     /**
@@ -221,9 +222,9 @@ public class TestCsv extends TestBase {
         deleteDb("csv");
 
         String fileName = getBaseDir() + "/testNull.csv";
-        IOUtils.delete(fileName);
+        FileUtils.delete(fileName);
 
-        OutputStream out = IOUtils.openFileOutputStream(fileName, false);
+        OutputStream out = FileUtils.newOutputStream(fileName, false);
         String csvContent = "\"A\",\"B\",\"C\",\"D\"\n\\N,\"\",\"\\N\",";
         byte[] b = csvContent.getBytes("UTF-8");
         out.write(b, 0, b.length);
@@ -250,14 +251,14 @@ public class TestCsv extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("call csvwrite('" + fileName +
                 "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', 'UTF8', ',', '\"', NULL, '\\N', '\n')");
-        InputStreamReader reader = new InputStreamReader(IOUtils.openFileInputStream(fileName));
+        InputStreamReader reader = new InputStreamReader(FileUtils.newInputStream(fileName));
         // on read, an empty string is treated like null,
         // but on write a null is always written with the nullString
         String data = IOUtils.readStringAndClose(reader, -1);
         assertEquals(csvContent + "\\N", data.trim());
         conn.close();
 
-        IOUtils.delete(fileName);
+        FileUtils.delete(fileName);
     }
 
     private void testRandomData() throws SQLException {
@@ -290,7 +291,7 @@ public class TestCsv extends TestBase {
         }
         assertFalse(rs.next());
         conn.close();
-        IOUtils.delete(getBaseDir() + "/test.csv");
+        FileUtils.delete(getBaseDir() + "/test.csv");
     }
 
     private static String randomData(Random random) {
@@ -308,12 +309,12 @@ public class TestCsv extends TestBase {
 
     private void testEmptyFieldDelimiter() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
-        IOUtils.delete(fileName);
+        FileUtils.delete(fileName);
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         stat.execute("call csvwrite('" + fileName
                 + "', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
-        InputStreamReader reader = new InputStreamReader(IOUtils.openFileInputStream(fileName));
+        InputStreamReader reader = new InputStreamReader(FileUtils.newInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
         text = StringUtils.replaceAll(text, "\n", " ");
         assertEquals("ID|NAME 1|Hello", text);
@@ -327,14 +328,14 @@ public class TestCsv extends TestBase {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
         conn.close();
-        IOUtils.delete(fileName);
+        FileUtils.delete(fileName);
     }
 
     private void testFieldDelimiter() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
         String fileName2 = getBaseDir() + "/test2.csv";
-        IOUtils.delete(fileName);
-        OutputStream out = IOUtils.openFileOutputStream(fileName, false);
+        FileUtils.delete(fileName);
+        OutputStream out = FileUtils.newOutputStream(fileName, false);
         byte[] b = "'A'; 'B'\n\'It\\'s nice\'; '\nHello\\*\n'".getBytes();
         out.write(b, 0, b.length);
         out.close();
@@ -363,8 +364,8 @@ public class TestCsv extends TestBase {
         assertEquals("\nHello*\n", rs.getString(2));
         assertFalse(rs.next());
         conn.close();
-        IOUtils.delete(fileName);
-        IOUtils.delete(fileName2);
+        FileUtils.delete(fileName);
+        FileUtils.delete(fileName2);
     }
 
     private void testPipe() throws SQLException {
@@ -387,7 +388,7 @@ public class TestCsv extends TestBase {
         // rs = prep.executeQuery();
 
         conn.close();
-        IOUtils.delete(getBaseDir() + "/test.csv");
+        FileUtils.delete(getBaseDir() + "/test.csv");
     }
 
     private void testAsTable() throws SQLException {
@@ -410,8 +411,8 @@ public class TestCsv extends TestBase {
 
     private void testRead() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
-        IOUtils.delete(fileName);
-        OutputStream out = IOUtils.openFileOutputStream(fileName, false);
+        FileUtils.delete(fileName);
+        OutputStream out = FileUtils.newOutputStream(fileName, false);
         byte[] b = "a,b,c,d\n201,-2,0,18\n, \"abc\"\"\" ,,\"\"\n 1 ,2 , 3, 4 \n5, 6, 7, 8".getBytes();
         out.write(b, 0, b.length);
         out.close();
@@ -451,7 +452,7 @@ public class TestCsv extends TestBase {
         // 201,2,0,18
         // 201,2,0,18
         // 201,2,0,18
-        IOUtils.delete(fileName);
+        FileUtils.delete(fileName);
     }
 
     private void testWriteRead() throws SQLException {
@@ -490,7 +491,7 @@ public class TestCsv extends TestBase {
         assertFalse(rs.next());
         rs.close();
         conn.close();
-        IOUtils.delete(getBaseDir() + "/testRW.csv");
+        FileUtils.delete(getBaseDir() + "/testRW.csv");
     }
 
 }

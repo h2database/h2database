@@ -10,9 +10,9 @@ import org.h2.dev.ftp.FtpClient;
 import org.h2.dev.ftp.server.FtpEvent;
 import org.h2.dev.ftp.server.FtpEventListener;
 import org.h2.dev.ftp.server.FtpServer;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
-import org.h2.util.IOUtils;
 
 /**
  * Tests the FTP server tool.
@@ -35,7 +35,7 @@ public class TestFtp extends TestBase implements FtpEventListener {
             return;
         }
         test(getBaseDir());
-        IOUtils.delete(getBaseDir() + "/test");
+        FileUtils.delete(getBaseDir() + "/test");
     }
 
     private void test(String dir) throws Exception {

@@ -10,10 +10,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Backup;
 import org.h2.tools.Restore;
-import org.h2.util.IOUtils;
 
 /**
  * Test for the BACKUP SQL statement.
@@ -37,7 +37,7 @@ public class TestBackup extends TestBase {
         testBackupRestoreLob();
         testBackup();
         deleteDb("backup");
-        IOUtils.delete(getBaseDir() + "/backup.zip");
+        FileUtils.delete(getBaseDir() + "/backup.zip");
     }
 
     private void testBackupRestoreLob() throws SQLException {

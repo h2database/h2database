@@ -11,8 +11,8 @@ import java.util.Random;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorage;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 
@@ -42,8 +42,8 @@ public class TestFile extends TestBase implements DataHandler {
         byte[] buffMem = null;
         byte[] buffFile = null;
         String prefix = compress ? "memLZF:" : "memFS:";
-        IOUtils.delete(prefix + "test");
-        IOUtils.delete("~/testFile");
+        FileUtils.delete(prefix + "test");
+        FileUtils.delete("~/testFile");
 
         // config.traceTest = true;
 
@@ -127,8 +127,8 @@ public class TestFile extends TestBase implements DataHandler {
             mem.close();
             file.close();
         }
-        IOUtils.delete(prefix + "test");
-        IOUtils.delete("~/testFile");
+        FileUtils.delete(prefix + "test");
+        FileUtils.delete("~/testFile");
     }
 
     public void checkPowerOff() {

@@ -15,7 +15,7 @@ import org.h2.store.fs.FileObjectInputStream;
 import org.h2.store.fs.FileObjectOutputStream;
 import org.h2.store.fs.FileSystem;
 import org.h2.store.fs.FileSystemWrapper;
-import org.h2.util.IOUtils;
+import org.h2.store.fs.FileUtils;
 
 /**
  * A file system that encrypts the contents of the files.
@@ -43,18 +43,18 @@ public class FileSystemCrypt extends FileSystemWrapper {
         return INSTANCE;
     }
 
-    public long length(String fileName) {
-        long len = super.length(fileName);
+    public long size(String fileName) {
+        long len = super.size(fileName);
         return Math.max(0, len - FileObjectCrypt.HEADER_LENGTH - FileObjectCrypt.BLOCK_SIZE);
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         String[] parsed = parse(fileName);
-        FileObject file = IOUtils.openFileObject(parsed[2], mode);
+        FileObject file = FileUtils.openFileObject(parsed[2], mode);
         return new FileObjectCrypt(fileName, parsed[0], parsed[1], file);
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(String fileName, boolean append) {
         try {
             FileObject file = openFileObject(fileName, "rw");
             return new FileObjectOutputStream(file, append);
@@ -63,7 +63,7 @@ public class FileSystemCrypt extends FileSystemWrapper {
         }
     }
 
-    public InputStream openFileInputStream(String fileName) {
+    public InputStream newInputStream(String fileName) {
         try {
             FileObject file = openFileObject(fileName, "r");
             return new FileObjectInputStream(file);
@@ -74,12 +74,12 @@ public class FileSystemCrypt extends FileSystemWrapper {
 
     public String getParent(String fileName) {
         String[] parsed = parse(fileName);
-        return combine(parsed[0], parsed[1], IOUtils.getParent(parsed[2]));
+        return combine(parsed[0], parsed[1], FileUtils.getParent(parsed[2]));
     }
 
     public String[] listFiles(String directory) {
         String[] parsed = parse(directory);
-        String[] array = IOUtils.listFiles(parsed[2]);
+        String[] array = FileUtils.listFiles(parsed[2]);
         for (int i = 0; i < array.length; i++) {
             array[i] = combine(parsed[0], parsed[1], array[i]);
         }
@@ -88,7 +88,7 @@ public class FileSystemCrypt extends FileSystemWrapper {
 
     public String getCanonicalPath(String fileName) {
         String[] parsed = parse(fileName);
-        return combine(parsed[0], parsed[1], IOUtils.getCanonicalPath(parsed[2]));
+        return combine(parsed[0], parsed[1], FileUtils.getCanonicalPath(parsed[2]));
     }
 
     public String unwrap(String fileName) {
@@ -98,7 +98,7 @@ public class FileSystemCrypt extends FileSystemWrapper {
     public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
         throws IOException {
         String[] parsed = parse(prefix);
-        return combine(parsed[0], parsed[1], IOUtils.createTempFile(parsed[2], suffix, deleteOnExit, inTempDir));
+        return combine(parsed[0], parsed[1], FileUtils.createTempFile(parsed[2], suffix, deleteOnExit, inTempDir));
     }
 
     /**

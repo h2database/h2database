@@ -178,7 +178,7 @@ public class FileSystemDatabase extends FileSystem {
         directoryName = unwrap(directoryName);
         try {
             String parent = getParent(directoryName);
-            String name = getFileName(directoryName);
+            String name = getName(directoryName);
             long parentId = getId(parent, false);
             PreparedStatement prep = prepare("INSERT INTO FILES(NAME, PARENTID, LASTMODIFIED) VALUES(?, ?, ?)");
             prep.setString(1, name);
@@ -192,7 +192,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public boolean createNewFile(String fileName) {
+    public boolean createFile(String fileName) {
         try {
             if (exists(fileName)) {
                 return false;
@@ -230,13 +230,13 @@ public class FileSystemDatabase extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public String getFileName(String fileName) {
-        fileName = unwrap(fileName);
-        String[] path = StringUtils.arraySplit(fileName, '/', false);
-        return path[path.length - 1];
+    public String getName(String path) {
+        path = unwrap(path);
+        String[] elements = StringUtils.arraySplit(path, '/', false);
+        return elements[elements.length - 1];
     }
 
-    public synchronized  long getLastModified(String fileName) {
+    public synchronized  long lastModified(String fileName) {
         try {
             long id = getId(fileName, false);
             PreparedStatement prep = prepare("SELECT LASTMODIFIED FROM FILES WHERE ID=?");
@@ -280,7 +280,7 @@ public class FileSystemDatabase extends FileSystem {
         return false;
     }
 
-    public synchronized long length(String fileName) {
+    public synchronized long size(String fileName) {
         try {
             long id = getId(fileName, false);
             PreparedStatement prep = prepare("SELECT LENGTH FROM FILES WHERE ID=?");
@@ -319,7 +319,7 @@ public class FileSystemDatabase extends FileSystem {
         return fileName;
     }
 
-    public InputStream openFileInputStream(String fileName) throws IOException {
+    public InputStream newInputStream(String fileName) throws IOException {
         return new FileObjectInputStream(openFileObject(fileName, "r"));
     }
 
@@ -342,7 +342,7 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public OutputStream openFileOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(String fileName, boolean append) {
         try {
             return new FileObjectOutputStream(openFileObject(fileName, "rw"), append);
         } catch (IOException e) {
@@ -350,14 +350,14 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public synchronized void rename(String oldName, String newName) {
+    public synchronized void moveTo(String oldName, String newName) {
         try {
             long parentOld = getId(oldName, true);
             long parentNew = getId(newName, true);
             if (parentOld != parentNew) {
                 throw DbException.getUnsupportedException("different parents");
             }
-            newName = getFileName(newName);
+            newName = getName(newName);
             long id = getId(oldName, false);
             PreparedStatement prep = prepare("UPDATE FILES SET NAME=? WHERE ID=?");
             prep.setString(1, newName);
@@ -396,7 +396,7 @@ public class FileSystemDatabase extends FileSystem {
             long parentId = getId(fileName, true);
             PreparedStatement prep = prepare("INSERT INTO FILES(PARENTID, NAME, LASTMODIFIED) VALUES(?, ?, ?)");
             prep.setLong(1, parentId);
-            prep.setString(2, getFileName(fileName));
+            prep.setString(2, getName(fileName));
             prep.setLong(3, System.currentTimeMillis());
             prep.execute();
             ResultSet rs = prep.getGeneratedKeys();

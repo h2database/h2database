@@ -15,7 +15,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import org.h2.engine.Constants;
-import org.h2.util.IOUtils;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -146,7 +146,7 @@ public class FtpControl extends Thread {
             if ("CWD".equals(command)) {
                 String path = getPath(param);
                 String fileName = getFileName(path);
-                if (IOUtils.exists(fileName) && IOUtils.isDirectory(fileName)) {
+                if (FileUtils.exists(fileName) && FileUtils.isDirectory(fileName)) {
                     if (!path.endsWith("/")) {
                         path += "/";
                     }
@@ -168,7 +168,7 @@ public class FtpControl extends Thread {
         case 'D':
             if ("DELE".equals(command)) {
                 String fileName = getFileName(param);
-                if (!readonly && IOUtils.exists(fileName) && !IOUtils.isDirectory(fileName) && IOUtils.tryDelete(fileName)) {
+                if (!readonly && FileUtils.exists(fileName) && !FileUtils.isDirectory(fileName) && FileUtils.tryDelete(fileName)) {
                     if (server.getAllowTask() && fileName.endsWith(FtpServer.TASK_SUFFIX)) {
                         server.stopTask(fileName);
                     }
@@ -194,7 +194,7 @@ public class FtpControl extends Thread {
                 }
             } else if ("MDTM".equals(command)) {
                 String fileName = getFileName(param);
-                if (IOUtils.exists(fileName) && !IOUtils.isDirectory(fileName)) {
+                if (FileUtils.exists(fileName) && !FileUtils.isDirectory(fileName)) {
                     reply(213, server.formatLastModified(fileName));
                 } else {
                     reply(550, "Failed");
@@ -234,7 +234,7 @@ public class FtpControl extends Thread {
         case 'R':
             if ("RNFR".equals(command)) {
                 String fileName = getFileName(param);
-                if (IOUtils.exists(fileName)) {
+                if (FileUtils.exists(fileName)) {
                     renameFrom = fileName;
                     reply(350, "Ok");
                 } else {
@@ -249,7 +249,7 @@ public class FtpControl extends Thread {
                     boolean ok = false;
                     if (!readonly) {
                         try {
-                            IOUtils.rename(fileOld, fileNew);
+                            FileUtils.moveTo(fileOld, fileNew);
                             reply(250, "Ok");
                             ok = true;
                         } catch (Exception e) {
@@ -262,7 +262,7 @@ public class FtpControl extends Thread {
                 }
             } else if ("RETR".equals(command)) {
                 String fileName = getFileName(param);
-                if (IOUtils.exists(fileName) && !IOUtils.isDirectory(fileName)) {
+                if (FileUtils.exists(fileName) && !FileUtils.isDirectory(fileName)) {
                     reply(150, "Starting transfer");
                     try {
                         data.send(fileName, restart);
@@ -296,14 +296,14 @@ public class FtpControl extends Thread {
                 reply(500, "Not understood");
             } else if ("SIZE".equals(command)) {
                 param = getFileName(param);
-                if (IOUtils.exists(param) && !IOUtils.isDirectory(param)) {
-                    reply(250, String.valueOf(IOUtils.length(param)));
+                if (FileUtils.exists(param) && !FileUtils.isDirectory(param)) {
+                    reply(250, String.valueOf(FileUtils.size(param)));
                 } else {
                     reply(500, "Failed");
                 }
             } else if ("STOR".equals(command)) {
                 String fileName = getFileName(param);
-                if (!readonly && !IOUtils.exists(fileName) || !IOUtils.isDirectory(fileName)) {
+                if (!readonly && !FileUtils.exists(fileName) || !FileUtils.isDirectory(fileName)) {
                     reply(150, "Starting transfer");
                     try {
                         data.receive(fileName);
@@ -353,7 +353,7 @@ public class FtpControl extends Thread {
         boolean ok = false;
         if (!readonly) {
             try {
-                IOUtils.createDirectories(fileName);
+                FileUtils.createDirectories(fileName);
                 reply(257, StringUtils.quoteIdentifier(param) + " directory");
                 ok = true;
             } catch (Exception e) {
@@ -367,7 +367,7 @@ public class FtpControl extends Thread {
 
     private void processRemoveDir(String param) {
         String fileName = getFileName(param);
-        if (!readonly && IOUtils.exists(fileName) && IOUtils.isDirectory(fileName) && IOUtils.tryDelete(fileName)) {
+        if (!readonly && FileUtils.exists(fileName) && FileUtils.isDirectory(fileName) && FileUtils.tryDelete(fileName)) {
             reply(250, "Ok");
         } else {
             reply(500, "Failed");
@@ -384,10 +384,10 @@ public class FtpControl extends Thread {
 
     private void processList(String param, boolean directories) throws IOException {
         String directory = getFileName(param);
-        if (!IOUtils.exists(directory)) {
+        if (!FileUtils.exists(directory)) {
             reply(450, "Directory does not exist");
             return;
-        } else if (!IOUtils.isDirectory(directory)) {
+        } else if (!FileUtils.isDirectory(directory)) {
             reply(450, "Not a directory");
             return;
         }

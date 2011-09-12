@@ -203,7 +203,7 @@ public class Data {
      * For performance reasons the internal representation of a String is
      * similar to UTF-8, but not exactly UTF-8.
      *
-     * @param len
+     * @param len the length of the resulting string
      * @return the String
      */
     private String readString(int len) {

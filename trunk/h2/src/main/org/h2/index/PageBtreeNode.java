@@ -472,7 +472,7 @@ public class PageBtreeNode extends PageBtree {
      * Set the cursor to the first row of the next page.
      *
      * @param cursor the cursor
-     * @param ROW the current row
+     * @param pageId id of the next page
      */
     void nextPage(PageBtreeCursor cursor, int pageId) {
         int i;
@@ -501,7 +501,7 @@ public class PageBtreeNode extends PageBtree {
      * Set the cursor to the last row of the previous page.
      *
      * @param cursor the cursor
-     * @param ROW the current row
+     * @param pageId id of the previous page
      */
     void previousPage(PageBtreeCursor cursor, int pageId) {
         int i;

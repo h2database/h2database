@@ -469,8 +469,6 @@ public class TestFileLockSerialized extends TestBase {
      *
      * Also, if a checkpoint started before beforeWriting, and ends between
      * between beforeWriting and checkWritingAllowed, then the same error occurs.
-     *
-     * @throws Exception
      */
     private void testCheckpointInUpdateRaceCondition() throws Exception {
         boolean longRun = false;

@@ -15,8 +15,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.store.FileLister;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Test for the read-only database feature.
@@ -127,10 +127,9 @@ public class TestReadOnly extends TestBase {
     }
 
     private void setReadOnly() {
-        FileSystem fs = FileSystem.getInstance(getBaseDir());
         ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(), "readonly", true);
         for (String fileName : list) {
-            fs.setReadOnly(fileName);
+            IOUtils.setReadOnly(fileName);
         }
     }
 

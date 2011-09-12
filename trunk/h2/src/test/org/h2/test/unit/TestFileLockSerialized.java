@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.SortedProperties;
@@ -605,9 +604,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        FileSystem fs = FileSystem.getInstance(getBaseDir());
-
-        List<String> filesWithoutSerialized = Arrays.asList(fs.listFiles(getBaseDir()));
+        List<String> filesWithoutSerialized = Arrays.asList(IOUtils.listFiles(getBaseDir()));
         deleteDb("fileLockSerialized");
 
         // with serialized
@@ -619,7 +616,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        List<String> filesWithSerialized = Arrays.asList(fs.listFiles(getBaseDir()));
+        List<String> filesWithSerialized = Arrays.asList(IOUtils.listFiles(getBaseDir()));
         if (filesWithoutSerialized.size() !=  filesWithSerialized.size()) {
             for (int i = 0; i < filesWithoutSerialized.size(); i++) {
                 if (!filesWithSerialized.contains(filesWithoutSerialized.get(i))) {

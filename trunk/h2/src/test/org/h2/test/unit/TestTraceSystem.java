@@ -9,7 +9,6 @@ package org.h2.test.unit;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import org.h2.message.TraceSystem;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 
@@ -57,7 +56,7 @@ public class TestTraceSystem extends TestBase {
         String readOnlyFile = getBaseDir() + "/readOnly.log";
         IOUtils.delete(readOnlyFile);
         IOUtils.openFileOutputStream(readOnlyFile, false).close();
-        FileSystem.getInstance(getBaseDir()).setReadOnly(readOnlyFile);
+        IOUtils.setReadOnly(readOnlyFile);
         TraceSystem ts = new TraceSystem(readOnlyFile);
         ts.setLevelFile(TraceSystem.INFO);
         ts.getTrace("test").info("test");

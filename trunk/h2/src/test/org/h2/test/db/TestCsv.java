@@ -24,8 +24,6 @@ import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.store.fs.FileObject;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
 import org.h2.util.IOUtils;
@@ -223,17 +221,16 @@ public class TestCsv extends TestBase {
         deleteDb("csv");
 
         String fileName = getBaseDir() + "/testNull.csv";
-        FileSystem fs = FileSystem.getInstance(fileName);
-        fs.delete(fileName);
+        IOUtils.delete(fileName);
 
-        FileObject file = fs.openFileObject(fileName, "rw");
+        OutputStream out = IOUtils.openFileOutputStream(fileName, false);
         String csvContent = "\"A\",\"B\",\"C\",\"D\"\n\\N,\"\",\"\\N\",";
         byte[] b = csvContent.getBytes("UTF-8");
-        file.write(b, 0, b.length);
-        file.close();
+        out.write(b, 0, b.length);
+        out.close();
         Csv csv = Csv.getInstance();
         csv.setNullString("\\N");
-        ResultSet rs = csv.read(file.getName(), null, "UTF8");
+        ResultSet rs = csv.read(fileName, null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(4, meta.getColumnCount());
         assertEquals("A", meta.getColumnLabel(1));
@@ -251,16 +248,16 @@ public class TestCsv extends TestBase {
 
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('" + file.getName() +
+        stat.execute("call csvwrite('" + fileName +
                 "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', 'UTF8', ',', '\"', NULL, '\\N', '\n')");
-        InputStreamReader reader = new InputStreamReader(fs.openFileInputStream(fileName));
+        InputStreamReader reader = new InputStreamReader(IOUtils.openFileInputStream(fileName));
         // on read, an empty string is treated like null,
         // but on write a null is always written with the nullString
         String data = IOUtils.readStringAndClose(reader, -1);
         assertEquals(csvContent + "\\N", data.trim());
         conn.close();
 
-        fs.delete(fileName);
+        IOUtils.delete(fileName);
     }
 
     private void testRandomData() throws SQLException {
@@ -336,12 +333,11 @@ public class TestCsv extends TestBase {
     private void testFieldDelimiter() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
         String fileName2 = getBaseDir() + "/test2.csv";
-        FileSystem fs = FileSystem.getInstance(fileName);
-        fs.delete(fileName);
-        FileObject file = fs.openFileObject(fileName, "rw");
+        IOUtils.delete(fileName);
+        OutputStream out = IOUtils.openFileOutputStream(fileName, false);
         byte[] b = "'A'; 'B'\n\'It\\'s nice\'; '\nHello\\*\n'".getBytes();
-        file.write(b, 0, b.length);
-        file.close();
+        out.write(b, 0, b.length);
+        out.close();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from csvread('" + fileName + "', null, null, ';', '''', '\\')");
@@ -367,8 +363,8 @@ public class TestCsv extends TestBase {
         assertEquals("\nHello*\n", rs.getString(2));
         assertFalse(rs.next());
         conn.close();
-        fs.delete(fileName);
-        fs.delete(fileName2);
+        IOUtils.delete(fileName);
+        IOUtils.delete(fileName2);
     }
 
     private void testPipe() throws SQLException {
@@ -414,12 +410,11 @@ public class TestCsv extends TestBase {
 
     private void testRead() throws Exception {
         String fileName = getBaseDir() + "/test.csv";
-        FileSystem fs = FileSystem.getInstance(fileName);
-        fs.delete(fileName);
-        FileObject file = fs.openFileObject(fileName, "rw");
+        IOUtils.delete(fileName);
+        OutputStream out = IOUtils.openFileOutputStream(fileName, false);
         byte[] b = "a,b,c,d\n201,-2,0,18\n, \"abc\"\"\" ,,\"\"\n 1 ,2 , 3, 4 \n5, 6, 7, 8".getBytes();
-        file.write(b, 0, b.length);
-        file.close();
+        out.write(b, 0, b.length);
+        out.close();
         ResultSet rs = Csv.getInstance().read(fileName, null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(4, meta.getColumnCount());
@@ -456,7 +451,7 @@ public class TestCsv extends TestBase {
         // 201,2,0,18
         // 201,2,0,18
         // 201,2,0,18
-        fs.delete(fileName);
+        IOUtils.delete(fileName);
     }
 
     private void testWriteRead() throws SQLException {

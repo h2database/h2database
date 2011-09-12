@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import org.h2.server.Service;
-import org.h2.store.fs.FileSystem;
 import org.h2.tools.Server;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
@@ -79,7 +78,6 @@ public class FtpServer extends Tool implements Service {
     private String readUserName = DEFAULT_READ;
     private HashMap<String, Process> tasks = new HashMap<String, Process>();
 
-    private FileSystem fs;
     private boolean trace;
     private boolean allowTask;
 
@@ -220,17 +218,17 @@ public class FtpServer extends Tool implements Service {
     }
 
     private void appendFile(StringBuilder buff, String fileName) {
-        buff.append(fs.isDirectory(fileName) ? 'd' : '-');
+        buff.append(IOUtils.isDirectory(fileName) ? 'd' : '-');
         buff.append('r');
-        buff.append(fs.canWrite(fileName) ? 'w' : '-');
+        buff.append(IOUtils.canWrite(fileName) ? 'w' : '-');
         buff.append("------- 1 owner group ");
-        String size = String.valueOf(fs.length(fileName));
+        String size = String.valueOf(IOUtils.length(fileName));
         for (int i = size.length(); i < 15; i++) {
             buff.append(' ');
         }
         buff.append(size);
         buff.append(' ');
-        Date now = new Date(), mod = new Date(fs.getLastModified(fileName));
+        Date now = new Date(), mod = new Date(IOUtils.getLastModified(fileName));
         String date;
         if (mod.after(now) || Math.abs((now.getTime() - mod.getTime()) / 1000 / 60 / 60 / 24) > 180) {
             synchronized (dateFormatOld) {
@@ -256,7 +254,7 @@ public class FtpServer extends Tool implements Service {
      */
     String formatLastModified(String fileName) {
         synchronized (dateFormat) {
-            return dateFormat.format(new Date(fs.getLastModified(fileName)));
+            return dateFormat.format(new Date(IOUtils.getLastModified(fileName)));
         }
     }
 
@@ -293,8 +291,8 @@ public class FtpServer extends Tool implements Service {
      */
     String getDirectoryListing(String directory, boolean listDirectories) {
         StringBuilder buff = new StringBuilder();
-        for (String fileName : fs.listFiles(directory)) {
-            if (!fs.isDirectory(fileName) || (fs.isDirectory(fileName) && listDirectories)) {
+        for (String fileName : IOUtils.listFiles(directory)) {
+            if (!IOUtils.isDirectory(fileName) || (IOUtils.isDirectory(fileName) && listDirectories)) {
                 appendFile(buff, fileName);
             }
         }
@@ -352,8 +350,7 @@ public class FtpServer extends Tool implements Service {
     }
 
     public void start() {
-        fs = FileSystem.getInstance(root);
-        root = fs.getCanonicalPath(root);
+        root = IOUtils.getCanonicalPath(root);
         IOUtils.createDirectories(root);
         serverSocket = NetUtils.createServerSocket(port, false);
         port = serverSocket.getLocalPort();
@@ -509,15 +506,6 @@ public class FtpServer extends Tool implements Service {
             return;
         }
         p.destroy();
-    }
-
-    /**
-     * Get the file system used by this FTP server.
-     *
-     * @return the file system
-     */
-    FileSystem getFileSystem() {
-        return fs;
     }
 
     /**

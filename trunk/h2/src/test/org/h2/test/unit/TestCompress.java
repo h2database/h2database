@@ -20,7 +20,6 @@ import java.util.Random;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
@@ -158,7 +157,7 @@ public class TestCompress extends TestBase {
         for (int j = 0; j < 4; j++) {
             long time = System.currentTimeMillis();
             for (int i = 0; i < 1000; i++) {
-                InputStream in = FileSystem.getInstance("memFS:").openFileInputStream("memFS:compress.h2.db");
+                InputStream in = IOUtils.openFileInputStream("memFS:compress.h2.db");
                 int total = 0;
                 while (true) {
                     int len = in.read(buff);
@@ -174,7 +173,7 @@ public class TestCompress extends TestBase {
 
         for (int j = 0; j < 4; j++) {
             ArrayList<byte[]> comp = New.arrayList();
-            InputStream in = FileSystem.getInstance("memFS:").openFileInputStream("memFS:compress.h2.db");
+            InputStream in = IOUtils.openFileInputStream("memFS:compress.h2.db");
             while (true) {
                 int len = in.read(buff);
                 if (len < 0) {

@@ -33,8 +33,8 @@ public abstract class FileSystemWrapper extends FileSystem {
         return IOUtils.setReadOnly(unwrap(fileName));
     }
 
-    public void createDirs(String fileName) {
-        IOUtils.createDirs(unwrap(fileName));
+    public void createDirectory(String directoryName) {
+        IOUtils.createDirectory(unwrap(directoryName));
     }
 
     public boolean createNewFile(String fileName) {
@@ -48,10 +48,6 @@ public abstract class FileSystemWrapper extends FileSystem {
 
     public void delete(String fileName) {
         IOUtils.delete(unwrap(fileName));
-    }
-
-    public void deleteRecursive(String directory, boolean tryOnly) {
-        IOUtils.deleteRecursive(unwrap(directory), tryOnly);
     }
 
     public boolean exists(String fileName) {

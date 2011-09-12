@@ -15,7 +15,6 @@ import java.sql.Statement;
 import java.util.Random;
 import java.util.StringTokenizer;
 import org.h2.fulltext.FullText;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.Task;
@@ -182,7 +181,7 @@ public class TestFullText extends TestBase {
         FullText.dropAll(conn);
         conn.close();
         deleteDb("fullTextTransaction");
-        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullTextTransaction", false);
+        IOUtils.deleteRecursive(getBaseDir() + "/fullTextTransaction", false);
     }
 
     private void testMultiThreaded(boolean lucene) throws Exception {
@@ -332,7 +331,7 @@ public class TestFullText extends TestBase {
         stat = conn.createStatement();
         stat.execute("INSERT INTO TEST VALUES(3, 'Hello')");
         conn.close();
-        FileSystem.getInstance(getBaseDir()).deleteRecursive(getBaseDir() + "/fullTextReopen", false);
+        IOUtils.deleteRecursive(getBaseDir() + "/fullTextReopen", false);
     }
 
     private void testPerformance(boolean lucene) throws SQLException {

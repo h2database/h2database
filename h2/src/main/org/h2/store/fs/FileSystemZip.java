@@ -33,7 +33,7 @@ public class FileSystemZip extends FileSystem {
         return false;
     }
 
-    public void createDirs(String fileName) {
+    public void createDirectory(String directoryName) {
         // ignore
     }
 
@@ -49,10 +49,6 @@ public class FileSystemZip extends FileSystem {
     }
 
     public void delete(String fileName) {
-        throw DbException.getUnsupportedException("write");
-    }
-
-    public void deleteRecursive(String fileName, boolean tryOnly) {
         throw DbException.getUnsupportedException("write");
     }
 

@@ -735,12 +735,12 @@ public class IOUtils {
     }
 
     /**
-     * Create all required directories that are required for this file.
+     * Create a directory (all required parent directories already exist).
      *
-     * @param fileName the file name (not directory name)
+     * @param directoryName the directory name
      */
-    public static void createDirs(String fileName) {
-        getFileSystem(fileName).createDirs(fileName);
+    public static void createDirectory(String directoryName) {
+        getFileSystem(directoryName).createDirectory(directoryName);
     }
 
     /**
@@ -750,16 +750,6 @@ public class IOUtils {
      */
     public static void delete(String fileName) {
         getFileSystem(fileName).delete(fileName);
-    }
-
-    /**
-     * Delete a directory or file and all subdirectories and files.
-     *
-     * @param directory the directory
-     * @param tryOnly whether errors should  be ignored
-     */
-    public static void deleteRecursive(String directory, boolean tryOnly) {
-        getFileSystem(directory).deleteRecursive(directory, tryOnly);
     }
 
     /**
@@ -798,6 +788,40 @@ public class IOUtils {
         if (SysProperties.TRACE_IO) {
             System.out.println("IOUtils." + method + " " + fileName + " " + o);
         }
+    }
+
+    /**
+     * Delete a directory or file and all subdirectories and files.
+     *
+     * @param path the path
+     * @param tryOnly whether errors should  be ignored
+     */
+    public static void deleteRecursive(String path, boolean tryOnly) {
+        if (exists(path)) {
+            if (isDirectory(path)) {
+                for (String s : listFiles(path)) {
+                    deleteRecursive(s, tryOnly);
+                }
+            }
+            if (tryOnly) {
+                tryDelete(path);
+            } else {
+                delete(path);
+            }
+        }
+    }
+
+    /**
+     * Create the directory and all required parent directories.
+     *
+     * @param dir the directory name
+     */
+    public static void createDirectories(String dir) {
+        String parent = getParent(dir);
+        if (!exists(parent)) {
+            createDirectories(parent);
+        }
+        createDirectory(dir);
     }
 
 }

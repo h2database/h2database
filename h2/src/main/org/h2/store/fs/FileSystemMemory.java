@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.TreeMap;
 import org.h2.message.DbException;
 import org.h2.util.New;
@@ -69,6 +68,9 @@ public class FileSystemMemory extends FileSystem {
 
     public boolean exists(String fileName) {
         fileName = getCanonicalPath(fileName);
+        if (fileName.equals(PREFIX) || fileName.equals(PREFIX_LZF)) {
+            return true;
+        }
         synchronized (MEMORY_FILES) {
             return MEMORY_FILES.get(fileName) != null;
         }
@@ -100,21 +102,6 @@ public class FileSystemMemory extends FileSystem {
             String[] array = new String[list.size()];
             list.toArray(array);
             return array;
-        }
-    }
-
-    public void deleteRecursive(String fileName, boolean tryOnly) {
-        fileName = getCanonicalPath(fileName);
-        synchronized (MEMORY_FILES) {
-            Iterator<String> it = MEMORY_FILES.tailMap(fileName).keySet().iterator();
-            while (it.hasNext()) {
-                String name = it.next();
-                if (name.startsWith(fileName)) {
-                    it.remove();
-                } else {
-                    break;
-                }
-            }
         }
     }
 
@@ -163,7 +150,7 @@ public class FileSystemMemory extends FileSystem {
         return true;
     }
 
-    public void createDirs(String fileName) {
+    public void createDirectory(String directoryName) {
         // TODO directories are not really supported
     }
 

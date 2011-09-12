@@ -19,7 +19,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
-
 import org.h2.Driver;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileObject;
@@ -175,34 +174,17 @@ public class FileSystemDatabase extends FileSystem {
         return true;
     }
 
-    public void createDirs(String fileName) {
-        fileName = unwrap(fileName);
+    public void createDirectory(String directoryName) {
+        directoryName = unwrap(directoryName);
         try {
-            String[] path = StringUtils.arraySplit(fileName, '/', false);
-            long parentId = 0;
-            int len = path.length;
-            if (fileName.endsWith("/")) {
-                len--;
-            }
-            len--;
-            for (int i = 1; i < len; i++) {
-                PreparedStatement prep = prepare("SELECT ID FROM FILES WHERE PARENTID=? AND NAME=?");
-                prep.setLong(1, parentId);
-                prep.setString(2, path[i]);
-                ResultSet rs = prep.executeQuery();
-                if (!rs.next()) {
-                    prep = prepare("INSERT INTO FILES(NAME, PARENTID, LASTMODIFIED) VALUES(?, ?, ?)");
-                    prep.setString(1, path[i]);
-                    prep.setLong(2, parentId);
-                    prep.setLong(3, System.currentTimeMillis());
-                    prep.execute();
-                    rs = prep.getGeneratedKeys();
-                    rs.next();
-                    parentId = rs.getLong(1);
-                } else {
-                    parentId = rs.getLong(1);
-                }
-            }
+            String parent = getParent(directoryName);
+            String name = getFileName(directoryName);
+            long parentId = getId(parent, false);
+            PreparedStatement prep = prepare("INSERT INTO FILES(NAME, PARENTID, LASTMODIFIED) VALUES(?, ?, ?)");
+            prep.setString(1, name);
+            prep.setLong(2, parentId);
+            prep.setLong(3, System.currentTimeMillis());
+            prep.execute();
             commit();
         } catch (SQLException e) {
             rollback();
@@ -236,10 +218,6 @@ public class FileSystemDatabase extends FileSystem {
             rollback();
             throw convert(e);
         }
-    }
-
-    public void deleteRecursive(String fileName, boolean tryOnly) {
-        throw DbException.getUnsupportedException("db");
     }
 
     public boolean exists(String fileName) {

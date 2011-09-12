@@ -90,7 +90,7 @@ public class TestFileSystem extends TestBase {
         fs.openFileOutputStream("memFS:data/test/a.txt", false).close();
         String[] list = fs.listFiles("memFS:data/test");
         assertEquals(1, list.length);
-        fs.deleteRecursive("memFS:", false);
+        IOUtils.deleteRecursive("memFS:", false);
     }
 
     private void testClasspath() throws IOException {
@@ -217,7 +217,7 @@ public class TestFileSystem extends TestBase {
         for (String s : fs.listFiles(fsBase)) {
             fs.delete(s);
         }
-        fs.createDirs(fsBase + "/test/x");
+        IOUtils.createDirectories(fsBase + "/test");
         fs.delete(fsBase + "/test");
         fs.delete(fsBase + "/test2");
         assertTrue(fs.createNewFile(fsBase + "/test"));
@@ -277,10 +277,10 @@ public class TestFileSystem extends TestBase {
         assertTrue(fs.tryDelete(fsBase + "/test2"));
         fs.delete(fsBase + "/test");
         if (fsBase.indexOf(FileSystemMemory.PREFIX) < 0 && fsBase.indexOf(FileSystemMemory.PREFIX_LZF) < 0) {
-            fs.createDirs(fsBase + "/testDir/test");
+            IOUtils.createDirectories(fsBase + "/testDir");
             assertTrue(fs.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith("jdbc:")) {
-                fs.deleteRecursive(fsBase + "/testDir", false);
+                IOUtils.deleteRecursive(fsBase + "/testDir", false);
                 assertTrue(!fs.exists(fsBase + "/testDir"));
             }
         }

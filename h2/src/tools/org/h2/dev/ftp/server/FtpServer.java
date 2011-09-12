@@ -354,7 +354,7 @@ public class FtpServer extends Tool implements Service {
     public void start() {
         fs = FileSystem.getInstance(root);
         root = fs.getCanonicalPath(root);
-        fs.createDirs(root + "/x");
+        IOUtils.createDirectories(root);
         serverSocket = NetUtils.createServerSocket(port, false);
         port = serverSocket.getLocalPort();
     }

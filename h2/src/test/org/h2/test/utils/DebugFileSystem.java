@@ -65,9 +65,9 @@ public class DebugFileSystem extends FileSystemWrapper {
         return super.canWrite(fileName);
     }
 
-    public void createDirs(String fileName) {
-        trace(fileName, "createDirs");
-        super.createDirs(fileName);
+    public void createDirectory(String directoryName) {
+        trace(directoryName, "createDirectory");
+        super.createDirectory(directoryName);
     }
 
     public boolean createNewFile(String fileName) {
@@ -84,11 +84,6 @@ public class DebugFileSystem extends FileSystemWrapper {
     public void delete(String fileName) {
         trace(fileName, "fileName");
         super.delete(fileName);
-    }
-
-    public void deleteRecursive(String directory, boolean tryOnly) {
-        trace(directory, "deleteRecursive", tryOnly);
-        super.deleteRecursive(directory, tryOnly);
     }
 
     public boolean exists(String fileName) {

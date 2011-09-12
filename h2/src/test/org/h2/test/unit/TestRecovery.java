@@ -15,7 +15,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileObject;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
@@ -134,7 +133,7 @@ public class TestRecovery extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar) as select 1, 'Hello World1'");
         conn.close();
-        FileObject f = FileSystem.getInstance(getBaseDir()).openFileObject(getBaseDir() + "/recovery.h2.db", "rw");
+        FileObject f = IOUtils.openFileObject(getBaseDir() + "/recovery.h2.db", "rw");
         byte[] buff = new byte[Constants.DEFAULT_PAGE_SIZE];
         while (f.getFilePointer() < f.length()) {
             f.readFully(buff, 0, buff.length);

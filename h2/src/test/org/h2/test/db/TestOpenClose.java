@@ -12,15 +12,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
 import org.h2.store.fs.FileObject;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
-import org.h2.util.Task;
 import org.h2.util.IOUtils;
+import org.h2.util.Task;
 
 /**
  * Tests opening and closing a database.
@@ -64,17 +62,17 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         if (config.memory || config.reopen) {
             return;
         }
-        FileSystem.getInstance("split:").delete("split:" + getBaseDir() + "/openClose2.h2.db");
+        IOUtils.delete("split:" + getBaseDir() + "/openClose2.h2.db");
         Connection conn;
         conn = DriverManager.getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
         conn.createStatement().execute("create table test(id int, name varchar) as select 1, space(1000000)");
         conn.close();
-        FileObject f = FileSystem.getInstance(getBaseDir()).openFileObject(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
+        FileObject f = IOUtils.openFileObject(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
         f.setFileLength(f.length() * 2);
         f.close();
         assertThrows(ErrorCode.IO_EXCEPTION_2, this).
                 getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
-        FileSystem.getInstance("split:").delete("split:" + getBaseDir() + "/openClose2.h2.db");
+        IOUtils.delete("split:" + getBaseDir() + "/openClose2.h2.db");
     }
 
     private void testCloseDelay() throws Exception {

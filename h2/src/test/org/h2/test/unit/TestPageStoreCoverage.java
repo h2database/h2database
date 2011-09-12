@@ -13,7 +13,6 @@ import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileObject;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
 import org.h2.util.IOUtils;
@@ -230,11 +229,11 @@ public class TestPageStoreCoverage extends TestBase {
         stat.execute("drop table if exists INFORMATION_SCHEMA.LOB_DATA");
         stat.execute("drop table if exists INFORMATION_SCHEMA.LOB_MAP");
         conn.close();
-        FileObject f = FileSystem.getInstance(fileName).openFileObject(fileName, "rw");
+        FileObject f = IOUtils.openFileObject(fileName, "rw");
         // create a new database
         conn = getConnection("pageStore");
         conn.close();
-        f = FileSystem.getInstance(fileName).openFileObject(fileName, "rw");
+        f = IOUtils.openFileObject(fileName, "rw");
         f.setFileLength(16);
         // create a new database
         conn = getConnection("pageStore");

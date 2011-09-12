@@ -16,7 +16,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import org.h2.constant.ErrorCode;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 
@@ -637,8 +636,8 @@ public class TestLinkedTable extends TestBase {
         for (String file : files) {
             String name = IOUtils.getFileName(file);
             if ((name.startsWith("testLinkedTableInReadOnlyDb")) && (!name.endsWith(".trace.db"))) {
-                FileSystem.getInstance(file).setReadOnly(file);
-                boolean isReadOnly = FileSystem.getInstance(file).isReadOnly(file);
+                IOUtils.setReadOnly(file);
+                boolean isReadOnly = IOUtils.isReadOnly(file);
                 if (!isReadOnly) {
                     fail("File " + file + " is not read only. Can't test it.");
                 }

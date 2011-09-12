@@ -12,7 +12,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 
 /**
@@ -91,11 +90,11 @@ public class FtpData extends Thread {
      * @param fs the target file system
      * @param fileName the target file name
      */
-    synchronized void receive(FileSystem fs, String fileName) throws IOException {
+    synchronized void receive(String fileName) throws IOException {
         connect();
         try {
             InputStream in = socket.getInputStream();
-            OutputStream out = fs.openFileOutputStream(fileName, false);
+            OutputStream out = IOUtils.openFileOutputStream(fileName, false);
             IOUtils.copy(in, out);
             out.close();
         } finally {
@@ -112,11 +111,11 @@ public class FtpData extends Thread {
      * @param fileName the source file name
      * @param skip the number of bytes to skip
      */
-    synchronized void send(FileSystem fs, String fileName, long skip) throws IOException {
+    synchronized void send(String fileName, long skip) throws IOException {
         connect();
         try {
             OutputStream out = socket.getOutputStream();
-            InputStream in = fs.openFileInputStream(fileName);
+            InputStream in = IOUtils.openFileInputStream(fileName);
             IOUtils.skipFully(in, skip);
             IOUtils.copy(in, out);
             in.close();

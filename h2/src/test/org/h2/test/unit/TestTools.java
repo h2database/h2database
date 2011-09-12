@@ -32,7 +32,6 @@ import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.store.FileLister;
-import org.h2.store.fs.FileSystem;
 import org.h2.test.TestBase;
 import org.h2.test.trace.Player;
 import org.h2.test.utils.AssertThrows;
@@ -493,15 +492,14 @@ public class TestTools extends TestBase {
         ConvertTraceFile.main("-traceFile", getBaseDir() + "/toolsConvertTraceFile.trace.db",
                 "-javaClass", getBaseDir() + "/Test",
                 "-script", getBaseDir() + "/test.sql");
-        FileSystem fs = FileSystem.getInstance(getBaseDir());
-        fs.delete(getBaseDir() + "/Test.java");
+        IOUtils.delete(getBaseDir() + "/Test.java");
 
         String trace = getBaseDir() + "/toolsConvertTraceFile.trace.db";
-        assertTrue(fs.exists(trace));
+        assertTrue(IOUtils.exists(trace));
         String newTrace = getBaseDir() + "/test.trace.db";
-        fs.delete(newTrace);
-        assertFalse(fs.exists(newTrace));
-        fs.rename(trace, newTrace);
+        IOUtils.delete(newTrace);
+        assertFalse(IOUtils.exists(newTrace));
+        IOUtils.rename(trace, newTrace);
         deleteDb("toolsConvertTraceFile");
         Player.main(getBaseDir() + "/test.trace.db");
         testTraceFile(url);

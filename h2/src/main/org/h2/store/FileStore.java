@@ -14,7 +14,6 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileObject;
-import org.h2.store.fs.FileSystem;
 import org.h2.util.IOUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
@@ -71,7 +70,6 @@ public class FileStore {
      * @param mode the access mode ("r", "rw", "rws", "rwd")
      */
     protected FileStore(DataHandler handler, String name, String mode) {
-        FileSystem fs = FileSystem.getInstance(name);
         this.handler = handler;
         this.name = name;
         this.mode = mode;
@@ -79,14 +77,14 @@ public class FileStore {
             tempFileDeleter = handler.getTempFileDeleter();
         }
         try {
-            boolean exists = fs.exists(name);
-            if (exists && !fs.canWrite(name)) {
+            boolean exists = IOUtils.exists(name);
+            if (exists && !IOUtils.canWrite(name)) {
                 mode = "r";
                 this.mode = mode;
             } else {
-                IOUtils.createDirectories(fs.getParent(name));
+                IOUtils.createDirectories(IOUtils.getParent(name));
             }
-            file = fs.openFileObject(name, mode);
+            file = IOUtils.openFileObject(name, mode);
             if (mode.length() > 2) {
                 synchronousMode = true;
             }
@@ -494,7 +492,7 @@ public class FileStore {
      */
     public void openFile() throws IOException {
         if (file == null) {
-            file = FileSystem.getInstance(name).openFileObject(name, mode);
+            file = IOUtils.openFileObject(name, mode);
             file.seek(filePos);
         }
     }

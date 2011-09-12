@@ -79,7 +79,7 @@ public class ProxyCodeGenerator {
      * Generate a class that implements all static methods of the given class,
      * but as non-static.
      *
-     * @param c the class to extend
+     * @param clazz the class to extend
      */
     void generateStaticProxy(Class<?> clazz) {
         imports.clear();

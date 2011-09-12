@@ -113,7 +113,7 @@ public class ModelUtils {
      *
      * @param fieldDef the field to map
      * @param strictTypeMapping throws a RuntimeException if type is unsupported
-     * @return
+     * @return SQL type
      */
     static String getDataType(FieldDefinition fieldDef, boolean strictTypeMapping) {
         Class<?> fieldClass = fieldDef.field.getType();
@@ -134,10 +134,10 @@ public class ModelUtils {
     /**
      * Returns the Java class for a given SQL type.
      *
-     * @param sqlType
+     * @param sqlType the SQL type
      * @param dateTimeClass the preferred date class (java.util.Date or
      *            java.sql.Timestamp)
-     * @return
+     * @return Class of type
      */
     static Class<?> getClassForSqlType(String sqlType,
             Class<? extends java.util.Date> dateTimeClass) {

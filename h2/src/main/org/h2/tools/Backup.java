@@ -95,7 +95,6 @@ public class Backup extends Tool {
      * @param db the source database name (null if there is only one database, and
      *          and empty string to backup all files in this directory)
      * @param quiet don't print progress information
-     * @throws SQLException
      */
     public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
         try {

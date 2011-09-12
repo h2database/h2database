@@ -58,8 +58,6 @@ public class TestAutoServer extends TestBase {
 
     /**
      * Tests basic AUTO_SERVER functionality
-     *
-     * @throws Exception
      */
     private void testAutoServer() throws Exception {
         if (config.memory || config.networked) {

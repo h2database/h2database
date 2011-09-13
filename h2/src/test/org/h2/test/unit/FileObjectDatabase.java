@@ -37,11 +37,11 @@ public class FileObjectDatabase implements FileObject {
         sync();
     }
 
-    public long getFilePointer() {
+    public long position() {
         return pos;
     }
 
-    public long length() {
+    public long size() {
         return length;
     }
 
@@ -53,13 +53,16 @@ public class FileObjectDatabase implements FileObject {
         pos += len;
     }
 
-    public void seek(long newPos) {
+    public void position(long newPos) {
         this.pos = (int) newPos;
     }
 
-    public void setFileLength(long newLength) throws IOException {
+    public void truncate(long newLength) throws IOException {
         if (readOnly) {
             throw new IOException("read only");
+        }
+        if (newLength >= this.length) {
+            return;
         }
         this.length = (int) newLength;
         if (length != data.length) {
@@ -92,10 +95,6 @@ public class FileObjectDatabase implements FileObject {
         pos += len;
         length = Math.max(length, pos);
         changed = true;
-    }
-
-    public String getName() {
-        return fileName;
     }
 
     public void releaseLock() {

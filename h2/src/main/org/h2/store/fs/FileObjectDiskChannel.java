@@ -37,15 +37,11 @@ public class FileObjectDiskChannel implements FileObject {
         file.close();
     }
 
-    public long getFilePointer() throws IOException {
+    public long position() throws IOException {
         return channel.position();
     }
 
-    public String getName() {
-        return FileSystemDiskNio.PREFIX + name;
-    }
-
-    public long length() throws IOException {
+    public long size() throws IOException {
         return channel.size();
     }
 
@@ -62,27 +58,24 @@ public class FileObjectDiskChannel implements FileObject {
         channel.read(buf);
     }
 
-    public void seek(long pos) throws IOException {
+    public void position(long pos) throws IOException {
         channel.position(pos);
     }
 
-    public void setFileLength(long newLength) throws IOException {
-        if (newLength <= channel.size()) {
-            long oldPos = channel.position();
-            try {
-                channel.truncate(newLength);
-            } catch (NonWritableChannelException e) {
-                throw new IOException("read only");
-            }
-            if (oldPos > newLength) {
-                oldPos = newLength;
-            }
-            channel.position(oldPos);
-        } else {
-            // extend by writing to the new location
-            ByteBuffer b = ByteBuffer.allocate(1);
-            channel.write(b, newLength - 1);
+    public void truncate(long newLength) throws IOException {
+        if (newLength >= channel.size()) {
+            return;
         }
+        long pos = channel.position();
+        try {
+            channel.truncate(newLength);
+        } catch (NonWritableChannelException e) {
+            throw new IOException("read only");
+        }
+        if (pos > newLength) {
+            pos = newLength;
+        }
+        channel.position(pos);
         length = newLength;
     }
 
@@ -122,6 +115,10 @@ public class FileObjectDiskChannel implements FileObject {
             }
             lock = null;
         }
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

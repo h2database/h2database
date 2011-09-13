@@ -204,9 +204,9 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public synchronized void delete(String fileName) {
+    public synchronized void delete(String path) {
         try {
-            long id = getId(fileName, false);
+            long id = getId(path, false);
             PreparedStatement prep = prepare("DELETE FROM FILES WHERE ID=?");
             prep.setLong(1, id);
             prep.execute();
@@ -368,11 +368,6 @@ public class FileSystemDatabase extends FileSystem {
             rollback();
             throw convert(e);
         }
-    }
-
-    public boolean tryDelete(String fileName) {
-        delete(fileName);
-        return true;
     }
 
     /**

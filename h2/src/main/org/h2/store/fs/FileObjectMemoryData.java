@@ -166,27 +166,23 @@ class FileObjectMemoryData {
     }
 
     /**
-     * Change the file length.
+     * Truncate the file.
      *
      * @param newLength the new length
      */
-    void setFileLength(long newLength) {
-        if (newLength < length) {
-            changeLength(newLength);
-            long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
-            if (end != newLength) {
-                int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
-                expand(data, lastPage);
-                byte[] d = data[lastPage];
-                for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
-                    d[i] = 0;
-                }
-                if (compress) {
-                    compressLater(data, lastPage);
-                }
+    void truncate(long newLength) {
+        changeLength(newLength);
+        long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
+        if (end != newLength) {
+            int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
+            expand(data, lastPage);
+            byte[] d = data[lastPage];
+            for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
+                d[i] = 0;
             }
-        } else {
-            changeLength(newLength);
+            if (compress) {
+                compressLater(data, lastPage);
+            }
         }
     }
 

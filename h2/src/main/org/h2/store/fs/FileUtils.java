@@ -44,13 +44,14 @@ public class FileUtils {
     }
 
     /**
-     * Delete a file.
-     * This method is similar to Java 7 <code>java.nio.file.Path.delete</code>.
+     * Delete a file or directory if it exists.
+     * Directories may only be deleted if they are empty.
+     * This method is similar to Java 7 <code>java.nio.file.Path.deleteIfExists</code>.
      *
-     * @param fileName the file name
+     * @param path the file or directory name
      */
-    public static void delete(String fileName) {
-        getFileSystem(fileName).delete(fileName);
+    public static void delete(String path) {
+        getFileSystem(path).delete(path);
     }
 
     /**
@@ -215,16 +216,6 @@ public class FileUtils {
     }
 
     /**
-     * Try to delete a file.
-     *
-     * @param fileName the file name
-     * @return true if it worked
-     */
-    public static boolean tryDelete(String fileName) {
-        return getFileSystem(fileName).tryDelete(fileName);
-    }
-
-    /**
      * Disable the ability to write.
      *
      * @param fileName the file name
@@ -302,7 +293,7 @@ public class FileUtils {
      */
     public static void createDirectories(String dir) {
         String parent = FileUtils.getParent(dir);
-        if (!FileUtils.exists(parent)) {
+        if (parent != null && !FileUtils.exists(parent)) {
             createDirectories(parent);
         }
         createDirectory(dir);
@@ -322,6 +313,21 @@ public class FileUtils {
 
     private static FileSystem getFileSystem(String fileName) {
         return FileSystem.getInstance(fileName);
+    }
+
+    /**
+     * Try to delete a file (ignore errors).
+     *
+     * @param fileName the file name
+     * @return true if it worked
+     */
+    public static boolean tryDelete(String fileName) {
+        try {
+            getFileSystem(fileName).delete(fileName);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 }

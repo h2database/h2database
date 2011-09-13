@@ -15,53 +15,48 @@ public interface Recorder {
      * Copy a file. The file name contains the source and the target file
      * separated with a colon.
      */
-    int COPY = 3;
+    int COPY = 0;
 
     /**
      * Create a directory.
      */
-    int CREATE_DIRECTORY = 4;
+    int CREATE_DIRECTORY = 1;
 
     /**
      * Create a new file.
      */
-    int CREATE_NEW_FILE = 5;
+    int CREATE_NEW_FILE = 2;
 
     /**
      * Create a temporary file.
      */
-    int CREATE_TEMP_FILE = 6;
+    int CREATE_TEMP_FILE = 3;
 
     /**
      * Delete a file.
      */
-    int DELETE = 7;
+    int DELETE = 4;
 
     /**
      * Open a file output stream.
      */
-    int OPEN_OUTPUT_STREAM = 8;
+    int OPEN_OUTPUT_STREAM = 5;
 
     /**
      * Rename a file. The file name contains the source and the target file
      * separated with a colon.
      */
-    int RENAME = 9;
+    int RENAME = 6;
 
     /**
-     * Set the length of the file.
+     * Truncate the file.
      */
-    int SET_LENGTH = 1;
-
-    /**
-     * Try to delete the file.
-     */
-    int TRY_DELETE = 2;
+    int TRUNCATE = 7;
 
     /**
      * Write to the file.
      */
-    int WRITE = 0;
+    int WRITE = 8;
 
     /**
      * Record the method.

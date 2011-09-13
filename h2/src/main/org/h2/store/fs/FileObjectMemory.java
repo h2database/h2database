@@ -22,19 +22,20 @@ public class FileObjectMemory implements FileObject {
         this.readOnly = readOnly;
     }
 
-    public long length() {
+    public long size() {
         return data.length();
     }
 
-    public void setFileLength(long newLength) throws IOException {
-        data.touch(readOnly);
-        if (newLength < length()) {
-            pos = Math.min(pos, newLength);
+    public void truncate(long newLength) throws IOException {
+        if (newLength >= size()) {
+            return;
         }
-        data.setFileLength(newLength);
+        data.touch(readOnly);
+        pos = Math.min(pos, newLength);
+        data.truncate(newLength);
     }
 
-    public void seek(long newPos) {
+    public void position(long newPos) {
         this.pos = (int) newPos;
     }
 
@@ -47,7 +48,7 @@ public class FileObjectMemory implements FileObject {
         pos = data.readWrite(pos, b, off, len, false);
     }
 
-    public long getFilePointer() {
+    public long position() {
         return pos;
     }
 
@@ -57,10 +58,6 @@ public class FileObjectMemory implements FileObject {
 
     public void sync() {
         // do nothing
-    }
-
-    public String getName() {
-        return data.getName();
     }
 
     public boolean tryLock() {

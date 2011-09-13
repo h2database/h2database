@@ -63,7 +63,7 @@ public class RecoverTester implements Recorder {
     }
 
     public void log(int op, String fileName, byte[] data, long x) {
-        if (op != Recorder.WRITE && op != Recorder.SET_LENGTH) {
+        if (op != Recorder.WRITE && op != Recorder.TRUNCATE) {
             return;
         }
         if (!fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {

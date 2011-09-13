@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
 import java.util.ArrayList;
-
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.New;
@@ -49,12 +48,12 @@ public class FileSystemSplit extends FileSystemWrapper {
         return result;
     }
 
-    public void delete(String fileName) {
-        fileName = unwrap(fileName);
+    public void delete(String path) {
+        path = unwrap(path);
         for (int i = 0;; i++) {
-            String f = getFileName(fileName, i);
-            if (getInstance(fileName).exists(f)) {
-                getInstance(fileName).delete(f);
+            String f = getFileName(path, i);
+            if (getInstance(path).exists(f)) {
+                getInstance(path).delete(f);
             } else {
                 break;
             }
@@ -138,7 +137,7 @@ public class FileSystemSplit extends FileSystemWrapper {
         }
         FileObject[] array = new FileObject[list.size()];
         list.toArray(array);
-        long maxLength = array[0].length();
+        long maxLength = array[0].size();
         long length = maxLength;
         if (array.length == 1) {
             if (maxLength < defaultMaxSize) {
@@ -146,29 +145,29 @@ public class FileSystemSplit extends FileSystemWrapper {
             }
         } else {
             if (maxLength == 0) {
-                closeAndThrow(array, array[0], maxLength);
+                closeAndThrow(fileName, 0, array, array[0], maxLength);
             }
             for (int i = 1; i < array.length - 1; i++) {
                 o = array[i];
-                long l = o.length();
+                long l = o.size();
                 length += l;
                 if (l != maxLength) {
-                    closeAndThrow(array, o, maxLength);
+                    closeAndThrow(fileName, i, array, o, maxLength);
                 }
             }
             o = array[array.length - 1];
-            long l = o.length();
+            long l = o.size();
             length += l;
             if (l > maxLength) {
-                closeAndThrow(array, o, maxLength);
+                closeAndThrow(fileName, array.length - 1, array, o, maxLength);
             }
         }
         FileObjectSplit fo = new FileObjectSplit(fileName, mode, array, length, maxLength);
         return fo;
     }
 
-    private static void closeAndThrow(FileObject[] array, FileObject o, long maxLength) throws IOException {
-        String message = "Expected file length: " + maxLength + " got: " + o.length() + " for " + o.getName();
+    private static void closeAndThrow(String fileName, int id, FileObject[] array, FileObject o, long maxLength) throws IOException {
+        String message = "Expected file length: " + maxLength + " got: " + o.size() + " for " + getFileName(fileName, id);
         for (FileObject f : array) {
             f.close();
         }
@@ -195,22 +194,6 @@ public class FileSystemSplit extends FileSystemWrapper {
                 break;
             }
         }
-    }
-
-    public boolean tryDelete(String fileName) {
-        fileName = unwrap(fileName);
-        for (int i = 0;; i++) {
-            String f = getFileName(fileName, i);
-            if (getInstance(fileName).exists(f)) {
-                boolean ok = getInstance(fileName).tryDelete(f);
-                if (!ok) {
-                    return false;
-                }
-            } else {
-                break;
-            }
-        }
-        return true;
     }
 
     public String unwrap(String fileName) {

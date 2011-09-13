@@ -36,11 +36,11 @@ public class FileObjectSplit implements FileObject {
         }
     }
 
-    public long getFilePointer() {
+    public long position() {
         return filePointer;
     }
 
-    public long length() {
+    public long size() {
         return length;
     }
 
@@ -48,7 +48,7 @@ public class FileObjectSplit implements FileObject {
         long offset = filePointer % maxLength;
         int l = (int) Math.min(len, maxLength - offset);
         FileObject fo = getFileObject();
-        fo.seek(offset);
+        fo.position(offset);
         fo.readFully(b, off, l);
         filePointer += l;
         return l;
@@ -68,7 +68,7 @@ public class FileObjectSplit implements FileObject {
         }
     }
 
-    public void seek(long pos) {
+    public void position(long pos) {
         filePointer = pos;
     }
 
@@ -85,47 +85,31 @@ public class FileObjectSplit implements FileObject {
         return list[id];
     }
 
-    public void setFileLength(long newLength) throws IOException {
+    public void truncate(long newLength) throws IOException {
+        if (newLength >= length) {
+            return;
+        }
         filePointer = Math.min(filePointer, newLength);
         int newFileCount = 1 + (int) (newLength / maxLength);
-        if (newFileCount == list.length) {
-            long size = newLength - maxLength * (newFileCount - 1);
-            list[list.length - 1].setFileLength(size);
-        } else {
+        if (newFileCount < list.length) {
+            // delete some of the files
             FileObject[] newList = new FileObject[newFileCount];
-            int max = Math.max(newFileCount, list.length);
-            long remaining = newLength;
             // delete backwards, so that truncating is somewhat transactional
             for (int i = list.length - 1; i >= newFileCount; i--) {
                 // verify the file is writable
-                list[i].setFileLength(0);
+                list[i].truncate(0);
                 list[i].close();
                 try {
-                    FileUtils.delete(list[i].getName());
+                    FileUtils.delete(FileSystemSplit.getFileName(name, i));
                 } catch (DbException e) {
                     throw DbException.convertToIOException(e);
                 }
             }
-            for (int i = 0; i < max; i++) {
-                long fileSize = Math.min(remaining, maxLength);
-                remaining -= fileSize;
-                if (i >= newFileCount) {
-                    // already closed and deleted
-                } else if (i >= list.length) {
-                    String fileName = FileSystemSplit.getFileName(name, i);
-                    FileObject o = FileSystem.getInstance(fileName).openFileObject(fileName, mode);
-                    o.setFileLength(fileSize);
-                    newList[i] = o;
-                } else {
-                    FileObject o = list[i];
-                    if (o.length() != fileSize) {
-                        o.setFileLength(fileSize);
-                    }
-                    newList[i] = list[i];
-                }
-            }
+            System.arraycopy(list, 0, newList, 0, newList.length);
             list = newList;
         }
+        long size = newLength - maxLength * (newFileCount - 1);
+        list[list.length - 1].truncate(size);
         this.length = newLength;
     }
 
@@ -136,6 +120,18 @@ public class FileObjectSplit implements FileObject {
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
+        if (filePointer >= length && filePointer > maxLength) {
+            // may need to extend and create files
+            long oldFilePointer = filePointer;
+            long x = length - (length % maxLength) + maxLength;
+            for (; x < filePointer; x += maxLength) {
+                if (x > length) {
+                    position(x - 1);
+                    writePart(new byte[1], 0, 1);
+                }
+                filePointer = oldFilePointer;
+            }
+        }
         while (true) {
             int l = writePart(b, off, len);
             len -= l;
@@ -150,15 +146,11 @@ public class FileObjectSplit implements FileObject {
         long offset = filePointer % maxLength;
         int l = (int) Math.min(len, maxLength - offset);
         FileObject fo = getFileObject();
-        fo.seek(offset);
+        fo.position(offset);
         fo.write(b, off, l);
         filePointer += l;
         length = Math.max(length, filePointer);
         return l;
-    }
-
-    public String getName() {
-        return FileSystemSplit.PREFIX + name;
     }
 
     public boolean tryLock() {

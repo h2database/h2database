@@ -203,10 +203,6 @@ public class FileSystemZip extends FileSystem {
         throw DbException.getUnsupportedException("write");
     }
 
-    public boolean tryDelete(String fileName) {
-        return false;
-    }
-
     private static String translateFileName(String fileName) {
         if (fileName.startsWith(PREFIX)) {
             fileName = fileName.substring(PREFIX.length());

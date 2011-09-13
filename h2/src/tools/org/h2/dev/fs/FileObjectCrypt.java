@@ -41,7 +41,7 @@ public class FileObjectCrypt implements FileObject {
     public FileObjectCrypt(String name, String algorithm, String password, FileObject file) throws IOException {
         this.name = name;
         this.file = file;
-        boolean newFile = file.length() < HEADER_LENGTH + BLOCK_SIZE;
+        boolean newFile = file.size() < HEADER_LENGTH + BLOCK_SIZE;
         byte[] filePasswordHash;
         if (algorithm.endsWith("-hash")) {
             filePasswordHash = StringUtils.convertHexToBytes(password);
@@ -56,11 +56,11 @@ public class FileObjectCrypt implements FileObject {
         if (newFile) {
             salt = MathUtils.secureRandomBytes(SALT_LENGTH);
             file.write(HEADER, 0, HEADER.length);
-            file.seek(SALT_POS);
+            file.position(SALT_POS);
             file.write(salt, 0, salt.length);
         } else {
             salt = new byte[SALT_LENGTH];
-            file.seek(SALT_POS);
+            file.position(SALT_POS);
             file.readFully(salt, 0, SALT_LENGTH);
         }
         byte[] key = SHA256.getHashWithSalt(filePasswordHash, salt);
@@ -69,27 +69,23 @@ public class FileObjectCrypt implements FileObject {
         }
         cipher.setKey(key);
         bufferForInitVector = new byte[BLOCK_SIZE];
-        seek(0);
+        position(0);
     }
 
-    public long getFilePointer() throws IOException {
-        return Math.max(0, file.getFilePointer() - HEADER_LENGTH);
+    public long position() throws IOException {
+        return Math.max(0, file.position() - HEADER_LENGTH);
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public long length() throws IOException {
-        return Math.max(0, file.length() - HEADER_LENGTH - BLOCK_SIZE);
+    public long size() throws IOException {
+        return Math.max(0, file.size() - HEADER_LENGTH - BLOCK_SIZE);
     }
 
     public void releaseLock() {
         file.releaseLock();
     }
 
-    public void seek(long pos) throws IOException {
-        file.seek(pos + HEADER_LENGTH);
+    public void position(long pos) throws IOException {
+        file.position(pos + HEADER_LENGTH);
     }
 
     public void sync() throws IOException {
@@ -104,29 +100,30 @@ public class FileObjectCrypt implements FileObject {
         file.close();
     }
 
-    public void setFileLength(long newLength) throws IOException {
-        if (newLength < length()) {
-            int mod = (int) (newLength % BLOCK_SIZE);
-            if (mod == 0) {
-                file.setFileLength(HEADER_LENGTH + newLength);
-            } else {
-                file.setFileLength(HEADER_LENGTH + newLength + BLOCK_SIZE - mod);
-                byte[] buff = new byte[BLOCK_SIZE - mod];
-                long pos = getFilePointer();
-                seek(newLength);
-                write(buff, 0, buff.length);
-                seek(pos);
-            }
+    public void truncate(long newLength) throws IOException {
+        if (newLength >= size()) {
+            return;
         }
-        file.setFileLength(HEADER_LENGTH + newLength + BLOCK_SIZE);
-        if (newLength < getFilePointer()) {
-            seek(newLength);
+        int mod = (int) (newLength % BLOCK_SIZE);
+        if (mod == 0) {
+            file.truncate(HEADER_LENGTH + newLength);
+        } else {
+            file.truncate(HEADER_LENGTH + newLength + BLOCK_SIZE - mod);
+            byte[] buff = new byte[BLOCK_SIZE - mod];
+            long pos = position();
+            position(newLength);
+            write(buff, 0, buff.length);
+            position(pos);
+        }
+        file.truncate(HEADER_LENGTH + newLength + BLOCK_SIZE);
+        if (newLength < position()) {
+            position(newLength);
         }
     }
 
     public void readFully(byte[] b, int off, int len) throws IOException {
-        long pos = getFilePointer();
-        long length = length();
+        long pos = position();
+        long length = size();
         if (pos + len > length) {
             throw new EOFException("pos: " + pos + " len: " + len + " length: " + length);
         }
@@ -140,19 +137,19 @@ public class FileObjectCrypt implements FileObject {
                 l += posMod;
             }
             l = MathUtils.roundUpInt(l, BLOCK_SIZE);
-            seek(p);
+            position(p);
             byte[] temp = new byte[l];
             try {
                 readAligned(p, temp, 0, l);
                 System.arraycopy(temp, posMod, b, off, len);
             } finally {
-                seek(pos + len);
+                position(pos + len);
             }
         }
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-        long pos = getFilePointer();
+        long pos = position();
         int posMod = (int) (pos % BLOCK_SIZE);
         if (posMod == 0 && len % BLOCK_SIZE == 0) {
             byte[] temp = new byte[len];
@@ -165,23 +162,27 @@ public class FileObjectCrypt implements FileObject {
                 l += posMod;
             }
             l = MathUtils.roundUpInt(l, BLOCK_SIZE);
-            seek(p);
+            position(p);
             byte[] temp = new byte[l];
-            if (file.length() < HEADER_LENGTH + p + l) {
-                file.setFileLength(HEADER_LENGTH + p + l);
+            if (file.size() < HEADER_LENGTH + p + l) {
+                file.position(HEADER_LENGTH + p + l - 1);
+                file.write(new byte[1], 0, 1);
+                position(p);
             }
             readAligned(p, temp, 0, l);
             System.arraycopy(b, off, temp, posMod, len);
-            seek(p);
+            position(p);
             try {
                 writeAligned(p, temp, 0, l);
             } finally {
-                seek(pos + len);
+                position(pos + len);
             }
         }
-        pos = file.getFilePointer();
-        if (file.length() < pos + BLOCK_SIZE) {
-            file.setFileLength(pos + BLOCK_SIZE);
+        pos = file.position();
+        if (file.size() < pos + BLOCK_SIZE) {
+            file.position(pos + BLOCK_SIZE - 1);
+            file.write(new byte[1], 0, 1);
+            file.position(pos);
         }
     }
 
@@ -235,6 +236,10 @@ public class FileObjectCrypt implements FileObject {
             off += BLOCK_SIZE;
             len -= BLOCK_SIZE;
         }
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

@@ -68,7 +68,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn.createStatement().execute("create table test(id int, name varchar) as select 1, space(1000000)");
         conn.close();
         FileObject f = FileUtils.openFileObject(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
-        f.setFileLength(f.length() * 2);
+        f.position(f.size() * 2 - 1);
+        f.write(new byte[1], 0, 1);
         f.close();
         assertThrows(ErrorCode.IO_EXCEPTION_2, this).
                 getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");

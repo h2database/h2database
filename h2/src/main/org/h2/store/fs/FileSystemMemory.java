@@ -68,7 +68,7 @@ public class FileSystemMemory extends FileSystem {
 
     public boolean exists(String fileName) {
         fileName = getCanonicalPath(fileName);
-        if (fileName.equals(PREFIX) || fileName.equals(PREFIX_LZF)) {
+        if (isRoot(fileName)) {
             return true;
         }
         synchronized (MEMORY_FILES) {
@@ -76,16 +76,14 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public void delete(String fileName) {
-        fileName = getCanonicalPath(fileName);
-        synchronized (MEMORY_FILES) {
-            MEMORY_FILES.remove(fileName);
+    public void delete(String path) {
+        path = getCanonicalPath(path);
+        if (isRoot(path)) {
+            return;
         }
-    }
-
-    public boolean tryDelete(String fileName) {
-        delete(fileName);
-        return true;
+        synchronized (MEMORY_FILES) {
+            MEMORY_FILES.remove(path);
+        }
     }
 
     public String[] listFiles(String path) {
@@ -197,6 +195,10 @@ public class FileSystemMemory extends FileSystem {
             }
             return m;
         }
+    }
+
+    private boolean isRoot(String path) {
+        return path.equals(PREFIX) || path.equals(PREFIX_LZF);
     }
 
     protected boolean accepts(String fileName) {

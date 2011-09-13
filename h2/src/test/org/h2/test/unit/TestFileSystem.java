@@ -49,6 +49,7 @@ public class TestFileSystem extends TestBase {
         // DebugFileSystem.register().setTrace(true);
         // testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
 
+        testSimpleExpandTruncateSize();
         testSplitDatabaseInZip();
         testDatabaseInMemFileSys();
         testDatabaseInJar();
@@ -105,6 +106,18 @@ public class TestFileSystem extends TestBase {
         in = FileUtils.newInputStream("classpath:/" + resource);
         assertTrue(in != null);
         in.close();
+    }
+
+    private void testSimpleExpandTruncateSize() throws Exception {
+        String f = "memFS:" + getBaseDir() + "/fs/test.data";
+        FileUtils.createDirectories("memFS:" + getBaseDir() + "/fs");
+        FileObject o = FileUtils.openFileObject(f, "rw");
+        o.position(4000);
+        o.write(new byte[1], 0, 1);
+        o.tryLock();
+        o.truncate(0);
+        o.releaseLock();
+        o.close();
     }
 
     private void testSplitDatabaseInZip() throws SQLException {
@@ -206,7 +219,7 @@ public class TestFileSystem extends TestBase {
         testRandomAccess(fsBase);
     }
 
-    private void testSimple(String fsBase) throws Exception {
+    private void testSimple(final String fsBase) throws Exception {
         long time = System.currentTimeMillis();
         for (String s : FileUtils.listFiles(fsBase)) {
             FileUtils.delete(s);
@@ -221,16 +234,16 @@ public class TestFileSystem extends TestBase {
         Random random = new Random(1);
         random.nextBytes(buffer);
         fo.write(buffer, 0, 10000);
-        assertEquals(10000, fo.length());
-        fo.seek(20000);
-        assertEquals(20000, fo.getFilePointer());
+        assertEquals(10000, fo.size());
+        fo.position(20000);
+        assertEquals(20000, fo.position());
         assertThrows(EOFException.class, fo).readFully(buffer, 0, 1);
-        assertEquals(fsBase + "/test", fo.getName().replace('\\', '/'));
-        assertEquals("test", FileUtils.getName(fo.getName()));
-        assertEquals(fsBase, FileUtils.getParent(fo.getName()).replace('\\', '/'));
+        String path = fsBase + "/test";
+        assertEquals("test", FileUtils.getName(path));
+        assertEquals(fsBase, FileUtils.getParent(path).replace('\\', '/'));
         fo.tryLock();
         fo.releaseLock();
-        assertEquals(10000, fo.length());
+        assertEquals(10000, fo.size());
         fo.close();
         assertEquals(10000, FileUtils.size(fsBase + "/test"));
         fo = FileUtils.openFileObject(fsBase + "/test", "r");
@@ -238,7 +251,7 @@ public class TestFileSystem extends TestBase {
         fo.readFully(test, 0, 10000);
         assertEquals(buffer, test);
         assertThrows(IOException.class, fo).write(test, 0, 10);
-        assertThrows(IOException.class, fo).setFileLength(10);
+        assertThrows(IOException.class, fo).truncate(10);
         fo.close();
         long lastMod = FileUtils.lastModified(fsBase + "/test");
         if (lastMod < time - 1999) {
@@ -306,7 +319,7 @@ public class TestFileSystem extends TestBase {
                     pos = (int) Math.min(pos, ra.length());
                     trace("seek " + pos);
                     buff.append("seek " + pos + "\n");
-                    f.seek(pos);
+                    f.position(pos);
                     ra.seek(pos);
                     break;
                 }
@@ -320,14 +333,15 @@ public class TestFileSystem extends TestBase {
                     break;
                 }
                 case 2: {
-                    trace("setLength " + pos);
-                    f.setFileLength(pos);
-                    ra.setLength(pos);
-                    if (ra.getFilePointer() > pos) {
-                        f.seek(0);
-                        ra.seek(0);
+                    trace("truncate " + pos);
+                    f.truncate(pos);
+                    if (pos < ra.getFilePointer()) {
+                        // truncate is supposed to have no effect if the
+                        // position is larger than the current position
+                        ra.setLength(pos);
                     }
-                    buff.append("setLength " + pos + "\n");
+                    assertEquals(ra.getFilePointer(), f.position());
+                    buff.append("truncate " + pos + "\n");
                     break;
                 }
                 case 3: {
@@ -345,13 +359,13 @@ public class TestFileSystem extends TestBase {
                 case 4: {
                     trace("getFilePointer");
                     buff.append("getFilePointer\n");
-                    assertEquals(ra.getFilePointer(), f.getFilePointer());
+                    assertEquals(ra.getFilePointer(), f.position());
                     break;
                 }
                 case 5: {
                     trace("length " + ra.length());
                     buff.append("length " + ra.length() + "\n");
-                    assertEquals(ra.length(), f.length());
+                    assertEquals(ra.length(), f.size());
                     break;
                 }
                 case 6: {
@@ -361,7 +375,7 @@ public class TestFileSystem extends TestBase {
                     ra.close();
                     ra = new RandomAccessFile(file, "rw");
                     f = FileUtils.openFileObject(s, "rw");
-                    assertEquals(ra.length(), f.length());
+                    assertEquals(ra.length(), f.size());
                     break;
                 }
                 default:

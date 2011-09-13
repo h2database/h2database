@@ -17,7 +17,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.RandomAccessFile;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -25,7 +24,6 @@ import java.io.Writer;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileSystem;
 
 /**
  * This utility class contains input/output functions.
@@ -475,36 +473,6 @@ public class IOUtils {
             }
         }
         throw new IOException("Could not create directory: " + directory.getAbsolutePath());
-    }
-
-    /**
-     * Change the length of the file.
-     *
-     * @param file the random access file
-     * @param newLength the new length
-     */
-    public static void setLength(RandomAccessFile file, long newLength) throws IOException {
-        try {
-            trace("setLength", null, file);
-            file.setLength(newLength);
-        } catch (IOException e) {
-            long length = file.length();
-            if (newLength < length) {
-                throw e;
-            }
-            long pos = file.getFilePointer();
-            file.seek(length);
-            long remaining = newLength - length;
-            int maxSize = 1024 * 1024;
-            int block = (int) Math.min(remaining, maxSize);
-            byte[] buffer = new byte[block];
-            while (remaining > 0) {
-                int write = (int) Math.min(remaining, maxSize);
-                file.write(buffer, 0, write);
-                remaining -= write;
-            }
-            file.seek(pos);
-        }
     }
 
     /**

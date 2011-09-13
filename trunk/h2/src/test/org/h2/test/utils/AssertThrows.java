@@ -86,8 +86,7 @@ public abstract class AssertThrows {
                 if (errorCode != expectedErrorCode) {
                     AssertionError ae = new AssertionError(
                             "Expected an SQLException or DbException with error code " +
-                            expectedErrorCode +
-                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
+                            expectedErrorCode);
                     ae.initCause(t);
                     throw ae;
                 }

@@ -250,9 +250,7 @@ public class TraceSystem implements TraceWriter {
                 closeWriter();
                 if (maxFileSize > 0 && FileUtils.size(fileName) > maxFileSize) {
                     String old = fileName + ".old";
-                    if (FileUtils.exists(old)) {
-                        FileUtils.delete(old);
-                    }
+                    FileUtils.delete(old);
                     FileUtils.moveTo(fileName, old);
                 }
             }

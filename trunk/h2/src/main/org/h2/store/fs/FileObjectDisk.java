@@ -11,18 +11,18 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import org.h2.constant.SysProperties;
-import org.h2.util.IOUtils;
 
 /**
  * This class extends a java.io.RandomAccessFile.
  */
-public class FileObjectDisk extends RandomAccessFile implements FileObject {
+public class FileObjectDisk implements FileObject {
 
+    private final RandomAccessFile file;
     private final String name;
     private FileLock lock;
 
     FileObjectDisk(String fileName, String mode) throws FileNotFoundException {
-        super(fileName, mode);
+        this.file = new RandomAccessFile(fileName, mode);
         this.name = fileName;
     }
 
@@ -31,28 +31,27 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
         if ("".equals(m)) {
             // do nothing
         } else if ("sync".equals(m)) {
-            getFD().sync();
+            file.getFD().sync();
         } else if ("force".equals(m)) {
-            getChannel().force(true);
+            file.getChannel().force(true);
         } else if ("forceFalse".equals(m)) {
-            getChannel().force(false);
+            file.getChannel().force(false);
         } else {
-            getFD().sync();
+            file.getFD().sync();
         }
     }
 
-    public void setFileLength(long newLength) throws IOException {
-        IOUtils.setLength(this, newLength);
-    }
-
-    public String getName() {
-        return name;
+    public void truncate(long newLength) throws IOException {
+        if (newLength < file.length()) {
+            // some implementations actually only support truncate
+            file.setLength(newLength);
+        }
     }
 
     public synchronized boolean tryLock() {
         if (lock == null) {
             try {
-                lock = getChannel().tryLock();
+                lock = file.getChannel().tryLock();
             } catch (Exception e) {
                 // could not lock (OverlappingFileLockException)
             }
@@ -70,6 +69,34 @@ public class FileObjectDisk extends RandomAccessFile implements FileObject {
             }
             lock = null;
         }
+    }
+
+    public void close() throws IOException {
+        file.close();
+    }
+
+    public long position() throws IOException {
+        return file.getFilePointer();
+    }
+
+    public long size() throws IOException {
+        return file.length();
+    }
+
+    public void readFully(byte[] b, int off, int len) throws IOException {
+        file.readFully(b, off, len);
+    }
+
+    public void position(long pos) throws IOException {
+        file.seek(pos);
+    }
+
+    public void write(byte[] b, int off, int len) throws IOException {
+        file.write(b, off, len);
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

@@ -31,12 +31,6 @@ public class FileStore {
     public static final int HEADER_LENGTH = 3 * Constants.FILE_BLOCK_SIZE;
 
     /**
-     * An empty buffer to speed up extending the file (it seems that writing 0
-     * bytes is faster then calling setLength).
-     */
-    protected static byte[] empty;
-
-    /**
      * The magic file header.
      */
     private static final String HEADER = "-- H2 0.5/B --      ".substring(0, Constants.FILE_BLOCK_SIZE - 1) + "\n";
@@ -57,7 +51,6 @@ public class FileStore {
     private long fileLength;
     private Reference<?> autoDeleteReference;
     private boolean checkedWriting = true;
-    private boolean synchronousMode;
     private String mode;
     private TempFileDeleter tempFileDeleter;
     private boolean textMode;
@@ -85,11 +78,8 @@ public class FileStore {
                 FileUtils.createDirectories(FileUtils.getParent(name));
             }
             file = FileUtils.openFileObject(name, mode);
-            if (mode.length() > 2) {
-                synchronousMode = true;
-            }
             if (exists) {
-                fileLength = file.length();
+                fileLength = file.size();
             }
         } catch (IOException e) {
             throw DbException.convertIOException(e, "name: " + name + " mode: " + mode);
@@ -299,7 +289,7 @@ public class FileStore {
         }
         try {
             if (pos != filePos) {
-                file.seek(pos);
+                file.position(pos);
                 filePos = pos;
             }
         } catch (IOException e) {
@@ -356,24 +346,6 @@ public class FileStore {
         return true;
     }
 
-    private void extendByWriting(long newLength) throws IOException {
-        long pos = filePos;
-        file.seek(fileLength);
-        if (empty == null) {
-            empty = new byte[16 * 1024];
-        }
-        byte[] e = empty;
-        while (true) {
-            int p = (int) Math.min(newLength - fileLength, e.length);
-            if (p <= 0) {
-                break;
-            }
-            file.write(e, 0, p);
-            fileLength += p;
-        }
-        file.seek(pos);
-    }
-
     /**
      * Set the length of the file. This will expand or shrink the file.
      *
@@ -386,16 +358,19 @@ public class FileStore {
         checkPowerOff();
         checkWritingAllowed();
         try {
-            if (synchronousMode && newLength > fileLength) {
-                extendByWriting(newLength);
+            if (newLength > fileLength) {
+                long pos = filePos;
+                file.position(newLength - 1);
+                file.write(new byte[1], 0, 1);
+                file.position(pos);
             } else {
-                file.setFileLength(newLength);
+                file.truncate(newLength);
             }
             fileLength = newLength;
         } catch (IOException e) {
             if (newLength > fileLength && freeUpDiskSpace()) {
                 try {
-                    file.setFileLength(newLength);
+                    file.truncate(newLength);
                 } catch (IOException e2) {
                     throw DbException.convertIOException(e2, name);
                 }
@@ -414,14 +389,14 @@ public class FileStore {
         try {
             long len = fileLength;
             if (SysProperties.CHECK2) {
-                len = file.length();
+                len = file.size();
                 if (len != fileLength) {
                     DbException.throwInternalError("file " + name + " length " + len + " expected " + fileLength);
                 }
             }
             if (SysProperties.CHECK2 && len % Constants.FILE_BLOCK_SIZE != 0) {
                 long newLength = len + Constants.FILE_BLOCK_SIZE - (len % Constants.FILE_BLOCK_SIZE);
-                file.setFileLength(newLength);
+                file.truncate(newLength);
                 fileLength = newLength;
                 DbException.throwInternalError("unaligned file length " + name + " len " + len);
             }
@@ -439,7 +414,7 @@ public class FileStore {
     public long getFilePointer() {
         if (SysProperties.CHECK2) {
             try {
-                if (file.getFilePointer() != filePos) {
+                if (file.position() != filePos) {
                     DbException.throwInternalError();
                 }
             } catch (IOException e) {
@@ -493,7 +468,7 @@ public class FileStore {
     public void openFile() throws IOException {
         if (file == null) {
             file = FileUtils.openFileObject(name, mode);
-            file.seek(filePos);
+            file.position(filePos);
         }
     }
 

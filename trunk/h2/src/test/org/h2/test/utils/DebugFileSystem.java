@@ -172,7 +172,7 @@ public class DebugFileSystem extends FileSystemWrapper {
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
         trace(fileName, "openFileObject", mode);
-        return new DebugFileObject(this, super.openFileObject(fileName, mode));
+        return new DebugFileObject(this, super.openFileObject(fileName, mode), fileName);
     }
 
     public OutputStream newOutputStream(String fileName, boolean append) {
@@ -183,11 +183,6 @@ public class DebugFileSystem extends FileSystemWrapper {
     public void moveTo(String oldName, String newName) {
         trace(oldName, "moveTo", unwrap(newName));
         super.moveTo(oldName, newName);
-    }
-
-    public boolean tryDelete(String fileName) {
-        trace(fileName, "tryDelete");
-        return super.tryDelete(fileName);
     }
 
     public String getPrefix() {

@@ -63,7 +63,7 @@ public class RecordingFileSystem extends FileSystemWrapper {
     }
 
     public FileObject openFileObject(String fileName, String mode) throws IOException {
-        return new RecordingFileObject(this, super.openFileObject(fileName, mode));
+        return new RecordingFileObject(this, super.openFileObject(fileName, mode), fileName);
     }
 
     public OutputStream newOutputStream(String fileName, boolean append) {
@@ -74,11 +74,6 @@ public class RecordingFileSystem extends FileSystemWrapper {
     public void moveTo(String oldName, String newName) {
         log(Recorder.RENAME, unwrap(oldName) + ":" + unwrap(newName));
         super.moveTo(oldName, newName);
-    }
-
-    public boolean tryDelete(String fileName) {
-        log(Recorder.TRY_DELETE, unwrap(fileName));
-        return super.tryDelete(fileName);
     }
 
     public String getPrefix() {

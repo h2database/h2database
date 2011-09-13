@@ -16,7 +16,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileLock;
 import java.nio.channels.FileChannel.MapMode;
 import org.h2.constant.SysProperties;
-import org.h2.util.IOUtils;
 
 /**
  * FileObject which is using NIO MappedByteBuffer mapped to memory from file.
@@ -129,15 +128,11 @@ public class FileObjectDiskMapped implements FileObject {
         }
     }
 
-    public long getFilePointer() {
+    public long position() {
         return pos;
     }
 
-    public String getName() {
-        return FileSystemDiskNioMapped.PREFIX + name;
-    }
-
-    public synchronized long length() throws IOException {
+    public synchronized long size() throws IOException {
         return file.length();
     }
 
@@ -157,26 +152,18 @@ public class FileObjectDiskMapped implements FileObject {
         }
     }
 
-    public void seek(long pos) throws IOException {
+    public void position(long pos) throws IOException {
         checkFileSizeLimit(pos);
         this.pos = (int) pos;
     }
 
-    public synchronized void setFileLength(long newLength) throws IOException {
-        checkFileSizeLimit(newLength);
+    public synchronized void truncate(long newLength) throws IOException {
+        if (newLength >= size()) {
+            return;
+        }
         int oldPos = pos;
         unMap();
-        for (int i = 0;; i++) {
-            try {
-                IOUtils.setLength(file, newLength);
-                break;
-            } catch (IOException e) {
-                if (i > 16 || e.toString().indexOf("user-mapped section open") < 0) {
-                    throw e;
-                }
-            }
-            System.gc();
-        }
+        file.setLength(newLength);
         reMap();
         pos = (int) Math.min(newLength, oldPos);
     }
@@ -189,7 +176,11 @@ public class FileObjectDiskMapped implements FileObject {
     public synchronized void write(byte[] b, int off, int len) throws IOException {
         // check if need to expand file
         if (mapped.capacity() < pos + len) {
-            setFileLength(pos + len);
+            int oldPos = pos;
+            unMap();
+            file.setLength(pos + len);
+            reMap();
+            pos = oldPos;
         }
         mapped.position(pos);
         mapped.put(b, off, len);
@@ -217,6 +208,10 @@ public class FileObjectDiskMapped implements FileObject {
             }
             lock = null;
         }
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

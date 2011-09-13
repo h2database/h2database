@@ -27,7 +27,7 @@ public class FileObjectInputStream extends InputStream {
     }
 
     public int read() throws IOException {
-        if (file.getFilePointer() >= file.length()) {
+        if (file.position() >= file.size()) {
             return -1;
         }
         file.readFully(buffer, 0, 1);
@@ -39,7 +39,7 @@ public class FileObjectInputStream extends InputStream {
     }
 
     public int read(byte[] b, int off, int len) throws IOException {
-        if (file.getFilePointer() + len < file.length()) {
+        if (file.position() + len < file.size()) {
             file.readFully(b, off, len);
             return len;
         }

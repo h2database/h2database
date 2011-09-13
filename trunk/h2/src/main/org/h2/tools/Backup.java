@@ -123,9 +123,7 @@ public class Backup extends Tool {
             FileLister.tryUnlockDatabase(list, "backup");
         }
         zipFileName = FileUtils.getCanonicalPath(zipFileName);
-        if (FileUtils.exists(zipFileName)) {
-            FileUtils.delete(zipFileName);
-        }
+        FileUtils.delete(zipFileName);
         OutputStream fileOut = null;
         try {
             fileOut = FileUtils.newOutputStream(zipFileName, false);

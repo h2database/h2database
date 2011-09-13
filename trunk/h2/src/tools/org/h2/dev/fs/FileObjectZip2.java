@@ -47,11 +47,11 @@ public class FileObjectZip2 implements FileObject {
         }
     }
 
-    public long getFilePointer() {
+    public long position() {
         return pos;
     }
 
-    public long length() {
+    public long size() {
         return length;
     }
 
@@ -93,11 +93,11 @@ public class FileObjectZip2 implements FileObject {
         inPos += len;
     }
 
-    public void seek(long newPos) {
+    public void position(long newPos) {
         this.pos = newPos;
     }
 
-    public void setFileLength(long newLength) throws IOException {
+    public void truncate(long newLength) throws IOException {
         throw new IOException("File is read-only");
     }
 
@@ -109,16 +109,16 @@ public class FileObjectZip2 implements FileObject {
         throw new IOException("File is read-only");
     }
 
-    public String getName() {
-        return name;
-    }
-
     public boolean tryLock() {
         return false;
     }
 
     public void releaseLock() {
         // ignore
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

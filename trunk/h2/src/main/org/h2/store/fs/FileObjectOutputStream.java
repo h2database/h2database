@@ -26,10 +26,10 @@ public class FileObjectOutputStream extends OutputStream {
     public FileObjectOutputStream(FileObject file, boolean append) throws IOException {
         this.file = file;
         if (append) {
-            file.seek(file.length());
+            file.position(file.size());
         } else {
-            file.seek(0);
-            file.setFileLength(0);
+            file.position(0);
+            file.truncate(0);
         }
     }
 

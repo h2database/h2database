@@ -18,7 +18,7 @@ public interface FileObject {
      *
      * @return the length
      */
-    long length() throws IOException;
+    long size() throws IOException;
 
     /**
      * Close the file.
@@ -38,7 +38,7 @@ public interface FileObject {
      *
      * @param pos the new position
      */
-    void seek(long pos) throws IOException;
+    void position(long pos) throws IOException;
 
     /**
      * Write to the file.
@@ -54,7 +54,7 @@ public interface FileObject {
      *
      * @return the current file pointer
      */
-    long getFilePointer() throws IOException;
+    long position() throws IOException;
 
     /**
      * Force changes to the physical location.
@@ -66,14 +66,7 @@ public interface FileObject {
      *
      * @param newLength the new length
      */
-    void setFileLength(long newLength) throws IOException;
-
-    /**
-     * Get the full qualified name of this file.
-     *
-     * @return the name
-     */
-    String getName();
+    void truncate(long newLength) throws IOException;
 
     /**
      * Try to lock the file exclusively.

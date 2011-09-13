@@ -272,10 +272,6 @@ public class FileSystemZip2 extends FileSystem {
         throw DbException.getUnsupportedException("write");
     }
 
-    public boolean tryDelete(String fileName) {
-        return false;
-    }
-
     public String unwrap(String fileName) {
         if (fileName.startsWith(PREFIX)) {
             fileName = fileName.substring(PREFIX.length());

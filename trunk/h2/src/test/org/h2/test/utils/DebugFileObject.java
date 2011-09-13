@@ -18,10 +18,10 @@ public class DebugFileObject implements FileObject {
     private final FileObject file;
     private final String name;
 
-    DebugFileObject(DebugFileSystem fs, FileObject file) {
+    DebugFileObject(DebugFileSystem fs, FileObject file, String name) {
         this.fs = fs;
         this.file = file;
-        this.name = fs.getPrefix() + file.getName();
+        this.name = fs.getPrefix() + name;
     }
 
     public void close() throws IOException {
@@ -29,35 +29,30 @@ public class DebugFileObject implements FileObject {
         file.close();
     }
 
-    public long getFilePointer() throws IOException {
+    public long position() throws IOException {
         debug("getFilePointer");
-        return file.getFilePointer();
+        return file.position();
     }
 
-    public String getName() {
-        debug("getName");
-        return DebugFileSystem.PREFIX + file.getName();
-    }
-
-    public long length() throws IOException {
+    public long size() throws IOException {
         debug("length");
-        return file.length();
+        return file.size();
     }
 
     public void readFully(byte[] b, int off, int len) throws IOException {
-        debug("readFully", file.getFilePointer(), off, len);
+        debug("readFully", file.position(), off, len);
         file.readFully(b, off, len);
     }
 
-    public void seek(long pos) throws IOException {
+    public void position(long pos) throws IOException {
         debug("seek", pos);
-        file.seek(pos);
+        file.position(pos);
     }
 
-    public void setFileLength(long newLength) throws IOException {
+    public void truncate(long newLength) throws IOException {
         checkPowerOff();
-        debug("setFileLength", newLength);
-        file.setFileLength(newLength);
+        debug("truncate", newLength);
+        file.truncate(newLength);
     }
 
     public void sync() throws IOException {
@@ -67,7 +62,7 @@ public class DebugFileObject implements FileObject {
 
     public void write(byte[] b, int off, int len) throws IOException {
         checkPowerOff();
-        debug("write", file.getFilePointer(), off, len);
+        debug("write", file.position(), off, len);
         file.write(b, off, len);
     }
 

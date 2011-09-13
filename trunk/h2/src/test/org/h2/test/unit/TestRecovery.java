@@ -136,11 +136,11 @@ public class TestRecovery extends TestBase {
         conn.close();
         FileObject f = FileUtils.openFileObject(getBaseDir() + "/recovery.h2.db", "rw");
         byte[] buff = new byte[Constants.DEFAULT_PAGE_SIZE];
-        while (f.getFilePointer() < f.length()) {
+        while (f.position() < f.size()) {
             f.readFully(buff, 0, buff.length);
             if (new String(buff).indexOf("Hello World1") >= 0) {
                 buff[buff.length - 1]++;
-                f.seek(f.getFilePointer() - buff.length);
+                f.position(f.position() - buff.length);
                 f.write(buff, 0, buff.length);
             }
         }

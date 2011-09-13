@@ -314,7 +314,7 @@ public class FileShell extends Tool {
         FileObject f = null;
         try {
             f = FileUtils.openFileObject(fileName, "rw");
-            f.setFileLength(length);
+            f.truncate(length);
         } catch (IOException e) {
             error(e);
         } finally {
@@ -334,9 +334,7 @@ public class FileShell extends Tool {
     }
 
     private void zip(String zipFileName, String base, ArrayList<String> source) {
-        if (FileUtils.exists(zipFileName)) {
-            FileUtils.delete(zipFileName);
-        }
+        FileUtils.delete(zipFileName);
         OutputStream fileOut = null;
         try {
             fileOut = FileUtils.newOutputStream(zipFileName, false);

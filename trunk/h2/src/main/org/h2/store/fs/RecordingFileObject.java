@@ -17,39 +17,35 @@ public class RecordingFileObject implements FileObject {
     private final FileObject file;
     private final String name;
 
-    RecordingFileObject(RecordingFileSystem fs, FileObject file) {
+    RecordingFileObject(RecordingFileSystem fs, FileObject file, String fileName) {
         this.fs = fs;
         this.file = file;
-        this.name = file.getName();
+        this.name = fileName;
     }
 
     public void close() throws IOException {
         file.close();
     }
 
-    public long getFilePointer() throws IOException {
-        return file.getFilePointer();
+    public long position() throws IOException {
+        return file.position();
     }
 
-    public String getName() {
-        return RecordingFileSystem.PREFIX + name;
-    }
-
-    public long length() throws IOException {
-        return file.length();
+    public long size() throws IOException {
+        return file.size();
     }
 
     public void readFully(byte[] b, int off, int len) throws IOException {
         file.readFully(b, off, len);
     }
 
-    public void seek(long pos) throws IOException {
-        file.seek(pos);
+    public void position(long pos) throws IOException {
+        file.position(pos);
     }
 
-    public void setFileLength(long newLength) throws IOException {
-        fs.log(Recorder.SET_LENGTH, name, null, newLength);
-        file.setFileLength(newLength);
+    public void truncate(long newLength) throws IOException {
+        fs.log(Recorder.TRUNCATE, name, null, newLength);
+        file.truncate(newLength);
     }
 
     public void sync() throws IOException {
@@ -63,7 +59,7 @@ public class RecordingFileObject implements FileObject {
             System.arraycopy(b, off, buff, 0, len);
         }
         file.write(b, off, len);
-        fs.log(Recorder.WRITE, name, buff, file.getFilePointer());
+        fs.log(Recorder.WRITE, name, buff, file.position());
     }
 
     public boolean tryLock() {

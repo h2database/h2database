@@ -138,26 +138,18 @@ public class FileSystemDisk extends FileSystem {
         return new File(fileName).exists();
     }
 
-    public void delete(String fileName) {
-        fileName = translateFileName(fileName);
-        File file = new File(fileName);
-        if (file.exists()) {
-            for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-                IOUtils.trace("delete", fileName, null);
-                boolean ok = file.delete();
-                if (ok) {
-                    return;
-                }
-                wait(i);
+    public void delete(String path) {
+        path = translateFileName(path);
+        File file = new File(path);
+        for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
+            IOUtils.trace("delete", path, null);
+            boolean ok = file.delete();
+            if (ok || !file.exists()) {
+                return;
             }
-            throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, fileName);
+            wait(i);
         }
-    }
-
-    public boolean tryDelete(String fileName) {
-        fileName = translateFileName(fileName);
-        IOUtils.trace("tryDelete", fileName, null);
-        return new File(fileName).delete();
+        throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, path);
     }
 
     public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir)

@@ -45,8 +45,8 @@ public abstract class FileSystemWrapper extends FileSystem {
         return wrap(FileUtils.createTempFile(unwrap(prefix), suffix, deleteOnExit, inTempDir));
     }
 
-    public void delete(String fileName) {
-        FileUtils.delete(unwrap(fileName));
+    public void delete(String path) {
+        FileUtils.delete(unwrap(path));
     }
 
     public boolean exists(String fileName) {
@@ -111,10 +111,6 @@ public abstract class FileSystemWrapper extends FileSystem {
 
     public void moveTo(String oldName, String newName) {
         FileUtils.moveTo(unwrap(oldName), unwrap(newName));
-    }
-
-    public boolean tryDelete(String fileName) {
-        return FileUtils.tryDelete(unwrap(fileName));
     }
 
     protected boolean accepts(String fileName) {

@@ -128,19 +128,12 @@ public abstract class FileSystem {
     public abstract boolean exists(String fileName);
 
     /**
-     * Delete a file.
+     * Delete a file or directory if it exists.
+     * Directories may only be deleted if they are empty.
      *
-     * @param fileName the file name
+     * @param path the file or directory name
      */
-    public abstract void delete(String fileName);
-
-    /**
-     * Try to delete a file.
-     *
-     * @param fileName the file name
-     * @return true if it could be deleted
-     */
-    public abstract boolean tryDelete(String fileName);
+    public abstract void delete(String path);
 
     /**
      * List the files in the given directory.

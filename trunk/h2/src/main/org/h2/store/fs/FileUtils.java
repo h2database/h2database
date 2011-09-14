@@ -292,11 +292,11 @@ public class FileUtils {
      * @param dir the directory name
      */
     public static void createDirectories(String dir) {
-        String parent = FileUtils.getParent(dir);
-        if (parent != null && !FileUtils.exists(parent)) {
+        if (dir != null && !FileUtils.exists(dir)) {
+            String parent = FileUtils.getParent(dir);
             createDirectories(parent);
+            createDirectory(dir);
         }
-        createDirectory(dir);
     }
 
     /**

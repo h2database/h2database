@@ -186,7 +186,7 @@ public class FileObjectNioMapped implements FileObject {
         pos = (int) Math.min(newLength, oldPos);
     }
 
-    public synchronized void sync() throws IOException {
+    public void force(boolean metaData) throws IOException {
         mapped.force();
         file.getFD().sync();
     }

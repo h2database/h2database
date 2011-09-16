@@ -102,7 +102,7 @@ public class FileObjectZip2 implements FileObject {
         throw new IOException("File is read-only");
     }
 
-    public void sync() {
+    public void force(boolean metaData) throws IOException {
         // nothing to do
     }
 

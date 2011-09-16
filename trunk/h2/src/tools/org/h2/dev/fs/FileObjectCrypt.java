@@ -85,8 +85,8 @@ public class FileObjectCrypt implements FileObject {
         file.position(pos + HEADER_LENGTH);
     }
 
-    public void sync() throws IOException {
-        file.sync();
+    public void force(boolean metaData) throws IOException {
+        file.force(metaData);
     }
 
     public FileLock tryLock() throws IOException {

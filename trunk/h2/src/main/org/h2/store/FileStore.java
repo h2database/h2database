@@ -431,7 +431,7 @@ public class FileStore {
      */
     public void sync() {
         try {
-            file.sync();
+            file.force(true);
         } catch (IOException e) {
             throw DbException.convertIOException(e, name);
         }

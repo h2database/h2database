@@ -56,9 +56,9 @@ public class FileDebug implements FileObject {
         file.truncate(newLength);
     }
 
-    public void sync() throws IOException {
-        debug("sync");
-        file.sync();
+    public void force(boolean metaData) throws IOException {
+        debug("force");
+        file.force(metaData);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {

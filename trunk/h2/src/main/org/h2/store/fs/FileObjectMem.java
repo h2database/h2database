@@ -57,7 +57,7 @@ public class FileObjectMem implements FileObject {
         pos = 0;
     }
 
-    public void sync() {
+    public void force(boolean metaData) throws IOException {
         // do nothing
     }
 

@@ -19,7 +19,6 @@ public class FileObjectDisk implements FileObject {
 
     private final RandomAccessFile file;
     private final String name;
-    private FileLock lock;
 
     FileObjectDisk(String fileName, String mode) throws FileNotFoundException {
         this.file = new RandomAccessFile(fileName, mode);
@@ -48,27 +47,8 @@ public class FileObjectDisk implements FileObject {
         }
     }
 
-    public synchronized boolean tryLock() {
-        if (lock == null) {
-            try {
-                lock = file.getChannel().tryLock();
-            } catch (Exception e) {
-                // could not lock (OverlappingFileLockException)
-            }
-            return lock != null;
-        }
-        return false;
-    }
-
-    public synchronized void releaseLock() {
-        if (lock != null) {
-            try {
-                lock.release();
-            } catch (IOException e) {
-                // ignore
-            }
-            lock = null;
-        }
+    public synchronized FileLock tryLock() throws IOException {
+        return file.getChannel().tryLock();
     }
 
     public void close() throws IOException {

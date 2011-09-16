@@ -8,6 +8,7 @@ package org.h2.dev.fs;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.channels.FileLock;
 import org.h2.engine.Constants;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
@@ -80,10 +81,6 @@ public class FileObjectCrypt implements FileObject {
         return Math.max(0, file.size() - HEADER_LENGTH - BLOCK_SIZE);
     }
 
-    public void releaseLock() {
-        file.releaseLock();
-    }
-
     public void position(long pos) throws IOException {
         file.position(pos + HEADER_LENGTH);
     }
@@ -92,7 +89,7 @@ public class FileObjectCrypt implements FileObject {
         file.sync();
     }
 
-    public boolean tryLock() {
+    public FileLock tryLock() throws IOException {
         return file.tryLock();
     }
 

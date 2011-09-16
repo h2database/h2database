@@ -7,6 +7,7 @@
 package org.h2.store.fs;
 
 import java.io.IOException;
+import java.nio.channels.FileLock;
 
 /**
  * This interface represents a random access file.
@@ -71,13 +72,8 @@ public interface FileObject {
     /**
      * Try to lock the file exclusively.
      *
-     * @return true if locking was successful
+     * @return a lock object if successful, or null if not
      */
-    boolean tryLock();
-
-    /**
-     * Release the file lock.
-     */
-    void releaseLock();
+    FileLock tryLock() throws IOException;
 
 }

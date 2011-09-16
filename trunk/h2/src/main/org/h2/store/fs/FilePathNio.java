@@ -15,7 +15,7 @@ import java.io.IOException;
 public class FilePathNio extends FilePathWrapper {
 
     public FileObject openFileObject(String mode) throws IOException {
-        return new FileObjectNio(name, mode);
+        return new FileObjectNio(name.substring(getScheme().length() + 1), mode);
     }
 
     public String getScheme() {

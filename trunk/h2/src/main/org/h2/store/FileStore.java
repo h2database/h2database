@@ -54,6 +54,7 @@ public class FileStore {
     private String mode;
     private TempFileDeleter tempFileDeleter;
     private boolean textMode;
+    private java.nio.channels.FileLock lock;
 
     /**
      * Create a new file using the given settings.
@@ -492,16 +493,27 @@ public class FileStore {
      *
      * @return true if successful
      */
-    public boolean tryLock() {
-        return file.tryLock();
+    public synchronized boolean tryLock() {
+        try {
+            lock = file.tryLock();
+            return true;
+        } catch (IOException e) {
+            // ignore
+            return false;
+        }
     }
 
     /**
      * Release the file lock.
      */
-    public void releaseLock() {
-        if (file != null) {
-            file.releaseLock();
+    public synchronized void releaseLock() {
+        if (file != null && lock != null) {
+            try {
+                lock.release();
+            } catch (IOException e) {
+                // ignore
+            }
+            lock = null;
         }
     }
 

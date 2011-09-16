@@ -79,7 +79,7 @@ public class TempFileDeleter {
      * Delete all registered temp files.
      */
     public void deleteAll() {
-        for (String tempFile : refMap.values()) {
+        for (String tempFile : New.arrayList(refMap.values())) {
             deleteFile(null, tempFile);
         }
         deleteUnused();

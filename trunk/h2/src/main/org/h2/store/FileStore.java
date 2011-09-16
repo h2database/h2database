@@ -497,8 +497,8 @@ public class FileStore {
         try {
             lock = file.tryLock();
             return true;
-        } catch (IOException e) {
-            // ignore
+        } catch (Exception e) {
+            // ignore OverlappingFileLockException
             return false;
         }
     }
@@ -510,7 +510,7 @@ public class FileStore {
         if (file != null && lock != null) {
             try {
                 lock.release();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // ignore
             }
             lock = null;

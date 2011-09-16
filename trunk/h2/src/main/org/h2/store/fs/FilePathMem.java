@@ -21,7 +21,7 @@ import org.h2.util.New;
  */
 public class FilePathMem extends FilePath {
 
-    private static final TreeMap<String, FileObjectMemoryData> MEMORY_FILES = new TreeMap<String, FileObjectMemoryData>();
+    private static final TreeMap<String, FileObjectMemData> MEMORY_FILES = new TreeMap<String, FileObjectMemData>();
 
     public FilePathMem getPath(String path) {
         FilePathMem p = new FilePathMem();
@@ -35,7 +35,7 @@ public class FilePathMem extends FilePath {
 
     public void moveTo(FilePath newName) {
         synchronized (MEMORY_FILES) {
-            FileObjectMemoryData f = getMemoryFile();
+            FileObjectMemData f = getMemoryFile();
             f.setName(newName.name);
             MEMORY_FILES.remove(name);
             MEMORY_FILES.put(newName.name, f);
@@ -127,8 +127,8 @@ public class FilePathMem extends FilePath {
 
     public OutputStream newOutputStream(boolean append) {
         try {
-            FileObjectMemoryData obj = getMemoryFile();
-            FileObjectMemory m = new FileObjectMemory(obj, false);
+            FileObjectMemData obj = getMemoryFile();
+            FileObjectMem m = new FileObjectMem(obj, false);
             return new FileObjectOutputStream(m, append);
         } catch (IOException e) {
             throw DbException.convertIOException(e, name);
@@ -136,21 +136,21 @@ public class FilePathMem extends FilePath {
     }
 
     public InputStream newInputStream() {
-        FileObjectMemoryData obj = getMemoryFile();
-        FileObjectMemory m = new FileObjectMemory(obj, true);
+        FileObjectMemData obj = getMemoryFile();
+        FileObjectMem m = new FileObjectMem(obj, true);
         return new FileObjectInputStream(m);
     }
 
     public FileObject openFileObject(String mode) {
-        FileObjectMemoryData obj = getMemoryFile();
-        return new FileObjectMemory(obj, "r".equals(mode));
+        FileObjectMemData obj = getMemoryFile();
+        return new FileObjectMem(obj, "r".equals(mode));
     }
 
-    private FileObjectMemoryData getMemoryFile() {
+    private FileObjectMemData getMemoryFile() {
         synchronized (MEMORY_FILES) {
-            FileObjectMemoryData m = MEMORY_FILES.get(name);
+            FileObjectMemData m = MEMORY_FILES.get(name);
             if (m == null) {
-                m = new FileObjectMemoryData(name, compressed());
+                m = new FileObjectMemData(name, compressed());
                 MEMORY_FILES.put(name, m);
             }
             return m;

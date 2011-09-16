@@ -23,7 +23,7 @@ public class FilePathNio extends FilePathWrapper {
      * @throws IOException if opening fails
      */
     protected FileObject open(String fileName, String mode) throws IOException {
-        return new FileObjectDiskChannel(fileName, mode);
+        return new FileObjectNio(fileName, mode);
     }
 
     /**

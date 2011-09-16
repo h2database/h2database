@@ -17,7 +17,7 @@ import org.h2.util.MathUtils;
  * This class contains the data of an in-memory random access file.
  * Data compression using the LZF algorithm is supported as well.
  */
-class FileObjectMemoryData {
+class FileObjectMemData {
 
     private static final int CACHE_SIZE = 8;
     private static final int BLOCK_SIZE_SHIFT = 10;
@@ -96,7 +96,7 @@ class FileObjectMemoryData {
         }
     }
 
-    FileObjectMemoryData(String name, boolean compress) {
+    FileObjectMemData(String name, boolean compress) {
         this.name = name;
         this.compress = compress;
         data = new byte[0][];

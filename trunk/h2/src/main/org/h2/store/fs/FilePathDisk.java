@@ -36,7 +36,7 @@ public class FilePathDisk extends FilePath {
 
     public FilePathDisk getPath(String path) {
         FilePathDisk p = new FilePathDisk();
-        p.name = path;
+        p.name = translateFileName(path);
         return p;
     }
 
@@ -135,8 +135,6 @@ public class FilePathDisk extends FilePath {
     }
 
     public void delete() {
-        System.out.println("delete " + name);
-//        if (true)return;
         File file = new File(name);
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
             IOUtils.trace("delete", name, null);
@@ -179,16 +177,11 @@ public class FilePathDisk extends FilePath {
     }
 
     public FilePathDisk getCanonicalPath() {
-        return getPath(getCanonicalPath(name));
-    }
-
-    private static String getCanonicalPath(String fileName) {
-        fileName = translateFileName(fileName);
-        File f = new File(fileName);
         try {
-            return f.getCanonicalPath();
+            String fileName = new File(name).getCanonicalPath();
+            return getPath(fileName);
         } catch (IOException e) {
-            throw DbException.convertIOException(e, fileName);
+            throw DbException.convertIOException(e, name);
         }
     }
 
@@ -251,11 +244,6 @@ public class FilePathDisk extends FilePath {
             }
             throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name);
         }
-    }
-
-    public String getName(String path) {
-        path = translateFileName(path);
-        return new File(path).getName();
     }
 
     public boolean fileStartsWith(String prefix) {
@@ -364,16 +352,15 @@ public class FilePathDisk extends FilePath {
 
     public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
-        String fileName = translateFileName(name);
-        fileName += ".";
+        String fileName = name + ".";
         String prefix = new File(fileName).getName();
         File dir;
         if (inTempDir) {
             dir = new File(Utils.getProperty("java.io.tmpdir", "."));
         } else {
             dir = new File(fileName).getAbsoluteFile().getParentFile();
-            FileUtils.createDirectories(dir.getAbsolutePath());
         }
+        FileUtils.createDirectories(dir.getAbsolutePath());
         while (true) {
             File f = new File(dir, prefix + getNextTempFileNamePart(false) + suffix);
             if (f.exists() || !f.createNewFile()) {

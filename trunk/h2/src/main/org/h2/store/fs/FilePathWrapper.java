@@ -25,7 +25,7 @@ public abstract class FilePathWrapper extends FilePath {
     }
 
     public FilePathWrapper wrap(FilePath base) {
-        return create(getPrefix() + base.name, base);
+        return base == null ? null : create(getPrefix() + base.name, base);
     }
 
     public FilePath unwrap() {

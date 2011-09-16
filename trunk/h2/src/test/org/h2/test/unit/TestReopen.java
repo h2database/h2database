@@ -15,9 +15,9 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.Recorder;
-import org.h2.store.fs.RecordingFileSystem;
 import org.h2.test.TestBase;
 import org.h2.tools.Recover;
 import org.h2.util.New;
@@ -51,8 +51,8 @@ public class TestReopen extends TestBase implements Recorder {
 
     public void test() throws Exception {
         System.setProperty("h2.delayWrongPasswordMin", "0");
-        RecordingFileSystem.register();
-        RecordingFileSystem.setRecorder(this);
+        FilePathRec.register();
+        FilePathRec.setRecorder(this);
         config.reopen = true;
 
         long time = System.currentTimeMillis();

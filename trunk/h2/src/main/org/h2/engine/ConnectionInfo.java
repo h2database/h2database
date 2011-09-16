@@ -18,8 +18,8 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
+import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
-import org.h2.store.fs.RecordingFileSystem;
 import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -81,13 +81,13 @@ public class ConnectionInfo implements Cloneable {
         parseName();
         String recoverTest = removeProperty("RECOVER_TEST", null);
         if (recoverTest != null) {
-            RecordingFileSystem.register();
+            FilePathRec.register();
             try {
                 Utils.callStaticMethod("org.h2.store.RecoverTester.init", recoverTest);
             } catch (Exception e) {
                 throw DbException.convert(e);
             }
-            name = RecordingFileSystem.PREFIX + name;
+            name = "rec:" + name;
         }
     }
 

@@ -43,7 +43,6 @@ import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorage;
 import org.h2.store.PageStore;
 import org.h2.store.WriterThread;
-import org.h2.store.fs.FileSystemMemory;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -1468,7 +1467,7 @@ public class Database implements DataHandler {
             boolean inTempDir = readOnly;
             String name = databaseName;
             if (!persistent) {
-                name = FileSystemMemory.PREFIX + name;
+                name = "memFS:" + name;
             }
             return FileUtils.createTempFile(name, Constants.SUFFIX_TEMP_FILE, true, inTempDir);
         } catch (IOException e) {

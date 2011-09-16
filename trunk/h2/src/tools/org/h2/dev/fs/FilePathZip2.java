@@ -19,7 +19,6 @@ import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileObjectInputStream;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathDisk;
-import org.h2.store.fs.FileSystemDisk;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
 
@@ -295,7 +294,7 @@ public class FilePathZip2 extends FilePath {
         if (idx >= 0) {
             fileName = fileName.substring(0, idx);
         }
-        return FileSystemDisk.expandUserHomeDirectory(fileName);
+        return FilePathDisk.expandUserHomeDirectory(fileName);
     }
 
     public boolean fileStartsWith(String prefix) {

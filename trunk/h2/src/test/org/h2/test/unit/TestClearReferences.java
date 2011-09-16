@@ -29,7 +29,8 @@ public class TestClearReferences extends TestBase {
         "org.h2.engine.SessionRemote.sessionFactory",
         "org.h2.jdbcx.JdbcDataSourceFactory.cachedTraceSystem",
         "org.h2.store.RecoverTester.instance",
-        "org.h2.store.fs.FileSystem.tempRandom",
+        "org.h2.store.fs.FilePath.providers",
+        "org.h2.store.fs.FilePath.tempRandom",
         "org.h2.tools.CompressTool.cachedBuffer",
         "org.h2.util.CloseWatcher.queue",
         "org.h2.util.CloseWatcher.refs",
@@ -67,7 +68,7 @@ public class TestClearReferences extends TestBase {
         // initialize the known classes
         MathUtils.secureRandomLong();
         ValueInt.get(1);
-        Class.forName("org.h2.store.fs.FileObjectMemoryData");
+        Class.forName("org.h2.store.fs.FileObjectMemData");
 
         clear();
 

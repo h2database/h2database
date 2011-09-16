@@ -10,8 +10,8 @@ import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.Driver;
 import org.h2.engine.Constants;
+import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
-import org.h2.store.fs.RecordingFileSystem;
 import org.h2.test.bench.TestPerformance;
 import org.h2.test.db.TestAlter;
 import org.h2.test.db.TestAlterSchemaRename;
@@ -381,10 +381,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 System.setProperty("h2.analyzeAuto", "100");
                 System.setProperty("h2.pageSize", "64");
                 System.setProperty("h2.reopenShift", "5");
-                RecordingFileSystem.register();
+                FilePathRec.register();
                 test.reopen = true;
                 TestReopen reopen = new TestReopen();
-                RecordingFileSystem.setRecorder(reopen);
+                FilePathRec.setRecorder(reopen);
                 test.runTests();
             } else if ("crash".equals(args[0])) {
                 test.endless = true;

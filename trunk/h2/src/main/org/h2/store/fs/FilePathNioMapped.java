@@ -15,7 +15,7 @@ import java.io.IOException;
 public class FilePathNioMapped extends FilePathNio {
 
     protected FileObject open(String mode) throws IOException {
-        return new FileObjectDiskMapped(name, mode);
+        return new FileObjectNioMapped(name, mode);
     }
 
     /**

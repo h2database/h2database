@@ -10,7 +10,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.util.Random;
-import org.h2.store.fs.RecordingFileSystem;
+import org.h2.store.fs.FilePathRec;
 import org.h2.test.unit.TestReopen;
 import org.h2.tools.DeleteDbFiles;
 
@@ -35,13 +35,12 @@ public class TestTempTableCrash {
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.check2", "false");
         System.setProperty("h2.lobInDatabase", "true");
-        RecordingFileSystem.register();
+        FilePathRec.register();
         System.setProperty("reopenShift", "4");
         TestReopen reopen = new TestReopen();
-        RecordingFileSystem.setRecorder(reopen);
+        FilePathRec.setRecorder(reopen);
 
-        String url = "jdbc:h2:" + RecordingFileSystem.PREFIX +
-                "memFS:data;PAGE_SIZE=64;ANALYZE_AUTO=100";
+        String url = "jdbc:h2:rec:memFS:data;PAGE_SIZE=64;ANALYZE_AUTO=100";
         // String url = "jdbc:h2:" + RecordingFileSystem.PREFIX +
         //      "data/test;PAGE_SIZE=64";
 

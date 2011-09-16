@@ -316,7 +316,7 @@ public class TestFileSystem extends TestBase {
         FileUtils.delete(s);
         FileObject f = FileUtils.openFileObject(s, "rw");
         assertThrows(EOFException.class, f).readFully(new byte[1], 0, 1);
-        f.sync();
+        f.force(true);
         Random random = new Random(seed);
         int size = getSize(100, 500);
         try {

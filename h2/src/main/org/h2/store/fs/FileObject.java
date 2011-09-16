@@ -58,9 +58,11 @@ public interface FileObject {
     long position() throws IOException;
 
     /**
-     * Force changes to the physical location.
+     * Force changes to the physical location (sync).
+     *
+     * @param metaData whether the file metadata should be written as well
      */
-    void sync() throws IOException;
+    void force(boolean metaData) throws IOException;
 
     /**
      * Change the length of the file.

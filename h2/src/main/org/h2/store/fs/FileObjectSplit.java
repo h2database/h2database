@@ -114,9 +114,9 @@ public class FileObjectSplit implements FileObject {
         this.length = newLength;
     }
 
-    public void sync() throws IOException {
+    public void force(boolean metaData) throws IOException {
         for (FileObject f : list) {
-            f.sync();
+            f.force(metaData);
         }
     }
 

@@ -49,8 +49,8 @@ public class FileObjectRec implements FileObject {
         file.truncate(newLength);
     }
 
-    public void sync() throws IOException {
-        file.sync();
+    public void force(boolean metaData) throws IOException {
+        file.force(metaData);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {

@@ -25,7 +25,7 @@ public class FileObjectDisk implements FileObject {
         this.name = fileName;
     }
 
-    public void sync() throws IOException {
+    public void force(boolean metaData) throws IOException {
         String m = SysProperties.SYNC_METHOD;
         if ("".equals(m)) {
             // do nothing

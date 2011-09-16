@@ -78,8 +78,8 @@ public class FileObjectNio implements FileObject {
         length = newLength;
     }
 
-    public void sync() throws IOException {
-        channel.force(true);
+    public void force(boolean metaData) throws IOException {
+        channel.force(metaData);
     }
 
     public void write(byte[] b, int off, int len) throws IOException {

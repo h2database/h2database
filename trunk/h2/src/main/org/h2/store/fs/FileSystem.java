@@ -144,14 +144,6 @@ public abstract class FileSystem {
     public abstract String[] listFiles(String directory);
 
     /**
-     * Check if a file is read-only.
-     *
-     * @param fileName the file name
-     * @return if it is read only
-     */
-    public abstract boolean isReadOnly(String fileName);
-
-    /**
      * Normalize a file name.
      *
      * @param fileName the file name

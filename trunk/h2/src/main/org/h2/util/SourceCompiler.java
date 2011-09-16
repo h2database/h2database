@@ -139,11 +139,7 @@ public class SourceCompiler {
         File dir = new File(compileDir);
         if (packageName != null) {
             dir = new File(dir, packageName.replace('.', '/'));
-            try {
-                IOUtils.mkdirs(dir);
-            } catch (IOException e) {
-                throw DbException.convertIOException(e, compileDir);
-            }
+            FileUtils.createDirectories(dir.getAbsolutePath());
         }
         File javaFile = new File(dir, className + ".java");
         File classFile = new File(dir, className + ".class");

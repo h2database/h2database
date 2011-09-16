@@ -15,11 +15,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
-
+import java.util.ArrayList;
+import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
+import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -27,26 +29,19 @@ import org.h2.util.Utils;
  * This file system stores files on disk.
  * This is the most common file system.
  */
-public class FileSystemDisk extends FileSystem {
+public class FilePathDisk extends FilePath {
 
-    private static final FileSystemDisk INSTANCE = new FileSystemDisk();
-    // TODO detection of 'case in sensitive filesystem'
-    // could maybe implemented using some other means
     private static final boolean IS_FILE_SYSTEM_CASE_INSENSITIVE = File.separatorChar == '\\';
-
     private static final String CLASSPATH_PREFIX = "classpath:";
 
-    protected FileSystemDisk() {
-        // nothing to do
+    public FilePathDisk getPath(String path) {
+        FilePathDisk p = new FilePathDisk();
+        p.name = path;
+        return p;
     }
 
-    public static FileSystemDisk getInstance() {
-        return INSTANCE;
-    }
-
-    public long size(String fileName) {
-        fileName = translateFileName(fileName);
-        return new File(fileName).length();
+    public long size() {
+        return new File(name).length();
     }
 
     /**
@@ -71,39 +66,42 @@ public class FileSystemDisk extends FileSystem {
         if (fileName == null) {
             return null;
         }
+        boolean prefix = false;
+        if (fileName.startsWith("file:")) {
+            prefix = true;
+            fileName = fileName.substring("file:".length());
+        }
         if (fileName.startsWith("~") && (fileName.length() == 1 || fileName.startsWith("~/") || fileName.startsWith("~\\"))) {
             String userDir = SysProperties.USER_HOME;
             fileName = userDir + fileName.substring(1);
         }
-        return fileName;
+        return prefix ? "file:" + fileName : fileName;
     }
 
-    public void moveTo(String oldName, String newName) {
-        oldName = translateFileName(oldName);
-        newName = translateFileName(newName);
-        File oldFile = new File(oldName);
-        File newFile = new File(newName);
+    public void moveTo(FilePath newName) {
+        File oldFile = new File(name);
+        File newFile = new File(newName.name);
         if (oldFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
             DbException.throwInternalError("rename file old=new");
         }
         if (!oldFile.exists()) {
             throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                    oldName + " (not found)",
-                    newName);
+                    name + " (not found)",
+                    newName.name);
         }
         if (newFile.exists()) {
             throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                    new String[] { oldName, newName + " (exists)" });
+                    new String[] { name, newName + " (exists)" });
         }
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-            IOUtils.trace("rename", oldName + " >" + newName, null);
+            IOUtils.trace("rename", name + " >" + newName, null);
             boolean ok = oldFile.renameTo(newFile);
             if (ok) {
                 return;
             }
             wait(i);
         }
-        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, new String[]{oldName, newName});
+        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, new String[]{name, newName.name});
     }
 
     private static void wait(int i) {
@@ -119,9 +117,8 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public boolean createFile(String fileName) {
-        fileName = translateFileName(fileName);
-        File file = new File(fileName);
+    public boolean createFile() {
+        File file = new File(name);
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
             try {
                 return file.createNewFile();
@@ -133,92 +130,59 @@ public class FileSystemDisk extends FileSystem {
         return false;
     }
 
-    public boolean exists(String fileName) {
-        fileName = translateFileName(fileName);
-        return new File(fileName).exists();
+    public boolean exists() {
+        return new File(name).exists();
     }
 
-    public void delete(String path) {
-        path = translateFileName(path);
-        File file = new File(path);
+    public void delete() {
+        System.out.println("delete " + name);
+//        if (true)return;
+        File file = new File(name);
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-            IOUtils.trace("delete", path, null);
+            IOUtils.trace("delete", name, null);
             boolean ok = file.delete();
             if (ok || !file.exists()) {
                 return;
             }
             wait(i);
         }
-        throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, path);
+        throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, name);
     }
 
-    public String createTempFile(String name, String suffix, boolean deleteOnExit, boolean inTempDir)
-            throws IOException {
-        name = translateFileName(name);
-        name += ".";
-        String prefix = new File(name).getName();
-        File dir;
-        if (inTempDir) {
-            dir = new File(Utils.getProperty("java.io.tmpdir", "."));
-        } else {
-            dir = new File(name).getAbsoluteFile().getParentFile();
-            FileUtils.createDirectories(dir.getAbsolutePath());
-        }
-        File f;
-        while (true) {
-            f = new File(dir, prefix + getNextTempFileNamePart(false) + suffix);
-            if (f.exists()) {
-                // in theory, the random number could collide
-                getNextTempFileNamePart(true);
-            } else {
-                break;
-            }
-        }
-        if (deleteOnExit) {
-            try {
-                f.deleteOnExit();
-            } catch (Throwable e) {
-                // sometimes this throws a NullPointerException
-                // at java.io.DeleteOnExitHook.add(DeleteOnExitHook.java:33)
-                // we can ignore it
-            }
-        }
-        return f.getCanonicalPath();
-    }
-
-    public String[] listFiles(String path) {
-        path = translateFileName(path);
-        File f = new File(path);
+    public List<FilePath> listFiles() {
+        ArrayList<FilePath> list = New.arrayList();
+        File f = new File(name);
         try {
-            String[] list = f.list();
-            if (list == null) {
-                return new String[0];
-            }
-            String base = f.getCanonicalPath();
-            if (!base.endsWith(SysProperties.FILE_SEPARATOR)) {
-                base += SysProperties.FILE_SEPARATOR;
-            }
-            for (int i = 0, len = list.length; i < len; i++) {
-                list[i] = base + list[i];
+            String[] files = f.list();
+            if (files != null) {
+                String base = f.getCanonicalPath();
+                if (!base.endsWith(SysProperties.FILE_SEPARATOR)) {
+                    base += SysProperties.FILE_SEPARATOR;
+                }
+                for (int i = 0, len = files.length; i < len; i++) {
+                    list.add(getPath(base + files[i]));
+                }
             }
             return list;
         } catch (IOException e) {
-            throw DbException.convertIOException(e, path);
+            throw DbException.convertIOException(e, name);
         }
     }
 
-    public boolean canWrite(String fileName) {
-        fileName = translateFileName(fileName);
-        return canWriteInternal(new File(fileName));
+    public boolean canWrite() {
+        return canWriteInternal(new File(name));
     }
 
-    public boolean setReadOnly(String fileName) {
-        fileName = translateFileName(fileName);
-        File f = new File(fileName);
+    public boolean setReadOnly() {
+        File f = new File(name);
         return f.setReadOnly();
     }
 
-    public String getCanonicalPath(String fileName) {
+    public FilePathDisk getCanonicalPath() {
+        return getPath(getCanonicalPath(name));
+    }
+
+    private static String getCanonicalPath(String fileName) {
         fileName = translateFileName(fileName);
         File f = new File(fileName);
         try {
@@ -228,25 +192,21 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public String getParent(String fileName) {
-        fileName = translateFileName(fileName);
-        return new File(fileName).getParent();
+    public FilePath getParent() {
+        String p = new File(name).getParent();
+        return p == null ? null : getPath(p);
     }
 
-    public boolean isDirectory(String fileName) {
-        fileName = translateFileName(fileName);
-        return new File(fileName).isDirectory();
+    public boolean isDirectory() {
+        return new File(name).isDirectory();
     }
 
-    public boolean isAbsolute(String fileName) {
-        fileName = translateFileName(fileName);
-        File file = new File(fileName);
-        return file.isAbsolute();
+    public boolean isAbsolute() {
+        return new File(name).isAbsolute();
     }
 
-    public long lastModified(String fileName) {
-        fileName = translateFileName(fileName);
-        return new File(fileName).lastModified();
+    public long lastModified() {
+        return new File(name).lastModified();
     }
 
     private static boolean canWriteInternal(File file) {
@@ -279,18 +239,17 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public void createDirectory(String directoryName) {
-        directoryName = translateFileName(directoryName);
-        File f = new File(directoryName);
+    public void createDirectory() {
+        File f = new File(name);
         if (!f.exists()) {
-            File dir = new File(directoryName);
+            File dir = new File(name);
             for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
                 if ((dir.exists() && dir.isDirectory()) || dir.mkdir()) {
                     return;
                 }
                 wait(i);
             }
-            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, directoryName);
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name);
         }
     }
 
@@ -299,9 +258,9 @@ public class FileSystemDisk extends FileSystem {
         return new File(path).getName();
     }
 
-    public boolean fileStartsWith(String fileName, String prefix) {
-        fileName = translateFileName(fileName);
+    public boolean fileStartsWith(String prefix) {
         prefix = translateFileName(prefix);
+        String fileName = name;
         if (IS_FILE_SYSTEM_CASE_INSENSITIVE) {
             fileName = StringUtils.toUpperEnglish(fileName);
             prefix = StringUtils.toUpperEnglish(prefix);
@@ -309,32 +268,31 @@ public class FileSystemDisk extends FileSystem {
         return fileName.startsWith(prefix);
     }
 
-    public OutputStream newOutputStream(String fileName, boolean append) {
-        fileName = translateFileName(fileName);
+    public OutputStream newOutputStream(boolean append) {
         try {
-            File file = new File(fileName);
+            File file = new File(name);
             File parent = file.getParentFile();
             if (parent != null) {
                 FileUtils.createDirectories(parent.getAbsolutePath());
             }
-            FileOutputStream out = new FileOutputStream(fileName, append);
-            IOUtils.trace("openFileOutputStream", fileName, out);
+            FileOutputStream out = new FileOutputStream(name, append);
+            IOUtils.trace("openFileOutputStream", name, out);
             return out;
         } catch (IOException e) {
             freeMemoryAndFinalize();
             try {
-                return new FileOutputStream(fileName);
+                return new FileOutputStream(name);
             } catch (IOException e2) {
-                throw DbException.convertIOException(e, fileName);
+                throw DbException.convertIOException(e, name);
             }
         }
     }
 
-    public InputStream newInputStream(String fileName) throws IOException {
-        if (fileName.indexOf(':') > 1) {
+    public InputStream newInputStream() throws IOException {
+        if (name.indexOf(':') > 1) {
             // if the : is in position 1, a windows file access is assumed: C:.. or D:
-            if (fileName.startsWith(CLASSPATH_PREFIX)) {
-                fileName = fileName.substring(CLASSPATH_PREFIX.length());
+            if (name.startsWith(CLASSPATH_PREFIX)) {
+                String fileName = name.substring(CLASSPATH_PREFIX.length());
                 if (!fileName.startsWith("/")) {
                     fileName = "/" + fileName;
                 }
@@ -348,13 +306,12 @@ public class FileSystemDisk extends FileSystem {
                 return in;
             }
             // otherwise an URL is assumed
-            URL url = new URL(fileName);
+            URL url = new URL(name);
             InputStream in = url.openStream();
             return in;
         }
-        fileName = translateFileName(fileName);
-        FileInputStream in = new FileInputStream(fileName);
-        IOUtils.trace("openFileInputStream", fileName, in);
+        FileInputStream in = new FileInputStream(name);
+        IOUtils.trace("openFileInputStream", name, in);
         return in;
     }
 
@@ -377,16 +334,15 @@ public class FileSystemDisk extends FileSystem {
         }
     }
 
-    public FileObject openFileObject(String fileName, String mode) throws IOException {
-        fileName = translateFileName(fileName);
+    public FileObject openFileObject(String mode) throws IOException {
         FileObjectDisk f;
         try {
-            f = new FileObjectDisk(fileName, mode);
-            IOUtils.trace("openFileObject", fileName, f);
+            f = new FileObjectDisk(name, mode);
+            IOUtils.trace("openFileObject", name, f);
         } catch (IOException e) {
             freeMemoryAndFinalize();
             try {
-                f = new FileObjectDisk(fileName, mode);
+                f = new FileObjectDisk(name, mode);
             } catch (IOException e2) {
                 throw e;
             }
@@ -394,12 +350,48 @@ public class FileSystemDisk extends FileSystem {
         return f;
     }
 
-    protected boolean accepts(String fileName) {
+    protected boolean accepts() {
         return true;
     }
 
     public String unwrap(String fileName) {
         return fileName;
+    }
+
+    public String getScheme() {
+        return "file";
+    }
+
+    public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir)
+            throws IOException {
+        String fileName = translateFileName(name);
+        fileName += ".";
+        String prefix = new File(fileName).getName();
+        File dir;
+        if (inTempDir) {
+            dir = new File(Utils.getProperty("java.io.tmpdir", "."));
+        } else {
+            dir = new File(fileName).getAbsoluteFile().getParentFile();
+            FileUtils.createDirectories(dir.getAbsolutePath());
+        }
+        while (true) {
+            File f = new File(dir, prefix + getNextTempFileNamePart(false) + suffix);
+            if (f.exists() || !f.createNewFile()) {
+                // in theory, the random number could collide
+                getNextTempFileNamePart(true);
+                continue;
+            }
+            if (deleteOnExit) {
+                try {
+                    f.deleteOnExit();
+                } catch (Throwable e) {
+                    // sometimes this throws a NullPointerException
+                    // at java.io.DeleteOnExitHook.add(DeleteOnExitHook.java:33)
+                    // we can ignore it
+                }
+            }
+            return get(f.getCanonicalPath());
+        }
     }
 
 }

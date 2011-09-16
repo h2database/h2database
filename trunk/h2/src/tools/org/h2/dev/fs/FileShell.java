@@ -215,7 +215,7 @@ public class FileShell extends Tool {
             for (String file : FileUtils.listFiles(dir)) {
                 StringBuilder buff = new StringBuilder();
                 buff.append(FileUtils.isDirectory(file) ? "d" : "-");
-                buff.append(FileUtils.isReadOnly(file) ? "r-" : "rw");
+                buff.append(FileUtils.canWrite(file) ? "rw" : "r-");
                 buff.append(' ');
                 buff.append(String.format("%10d", FileUtils.size(file)));
                 buff.append(' ');

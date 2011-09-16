@@ -103,12 +103,12 @@ public class FileSystemMemory extends FileSystem {
         }
     }
 
-    public boolean isReadOnly(String fileName) {
-        return !getMemoryFile(fileName).canWrite();
-    }
-
     public boolean setReadOnly(String fileName) {
         return getMemoryFile(fileName).setReadOnly();
+    }
+
+    public boolean canWrite(String fileName) {
+        return getMemoryFile(fileName).canWrite();
     }
 
     public String getCanonicalPath(String fileName) {
@@ -142,10 +142,6 @@ public class FileSystemMemory extends FileSystem {
 
     public long lastModified(String fileName) {
         return getMemoryFile(fileName).getLastModified();
-    }
-
-    public boolean canWrite(String fileName) {
-        return true;
     }
 
     public void createDirectory(String directoryName) {

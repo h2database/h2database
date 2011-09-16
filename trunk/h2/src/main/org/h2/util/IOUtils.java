@@ -11,7 +11,6 @@ import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -447,32 +446,6 @@ public class IOUtils {
             // UnsupportedEncodingException
             throw DbException.convert(e);
         }
-    }
-
-    /**
-     * Create the directory and all parent directories if required.
-     *
-     * @param directory the directory
-     * @throws IOException
-     */
-    public static void mkdirs(File directory) throws IOException {
-        int todo;
-        // loop, to deal with race conditions (if another thread creates or
-        // deletes the same directory at the same time).
-        for (int i = 0; i < 5; i++) {
-            if (directory.exists()) {
-                if (directory.isDirectory()) {
-                    return;
-                }
-                throw new IOException("Could not create directory, " +
-                        "because a file with the same name already exists: " +
-                        directory.getAbsolutePath());
-            }
-            if (directory.mkdirs()) {
-                return;
-            }
-        }
-        throw new IOException("Could not create directory: " + directory.getAbsolutePath());
     }
 
     /**

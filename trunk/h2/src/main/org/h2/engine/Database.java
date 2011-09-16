@@ -506,9 +506,8 @@ public class Database implements DataHandler {
                 throw DbException.get(ErrorCode.FILE_VERSION_ERROR_1,
                         "Old database: " + dataFileName + " - please convert the database to a SQL script and re-create it.");
             }
-            if (existsPage && FileUtils.isReadOnly(pageFileName)) {
-                // if it is already read-only because ACCESS_MODE_DATA=r
-                readOnly = readOnly | FileUtils.isReadOnly(pageFileName);
+            if (existsPage && !FileUtils.canWrite(pageFileName)) {
+                readOnly = true;
             }
             if (readOnly) {
                 traceSystem = new TraceSystem(null);

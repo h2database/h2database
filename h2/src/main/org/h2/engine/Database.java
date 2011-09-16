@@ -1479,7 +1479,7 @@ public class Database implements DataHandler {
         String path = FileUtils.getParent(databaseName);
         String[] list = FileUtils.listFiles(path);
         for (String name : list) {
-            if (name.endsWith(Constants.SUFFIX_TEMP_FILE) && FileUtils.fileStartsWith(name, databaseName)) {
+            if (name.endsWith(Constants.SUFFIX_TEMP_FILE) && name.startsWith(databaseName)) {
                 // can't always delete the files, they may still be open
                 FileUtils.tryDelete(name);
             }

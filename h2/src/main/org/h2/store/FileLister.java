@@ -73,13 +73,13 @@ public class FileLister {
      */
     public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) {
         ArrayList<String> files = New.arrayList();
-        String start = db == null ? null : FileUtils.getCanonicalPath(dir + "/" + db);
+        String start = db == null ? null : FileUtils.getCanonicalPath(dir + "/" + db + ".");
         String[] list = FileUtils.listFiles(dir);
         for (int i = 0; list != null && i < list.length; i++) {
             String f = list[i];
             boolean ok = false;
             if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
-                if (start == null || FileUtils.fileStartsWith(f, start + ".")) {
+                if (start == null || f.startsWith(start)) {
                     files.addAll(getDatabaseFiles(f, null, all));
                     ok = true;
                 }
@@ -97,7 +97,7 @@ public class FileLister {
                 }
             }
             if (ok) {
-                if (db == null || FileUtils.fileStartsWith(f, start + ".")) {
+                if (db == null || f.startsWith(start)) {
                     String fileName = f;
                     files.add(fileName);
                 }

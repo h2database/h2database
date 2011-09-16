@@ -14,23 +14,10 @@ import java.io.IOException;
  */
 public class FilePathNio extends FilePathWrapper {
 
-    /**
-     * Try to open a file with this name and mode.
-     *
-     * @param fileName the file name
-     * @param mode the open mode
-     * @return the file object
-     * @throws IOException if opening fails
-     */
-    protected FileObject open(String fileName, String mode) throws IOException {
-        return new FileObjectNio(fileName, mode);
+    public FileObject openFileObject(String mode) throws IOException {
+        return new FileObjectNio(name, mode);
     }
 
-    /**
-     * Get the prefix for this file system.
-     *
-     * @return the prefix
-     */
     public String getScheme() {
         return "nio";
     }

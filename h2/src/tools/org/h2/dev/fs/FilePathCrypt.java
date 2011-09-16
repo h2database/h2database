@@ -22,6 +22,9 @@ import org.h2.store.fs.FileUtils;
  */
 public class FilePathCrypt extends FilePathWrapper {
 
+    /**
+     * Register this file system.
+     */
     public static void register() {
         FilePath.register(new FilePathCrypt());
     }

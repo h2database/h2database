@@ -9,10 +9,10 @@ import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 
 /**
- * This utility class contains utility functions that use the file system abstraction.
+ * This utility class contains utility functions that use the file system
+ * abstraction.
  */
 public class FileUtils {
-
 
     /**
      * Checks if a file exists.
@@ -235,17 +235,6 @@ public class FileUtils {
      */
     public static String unwrap(String fileName) {
         return FilePath.get(fileName).unwrap().toString();
-    }
-
-    /**
-     * Check if a file starts with a given prefix.
-     *
-     * @param fileName the complete file name
-     * @param prefix the prefix
-     * @return true if it starts with the prefix
-     */
-    public static boolean fileStartsWith(String fileName, String prefix) {
-        return FilePath.get(fileName).fileStartsWith(prefix);
     }
 
     // utility methods =======================================

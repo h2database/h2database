@@ -22,7 +22,6 @@ import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -31,7 +30,6 @@ import org.h2.util.Utils;
  */
 public class FilePathDisk extends FilePath {
 
-    private static final boolean IS_FILE_SYSTEM_CASE_INSENSITIVE = File.separatorChar == '\\';
     private static final String CLASSPATH_PREFIX = "classpath:";
 
     public FilePathDisk getPath(String path) {
@@ -246,16 +244,6 @@ public class FilePathDisk extends FilePath {
         }
     }
 
-    public boolean fileStartsWith(String prefix) {
-        prefix = translateFileName(prefix);
-        String fileName = name;
-        if (IS_FILE_SYSTEM_CASE_INSENSITIVE) {
-            fileName = StringUtils.toUpperEnglish(fileName);
-            prefix = StringUtils.toUpperEnglish(prefix);
-        }
-        return fileName.startsWith(prefix);
-    }
-
     public OutputStream newOutputStream(boolean append) {
         try {
             File file = new File(name);
@@ -336,14 +324,6 @@ public class FilePathDisk extends FilePath {
             }
         }
         return f;
-    }
-
-    protected boolean accepts() {
-        return true;
-    }
-
-    public String unwrap(String fileName) {
-        return fileName;
     }
 
     public String getScheme() {

@@ -34,6 +34,10 @@ public abstract class FilePath {
     private static String tempRandom;
     private static long tempSequence;
 
+    /**
+     * The complete path (which may be absolute or relative, depending on the
+     * file system).
+     */
     protected String name;
 
     /**
@@ -200,14 +204,6 @@ public abstract class FilePath {
     }
 
     /**
-     * Check if a file starts with a given prefix.
-     *
-     * @param prefix the prefix
-     * @return true if it starts with the prefix
-     */
-    public abstract boolean fileStartsWith(String prefix);
-
-    /**
      * Create an output stream to write into the file.
      *
      * @param append if true, the file will grow, if false, the file will be
@@ -299,8 +295,8 @@ public abstract class FilePath {
      * return an object even if the scheme doesn't match in case of the the
      * default file provider.
      *
-     * @param path
-     * @return the file path
+     * @param path the path
+     * @return the file path object
      */
     public abstract FilePath getPath(String path);
 

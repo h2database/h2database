@@ -88,7 +88,6 @@ public class FtpData extends Thread {
     /**
      * Read a file from a client.
      *
-     * @param fs the target file system
      * @param fileName the target file name
      */
     synchronized void receive(String fileName) throws IOException {
@@ -108,7 +107,6 @@ public class FtpData extends Thread {
      * Send a file to the client. This method waits until the client has
      * connected.
      *
-     * @param fs the source file system
      * @param fileName the source file name
      * @param skip the number of bytes to skip
      */

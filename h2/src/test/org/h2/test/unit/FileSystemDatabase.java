@@ -170,10 +170,6 @@ public class FileSystemDatabase extends FileSystem {
         return new RuntimeException(e.toString(), e);
     }
 
-    public boolean canWrite(String fileName) {
-        return true;
-    }
-
     public void createDirectory(String directoryName) {
         directoryName = unwrap(directoryName);
         try {
@@ -272,8 +268,8 @@ public class FileSystemDatabase extends FileSystem {
         }
     }
 
-    public boolean isReadOnly(String fileName) {
-        return false;
+    public boolean canWrite(String fileName) {
+        return true;
     }
 
     public boolean setReadOnly(String fileName) {

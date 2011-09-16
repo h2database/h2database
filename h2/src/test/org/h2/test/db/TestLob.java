@@ -440,7 +440,7 @@ public class TestLob extends TestBase {
     private void testTempFilesDeleted() throws Exception {
         String[] list;
         FileUtils.deleteRecursive(TEMP_DIR, true);
-        IOUtils.mkdirs(new File(TEMP_DIR));
+        FileUtils.createDirectories(TEMP_DIR);
         list = FileUtils.listFiles(TEMP_DIR);
         if (list.length > 0) {
             fail("Unexpected temp file: " + list[0]);

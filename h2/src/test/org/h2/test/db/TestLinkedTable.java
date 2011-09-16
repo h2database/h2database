@@ -637,7 +637,7 @@ public class TestLinkedTable extends TestBase {
             String name = FileUtils.getName(file);
             if ((name.startsWith("testLinkedTableInReadOnlyDb")) && (!name.endsWith(".trace.db"))) {
                 FileUtils.setReadOnly(file);
-                boolean isReadOnly = FileUtils.isReadOnly(file);
+                boolean isReadOnly = !FileUtils.canWrite(file);
                 if (!isReadOnly) {
                     fail("File " + file + " is not read only. Can't test it.");
                 }

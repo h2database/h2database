@@ -60,11 +60,6 @@ public class DebugFileSystem extends FileSystemWrapper {
         throw POWER_OFF;
     }
 
-    public boolean canWrite(String fileName) {
-        trace(fileName, "canWrite");
-        return super.canWrite(fileName);
-    }
-
     public void createDirectory(String directoryName) {
         trace(directoryName, "createDirectory");
         super.createDirectory(directoryName);
@@ -121,9 +116,9 @@ public class DebugFileSystem extends FileSystemWrapper {
         return super.isDirectory(fileName);
     }
 
-    public boolean isReadOnly(String fileName) {
-        trace(fileName, "isReadOnly");
-        return super.isReadOnly(fileName);
+    public boolean canWrite(String fileName) {
+        trace(fileName, "canWrite");
+        return super.canWrite(fileName);
     }
 
     public boolean setReadOnly(String fileName) {

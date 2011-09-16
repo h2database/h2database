@@ -17,7 +17,8 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileObjectInputStream;
-import org.h2.store.fs.FileSystem;
+import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathDisk;
 import org.h2.store.fs.FileSystemDisk;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
@@ -28,48 +29,51 @@ import org.h2.util.New;
  * accessed as a stream. But unlike FileSystemZip, it is possible to stack file
  * systems.
  */
-public class FileSystemZip2 extends FileSystem {
-
-    private static final String PREFIX = "zip2:";
-
-    private static final FileSystemZip2 INSTANCE = new FileSystemZip2();
+public class FilePathZip2 extends FilePath {
 
     /**
      * Register the file system.
      *
      * @return the instance
      */
-    public static FileSystemZip2 register() {
-        FileSystem.register(INSTANCE);
-        return INSTANCE;
+    public static FilePathZip2 register() {
+        FilePathZip2 instance = new FilePathZip2();
+        FilePath.register(instance);
+        return instance;
     }
 
-    public void createDirectory(String directoryName) {
+    public FilePathZip2 getPath(String path) {
+        FilePathZip2 p = new FilePathZip2();
+        p.name = path;
+        return p;
+    }
+
+    public void createDirectory() {
         // ignore
     }
 
-    public boolean createFile(String fileName) {
+    public boolean createFile() {
         throw DbException.getUnsupportedException("write");
     }
 
-    public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
+    public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
         if (!inTempDir) {
             throw new IOException("File system is read-only");
         }
-        return FileSystemDisk.getInstance().createTempFile(prefix, suffix, deleteOnExit, true);
+        return new FilePathDisk().getPath(name).createTempFile(suffix, deleteOnExit, true);
     }
 
-    public void delete(String fileName) {
+    public void delete() {
         throw DbException.getUnsupportedException("write");
     }
 
-    public boolean exists(String fileName) {
+    public boolean exists() {
         try {
-            String entryName = getEntryName(fileName);
+            String entryName = getEntryName();
             if (entryName.length() == 0) {
                 return true;
             }
-            ZipInputStream file = openZip(fileName);
+            ZipInputStream file = openZip();
             boolean result = false;
             while (true) {
                 ZipEntry entry = file.getNextEntry();
@@ -89,45 +93,30 @@ public class FileSystemZip2 extends FileSystem {
         }
     }
 
-    public boolean fileStartsWith(String fileName, String prefix) {
-        return fileName.startsWith(prefix);
-    }
+//    public boolean fileStartsWith(String fileName, String prefix) {
+//        return fileName.startsWith(prefix);
+//    }
 
-    public String getName(String name) {
-        name = getEntryName(name);
-        if (name.endsWith("/")) {
-            name = name.substring(0, name.length() - 1);
-        }
-        int idx = name.lastIndexOf('/');
-        if (idx >= 0) {
-            name = name.substring(idx + 1);
-        }
-        return name;
-    }
-
-    public long lastModified(String fileName) {
+    public long lastModified() {
         return 0;
     }
 
-    public String getParent(String fileName) {
-        int idx = fileName.lastIndexOf('/');
-        if (idx > 0) {
-            fileName = fileName.substring(0, idx);
-        }
-        return fileName;
+    public FilePath getParent() {
+        int idx = name.lastIndexOf('/');
+        return idx < 0 ? null : getPath(name.substring(0, idx));
     }
 
-    public boolean isAbsolute(String fileName) {
+    public boolean isAbsolute() {
         return true;
     }
 
-    public boolean isDirectory(String fileName) {
+    public boolean isDirectory() {
         try {
-            String entryName = getEntryName(fileName);
+            String entryName = getEntryName();
             if (entryName.length() == 0) {
                 return true;
             }
-            ZipInputStream file = openZip(fileName);
+            ZipInputStream file = openZip();
             boolean result = false;
             while (true) {
                 ZipEntry entry = file.getNextEntry();
@@ -155,18 +144,18 @@ public class FileSystemZip2 extends FileSystem {
         }
     }
 
-    public boolean canWrite(String fileName) {
+    public boolean canWrite() {
         return false;
     }
 
-    public boolean setReadOnly(String fileName) {
+    public boolean setReadOnly() {
         return true;
     }
 
-    public long size(String fileName) {
+    public long size() {
         try {
-            String entryName = getEntryName(fileName);
-            ZipInputStream file = openZip(fileName);
+            String entryName = getEntryName();
+            ZipInputStream file = openZip();
             long result = 0;
             while (true) {
                 ZipEntry entry = file.getNextEntry();
@@ -196,7 +185,8 @@ public class FileSystemZip2 extends FileSystem {
         }
     }
 
-    public String[] listFiles(String path) {
+    public ArrayList<FilePath> listFiles() {
+        String path = name;
         try {
             if (path.indexOf('!') < 0) {
                 path += "!";
@@ -204,10 +194,10 @@ public class FileSystemZip2 extends FileSystem {
             if (!path.endsWith("/")) {
                 path += "/";
             }
-            ZipInputStream file = openZip(path);
-            String dirName = getEntryName(path);
+            ZipInputStream file = openZip();
+            String dirName = getEntryName();
             String prefix = path.substring(0, path.length() - dirName.length());
-            ArrayList<String> list = New.arrayList();
+            ArrayList<FilePath> list = New.arrayList();
             while (true) {
                 ZipEntry entry = file.getNextEntry();
                 if (entry == null) {
@@ -217,74 +207,73 @@ public class FileSystemZip2 extends FileSystem {
                 if (name.startsWith(dirName) && name.length() > dirName.length()) {
                     int idx = name.indexOf('/', dirName.length());
                     if (idx < 0 || idx >= name.length() - 1) {
-                        list.add(prefix + name);
+                        list.add(getPath(prefix + name));
                     }
                 }
                 file.closeEntry();
             }
             file.close();
-            String[] result = new String[list.size()];
-            list.toArray(result);
-            return result;
+            return list;
         } catch (IOException e) {
             throw DbException.convertIOException(e, "listFiles " + path);
         }
     }
 
-    public String getCanonicalPath(String fileName) {
-        return fileName;
+    public FilePath getCanonicalPath() {
+        return this;
     }
 
-    public InputStream newInputStream(String fileName) throws IOException {
-        FileObject file = openFileObject(fileName, "r");
+    public InputStream newInputStream() throws IOException {
+        FileObject file = openFileObject("r");
         return new FileObjectInputStream(file);
     }
 
-    public FileObject openFileObject(String fileName, String mode) throws IOException {
-        String entryName = getEntryName(fileName);
+    public FileObject openFileObject(String mode) throws IOException {
+        String entryName = getEntryName();
         if (entryName.length() == 0) {
-            throw new FileNotFoundException(fileName);
+            throw new FileNotFoundException();
         }
-        ZipInputStream in = openZip(fileName);
+        ZipInputStream in = openZip();
         while (true) {
             ZipEntry entry = in.getNextEntry();
             if (entry == null) {
                 break;
             }
             if (entry.getName().equals(entryName)) {
-                return new FileObjectZip2(fileName, entryName, in, size(fileName));
+                return new FileObjectZip2(name, entryName, in, size());
             }
             in.closeEntry();
         }
         in.close();
-        throw new FileNotFoundException(fileName);
+        throw new FileNotFoundException(name);
     }
 
-    public OutputStream newOutputStream(String fileName, boolean append) {
+    public OutputStream newOutputStream(boolean append) {
         throw DbException.getUnsupportedException("write");
     }
 
-    public void moveTo(String oldName, String newName) {
+    public void moveTo(FilePath newName) {
         throw DbException.getUnsupportedException("write");
     }
 
-    public String unwrap(String fileName) {
-        if (fileName.startsWith(PREFIX)) {
-            fileName = fileName.substring(PREFIX.length());
-        }
-        int idx = fileName.indexOf('!');
-        if (idx >= 0) {
-            fileName = fileName.substring(0, idx);
-        }
-        return FileSystemDisk.expandUserHomeDirectory(fileName);
-    }
+//    public String unwrap(String fileName) {
+//        if (fileName.startsWith(PREFIX)) {
+//            fileName = fileName.substring(PREFIX.length());
+//        }
+//        int idx = fileName.indexOf('!');
+//        if (idx >= 0) {
+//            fileName = fileName.substring(0, idx);
+//        }
+//        return FileSystemDisk.expandUserHomeDirectory(fileName);
+//    }
 
-    private static String getEntryName(String fileName) {
-        int idx = fileName.indexOf('!');
+    private String getEntryName() {
+        int idx = name.indexOf('!');
+        String fileName;
         if (idx <= 0) {
             fileName = "";
         } else {
-            fileName = fileName.substring(idx + 1);
+            fileName = name.substring(idx + 1);
         }
         fileName = fileName.replace('\\', '/');
         if (fileName.startsWith("/")) {
@@ -293,13 +282,28 @@ public class FileSystemZip2 extends FileSystem {
         return fileName;
     }
 
-    private ZipInputStream openZip(String fileName) throws IOException {
-        fileName = unwrap(fileName);
+    private ZipInputStream openZip() throws IOException {
+        String fileName = translateFileName(name);
         return new ZipInputStream(FileUtils.newInputStream(fileName));
     }
 
-    protected boolean accepts(String fileName) {
-        return fileName.startsWith(PREFIX);
+    private static String translateFileName(String fileName) {
+        if (fileName.startsWith("zip2:")) {
+            fileName = fileName.substring("zip2:".length());
+        }
+        int idx = fileName.indexOf('!');
+        if (idx >= 0) {
+            fileName = fileName.substring(0, idx);
+        }
+        return FileSystemDisk.expandUserHomeDirectory(fileName);
+    }
+
+    public boolean fileStartsWith(String prefix) {
+        return name.startsWith(prefix);
+    }
+
+    public String getScheme() {
+        return "zip2";
     }
 
 }

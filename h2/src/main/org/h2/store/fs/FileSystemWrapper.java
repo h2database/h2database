@@ -24,10 +24,6 @@ public abstract class FileSystemWrapper extends FileSystem {
      */
     protected abstract String getPrefix();
 
-    public boolean canWrite(String fileName) {
-        return FileUtils.canWrite(unwrap(fileName));
-    }
-
     public boolean setReadOnly(String fileName) {
         return FileUtils.setReadOnly(unwrap(fileName));
     }
@@ -77,8 +73,8 @@ public abstract class FileSystemWrapper extends FileSystem {
         return FileUtils.isDirectory(unwrap(fileName));
     }
 
-    public boolean isReadOnly(String fileName) {
-        return FileUtils.isReadOnly(unwrap(fileName));
+    public boolean canWrite(String fileName) {
+        return FileUtils.canWrite(unwrap(fileName));
     }
 
     public long size(String fileName) {

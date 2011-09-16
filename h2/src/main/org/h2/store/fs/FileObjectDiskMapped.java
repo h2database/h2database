@@ -132,6 +132,10 @@ public class FileObjectDiskMapped implements FileObject {
         return pos;
     }
 
+    public String toString() {
+        return FileSystemDiskNioMapped.PREFIX + name;
+    }
+
     public synchronized long size() throws IOException {
         return file.length();
     }
@@ -161,9 +165,24 @@ public class FileObjectDiskMapped implements FileObject {
         if (newLength >= size()) {
             return;
         }
+        setFileLength(newLength);
+    }
+
+    public synchronized void setFileLength(long newLength) throws IOException {
+        checkFileSizeLimit(newLength);
         int oldPos = pos;
         unMap();
-        file.setLength(newLength);
+        for (int i = 0;; i++) {
+            try {
+                file.setLength(newLength);
+                break;
+            } catch (IOException e) {
+                if (i > 16 || e.toString().indexOf("user-mapped section open") < 0) {
+                    throw e;
+                }
+            }
+            System.gc();
+        }
         reMap();
         pos = (int) Math.min(newLength, oldPos);
     }
@@ -176,11 +195,7 @@ public class FileObjectDiskMapped implements FileObject {
     public synchronized void write(byte[] b, int off, int len) throws IOException {
         // check if need to expand file
         if (mapped.capacity() < pos + len) {
-            int oldPos = pos;
-            unMap();
-            file.setLength(pos + len);
-            reMap();
-            pos = oldPos;
+            setFileLength(pos + len);
         }
         mapped.position(pos);
         mapped.put(b, off, len);
@@ -208,10 +223,6 @@ public class FileObjectDiskMapped implements FileObject {
             }
             lock = null;
         }
-    }
-
-    public String toString() {
-        return name;
     }
 
 }

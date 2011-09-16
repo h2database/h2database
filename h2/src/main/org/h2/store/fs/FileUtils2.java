@@ -1,8 +1,15 @@
+/*
+ * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.store.fs;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
@@ -10,7 +17,7 @@ import org.h2.util.IOUtils;
 /**
  * This utility class contains utility functions that use the file system abstraction.
  */
-public class FileUtils {
+public class FileUtils2 {
 
     /**
      * Checks if a file exists.
@@ -20,7 +27,7 @@ public class FileUtils {
      * @return true if it exists
      */
     public static boolean exists(String fileName) {
-        return getFileSystem(fileName).exists(fileName);
+        return FilePath.get(fileName).exists();
     }
 
     /**
@@ -30,7 +37,7 @@ public class FileUtils {
      * @param directoryName the directory name
      */
     public static void createDirectory(String directoryName) {
-        getFileSystem(directoryName).createDirectory(directoryName);
+        FilePath.get(directoryName).createDirectory();
     }
 
     /**
@@ -42,7 +49,7 @@ public class FileUtils {
      * @return true if creating was successful
      */
     public static boolean createFile(String fileName) {
-        return getFileSystem(fileName).createFile(fileName);
+        return FilePath.get(fileName).createFile();
     }
 
     /**
@@ -53,7 +60,7 @@ public class FileUtils {
      * @param path the file or directory name
      */
     public static void delete(String path) {
-        getFileSystem(path).delete(path);
+        FilePath.get(path).delete();
     }
 
     /**
@@ -64,18 +71,20 @@ public class FileUtils {
      * @return the normalized file name
      */
     public static String getCanonicalPath(String fileName) {
-        return getFileSystem(fileName).getCanonicalPath(fileName);
+        return FilePath.get(fileName).getCanonicalPath().toString();
     }
 
     /**
      * Get the parent directory of a file or directory.
+     * This method returns null if there is no parent.
      * This method is similar to Java 7 <code>java.nio.file.Path.getParent</code>.
      *
      * @param fileName the file or directory name
      * @return the parent directory name
      */
     public static String getParent(String fileName) {
-        return getFileSystem(fileName).getParent(fileName);
+        FilePath p = FilePath.get(fileName).getParent();
+        return p == null ? null : p.toString();
     }
 
     /**
@@ -86,7 +95,7 @@ public class FileUtils {
      * @return if the file name is absolute
      */
     public static boolean isAbsolute(String fileName) {
-        return getFileSystem(fileName).isAbsolute(fileName);
+        return FilePath.get(fileName).isAbsolute();
     }
 
     /**
@@ -97,7 +106,7 @@ public class FileUtils {
      * @param newName the new fully qualified file name
      */
     public static void moveTo(String oldName, String newName) {
-        getFileSystem(oldName).moveTo(oldName, newName);
+        FilePath.get(oldName).moveTo(FilePath.get(newName));
     }
 
     /**
@@ -108,7 +117,7 @@ public class FileUtils {
      * @return just the file name
      */
     public static String getName(String path) {
-        return getFileSystem(path).getName(path);
+        return FilePath.get(path).getName();
     }
 
     /**
@@ -119,7 +128,12 @@ public class FileUtils {
      * @return the list of fully qualified file names
      */
     public static String[] listFiles(String path) {
-        return getFileSystem(path).listFiles(path);
+        List<FilePath> list = FilePath.get(path).listFiles();
+        String[] array = new String[list.size()];
+        for (int i = 0, len = list.size(); i < len; i++) {
+            array[i] = list.get(i).toString();
+        }
+        return array;
     }
 
     /**
@@ -131,7 +145,7 @@ public class FileUtils {
      * @return the last modified date
      */
     public static long lastModified(String fileName) {
-        return getFileSystem(fileName).lastModified(fileName);
+        return FilePath.get(fileName).lastModified();
     }
 
     /**
@@ -143,7 +157,7 @@ public class FileUtils {
      * @return the size in bytes
      */
     public static long size(String fileName) {
-        return getFileSystem(fileName).size(fileName);
+        return FilePath.get(fileName).size();
     }
 
     /**
@@ -154,7 +168,7 @@ public class FileUtils {
      * @return true if it is a directory
      */
     public static boolean isDirectory(String fileName) {
-        return getFileSystem(fileName).isDirectory(fileName);
+        return FilePath.get(fileName).isDirectory();
     }
 
     /**
@@ -166,7 +180,7 @@ public class FileUtils {
      * @return the file object
      */
     public static FileObject openFileObject(String fileName, String mode) throws IOException {
-        return getFileSystem(fileName).openFileObject(fileName, mode);
+        return FilePath.get(fileName).openFileObject(mode);
     }
 
     /**
@@ -177,7 +191,7 @@ public class FileUtils {
      * @return the input stream
      */
     public static InputStream newInputStream(String fileName) throws IOException {
-        return getFileSystem(fileName).newInputStream(fileName);
+        return FilePath.get(fileName).newInputStream();
     }
 
     /**
@@ -190,7 +204,7 @@ public class FileUtils {
      * @return the output stream
      */
     public static OutputStream newOutputStream(String fileName, boolean append) {
-        return getFileSystem(fileName).newOutputStream(fileName, append);
+        return FilePath.get(fileName).newOutputStream(append);
     }
 
     /**
@@ -202,7 +216,7 @@ public class FileUtils {
      * @return if the file is writable
      */
     public static boolean canWrite(String fileName) {
-        return getFileSystem(fileName).canWrite(fileName);
+        return FilePath.get(fileName).canWrite();
     }
 
     // special methods =======================================
@@ -214,7 +228,7 @@ public class FileUtils {
      * @return true if the call was successful
      */
     public static boolean setReadOnly(String fileName) {
-        return getFileSystem(fileName).setReadOnly(fileName);
+        return FilePath.get(fileName).setReadOnly();
     }
 
     /**
@@ -225,7 +239,7 @@ public class FileUtils {
      * @return the unwrapped
      */
     public static String unwrap(String fileName) {
-        return getFileSystem(fileName).unwrap(fileName);
+        return FilePath.get(fileName).unwrap().toString();
     }
 
     /**
@@ -236,7 +250,78 @@ public class FileUtils {
      * @return true if it starts with the prefix
      */
     public static boolean fileStartsWith(String fileName, String prefix) {
-        return getFileSystem(fileName).fileStartsWith(fileName, prefix);
+        return FilePath.get(fileName).fileStartsWith(prefix);
+    }
+
+    // utility methods =======================================
+
+    /**
+     * Delete a directory or file and all subdirectories and files.
+     *
+     * @param path the path
+     * @param tryOnly whether errors should  be ignored
+     */
+    public static void deleteRecursive(String path, boolean tryOnly) {
+        if (exists(path)) {
+            if (isDirectory(path)) {
+                for (String s : listFiles(path)) {
+                    deleteRecursive(s, tryOnly);
+                }
+            }
+            if (tryOnly) {
+                tryDelete(path);
+            } else {
+                delete(path);
+            }
+        }
+    }
+
+    /**
+     * Create the directory and all required parent directories.
+     *
+     * @param dir the directory name
+     */
+    public static void createDirectories(String dir) {
+        if (dir != null) {
+            if (exists(dir)) {
+                if (!isDirectory(dir)) {
+                    DbException.get(ErrorCode.FILE_CREATION_FAILED_1,
+                            "Could not create directory, " +
+                            "because a file with the same name already exists: " + dir);
+                }
+            } else {
+                String parent = getParent(dir);
+                createDirectories(parent);
+                createDirectory(dir);
+            }
+        }
+    }
+
+    /**
+     * Copy a file from one directory to another, or to another file.
+     *
+     * @param original the original file name
+     * @param copy the file name of the copy
+     */
+    public static void copy(String original, String copy) throws IOException {
+        InputStream in = newInputStream(original);
+        OutputStream out = newOutputStream(copy, false);
+        IOUtils.copyAndClose(in, out);
+    }
+
+    /**
+     * Try to delete a file (ignore errors).
+     *
+     * @param fileName the file name
+     * @return true if it worked
+     */
+    public static boolean tryDelete(String fileName) {
+        try {
+            FilePath.get(fileName).delete();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**
@@ -252,82 +337,7 @@ public class FileUtils {
      */
     public static String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
-        return getFileSystem(prefix).createTempFile(prefix, suffix, deleteOnExit, inTempDir);
-    }
-
-    // utility methods =======================================
-
-    /**
-     * Delete a directory or file and all subdirectories and files.
-     *
-     * @param path the path
-     * @param tryOnly whether errors should  be ignored
-     */
-    public static void deleteRecursive(String path, boolean tryOnly) {
-        if (exists(path)) {
-            if (FileUtils.isDirectory(path)) {
-                for (String s : FileUtils.listFiles(path)) {
-                    deleteRecursive(s, tryOnly);
-                }
-            }
-            if (tryOnly) {
-                FileUtils.tryDelete(path);
-            } else {
-                delete(path);
-            }
-        }
-    }
-
-    /**
-     * Create the directory and all required parent directories.
-     *
-     * @param dir the directory name
-     */
-    public static void createDirectories(String dir) {
-        if (dir != null) {
-            if (FileUtils.exists(dir)) {
-                if (!FileUtils.isDirectory(dir)) {
-                    DbException.get(ErrorCode.FILE_CREATION_FAILED_1,
-                            "Could not create directory, " +
-                            "because a file with the same name already exists: " + dir);
-                }
-            } else {
-                String parent = FileUtils.getParent(dir);
-                createDirectories(parent);
-                createDirectory(dir);
-            }
-        }
-    }
-
-    /**
-     * Copy a file from one directory to another, or to another file.
-     *
-     * @param original the original file name
-     * @param copy the file name of the copy
-     */
-    public static void copy(String original, String copy) throws IOException {
-        InputStream in = FileUtils.newInputStream(original);
-        OutputStream out = FileUtils.newOutputStream(copy, false);
-        IOUtils.copyAndClose(in, out);
-    }
-
-    private static FileSystem getFileSystem(String fileName) {
-        return FileSystem.getInstance(fileName);
-    }
-
-    /**
-     * Try to delete a file (ignore errors).
-     *
-     * @param fileName the file name
-     * @return true if it worked
-     */
-    public static boolean tryDelete(String fileName) {
-        try {
-            getFileSystem(fileName).delete(fileName);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+        return FilePath.get(prefix).createTempFile(suffix, deleteOnExit, inTempDir).toString();
     }
 
 }

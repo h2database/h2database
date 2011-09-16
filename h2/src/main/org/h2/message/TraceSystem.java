@@ -296,7 +296,7 @@ public class TraceSystem implements TraceWriter {
         if (printWriter == null) {
             try {
                 FileUtils.createDirectories(FileUtils.getParent(fileName));
-                if (FileUtils.exists(fileName) && FileUtils.isReadOnly(fileName)) {
+                if (FileUtils.exists(fileName) && !FileUtils.canWrite(fileName)) {
                     // read only database: don't log error if the trace file
                     // can't be opened
                     return false;

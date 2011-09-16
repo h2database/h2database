@@ -54,10 +54,6 @@ public class FilePathZip extends FilePath {
         }
     }
 
-    public boolean fileStartsWith(String fileName, String prefix) {
-        return fileName.startsWith(prefix);
-    }
-
     public long lastModified() {
         return 0;
     }
@@ -211,14 +207,6 @@ public class FilePathZip extends FilePath {
             throw new IOException("File system is read-only");
         }
         return new FilePathDisk().getPath(name).createTempFile(suffix, deleteOnExit, true);
-    }
-
-//    protected boolean accepts(String fileName) {
-//        return fileName.startsWith(PREFIX);
-//    }
-
-    public boolean fileStartsWith(String prefix) {
-        return name.startsWith(prefix);
     }
 
     public String getScheme() {

@@ -120,11 +120,6 @@ public class FilePathMem extends FilePath {
         // TODO directories are not really supported
     }
 
-    public boolean fileStartsWith(String prefix) {
-        prefix = getCanonicalPath(prefix);
-        return name.startsWith(prefix);
-    }
-
     public OutputStream newOutputStream(boolean append) {
         try {
             FileObjectMemData obj = getMemoryFile();
@@ -161,14 +156,6 @@ public class FilePathMem extends FilePath {
         return name.equals(getScheme());
     }
 
-    protected boolean accepts(String fileName) {
-        return fileName.startsWith(getScheme());
-    }
-
-    public String unwrap(String fileName) {
-        return fileName;
-    }
-
     private static String getCanonicalPath(String fileName) {
         fileName = fileName.replace('\\', '/');
         int idx = fileName.indexOf(':') + 1;
@@ -182,6 +169,11 @@ public class FilePathMem extends FilePath {
         return "memFS";
     }
 
+    /**
+     * Whether the file should be compressed.
+     *
+     * @return if it should be compressed.
+     */
     boolean compressed() {
         return false;
     }

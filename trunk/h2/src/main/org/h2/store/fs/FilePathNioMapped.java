@@ -14,15 +14,10 @@ import java.io.IOException;
  */
 public class FilePathNioMapped extends FilePathNio {
 
-    protected FileObject open(String mode) throws IOException {
+    public FileObject openFileObject(String mode) throws IOException {
         return new FileObjectNioMapped(name, mode);
     }
 
-    /**
-     * Get the prefix for this file system.
-     *
-     * @return the prefix
-     */
     public String getScheme() {
         return "nioMapped";
     }

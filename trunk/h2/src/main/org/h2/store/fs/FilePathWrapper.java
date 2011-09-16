@@ -24,6 +24,12 @@ public abstract class FilePathWrapper extends FilePath {
         return create(path, unwrap(path));
     }
 
+    /**
+     * Create a wrapped path instance for the given base path.
+     *
+     * @param base the base path
+     * @return the wrapped path
+     */
     public FilePathWrapper wrap(FilePath base) {
         return base == null ? null : create(getPrefix() + base.name, base);
     }
@@ -47,6 +53,12 @@ public abstract class FilePathWrapper extends FilePath {
         return getScheme() + ":";
     }
 
+    /**
+     * Get the base path for the given wrapped path.
+     *
+     * @param path the path including the scheme prefix
+     * @return the base file path
+     */
     protected FilePath unwrap(String path) {
         return FilePath.get(path.substring(getScheme().length() + 1));
     }
@@ -73,10 +85,6 @@ public abstract class FilePathWrapper extends FilePath {
 
     public boolean exists() {
         return base.exists();
-    }
-
-    public boolean fileStartsWith(String prefix) {
-        return name.startsWith(prefix);
     }
 
     public FilePath getParent() {

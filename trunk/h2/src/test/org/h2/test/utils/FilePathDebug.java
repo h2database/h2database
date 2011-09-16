@@ -76,11 +76,6 @@ public class FilePathDebug extends FilePathWrapper {
         return super.exists();
     }
 
-    public boolean fileStartsWith(String prefix) {
-        trace(name, "fileStartsWith", unwrap(prefix));
-        return super.fileStartsWith(prefix);
-    }
-
     public String getName() {
         trace(name, "getName");
         return super.getName();

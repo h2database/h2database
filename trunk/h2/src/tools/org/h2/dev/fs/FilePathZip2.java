@@ -297,10 +297,6 @@ public class FilePathZip2 extends FilePath {
         return FilePathDisk.expandUserHomeDirectory(fileName);
     }
 
-    public boolean fileStartsWith(String prefix) {
-        return name.startsWith(prefix);
-    }
-
     public String getScheme() {
         return "zip2";
     }

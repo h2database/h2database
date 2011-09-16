@@ -29,7 +29,7 @@ public abstract class FilePath {
     private static Map<String, FilePath> providers;
 
     /**
-     * The prefix for temporary files. See also TestClearReferences.
+     * The prefix for temporary files.
      */
     private static String tempRandom;
     private static long tempSequence;

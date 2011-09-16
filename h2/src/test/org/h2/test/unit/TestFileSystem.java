@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -112,9 +113,11 @@ public class TestFileSystem extends TestBase {
         FileObject o = FileUtils.openFileObject(f, "rw");
         o.position(4000);
         o.write(new byte[1], 0, 1);
-        o.tryLock();
+        FileLock lock = o.tryLock();
         o.truncate(0);
-        o.releaseLock();
+        if (lock != null) {
+            lock.release();
+        }
         o.close();
     }
 
@@ -245,8 +248,10 @@ public class TestFileSystem extends TestBase {
         can = FilePath.get(fsBase).getCanonicalPath().toString();
         String can2 = FileUtils.getCanonicalPath(FileUtils.getParent(path));
         assertEquals(can, can2);
-        fo.tryLock();
-        fo.releaseLock();
+        FileLock lock = fo.tryLock();
+        if (lock != null) {
+            lock.release();
+        }
         assertEquals(10000, fo.size());
         fo.close();
         assertEquals(10000, FileUtils.size(fsBase + "/test"));

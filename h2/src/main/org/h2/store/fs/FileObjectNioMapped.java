@@ -28,7 +28,6 @@ public class FileObjectNioMapped implements FileObject {
     private final MapMode mode;
     private RandomAccessFile file;
     private MappedByteBuffer mapped;
-    private FileLock lock;
 
     /**
      * The position within the file. Can't use the position of the mapped buffer
@@ -202,27 +201,8 @@ public class FileObjectNioMapped implements FileObject {
         pos += len;
     }
 
-    public synchronized boolean tryLock() {
-        if (lock == null) {
-            try {
-                lock = file.getChannel().tryLock();
-            } catch (IOException e) {
-                // could not lock
-            }
-            return lock != null;
-        }
-        return false;
-    }
-
-    public synchronized void releaseLock() {
-        if (lock != null) {
-            try {
-                lock.release();
-            } catch (IOException e) {
-                // ignore
-            }
-            lock = null;
-        }
+    public synchronized FileLock tryLock() throws IOException {
+        return file.getChannel().tryLock();
     }
 
 }

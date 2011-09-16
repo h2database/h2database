@@ -7,6 +7,7 @@
 package org.h2.store.fs;
 
 import java.io.IOException;
+import java.nio.channels.FileLock;
 
 /**
  * This class represents an in-memory file.
@@ -60,12 +61,8 @@ public class FileObjectMem implements FileObject {
         // do nothing
     }
 
-    public boolean tryLock() {
-        return data.tryLock();
-    }
-
-    public void releaseLock() {
-        data.releaseLock();
+    public FileLock tryLock() {
+        return null;
     }
 
 }

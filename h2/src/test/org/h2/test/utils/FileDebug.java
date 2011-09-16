@@ -7,6 +7,7 @@
 package org.h2.test.utils;
 
 import java.io.IOException;
+import java.nio.channels.FileLock;
 import org.h2.store.fs.FileObject;
 
 /**
@@ -83,14 +84,9 @@ public class FileDebug implements FileObject {
         }
     }
 
-    public boolean tryLock() {
+    public FileLock tryLock() throws IOException {
         debug("tryLock");
         return file.tryLock();
-    }
-
-    public void releaseLock() {
-        debug("releaseLock");
-        file.releaseLock();
     }
 
 }

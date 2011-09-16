@@ -7,6 +7,7 @@
 package org.h2.store.fs;
 
 import java.io.IOException;
+import java.nio.channels.FileLock;
 
 /**
  * A file object that records all write operations and can re-play them.
@@ -62,12 +63,8 @@ public class FileObjectRec implements FileObject {
         fs.log(Recorder.WRITE, name, buff, file.position());
     }
 
-    public boolean tryLock() {
+    public FileLock tryLock() throws IOException {
         return file.tryLock();
-    }
-
-    public void releaseLock() {
-        file.releaseLock();
     }
 
 }

@@ -22,7 +22,6 @@ public class FileObjectNio implements FileObject {
     private final String name;
     private final RandomAccessFile file;
     private final FileChannel channel;
-    private FileLock lock;
     private long length;
 
     FileObjectNio(String fileName, String mode) throws IOException {
@@ -94,27 +93,8 @@ public class FileObjectNio implements FileObject {
         }
     }
 
-    public synchronized boolean tryLock() {
-        if (lock == null) {
-            try {
-                lock = channel.tryLock();
-            } catch (IOException e) {
-                // could not lock
-            }
-            return lock != null;
-        }
-        return false;
-    }
-
-    public synchronized void releaseLock() {
-        if (lock != null) {
-            try {
-                lock.release();
-            } catch (IOException e) {
-                // ignore
-            }
-            lock = null;
-        }
+    public synchronized FileLock tryLock() throws IOException {
+        return channel.tryLock();
     }
 
     public String toString() {

@@ -9,6 +9,7 @@ package org.h2.store.fs;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.channels.FileLock;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -103,12 +104,8 @@ public class FileObjectZip implements FileObject {
         throw new IOException("File is read-only");
     }
 
-    public boolean tryLock() {
-        return false;
-    }
-
-    public void releaseLock() {
-        // ignore
+    public FileLock tryLock() {
+        return null;
     }
 
 }

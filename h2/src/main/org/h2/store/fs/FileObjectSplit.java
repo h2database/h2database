@@ -8,6 +8,7 @@ package org.h2.store.fs;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.nio.channels.FileLock;
 import org.h2.message.DbException;
 
 /**
@@ -153,12 +154,8 @@ public class FileObjectSplit implements FileObject {
         return l;
     }
 
-    public boolean tryLock() {
+    public FileLock tryLock() throws IOException {
         return list[0].tryLock();
-    }
-
-    public void releaseLock() {
-        list[0].releaseLock();
     }
 
 }

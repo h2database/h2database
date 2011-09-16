@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.SysProperties;
-import org.h2.store.fs.FileSystemMemory;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
@@ -56,7 +55,7 @@ public class TestRandomSQL extends TestBase {
 
     private void deleteDb() {
         String name = getDatabaseName();
-        if (name.startsWith(FileSystemMemory.PREFIX)) {
+        if (name.startsWith("memFS:")) {
             DeleteDbFiles.execute("memFS:/", name, true);
         } else {
             DeleteDbFiles.execute(getBaseDir() + "/dataRandomSQL", null, true);

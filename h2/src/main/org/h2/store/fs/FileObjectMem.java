@@ -11,13 +11,13 @@ import java.io.IOException;
 /**
  * This class represents an in-memory file.
  */
-public class FileObjectMemory implements FileObject {
+public class FileObjectMem implements FileObject {
 
-    private final FileObjectMemoryData data;
+    private final FileObjectMemData data;
     private final boolean readOnly;
     private long pos;
 
-    FileObjectMemory(FileObjectMemoryData data, boolean readOnly) {
+    FileObjectMem(FileObjectMemData data, boolean readOnly) {
         this.data = data;
         this.readOnly = readOnly;
     }

@@ -15,15 +15,15 @@ import org.h2.message.DbException;
  */
 public class FileObjectSplit implements FileObject {
 
-    private final String name;
+    private final FilePathSplit file;
     private final String mode;
     private final long maxLength;
     private FileObject[] list;
     private long filePointer;
     private long length;
 
-    FileObjectSplit(String name, String mode, FileObject[] list, long length, long maxLength) {
-        this.name = name;
+    FileObjectSplit(FilePathSplit file, String mode, FileObject[] list, long length, long maxLength) {
+        this.file = file;
         this.mode = mode;
         this.list = list;
         this.length = length;
@@ -78,8 +78,8 @@ public class FileObjectSplit implements FileObject {
             int i = list.length;
             FileObject[] newList = new FileObject[i + 1];
             System.arraycopy(list, 0, newList, 0, i);
-            String fileName = FileSystemSplit.getFileName(name, i);
-            newList[i] = FileSystem.getInstance(fileName).openFileObject(fileName, mode);
+            FilePath f = file.getBase(i);
+            newList[i] = f.openFileObject(mode);
             list = newList;
         }
         return list[id];
@@ -100,7 +100,7 @@ public class FileObjectSplit implements FileObject {
                 list[i].truncate(0);
                 list[i].close();
                 try {
-                    FileUtils.delete(FileSystemSplit.getFileName(name, i));
+                    file.getBase(i).delete();
                 } catch (DbException e) {
                     throw DbException.convertToIOException(e);
                 }

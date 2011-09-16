@@ -17,12 +17,14 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Random;
-import org.h2.dev.fs.FileSystemCrypt;
+import org.h2.dev.fs.FilePathCrypt;
 import org.h2.store.fs.FileObject;
-import org.h2.store.fs.FileSystemMemory;
+import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.utils.FilePathDebug;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 
@@ -45,9 +47,9 @@ public class TestFileSystem extends TestBase {
     public void test() throws Exception {
         testMemFsDir();
         testClasspath();
-        FileSystemCrypt.register();
-        // DebugFileSystem.register().setTrace(true);
-        // testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
+        FilePathCrypt.register();
+        FilePathDebug.register().setTrace(true);
+        testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
 
         testSimpleExpandTruncateSize();
         testSplitDatabaseInZip();
@@ -57,15 +59,11 @@ public class TestFileSystem extends TestBase {
         String f = "split:10:" + getBaseDir() + "/fs";
         FileUtils.getCanonicalPath(f);
         testFileSystem(getBaseDir() + "/fs");
-        testFileSystem(FileSystemMemory.PREFIX);
-        FileSystemDatabase fs = FileSystemDatabase.register("jdbc:h2:mem:fs");
-        // testFileSystem("jdbc:h2:mem:fs;TRACE_LEVEL_FILE=3");
-        testFileSystem("jdbc:h2:mem:fs");
-        testFileSystem(FileSystemMemory.PREFIX_LZF);
+        testFileSystem("memFS:");
+        testFileSystem("memLZF:");
         testUserHome();
-        fs.unregister();
         try {
-            FileSystemCrypt.register();
+            FilePathCrypt.register();
             testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
             testFileSystem("nio:" + getBaseDir() + "/fs");
             testFileSystem("nioMapped:" + getBaseDir() + "/fs");
@@ -228,6 +226,10 @@ public class TestFileSystem extends TestBase {
         FileUtils.delete(fsBase + "/test");
         FileUtils.delete(fsBase + "/test2");
         assertTrue(FileUtils.createFile(fsBase + "/test"));
+        List<FilePath> p = FilePath.get(fsBase).listFiles();
+        assertEquals(1, p.size());
+        String can = FilePath.get(fsBase + "/test").getCanonicalPath().toString();
+        assertEquals(can, p.get(0).toString());
         assertTrue(FileUtils.canWrite(fsBase + "/test"));
         FileObject fo = FileUtils.openFileObject(fsBase + "/test", "rw");
         byte[] buffer = new byte[10000];
@@ -240,7 +242,9 @@ public class TestFileSystem extends TestBase {
         assertThrows(EOFException.class, fo).readFully(buffer, 0, 1);
         String path = fsBase + "/test";
         assertEquals("test", FileUtils.getName(path));
-        assertEquals(fsBase, FileUtils.getParent(path).replace('\\', '/'));
+        can = FilePath.get(fsBase).getCanonicalPath().toString();
+        String can2 = FileUtils.getCanonicalPath(FileUtils.getParent(path));
+        assertEquals(can, can2);
         fo.tryLock();
         fo.releaseLock();
         assertEquals(10000, fo.size());
@@ -283,7 +287,7 @@ public class TestFileSystem extends TestBase {
 
         assertTrue(FileUtils.tryDelete(fsBase + "/test2"));
         FileUtils.delete(fsBase + "/test");
-        if (fsBase.indexOf(FileSystemMemory.PREFIX) < 0 && fsBase.indexOf(FileSystemMemory.PREFIX_LZF) < 0) {
+        if (fsBase.indexOf("memFS:") < 0 && fsBase.indexOf("memLZF:") < 0) {
             FileUtils.createDirectories(fsBase + "/testDir");
             assertTrue(FileUtils.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith("jdbc:")) {

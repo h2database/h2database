@@ -17,7 +17,7 @@ import java.nio.channels.NonWritableChannelException;
 /**
  * File which uses NIO FileChannel.
  */
-public class FileObjectDiskChannel implements FileObject {
+public class FileObjectNio implements FileObject {
 
     private final String name;
     private final RandomAccessFile file;
@@ -25,7 +25,7 @@ public class FileObjectDiskChannel implements FileObject {
     private FileLock lock;
     private long length;
 
-    FileObjectDiskChannel(String fileName, String mode) throws IOException {
+    FileObjectNio(String fileName, String mode) throws IOException {
         this.name = fileName;
         file = new RandomAccessFile(fileName, mode);
         channel = file.getChannel();

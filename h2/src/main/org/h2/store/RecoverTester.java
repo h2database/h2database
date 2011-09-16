@@ -17,9 +17,9 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.Recorder;
-import org.h2.store.fs.RecordingFileSystem;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
@@ -52,7 +52,7 @@ public class RecoverTester implements Recorder {
         if (StringUtils.isNumber(recoverTest)) {
             tester.setTestEvery(Integer.parseInt(recoverTest));
         }
-        RecordingFileSystem.setRecorder(tester);
+        FilePathRec.setRecorder(tester);
     }
 
     public static synchronized RecoverTester getInstance() {

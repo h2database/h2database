@@ -150,7 +150,7 @@ public class FilePathSplit extends FilePathWrapper {
                 closeAndThrow(array.length - 1, array, o, maxLength);
             }
         }
-        FileObjectSplit fo = new FileObjectSplit(name, mode, array, length, maxLength);
+        FileObjectSplit fo = new FileObjectSplit(this, mode, array, length, maxLength);
         return fo;
     }
 
@@ -218,7 +218,7 @@ public class FilePathSplit extends FilePathWrapper {
      * @param id the part id
      * @return the file name including the part id
      */
-    private FilePath getBase(int id) {
+    FilePath getBase(int id) {
         return FilePath.get(getName(id));
     }
 

@@ -32,9 +32,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.store.FileLock;
-import org.h2.store.fs.FileSystemSplit;
 import org.h2.store.fs.FileUtils;
-import org.h2.store.fs.RecordingFileSystem;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
 import org.h2.tools.DeleteDbFiles;
@@ -224,10 +222,10 @@ public abstract class TestBase {
         String dir = baseDir;
         if (config != null) {
             if (config.reopen) {
-                dir = RecordingFileSystem.PREFIX + "memFS:" + dir;
+                dir = "rec:memFS:" + dir;
             }
             if (config.splitFileSystem) {
-                dir = FileSystemSplit.PREFIX + "16:" + dir;
+                dir = "split:16:" + dir;
             }
         }
         // return "split:nioMapped:" + baseDir;

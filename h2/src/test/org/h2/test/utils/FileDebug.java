@@ -12,16 +12,16 @@ import org.h2.store.fs.FileObject;
 /**
  * A debugging file that logs all operations.
  */
-public class DebugFileObject implements FileObject {
+public class FileDebug implements FileObject {
 
-    private final DebugFileSystem fs;
+    private final FilePathDebug fs;
     private final FileObject file;
     private final String name;
 
-    DebugFileObject(DebugFileSystem fs, FileObject file, String name) {
+    FileDebug(FilePathDebug fs, FileObject file, String name) {
         this.fs = fs;
         this.file = file;
-        this.name = fs.getPrefix() + name;
+        this.name = fs.getScheme() + ":" + name;
     }
 
     public void close() throws IOException {

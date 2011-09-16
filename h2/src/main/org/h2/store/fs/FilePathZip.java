@@ -37,13 +37,6 @@ public class FilePathZip extends FilePath {
         throw DbException.getUnsupportedException("write");
     }
 
-    public String createTempFile(String prefix, String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
-        if (!inTempDir) {
-            throw new IOException("File system is read-only");
-        }
-        return FileSystemDisk.getInstance().createTempFile(prefix, suffix, deleteOnExit, true);
-    }
-
     public void delete() {
         throw DbException.getUnsupportedException("write");
     }
@@ -64,18 +57,6 @@ public class FilePathZip extends FilePath {
     public boolean fileStartsWith(String fileName, String prefix) {
         return fileName.startsWith(prefix);
     }
-
-//    public String _getName(String name) {
-//        name = getEntryName(name);
-//        if (name.endsWith("/")) {
-//            name = name.substring(0, name.length() - 1);
-//        }
-//        int idx = name.lastIndexOf('/');
-//        if (idx >= 0) {
-//            name = name.substring(idx + 1);
-//        }
-//        return name;
-//    }
 
     public long lastModified() {
         return 0;
@@ -198,7 +179,7 @@ public class FilePathZip extends FilePath {
         if (idx >= 0) {
             fileName = fileName.substring(0, idx);
         }
-        return FileSystemDisk.expandUserHomeDirectory(fileName);
+        return FilePathDisk.expandUserHomeDirectory(fileName);
     }
 
     public FilePath getCanonicalPath() {

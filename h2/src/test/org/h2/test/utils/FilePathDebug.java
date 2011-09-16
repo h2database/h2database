@@ -18,9 +18,9 @@ import org.h2.store.fs.FilePathWrapper;
 /**
  * A debugging file system that logs all operations.
  */
-public class DebugFilePath extends FilePathWrapper {
+public class FilePathDebug extends FilePathWrapper {
 
-    private static final DebugFilePath INSTANCE = new DebugFilePath();
+    private static final FilePathDebug INSTANCE = new FilePathDebug();
 
     private static final IOException POWER_OFF = new IOException("Simulated power failure");
 
@@ -32,7 +32,7 @@ public class DebugFilePath extends FilePathWrapper {
      *
      * @return the instance
      */
-    public static DebugFilePath register() {
+    public static FilePathDebug register() {
         FilePath.register(INSTANCE);
         return INSTANCE;
     }
@@ -76,10 +76,10 @@ public class DebugFilePath extends FilePathWrapper {
         return super.exists();
     }
 
-//    public boolean fileStartsWith(String fileName, String prefix) {
-//        trace(fileName, "fileStartsWith", unwrap(prefix));
-//        return super.fileStartsWith(fileName, prefix);
-//    }
+    public boolean fileStartsWith(String prefix) {
+        trace(name, "fileStartsWith", unwrap(prefix));
+        return super.fileStartsWith(prefix);
+    }
 
     public String getName() {
         trace(name, "getName");
@@ -158,7 +158,7 @@ public class DebugFilePath extends FilePathWrapper {
 
     public FileObject openFileObject(String mode) throws IOException {
         trace(name, "openFileObject", mode);
-        return new DebugFile(this, super.openFileObject(mode), name);
+        return new FileDebug(this, super.openFileObject(mode), name);
     }
 
     public OutputStream newOutputStream(boolean append) {
@@ -167,7 +167,7 @@ public class DebugFilePath extends FilePathWrapper {
     }
 
     public void moveTo(FilePath newName) {
-        trace(name, "moveTo", unwrap(((DebugFilePath) newName).name));
+        trace(name, "moveTo", unwrap(((FilePathDebug) newName).name));
         super.moveTo(newName);
     }
 

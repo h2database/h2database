@@ -21,7 +21,7 @@ import org.h2.constant.SysProperties;
  * FileObject which is using NIO MappedByteBuffer mapped to memory from file.
  * The file size is limited to 2 GB.
  */
-public class FileObjectDiskMapped implements FileObject {
+public class FileObjectNioMapped implements FileObject {
 
     private static final long GC_TIMEOUT_MS = 10000;
     private final String name;
@@ -36,7 +36,7 @@ public class FileObjectDiskMapped implements FileObject {
      */
     private int pos;
 
-    FileObjectDiskMapped(String fileName, String mode) throws IOException {
+    FileObjectNioMapped(String fileName, String mode) throws IOException {
         if ("r".equals(mode)) {
             this.mode = MapMode.READ_ONLY;
         } else {
@@ -133,7 +133,7 @@ public class FileObjectDiskMapped implements FileObject {
     }
 
     public String toString() {
-        return FileSystemDiskNioMapped.PREFIX + name;
+        return "nioMapped:" + name;
     }
 
     public synchronized long size() throws IOException {

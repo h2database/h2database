@@ -73,7 +73,8 @@ public class FileLister {
      */
     public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) {
         ArrayList<String> files = New.arrayList();
-        String start = db == null ? null : FileUtils.getCanonicalPath(dir + "/" + db + ".");
+        // for Windows, File.getCanonicalPath("...b.") returns just "...b"
+        String start = db == null ? null : (FileUtils.getCanonicalPath(dir + "/" + db) + ".");
         String[] list = FileUtils.listFiles(dir);
         for (int i = 0; list != null && i < list.length; i++) {
             String f = list[i];

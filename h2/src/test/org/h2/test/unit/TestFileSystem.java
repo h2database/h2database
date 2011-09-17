@@ -210,7 +210,7 @@ public class TestFileSystem extends TestBase {
 
     private void testUserHome() {
         String fileName = FileUtils.getCanonicalPath("~/test");
-        String userDir = System.getProperty("user.home");
+        String userDir = System.getProperty("user.home").replace('\\', '/');
         assertTrue(fileName.startsWith(userDir));
     }
 

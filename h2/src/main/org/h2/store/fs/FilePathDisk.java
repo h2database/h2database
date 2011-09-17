@@ -43,19 +43,20 @@ public class FilePathDisk extends FilePath {
     }
 
     /**
-     * Translate the file name to the native format.
-     * This will expand the home directory (~).
+     * Translate the file name to the native format. This will replace '\' with
+     * '/' and expand the home directory ('~').
      *
      * @param fileName the file name
      * @return the native file name
      */
     protected static String translateFileName(String fileName) {
+        fileName = fileName.replace('\\', '/');
         return expandUserHomeDirectory(fileName);
     }
 
     /**
-     * Expand '~' to the user home directory. It is only be expanded if the ~
-     * stands alone, or is followed by / or \.
+     * Expand '~' to the user home directory. It is only be expanded if the '~'
+     * stands alone, or is followed by '/' or '\'.
      *
      * @param fileName the file name
      * @return the native file name

@@ -42,11 +42,13 @@ public abstract class FilePath {
 
     /**
      * Get the file path object for the given path.
+     * Windows-style '\' is replaced with '/'.
      *
      * @param path the path
      * @return the file path object
      */
     public static FilePath get(String path) {
+        path = path.replace('\\', '/');
         int index = path.indexOf(':');
         if (index < 2) {
             // use the default provider if no prefix or

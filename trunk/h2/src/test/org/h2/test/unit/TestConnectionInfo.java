@@ -64,7 +64,7 @@ public class TestConnectionInfo extends TestBase {
         char differentFileSeparator = File.separatorChar == '/' ? '\\' : '/';
         ConnectionInfo connectionInfo = new ConnectionInfo("test" + differentFileSeparator + "subDir");
         File file = new File("test" + File.separatorChar + "subDir");
-        assertEquals(file.getCanonicalPath(), connectionInfo.getName());
+        assertEquals(file.getCanonicalPath().replace('\\', '/'), connectionInfo.getName());
     }
 
 }

@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.SequenceInputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 import org.h2.constant.SysProperties;
@@ -83,8 +86,8 @@ public class FilePathSplit extends FilePathWrapper {
         return length;
     }
 
-    public ArrayList<FilePath> listFiles() {
-        List<FilePath> list = getBase().listFiles();
+    public ArrayList<FilePath> newDirectoryStream() {
+        List<FilePath> list = getBase().newDirectoryStream();
         ArrayList<FilePath> newList = New.arrayList();
         for (int i = 0, size = list.size(); i < size; i++) {
             FilePath f = list.get(i);
@@ -109,20 +112,18 @@ public class FilePathSplit extends FilePathWrapper {
         return input;
     }
 
-    public FileObject openFileObject(String mode) throws IOException {
-        ArrayList<FileObject> list = New.arrayList();
-        FileObject o = getBase().openFileObject(mode);
-        list.add(o);
+    public FileChannel open(String mode) throws IOException {
+        ArrayList<FileChannel> list = New.arrayList();
+        list.add(getBase().open(mode));
         for (int i = 1;; i++) {
             FilePath f = getBase(i);
             if (f.exists()) {
-                o = f.openFileObject(mode);
-                list.add(o);
+                list.add(f.open(mode));
             } else {
                 break;
             }
         }
-        FileObject[] array = new FileObject[list.size()];
+        FileChannel[] array = new FileChannel[list.size()];
         list.toArray(array);
         long maxLength = array[0].size();
         long length = maxLength;
@@ -136,21 +137,21 @@ public class FilePathSplit extends FilePathWrapper {
                 closeAndThrow(0, array, array[0], maxLength);
             }
             for (int i = 1; i < array.length - 1; i++) {
-                o = array[i];
-                long l = o.size();
+                FileChannel c = array[i];
+                long l = c.size();
                 length += l;
                 if (l != maxLength) {
-                    closeAndThrow(i, array, o, maxLength);
+                    closeAndThrow(i, array, c, maxLength);
                 }
             }
-            o = array[array.length - 1];
-            long l = o.size();
+            FileChannel c = array[array.length - 1];
+            long l = c.size();
             length += l;
             if (l > maxLength) {
-                closeAndThrow(array.length - 1, array, o, maxLength);
+                closeAndThrow(array.length - 1, array, c, maxLength);
             }
         }
-        FileObjectSplit fo = new FileObjectSplit(this, mode, array, length, maxLength);
+        FileSplit fo = new FileSplit(this, mode, array, length, maxLength);
         return fo;
     }
 
@@ -158,9 +159,9 @@ public class FilePathSplit extends FilePathWrapper {
         return 1L << Integer.decode(parse(name)[0]).intValue();
     }
 
-    private void closeAndThrow(int id, FileObject[] array, FileObject o, long maxLength) throws IOException {
+    private void closeAndThrow(int id, FileChannel[] array, FileChannel o, long maxLength) throws IOException {
         String message = "Expected file length: " + maxLength + " got: " + o.size() + " for " + getName(id);
-        for (FileObject f : array) {
+        for (FileChannel f : array) {
             f.close();
         }
         throw new IOException(message);
@@ -168,7 +169,7 @@ public class FilePathSplit extends FilePathWrapper {
 
     public OutputStream newOutputStream(boolean append) {
         try {
-            return new FileObjectOutputStream(openFileObject("rw"), append);
+            return new FileChannelOutputStream(open("rw"), append);
         } catch (IOException e) {
             throw DbException.convertIOException(e, name);
         }
@@ -228,6 +229,149 @@ public class FilePathSplit extends FilePathWrapper {
 
     public String getScheme() {
         return "split";
+    }
+
+}
+
+/**
+ * A file that may be split into multiple smaller files.
+ */
+class FileSplit extends FileBase {
+
+    private final FilePathSplit file;
+    private final String mode;
+    private final long maxLength;
+    private FileChannel[] list;
+    private long filePointer;
+    private long length;
+
+    FileSplit(FilePathSplit file, String mode, FileChannel[] list, long length, long maxLength) {
+        this.file = file;
+        this.mode = mode;
+        this.list = list;
+        this.length = length;
+        this.maxLength = maxLength;
+    }
+
+    public void implCloseChannel() throws IOException {
+        for (FileChannel c : list) {
+            c.close();
+        }
+    }
+
+    public long position() {
+        return filePointer;
+    }
+
+    public long size() {
+        return length;
+    }
+
+    public int read(ByteBuffer dst) throws IOException {
+        int len = dst.remaining();
+        if (len == 0) {
+            return 0;
+        }
+        len = (int) Math.min(len, length - filePointer);
+        if (len <= 0) {
+            return -1;
+        }
+        long offset = filePointer % maxLength;
+        len = (int) Math.min(len, maxLength - offset);
+        FileChannel channel = getFileChannel();
+        channel.position(offset);
+        len = channel.read(dst);
+        filePointer += len;
+        return len;
+    }
+
+    public FileChannel position(long pos) {
+        filePointer = pos;
+        return this;
+    }
+
+    private FileChannel getFileChannel() throws IOException {
+        int id = (int) (filePointer / maxLength);
+        while (id >= list.length) {
+            int i = list.length;
+            FileChannel[] newList = new FileChannel[i + 1];
+            System.arraycopy(list, 0, newList, 0, i);
+            FilePath f = file.getBase(i);
+            newList[i] = f.open(mode);
+            list = newList;
+        }
+        return list[id];
+    }
+
+    public FileChannel truncate(long newLength) throws IOException {
+        if (newLength >= length) {
+            return this;
+        }
+        filePointer = Math.min(filePointer, newLength);
+        int newFileCount = 1 + (int) (newLength / maxLength);
+        if (newFileCount < list.length) {
+            // delete some of the files
+            FileChannel[] newList = new FileChannel[newFileCount];
+            // delete backwards, so that truncating is somewhat transactional
+            for (int i = list.length - 1; i >= newFileCount; i--) {
+                // verify the file is writable
+                list[i].truncate(0);
+                list[i].close();
+                try {
+                    file.getBase(i).delete();
+                } catch (DbException e) {
+                    throw DbException.convertToIOException(e);
+                }
+            }
+            System.arraycopy(list, 0, newList, 0, newList.length);
+            list = newList;
+        }
+        long size = newLength - maxLength * (newFileCount - 1);
+        list[list.length - 1].truncate(size);
+        this.length = newLength;
+        return this;
+    }
+
+    public void force(boolean metaData) throws IOException {
+        for (FileChannel c : list) {
+            c.force(metaData);
+        }
+    }
+
+    public int write(ByteBuffer src) throws IOException {
+        if (filePointer >= length && filePointer > maxLength) {
+            // may need to extend and create files
+            long oldFilePointer = filePointer;
+            long x = length - (length % maxLength) + maxLength;
+            for (; x < filePointer; x += maxLength) {
+                if (x > length) {
+                    // expand the file size
+                    position(x - 1);
+                    write(ByteBuffer.wrap(new byte[1]));
+                }
+                filePointer = oldFilePointer;
+            }
+        }
+        long offset = filePointer % maxLength;
+        int len = src.remaining();
+        FileChannel channel = getFileChannel();
+        channel.position(offset);
+        int l = (int) Math.min(len, maxLength - offset);
+        if (l == len) {
+            l = channel.write(src);
+        } else {
+            int oldLimit = src.limit();
+            src.limit(src.position() + l);
+            l = channel.write(src);
+            src.limit(oldLimit);
+        }
+        filePointer += l;
+        length = Math.max(length, filePointer);
+        return l;
+    }
+
+    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+        return list[0].tryLock();
     }
 
 }

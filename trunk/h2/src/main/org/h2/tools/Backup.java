@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -109,7 +108,7 @@ public class Backup extends Tool {
         List<String> list;
         boolean allFiles = db != null && db.length() == 0;
         if (allFiles) {
-            list = Arrays.asList(FileUtils.listFiles(directory));
+            list = FileUtils.newDirectoryStream(directory);
         } else {
             list = FileLister.getDatabaseFiles(directory, db, true);
         }
@@ -122,7 +121,7 @@ public class Backup extends Tool {
         if (!quiet) {
             FileLister.tryUnlockDatabase(list, "backup");
         }
-        zipFileName = FileUtils.getCanonicalPath(zipFileName);
+        zipFileName = FileUtils.toRealPath(zipFileName);
         FileUtils.delete(zipFileName);
         OutputStream fileOut = null;
         try {
@@ -136,7 +135,7 @@ public class Backup extends Tool {
                 }
             }
             for (String fileName : list) {
-                String f = FileUtils.getCanonicalPath(fileName);
+                String f = FileUtils.toRealPath(fileName);
                 if (!f.startsWith(base)) {
                     DbException.throwInternalError(f + " does not start with " + base);
                 }

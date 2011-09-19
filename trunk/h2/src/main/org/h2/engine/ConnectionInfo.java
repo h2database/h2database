@@ -159,7 +159,7 @@ public class ConnectionInfo implements Cloneable {
      */
     public void setBaseDir(String dir) {
         if (persistent) {
-            String absDir = FileUtils.unwrap(FileUtils.getCanonicalPath(dir));
+            String absDir = FileUtils.unwrap(FileUtils.toRealPath(dir));
             boolean absolute = FileUtils.isAbsolute(name);
             String n;
             String prefix = null;
@@ -170,7 +170,7 @@ public class ConnectionInfo implements Cloneable {
                 prefix = name.substring(0, name.length() - n.length());
                 n = dir + SysProperties.FILE_SEPARATOR + n;
             }
-            String normalizedName = FileUtils.unwrap(FileUtils.getCanonicalPath(n));
+            String normalizedName = FileUtils.unwrap(FileUtils.toRealPath(n));
             if (normalizedName.equals(absDir) || !normalizedName.startsWith(absDir)) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, normalizedName + " outside " +
                         absDir);
@@ -364,7 +364,7 @@ public class ConnectionInfo implements Cloneable {
         if (persistent) {
             if (nameNormalized == null) {
                 String suffix = Constants.SUFFIX_PAGE_FILE;
-                String n = FileUtils.getCanonicalPath(name + suffix);
+                String n = FileUtils.toRealPath(name + suffix);
                 String fileName = FileUtils.getName(n);
                 if (fileName.length() < suffix.length() + 1) {
                     throw DbException.get(ErrorCode.INVALID_DATABASE_NAME_1, name);

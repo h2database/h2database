@@ -8,46 +8,48 @@ package org.h2.store.fs;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
- * Allows to write to a file object like an output stream.
+ * Allows to write to a file channel like an output stream.
  */
-public class FileObjectOutputStream extends OutputStream {
+public class FileChannelOutputStream extends OutputStream {
 
-    private FileObject file;
+    private FileChannel channel;
     private byte[] buffer = { 0 };
 
     /**
-     * Create a new file object output stream from the file object.
+     * Create a new file object output stream from the file channel.
      *
-     * @param file the file object
+     * @param channel the file channel
      * @param append true for append mode, false for truncate and overwrite
      */
-    public FileObjectOutputStream(FileObject file, boolean append) throws IOException {
-        this.file = file;
+    public FileChannelOutputStream(FileChannel channel, boolean append) throws IOException {
+        this.channel = channel;
         if (append) {
-            file.position(file.size());
+            channel.position(channel.size());
         } else {
-            file.position(0);
-            file.truncate(0);
+            channel.position(0);
+            channel.truncate(0);
         }
     }
 
     public void write(int b) throws IOException {
         buffer[0] = (byte) b;
-        file.write(buffer, 0, 1);
+        FileUtils.writeFully(channel, ByteBuffer.wrap(buffer));
     }
 
     public void write(byte[] b) throws IOException {
-        file.write(b, 0, b.length);
+        FileUtils.writeFully(channel, ByteBuffer.wrap(b));
     }
 
     public void write(byte[] b, int off, int len) throws IOException {
-        file.write(b, off, len);
+        FileUtils.writeFully(channel, ByteBuffer.wrap(b, off, len));
     }
 
     public void close() throws IOException {
-        file.close();
+        channel.close();
     }
 
 }

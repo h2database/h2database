@@ -101,8 +101,8 @@ public class BackupCommand extends Prepared {
     }
 
     private static void backupFile(ZipOutputStream out, String base, String fn) throws IOException {
-        String f = FileUtils.getCanonicalPath(fn);
-        base = FileUtils.getCanonicalPath(base);
+        String f = FileUtils.toRealPath(fn);
+        base = FileUtils.toRealPath(base);
         if (!f.startsWith(base)) {
             DbException.throwInternalError(f + " does not start with " + base);
         }

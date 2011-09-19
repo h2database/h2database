@@ -13,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
@@ -604,7 +603,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        List<String> filesWithoutSerialized = Arrays.asList(FileUtils.listFiles(getBaseDir()));
+        List<String> filesWithoutSerialized = FileUtils.newDirectoryStream(getBaseDir());
         deleteDb("fileLockSerialized");
 
         // with serialized
@@ -616,7 +615,7 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        List<String> filesWithSerialized = Arrays.asList(FileUtils.listFiles(getBaseDir()));
+        List<String> filesWithSerialized = FileUtils.newDirectoryStream(getBaseDir());
         if (filesWithoutSerialized.size() !=  filesWithSerialized.size()) {
             for (int i = 0; i < filesWithoutSerialized.size(); i++) {
                 if (!filesWithSerialized.contains(filesWithoutSerialized.get(i))) {

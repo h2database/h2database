@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.store.fs.FileUtils;
@@ -1218,10 +1219,8 @@ public class TestCases extends TestBase {
 
         conn.close();
 
-        String[] list = FileUtils.listFiles(getBaseDir() + "/cases.lobs.db");
-        if (list != null && list.length > 0) {
-            fail("Lob file was not deleted");
-        }
+        List<String> list = FileUtils.newDirectoryStream(getBaseDir() + "/cases.lobs.db");
+        assertEquals("Lob file was not deleted: " + list, 0, list.size());
     }
 
     private void testDeleteTop() throws SQLException {

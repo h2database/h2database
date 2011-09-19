@@ -15,6 +15,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
 import org.h2.constant.ErrorCode;
@@ -146,7 +149,7 @@ public class FilePathDisk extends FilePath {
         throw DbException.get(ErrorCode.FILE_DELETE_FAILED_1, name);
     }
 
-    public List<FilePath> listFiles() {
+    public List<FilePath> newDirectoryStream() {
         ArrayList<FilePath> list = New.arrayList();
         File f = new File(name);
         try {
@@ -175,7 +178,7 @@ public class FilePathDisk extends FilePath {
         return f.setReadOnly();
     }
 
-    public FilePathDisk getCanonicalPath() {
+    public FilePathDisk toRealPath() {
         try {
             String fileName = new File(name).getCanonicalPath();
             return getPath(fileName);
@@ -311,15 +314,15 @@ public class FilePathDisk extends FilePath {
         }
     }
 
-    public FileObject openFileObject(String mode) throws IOException {
-        FileObjectDisk f;
+    public FileChannel open(String mode) throws IOException {
+        FileDisk f;
         try {
-            f = new FileObjectDisk(name, mode);
-            IOUtils.trace("openFileObject", name, f);
+            f = new FileDisk(name, mode);
+            IOUtils.trace("open", name, f);
         } catch (IOException e) {
             freeMemoryAndFinalize();
             try {
-                f = new FileObjectDisk(name, mode);
+                f = new FileDisk(name, mode);
             } catch (IOException e2) {
                 throw e;
             }
@@ -360,6 +363,84 @@ public class FilePathDisk extends FilePath {
             }
             return get(f.getCanonicalPath());
         }
+    }
+
+}
+
+/**
+ * Uses java.io.RandomAccessFile to access a file.
+ */
+class FileDisk extends FileBase {
+
+    private final RandomAccessFile file;
+    private final String name;
+
+    FileDisk(String fileName, String mode) throws FileNotFoundException {
+        this.file = new RandomAccessFile(fileName, mode);
+        this.name = fileName;
+    }
+
+    public void force(boolean metaData) throws IOException {
+        String m = SysProperties.SYNC_METHOD;
+        if ("".equals(m)) {
+            // do nothing
+        } else if ("sync".equals(m)) {
+            file.getFD().sync();
+        } else if ("force".equals(m)) {
+            file.getChannel().force(true);
+        } else if ("forceFalse".equals(m)) {
+            file.getChannel().force(false);
+        } else {
+            file.getFD().sync();
+        }
+    }
+
+    public FileChannel truncate(long newLength) throws IOException {
+        if (newLength < file.length()) {
+            // some implementations actually only support truncate
+            file.setLength(newLength);
+        }
+        return this;
+    }
+
+    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+        return file.getChannel().tryLock();
+    }
+
+    public void implCloseChannel() throws IOException {
+        file.close();
+    }
+
+    public long position() throws IOException {
+        return file.getFilePointer();
+    }
+
+    public long size() throws IOException {
+        return file.length();
+    }
+
+    public int read(ByteBuffer dst) throws IOException {
+        int len = file.read(dst.array(), dst.position(), dst.remaining());
+        if (len > 0) {
+            dst.position(dst.position() + len);
+        }
+        return len;
+    }
+
+    public FileChannel position(long pos) throws IOException {
+        file.seek(pos);
+        return this;
+    }
+
+    public int write(ByteBuffer src) throws IOException {
+        int len = src.remaining();
+        file.write(src.array(), src.position(), len);
+        src.position(src.position() + len);
+        return len;
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

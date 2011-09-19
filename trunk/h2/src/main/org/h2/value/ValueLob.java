@@ -237,7 +237,7 @@ public class ValueLob extends Value {
             name = SysProperties.FILE_SEPARATOR + f + Constants.SUFFIX_LOBS_DIRECTORY + name;
             objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         }
-        name = FileUtils.getCanonicalPath(path + Constants.SUFFIX_LOBS_DIRECTORY + name);
+        name = FileUtils.toRealPath(path + Constants.SUFFIX_LOBS_DIRECTORY + name);
         return name;
     }
 
@@ -322,12 +322,12 @@ public class ValueLob extends Value {
         SmallLRUCache<String, String[]> cache = h.getLobFileListCache();
         String[] list;
         if (cache == null) {
-            list = FileUtils.listFiles(dir);
+            list = FileUtils.newDirectoryStream(dir).toArray(new String[0]);
         } else {
             synchronized (cache) {
                 list = cache.get(dir);
                 if (list == null) {
-                    list = FileUtils.listFiles(dir);
+                    list = FileUtils.newDirectoryStream(dir).toArray(new String[0]);
                     cache.put(dir, list);
                 }
             }
@@ -719,7 +719,7 @@ public class ValueLob extends Value {
     }
 
     private static void removeAllForTable(DataHandler handler, String dir, int tableId) {
-        for (String name : FileUtils.listFiles(dir)) {
+        for (String name : FileUtils.newDirectoryStream(dir)) {
             if (FileUtils.isDirectory(name)) {
                 removeAllForTable(handler, name, tableId);
             } else {

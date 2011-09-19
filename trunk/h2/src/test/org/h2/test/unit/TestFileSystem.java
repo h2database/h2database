@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,10 +23,10 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Random;
 import org.h2.dev.fs.FilePathCrypt;
-import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.utils.AssertThrows;
 import org.h2.test.utils.FilePathDebug;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
@@ -58,7 +60,7 @@ public class TestFileSystem extends TestBase {
         testDatabaseInJar();
         // set default part size to 1 << 10
         String f = "split:10:" + getBaseDir() + "/fs";
-        FileUtils.getCanonicalPath(f);
+        FileUtils.toRealPath(f);
         testFileSystem(getBaseDir() + "/fs");
         testFileSystem("memFS:");
         testFileSystem("memLZF:");
@@ -85,8 +87,7 @@ public class TestFileSystem extends TestBase {
 
     private void testMemFsDir() throws IOException {
         FileUtils.newOutputStream("memFS:data/test/a.txt", false).close();
-        String[] list = FileUtils.listFiles("memFS:data/test");
-        assertEquals(1, list.length);
+        assertEquals(1, FileUtils.newDirectoryStream("memFS:data/test").size());
         FileUtils.deleteRecursive("memFS:", false);
     }
 
@@ -110,15 +111,15 @@ public class TestFileSystem extends TestBase {
     private void testSimpleExpandTruncateSize() throws Exception {
         String f = "memFS:" + getBaseDir() + "/fs/test.data";
         FileUtils.createDirectories("memFS:" + getBaseDir() + "/fs");
-        FileObject o = FileUtils.openFileObject(f, "rw");
-        o.position(4000);
-        o.write(new byte[1], 0, 1);
-        FileLock lock = o.tryLock();
-        o.truncate(0);
+        FileChannel c = FileUtils.open(f, "rw");
+        c.position(4000);
+        c.write(ByteBuffer.wrap(new byte[1]));
+        FileLock lock = c.tryLock();
+        c.truncate(0);
         if (lock != null) {
             lock.release();
         }
-        o.close();
+        c.close();
     }
 
     private void testSplitDatabaseInZip() throws SQLException {
@@ -184,7 +185,7 @@ public class TestFileSystem extends TestBase {
         conn.close();
 
         deleteDb("fsJar");
-        for (String f : FileUtils.listFiles("zip:" + getBaseDir() + "/fsJar.zip")) {
+        for (String f : FileUtils.newDirectoryStream("zip:" + getBaseDir() + "/fsJar.zip")) {
             assertTrue(FileUtils.isAbsolute(f));
             assertTrue(!FileUtils.isDirectory(f));
             assertTrue(FileUtils.size(f) > 0);
@@ -209,7 +210,7 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testUserHome() {
-        String fileName = FileUtils.getCanonicalPath("~/test");
+        String fileName = FileUtils.toRealPath("~/test");
         String userDir = System.getProperty("user.home").replace('\\', '/');
         assertTrue(fileName.startsWith(userDir));
     }
@@ -222,55 +223,64 @@ public class TestFileSystem extends TestBase {
 
     private void testSimple(final String fsBase) throws Exception {
         long time = System.currentTimeMillis();
-        for (String s : FileUtils.listFiles(fsBase)) {
+        for (String s : FileUtils.newDirectoryStream(fsBase)) {
             FileUtils.delete(s);
         }
         FileUtils.createDirectories(fsBase + "/test");
         FileUtils.delete(fsBase + "/test");
         FileUtils.delete(fsBase + "/test2");
         assertTrue(FileUtils.createFile(fsBase + "/test"));
-        List<FilePath> p = FilePath.get(fsBase).listFiles();
+        List<FilePath> p = FilePath.get(fsBase).newDirectoryStream();
         assertEquals(1, p.size());
-        String can = FilePath.get(fsBase + "/test").getCanonicalPath().toString();
+        String can = FilePath.get(fsBase + "/test").toRealPath().toString();
         assertEquals(can, p.get(0).toString());
         assertTrue(FileUtils.canWrite(fsBase + "/test"));
-        FileObject fo = FileUtils.openFileObject(fsBase + "/test", "rw");
+        FileChannel channel = FileUtils.open(fsBase + "/test", "rw");
         byte[] buffer = new byte[10000];
         Random random = new Random(1);
         random.nextBytes(buffer);
-        fo.write(buffer, 0, 10000);
-        assertEquals(10000, fo.size());
-        fo.position(20000);
-        assertEquals(20000, fo.position());
-        assertThrows(EOFException.class, fo).readFully(buffer, 0, 1);
+        channel.write(ByteBuffer.wrap(buffer));
+        assertEquals(10000, channel.size());
+        channel.position(20000);
+        assertEquals(20000, channel.position());
+        assertEquals(-1, channel.read(ByteBuffer.wrap(buffer, 0, 1)));
         String path = fsBase + "/test";
         assertEquals("test", FileUtils.getName(path));
-        can = FilePath.get(fsBase).getCanonicalPath().toString();
-        String can2 = FileUtils.getCanonicalPath(FileUtils.getParent(path));
+        can = FilePath.get(fsBase).toRealPath().toString();
+        String can2 = FileUtils.toRealPath(FileUtils.getParent(path));
         assertEquals(can, can2);
-        FileLock lock = fo.tryLock();
+        FileLock lock = channel.tryLock();
         if (lock != null) {
             lock.release();
         }
-        assertEquals(10000, fo.size());
-        fo.close();
+        assertEquals(10000, channel.size());
+        channel.close();
         assertEquals(10000, FileUtils.size(fsBase + "/test"));
-        fo = FileUtils.openFileObject(fsBase + "/test", "r");
-        byte[] test = new byte[10000];
-        fo.readFully(test, 0, 10000);
+        channel = FileUtils.open(fsBase + "/test", "r");
+        final byte[] test = new byte[10000];
+        FileUtils.readFully(channel, ByteBuffer.wrap(test, 0, 10000));
         assertEquals(buffer, test);
-        assertThrows(IOException.class, fo).write(test, 0, 10);
-        assertThrows(IOException.class, fo).truncate(10);
-        fo.close();
+        final FileChannel fc = channel;
+        new AssertThrows(IOException.class) {
+            public void test() throws Exception {
+                fc.write(ByteBuffer.wrap(test, 0, 10));
+            }
+        };
+        new AssertThrows(IOException.class) {
+            public void test() throws Exception {
+                fc.truncate(10);
+            }
+        };
+        channel.close();
         long lastMod = FileUtils.lastModified(fsBase + "/test");
         if (lastMod < time - 1999) {
             // at most 2 seconds difference
             assertEquals(time, lastMod);
         }
         assertEquals(10000, FileUtils.size(fsBase + "/test"));
-        String[] list = FileUtils.listFiles(fsBase);
-        assertEquals(1, list.length);
-        assertTrue(list[0].endsWith("test"));
+        List<String> list = FileUtils.newDirectoryStream(fsBase);
+        assertEquals(1, list.size());
+        assertTrue(list.get(0).endsWith("test"));
         FileUtils.copy(fsBase + "/test", fsBase + "/test3");
         FileUtils.moveTo(fsBase + "/test3", fsBase + "/test2");
         assertTrue(!FileUtils.exists(fsBase + "/test3"));
@@ -314,8 +324,8 @@ public class TestFileSystem extends TestBase {
         file.delete();
         RandomAccessFile ra = new RandomAccessFile(file, "rw");
         FileUtils.delete(s);
-        FileObject f = FileUtils.openFileObject(s, "rw");
-        assertThrows(EOFException.class, f).readFully(new byte[1], 0, 1);
+        FileChannel f = FileUtils.open(s, "rw");
+        assertEquals(-1, f.read(ByteBuffer.wrap(new byte[1])));
         f.force(true);
         Random random = new Random(seed);
         int size = getSize(100, 500);
@@ -337,7 +347,7 @@ public class TestFileSystem extends TestBase {
                     random.nextBytes(buffer);
                     trace("write " + buffer.length);
                     buff.append("write " + buffer.length + "\n");
-                    f.write(buffer, 0, buffer.length);
+                    f.write(ByteBuffer.wrap(buffer));
                     ra.write(buffer, 0, buffer.length);
                     break;
                 }
@@ -360,7 +370,11 @@ public class TestFileSystem extends TestBase {
                     byte[] b2 = new byte[len];
                     trace("readFully " + len);
                     ra.readFully(b1, 0, len);
-                    f.readFully(b2, 0, len);
+                    try {
+                        FileUtils.readFully(f, ByteBuffer.wrap(b2, 0, len));
+                    } catch (EOFException e) {
+                        e.printStackTrace();
+                    }
                     buff.append("readFully " + len + "\n");
                     assertEquals(b1, b2);
                     break;
@@ -383,7 +397,7 @@ public class TestFileSystem extends TestBase {
                     f.close();
                     ra.close();
                     ra = new RandomAccessFile(file, "rw");
-                    f = FileUtils.openFileObject(s, "rw");
+                    f = FileUtils.open(s, "rw");
                     assertEquals(ra.length(), f.size());
                     break;
                 }

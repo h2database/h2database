@@ -9,6 +9,7 @@ package org.h2.store.fs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.List;
 import org.h2.message.DbException;
 
@@ -103,12 +104,12 @@ public abstract class FilePathWrapper extends FilePath {
         return base.lastModified();
     }
 
-    public FilePath getCanonicalPath() {
-        return wrap(base.getCanonicalPath());
+    public FilePath toRealPath() {
+        return wrap(base.toRealPath());
     }
 
-    public List<FilePath> listFiles() {
-        List<FilePath> list = base.listFiles();
+    public List<FilePath> newDirectoryStream() {
+        List<FilePath> list = base.newDirectoryStream();
         for (int i = 0, len = list.size(); i < len; i++) {
             list.set(i, wrap(list.get(i)));
         }
@@ -127,8 +128,8 @@ public abstract class FilePathWrapper extends FilePath {
         return base.newOutputStream(append);
     }
 
-    public FileObject openFileObject(String mode) throws IOException {
-        return base.openFileObject(mode);
+    public FileChannel open(String mode) throws IOException {
+        return base.open(mode);
     }
 
     public boolean setReadOnly() {

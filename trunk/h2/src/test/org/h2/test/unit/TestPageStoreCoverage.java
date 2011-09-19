@@ -6,13 +6,13 @@
  */
 package org.h2.test.unit;
 
+import java.nio.channels.FileChannel;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
@@ -229,11 +229,11 @@ public class TestPageStoreCoverage extends TestBase {
         stat.execute("drop table if exists INFORMATION_SCHEMA.LOB_DATA");
         stat.execute("drop table if exists INFORMATION_SCHEMA.LOB_MAP");
         conn.close();
-        FileObject f = FileUtils.openFileObject(fileName, "rw");
+        FileChannel f = FileUtils.open(fileName, "rw");
         // create a new database
         conn = getConnection("pageStore");
         conn.close();
-        f = FileUtils.openFileObject(fileName, "rw");
+        f = FileUtils.open(fileName, "rw");
         f.truncate(16);
         // create a new database
         conn = getConnection("pageStore");

@@ -10,11 +10,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.h2.message.DbException;
+import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -112,7 +116,7 @@ public class FilePathZip extends FilePath {
         }
     }
 
-    public ArrayList<FilePath> listFiles() {
+    public ArrayList<FilePath> newDirectoryStream() {
         String path = name;
         ArrayList<FilePath> list = New.arrayList();
         try {
@@ -147,16 +151,16 @@ public class FilePathZip extends FilePath {
     }
 
     public InputStream newInputStream() throws IOException {
-        return new FileObjectInputStream(openFileObject("r"));
+        return new FileChannelInputStream(open("r"));
     }
 
-    public FileObject openFileObject(String mode) throws IOException {
+    public FileChannel open(String mode) throws IOException {
         ZipFile file = openZipFile();
         ZipEntry entry = file.getEntry(getEntryName());
         if (entry == null) {
             throw new FileNotFoundException(name);
         }
-        return new FileObjectZip(file, entry);
+        return new FileZip(file, entry);
     }
 
     public OutputStream newOutputStream(boolean append) {
@@ -178,7 +182,7 @@ public class FilePathZip extends FilePath {
         return FilePathDisk.expandUserHomeDirectory(fileName);
     }
 
-    public FilePath getCanonicalPath() {
+    public FilePath toRealPath() {
         return this;
     }
 
@@ -211,6 +215,103 @@ public class FilePathZip extends FilePath {
 
     public String getScheme() {
         return "zip";
+    }
+
+}
+
+/**
+ * The file is read from a stream. When reading from start to end, the same
+ * input stream is re-used, however when reading from end to start, a new input
+ * stream is opened for each request.
+ */
+class FileZip extends FileBase {
+
+    private static final byte[] SKIP_BUFFER = new byte[1024];
+
+    private ZipFile file;
+    private ZipEntry entry;
+    private long pos;
+    private InputStream in;
+    private long inPos;
+    private long length;
+    private boolean skipUsingRead;
+
+    FileZip(ZipFile file, ZipEntry entry) {
+        this.file = file;
+        this.entry = entry;
+        length = entry.getSize();
+    }
+
+    public long position() {
+        return pos;
+    }
+
+    public long size() {
+        return length;
+    }
+
+    public int read(ByteBuffer dst) throws IOException {
+        seek();
+        int len = in.read(dst.array(), dst.position(), dst.remaining());
+        if (len > 0) {
+            dst.position(dst.position() + len);
+            pos += len;
+            inPos += len;
+        }
+        return len;
+    }
+
+    private void seek() throws IOException {
+        if (inPos > pos) {
+            if (in != null) {
+                in.close();
+            }
+            in = null;
+        }
+        if (in == null) {
+            in = file.getInputStream(entry);
+            inPos = 0;
+        }
+        if (inPos < pos) {
+            long skip = pos - inPos;
+            if (!skipUsingRead) {
+                try {
+                    IOUtils.skipFully(in, skip);
+                } catch (NullPointerException e) {
+                    // workaround for Android
+                    skipUsingRead = true;
+                }
+            }
+            if (skipUsingRead) {
+                while (skip > 0) {
+                    int s = (int) Math.min(SKIP_BUFFER.length, skip);
+                    s = in.read(SKIP_BUFFER, 0, s);
+                    skip -= s;
+                }
+            }
+            inPos = pos;
+        }
+    }
+
+    public FileChannel position(long newPos) {
+        this.pos = newPos;
+        return this;
+    }
+
+    public FileChannel truncate(long newLength) throws IOException {
+        throw new IOException("File is read-only");
+    }
+
+    public void force(boolean metaData) throws IOException {
+        // nothing to do
+    }
+
+    public int write(ByteBuffer src) throws IOException {
+        throw new IOException("File is read-only");
+    }
+
+    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+        return null;
     }
 
 }

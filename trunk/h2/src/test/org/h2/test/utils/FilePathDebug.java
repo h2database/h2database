@@ -10,8 +10,11 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.List;
-import org.h2.store.fs.FileObject;
+import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathWrapper;
 
@@ -116,14 +119,14 @@ public class FilePathDebug extends FilePathWrapper {
         return super.size();
     }
 
-    public List<FilePath> listFiles() {
-        trace(name, "listFiles");
-        return super.listFiles();
+    public List<FilePath> newDirectoryStream() {
+        trace(name, "newDirectoryStream");
+        return super.newDirectoryStream();
     }
 
-    public FilePath getCanonicalPath() {
-        trace(name, "getCanonicalPath");
-        return super.getCanonicalPath();
+    public FilePath toRealPath() {
+        trace(name, "toRealPath");
+        return super.toRealPath();
     }
 
     public InputStream newInputStream() throws IOException {
@@ -151,9 +154,9 @@ public class FilePathDebug extends FilePathWrapper {
         };
     }
 
-    public FileObject openFileObject(String mode) throws IOException {
-        trace(name, "openFileObject", mode);
-        return new FileDebug(this, super.openFileObject(mode), name);
+    public FileChannel open(String mode) throws IOException {
+        trace(name, "open", mode);
+        return new FileDebug(this, super.open(mode), name);
     }
 
     public OutputStream newOutputStream(boolean append) {
@@ -208,6 +211,89 @@ public class FilePathDebug extends FilePathWrapper {
 
     public String getScheme() {
         return "debug";
+    }
+
+}
+
+/**
+ * A debugging file that logs all operations.
+ */
+class FileDebug extends FileBase {
+
+    private final FilePathDebug debug;
+    private final FileChannel channel;
+    private final String name;
+
+    FileDebug(FilePathDebug debug, FileChannel channel, String name) {
+        this.debug = debug;
+        this.channel = channel;
+        this.name = debug.getScheme() + ":" + name;
+    }
+
+    public void implCloseChannel() throws IOException {
+        debug("close");
+        channel.close();
+    }
+
+    public long position() throws IOException {
+        debug("getFilePointer");
+        return channel.position();
+    }
+
+    public long size() throws IOException {
+        debug("length");
+        return channel.size();
+    }
+
+    public int read(ByteBuffer dst) throws IOException {
+        debug("read", channel.position(), dst.position(), dst.remaining());
+        return channel.read(dst);
+    }
+
+    public FileChannel position(long pos) throws IOException {
+        debug("seek", pos);
+        channel.position(pos);
+        return this;
+    }
+
+    public FileChannel truncate(long newLength) throws IOException {
+        checkPowerOff();
+        debug("truncate", newLength);
+        channel.truncate(newLength);
+        return this;
+    }
+
+    public void force(boolean metaData) throws IOException {
+        debug("force");
+        channel.force(metaData);
+    }
+
+    public int write(ByteBuffer src) throws IOException {
+        checkPowerOff();
+        debug("write", channel.position(), src.position(), src.remaining());
+        return channel.write(src);
+    }
+
+    private void debug(String method, Object... params) {
+        debug.trace(name, method, params);
+    }
+
+    private void checkPowerOff() throws IOException {
+        try {
+            debug.checkPowerOff();
+        } catch (IOException e) {
+            try {
+                channel.close();
+            } catch (IOException e2) {
+                // ignore
+            }
+            throw e;
+        }
+    }
+
+    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+        debug("tryLock");
+        return channel.tryLock();
     }
 
 }

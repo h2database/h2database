@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -24,7 +25,6 @@ import org.h2.command.dml.BackupCommand;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
@@ -127,7 +127,7 @@ public class FileShell extends Tool {
         if (reader == null) {
             reader = new BufferedReader(new InputStreamReader(in));
         }
-        println(FileUtils.getCanonicalPath(currentWorkingDirectory));
+        println(FileUtils.toRealPath(currentWorkingDirectory));
         while (true) {
             try {
                 print("> ");
@@ -212,7 +212,7 @@ public class FileShell extends Tool {
             }
             end(list, i);
             println(dir);
-            for (String file : FileUtils.listFiles(dir)) {
+            for (String file : FileUtils.newDirectoryStream(dir)) {
                 StringBuilder buff = new StringBuilder();
                 buff.append(FileUtils.isDirectory(file) ? "d" : "-");
                 buff.append(FileUtils.canWrite(file) ? "rw" : "r-");
@@ -236,7 +236,7 @@ public class FileShell extends Tool {
             FileUtils.moveTo(source, target);
         } else if ("pwd".equals(c)) {
             end(list, i);
-            println(FileUtils.getCanonicalPath(currentWorkingDirectory));
+            println(FileUtils.toRealPath(currentWorkingDirectory));
         } else if ("rm".equals(c)) {
             if ("-r".equals(list[i])) {
                 i++;
@@ -311,9 +311,9 @@ public class FileShell extends Tool {
     }
 
     private void truncate(String fileName, long length) {
-        FileObject f = null;
+        FileChannel f = null;
         try {
-            f = FileUtils.openFileObject(fileName, "rw");
+            f = FileUtils.open(fileName, "rw");
             f.truncate(length);
         } catch (IOException e) {
             error(e);
@@ -340,7 +340,7 @@ public class FileShell extends Tool {
             fileOut = FileUtils.newOutputStream(zipFileName, false);
             ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             for (String fileName : source) {
-                String f = FileUtils.getCanonicalPath(fileName);
+                String f = FileUtils.toRealPath(fileName);
                 if (!f.startsWith(base)) {
                     DbException.throwInternalError(f + " does not start with " + base);
                 }
@@ -432,7 +432,7 @@ public class FileShell extends Tool {
 
     private void addFilesRecursive(String f, ArrayList<String> target) {
         if (FileUtils.isDirectory(f)) {
-            for (String c : FileUtils.listFiles(f)) {
+            for (String c : FileUtils.newDirectoryStream(f)) {
                 addFilesRecursive(c, target);
             }
         } else {
@@ -447,7 +447,7 @@ public class FileShell extends Tool {
         String unwrapped = FileUtils.unwrap(f);
         String prefix = f.substring(0, f.length() - unwrapped.length());
         f = prefix + currentWorkingDirectory + SysProperties.FILE_SEPARATOR + unwrapped;
-        return FileUtils.getCanonicalPath(f);
+        return FileUtils.toRealPath(f);
     }
 
     private void showHelp() {

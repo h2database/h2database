@@ -1,12 +1,16 @@
 package org.h2.store.fs;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
+import org.h2.util.New;
 
 /**
  * This utility class contains utility functions that use the file system
@@ -59,14 +63,14 @@ public class FileUtils {
     }
 
     /**
-     * Normalize a file name.
+     * Get the canonical file or directory name.
      * This method is similar to Java 7 <code>java.nio.file.Path.toRealPath</code>.
      *
      * @param fileName the file name
      * @return the normalized file name
      */
-    public static String getCanonicalPath(String fileName) {
-        return FilePath.get(fileName).getCanonicalPath().toString();
+    public static String toRealPath(String fileName) {
+        return FilePath.get(fileName).toRealPath().toString();
     }
 
     /**
@@ -116,19 +120,20 @@ public class FileUtils {
     }
 
     /**
-     * List the files in the given directory.
+     * List the files and directories in the given directory.
      * This method is similar to Java 7 <code>java.nio.file.Path.newDirectoryStream</code>.
      *
      * @param path the directory
      * @return the list of fully qualified file names
      */
-    public static String[] listFiles(String path) {
-        List<FilePath> list = FilePath.get(path).listFiles();
-        String[] array = new String[list.size()];
-        for (int i = 0, len = list.size(); i < len; i++) {
-            array[i] = list.get(i).toString();
+    public static List<String> newDirectoryStream(String path) {
+        List<FilePath> list = FilePath.get(path).newDirectoryStream();
+        int len = list.size();
+        List<String> result = New.arrayList(len);
+        for (int i = 0; i < len; i++) {
+            result.add(list.get(i).toString());
         }
-        return array;
+        return result;
     }
 
     /**
@@ -174,8 +179,8 @@ public class FileUtils {
      * @param mode the access mode. Supported are r, rw, rws, rwd
      * @return the file object
      */
-    public static FileObject openFileObject(String fileName, String mode) throws IOException {
-        return FilePath.get(fileName).openFileObject(mode);
+    public static FileChannel open(String fileName, String mode) throws IOException {
+        return FilePath.get(fileName).open(mode);
     }
 
     /**
@@ -248,7 +253,7 @@ public class FileUtils {
     public static void deleteRecursive(String path, boolean tryOnly) {
         if (exists(path)) {
             if (isDirectory(path)) {
-                for (String s : listFiles(path)) {
+                for (String s : newDirectoryStream(path)) {
                     deleteRecursive(s, tryOnly);
                 }
             }
@@ -323,5 +328,34 @@ public class FileUtils {
             throws IOException {
         return FilePath.get(prefix).createTempFile(suffix, deleteOnExit, inTempDir).toString();
     }
+
+    /**
+     * Fully read from the file. This will read all remaining bytes,
+     * or throw an EOFException if not successful.
+     *
+     * @param channel the file channel
+     * @param dst the byte buffer
+     */
+    public static void readFully(FileChannel channel, ByteBuffer dst) throws IOException {
+        do {
+            int r = channel.read(dst);
+            if (r < 0) {
+                throw new EOFException();
+            }
+        } while (dst.remaining() > 0);
+    }
+
+    /**
+     * Fully write to the file. This will write all remaining bytes.
+     *
+     * @param channel the file channel
+     * @param src the byte buffer
+     */
+    public static void writeFully(FileChannel channel, ByteBuffer src) throws IOException {
+        do {
+            channel.write(src);
+        } while (src.remaining() > 0);
+    }
+
 
 }

@@ -632,8 +632,7 @@ public class TestLinkedTable extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         conn.close();
 
-        String[] files = FileUtils.listFiles(getBaseDir());
-        for (String file : files) {
+        for (String file : FileUtils.newDirectoryStream(getBaseDir())) {
             String name = FileUtils.getName(file);
             if ((name.startsWith("testLinkedTableInReadOnlyDb")) && (!name.endsWith(".trace.db"))) {
                 FileUtils.setReadOnly(file);

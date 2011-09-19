@@ -1348,7 +1348,7 @@ public class Database implements DataHandler {
 
     public String getDatabasePath() {
         if (persistent) {
-            return FileUtils.getCanonicalPath(databaseName);
+            return FileUtils.toRealPath(databaseName);
         }
         return null;
     }
@@ -1477,8 +1477,7 @@ public class Database implements DataHandler {
 
     private void deleteOldTempFiles() {
         String path = FileUtils.getParent(databaseName);
-        String[] list = FileUtils.listFiles(path);
-        for (String name : list) {
+        for (String name : FileUtils.newDirectoryStream(path)) {
             if (name.endsWith(Constants.SUFFIX_TEMP_FILE) && name.startsWith(databaseName)) {
                 // can't always delete the files, they may still be open
                 FileUtils.tryDelete(name);

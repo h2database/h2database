@@ -9,12 +9,13 @@ package org.h2.test.unit;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.engine.Constants;
-import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
@@ -134,14 +135,14 @@ public class TestRecovery extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar) as select 1, 'Hello World1'");
         conn.close();
-        FileObject f = FileUtils.openFileObject(getBaseDir() + "/recovery.h2.db", "rw");
+        FileChannel f = FileUtils.open(getBaseDir() + "/recovery.h2.db", "rw");
         byte[] buff = new byte[Constants.DEFAULT_PAGE_SIZE];
         while (f.position() < f.size()) {
-            f.readFully(buff, 0, buff.length);
+            FileUtils.readFully(f, ByteBuffer.wrap(buff));
             if (new String(buff).indexOf("Hello World1") >= 0) {
                 buff[buff.length - 1]++;
                 f.position(f.position() - buff.length);
-                f.write(buff, 0, buff.length);
+                f.write(ByteBuffer.wrap(buff));
             }
         }
         f.close();

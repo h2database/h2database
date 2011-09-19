@@ -8,12 +8,13 @@ package org.h2.store;
 
 import java.io.IOException;
 import java.lang.ref.Reference;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.security.SecureFileStore;
-import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
@@ -46,7 +47,7 @@ public class FileStore {
      */
     protected DataHandler handler;
 
-    private FileObject file;
+    private FileChannel file;
     private long filePos;
     private long fileLength;
     private Reference<?> autoDeleteReference;
@@ -78,7 +79,7 @@ public class FileStore {
             } else {
                 FileUtils.createDirectories(FileUtils.getParent(name));
             }
-            file = FileUtils.openFileObject(name, mode);
+            file = FileUtils.open(name, mode);
             if (exists) {
                 fileLength = file.size();
             }
@@ -272,7 +273,7 @@ public class FileStore {
         }
         checkPowerOff();
         try {
-            file.readFully(b, off, len);
+            FileUtils.readFully(file, ByteBuffer.wrap(b, off, len));
         } catch (IOException e) {
             throw DbException.convertIOException(e, name);
         }
@@ -323,11 +324,11 @@ public class FileStore {
         checkWritingAllowed();
         checkPowerOff();
         try {
-            file.write(b, off, len);
+            FileUtils.writeFully(file, ByteBuffer.wrap(b, off, len));
         } catch (IOException e) {
             if (freeUpDiskSpace()) {
                 try {
-                    file.write(b, off, len);
+                    FileUtils.writeFully(file, ByteBuffer.wrap(b, off, len));
                 } catch (IOException e2) {
                     throw DbException.convertIOException(e2, name);
                 }
@@ -362,7 +363,7 @@ public class FileStore {
             if (newLength > fileLength) {
                 long pos = filePos;
                 file.position(newLength - 1);
-                file.write(new byte[1], 0, 1);
+                FileUtils.writeFully(file, ByteBuffer.wrap(new byte[1]));
                 file.position(pos);
             } else {
                 file.truncate(newLength);
@@ -468,7 +469,7 @@ public class FileStore {
      */
     public void openFile() throws IOException {
         if (file == null) {
-            file = FileUtils.openFileObject(name, mode);
+            file = FileUtils.open(name, mode);
             file.position(filePos);
         }
     }

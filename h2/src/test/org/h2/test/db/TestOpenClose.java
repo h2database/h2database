@@ -6,6 +6,8 @@
  */
 package org.h2.test.db;
 
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,7 +16,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
-import org.h2.store.fs.FileObject;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
@@ -67,10 +68,10 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn = DriverManager.getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
         conn.createStatement().execute("create table test(id int, name varchar) as select 1, space(1000000)");
         conn.close();
-        FileObject f = FileUtils.openFileObject(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
-        f.position(f.size() * 2 - 1);
-        f.write(new byte[1], 0, 1);
-        f.close();
+        FileChannel c = FileUtils.open(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
+        c.position(c.size() * 2 - 1);
+        c.write(ByteBuffer.wrap(new byte[1]));
+        c.close();
         assertThrows(ErrorCode.IO_EXCEPTION_2, this).
                 getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
         FileUtils.delete("split:" + getBaseDir() + "/openClose2.h2.db");

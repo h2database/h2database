@@ -58,7 +58,7 @@ public class FileLister {
         if (dir == null || dir.equals("")) {
             return ".";
         }
-        return FileUtils.getCanonicalPath(dir);
+        return FileUtils.toRealPath(dir);
     }
 
     /**
@@ -74,10 +74,8 @@ public class FileLister {
     public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) {
         ArrayList<String> files = New.arrayList();
         // for Windows, File.getCanonicalPath("...b.") returns just "...b"
-        String start = db == null ? null : (FileUtils.getCanonicalPath(dir + "/" + db) + ".");
-        String[] list = FileUtils.listFiles(dir);
-        for (int i = 0; list != null && i < list.length; i++) {
-            String f = list[i];
+        String start = db == null ? null : (FileUtils.toRealPath(dir + "/" + db) + ".");
+        for (String f : FileUtils.newDirectoryStream(dir)) {
             boolean ok = false;
             if (f.endsWith(Constants.SUFFIX_LOBS_DIRECTORY)) {
                 if (start == null || f.startsWith(start)) {

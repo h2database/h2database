@@ -90,7 +90,7 @@ public class Data {
     /**
      * The data itself.
      */
-    protected byte[] data;
+    private byte[] data;
 
     /**
      * The current write or read position.
@@ -102,7 +102,7 @@ public class Data {
      */
     private final DataHandler handler;
 
-    protected Data(DataHandler handler, byte[] data) {
+    private Data(DataHandler handler, byte[] data) {
         this.handler = handler;
         this.data = data;
     }
@@ -1131,7 +1131,7 @@ public class Data {
      * @param x the value
      * @return the len
      */
-    public static int getVarIntLen(int x) {
+    private static int getVarIntLen(int x) {
         if ((x & (-1 << 7)) == 0) {
             return 1;
         } else if ((x & (-1 << 14)) == 0) {

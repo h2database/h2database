@@ -8,29 +8,31 @@ package org.h2.store.fs;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
- * Allows to read from a file object like an input stream.
+ * Allows to read from a file channel like an input stream.
  */
-public class FileObjectInputStream extends InputStream {
+public class FileChannelInputStream extends InputStream {
 
-    private FileObject file;
+    private FileChannel channel;
     private byte[] buffer = { 0 };
 
     /**
-     * Create a new file object input stream from the file object.
+     * Create a new file object input stream from the file channel.
      *
-     * @param file the file object
+     * @param channel the file channel
      */
-    public FileObjectInputStream(FileObject file) {
-        this.file = file;
+    public FileChannelInputStream(FileChannel channel) {
+        this.channel = channel;
     }
 
     public int read() throws IOException {
-        if (file.position() >= file.size()) {
+        if (channel.position() >= channel.size()) {
             return -1;
         }
-        file.readFully(buffer, 0, 1);
+        FileUtils.readFully(channel, ByteBuffer.wrap(buffer));
         return buffer[0] & 0xff;
     }
 
@@ -39,15 +41,15 @@ public class FileObjectInputStream extends InputStream {
     }
 
     public int read(byte[] b, int off, int len) throws IOException {
-        if (file.position() + len < file.size()) {
-            file.readFully(b, off, len);
+        if (channel.position() + len < channel.size()) {
+            FileUtils.readFully(channel, ByteBuffer.wrap(b, off, len));
             return len;
         }
         return super.read(b, off, len);
     }
 
     public void close() throws IOException {
-        file.close();
+        channel.close();
     }
 
 }

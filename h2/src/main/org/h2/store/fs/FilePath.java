@@ -9,6 +9,7 @@ package org.h2.store.fs;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -142,18 +143,18 @@ public abstract class FilePath {
     public abstract void delete();
 
     /**
-     * List the files in the given directory.
+     * List the files and directories in the given directory.
      *
      * @return the list of fully qualified file names
      */
-    public abstract List<FilePath> listFiles();
+    public abstract List<FilePath> newDirectoryStream();
 
     /**
      * Normalize a file name.
      *
      * @return the normalized file name
      */
-    public abstract FilePath getCanonicalPath();
+    public abstract FilePath toRealPath();
 
     /**
      * Get the parent directory of a file or directory.
@@ -220,7 +221,7 @@ public abstract class FilePath {
      * @param mode the access mode. Supported are r, rw, rws, rwd
      * @return the file object
      */
-    public abstract FileObject openFileObject(String mode) throws IOException;
+    public abstract FileChannel open(String mode) throws IOException;
 
     /**
      * Create an input stream to read from the file.
@@ -253,7 +254,7 @@ public abstract class FilePath {
                 getNextTempFileNamePart(true);
                 continue;
             }
-            p.openFileObject("rw").close();
+            p.open("rw").close();
             return p;
         }
     }

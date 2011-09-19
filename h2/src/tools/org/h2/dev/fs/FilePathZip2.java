@@ -10,16 +10,20 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileObject;
-import org.h2.store.fs.FileObjectInputStream;
+import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathDisk;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -184,7 +188,7 @@ public class FilePathZip2 extends FilePath {
         }
     }
 
-    public ArrayList<FilePath> listFiles() {
+    public ArrayList<FilePath> newDirectoryStream() {
         String path = name;
         try {
             if (path.indexOf('!') < 0) {
@@ -218,16 +222,15 @@ public class FilePathZip2 extends FilePath {
         }
     }
 
-    public FilePath getCanonicalPath() {
+    public FilePath toRealPath() {
         return this;
     }
 
     public InputStream newInputStream() throws IOException {
-        FileObject file = openFileObject("r");
-        return new FileObjectInputStream(file);
+        return new FileChannelInputStream(open("r"));
     }
 
-    public FileObject openFileObject(String mode) throws IOException {
+    public FileChannel open(String mode) throws IOException {
         String entryName = getEntryName();
         if (entryName.length() == 0) {
             throw new FileNotFoundException();
@@ -239,7 +242,7 @@ public class FilePathZip2 extends FilePath {
                 break;
             }
             if (entry.getName().equals(entryName)) {
-                return new FileObjectZip2(name, entryName, in, size());
+                return new FileZip2(name, entryName, in, size());
             }
             in.closeEntry();
         }
@@ -299,6 +302,116 @@ public class FilePathZip2 extends FilePath {
 
     public String getScheme() {
         return "zip2";
+    }
+
+}
+
+/**
+ * The file is read from a stream. When reading from start to end, the same
+ * input stream is re-used, however when reading from end to start, a new input
+ * stream is opened for each request.
+ */
+class FileZip2 extends FileBase {
+
+    private static final byte[] SKIP_BUFFER = new byte[1024];
+
+    private final String fullName;
+    private final String name;
+    private final long length;
+    private long pos;
+    private InputStream in;
+    private long inPos;
+    private boolean skipUsingRead;
+
+    FileZip2(String fullName, String name, ZipInputStream in, long length) {
+        this.fullName = fullName;
+        this.name = name;
+        this.length = length;
+        this.in = in;
+    }
+
+    public void implCloseChannel() throws IOException {
+        try {
+            in.close();
+        } catch (IOException e) {
+            // ignore
+        }
+    }
+
+    public long position() {
+        return pos;
+    }
+
+    public long size() {
+        return length;
+    }
+
+    public int read(ByteBuffer dst) throws IOException {
+        seek();
+        int len = in.read(dst.array(), dst.position(), dst.remaining());
+        if (len > 0) {
+            dst.position(dst.position() + len);
+            pos += len;
+            inPos += len;
+        }
+        return len;
+    }
+
+    private void seek() throws IOException {
+        if (inPos > pos) {
+            if (in != null) {
+                in.close();
+            }
+            in = null;
+        }
+        if (in == null) {
+            in = FileUtils.newInputStream(fullName);
+            inPos = 0;
+        }
+        if (inPos < pos) {
+            long skip = pos - inPos;
+            if (!skipUsingRead) {
+                try {
+                    IOUtils.skipFully(in, skip);
+                } catch (NullPointerException e) {
+                    // workaround for Android
+                    skipUsingRead = true;
+                }
+            }
+            if (skipUsingRead) {
+                while (skip > 0) {
+                    int s = (int) Math.min(SKIP_BUFFER.length, skip);
+                    s = in.read(SKIP_BUFFER, 0, s);
+                    skip -= s;
+                }
+            }
+            inPos = pos;
+        }
+    }
+
+    public FileChannel position(long newPos) {
+        this.pos = newPos;
+        return this;
+    }
+
+    public FileChannel truncate(long newLength) throws IOException {
+        throw new IOException("File is read-only");
+    }
+
+    public void force(boolean metaData) throws IOException {
+        // nothing to do
+    }
+
+    public int write(ByteBuffer src) throws IOException {
+        throw new IOException("File is read-only");
+    }
+
+    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+        return null;
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

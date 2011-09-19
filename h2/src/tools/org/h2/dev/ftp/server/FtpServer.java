@@ -292,7 +292,7 @@ public class FtpServer extends Tool implements Service {
      */
     String getDirectoryListing(String directory, boolean listDirectories) {
         StringBuilder buff = new StringBuilder();
-        for (String fileName : FileUtils.listFiles(directory)) {
+        for (String fileName : FileUtils.newDirectoryStream(directory)) {
             if (!FileUtils.isDirectory(fileName) || (FileUtils.isDirectory(fileName) && listDirectories)) {
                 appendFile(buff, fileName);
             }
@@ -327,7 +327,7 @@ public class FtpServer extends Tool implements Service {
             if ("-ftpPort".equals(a)) {
                 port = Integer.decode(args[++i]);
             } else if ("-ftpDir".equals(a)) {
-                root = FileUtils.getCanonicalPath(args[++i]);
+                root = FileUtils.toRealPath(args[++i]);
             } else if ("-ftpRead".equals(a)) {
                 readUserName = args[++i];
             } else if ("-ftpWrite".equals(a)) {
@@ -351,7 +351,7 @@ public class FtpServer extends Tool implements Service {
     }
 
     public void start() {
-        root = FileUtils.getCanonicalPath(root);
+        root = FileUtils.toRealPath(root);
         FileUtils.createDirectories(root);
         serverSocket = NetUtils.createServerSocket(port, false);
         port = serverSocket.getLocalPort();

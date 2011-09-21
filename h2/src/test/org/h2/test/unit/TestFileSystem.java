@@ -283,6 +283,7 @@ public class TestFileSystem extends TestBase {
         assertTrue(list.get(0).endsWith("test"));
         FileUtils.copy(fsBase + "/test", fsBase + "/test3");
         FileUtils.moveTo(fsBase + "/test3", fsBase + "/test2");
+        FileUtils.moveTo(fsBase + "/test2", fsBase + "/test2");
         assertTrue(!FileUtils.exists(fsBase + "/test3"));
         assertTrue(FileUtils.exists(fsBase + "/test2"));
         assertEquals(10000, FileUtils.size(fsBase + "/test2"));
@@ -354,9 +355,9 @@ public class TestFileSystem extends TestBase {
                 case 2: {
                     trace("truncate " + pos);
                     f.truncate(pos);
-                    if (pos < ra.getFilePointer()) {
+                    if (pos < ra.length()) {
                         // truncate is supposed to have no effect if the
-                        // position is larger than the current position
+                        // position is larger than the current size
                         ra.setLength(pos);
                     }
                     assertEquals(ra.getFilePointer(), f.position());

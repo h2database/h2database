@@ -84,7 +84,7 @@ public class FilePathDisk extends FilePath {
         File oldFile = new File(name);
         File newFile = new File(newName.name);
         if (oldFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
-            DbException.throwInternalError("rename file old=new");
+            return;
         }
         if (!oldFile.exists()) {
             throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,

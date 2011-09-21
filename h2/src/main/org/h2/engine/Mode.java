@@ -130,6 +130,7 @@ public class Mode {
         mode = new Mode("Derby");
         mode.aliasColumnName = true;
         mode.uniqueIndexSingleNull = true;
+        mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
         add(mode);
 
@@ -164,6 +165,7 @@ public class Mode {
         mode.aliasColumnName = true;
         mode.nullConcatIsNull = true;
         mode.roundWhenConvertToLong = true;
+        mode.supportOffsetFetch = true;
         mode.systemColumns = true;
         add(mode);
     }

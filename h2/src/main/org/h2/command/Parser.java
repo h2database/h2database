@@ -1606,7 +1606,9 @@ public class Parser {
                 }
             }
             if (readIf("FETCH")) {
-                read("FIRST");
+                if (!readIf("FIRST")) {
+                    read("NEXT");
+                }
                 if (readIf("ROW")) {
                     command.setLimit(ValueExpression.get(ValueInt.get(1)));
                 } else {

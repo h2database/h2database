@@ -243,12 +243,23 @@ public class TestCompatibility extends TestBase {
         assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn.createStatement()).
                 executeQuery("SELECT 1 FROM sysibm.sysdummy1");
         conn.close();
+        conn = getConnection("compatibility;MODE=DB2");
+        Statement stmt = conn.createStatement();
+        stmt.execute("drop table test");
+        stmt.execute("create table test(id varchar)");
+        stmt.execute("insert into test values ('3'),('1'),('2')");
+        res = stmt.executeQuery("select id from test order by id fetch next 2 rows only");
         conn = getConnection("compatibility");
+        res.next();
+        assertEquals("1", res.getString(1));
+        res.next();
+        assertEquals("2", res.getString(1));
+        assertFalse(res.next());
     }
 
     private void testDerby() throws SQLException {
         conn = getConnection("compatibility;MODE=Derby");
-        ResultSet res = conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1");
+        ResultSet res = conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1 fetch next 1 row only");
         res.next();
         assertEquals("1", res.getString(1));
         conn.close();

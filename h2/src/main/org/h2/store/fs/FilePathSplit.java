@@ -151,8 +151,7 @@ public class FilePathSplit extends FilePathWrapper {
                 closeAndThrow(array.length - 1, array, c, maxLength);
             }
         }
-        FileSplit fo = new FileSplit(this, mode, array, length, maxLength);
-        return fo;
+        return new FileSplit(this, mode, array, length, maxLength);
     }
 
     private long getDefaultMaxLength() {

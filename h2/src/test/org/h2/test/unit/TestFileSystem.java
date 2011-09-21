@@ -174,7 +174,7 @@ public class TestFileSystem extends TestBase {
         FileUtils.delete(getBaseDir() + "/fsMem.zip");
     }
 
-    private void testDatabaseInJar() throws SQLException {
+    private void testDatabaseInJar() throws Exception {
         if (getBaseDir().indexOf(':') > 0) {
             return;
         }
@@ -204,6 +204,16 @@ public class TestFileSystem extends TestBase {
             assertTrue(!FileUtils.isDirectory(f));
             assertTrue(FileUtils.size(f) > 0);
             assertTrue(f.endsWith(FileUtils.getName(f)));
+            assertEquals(0, FileUtils.lastModified(f));
+            FileUtils.setReadOnly(f);
+            assertFalse(FileUtils.canWrite(f));
+            InputStream in = FileUtils.newInputStream(f);
+            int len = 0;
+            while (in.read() >= 0) {
+                len++;
+            }
+            assertEquals(len, FileUtils.size(f));
+            testReadOnly(f);
         }
         String urlJar = "jdbc:h2:zip:" + getBaseDir() + "/fsJar.zip!/fsJar";
         conn = DriverManager.getConnection(urlJar, "sa", "sa");
@@ -223,10 +233,35 @@ public class TestFileSystem extends TestBase {
         FileUtils.delete(getBaseDir() + "/fsJar.zip");
     }
 
+    private void testReadOnly(final String f) throws IOException {
+        new AssertThrows(DbException.class) { public void test() {
+            FileUtils.newOutputStream(f, false);
+        }};
+        new AssertThrows(DbException.class) { public void test() {
+            FileUtils.moveTo(f, f);
+        }};
+        new AssertThrows(DbException.class) { public void test() {
+            FileUtils.moveTo(f, f);
+        }};
+        new AssertThrows(IOException.class) { public void test() throws IOException {
+            FileUtils.createTempFile(f, ".tmp", false, false);
+        }};
+        final FileChannel channel = FileUtils.open(f, "r");
+        new AssertThrows(IOException.class) { public void test() throws IOException {
+            channel.write(ByteBuffer.allocate(1));
+        }};
+        new AssertThrows(IOException.class) { public void test() throws IOException {
+            channel.truncate(0);
+        }};
+        assertTrue(null == channel.tryLock());
+        channel.force(false);
+        channel.close();
+    }
+
     private void testUserHome() {
-        String fileName = FileUtils.toRealPath("~/test");
         String userDir = System.getProperty("user.home").replace('\\', '/');
-        assertTrue(fileName.startsWith(userDir));
+        assertTrue(FileUtils.toRealPath("~/test").startsWith(userDir));
+        assertTrue(FileUtils.toRealPath("file:~/test").startsWith(userDir));
     }
 
     private void testFileSystem(String fsBase) throws Exception {
@@ -312,6 +347,9 @@ public class TestFileSystem extends TestBase {
             }};
             new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
                 channel.transferTo(0, 0, channel);
+            }};
+            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
+                channel.lock();
             }};
             channel.close();
             FileUtils.delete(fileName);

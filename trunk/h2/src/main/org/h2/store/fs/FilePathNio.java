@@ -94,7 +94,7 @@ class FileNio extends FileBase {
     }
 
     public String toString() {
-        return name;
+        return "nio:" + name;
     }
 
 }

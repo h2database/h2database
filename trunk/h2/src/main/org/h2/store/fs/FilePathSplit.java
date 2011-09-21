@@ -374,4 +374,8 @@ class FileSplit extends FileBase {
         return list[0].tryLock();
     }
 
+    public String toString() {
+        return file.toString();
+    }
+
 }

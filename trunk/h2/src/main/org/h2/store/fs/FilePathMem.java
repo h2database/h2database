@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.h2.compress.CompressLZF;
+import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -105,9 +106,14 @@ public class FilePathMem extends FilePath {
     }
 
     public boolean isDirectory() {
+        if (isRoot()) {
+            return true;
+        }
         // TODO in memory file system currently
         // does not really support directories
-        return false;
+        synchronized (MEMORY_FILES) {
+            return MEMORY_FILES.get(name) == null;
+        }
     }
 
     public boolean isAbsolute() {
@@ -124,6 +130,9 @@ public class FilePathMem extends FilePath {
     }
 
     public void createDirectory() {
+        if (exists() && isDirectory()) {
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a file with this name already exists)");
+        }
         // TODO directories are not really supported
     }
 
@@ -274,6 +283,10 @@ class FileMem extends FileBase {
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
         return null;
+    }
+
+    public String toString() {
+        return data.getName();
     }
 
 }

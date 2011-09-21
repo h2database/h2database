@@ -65,9 +65,6 @@ public class FilePathDisk extends FilePath {
      * @return the native file name
      */
     public static String expandUserHomeDirectory(String fileName) {
-        if (fileName == null) {
-            return null;
-        }
         boolean prefix = false;
         if (fileName.startsWith("file:")) {
             prefix = true;
@@ -236,16 +233,20 @@ public class FilePathDisk extends FilePath {
 
     public void createDirectory() {
         File f = new File(name);
-        if (!f.exists()) {
-            File dir = new File(name);
-            for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-                if ((dir.exists() && dir.isDirectory()) || dir.mkdir()) {
-                    return;
-                }
-                wait(i);
+        if (f.exists()) {
+            if (f.isDirectory()) {
+                return;
             }
-            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name);
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a file with this name already exists)");
         }
+        File dir = new File(name);
+        for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
+            if ((dir.exists() && dir.isDirectory()) || dir.mkdir()) {
+                return;
+            }
+            wait(i);
+        }
+        throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name);
     }
 
     public OutputStream newOutputStream(boolean append) {

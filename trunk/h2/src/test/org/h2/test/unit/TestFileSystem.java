@@ -15,6 +15,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.FileChannel.MapMode;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -23,6 +24,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.Random;
 import org.h2.dev.fs.FilePathCrypt;
+import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -48,6 +50,12 @@ public class TestFileSystem extends TestBase {
     }
 
     public void test() throws Exception {
+        testFileSystem(getBaseDir() + "/fs");
+
+        testAbsoluteRelative();
+        testDirectories(getBaseDir());
+        testMoveTo(getBaseDir());
+        testUnsupportedFeatures(getBaseDir());
         testMemFsDir();
         testClasspath();
         FilePathCrypt.register();
@@ -83,6 +91,12 @@ public class TestFileSystem extends TestBase {
         } finally {
             FileUtils.delete(getBaseDir() + "/fs");
         }
+    }
+
+    private void testAbsoluteRelative() {
+        assertTrue(FileUtils.isAbsolute("/test/abc"));
+        assertFalse(FileUtils.isAbsolute("test/abc"));
+        assertTrue(FileUtils.isAbsolute("~/test/abc"));
     }
 
     private void testMemFsDir() throws IOException {
@@ -216,9 +230,112 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testFileSystem(String fsBase) throws Exception {
+        testSetReadOnly(fsBase);
+        testParentEventuallyReturnsNull(fsBase);
         testSimple(fsBase);
         testTempFile(fsBase);
         testRandomAccess(fsBase);
+    }
+
+    private void testSetReadOnly(String fsBase) {
+        String fileName = fsBase + "/testFile";
+        if (FileUtils.exists(fileName)) {
+            FileUtils.delete(fileName);
+        }
+        if (FileUtils.createFile(fileName)) {
+            FileUtils.setReadOnly(fileName);
+            assertFalse(FileUtils.canWrite(fileName));
+            FileUtils.delete(fileName);
+        }
+    }
+
+    private void testDirectories(String fsBase) {
+        final String fileName = fsBase + "/testFile";
+        if (FileUtils.exists(fileName)) {
+            FileUtils.delete(fileName);
+        }
+        if (FileUtils.createFile(fileName)) {
+            new AssertThrows(DbException.class) { public void test() {
+                FileUtils.createDirectory(fileName);
+            }};
+            new AssertThrows(DbException.class) { public void test() {
+                FileUtils.createDirectories(fileName + "/test");
+            }};
+            FileUtils.delete(fileName);
+        }
+    }
+
+    private void testMoveTo(String fsBase) {
+        final String fileName = fsBase + "/testFile";
+        final String fileName2 = fsBase + "/testFile2";
+        if (FileUtils.exists(fileName)) {
+            FileUtils.delete(fileName);
+        }
+        if (FileUtils.createFile(fileName)) {
+            FileUtils.moveTo(fileName, fileName2);
+            FileUtils.createFile(fileName);
+            new AssertThrows(DbException.class) { public void test() {
+                FileUtils.moveTo(fileName2, fileName);
+            }};
+            FileUtils.delete(fileName);
+            FileUtils.delete(fileName2);
+            new AssertThrows(DbException.class) { public void test() {
+                FileUtils.moveTo(fileName, fileName2);
+            }};
+        }
+    }
+
+    private void testUnsupportedFeatures(String fsBase) throws IOException {
+        final String fileName = fsBase + "/testFile";
+        if (FileUtils.exists(fileName)) {
+            FileUtils.delete(fileName);
+        }
+        if (FileUtils.createFile(fileName)) {
+            final FileChannel channel = FileUtils.open(fileName, "rw");
+            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
+                channel.map(MapMode.PRIVATE, 0, channel.size());
+            }};
+            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
+                channel.read(ByteBuffer.allocate(10), 0);
+            }};
+            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
+                channel.read(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
+            }};
+            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
+                channel.write(ByteBuffer.allocate(10), 0);
+            }};
+            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
+                channel.write(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
+            }};
+            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
+                channel.transferFrom(channel, 0, 0);
+            }};
+            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
+                channel.transferTo(0, 0, channel);
+            }};
+            channel.close();
+            FileUtils.delete(fileName);
+        }
+    }
+
+    private void testParentEventuallyReturnsNull(String fsBase) {
+        FilePath p = FilePath.get(fsBase + "/testFile");
+        assertTrue(p.getScheme().length() > 0);
+        for (int i = 0; i < 100; i++) {
+            if (p == null) {
+                return;
+            }
+            p = p.getParent();
+        }
+        fail("Parent is not null: " + p);
+        String path = fsBase + "/testFile";
+        for (int i = 0; i < 100; i++) {
+            if (path == null) {
+                return;
+            }
+            path = FileUtils.getParent(path);
+        }
+        fail("Parent is not null: " + path);
     }
 
     private void testSimple(final String fsBase) throws Exception {
@@ -326,6 +443,7 @@ public class TestFileSystem extends TestBase {
         RandomAccessFile ra = new RandomAccessFile(file, "rw");
         FileUtils.delete(s);
         FileChannel f = FileUtils.open(s, "rw");
+        assertEquals(s, f.toString());
         assertEquals(-1, f.read(ByteBuffer.wrap(new byte[1])));
         f.force(true);
         Random random = new Random(seed);

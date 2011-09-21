@@ -54,6 +54,9 @@ public class FilePathDisk extends FilePath {
      */
     protected static String translateFileName(String fileName) {
         fileName = fileName.replace('\\', '/');
+        if (fileName.startsWith("file:")) {
+            fileName = fileName.substring("file:".length());
+        }
         return expandUserHomeDirectory(fileName);
     }
 
@@ -65,16 +68,11 @@ public class FilePathDisk extends FilePath {
      * @return the native file name
      */
     public static String expandUserHomeDirectory(String fileName) {
-        boolean prefix = false;
-        if (fileName.startsWith("file:")) {
-            prefix = true;
-            fileName = fileName.substring("file:".length());
-        }
-        if (fileName.startsWith("~") && (fileName.length() == 1 || fileName.startsWith("~/") || fileName.startsWith("~\\"))) {
+        if (fileName.startsWith("~") && (fileName.length() == 1 || fileName.startsWith("~/"))) {
             String userDir = SysProperties.USER_HOME;
             fileName = userDir + fileName.substring(1);
         }
-        return prefix ? "file:" + fileName : fileName;
+        return fileName;
     }
 
     public void moveTo(FilePath newName) {

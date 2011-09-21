@@ -314,7 +314,6 @@ class FileMemData {
     private byte[][] data;
     private long lastModified;
     private boolean isReadOnly;
-    private volatile boolean locked;
 
     static {
         byte[] n = new byte[BLOCK_SIZE];
@@ -562,26 +561,6 @@ class FileMemData {
     boolean setReadOnly() {
         isReadOnly = true;
         return true;
-    }
-
-    /**
-     * Lock the file.
-     *
-     * @return if successful
-     */
-    synchronized boolean tryLock() {
-        if (locked) {
-            return false;
-        }
-        locked = true;
-        return true;
-    }
-
-    /**
-     * Unlock the file.
-     */
-    public synchronized void releaseLock() {
-        locked = false;
     }
 
 }

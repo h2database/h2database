@@ -453,8 +453,12 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
 
         public synchronized void close() throws SQLException {
             if (!isClosed) {
-                rollback();
-                setAutoCommit(true);
+                try {
+                    rollback();
+                    setAutoCommit(true);
+                } catch (SQLException e) {
+                    // ignore
+                }
                 closedHandle();
                 isClosed = true;
             }

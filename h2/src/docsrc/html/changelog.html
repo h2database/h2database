@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved compatibility with the Java 7 FileSystem abstraction.
+<ul><li>When using the built-in connection pool, after calling the "shutdown" SQL statement,
+    a warning was written to the .trace.db file about an unclosed connection.
+</li><li>Improved compatibility for "fetch first / next row(s)". Thanks a lot to litailang for the patch!
+</li><li>Improved compatibility with the Java 7 FileSystem abstraction.
 </li></ul>
 
 <h2>Version 1.3.160 (2011-09-11)</h2>

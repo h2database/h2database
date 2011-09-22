@@ -94,7 +94,6 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testAbsoluteRelative() {
-        assertTrue(FileUtils.isAbsolute("/test/abc"));
         assertFalse(FileUtils.isAbsolute("test/abc"));
         assertTrue(FileUtils.isAbsolute("~/test/abc"));
     }

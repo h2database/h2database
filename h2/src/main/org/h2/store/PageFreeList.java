@@ -218,7 +218,7 @@ public class PageFreeList extends Page {
     }
 
     public boolean canRemove() {
-        return false;
+        return true;
     }
 
     public boolean canMove() {

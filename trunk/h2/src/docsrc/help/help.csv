@@ -760,11 +760,11 @@ DROP SEQUENCE SEQ_ID
 "
 
 "Commands (DDL)","DROP TABLE","
-DROP TABLE [ IF EXISTS ] tableName [,...] [ CASCADE | RESTRICT ]
+DROP TABLE [ IF EXISTS ] tableName [,...] [ RESTRICT | CASCADE ]
 ","
 Drops an existing table, or a list of tables.
-All dependent views are dropped as well if the CASCADE clause is used (the default).
-The command will fail if dependent views exist and the RESTRICT clause is used.
+The command will fail if dependent views exist and the RESTRICT clause is used (the default).
+All dependent views are dropped as well if the CASCADE clause is used.
 This command commits an open transaction.
 ","
 DROP TABLE TEST

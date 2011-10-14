@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using the built-in connection pool, after calling the "shutdown" SQL statement,
+<ul><li>Improved performance for large databases (many GB), and databases with a small page size.
+</li><li>The Polish translation has been improved by Jaros&#322;aw Kokoci&#324;ski.
+</li><li>When using the built-in connection pool, after calling the "shutdown" SQL statement,
     a warning was written to the .trace.db file about an unclosed connection.
 </li><li>Improved compatibility for "fetch first / next row(s)". Thanks a lot to litailang for the patch!
 </li><li>Improved compatibility with the Java 7 FileSystem abstraction.

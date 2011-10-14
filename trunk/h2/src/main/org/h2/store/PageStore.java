@@ -143,6 +143,11 @@ public class PageStore implements CacheWriter {
     private boolean recoveryRunning;
 
     /**
+     * The index to the first freelist page that potentially has free space.
+     */
+    private int firstFreeListIndex;
+
+    /**
      * The file size in bytes.
      */
     private long fileLength;
@@ -1065,7 +1070,9 @@ public class PageStore implements CacheWriter {
     }
 
     private void freePage(int pageId) {
-        PageFreeList list = getFreeListForPage(pageId);
+        int index = getFreeListId(pageId);
+        PageFreeList list = getFreeList(index);
+        firstFreeListIndex = Math.min(index, firstFreeListIndex);
         list.free(pageId);
     }
 
@@ -1117,11 +1124,11 @@ public class PageStore implements CacheWriter {
 
     private int allocatePage(BitField exclude, int first) {
         int page;
-        // TODO could remember the first possible free list page
-        for (int i = 0;; i++) {
+        for (int i = firstFreeListIndex;; i++) {
             PageFreeList list = getFreeList(i);
             page = list.allocate(exclude, first);
             if (page >= 0) {
+                firstFreeListIndex = i;
                 break;
             }
         }

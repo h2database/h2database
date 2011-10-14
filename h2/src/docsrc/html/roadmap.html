@@ -307,6 +307,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support a data type "timestamp with timezone" using java.util.Calendar.
 </li><li>Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62
 </li><li>Add database creation date and time to the database.
+</li><li>Optimize A=? OR B=? to UNION if the cost is lower.
 </li><li>Support ASSERTION.
 </li><li>MySQL compatibility: support comparing 1='a'
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
@@ -361,7 +362,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence.
 </li><li>Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle, MSSQLServer).
 </li><li>Oracle compatibility: support CREATE SYNONYM table FOR schema.table.
-</li><li>Optimize A=? OR B=? to UNION if the cost is lower.
 </li><li>FTP: document the server, including -ftpTask option to execute / kill remote processes
 </li><li>FTP: problems with multithreading?
 </li><li>FTP: implement SFTP / FTPS

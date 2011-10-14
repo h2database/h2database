@@ -97,10 +97,7 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>DROP_RESTRICT</code> (default: true).<br />
-     * Whether the default action for DROP TABLE and DROP VIEW is RESTRICT. For
-     * most databases, the default action is RESTRICT, but for compatibility
-     * with older versions of H2 the default action is currently CASCADE. This will
-     * change in a future version of H2.
+     * Whether the default action for DROP TABLE and DROP VIEW is RESTRICT.
      */
     public final boolean dropRestrict = get("DROP_RESTRICT", true);
 

@@ -536,7 +536,7 @@ public class BuildBase {
         }
         String repoFile = group + "/" + artifact + "/" + version + "/" + artifact + "-" + version + ".jar";
         mkdirs(targetFile.getAbsoluteFile().getParentFile());
-        String localMavenDir = System.getProperty("user.home") + "/.m2/repository";
+        String localMavenDir = getLocalMavenDir();
         if (new File(localMavenDir).exists()) {
             File f = new File(localMavenDir, repoFile);
             if (!f.exists()) {
@@ -566,6 +566,10 @@ public class BuildBase {
         }
         String fileURL = repoDir + "/" + repoFile;
         download(target, fileURL, sha1Checksum);
+    }
+
+    protected String getLocalMavenDir() {
+        return System.getProperty("user.home") + "/.m2/repository";
     }
 
     /**

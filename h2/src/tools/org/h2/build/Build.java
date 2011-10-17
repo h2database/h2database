@@ -12,10 +12,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import org.h2.build.code.SwitchSource;
+import org.h2.build.doc.XMLParser;
 
 /**
  * The build definition.
@@ -787,6 +789,32 @@ public class Build extends BuildBase {
         copy("temp/WEB-INF/lib", files("bin/h2" + getJarSuffix()), "bin");
         FileList files = files("temp").exclude("temp/org*").exclude("temp/META-INF*");
         jar("bin/h2console.war", files, "temp");
+    }
+
+    protected String getLocalMavenDir() {
+        String userHome = System.getProperty("user.home", "");
+        File file = new File(userHome, ".m2/settings.xml");
+        XMLParser p = new XMLParser(new String(BuildBase.readFile(file)));
+        HashMap<String, String> prop = new HashMap<String, String>();
+        for (String name = ""; p.hasNext();) {
+            int event = p.next();
+            if (event == XMLParser.START_ELEMENT) {
+                name += "/" + p.getName();
+            } else if (event == XMLParser.END_ELEMENT) {
+                name = name.substring(0, name.lastIndexOf('/'));
+            } else if (event == XMLParser.CHARACTERS) {
+                String text = p.getText().trim();
+                if (text.length() > 0) {
+                    prop.put(name, text);
+                }
+            }
+        }
+        String local = prop.get("/settings/localRepository");
+        if (local == null) {
+            local = "${user.home}/.m2/repository";
+        }
+        local = replaceAll(local, "${user.home}", userHome);
+        return local;
     }
 
 }

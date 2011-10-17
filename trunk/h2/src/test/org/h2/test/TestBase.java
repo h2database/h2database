@@ -840,6 +840,16 @@ public abstract class TestBase {
     }
 
     /**
+     * Check that the passed object is null.
+     *
+     * @param obj the object
+     * @throws AssertionError if the condition is false
+     */
+    public void assertNull(Object obj) {
+        assertTrue("Expected: null got: " + obj, obj == null);
+    }
+
+    /**
      * Check that the passed boolean is true.
      *
      * @param message the message to print if the condition is false

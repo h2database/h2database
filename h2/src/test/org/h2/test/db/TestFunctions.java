@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.CallableStatement;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -657,6 +658,29 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(0, rs.getInt(1));
         assertFalse(rs.next());
 
+        stat.execute("CREATE ALIAS blob FOR \"" + getClass().getName() + ".blob\"");
+        rs = stat.executeQuery("SELECT blob(CAST('0102' AS BLOB)) FROM DUAL");
+        while (rs.next()) {
+            // ignore
+        }
+        rs.close();
+
+        stat.execute("CREATE ALIAS clob FOR \"" + getClass().getName() + ".clob\"");
+        rs = stat.executeQuery("SELECT clob(CAST('Hello' AS CLOB)) FROM DUAL");
+        while (rs.next()) {
+            // ignore
+        }
+        rs.close();
+
+        stat.execute("create alias sql as 'ResultSet sql(Connection conn, String sql) throws SQLException { return conn.createStatement().executeQuery(sql); }'");
+        rs = stat.executeQuery("select * from sql('select cast(''Hello'' as clob)')");
+        assertTrue(rs.next());
+        assertEquals("Hello", rs.getString(1));
+
+        rs = stat.executeQuery("select * from sql('select cast(''4869'' as blob)')");
+        assertTrue(rs.next());
+        assertEquals("Hi", new String(rs.getBytes(1)));
+
         stat.execute("CREATE ALIAS blob2stream FOR \"" + getClass().getName() + ".blob2stream\"");
         stat.execute("CREATE ALIAS stream2stream FOR \"" + getClass().getName() + ".stream2stream\"");
         stat.execute("CREATE TABLE TEST_BLOB(ID INT PRIMARY KEY, VALUE BLOB)");
@@ -799,6 +823,26 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
         BufferedInputStream bufferedInStream = new BufferedInputStream(value.getBinaryStream());
         return bufferedInStream;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param value the blob
+     * @return the blob
+     */
+    public static Blob blob(Blob value) {
+        return value;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param value the blob
+     * @return the blob
+     */
+    public static Clob clob(Clob value) {
+        return value;
     }
 
     /**

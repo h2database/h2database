@@ -652,7 +652,59 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public Array getArray(int columnIndex) throws SQLException {
-        return new SimpleArray((Object[]) get(columnIndex));
+        Object[] o = (Object[]) get(columnIndex);
+        return o == null ? null : new SimpleArray(o);
+    }
+
+    /**
+     * Returns the value as a java.io.Reader.
+     * This is only supported for CLOB data.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public Reader getCharacterStream(int columnIndex) throws SQLException {
+        Clob c = (Clob) get(columnIndex);
+        return c == null ? null : c.getCharacterStream();
+    }
+
+    /**
+     * Returns the value as a java.sql.Clob.
+     * This is only supported if the
+     * result set was created using a Clob object.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public Clob getClob(int columnIndex) throws SQLException {
+        Clob c = (Clob) get(columnIndex);
+        return c == null ? null : c;
+    }
+
+    /**
+     * Returns the value as a java.sql.Blob.
+     * This is only supported if the
+     * result set was created using a Blob object.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public Blob getBlob(int columnIndex) throws SQLException {
+        Blob b = (Blob) get(columnIndex);
+        return b == null ? null : b;
+    }
+
+    /**
+     * Returns the value as a java.io.InputStream.
+     * This is only supported if the
+     * result set was created using a Blob object.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public InputStream getBinaryStream(int columnIndex) throws SQLException {
+        Blob b = (Blob) get(columnIndex);
+        return b == null ? null : b.getBinaryStream();
     }
 
     /**
@@ -725,6 +777,53 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         return getArray(findColumn(columnLabel));
     }
 
+    /**
+     * Returns the value as a java.io.Reader.
+     * This is only supported if the
+     * result set was created using a Clob object.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public Reader getCharacterStream(String columnLabel) throws SQLException {
+        return getCharacterStream(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as a java.sql.Clob.
+     * This is only supported if the
+     * result set was created using a Clob object.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public Clob getClob(String columnLabel) throws SQLException {
+        return getClob(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as a java.sql.Blob.
+     * This is only supported if the
+     * result set was created using a Blob object.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public Blob getBlob(String columnLabel) throws SQLException {
+        return getBlob(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as a java.io.InputStream.
+     * This is only supported if the
+     * result set was created using a Blob object.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public InputStream getBinaryStream(String columnLabel) throws SQLException {
+        return getBinaryStream(findColumn(columnLabel));
+    }
 
     // ---- result set meta data ---------------------------------------------
 
@@ -1178,13 +1277,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * INTERNAL
-     */
-    public InputStream getBinaryStream(int columnIndex) {
-        return null;
-    }
-
-    /**
      * @deprecated INTERNAL
      */
     public InputStream getUnicodeStream(int columnIndex) {
@@ -1202,13 +1294,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Reader getCharacterStream(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1334,21 +1419,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public Blob getBlob(int i) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
     public void updateBlob(int columnIndex, Blob x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Clob getClob(int i) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1369,7 +1440,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public Ref getRef(int i) throws SQLException {
+    public Ref getRef(int columnIndex) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1402,13 +1473,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * INTERNAL
-     */
-    public InputStream getBinaryStream(String columnLabel) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
      * @deprecated INTERNAL
      */
     public InputStream getUnicodeStream(String columnLabel) throws SQLException {
@@ -1426,13 +1490,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     public void updateBinaryStream(String columnLabel, InputStream x, int length) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Reader getCharacterStream(String columnLabel) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1460,7 +1517,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public Object getObject(int i, Map<String, Class<?>> map) throws SQLException {
+    public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1502,21 +1559,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public Blob getBlob(String colName) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
     public void updateBlob(String columnLabel, Blob x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Clob getClob(String colName) throws SQLException {
         throw getUnsupportedException();
     }
 

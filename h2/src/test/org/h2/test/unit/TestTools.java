@@ -10,12 +10,18 @@ import java.awt.Button;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -220,13 +226,18 @@ public class TestTools extends TestBase {
         rs.addColumn("h", Types.ARRAY, 0, 0);
         rs.addColumn("i", Types.TIME, 0, 0);
         rs.addColumn("j", Types.TIMESTAMP, 0, 0);
+        rs.addColumn("k", Types.CLOB, 0, 0);
+        rs.addColumn("l", Types.BLOB, 0, 0);
 
         Date d = Date.valueOf("2001-02-03");
         byte[] b = {(byte) 0xab};
         Object[] a = {1, 2};
         Time t = Time.valueOf("10:20:30");
         Timestamp ts = Timestamp.valueOf("2002-03-04 10:20:30");
-        rs.addRow(1, b, true, d, "10.3", Math.PI, "-3", a, t, ts);
+        Clob clob = new SimpleClob("Hello World");
+        Blob blob = new SimpleBlob(new byte[]{(byte) 1, (byte) 2});
+        rs.addRow(1, b, true, d, "10.3", Math.PI, "-3", a, t, ts, clob, blob);
+        rs.addRow(null, null, null, null, null, null, null, null, null, null, null);
 
         rs.next();
 
@@ -280,10 +291,51 @@ public class TestTools extends TestBase {
         assertTrue(ts == rs.getTimestamp("j"));
         assertTrue(ts == rs.getTimestamp(10));
 
+        assertTrue(clob == rs.getClob("k"));
+        assertTrue(clob == rs.getClob(11));
+
+        assertTrue(blob == rs.getBlob("l"));
+        assertTrue(blob == rs.getBlob(12));
+
         assertThrows(ErrorCode.INVALID_VALUE_2, (ResultSet) rs).
-                getString(11);
+                getString(13);
         assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, (ResultSet) rs).
                 getString("NOT_FOUND");
+
+        rs.next();
+
+        assertEquals(0, rs.getLong(1));
+        assertTrue(rs.wasNull());
+        assertEquals(null, rs.getBytes(2));
+        assertTrue(rs.wasNull());
+        assertFalse(rs.getBoolean(3));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getDate(4));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getBigDecimal(5));
+        assertTrue(rs.wasNull());
+        assertEquals(0.0, rs.getDouble(5));
+        assertTrue(rs.wasNull());
+        assertEquals(0.0, rs.getDouble(6));
+        assertTrue(rs.wasNull());
+        assertEquals(0.0, rs.getFloat(6));
+        assertTrue(rs.wasNull());
+        assertEquals(0, rs.getInt(7));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getArray(8));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getTime(9));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getTimestamp(10));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getClob(11));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getCharacterStream(11));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getBlob(12));
+        assertTrue(rs.wasNull());
+        assertNull(rs.getBinaryStream(12));
+        assertTrue(rs.wasNull());
 
         // all 'updateX' methods are not supported
         for (Method m: rs.getClass().getMethods()) {
@@ -329,6 +381,7 @@ public class TestTools extends TestBase {
         assertTrue(rs.next());
         assertFalse(rs.isClosed());
         assertEquals(1, rs.getRow());
+        assertTrue(rs.next());
         assertFalse(rs.next());
         assertThrows(ErrorCode.NO_DATA_AVAILABLE, (ResultSet) rs).
                 getInt(1);
@@ -817,6 +870,128 @@ public class TestTools extends TestBase {
 
         server.stop();
         deleteDb("testSplit");
+    }
+
+    /**
+     * A simple Clob implementation.
+     */
+    class SimpleClob implements Clob {
+
+        private final String data;
+
+        SimpleClob(String data) {
+            this.data = data;
+        }
+
+        public void free() throws SQLException {
+            // ignore
+        }
+
+        public InputStream getAsciiStream() throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public Reader getCharacterStream() throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public Reader getCharacterStream(long pos, long length) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public String getSubString(long pos, int length) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public long length() throws SQLException {
+            return data.length();
+        }
+
+        public long position(String searchstr, long start) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public long position(Clob searchstr, long start) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public OutputStream setAsciiStream(long pos) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public Writer setCharacterStream(long pos) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public int setString(long pos, String str) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public int setString(long pos, String str, int offset, int len) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public void truncate(long len) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
+    /**
+     * A simple Blob implementation.
+     */
+    class SimpleBlob implements Blob {
+
+        private final byte[] data;
+
+        SimpleBlob(byte[] data) {
+            this.data = data;
+        }
+
+        public void free() throws SQLException {
+            // ignore
+        }
+
+        public InputStream getBinaryStream() throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public InputStream getBinaryStream(long pos, long length) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public byte[] getBytes(long pos, int length) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public long length() throws SQLException {
+            return data.length;
+        }
+
+        public long position(byte[] pattern, long start) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public long position(Blob pattern, long start) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public OutputStream setBinaryStream(long pos) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public int setBytes(long pos, byte[] bytes) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public int setBytes(long pos, byte[] bytes, int offset, int len) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
+        public void truncate(long len) throws SQLException {
+            throw new UnsupportedOperationException();
+        }
+
     }
 
 }

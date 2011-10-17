@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved performance for large databases (many GB), and databases with a small page size.
+<ul><li>Issue 344: the build now supports a custom Maven repository location.
+</li><li>Issue 334: Java functions that return CLOB or BLOB objects could not be used as tables.
+</li><li>SimpleResultSet now how minimal BLOB and CLOB support.
+</li><li>Improved performance for large databases (many GB), and databases with a small page size.
 </li><li>The Polish translation has been improved by Jaros&#322;aw Kokoci&#324;ski.
 </li><li>When using the built-in connection pool, after calling the "shutdown" SQL statement,
     a warning was written to the .trace.db file about an unclosed connection.

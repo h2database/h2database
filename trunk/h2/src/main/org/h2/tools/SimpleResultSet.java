@@ -29,6 +29,7 @@ import java.util.Map;
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.New;
+import org.h2.value.DataType;
 
 //## Java 1.6 ##
 import java.sql.NClob;
@@ -977,13 +978,15 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns null.
+     * Returns the Java class name if this column.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return the class name
      */
-    public String getColumnClassName(int columnIndex) {
-        return null;
+    public String getColumnClassName(int columnIndex) throws SQLException {
+        int sqlType = getColumn(columnIndex - 1).sqlType;
+        int type = DataType.convertSQLTypeToValueType(sqlType);
+        return DataType.getTypeClassName(type);
     }
 
     /**
@@ -1007,13 +1010,15 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns null.
+     * Returns the data type name of a column.
      *
      * @param columnIndex (1,2,...)
-     * @return null
+     * @return the type name
      */
-    public String getColumnTypeName(int columnIndex) {
-        return null;
+    public String getColumnTypeName(int columnIndex) throws SQLException {
+        int sqlType = getColumn(columnIndex - 1).sqlType;
+        int type = DataType.convertSQLTypeToValueType(sqlType);
+        return DataType.getDataType(type).name;
     }
 
     /**

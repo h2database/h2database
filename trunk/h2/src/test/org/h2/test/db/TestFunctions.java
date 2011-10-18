@@ -20,6 +20,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -680,6 +681,20 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs = stat.executeQuery("select * from sql('select cast(''4869'' as blob)')");
         assertTrue(rs.next());
         assertEquals("Hi", new String(rs.getBytes(1)));
+
+        rs = stat.executeQuery("select sql('select 1 a, ''Hello'' b')");
+        assertTrue(rs.next());
+        rs2 = (ResultSet) rs.getObject(1);
+        rs2.next();
+        assertEquals(1, rs2.getInt(1));
+        assertEquals("Hello", rs2.getString(2));
+        ResultSetMetaData meta2 = rs2.getMetaData();
+        assertEquals(Types.INTEGER, meta2.getColumnType(1));
+        assertEquals("INTEGER", meta2.getColumnTypeName(1));
+        assertEquals("java.lang.Integer", meta2.getColumnClassName(1));
+        assertEquals(Types.VARCHAR, meta2.getColumnType(2));
+        assertEquals("VARCHAR", meta2.getColumnTypeName(2));
+        assertEquals("java.lang.String", meta2.getColumnClassName(2));
 
         stat.execute("CREATE ALIAS blob2stream FOR \"" + getClass().getName() + ".blob2stream\"");
         stat.execute("CREATE ALIAS stream2stream FOR \"" + getClass().getName() + ".stream2stream\"");

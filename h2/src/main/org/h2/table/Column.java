@@ -152,7 +152,8 @@ public class Column {
             return v.convertTo(type);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, v.getSQL() + " (" + getCreateSQL() + ")");
+                String target = (table == null ? "" : table.getName() + ": ") + getCreateSQL();
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, v.getSQL() + " (" + target + ")");
             }
             throw e;
         }

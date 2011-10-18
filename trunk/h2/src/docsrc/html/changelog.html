@@ -18,9 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 344: the build now supports a custom Maven repository location.
+<ul><li>Issue 347: the RunScript and Shell tools now ignore empty statements.
+</li><li>Issue 246: improved error message for data conversion problems.
+</li><li>Issue 344: the build now supports a custom Maven repository location.
 </li><li>Issue 334: Java functions that return CLOB or BLOB objects could not be used as tables.
-</li><li>SimpleResultSet now how minimal BLOB and CLOB support.
+</li><li>SimpleResultSet now supports getColumnTypeName and getColumnClassName.
+</li><li>SimpleResultSet now has minimal BLOB and CLOB support.
 </li><li>Improved performance for large databases (many GB), and databases with a small page size.
 </li><li>The Polish translation has been improved by Jaros&#322;aw Kokoci&#324;ski.
 </li><li>When using the built-in connection pool, after calling the "shutdown" SQL statement,

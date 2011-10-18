@@ -419,6 +419,9 @@ public class Shell extends Tool implements Runnable {
     }
 
     private void execute(String sql) {
+        if (sql.trim().length() == 0) {
+            return;
+        }
         long time = System.currentTimeMillis();
         try {
             ResultSet rs = null;

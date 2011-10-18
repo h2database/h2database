@@ -161,6 +161,9 @@ public class RunScript extends Tool {
             if (sql == null) {
                 break;
             }
+            if (sql.trim().length() == 0) {
+                continue;
+            }
             boolean resultSet = stat.execute(sql);
             if (resultSet) {
                 if (rs != null) {
@@ -196,6 +199,9 @@ public class RunScript extends Tool {
                 break;
             }
             String trim = sql.trim();
+            if (trim.length() == 0) {
+                continue;
+            }
             if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).startsWith("@INCLUDE")) {
                 sql = trim;
                 sql = sql.substring("@INCLUDE".length()).trim();
@@ -205,48 +211,46 @@ public class RunScript extends Tool {
                 process(conn, sql, continueOnError, charsetName);
             } else {
                 try {
-                    if (trim.length() > 0) {
-                        if (showResults && !trim.startsWith("-->")) {
-                            out.print(sql + ";");
-                        }
-                        if (showResults || checkResults) {
-                            boolean query = stat.execute(sql);
-                            if (query) {
-                                ResultSet rs = stat.getResultSet();
-                                int columns = rs.getMetaData().getColumnCount();
-                                StringBuilder buff = new StringBuilder();
-                                while (rs.next()) {
-                                    buff.append("\n-->");
-                                    for (int i = 0; i < columns; i++) {
-                                        String s = rs.getString(i + 1);
-                                        if (s != null) {
-                                            s = StringUtils.replaceAll(s, "\r\n", "\n");
-                                            s = StringUtils.replaceAll(s, "\n", "\n-->    ");
-                                            s = StringUtils.replaceAll(s, "\r", "\r-->    ");
-                                        }
-                                        buff.append(' ').append(s);
+                    if (showResults && !trim.startsWith("-->")) {
+                        out.print(sql + ";");
+                    }
+                    if (showResults || checkResults) {
+                        boolean query = stat.execute(sql);
+                        if (query) {
+                            ResultSet rs = stat.getResultSet();
+                            int columns = rs.getMetaData().getColumnCount();
+                            StringBuilder buff = new StringBuilder();
+                            while (rs.next()) {
+                                buff.append("\n-->");
+                                for (int i = 0; i < columns; i++) {
+                                    String s = rs.getString(i + 1);
+                                    if (s != null) {
+                                        s = StringUtils.replaceAll(s, "\r\n", "\n");
+                                        s = StringUtils.replaceAll(s, "\n", "\n-->    ");
+                                        s = StringUtils.replaceAll(s, "\r", "\r-->    ");
                                     }
+                                    buff.append(' ').append(s);
                                 }
-                                buff.append("\n;");
-                                String result = buff.toString();
-                                if (showResults) {
-                                    out.print(result);
-                                }
-                                if (checkResults) {
-                                    String expected = r.readStatement() + ";";
-                                    expected = StringUtils.replaceAll(expected, "\r\n", "\n");
-                                    expected = StringUtils.replaceAll(expected, "\r", "\n");
-                                    if (!expected.equals(result)) {
-                                        expected = StringUtils.replaceAll(expected, " ", "+");
-                                        result = StringUtils.replaceAll(result, " ", "+");
-                                        throw new SQLException("Unexpected output for:\n" + sql.trim() + "\nGot:\n" + result + "\nExpected:\n" + expected);
-                                    }
-                                }
-
                             }
-                        } else {
-                            stat.execute(sql);
+                            buff.append("\n;");
+                            String result = buff.toString();
+                            if (showResults) {
+                                out.print(result);
+                            }
+                            if (checkResults) {
+                                String expected = r.readStatement() + ";";
+                                expected = StringUtils.replaceAll(expected, "\r\n", "\n");
+                                expected = StringUtils.replaceAll(expected, "\r", "\n");
+                                if (!expected.equals(result)) {
+                                    expected = StringUtils.replaceAll(expected, " ", "+");
+                                    result = StringUtils.replaceAll(result, " ", "+");
+                                    throw new SQLException("Unexpected output for:\n" + sql.trim() + "\nGot:\n" + result + "\nExpected:\n" + expected);
+                                }
+                            }
+
                         }
+                    } else {
+                        stat.execute(sql);
                     }
                 } catch (Exception e) {
                     if (continueOnError) {

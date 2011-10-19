@@ -794,6 +794,9 @@ public class Build extends BuildBase {
     protected String getLocalMavenDir() {
         String userHome = System.getProperty("user.home", "");
         File file = new File(userHome, ".m2/settings.xml");
+        if (!file.exists()) {
+            return super.getLocalMavenDir();
+        }
         XMLParser p = new XMLParser(new String(BuildBase.readFile(file)));
         HashMap<String, String> prop = new HashMap<String, String>();
         for (String name = ""; p.hasNext();) {

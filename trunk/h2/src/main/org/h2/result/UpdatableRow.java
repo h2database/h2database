@@ -304,16 +304,20 @@ public class UpdatableRow {
         buff.resetCount();
         for (int i = 0; i < columnCount; i++) {
             buff.appendExceptFirst(",");
-            buff.append('?');
+            Value v = row[i];
+            if (v == null) {
+                buff.append("DEFAULT");
+            } else {
+                buff.append('?');
+            }
         }
         buff.append(')');
         PreparedStatement prep = conn.prepareStatement(buff.toString());
-        for (int i = 0; i < columnCount; i++) {
+        for (int i = 0, j = 0; i < columnCount; i++) {
             Value v = row[i];
-            if (v == null) {
-                v = ValueNull.INSTANCE;
+            if (v != null) {
+                v.set(prep, j++ + 1);
             }
-            v.set(prep, i + 1);
         }
         int count = prep.executeUpdate();
         if (count != 1) {

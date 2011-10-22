@@ -55,6 +55,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testInsertRowWithUpdateableResultSetDefault();
         testBeforeFirstAfterLast();
         testParseSpecialValues();
         testSpecialLocale();
@@ -88,6 +89,21 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+
+    private void testInsertRowWithUpdateableResultSetDefault() throws SQLException {
+        stat.execute("create table test(id int primary key, data varchar(255) default 'Hello')");
+        PreparedStatement prep = conn.prepareStatement("select * from test",
+        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        ResultSet rs = prep.executeQuery();
+        rs.moveToInsertRow();
+        rs.updateInt(1, 1);
+        rs.insertRow();
+        rs.close();
+        rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        assertEquals("Hello", rs.getString(2));
+        stat.execute("drop table test");
     }
 
     private void testBeforeFirstAfterLast() throws SQLException {

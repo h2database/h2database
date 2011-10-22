@@ -1,3 +1,4 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
 Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
@@ -18,7 +19,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 347: the RunScript and Shell tools now ignore empty statements.
+<ul><li>Updateable result sets: if the value is not set when inserting a new row,
+    the default value is now used (the same behavior as MySQL, PostgreSQL, and Apache Derby)
+    instead of NULL.
+</li><li>Conditions of the form IN(SELECT ...) where slow and increased the database size
+    if the subquery result size was larger then the configured MAX_MEMORY_ROWS.
+</li><li>Issue 347: the RunScript and Shell tools now ignore empty statements.
 </li><li>Issue 246: improved error message for data conversion problems.
 </li><li>Issue 344: the build now supports a custom Maven repository location.
 </li><li>Issue 334: Java functions that return CLOB or BLOB objects could not be used as tables.

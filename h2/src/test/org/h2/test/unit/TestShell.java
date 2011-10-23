@@ -190,8 +190,6 @@ public class TestShell extends TestBase {
         read("sql> Autocommit is now false");
         testOut.println("autocommit true");
         read("sql> Autocommit is now true");
-        testOut.println("\n;");
-        read("sql>");
         testOut.println("list");
         read("sql> Result list mode is now on");
 

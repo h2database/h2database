@@ -4159,7 +4159,7 @@ create index if not exists idx_id on s.test(id);
 alter index s.idx_id rename to s.index_id;
 > ok
 
-create sequence s.seq;
+create sequence s.seq cache 0;
 > ok
 
 alter sequence s.seq restart with 10;
@@ -4194,7 +4194,7 @@ script NOPASSWORDS NOSETTINGS drop;
 > CREATE INDEX S.INDEX_ID ON S.TEST(ID);
 > CREATE MEMORY TABLE S.TEST( ID INT );
 > CREATE SCHEMA IF NOT EXISTS S AUTHORIZATION SA;
-> CREATE SEQUENCE S.SEQ START WITH 10;
+> CREATE SEQUENCE S.SEQ START WITH 10 CACHE 1;
 > CREATE USER IF NOT EXISTS SA PASSWORD '' ADMIN;
 > DROP SEQUENCE IF EXISTS S.SEQ;
 > DROP TABLE IF EXISTS S.TEST CASCADE;

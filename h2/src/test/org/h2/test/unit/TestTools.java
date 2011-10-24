@@ -209,7 +209,7 @@ public class TestTools extends TestBase {
         assertFalse(rs.getMetaData().isWritable(1));
         assertEquals(null, rs.getMetaData().getCatalogName(1));
         assertEquals(null, rs.getMetaData().getColumnClassName(1));
-        assertEquals(null, rs.getMetaData().getColumnTypeName(1));
+        assertEquals("NULL", rs.getMetaData().getColumnTypeName(1));
         assertEquals(null, rs.getMetaData().getSchemaName(1));
         assertEquals(null, rs.getMetaData().getTableName(1));
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, rs.getHoldability());

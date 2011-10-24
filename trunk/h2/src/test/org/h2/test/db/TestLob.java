@@ -55,6 +55,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testLobSkip();
         testLobSkipPastEnd();
         testCreateIndexOnLob();
         testBlobInputStreamSeek(true);
@@ -99,6 +100,21 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testLobSkip() throws Exception {
+        deleteDb("lob");
+        Connection conn;
+        conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.executeUpdate("create table test(x blob) as select secure_rand(1000)");
+        ResultSet rs = stat.executeQuery("select * from test");
+        rs.next();
+        Blob b = rs.getBlob(1);
+        byte[] test = b.getBytes(5 + 1, 1000 - 5);
+        assertEquals(1000 - 5, test.length);
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testLobSkipPastEnd() throws Exception {

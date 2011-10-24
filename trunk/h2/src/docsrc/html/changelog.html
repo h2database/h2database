@@ -19,7 +19,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Updateable result sets: if the value is not set when inserting a new row,
+<ul><li>Sequences with cache size smaller than 0 did not work correctly.
+</li><li>Issue 356: for Blob objects, InputStream.skip() returned 0, 
+    causing EOFException in Blob.getBytes(.., ..).
+</li><li>Updateable result sets: if the value is not set when inserting a new row,
     the default value is now used (the same behavior as MySQL, PostgreSQL, and Apache Derby)
     instead of NULL.
 </li><li>Conditions of the form IN(SELECT ...) where slow and increased the database size

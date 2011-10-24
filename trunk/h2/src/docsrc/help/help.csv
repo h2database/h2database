@@ -548,10 +548,14 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ START WITH long ]
 [ INCREMENT BY long ] [ CACHE long ]
 ","
-Creates a new sequence. The data type of a sequence is BIGINT. Used values are
-never re-used, even when the transaction is rolled back. The cache is the number
-of pre-allocated numbers. If the system crashes without closing the database, at
-most this many numbers are lost. The default cache size is 32.
+Creates a new sequence. 
+The data type of a sequence is BIGINT. 
+Used values are never re-used, even when the transaction is rolled back. 
+
+The cache is the number of pre-allocated numbers.
+If the system crashes without closing the database, at most this many numbers are lost.
+The default cache size is 32.
+To disable caching, use the cache size 1 or lower.
 
 This command commits an open transaction.
 ","

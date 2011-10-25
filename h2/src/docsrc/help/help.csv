@@ -2176,10 +2176,14 @@ OTHER
 { VARCHAR | LONGVARCHAR | VARCHAR2 | NVARCHAR
     | NVARCHAR2 | VARCHAR_CASESENSITIVE}  [ ( precisionInt ) ]
 ","
-Unicode String. Use two single quotes ('') to create a quote. The maximum precision
-is ""Integer.MAX_VALUE"". The precision is a size constraint; only the actual data is
-persisted. The whole text is kept in memory when using this data type. For large text data CLOB
-should be used; see there for details.
+A Unicode String. 
+Use two single quotes ('') to create a quote.
+
+The maximum precision is ""Integer.MAX_VALUE"".
+The precision is a size constraint; only the actual data is persisted.
+
+The whole text is loaded into memory when using this data type.
+For large text data CLOB should be used; see there for details.
 
 Mapped to ""java.lang.String"".
 ","
@@ -2189,10 +2193,14 @@ VARCHAR(255)
 "Data Types","VARCHAR_IGNORECASE Type","
 VARCHAR_IGNORECASE [ ( precisionInt ) ]
 ","
-Same as VARCHAR, but not case sensitive when comparing. Stored in mixed case.
-The maximum precision is ""Integer.MAX_VALUE"" characters, but the whole text is kept in
-memory when using this data type. For large text data CLOB should be used;
-see there for details.
+Same as VARCHAR, but not case sensitive when comparing. 
+Stored in mixed case.
+
+The maximum precision is ""Integer.MAX_VALUE"".
+The precision is a size constraint; only the actual data is persisted.
+
+The whole text is loaded into memory when using this data type.
+For large text data CLOB should be used; see there for details.
 
 Mapped to ""java.lang.String"".
 ","
@@ -2202,12 +2210,15 @@ VARCHAR_IGNORECASE
 "Data Types","CHAR Type","
 { CHAR | CHARACTER | NCHAR } [ ( precisionInt ) ]
 ","
-This type is supported for compatibility with other databases and older
-applications. The difference to VARCHAR is that trailing spaces are ignored and
-not persisted. Unicode String. Use two single quotes ('') to create a quote.
-The maximum precision is ""Integer.MAX_VALUE"". The precision is a size constraint;
-only the actual data is persisted. The whole text is kept in memory when using
-this data type. For large text data CLOB should be used; see there for details.
+A Unicode String. 
+This type is supported for compatibility with other databases and older applications. 
+The difference to VARCHAR is that trailing spaces are ignored and not persisted. 
+
+The maximum precision is ""Integer.MAX_VALUE"". 
+The precision is a size constraint; only the actual data is persisted. 
+
+The whole text is kept in memory when using this data type. 
+For large text data CLOB should be used; see there for details.
 
 Mapped to ""java.lang.String"".
 ","

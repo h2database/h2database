@@ -26,6 +26,9 @@ import org.h2.value.ValueTimestamp;
 
 /**
  * This utility class contains time conversion functions.
+ * <p>
+ * Date value: a bit field with bits for the year, month, and day.
+ * Absolute day: the day number (0 means 1970-01-01).
  */
 public class DateTimeUtils {
 
@@ -34,7 +37,7 @@ public class DateTimeUtils {
      */
     public static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
 
-    private static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
+    public static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
 
     private static final int SHIFT_YEAR = 9;
     private static final int SHIFT_MONTH = 5;
@@ -325,10 +328,10 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the milliseconds for the given date and time in the specified
-     * timezone.
+     * Calculate the milliseconds since 1970-01-01 (UTC) for the given date and
+     * time (in the specified timezone).
      *
-     * @param tz the timezone
+     * @param tz the timezone of the parameters
      * @param year the absolute year (positive or negative)
      * @param month the month (1-12)
      * @param day the day (1-31)
@@ -336,7 +339,7 @@ public class DateTimeUtils {
      * @param minute the minutes (0-59)
      * @param second the number of seconds (0-59)
      * @param millis the number of milliseconds
-     * @return the number of milliseconds
+     * @return the number of milliseconds (UTC)
      */
     public static long getMillis(TimeZone tz, int year, int month, int day, int hour, int minute, int second, int millis) {
         try {

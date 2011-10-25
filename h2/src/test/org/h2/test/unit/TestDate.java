@@ -52,6 +52,7 @@ public class TestDate extends TestBase {
         testValueDate();
         testValueTime();
         testValueTimestamp();
+        testValueTimestampWithTimezone();
         testValidDate();
         testAbsoluteDay();
         testCalculateLocalMillis();
@@ -173,6 +174,21 @@ public class TestDate extends TestBase {
                 "1970-01-01",
                 ValueTime.parse("-1:00:00").
                 convertTo(Value.DATE).getString());
+    }
+
+    private void testValueTimestampWithTimezone() {
+        for (int m = 1; m <= 12; m++) {
+            for (int d = 1; d <= 28; d++) {
+                for (int h = 0; h <= 23; h++) {
+                    String s = "2011-" + (m < 10 ? "0" : "") + m + "-" + (d < 10 ? "0" : "") + d + " " +
+                        (h < 10 ? "0" : "") + h + ":00:00";
+                    ValueTimestamp ts = ValueTimestamp.parse(s + "Z");
+                    String s2 = ts.getString();
+                    ValueTimestamp ts2 = ValueTimestamp.parse(s2);
+                    assertEquals(ts.getString(), ts2.getString());
+                }
+            }
+        }
     }
 
     private void testValueTimestamp() {

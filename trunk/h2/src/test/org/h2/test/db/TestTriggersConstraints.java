@@ -149,16 +149,21 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("create view test_view as select * from test");
         stat.execute("create trigger test_view_insert " +
                 "instead of insert on test_view for each row call \"" + TestView.class.getName() + "\"");
+        stat.execute("create trigger test_view_delete " +
+                "instead of delete on test_view for each row call \"" + TestView.class.getName() + "\"");
         if (!config.memory) {
             conn.close();
             conn = getConnection("trigger");
             stat = conn.createStatement();
         }
-        stat.execute("insert into test_view values(1)");
+        int count = stat.executeUpdate("insert into test_view values(1)");
+        assertEquals(1, count);
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
         assertFalse(rs.next());
+        count = stat.executeUpdate("delete from test_view");
+        assertEquals(1, count);
         stat.execute("drop view test_view");
         stat.execute("drop table test");
         conn.close();
@@ -195,8 +200,10 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
 
         public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
-            prepInsert.setInt(1, (Integer) newRow[0]);
-            prepInsert.execute();
+            if (newRow != null) {
+                prepInsert.setInt(1, (Integer) newRow[0]);
+                prepInsert.execute();
+            }
         }
 
         public void close() {

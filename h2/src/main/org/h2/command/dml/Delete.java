@@ -66,6 +66,7 @@ public class Delete extends Prepared {
         }
         try {
             setCurrentRowNumber(0);
+            int count = 0;
             while (limitRows != 0 && tableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
@@ -76,9 +77,10 @@ public class Delete extends Prepared {
                     }
                     if (!done) {
                         rows.add(row);
-                        if (limitRows >= 0 && rows.size() >= limitRows) {
-                            break;
-                        }
+                    }
+                    count++;
+                    if (limitRows >= 0 && count >= limitRows) {
+                        break;
                     }
                 }
             }
@@ -92,15 +94,13 @@ public class Delete extends Prepared {
                 session.log(table, UndoLogRecord.DELETE, row);
             }
             if (table.fireRow()) {
-                int count = 0;
                 for (rows.reset(); rows.hasNext();) {
                     Row row = rows.next();
                     table.fireAfterRow(session, row, null, false);
-                    count++;
                 }
             }
             table.fire(session, Trigger.DELETE, false);
-            return rows.size();
+            return count;
         } finally {
             rows.close();
         }

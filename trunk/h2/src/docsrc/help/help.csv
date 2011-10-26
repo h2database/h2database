@@ -1085,14 +1085,12 @@ SET DATABASE_EVENT_LISTENER 'sample.MyListener'
 "Commands (Other)","SET DB_CLOSE_DELAY","
 SET DB_CLOSE_DELAY int
 ","
-Sets the delay for closing a database if all connections are closed. The value
--1 means the database is never closed until the close delay is set to some other
-value or SHUTDOWN is called. The value 0 means no delay (default; the database
-is closed if the last connection to it is closed). Values 1 and larger mean the
-number of seconds the database is left open after closing the last connection.
+Sets the delay for closing a database if all connections are closed. 
+The value -1 means the database is never closed until the close delay is set to some other value or SHUTDOWN is called. 
+The value 0 means no delay (default; the database is closed if the last connection to it is closed).
+Values 1 and larger mean the number of seconds the database is left open after closing the last connection.
 
-If the application exits normally or System.exit is called, the database is
-closed immediately, even if a delay is set.
+If the application exits normally or System.exit is called, the database is closed immediately, even if a delay is set.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.

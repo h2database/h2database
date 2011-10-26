@@ -34,7 +34,7 @@ public class TestSecurity extends TestBase {
         testConnectWithHash();
         testSHA();
         testAES();
-        testXTEA();
+        testBlockCiphers();
     }
 
     private static void testConnectWithHash() throws SQLException {
@@ -90,12 +90,20 @@ public class TestSecurity extends TestBase {
         assertEquals(expected, hash);
     }
 
-    private static void testXTEA() {
-        byte[] test = new byte[4096];
-        BlockCipher xtea = CipherFactory.getBlockCipher("XTEA");
-        xtea.setKey("abcdefghijklmnop".getBytes());
-        for (int i = 0; i < 10; i++) {
-            xtea.decrypt(test, 0, test.length);
+    private void testBlockCiphers() {
+        for (String algorithm : new String[] { "AES", "XTEA", "FOG" }) {
+            byte[] test = new byte[4096];
+            BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
+            cipher.setKey("abcdefghijklmnop".getBytes());
+            for (int i = 0; i < 10; i++) {
+                cipher.encrypt(test, 0, test.length);
+            }
+            assertFalse(isCompressible(test));
+            for (int i = 0; i < 10; i++) {
+                cipher.decrypt(test, 0, test.length);
+            }
+            assertEquals(new byte[test.length], test);
+            assertTrue(isCompressible(test));
         }
     }
 
@@ -142,6 +150,21 @@ public class TestSecurity extends TestBase {
             test.encrypt(in, 0, 128);
             test.decrypt(enc, 0, 128);
         }
+    }
+
+    private static boolean isCompressible(byte[] data) {
+        int len = data.length;
+        int[] sum = new int[16];
+        for (int i = 0; i < len; i++) {
+            int x = (data[i] & 255) >> 4;
+            sum[x]++;
+        }
+        int r = 0;
+        for (int x : sum) {
+            long v = ((long) x << 32) / len;
+            r += 63 - Long.numberOfLeadingZeros(v + 1);
+        }
+        return len * r < len * 120;
     }
 
 }

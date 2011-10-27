@@ -19,7 +19,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 350: when using instead of triggers, executeUpdate for delete operations always returned 0.
+<ul><li>Issue 354: when using the multi-threaded kernel option,
+    and multiple threads concurrently prepared SQL statements that use the same view
+    or the same index of a view, then in some cases an infinite loop could occur.
+</li><li>Issue 350: when using instead of triggers, executeUpdate for delete operations always returned 0.
 </li><li>Some timestamps with timezone were not converted correctly.
     For example, in the PST timezone, the timestamp 2011-10-26 08:00:00Z was converted to
     2011-10-25 25:00:00 instead of 2011-10-26 01:00:00.

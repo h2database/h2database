@@ -25,6 +25,7 @@ import org.h2.table.TableView;
 import org.h2.util.IntArray;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.SynchronizedVerifier;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 
@@ -105,11 +106,12 @@ public class ViewIndex extends BaseIndex {
         double cost;
     }
 
-    public double getCost(Session session, int[] masks) {
+    public synchronized double getCost(Session session, int[] masks) {
         if (recursive) {
             return 1000;
         }
         IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
+        SynchronizedVerifier.check(costCache);
         CostElement cachedCost = costCache.get(masksArray);
         if (cachedCost != null) {
             long time = System.currentTimeMillis();

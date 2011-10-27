@@ -14,6 +14,8 @@ import java.sql.Statement;
 import java.util.Random;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.util.SmallLRUCache;
+import org.h2.util.SynchronizedVerifier;
 import org.h2.util.Task;
 
 /**
@@ -49,9 +51,46 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     public void test() throws Exception {
+        testConcurrentView();
         testConcurrentAlter();
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
+    }
+
+    private void testConcurrentView() throws Exception {
+        String db = "concurrentView";
+        deleteDb(db);
+        final String url = getURL(db + ";MULTI_THREADED=1", true);
+        final Random r = new Random();
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        StringBuilder buff = new StringBuilder();
+        buff.append("create table test(id int");
+        final int len = 3;
+        for (int i = 0; i < len; i++) {
+            buff.append(", x" + i + " int");
+        }
+        buff.append(")");
+        stat.execute(buff.toString());
+        stat.execute("create view test_view as select * from test");
+        stat.execute("insert into test(id) select x from system_range(1, 2)");
+        Task t = new Task() {
+            public void call() throws Exception {
+                Connection c2 = getConnection(url);
+                while (!stop) {
+                    c2.prepareStatement("select * from test_view where x" + r.nextInt(len) + "=1");
+                }
+                c2.close();
+            }
+        };
+        t.execute();
+        SynchronizedVerifier.setDetect(SmallLRUCache.class, true);
+        for (int i = 0; i < 1000; i++) {
+            conn.prepareStatement("select * from test_view where x" + r.nextInt(len) + "=1");
+        }
+        t.get();
+        SynchronizedVerifier.setDetect(SmallLRUCache.class, false);
+        conn.close();
     }
 
     private void testConcurrentAlter() throws Exception {

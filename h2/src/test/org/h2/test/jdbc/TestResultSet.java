@@ -55,6 +55,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testAmbiguousColumnNames();
         testInsertRowWithUpdateableResultSetDefault();
         testBeforeFirstAfterLast();
         testParseSpecialValues();
@@ -89,6 +90,15 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+
+    private void testAmbiguousColumnNames() throws SQLException {
+        stat.execute("create table test(id int)");
+        stat.execute("insert into test values(1)");
+        ResultSet rs = stat.executeQuery("select 1 x, 2 x, 3 x, 4 x, 5 x, 6 x from test");
+        rs.next();
+        assertEquals(1, rs.getInt("x"));
+        stat.execute("drop table test");
     }
 
     private void testInsertRowWithUpdateableResultSetDefault() throws SQLException {

@@ -2856,24 +2856,22 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         if (columnCount >= SysProperties.MIN_COLUMN_NAME_MAP) {
             if (columnLabelMap == null) {
                 HashMap<String, Integer> map = New.hashMap(columnCount);
-                // first column names
+                // column labels have higher priority
+                for (int i = 0; i < columnCount; i++) {
+                    String c = StringUtils.toUpperEnglish(result.getAlias(i));
+                    mapColumn(map, c, i);
+                }
                 for (int i = 0; i < columnCount; i++) {
                     String colName = result.getColumnName(i);
                     if (colName != null) {
                         colName = StringUtils.toUpperEnglish(colName);
-                        map.put(colName, i);
+                        mapColumn(map, colName, i);
                         String tabName = result.getTableName(i);
                         if (tabName != null) {
                             colName = StringUtils.toUpperEnglish(tabName) + "." + colName;
-                            map.put(colName, i);
+                            mapColumn(map, colName, i);
                         }
                     }
-                }
-                // column labels have higher priority
-                // column names with the same name are replaced
-                for (int i = 0; i < columnCount; i++) {
-                    String c = StringUtils.toUpperEnglish(result.getAlias(i));
-                    map.put(c, i);
                 }
                 // assign at the end so concurrent access is supported
                 columnLabelMap = map;
@@ -2906,6 +2904,16 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
             }
         }
         throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
+    }
+
+    private void mapColumn(HashMap<String, Integer> map, String label, int index) {
+        // put the index (usually that's the only operation)
+        Integer old = map.put(label, index);
+        if (old != null) {
+            // if there was a clash (which is seldom),
+            // put the old one back
+            map.put(label, old);
+        }
     }
 
     private void checkColumnIndex(int columnIndex) {

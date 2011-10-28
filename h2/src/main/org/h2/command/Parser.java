@@ -3438,8 +3438,6 @@ public class Parser {
             return getKeywordOrIdentifier(s, "IS", KEYWORD);
         case 'J':
             return getKeywordOrIdentifier(s, "JOIN", KEYWORD);
-        case 'K':
-            return getKeywordOrIdentifier(s, "KEY", KEYWORD);
         case 'L':
             if ("LIMIT".equals(s)) {
                 return KEYWORD;

@@ -143,7 +143,7 @@ public class PageStore implements CacheWriter {
     private boolean recoveryRunning;
 
     /**
-     * The index to the first freelist page that potentially has free space.
+     * The index to the first free-list page that potentially has free space.
      */
     private int firstFreeListIndex;
 

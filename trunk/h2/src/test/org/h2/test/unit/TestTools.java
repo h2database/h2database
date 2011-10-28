@@ -895,6 +895,13 @@ public class TestTools extends TestBase {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Get the reader.
+         *
+         * @param pos the position
+         * @param length the length
+         * @return the reader
+         */
         public Reader getCharacterStream(long pos, long length) throws SQLException {
             throw new UnsupportedOperationException();
         }
@@ -948,6 +955,9 @@ public class TestTools extends TestBase {
             this.data = data;
         }
 
+        /**
+         * Free the blob.
+         */
         public void free() throws SQLException {
             // ignore
         }
@@ -956,6 +966,13 @@ public class TestTools extends TestBase {
             throw new UnsupportedOperationException();
         }
 
+        /**
+         * Get the binary stream.
+         *
+         * @param pos the position
+         * @param length the length
+         * @return the input stream
+         */
         public InputStream getBinaryStream(long pos, long length) throws SQLException {
             throw new UnsupportedOperationException();
         }

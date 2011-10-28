@@ -37,7 +37,8 @@ public class FileUtils {
 
     /**
      * Create a directory (all required parent directories must already exist).
-     * This method is similar to Java 7 <code>java.nio.file.Path.createDirectory</code>.
+     * This method is similar to Java 7
+     * <code>java.nio.file.Path.createDirectory</code>.
      *
      * @param directoryName the directory name
      */
@@ -47,8 +48,9 @@ public class FileUtils {
 
     /**
      * Create a new file.
-     * This method is similar to Java 7 <code>java.nio.file.Path.createFile</code>, but returns
-     * false instead of throwing a exception if the file already existed.
+     * This method is similar to Java 7
+     * <code>java.nio.file.Path.createFile</code>,
+     * but returns false instead of throwing a exception if the file already existed.
      *
      * @param fileName the file name
      * @return true if creating was successful
@@ -60,7 +62,8 @@ public class FileUtils {
     /**
      * Delete a file or directory if it exists.
      * Directories may only be deleted if they are empty.
-     * This method is similar to Java 7 <code>java.nio.file.Path.deleteIfExists</code>.
+     * This method is similar to Java 7
+     * <code>java.nio.file.Path.deleteIfExists</code>.
      *
      * @param path the file or directory name
      */
@@ -127,7 +130,8 @@ public class FileUtils {
 
     /**
      * List the files and directories in the given directory.
-     * This method is similar to Java 7 <code>java.nio.file.Path.newDirectoryStream</code>.
+     * This method is similar to Java 7
+     * <code>java.nio.file.Path.newDirectoryStream</code>.
      *
      * @param path the directory
      * @return the list of fully qualified file names
@@ -145,7 +149,8 @@ public class FileUtils {
     /**
      * Get the last modified date of a file.
      * This method is similar to Java 7
-     * <code>java.nio.file.attribute.Attributes.readBasicFileAttributes(file).lastModified().toMillis()</code>
+     * <code>java.nio.file.attribute.Attributes.
+     * readBasicFileAttributes(file).lastModified().toMillis()</code>
      *
      * @param fileName the file name
      * @return the last modified date
@@ -157,7 +162,8 @@ public class FileUtils {
     /**
      * Get the size of a file in bytes
      * This method is similar to Java 7
-     * <code>java.nio.file.attribute.Attributes.readBasicFileAttributes(file).size()</code>
+     * <code>java.nio.file.attribute.Attributes.
+     * readBasicFileAttributes(file).size()</code>
      *
      * @param fileName the file name
      * @return the size in bytes
@@ -168,7 +174,8 @@ public class FileUtils {
 
     /**
      * Check if it is a file or a directory.
-     * <code>java.nio.file.attribute.Attributes.readBasicFileAttributes(file).isDirectory()</code>
+     * <code>java.nio.file.attribute.Attributes.
+     * readBasicFileAttributes(file).isDirectory()</code>
      *
      * @param fileName the file or directory name
      * @return true if it is a directory
@@ -179,7 +186,8 @@ public class FileUtils {
 
     /**
      * Open a random access file object.
-     * This method is similar to Java 7 <code>java.nio.channels.FileChannel.open</code>.
+     * This method is similar to Java 7
+     * <code>java.nio.channels.FileChannel.open</code>.
      *
      * @param fileName the file name
      * @param mode the access mode. Supported are r, rw, rws, rwd
@@ -191,7 +199,8 @@ public class FileUtils {
 
     /**
      * Create an input stream to read from the file.
-     * This method is similar to Java 7 <code>java.nio.file.Path.newInputStream</code>.
+     * This method is similar to Java 7
+     * <code>java.nio.file.Path.newInputStream</code>.
      *
      * @param fileName the file name
      * @return the input stream
@@ -202,7 +211,8 @@ public class FileUtils {
 
     /**
      * Create an output stream to write into the file.
-     * This method is similar to Java 7 <code>java.nio.file.Path.newOutputStream</code>.
+     * This method is similar to Java 7
+     * <code>java.nio.file.Path.newOutputStream</code>.
      *
      * @param fileName the file name
      * @param append if true, the file will grow, if false, the file will be

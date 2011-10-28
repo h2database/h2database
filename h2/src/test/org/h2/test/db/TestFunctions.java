@@ -673,7 +673,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
         rs.close();
 
-        stat.execute("create alias sql as 'ResultSet sql(Connection conn, String sql) throws SQLException { return conn.createStatement().executeQuery(sql); }'");
+        stat.execute("create alias sql as 'ResultSet sql(Connection conn, String sql) " +
+                "throws SQLException { return conn.createStatement().executeQuery(sql); }'");
         rs = stat.executeQuery("select * from sql('select cast(''Hello'' as clob)')");
         assertTrue(rs.next());
         assertEquals("Hello", rs.getString(1));

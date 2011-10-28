@@ -548,9 +548,9 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ START WITH long ]
 [ INCREMENT BY long ] [ CACHE long ]
 ","
-Creates a new sequence. 
-The data type of a sequence is BIGINT. 
-Used values are never re-used, even when the transaction is rolled back. 
+Creates a new sequence.
+The data type of a sequence is BIGINT.
+Used values are never re-used, even when the transaction is rolled back.
 
 The cache is the number of pre-allocated numbers.
 If the system crashes without closing the database, at most this many numbers are lost.
@@ -1085,8 +1085,8 @@ SET DATABASE_EVENT_LISTENER 'sample.MyListener'
 "Commands (Other)","SET DB_CLOSE_DELAY","
 SET DB_CLOSE_DELAY int
 ","
-Sets the delay for closing a database if all connections are closed. 
-The value -1 means the database is never closed until the close delay is set to some other value or SHUTDOWN is called. 
+Sets the delay for closing a database if all connections are closed.
+The value -1 means the database is never closed until the close delay is set to some other value or SHUTDOWN is called.
 The value 0 means no delay (default; the database is closed if the last connection to it is closed).
 Values 1 and larger mean the number of seconds the database is left open after closing the last connection.
 
@@ -2174,7 +2174,7 @@ OTHER
 { VARCHAR | LONGVARCHAR | VARCHAR2 | NVARCHAR
     | NVARCHAR2 | VARCHAR_CASESENSITIVE}  [ ( precisionInt ) ]
 ","
-A Unicode String. 
+A Unicode String.
 Use two single quotes ('') to create a quote.
 
 The maximum precision is ""Integer.MAX_VALUE"".
@@ -2191,7 +2191,7 @@ VARCHAR(255)
 "Data Types","VARCHAR_IGNORECASE Type","
 VARCHAR_IGNORECASE [ ( precisionInt ) ]
 ","
-Same as VARCHAR, but not case sensitive when comparing. 
+Same as VARCHAR, but not case sensitive when comparing.
 Stored in mixed case.
 
 The maximum precision is ""Integer.MAX_VALUE"".
@@ -2208,14 +2208,14 @@ VARCHAR_IGNORECASE
 "Data Types","CHAR Type","
 { CHAR | CHARACTER | NCHAR } [ ( precisionInt ) ]
 ","
-A Unicode String. 
-This type is supported for compatibility with other databases and older applications. 
-The difference to VARCHAR is that trailing spaces are ignored and not persisted. 
+A Unicode String.
+This type is supported for compatibility with other databases and older applications.
+The difference to VARCHAR is that trailing spaces are ignored and not persisted.
 
-The maximum precision is ""Integer.MAX_VALUE"". 
-The precision is a size constraint; only the actual data is persisted. 
+The maximum precision is ""Integer.MAX_VALUE"".
+The precision is a size constraint; only the actual data is persisted.
 
-The whole text is kept in memory when using this data type. 
+The whole text is kept in memory when using this data type.
 For large text data CLOB should be used; see there for details.
 
 Mapped to ""java.lang.String"".

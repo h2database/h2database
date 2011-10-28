@@ -163,7 +163,7 @@ CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
 ","
 Creates a new data type (domain)."
 "Commands (DDL)","CREATE INDEX","
-CREATE { [ UNIQUE ] [ HASH ] INDEX [ IF NOT EXISTS ] newIndexName
+CREATE { [ UNIQUE ] [ HASH ] INDEX [ [ IF NOT EXISTS ] newIndexName ]
     | PRIMARY KEY [ HASH ] }
 ON tableName ( indexColumn [,...] )
 ","
@@ -248,7 +248,7 @@ DROP SEQUENCE [ IF EXISTS ] sequenceName
 ","
 Drops a sequence."
 "Commands (DDL)","DROP TABLE","
-DROP TABLE [ IF EXISTS ] tableName [,...] [ CASCADE | RESTRICT ]
+DROP TABLE [ IF EXISTS ] tableName [,...] [ RESTRICT | CASCADE ]
 ","
 Drops an existing table, or a list of tables."
 "Commands (DDL)","DROP TRIGGER","
@@ -752,7 +752,7 @@ This type allows storing serialized Java objects."
 { VARCHAR | LONGVARCHAR | VARCHAR2 | NVARCHAR
     | NVARCHAR2 | VARCHAR_CASESENSITIVE}  [ ( precisionInt ) ]
 ","
-Unicode String."
+A Unicode String."
 "Data Types","VARCHAR_IGNORECASE Type","
 VARCHAR_IGNORECASE [ ( precisionInt ) ]
 ","
@@ -760,8 +760,7 @@ Same as VARCHAR, but not case sensitive when comparing."
 "Data Types","CHAR Type","
 { CHAR | CHARACTER | NCHAR } [ ( precisionInt ) ]
 ","
-This type is supported for compatibility with other databases and older
-applications."
+A Unicode String."
 "Data Types","BLOB Type","
 { BLOB | TINYBLOB | MEDIUMBLOB | LONGBLOB | IMAGE | OID } [ ( precisionInt ) ]
 ","

@@ -286,7 +286,8 @@ public abstract class FilePath {
 
     /**
      * Get the scheme (prefix) for this file provider.
-     * This is similar to <code>java.nio.file.spi.FileSystemProvider.getScheme</code>.
+     * This is similar to
+     * <code>java.nio.file.spi.FileSystemProvider.getScheme</code>.
      *
      * @return the scheme
      */

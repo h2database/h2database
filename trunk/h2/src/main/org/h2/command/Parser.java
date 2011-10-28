@@ -3438,6 +3438,8 @@ public class Parser {
             return getKeywordOrIdentifier(s, "IS", KEYWORD);
         case 'J':
             return getKeywordOrIdentifier(s, "JOIN", KEYWORD);
+        case 'K':
+            return getKeywordOrIdentifier(s, "KEY", KEYWORD);
         case 'L':
             if ("LIMIT".equals(s)) {
                 return KEYWORD;
@@ -5010,8 +5012,17 @@ public class Parser {
                 command.setIndex(getSchema().findIndex(session, indexName));
             }
             return command;
-        } else if (allowIndexDefinition && (readIf("INDEX") || readIf("KEY"))) {
+        } else if (allowIndexDefinition && (isToken("INDEX") || isToken("KEY"))) {
             // MySQL
+            // need to read ahead, as it could be a column name
+            int start = lastParseIndex;
+            read();
+            if (DataType.getTypeByName(currentToken) != null) {
+                // known data type
+                parseIndex = start;
+                read();
+                return null;
+            }
             CreateIndex command = new CreateIndex(session, schema);
             command.setComment(comment);
             command.setTableName(tableName);

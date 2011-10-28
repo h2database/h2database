@@ -34,6 +34,7 @@ public class TestCompatibility extends TestBase {
     public void test() throws SQLException {
         deleteDb("compatibility");
 
+        testKeyAsColumnInMySQLMode();
         testCaseSensitiveIdentifiers();
 
         conn = getConnection("compatibility");
@@ -49,6 +50,14 @@ public class TestCompatibility extends TestBase {
 
         conn.close();
         deleteDb("compatibility");
+    }
+
+    private void testKeyAsColumnInMySQLMode() throws SQLException {
+        Connection c = getConnection("compatibility;MODE=MYSQL");
+        Statement stat = c.createStatement();
+        stat.execute("create table test(id int primary key, key varchar)");
+        stat.execute("drop table test");
+        c.close();
     }
 
     private void testCaseSensitiveIdentifiers() throws SQLException {

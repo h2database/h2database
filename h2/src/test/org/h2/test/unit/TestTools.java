@@ -883,6 +883,9 @@ public class TestTools extends TestBase {
             this.data = data;
         }
 
+        /**
+         * Free the clob.
+         */
         public void free() throws SQLException {
             // ignore
         }

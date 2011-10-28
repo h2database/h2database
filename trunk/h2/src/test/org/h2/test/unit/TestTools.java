@@ -907,11 +907,11 @@ public class TestTools extends TestBase {
             return data.length();
         }
 
-        public long position(String searchstr, long start) throws SQLException {
+        public long position(String search, long start) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
-        public long position(Clob searchstr, long start) throws SQLException {
+        public long position(Clob search, long start) throws SQLException {
             throw new UnsupportedOperationException();
         }
 

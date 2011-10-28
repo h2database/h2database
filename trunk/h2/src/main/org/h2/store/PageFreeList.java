@@ -29,6 +29,8 @@ public class PageFreeList extends Page {
     private Data data;
 
     private PageFreeList(PageStore store, int pageId) {
+        int todoKeptInTwoPlaces;
+        // kept in cache, and array list in page store
         setPos(pageId);
         this.store = store;
         pageCount = (store.getPageSize() - DATA_START) * 8;

@@ -56,7 +56,7 @@ public class TestResultSet extends TestBase {
         stat = conn.createStatement();
 
         testAmbiguousColumnNames();
-        testInsertRowWithUpdateableResultSetDefault();
+        testInsertRowWithUpdatableResultSetDefault();
         testBeforeFirstAfterLast();
         testParseSpecialValues();
         testSpecialLocale();
@@ -101,7 +101,7 @@ public class TestResultSet extends TestBase {
         stat.execute("drop table test");
     }
 
-    private void testInsertRowWithUpdateableResultSetDefault() throws SQLException {
+    private void testInsertRowWithUpdatableResultSetDefault() throws SQLException {
         stat.execute("create table test(id int primary key, data varchar(255) default 'Hello')");
         PreparedStatement prep = conn.prepareStatement("select * from test",
         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);

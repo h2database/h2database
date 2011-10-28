@@ -19,6 +19,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.161 (2011-10-28)</h2>
 <ul><li>Issue 351: MySQL mode: can not create a table with the column "KEY",
     and can not open databases where such a table already exists.
 </li><li>TCP server: when using the trace option ("-trace"), the trace output contained
@@ -32,7 +36,7 @@ Change Log
     2011-10-25 25:00:00 instead of 2011-10-26 01:00:00.
     Depending on the database operation, this caused subsequent error.
 </li><li>Sequences with cache size smaller than 0 did not work correctly.
-</li><li>Issue 356: for Blob objects, InputStream.skip() returned 0, 
+</li><li>Issue 356: for Blob objects, InputStream.skip() returned 0,
     causing EOFException in Blob.getBytes(.., ..).
 </li><li>Updatable result sets: if the value is not set when inserting a new row,
     the default value is now used (the same behavior as MySQL, PostgreSQL, and Apache Derby)
@@ -778,27 +782,6 @@ Change Log
     the database couldn't be re-opened.
 </li><li>New system property h2.lobClientMaxSizeMemory to set the maximum size
     of a LOB object to keep in memory on the client side when using the server mode.
-</li></ul>
-
-<h2>Version 1.2.142 (2010-08-31)</h2>
-<ul><li>Documentation for using H2 on Android devices has been added under Tutorial - Android.
-</li><li>An ArrayIndexOutOfBoundsException was thrown when querying the table
-    information_schema.function_aliases while there are any user defined aggregate functions.
-</li><li>The jar files are now about 50 KB smaller.
-    In the last few versions they contained superfluous classes.
-</li><li>The default time to compact a database when closing (system property h2.maxCompactTime)
-    is now 0.2 seconds instead of 1 second.
-</li><li>Opening an closing a database is now faster.
-</li><li>In theory, when using indexes with large index rows (or when using a very small page size),
-    removing rows could throw an internal exception in some cases.
-</li><li>Inserting rows in reverse order could throw an ArrayIndexOutOfBoundsException
-    in some cases (specially rows larger than the page size, which is 2 KB by default). Issue 226.
-</li><li>H2 Console: with Chrome and Safari, resizing the table/query frame doesn't work. Issue 225.
-</li><li>New experimental database file locking mechanism "FS" to use native file locking
-    (no *.lock.db file is created in this case, and no background thread is started). This mechanism
-    may not work on all systems (on some systems it's possible to lock the same file multiple
-    times within the same virtual machine, and on some system native file locking is not working
-    or unlocking is not working).
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

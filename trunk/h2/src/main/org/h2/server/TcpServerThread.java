@@ -199,8 +199,10 @@ public class TcpServerThread implements Runnable {
             }
             transfer.writeInt(SessionRemote.STATUS_ERROR).writeString(e.getSQLState()).writeString(message)
                     .writeString(sql).writeInt(e.getErrorCode()).writeString(trace).flush();
-        } catch (IOException e2) {
-            server.traceError(e2);
+        } catch (Exception e2) {
+            if (!transfer.isClosed()) {
+                server.traceError(e2);
+            }
             // if writing the error does not work, close the connection
             stop = true;
         }

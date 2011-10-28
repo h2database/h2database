@@ -73,9 +73,11 @@ public class Transfer {
      * Initialize the transfer object. This method will try to open an input and
      * output stream.
      */
-    public void init() throws IOException {
-        in = new DataInputStream(new BufferedInputStream(socket.getInputStream(), Transfer.BUFFER_SIZE));
-        out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), Transfer.BUFFER_SIZE));
+    public synchronized void init() throws IOException {
+        if (socket != null) {
+            in = new DataInputStream(new BufferedInputStream(socket.getInputStream(), Transfer.BUFFER_SIZE));
+            out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream(), Transfer.BUFFER_SIZE));
+        }
     }
 
     /**
@@ -277,10 +279,12 @@ public class Transfer {
     /**
      * Close the transfer object and the socket.
      */
-    public void close() {
+    public synchronized void close() {
         if (socket != null) {
             try {
-                out.flush();
+                if (out != null) {
+                    out.flush();
+                }
                 if (socket != null) {
                     socket.close();
                 }
@@ -611,6 +615,10 @@ public class Transfer {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public synchronized boolean isClosed() {
+        return socket == null || socket.isClosed();
     }
 
 }

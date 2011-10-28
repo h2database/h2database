@@ -112,8 +112,15 @@ public class FilePathCrypt extends FilePathWrapper {
  */
 class FileCrypt extends FileBase {
 
+    /**
+     * The length of the file header. Using a smaller header is possible, but
+     * might result in un-aligned reads and writes.
+     */
     static final int HEADER_LENGTH = 4096;
 
+    /**
+     * The block size.
+     */
     static final int BLOCK_SIZE = Constants.FILE_BLOCK_SIZE;
 
     // TODO improve the header

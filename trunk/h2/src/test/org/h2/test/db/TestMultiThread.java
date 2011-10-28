@@ -58,6 +58,9 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentView() throws Exception {
+        if (config.mvcc) {
+            return;
+        }
         String db = "concurrentView";
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1", true);

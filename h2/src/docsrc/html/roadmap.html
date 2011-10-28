@@ -241,6 +241,9 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Translation: use ${.} in help.csv
 </li><li>Translated .pdf
 </li><li>Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file
+</li><li>Issue 357: support getGeneratedKeys to return multiple rows when used with batch updates.
+    This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys.
+    Also support it when using INSERT ... SELECT.
 </li><li>RECOVER=2 to backup the database, run recovery, open the database
 </li><li>Recovery should work with encrypted databases
 </li><li>Corruption: new error code, add help
@@ -265,9 +268,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console: support CLOB/BLOB download using a link.
 </li><li>Support flashback queries as in Oracle.
 </li><li>Import / Export of fixed with text files.
-</li><li>Support getGeneratedKeys to return multiple rows when used with batch updates.
-    This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys.
-    Also support it when using INSERT ... SELECT.
 </li><li>HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data).
 </li><li>Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn
 </li><li>Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns).

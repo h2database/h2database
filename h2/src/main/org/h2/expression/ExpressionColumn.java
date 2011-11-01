@@ -52,16 +52,19 @@ public class ExpressionColumn extends Expression {
 
     public String getSQL() {
         String sql;
+        boolean quote = database.getSettings().databaseToUpper;
         if (column != null) {
             sql = column.getSQL();
         } else {
-            sql = Parser.quoteIdentifier(columnName);
+            sql = quote ? Parser.quoteIdentifier(columnName) : columnName;
         }
         if (tableAlias != null) {
-            sql = Parser.quoteIdentifier(tableAlias) + "." + sql;
+            String a = quote ? Parser.quoteIdentifier(tableAlias) : tableAlias;
+            sql = a + "." + sql;
         }
         if (schemaName != null) {
-            sql = Parser.quoteIdentifier(schemaName) + "." + sql;
+            String s = quote ? Parser.quoteIdentifier(schemaName) : schemaName;
+            sql = s + "." + sql;
         }
         return sql;
     }
@@ -71,19 +74,20 @@ public class ExpressionColumn extends Expression {
     }
 
     public void mapColumns(ColumnResolver resolver, int level) {
-        if (tableAlias != null && !tableAlias.equals(resolver.getTableAlias())) {
+        if (tableAlias != null && !database.equalsIdentifiers(tableAlias, resolver.getTableAlias())) {
             return;
         }
-        if (schemaName != null && !schemaName.equals(resolver.getSchemaName())) {
+        if (schemaName != null && !database.equalsIdentifiers(schemaName, resolver.getSchemaName())) {
             return;
         }
         for (Column col : resolver.getColumns()) {
-            if (columnName.equals(col.getName())) {
+            String n = col.getName();
+            if (database.equalsIdentifiers(columnName, n)) {
                 mapColumn(resolver, col, level);
                 return;
             }
         }
-        if (Column.ROWID.equals(columnName)) {
+        if (database.equalsIdentifiers(Column.ROWID, columnName)) {
             Column col = resolver.getRowIdColumn();
             if (col != null) {
                 mapColumn(resolver, col, level);
@@ -93,7 +97,7 @@ public class ExpressionColumn extends Expression {
         Column[] columns = resolver.getSystemColumns();
         for (int i = 0; columns != null && i < columns.length; i++) {
             Column col = columns[i];
-            if (columnName.equals(col.getName())) {
+            if (database.equalsIdentifiers(columnName, col.getName())) {
                 mapColumn(resolver, col, level);
                 return;
             }

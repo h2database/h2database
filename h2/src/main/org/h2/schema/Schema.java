@@ -23,8 +23,8 @@ import org.h2.engine.User;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.Table;
 import org.h2.table.RegularTable;
+import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.util.New;
 import org.h2.util.Utils;
@@ -36,22 +36,22 @@ import org.h2.util.Utils;
 public class Schema extends DbObjectBase {
 
     private User owner;
-    private boolean system;
+    private final boolean system;
 
-    private HashMap<String, Table> tablesAndViews = New.hashMap();
-    private HashMap<String, Index> indexes = New.hashMap();
-    private HashMap<String, Sequence> sequences = New.hashMap();
-    private HashMap<String, TriggerObject> triggers = New.hashMap();
-    private HashMap<String, Constraint> constraints = New.hashMap();
-    private HashMap<String, Constant> constants = New.hashMap();
-    private HashMap<String, FunctionAlias> functions = New.hashMap();
+    private final HashMap<String, Table> tablesAndViews;
+    private final HashMap<String, Index> indexes;
+    private final HashMap<String, Sequence> sequences;
+    private final HashMap<String, TriggerObject> triggers;
+    private final HashMap<String, Constraint> constraints;
+    private final HashMap<String, Constant> constants;
+    private final HashMap<String, FunctionAlias> functions;
 
     /**
      * The set of returned unique names that are not yet stored. It is used to
      * avoid returning the same unique name twice when multiple threads
      * concurrently create objects.
      */
-    private HashSet<String> temporaryUniqueNames = New.hashSet();
+    private final HashSet<String> temporaryUniqueNames = New.hashSet();
 
     /**
      * Create a new schema object.
@@ -64,6 +64,13 @@ public class Schema extends DbObjectBase {
      *            dropped)
      */
     public Schema(Database database, int id, String schemaName, User owner, boolean system) {
+        tablesAndViews = database.newStringMap();
+        indexes = database.newStringMap();
+        sequences = database.newStringMap();
+        triggers = database.newStringMap();
+        constraints = database.newStringMap();
+        constants = database.newStringMap();
+        functions = database.newStringMap();
         initDbObjectBase(database, id, schemaName, Trace.SCHEMA);
         this.owner = owner;
         this.system = system;
@@ -569,6 +576,10 @@ public class Schema extends DbObjectBase {
                     driver, url, user, password,
                     originalSchema, originalTable, emitUpdates, force);
         }
+    }
+
+    public <V> HashMap<String, V> newStringMap() {
+        return database.newStringMap();
     }
 
 }

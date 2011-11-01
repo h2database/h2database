@@ -61,6 +61,7 @@ import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
+import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -2341,6 +2342,22 @@ public class Database implements DataHandler {
 
     public DbSettings getSettings() {
         return dbSettings;
+    }
+
+    public <V> HashMap<String, V> newStringMap() {
+        return dbSettings.databaseToUpper ?
+                new HashMap<String, V>() :
+                new CaseInsensitiveMap<V>();
+    }
+
+    public boolean equalsIdentifiers(String a, String b) {
+        if (a == b || a.equals(b)) {
+            return true;
+        }
+        if (!dbSettings.databaseToUpper && a.equalsIgnoreCase(b)) {
+            return true;
+        }
+        return false;
     }
 
 }

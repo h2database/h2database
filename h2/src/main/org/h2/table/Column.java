@@ -113,7 +113,10 @@ public class Column {
         if (table == null || other.table == null || name == null || other.name == null) {
             return false;
         }
-        return table == other.table && name.equals(other.name);
+        if (table != other.table) {
+            return false;
+        }
+        return name.equals(other.name);
     }
 
     public int hashCode() {

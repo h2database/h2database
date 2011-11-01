@@ -37,10 +37,10 @@ import org.h2.jdbc.JdbcStatement;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.value.CaseInsensitiveMap;
 
 /**
  * One server thread is opened for each client.
@@ -63,8 +63,8 @@ public class PgServerThread implements Runnable {
     private int processId;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO";
-    private HashMap<String, Prepared> prepared = New.hashMap();
-    private HashMap<String, Portal> portals = New.hashMap();
+    private HashMap<String, Prepared> prepared = new CaseInsensitiveMap<Prepared>();
+    private HashMap<String, Portal> portals = new CaseInsensitiveMap<Portal>();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;

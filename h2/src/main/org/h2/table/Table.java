@@ -95,7 +95,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     protected boolean isHidden;
 
-    private final HashMap<String, Column> columnMap = New.hashMap();
+    private final HashMap<String, Column> columnMap;
     private boolean persistIndexes;
     private boolean persistData;
     private ArrayList<TriggerObject> triggers;
@@ -107,6 +107,7 @@ public abstract class Table extends SchemaObjectBase {
     private Row nullRow;
 
     public Table(Schema schema, int id, String name, boolean persistIndexes, boolean persistData) {
+        columnMap = schema.newStringMap();
         initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistIndexes = persistIndexes;
         this.persistData = persistData;

@@ -15,6 +15,7 @@ import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
@@ -261,7 +262,7 @@ public class Select extends Query {
             if (!groupByExpression[i]) {
                 continue;
             }
-            Expression expr = expressions.get(i);
+            Expression expr = expressions.get(i).getNonAliasExpression();
             if (!(expr instanceof ExpressionColumn)) {
                 return false;
             }
@@ -642,6 +643,8 @@ public class Select extends Query {
     }
 
     private void expandColumnList() {
+        Database db = session.getDatabase();
+
         // the expressions may change within the loop
         for (int i = 0; i < expressions.size(); i++) {
             Expression expr = expressions.get(i);
@@ -661,8 +664,8 @@ public class Select extends Query {
             } else {
                 TableFilter filter = null;
                 for (TableFilter f : filters) {
-                    if (tableAlias.equals(f.getTableAlias())) {
-                        if (schemaName == null || schemaName.equals(f.getSchemaName())) {
+                    if (db.equalsIdentifiers(tableAlias, f.getTableAlias())) {
+                        if (schemaName == null || db.equalsIdentifiers(schemaName, f.getSchemaName())) {
                             filter = f;
                             break;
                         }
@@ -706,7 +709,7 @@ public class Select extends Query {
             expressionSQL = null;
         }
         if (orderList != null) {
-            initOrder(expressions, expressionSQL, orderList, visibleColumnCount, distinct, filters);
+            initOrder(session, expressions, expressionSQL, orderList, visibleColumnCount, distinct, filters);
         }
         distinctColumnCount = expressions.size();
         if (having != null) {
@@ -716,6 +719,8 @@ public class Select extends Query {
         } else {
             havingIndex = -1;
         }
+
+        Database db = session.getDatabase();
 
         // first the select list (visible columns),
         // then 'ORDER BY' expressions,
@@ -731,7 +736,7 @@ public class Select extends Query {
                 int found = -1;
                 for (int j = 0; j < expSize; j++) {
                     String s2 = expressionSQL.get(j);
-                    if (s2.equals(sql)) {
+                    if (db.equalsIdentifiers(s2, sql)) {
                         found = j;
                         break;
                     }
@@ -740,7 +745,7 @@ public class Select extends Query {
                     // special case: GROUP BY a column alias
                     for (int j = 0; j < expSize; j++) {
                         Expression e = expressions.get(j);
-                        if (sql.equals(e.getAlias())) {
+                        if (db.equalsIdentifiers(sql, e.getAlias())) {
                             found = j;
                             break;
                         }

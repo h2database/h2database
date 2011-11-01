@@ -271,3 +271,26 @@ EXPLAIN SELECT * FROM TEST WHERE ID IN (10, 20) AND DATA IN (1, 2);
 ;
 
 DROP TABLE TEST;
+
+-------------------------------------------------------------------------------
+-- Optimize GROUP BY
+-------------------------------------------------------------------------------
+-- This code snippet shows how GROUP BY is using an index.
+
+-- Initialize the data
+CREATE TABLE TEST(ID INT PRIMARY KEY, DATA INT);
+
+INSERT INTO TEST SELECT X, X/10 FROM SYSTEM_RANGE(1, 100);
+
+-- Display the query plan
+EXPLAIN SELECT ID X, COUNT(*) FROM TEST GROUP BY ID;
+--> SELECT
+-->        ID AS X,
+-->        COUNT(*)
+-->    FROM PUBLIC.TEST
+-->        /* PUBLIC.PRIMARY_KEY_2 */
+-->    GROUP BY ID
+-->    /* group sorted */
+;
+
+DROP TABLE TEST;

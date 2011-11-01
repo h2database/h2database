@@ -124,7 +124,7 @@ public class Session extends SessionWithState {
 
     private void initVariables() {
         if (variables == null) {
-            variables = New.hashMap();
+            variables = database.newStringMap();
         }
     }
 
@@ -209,7 +209,7 @@ public class Session extends SessionWithState {
      */
     public void addLocalTempTable(Table table) {
         if (localTempTables == null) {
-            localTempTables = New.hashMap();
+            localTempTables = database.newStringMap();
         }
         if (localTempTables.get(table.getName()) != null) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
@@ -260,7 +260,7 @@ public class Session extends SessionWithState {
      */
     public void addLocalTempTableIndex(Index index) {
         if (localTempTableIndexes == null) {
-            localTempTableIndexes = New.hashMap();
+            localTempTableIndexes = database.newStringMap();
         }
         if (localTempTableIndexes.get(index.getName()) != null) {
             throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getSQL());
@@ -298,7 +298,7 @@ public class Session extends SessionWithState {
 
     /**
      * Get the map of constraints for all constraints on local, temporary
-     * tables, if any.  The map's keys are the constraints' names.
+     * tables, if any. The map's keys are the constraints' names.
      *
      * @return the map of constraints, or null
      */
@@ -317,7 +317,7 @@ public class Session extends SessionWithState {
      */
     public void addLocalTempTableConstraint(Constraint constraint) {
         if (localTempTableConstraints == null) {
-            localTempTableConstraints = New.hashMap();
+            localTempTableConstraints = database.newStringMap();
         }
         String name = constraint.getName();
         if (localTempTableConstraints.get(name) != null) {
@@ -753,7 +753,7 @@ public class Session extends SessionWithState {
      */
     public void addSavepoint(String name) {
         if (savepoints == null) {
-            savepoints = New.hashMap();
+            savepoints = database.newStringMap();
         }
         savepoints.put(name, getLogId());
     }
@@ -989,7 +989,7 @@ public class Session extends SessionWithState {
      */
     public void addProcedure(Procedure procedure) {
         if (procedures == null) {
-            procedures = New.hashMap();
+            procedures = database.newStringMap();
         }
         procedures.put(procedure.getName(), procedure);
     }
@@ -1091,6 +1091,10 @@ public class Session extends SessionWithState {
         while (true) {
             Session exclusive = database.getExclusiveSession();
             if (exclusive == null || exclusive == this) {
+                break;
+            }
+            if (Thread.holdsLock(exclusive)) {
+                // if another connection is used within the connection
                 break;
             }
             try {

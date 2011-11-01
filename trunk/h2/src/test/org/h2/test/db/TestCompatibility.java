@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -34,8 +35,8 @@ public class TestCompatibility extends TestBase {
     public void test() throws SQLException {
         deleteDb("compatibility");
 
-        testKeyAsColumnInMySQLMode();
         testCaseSensitiveIdentifiers();
+        testKeyAsColumnInMySQLMode();
 
         conn = getConnection("compatibility");
         testDomain();
@@ -64,14 +65,40 @@ public class TestCompatibility extends TestBase {
         Connection c = getConnection("compatibility;DATABASE_TO_UPPER=FALSE");
         Statement stat = c.createStatement();
         stat.execute("create table test(id int primary key, name varchar) as select 1, 'hello'");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, stat).
+            execute("create table test(id int primary key, name varchar)");
+        assertThrows(ErrorCode.DUPLICATE_COLUMN_NAME_1, stat).
+            execute("alter table test add column Name varchar");
         ResultSet rs;
-        rs = stat.executeQuery("select * from test");
+
+        DatabaseMetaData meta = c.getMetaData();
+        rs = meta.getTables(null, null, "test", null);
+        assertTrue(rs.next());
+        assertEquals("test", rs.getString("TABLE_NAME"));
+
+        rs = stat.executeQuery("select id, name from test");
         assertEquals("id", rs.getMetaData().getColumnLabel(1));
         assertEquals("name", rs.getMetaData().getColumnLabel(2));
-        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
-                execute("select * from TEST");
+
+        rs = stat.executeQuery("select Id, Name from Test");
+        assertEquals("id", rs.getMetaData().getColumnLabel(1));
+        assertEquals("name", rs.getMetaData().getColumnLabel(2));
+
+        rs = stat.executeQuery("select ID, NAME from TEST");
+        assertEquals("id", rs.getMetaData().getColumnLabel(1));
+        assertEquals("name", rs.getMetaData().getColumnLabel(2));
+
         stat.execute("select COUNT(*), count(*), Count(*), Sum(id) from test");
+
         stat.execute("select LENGTH(name), length(name), Length(name) from test");
+
+        stat.execute("select t.id from test t group by t.id");
+        stat.execute("select id from test t group by t.id");
+        stat.execute("select id from test group by ID");
+        stat.execute("select id as c from test group by c");
+        stat.execute("select t.id from test t group by T.ID");
+        stat.execute("select id from test t group by T.ID");
+
         stat.execute("drop table test");
         c.close();
     }

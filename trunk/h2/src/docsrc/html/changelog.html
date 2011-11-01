@@ -19,7 +19,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>The optimization for "group by" was not working correctly if the group by column
+    was aliased in the select list.
+</li><li>Issue 326: improved support for case sensitive (mixed case) identifiers 
+    without quotes when using DATABASE_TO_UPPER=FALSE.
 </li></ul>
 
 <h2>Version 1.3.161 (2011-10-28)</h2>

@@ -26,7 +26,6 @@ import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -311,6 +310,7 @@ public abstract class Query extends Prepared {
     /**
      * Initialize the order by list. This call may extend the expressions list.
      *
+     * @param session the session
      * @param expressions the select list expressions
      * @param expressionSQL the select list SQL snippets
      * @param orderList the order by list
@@ -318,12 +318,14 @@ public abstract class Query extends Prepared {
      * @param mustBeInResult all order by expressions must be in the select list
      * @param filters the table filters
      */
-    static void initOrder(ArrayList<Expression> expressions,
+    static void initOrder(Session session,
+            ArrayList<Expression> expressions,
             ArrayList<String> expressionSQL,
             ArrayList<SelectOrderBy> orderList,
             int visible,
             boolean mustBeInResult,
             ArrayList<TableFilter> filters) {
+        Database db = session.getDatabase();
         for (SelectOrderBy o : orderList) {
             Expression e = o.expression;
             if (e == null) {
@@ -346,7 +348,7 @@ public abstract class Query extends Prepared {
                     if (ec instanceof ExpressionColumn) {
                         // select expression
                         ExpressionColumn c = (ExpressionColumn) ec;
-                        found = col.equals(c.getColumnName());
+                        found = db.equalsIdentifiers(col, c.getColumnName());
                         if (found && tableAlias != null) {
                             String ca = c.getOriginalTableAliasName();
                             if (ca == null) {
@@ -354,18 +356,18 @@ public abstract class Query extends Prepared {
                                 // select id from test order by test.id
                                 for (int i = 0, size = filters.size(); i < size; i++) {
                                     TableFilter f = filters.get(i);
-                                    if (f.getTableAlias().equals(tableAlias)) {
+                                    if (db.equalsIdentifiers(f.getTableAlias(), tableAlias)) {
                                         found = true;
                                         break;
                                     }
                                 }
                             } else {
-                                found = ca.equals(tableAlias);
+                                found = db.equalsIdentifiers(ca, tableAlias);
                             }
                         }
                     } else if (!(ec instanceof Alias)) {
                         continue;
-                    } else if (tableAlias == null && col.equals(ec.getAlias())) {
+                    } else if (tableAlias == null && db.equalsIdentifiers(col, ec.getAlias())) {
                         found = true;
                     } else {
                         Expression ec2 = ec.getNonAliasExpression();
@@ -375,8 +377,9 @@ public abstract class Query extends Prepared {
                             // exprCol.getTableAlias();
                             String tb = c2.getSQL();
                             // getTableAlias();
-                            found = col.equals(c2.getColumnName());
-                            if (!StringUtils.equals(ta, tb)) {
+                            String s2 = c2.getColumnName();
+                            found = db.equalsIdentifiers(col, s2);
+                            if (!db.equalsIdentifiers(ta, tb)) {
                                 found = false;
                             }
                         }
@@ -392,7 +395,7 @@ public abstract class Query extends Prepared {
                 if (expressionSQL != null) {
                     for (int j = 0, size = expressionSQL.size(); j < size; j++) {
                         String s2 = expressionSQL.get(j);
-                        if (s2.equals(s)) {
+                        if (db.equalsIdentifiers(s2, s)) {
                             idx = j;
                             isAlias = true;
                             break;

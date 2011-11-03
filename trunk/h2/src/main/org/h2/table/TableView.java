@@ -443,7 +443,7 @@ public class TableView extends Table {
     }
 
     public boolean isDeterministic() {
-        if (recursive) {
+        if (recursive || viewQuery == null) {
             return false;
         }
         return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR);

@@ -19,7 +19,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The optimization for "group by" was not working correctly if the group by column
+<ul><li>Issue 180: when deserializing objects, the context class loader is used 
+    instead of the default class loader if the system property "h2.useThreadContextClassLoader" is set.
+    Thanks a lot to Noah Fontes for the patch!
+</li><li>When using the exclusive mode, LOB operations could cause the thread to freeze.
+    This also affected the CreateCluster tool (when using BLOB or CLOB data).
+</li><li>The optimization for "group by" was not working correctly if the group by column
     was aliased in the select list.
 </li><li>Issue 326: improved support for case sensitive (mixed case) identifiers 
     without quotes when using DATABASE_TO_UPPER=FALSE.

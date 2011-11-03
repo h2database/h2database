@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -250,7 +251,21 @@ public class Utils {
     public static Object deserialize(byte[] data) {
         try {
             ByteArrayInputStream in = new ByteArrayInputStream(data);
-            ObjectInputStream is = new ObjectInputStream(in);
+            ObjectInputStream is;
+            if (SysProperties.USE_THREAD_CONTEXT_CLASS_LOADER) {
+                final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                is = new ObjectInputStream(in) {
+                    protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+                        try {
+                            return Class.forName(desc.getName(), true, loader);
+                        } catch (ClassNotFoundException e) {
+                            return super.resolveClass(desc);
+                        }
+                    }
+                };
+            } else {
+                is = new ObjectInputStream(in);
+            }
             return is.readObject();
         } catch (Throwable e) {
             throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());

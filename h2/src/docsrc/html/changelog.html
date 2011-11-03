@@ -19,7 +19,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 180: when deserializing objects, the context class loader is used 
+<ul><li>A NullPointerException could occur in TableView.isDeterministic for invalid views.
+</li><li>Issue 180: when deserializing objects, the context class loader is used 
     instead of the default class loader if the system property "h2.useThreadContextClassLoader" is set.
     Thanks a lot to Noah Fontes for the patch!
 </li><li>When using the exclusive mode, LOB operations could cause the thread to freeze.

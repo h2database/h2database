@@ -378,6 +378,13 @@ public class SysProperties {
     public static final String URL_MAP = Utils.getProperty("h2.urlMap", null);
 
     /**
+     * System property <code>h2.useThreadContextClassLoader</code> (default: false).<br />
+     * Instead of using the default class loader when deserializing objects,
+     * the current thread-context class loader will be used.
+     */
+    public static final boolean USE_THREAD_CONTEXT_CLASS_LOADER = Utils.getProperty("h2.useThreadContextClassLoader", false);
+
+    /**
      * System property <code>h2.webMaxValueLength</code> (default: 100000).<br />
      * The H2 Console will abbreviate (truncate) result values larger than this size.
      * The data in the database is not truncated, it is only to avoid out of memory

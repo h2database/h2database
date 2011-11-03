@@ -514,6 +514,8 @@ public class JdbcStatement extends TraceObject implements Statement {
      * Cancels a currently running statement.
      * This method must be called from within another
      * thread than the execute method.
+     * Operations on large objects are not interrupted,
+     * only operations that process many rows.
      *
      * @throws SQLException if this object is closed
      */

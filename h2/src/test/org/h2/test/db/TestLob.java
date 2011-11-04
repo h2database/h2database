@@ -1242,6 +1242,7 @@ public class TestLob extends TestBase {
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.next();
         Object oa = rs.getObject(2);
+        assertEquals(TestLobObject.class.getName(), oa.getClass().getName());
         TestLobObject a = (TestLobObject) oa;
         Object ob = rs.getObject("DATA");
         TestLobObject b = (TestLobObject) ob;

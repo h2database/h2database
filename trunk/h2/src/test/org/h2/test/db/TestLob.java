@@ -1243,11 +1243,10 @@ public class TestLob extends TestBase {
         rs.next();
         Object oa = rs.getObject(2);
         assertEquals(TestLobObject.class.getName(), oa.getClass().getName());
-        TestLobObject a = (TestLobObject) oa;
         Object ob = rs.getObject("DATA");
-        TestLobObject b = (TestLobObject) ob;
-        assertEquals("abc", a.data);
-        assertEquals("abc", b.data);
+        assertEquals(TestLobObject.class.getName(), ob.getClass().getName());
+        assertEquals("TestLobObject: abc", oa.toString());
+        assertEquals("TestLobObject: abc", ob.toString());
         assertFalse(rs.next());
 
         conn.createStatement().execute("drop table test");

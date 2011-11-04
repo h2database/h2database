@@ -19,4 +19,8 @@ class TestLobObject implements Serializable {
     TestLobObject(String data) {
         this.data = data;
     }
+
+    public String toString() {
+        return "TestLobObject: " + data;
+    }
 }

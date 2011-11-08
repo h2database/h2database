@@ -195,6 +195,7 @@ public class PageStore implements CacheWriter {
     private HashMap<String, Integer> statistics;
     private int logMode = LOG_MODE_SYNC;
     private boolean lockFile;
+    private boolean readMode;
 
     /**
      * Create a new page store object.
@@ -351,18 +352,29 @@ public class PageStore implements CacheWriter {
         // the multi-version index sometimes compares rows
         // and the LOB storage is not yet available.
         database.setMultiVersion(false);
-        recover();
+        boolean isEmpty = recover();
         database.setMultiVersion(old);
         if (!database.isReadOnly()) {
-            recoveryRunning = true;
-            log.free();
-            logFirstTrunkPage = allocatePage();
-            log.openForWriting(logFirstTrunkPage, false);
-            recoveryRunning = false;
-            freed.set(0, pageCount, true);
-            checkpoint();
-            removeOldTempIndexes();
+            readMode = true;
+            if (!isEmpty || !SysProperties.MODIFY_ON_WRITE || tempObjects != null) {
+                openForWriting();
+                removeOldTempIndexes();
+            }
         }
+    }
+
+    private void openForWriting() {
+        if (!readMode || database.isReadOnly()) {
+            return;
+        }
+        readMode = false;
+        recoveryRunning = true;
+        log.free();
+        logFirstTrunkPage = allocatePage();
+        log.openForWriting(logFirstTrunkPage, false);
+        recoveryRunning = false;
+        freed.set(0, pageCount, true);
+        checkpoint();
     }
 
     private void removeOldTempIndexes() {
@@ -400,7 +412,7 @@ public class PageStore implements CacheWriter {
      */
     public synchronized void checkpoint() {
         trace.debug("checkpoint");
-        if (log == null || database.isReadOnly()) {
+        if (log == null || readMode || database.isReadOnly()) {
             // the file was never fully opened
             return;
         }
@@ -454,6 +466,10 @@ public class PageStore implements CacheWriter {
         if (!database.getSettings().pageStoreTrim) {
             return;
         }
+        if (SysProperties.MODIFY_ON_WRITE && readMode && compactMode == 0) {
+            return;
+        }
+        openForWriting();
         // find the last used page
         int lastUsed = -1;
         for (int i = getFreeListId(pageCount); i >= 0; i--) {
@@ -1005,6 +1021,7 @@ public class PageStore implements CacheWriter {
                 if (old == null) {
                     old = readPage(pos);
                 }
+                openForWriting();
                 log.addUndo(pos, old);
             }
         }
@@ -1113,6 +1130,7 @@ public class PageStore implements CacheWriter {
      * @return the page id
      */
     public synchronized int allocatePage() {
+        openForWriting();
         int pos = allocatePage(null, 0);
         if (!recoveryRunning) {
             if (logMode != LOG_MODE_OFF) {
@@ -1318,11 +1336,14 @@ public class PageStore implements CacheWriter {
 
     /**
      * Run recovery.
+     *
+     * @return whether the transaction log was empty
      */
-    private void recover() {
+    private boolean recover() {
         trace.debug("log recover");
         recoveryRunning = true;
-        log.recover(PageLog.RECOVERY_STAGE_UNDO);
+        boolean isEmpty = true;
+        isEmpty &= log.recover(PageLog.RECOVERY_STAGE_UNDO);
         if (reservedPages != null) {
             for (int r : reservedPages.keySet()) {
                 if (trace.isDebugEnabled()) {
@@ -1331,10 +1352,10 @@ public class PageStore implements CacheWriter {
                 allocatePage(r);
             }
         }
-        log.recover(PageLog.RECOVERY_STAGE_ALLOCATE);
+        isEmpty &= log.recover(PageLog.RECOVERY_STAGE_ALLOCATE);
         openMetaIndex();
         readMetaData();
-        log.recover(PageLog.RECOVERY_STAGE_REDO);
+        isEmpty &= log.recover(PageLog.RECOVERY_STAGE_REDO);
         boolean setReadOnly = false;
         if (!database.isReadOnly()) {
             if (log.getInDoubtTransactions().size() == 0) {
@@ -1376,6 +1397,7 @@ public class PageStore implements CacheWriter {
             database.setReadOnly(true);
         }
         trace.debug("log recover done");
+        return isEmpty;
     }
 
     /**
@@ -1401,6 +1423,7 @@ public class PageStore implements CacheWriter {
      */
     public synchronized void commit(Session session) {
         checkOpen();
+        openForWriting();
         log.commit(session.getId());
         if (log.getSize() - logSizeBase > maxLogSize) {
             checkpoint();
@@ -1816,6 +1839,7 @@ public class PageStore implements CacheWriter {
      */
     public synchronized void logTruncate(Session session, int tableId) {
         if (!recoveryRunning) {
+            openForWriting();
             log.logTruncate(session, tableId);
         }
     }

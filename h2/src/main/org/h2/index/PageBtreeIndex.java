@@ -422,6 +422,10 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     public void writeRowCount() {
+        if (SysProperties.MODIFY_ON_WRITE && rootPageId == 0) {
+            // currently creating the index
+            return;
+        }
         PageBtree root = getPage(rootPageId);
         root.setRowCountStored(MathUtils.convertLongToInt(rowCount));
     }

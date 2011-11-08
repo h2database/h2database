@@ -249,8 +249,9 @@ public class PageLog {
      * committed operations are re-applied.
      *
      * @param stage the recovery stage
+     * @return whether the transaction log was empty
      */
-    void recover(int stage) {
+    boolean recover(int stage) {
         if (trace.isDebugEnabled()) {
             trace.debug("log recover stage: " + stage);
         }
@@ -258,12 +259,13 @@ public class PageLog {
             PageInputStream in = new PageInputStream(store, logKey, firstTrunkPage, firstDataPage);
             usedLogPages = in.allocateAllPages();
             in.close();
-            return;
+            return true;
         }
         pageIn = new PageInputStream(store, logKey, firstTrunkPage, firstDataPage);
         DataReader in = new DataReader(pageIn);
         int logId = 0;
         Data data = store.createData();
+        boolean isEmpty = true;
         try {
             int pos = 0;
             while (true) {
@@ -272,6 +274,7 @@ public class PageLog {
                     break;
                 }
                 pos++;
+                isEmpty = false;
                 if (x == UNDO) {
                     int pageId = in.readVarInt();
                     int size = in.readVarInt();
@@ -409,6 +412,7 @@ public class PageLog {
         if (stage == RECOVERY_STAGE_REDO) {
             usedLogPages = null;
         }
+        return isEmpty;
     }
 
     /**

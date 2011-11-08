@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -507,6 +508,10 @@ public class PageDataIndex extends PageIndex {
     }
 
     public void writeRowCount() {
+        if (SysProperties.MODIFY_ON_WRITE && rootPageId == 0) {
+            // currently creating the index
+            return;
+        }
         try {
             PageData root = getPage(rootPageId, 0);
             root.setRowCountStored(MathUtils.convertLongToInt(rowCount));

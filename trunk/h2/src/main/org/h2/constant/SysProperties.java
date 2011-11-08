@@ -233,6 +233,15 @@ public class SysProperties {
     public static final long MAX_TRACE_DATA_LENGTH = Utils.getProperty("h2.maxTraceDataLength", 65535);
 
     /**
+     * System property <code>h2.modifyOnWrite</code> (default: false).<br />
+     * Only modify the database file when writing to the database. If disabled,
+     * opening the database modifies the file (to prepare it for writing).
+     * This only occurs when no recovery is necessary.
+     * When enabled, the serialized file lock is faster.
+     */
+    public static final boolean MODIFY_ON_WRITE = Utils.getProperty("h2.modifyOnWrite", false);
+
+    /**
      * System property <code>h2.minColumnNameMap</code> (default: 3).<br />
      * The minimum number of columns where a hash table is created when result set
      * methods with column name (instead of column index) parameter are called.

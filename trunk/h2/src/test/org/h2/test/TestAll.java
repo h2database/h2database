@@ -137,6 +137,7 @@ import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestJmx;
+import org.h2.test.unit.TestModifyOnWrite;
 import org.h2.test.unit.TestObjectDeserialization;
 import org.h2.test.unit.TestTraceSystem;
 import org.h2.test.unit.TestMathUtils;
@@ -340,6 +341,9 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
         System.setProperty("h2.useThreadContextClassLoader", "true");
+
+        int testing;
+        System.setProperty("h2.modifyOnWrite", "true");
 
         // System.setProperty("h2.storeLocalTime", "true");
 
@@ -668,6 +672,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestIntIntHashMap().runTest(this);
         new TestJmx().runTest(this);
         new TestMathUtils().runTest(this);
+        new TestModifyOnWrite().runTest(this);
         new TestOldVersion().runTest(this);
         new TestNetUtils().runTest(this);
         new TestObjectDeserialization().runTest(this);

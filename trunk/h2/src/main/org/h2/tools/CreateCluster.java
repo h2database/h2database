@@ -72,7 +72,7 @@ public class CreateCluster extends Tool {
                 showUsage();
                 return;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         if (urlSource == null || urlTarget == null || serverList == null) {

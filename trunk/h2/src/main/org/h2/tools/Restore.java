@@ -66,7 +66,7 @@ public class Restore extends Tool {
                 showUsage();
                 return;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         execute(zipFileName, dir, db, false);

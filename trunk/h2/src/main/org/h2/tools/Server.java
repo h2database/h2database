@@ -44,6 +44,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * @param args the command line arguments
      */
     public Server(Service service, String... args) throws SQLException {
+        verifyArgs(args);
         this.service = service;
         try {
             service.init(args);
@@ -115,6 +116,75 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         new Server().runTool(args);
     }
 
+    private void verifyArgs(String... args) throws SQLException {
+        for (int i = 0; args != null && i < args.length; i++) {
+            String arg = args[i];
+            if (arg == null) {
+                continue;
+            } else if ("-?".equals(arg) || "-help".equals(arg)) {
+                // ok
+            } else if (arg.startsWith("-web")) {
+                if ("-web".equals(arg)) {
+                    // ok
+                } else if ("-webAllowOthers".equals(arg)) {
+                    // no parameters
+                } else if ("-webDaemon".equals(arg)) {
+                    // no parameters
+                } else if ("-webSSL".equals(arg)) {
+                    // no parameters
+                } else if ("-webPort".equals(arg)) {
+                    i++;
+                } else {
+                    throwUnsupportedOption(arg);
+                }
+            } else if ("-browser".equals(arg)) {
+                // ok
+            } else if (arg.startsWith("-tcp")) {
+                if ("-tcp".equals(arg)) {
+                    // ok
+                } else if ("-tcpAllowOthers".equals(arg)) {
+                    // no parameters
+                } else if ("-tcpDaemon".equals(arg)) {
+                    // no parameters
+                } else if ("-tcpSSL".equals(arg)) {
+                    // no parameters
+                } else if ("-tcpPort".equals(arg)) {
+                    i++;
+                } else if ("-tcpPassword".equals(arg)) {
+                    i++;
+                } else if ("-tcpShutdown".equals(arg)) {
+                    i++;
+                } else if ("-tcpShutdownForce".equals(arg)) {
+                    // ok
+                } else {
+                    throwUnsupportedOption(arg);
+                }
+            } else if (arg.startsWith("-pg")) {
+                if ("-pg".equals(arg)) {
+                    // ok
+                } else if ("-pgAllowOthers".equals(arg)) {
+                    // no parameters
+                } else if ("-pgDaemon".equals(arg)) {
+                    // no parameters
+                } else if ("-pgPort".equals(arg)) {
+                    i++;
+                } else {
+                    throwUnsupportedOption(arg);
+                }
+            } else if ("-properties".equals(arg)) {
+                i++;
+            } else if ("-trace".equals(arg)) {
+                // no parameters
+            } else if ("-ifExists".equals(arg)) {
+                // no parameters
+            } else if ("-baseDir".equals(arg)) {
+                i++;
+            } else {
+                throwUnsupportedOption(arg);
+            }
+        }
+    }
+
     public void runTool(String... args) throws SQLException {
         boolean tcpStart = false, pgStart = false, webStart = false;
         boolean browserStart = false;
@@ -142,7 +212,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else {
-                    throwUnsupportedOption(arg);
+                    showUsageAndThrowUnsupportedOption(arg);
                 }
             } else if ("-browser".equals(arg)) {
                 startDefaultServers = false;
@@ -168,7 +238,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-tcpShutdownForce".equals(arg)) {
                     tcpShutdownForce = true;
                 } else {
-                    throwUnsupportedOption(arg);
+                    showUsageAndThrowUnsupportedOption(arg);
                 }
             } else if (arg.startsWith("-pg")) {
                 if ("-pg".equals(arg)) {
@@ -181,7 +251,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else if ("-pgPort".equals(arg)) {
                     i++;
                 } else {
-                    throwUnsupportedOption(arg);
+                    showUsageAndThrowUnsupportedOption(arg);
                 }
             } else if ("-properties".equals(arg)) {
                 i++;
@@ -192,9 +262,10 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             } else if ("-baseDir".equals(arg)) {
                 i++;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
+        verifyArgs(args);
         if (startDefaultServers) {
             tcpStart = true;
             pgStart = true;

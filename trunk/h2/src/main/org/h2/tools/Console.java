@@ -146,7 +146,7 @@ ShutdownHandler {
                 } else if ("-webPort".equals(arg)) {
                     i++;
                 } else {
-                    throwUnsupportedOption(arg);
+                    showUsageAndThrowUnsupportedOption(arg);
                 }
             } else if ("-tool".equals(arg)) {
                 startDefaultServers = false;
@@ -177,7 +177,7 @@ ShutdownHandler {
                 } else if ("-tcpShutdownForce".equals(arg)) {
                     tcpShutdownForce = true;
                 } else {
-                    throwUnsupportedOption(arg);
+                    showUsageAndThrowUnsupportedOption(arg);
                 }
             } else if (arg.startsWith("-pg")) {
                 if ("-pg".equals(arg)) {
@@ -190,7 +190,7 @@ ShutdownHandler {
                 } else if ("-pgPort".equals(arg)) {
                     i++;
                 } else {
-                    throwUnsupportedOption(arg);
+                    showUsageAndThrowUnsupportedOption(arg);
                 }
             } else if ("-properties".equals(arg)) {
                 i++;
@@ -201,7 +201,7 @@ ShutdownHandler {
             } else if ("-baseDir".equals(arg)) {
                 i++;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         if (startDefaultServers) {

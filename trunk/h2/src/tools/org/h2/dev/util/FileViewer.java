@@ -69,7 +69,7 @@ public class FileViewer extends Tool {
                 showUsage();
                 return;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         if (file == null) {

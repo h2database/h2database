@@ -167,7 +167,7 @@ public class Recover extends Tool implements DataHandler {
                 showUsage();
                 return;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         process(dir, db);

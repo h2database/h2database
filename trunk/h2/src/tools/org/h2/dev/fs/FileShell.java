@@ -113,7 +113,7 @@ public class FileShell extends Tool {
                 showUsage();
                 return;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         promptLoop();

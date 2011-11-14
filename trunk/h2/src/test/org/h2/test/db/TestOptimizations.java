@@ -39,6 +39,7 @@ public class TestOptimizations extends TestBase {
 
     public void test() throws Exception {
         deleteDb("optimizations");
+        testAnalyzeLob();
         testLike();
         testExistsSubquery();
         testQueryCacheConcurrentUse();
@@ -67,6 +68,30 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         deleteDb("optimizations");
+    }
+
+    private void testAnalyzeLob() throws Exception {
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(v varchar, b binary, cl clob, bl blob) as " +
+                "select ' ', '00', ' ', '00' from system_range(1, 100)");
+        stat.execute("analyze");
+        ResultSet rs = stat.executeQuery("select column_name, selectivity " +
+                "from information_schema.columns where table_name='TEST'");
+        rs.next();
+        assertEquals("V", rs.getString(1));
+        assertEquals(1, rs.getInt(2));
+        rs.next();
+        assertEquals("B", rs.getString(1));
+        assertEquals(1, rs.getInt(2));
+        rs.next();
+        assertEquals("CL", rs.getString(1));
+        assertEquals(100, rs.getInt(2));
+        rs.next();
+        assertEquals("BL", rs.getString(1));
+        assertEquals(100, rs.getInt(2));
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testLike() throws Exception {

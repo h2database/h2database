@@ -126,7 +126,7 @@ public class RunScript extends Tool {
                 showUsage();
                 return;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         if (url == null) {

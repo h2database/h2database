@@ -50,8 +50,18 @@ public abstract class Tool {
      * @param option the unsupported option
      * @return this method never returns normally
      */
-    protected SQLException throwUnsupportedOption(String option) throws SQLException {
+    protected SQLException showUsageAndThrowUnsupportedOption(String option) throws SQLException {
         showUsage();
+        throw throwUnsupportedOption(option);
+    }
+
+    /**
+     * Throw a SQLException saying this command line option is not supported.
+     *
+     * @param option the unsupported option
+     * @return this method never returns normally
+     */
+    protected SQLException throwUnsupportedOption(String option) throws SQLException {
         throw new SQLException("Unsupported option: " + option);
     }
 

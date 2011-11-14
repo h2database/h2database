@@ -80,7 +80,7 @@ public class ChangeFileEncryption extends Tool {
                 showUsage();
                 return;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         if ((encryptPassword == null && decryptPassword == null) || cipher == null) {

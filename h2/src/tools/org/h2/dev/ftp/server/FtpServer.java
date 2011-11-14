@@ -170,12 +170,12 @@ public class FtpServer extends Tool implements Service {
                 } else if ("-ftpTask".equals(arg)) {
                     // no parameters
                 } else {
-                    throwUnsupportedOption(arg);
+                    showUsageAndThrowUnsupportedOption(arg);
                 }
             } else if ("-trace".equals(arg)) {
                 // no parameters
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         Server server = new Server(this, args);

@@ -136,7 +136,7 @@ public class Shell extends Tool implements Runnable {
                 showUsage();
                 return;
             } else {
-                throwUnsupportedOption(arg);
+                showUsageAndThrowUnsupportedOption(arg);
             }
         }
         if (url != null) {

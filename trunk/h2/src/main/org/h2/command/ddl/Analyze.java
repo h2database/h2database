@@ -16,6 +16,7 @@ import org.h2.table.Column;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.util.StatementBuilder;
+import org.h2.value.Value;
 
 /**
  * This class represents the statement
@@ -82,7 +83,14 @@ public class Analyze extends DefineCommand {
         Column[] columns = table.getColumns();
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
-            buff.append("SELECTIVITY(").append(col.getSQL()).append(')');
+            int type = col.getType();
+            if (type == Value.BLOB || type == Value.CLOB) {
+                // can not index LOB columns, so calculating
+                // the selectivity is not required
+                buff.append("100");
+            } else {
+                buff.append("SELECTIVITY(").append(col.getSQL()).append(')');
+            }
         }
         buff.append(" FROM ").append(table.getSQL());
         if (sample > 0) {

@@ -28,6 +28,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     Document time literals: between minus 2 million and 2 million hours with nanosecond resolution.
 </li><li>Remove the old connection pool logic (system property "h2.fastConnectionPool").
 </li><li>Enable "h2.modifyOnWrite".
+</li><li>Enable Mode.supportOffsetFetch by default, so that "select 1 fetch first 1 row only" works.
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -226,6 +227,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others).
 </li><li>Remember the user defined data type (domain) of a column.
 </li><li>MVCC: support multi-threaded kernel with multi-version concurrency.
+</li><li>Auto-server: add option to define the port range or list.
 </li><li>Support Jackcess (MS Access databases)
 </li><li>Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World')
 </li><li>Improve time to open large databases (see mail 'init time for distributed setup')
@@ -289,7 +291,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>H2 Console should support JaQu directly.
 </li><li>Better document FTL_SEARCH, FTL_SEARCH_DATA.
 </li><li>Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL.
-</li><li>Auto-server: add option to define the IP address range or list.
 </li><li>Index creation using deterministic functions.
 </li><li>ANALYZE: for unique indexes that allow null, count the number of null.
 </li><li>MySQL compatibility: multi-table delete: DELETE .. FROM .. [,...] USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html

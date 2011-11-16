@@ -171,6 +171,22 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 } else {
                     throwUnsupportedOption(arg);
                 }
+            } else if (arg.startsWith("-ftp")) {
+                if ("-ftpPort".equals(arg)) {
+                    i++;
+                } else if ("-ftpDir".equals(arg)) {
+                    i++;
+                } else if ("-ftpRead".equals(arg)) {
+                    i++;
+                } else if ("-ftpWrite".equals(arg)) {
+                    i++;
+                } else if ("-ftpWritePassword".equals(arg)) {
+                    i++;
+                } else if ("-ftpTask".equals(arg)) {
+                    // no parameters
+                } else {
+                    throwUnsupportedOption(arg);
+                }
             } else if ("-properties".equals(arg)) {
                 i++;
             } else if ("-trace".equals(arg)) {
@@ -179,6 +195,10 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 // no parameters
             } else if ("-baseDir".equals(arg)) {
                 i++;
+            } else if ("-key".equals(arg)) {
+                i += 2;
+            } else if ("-tool".equals(arg)) {
+                // no parameters
             } else {
                 throwUnsupportedOption(arg);
             }
@@ -261,6 +281,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 // no parameters
             } else if ("-baseDir".equals(arg)) {
                 i++;
+            } else if ("-key".equals(arg)) {
+                i += 2;
             } else {
                 showUsageAndThrowUnsupportedOption(arg);
             }

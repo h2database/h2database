@@ -254,7 +254,7 @@ ShutdownHandler {
         // start browser in any case (even if the server is already running)
         // because some people don't look at the output,
         // but are wondering why nothing happens
-        if (browserStart) {
+        if (browserStart && web != null) {
             openBrowser(web.getURL());
         }
 

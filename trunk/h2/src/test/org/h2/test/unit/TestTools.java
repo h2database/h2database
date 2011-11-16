@@ -448,7 +448,7 @@ public class TestTools extends TestBase {
 
         result = runServer(1, new String[]{"-xy"});
         assertTrue(result.indexOf("Starts the H2 Console") >= 0);
-        assertTrue(result.indexOf("Unsupported option") >= 0);
+        assertTrue(result.indexOf("Feature not supported") >= 0);
         result = runServer(0, new String[]{"-tcp", "-tcpPort", "9001", "-tcpPassword", "abc"});
         assertTrue(result.indexOf("tcp://") >= 0);
         assertTrue(result.indexOf(":9001") >= 0);

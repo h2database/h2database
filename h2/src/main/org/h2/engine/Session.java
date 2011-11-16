@@ -542,7 +542,7 @@ public class Session extends SessionWithState {
         }
     }
 
-    public int getLogId() {
+    public int getUndoLogPos() {
         return undoLog.size();
     }
 
@@ -755,7 +755,7 @@ public class Session extends SessionWithState {
         if (savepoints == null) {
             savepoints = database.newStringMap();
         }
-        savepoints.put(name, getLogId());
+        savepoints.put(name, getUndoLogPos());
     }
 
     /**

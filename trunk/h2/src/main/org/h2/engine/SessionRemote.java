@@ -55,6 +55,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public static final int SESSION_CANCEL_STATEMENT = 13;
     public static final int SESSION_CHECK_KEY = 14;
     public static final int SESSION_SET_AUTOCOMMIT = 15;
+    public static final int SESSION_UNDO_LOG_POS = 16;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
@@ -94,7 +95,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_9);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_10);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -118,6 +119,24 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         }
         autoCommit = true;
         return trans;
+    }
+
+    public int getUndoLogPos() {
+        if (clientVersion < Constants.TCP_PROTOCOL_VERSION_10) {
+            return 1;
+        }
+        for (int i = 0, count = 0; i < transferList.size(); i++) {
+            Transfer transfer = transferList.get(i);
+            try {
+                traceOperation("SESSION_UNDO_LOG_POS", 0);
+                transfer.writeInt(SessionRemote.SESSION_UNDO_LOG_POS);
+                done(transfer);
+                return transfer.readInt();
+            } catch (IOException e) {
+                removeServer(e, i--, ++count);
+            }
+        }
+        return 1;
     }
 
     public void cancel() {
@@ -482,6 +501,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     }
 
     public void close() {
+        RuntimeException closeError = null;
         if (transferList != null) {
             synchronized (this) {
                 for (Transfer transfer : transferList) {
@@ -490,6 +510,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                         transfer.writeInt(SessionRemote.SESSION_CLOSE);
                         done(transfer);
                         transfer.close();
+                    } catch (RuntimeException e) {
+                        trace.error(e, "close");
+                        closeError = e;
                     } catch (Exception e) {
                         trace.error(e, "close");
                     }
@@ -501,6 +524,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         if (embedded != null) {
             embedded.close();
             embedded = null;
+        }
+        if (closeError != null) {
+            throw closeError;
         }
     }
 

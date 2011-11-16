@@ -71,12 +71,12 @@ public class TcpServerThread implements Runnable {
                 int minClientVersion = transfer.readInt();
                 if (minClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_9) {
-                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_9);
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_10) {
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_10);
                 }
                 int maxClientVersion = transfer.readInt();
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_9) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_9;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_10) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_10;
                 } else {
                     clientVersion = minClientVersion;
                 }
@@ -149,19 +149,31 @@ public class TcpServerThread implements Runnable {
 
     private void closeSession() {
         if (session != null) {
+            RuntimeException closeError = null;
             try {
                 Command rollback = session.prepareLocal("ROLLBACK");
                 rollback.executeUpdate();
+            } catch (RuntimeException e) {
+                closeError = e;
+                server.traceError(e);
             } catch (Exception e) {
                 server.traceError(e);
             }
             try {
                 session.close();
                 server.removeConnection(threadId);
+            } catch (RuntimeException e) {
+                if (closeError == null) {
+                    closeError = e;
+                    server.traceError(e);
+                }
             } catch (Exception e) {
                 server.traceError(e);
             } finally {
                 session = null;
+            }
+            if (closeError != null) {
+                throw closeError;
             }
         }
     }
@@ -173,12 +185,13 @@ public class TcpServerThread implements Runnable {
         try {
             stop = true;
             closeSession();
-            transfer.close();
-            trace("Close");
         } catch (Exception e) {
             server.traceError(e);
+        } finally {
+            transfer.close();
+            trace("Close");
+            server.remove(this);
         }
-        server.remove(this);
     }
 
     private void sendError(Throwable t) {
@@ -241,6 +254,7 @@ public class TcpServerThread implements Runnable {
             break;
         }
         case SessionRemote.SESSION_CLOSE: {
+            stop = true;
             closeSession();
             transfer.writeInt(SessionRemote.STATUS_OK).flush();
             close();
@@ -362,6 +376,11 @@ public class TcpServerThread implements Runnable {
             boolean autoCommit = transfer.readBoolean();
             session.setAutoCommit(autoCommit);
             transfer.writeInt(SessionRemote.STATUS_OK).flush();
+            break;
+        }
+        case SessionRemote.SESSION_UNDO_LOG_POS: {
+            transfer.writeInt(SessionRemote.STATUS_OK).
+                writeInt(session.getUndoLogPos()).flush();
             break;
         }
         default:

@@ -174,7 +174,9 @@ public abstract class Command implements CommandInterface {
         session.waitIfExclusiveModeEnabled();
         boolean writing = !isReadOnly();
         if (writing) {
-            database.beforeWriting();
+            while (!database.beforeWriting()) {
+                // wait
+            }
         }
         synchronized (sync) {
             session.setCurrentCommand(this);
@@ -208,9 +210,14 @@ public abstract class Command implements CommandInterface {
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
         boolean callStop = true;
-        database.beforeWriting();
+        boolean writing = !isReadOnly();
+        if (writing) {
+            while (!database.beforeWriting()) {
+                // wait
+            }
+        }
         synchronized (sync) {
-            int rollback = session.getLogId();
+            int rollback = session.getUndoLogPos();
             session.setCurrentCommand(this);
             try {
                 while (true) {
@@ -248,7 +255,9 @@ public abstract class Command implements CommandInterface {
                         stop();
                     }
                 } finally {
-                    database.afterWriting();
+                    if (writing) {
+                        database.afterWriting();
+                    }
                 }
             }
         }

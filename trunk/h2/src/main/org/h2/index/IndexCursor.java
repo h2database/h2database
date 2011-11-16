@@ -217,6 +217,9 @@ public class IndexCursor implements Cursor {
     }
 
     public Row get() {
+        if (cursor == null) {
+            return null;
+        }
         return cursor.get();
     }
 

@@ -38,6 +38,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testGroupSubquery();
         testCountDistinctNotNull();
         testDependencies();
         testConvertType();
@@ -93,6 +94,19 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testGroupSubquery() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(a int, b int)");
+        stat.execute("create index idx on test(a)");
+        stat.execute("insert into test values (1, 9), (2, 9), (3, 9)");
+        ResultSet rs = stat.executeQuery("select (select count(*) from test where a = t.a and b = 0) from test t group by a");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+        conn.close();
     }
 
     private void testCountDistinctNotNull() throws SQLException {

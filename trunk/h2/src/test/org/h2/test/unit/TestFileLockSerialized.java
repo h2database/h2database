@@ -576,9 +576,14 @@ public class TestFileLockSerialized extends TestBase {
                 assertTrue(rs.next());
                 assertEquals(500, rs.getInt(1));
                 rs.close();
+
+                // wait until the task finished
                 importUpdate.get();
+
                 Thread.sleep(1000);
-                rs = stat.executeQuery("select id2 from test where id=500");
+                // can't use the exact same query, otherwise it would use
+                // the query cache
+                rs = stat.executeQuery("select id2 from test where id=500+0");
                 assertTrue(rs.next());
                 assertEquals(999, rs.getInt(1));
                 rs.close();

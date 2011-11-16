@@ -543,13 +543,37 @@ public class Database implements DataHandler {
                     }
                 }
             }
-            while (isReconnectNeeded() && !beforeWriting()) {
-                // wait until others stopped writing and
-                // until we can write (file are not open - no need to re-connect)
+            if (SysProperties.MODIFY_ON_WRITE) {
+                while (isReconnectNeeded()) {
+                    // wait until others stopped writing
+                }
+            } else {
+                while (isReconnectNeeded() && !beforeWriting()) {
+                    // wait until others stopped writing and
+                    // until we can write (the file is not yet open -
+                    // no need to re-connect)
+                }
             }
             deleteOldTempFiles();
             starting = true;
-            getPageStore();
+            if (SysProperties.MODIFY_ON_WRITE) {
+                try {
+                    getPageStore();
+                } catch (DbException e) {
+                    if (e.getErrorCode() != ErrorCode.DATABASE_IS_READ_ONLY) {
+                        throw e;
+                    }
+                    pageStore = null;
+                    while (!beforeWriting()) {
+                        // wait until others stopped writing and
+                        // until we can write (the file is not yet open -
+                        // no need to re-connect)
+                    }
+                    getPageStore();
+                }
+            } else {
+                getPageStore();
+            }
             starting = false;
             writer = WriterThread.create(this, writeDelay);
         } else {
@@ -630,7 +654,9 @@ public class Database implements DataHandler {
         getLobStorage().init();
         systemSession.commit(true);
         trace.info("opened {0}", databaseName);
-        afterWriting();
+        if (checkpointAllowed > 0) {
+            afterWriting();
+        }
     }
 
     private void startServer(String key) {
@@ -1203,10 +1229,12 @@ public class Database implements DataHandler {
             if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
                 // wait before deleting the .lock file,
                 // otherwise other connections can not detect that
-                try {
-                    Thread.sleep((int) (reconnectCheckDelay * 1.1));
-                } catch (InterruptedException e) {
-                    trace.error(e, "close");
+                if (lock.load().containsKey("changePending")) {
+                    try {
+                        Thread.sleep((int) (reconnectCheckDelay * 1.1));
+                    } catch (InterruptedException e) {
+                        trace.error(e, "close");
+                    }
                 }
             }
             lock.unlock();

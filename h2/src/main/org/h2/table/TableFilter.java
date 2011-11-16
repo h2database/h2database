@@ -28,6 +28,7 @@ import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
 
 /**
  * A table filter represents a table that is used in a query. There is one such
@@ -866,6 +867,9 @@ public class TableFilter implements ColumnResolver {
                 return v;
             }
             current = cursor.get();
+            if (current == null) {
+                return ValueNull.INSTANCE;
+            }
         }
         return current.getValue(columnId);
     }

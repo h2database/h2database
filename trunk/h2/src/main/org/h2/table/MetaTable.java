@@ -601,6 +601,10 @@ public class MetaTable extends Table {
         return s == null ? "" : s;
     }
 
+    private boolean hideTable(Table table, Session session) {
+        return table.isHidden() && session != database.getSystemSession();
+    }
+
     /**
      * Generate the data for the given metadata table using the given first and
      * last row filters.
@@ -632,7 +636,7 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                if (table.isHidden()) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 String storageType;
@@ -678,7 +682,7 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                if (table.isHidden()) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 Column[] cols = table.getColumns();
@@ -744,7 +748,7 @@ public class MetaTable extends Table {
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
                 }
-                if (table.isHidden()) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 ArrayList<Index> indexes = table.getIndexes();
@@ -1209,7 +1213,7 @@ public class MetaTable extends Table {
         case TABLE_PRIVILEGES: {
             for (Right r : database.getAllRights()) {
                 Table table = r.getGrantedTable();
-                if (table == null || table.isHidden()) {
+                if (table == null || hideTable(table, session)) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1223,7 +1227,7 @@ public class MetaTable extends Table {
         case COLUMN_PRIVILEGES: {
             for (Right r : database.getAllRights()) {
                 Table table = r.getGrantedTable();
-                if (table == null || table.isHidden()) {
+                if (table == null || hideTable(table, session)) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1355,7 +1359,7 @@ public class MetaTable extends Table {
                 String checkExpression = null;
                 IndexColumn[] indexColumns = null;
                 Table table = constraint.getTable();
-                if (table.isHidden()) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 Index index = constraint.getUniqueIndex();

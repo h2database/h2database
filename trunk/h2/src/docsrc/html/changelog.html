@@ -19,9 +19,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New experimental system property "h2.modifyOnWrite":
+<ul><li>Subqueries with an aggregate did not always work. Example:
+    select (select count(*) from test where a = t.a and b = 0) from test t group by a
+</li><li>Server: in some (theoretical) cases, exceptions while closing the connection were swallowed.
+</li><li>Server.createTcpServer, createPgServer, createWebServer: invalid arguments are now detected.
+</li><li>The selectivity of LOB columns is no longer calculated 
+    because indexes on LOB columns are not supported
+    (however this should have little effect on performance, as the selectivity
+    is calculated from the hash code and not the data).
+</li><li>New experimental system property "h2.modifyOnWrite":
     when enabled, the database file is only modified when writing to the database.
-    This should speed up the serialized file lock.
+    When enabled, the serialized file lock is much faster for read-only operations.
 </li><li>A NullPointerException could occur in TableView.isDeterministic for invalid views.
 </li><li>Issue 180: when deserializing objects, the context class loader is used 
     instead of the default class loader if the system property "h2.useThreadContextClassLoader" is set.

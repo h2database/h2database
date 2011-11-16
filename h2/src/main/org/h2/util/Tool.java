@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.Properties;
+import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
@@ -62,7 +63,7 @@ public abstract class Tool {
      * @return this method never returns normally
      */
     protected SQLException throwUnsupportedOption(String option) throws SQLException {
-        throw new SQLException("Unsupported option: " + option);
+        throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, option).getSQLException();
     }
 
     /**

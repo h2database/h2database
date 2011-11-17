@@ -28,6 +28,7 @@ import java.util.Calendar;
 import java.util.Map;
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.DataType;
 
@@ -472,7 +473,15 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public String getString(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        return o == null ? null : o.toString();
+        if (o == null) {
+            return null;
+        }
+        switch (columns.get(columnIndex - 1).sqlType) {
+        case Types.CLOB:
+            Clob c = (Clob) o;
+            return c.getSubString(1, MathUtils.convertLongToInt(c.length()));
+        }
+        return o.toString();
     }
 
     /**

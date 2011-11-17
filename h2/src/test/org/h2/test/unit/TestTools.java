@@ -79,6 +79,7 @@ public class TestTools extends TestBase {
             return;
         }
         org.h2.Driver.load();
+        testSimpleResultSet();
         testTcpServerWithoutPort();
         testConsole();
         testJdbcDriverUtils();
@@ -99,7 +100,6 @@ public class TestTools extends TestBase {
         testScriptRunscript();
         testBackupRestore();
         testRecover();
-        testSimpleResultSet();
         deleteDb("utils");
         FileUtils.delete(getBaseDir() + "/b2.sql");
         FileUtils.delete(getBaseDir() + "/b2.sql.txt");
@@ -293,6 +293,8 @@ public class TestTools extends TestBase {
 
         assertTrue(clob == rs.getClob("k"));
         assertTrue(clob == rs.getClob(11));
+        assertEquals("Hello World", rs.getString("k"));
+        assertEquals("Hello World", rs.getString(11));
 
         assertTrue(blob == rs.getBlob("l"));
         assertTrue(blob == rs.getBlob(12));
@@ -910,7 +912,7 @@ public class TestTools extends TestBase {
         }
 
         public String getSubString(long pos, int length) throws SQLException {
-            throw new UnsupportedOperationException();
+            return data;
         }
 
         public long length() throws SQLException {

@@ -163,6 +163,9 @@ public class ConnectionInfo implements Cloneable {
             boolean absolute = FileUtils.isAbsolute(name);
             String n;
             String prefix = null;
+            if (dir.endsWith(SysProperties.FILE_SEPARATOR)) {
+                dir = dir.substring(0, dir.length() - 1);
+            }
             if (absolute) {
                 n = name;
             } else {

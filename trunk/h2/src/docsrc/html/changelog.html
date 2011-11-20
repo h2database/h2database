@@ -19,7 +19,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Read-only databases in a zip file did not work when using the -baseDir option.
+<ul><li>Update statements with a column list in brackets did not work if the list only contains one column.
+    Example: update test set (id)=(id).    
+</li><li>Read-only databases in a zip file did not work when using the -baseDir option.
 </li><li>Issue 334: SimpleResultSet.getString now also works for Clob columns.
 </li><li>Subqueries with an aggregate did not always work. Example:
     select (select count(*) from test where a = t.a and b = 0) from test t group by a

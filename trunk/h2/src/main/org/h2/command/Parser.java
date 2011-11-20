@@ -671,13 +671,18 @@ public class Parser {
             read(")");
             read("=");
             Expression expression = readExpression();
-            for (int i = 0, size = columns.size(); i < size; i++) {
-                Column column = columns.get(i);
-                Function f = Function.getFunction(database, "ARRAY_GET");
-                f.setParameter(0, expression);
-                f.setParameter(1, ValueExpression.get(ValueInt.get(i + 1)));
-                f.doneWithParameters();
-                command.setAssignment(column, f);
+            if (columns.size() == 1) {
+                // the expression is parsed as a simple value
+                command.setAssignment(columns.get(0), expression);
+            } else {
+                for (int i = 0, size = columns.size(); i < size; i++) {
+                    Column column = columns.get(i);
+                    Function f = Function.getFunction(database, "ARRAY_GET");
+                    f.setParameter(0, expression);
+                    f.setParameter(1, ValueExpression.get(ValueInt.get(i + 1)));
+                    f.doneWithParameters();
+                    command.setAssignment(column, f);
+                }
             }
         } else {
             do {

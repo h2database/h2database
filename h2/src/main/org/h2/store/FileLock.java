@@ -251,15 +251,19 @@ public class FileLock implements Runnable {
      * @return the properties
      */
     public Properties load() {
-        try {
-            Properties p2 = SortedProperties.loadProperties(fileName);
-            if (trace.isDebugEnabled()) {
-                trace.debug("load " + p2);
+        IOException lastException = null;
+        for (int i = 0; i < 5; i++) {
+            try {
+                Properties p2 = SortedProperties.loadProperties(fileName);
+                if (trace.isDebugEnabled()) {
+                    trace.debug("load " + p2);
+                }
+                return p2;
+            } catch (IOException e) {
+                lastException = e;
             }
-            return p2;
-        } catch (IOException e) {
-            throw getExceptionFatal("Could not load properties " + fileName, e);
         }
+        throw getExceptionFatal("Could not load properties " + fileName, lastException);
     }
 
     private void waitUntilOld() {

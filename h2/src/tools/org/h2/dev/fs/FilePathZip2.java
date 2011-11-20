@@ -96,10 +96,6 @@ public class FilePathZip2 extends FilePath {
         }
     }
 
-//    public boolean fileStartsWith(String fileName, String prefix) {
-//        return fileName.startsWith(prefix);
-//    }
-
     public long lastModified() {
         return 0;
     }
@@ -110,7 +106,12 @@ public class FilePathZip2 extends FilePath {
     }
 
     public boolean isAbsolute() {
-        return true;
+        String fileName = translateFileName(name);
+        return FilePath.get(fileName).isAbsolute();
+    }
+
+    public FilePath unwrap() {
+        return FilePath.get(name.substring(getScheme().length() + 1));
     }
 
     public boolean isDirectory() {
@@ -257,17 +258,6 @@ public class FilePathZip2 extends FilePath {
     public void moveTo(FilePath newName) {
         throw DbException.getUnsupportedException("write");
     }
-
-//    public String unwrap(String fileName) {
-//        if (fileName.startsWith(PREFIX)) {
-//            fileName = fileName.substring(PREFIX.length());
-//        }
-//        int idx = fileName.indexOf('!');
-//        if (idx >= 0) {
-//            fileName = fileName.substring(0, idx);
-//        }
-//        return FileSystemDisk.expandUserHomeDirectory(fileName);
-//    }
 
     private String getEntryName() {
         int idx = name.indexOf('!');

@@ -199,7 +199,7 @@ public class TestFileSystem extends TestBase {
 
         deleteDb("fsJar");
         for (String f : FileUtils.newDirectoryStream("zip:" + getBaseDir() + "/fsJar.zip")) {
-            assertTrue(FileUtils.isAbsolute(f));
+            assertFalse(FileUtils.isAbsolute(f));
             assertTrue(!FileUtils.isDirectory(f));
             assertTrue(FileUtils.size(f) > 0);
             assertTrue(f.endsWith(FileUtils.getName(f)));

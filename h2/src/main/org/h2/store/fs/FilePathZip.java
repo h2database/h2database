@@ -68,7 +68,12 @@ public class FilePathZip extends FilePath {
     }
 
     public boolean isAbsolute() {
-        return true;
+        String fileName = translateFileName(name);
+        return FilePath.get(fileName).isAbsolute();
+    }
+
+    public FilePath unwrap() {
+        return FilePath.get(name.substring(getScheme().length() + 1));
     }
 
     public boolean isDirectory() {

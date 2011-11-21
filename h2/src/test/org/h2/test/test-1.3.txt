@@ -91,9 +91,6 @@ create table test(id int primary key, name varchar(255), row_number int);
 insert into test values(1, 'hello', 10), (2, 'world', 20);
 > update count: 2
 
-update test set (id)=(id);
-> update count: 2
-
 select row_number() over(), id, name from test order by id;
 > ROWNUM() ID NAME
 > -------- -- -----
@@ -114,6 +111,9 @@ select row_number() over(), id, name from test order by name desc;
 > 2        2  world
 > 1        1  hello
 > rows (ordered): 2
+
+update test set (id)=(id);
+> update count: 2
 
 drop table test;
 > ok

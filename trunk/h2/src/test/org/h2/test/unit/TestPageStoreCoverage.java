@@ -22,7 +22,7 @@ import org.h2.tools.Restore;
  */
 public class TestPageStoreCoverage extends TestBase {
 
-    private static final String URL = "pageStore;PAGE_SIZE=64;CACHE_SIZE=16;MAX_LOG_SIZE=1";
+    private static final String URL = "pageStoreCoverage;PAGE_SIZE=64;CACHE_SIZE=16;MAX_LOG_SIZE=1";
 
     /**
      * Run just this test.

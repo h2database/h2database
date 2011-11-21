@@ -38,7 +38,7 @@ public class TestPageStoreCoverage extends TestBase {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreCoverage");
         testMoveRoot();
         testBasic();
         testReadOnly();
@@ -47,7 +47,7 @@ public class TestPageStoreCoverage extends TestBase {
         testTrim();
         testLongTransaction();
         testRecoverTemp();
-        deleteDb("pageStore");
+        deleteDb("pageStoreCoverage");
     }
 
     private void testMoveRoot() throws SQLException {
@@ -221,24 +221,24 @@ public class TestPageStoreCoverage extends TestBase {
     }
 
     private void testIncompleteCreate() throws Exception {
-        deleteDb("pageStore");
+        deleteDb("pageStoreCoverage");
         Connection conn;
         String fileName = getBaseDir() + "/pageStore" + Constants.SUFFIX_PAGE_FILE;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreCoverage");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists INFORMATION_SCHEMA.LOB_DATA");
         stat.execute("drop table if exists INFORMATION_SCHEMA.LOB_MAP");
         conn.close();
         FileChannel f = FileUtils.open(fileName, "rw");
         // create a new database
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreCoverage");
         conn.close();
         f = FileUtils.open(fileName, "rw");
         f.truncate(16);
         // create a new database
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreCoverage");
         conn.close();
-        deleteDb("pageStore");
+        deleteDb("pageStoreCoverage");
     }
 
 }

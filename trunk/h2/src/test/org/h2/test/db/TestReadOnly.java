@@ -52,6 +52,9 @@ public class TestReadOnly extends TestBase {
     }
 
     private void testReadOnlyInZip() throws SQLException {
+        if (config.cipher != null) {
+            return;
+        }
         deleteDb("readonly");
         String dir = getBaseDir();
         Connection conn = getConnection("readonly");

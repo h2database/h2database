@@ -34,7 +34,11 @@ public class TestAutoServer extends TestBase {
 
     public void test() throws Exception {
         testUnsupportedCombinations();
-        testAutoServer();
+        testAutoServer(false);
+        if (!config.big) {
+            int todo;
+            // testAutoServer(true);
+        }
         testLinkedLocalTablesWithAutoServerReconnect();
     }
 
@@ -56,15 +60,15 @@ public class TestAutoServer extends TestBase {
         }
     }
 
-    /**
-     * Tests basic AUTO_SERVER functionality
-     */
-    private void testAutoServer() throws Exception {
+    private void testAutoServer(boolean port) throws Exception {
         if (config.memory || config.networked) {
             return;
         }
         deleteDb("autoServer");
         String url = getURL("autoServer;AUTO_SERVER=TRUE", true);
+        if (port) {
+            url += ";AUTO_SERVER_PORT=11111";
+        }
         String user = getUser(), password = getPassword();
         Connection connServer = getConnection(url + ";OPEN_NEW=TRUE", user, password);
 
@@ -79,6 +83,10 @@ public class TestAutoServer extends TestBase {
                 u2 = "jdbc:h2:tcp://" + server + "/" + key + u2;
                 Connection conn = DriverManager.getConnection(u2, user, password);
                 conn.close();
+                int gotPort = Integer.parseInt(server.substring(server.lastIndexOf(':') + 1));
+                if (port) {
+                    assertEquals(11111, gotPort);
+                }
                 break;
             }
         }

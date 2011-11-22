@@ -83,7 +83,6 @@ public class TestReadOnly extends TestBase {
         } finally {
             server.stop();
         }
-        FileUtils.deleteRecursive(dir, false);
     }
 
     private void testReadOnlyTempTableResult() throws SQLException {

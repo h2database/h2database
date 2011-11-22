@@ -3510,6 +3510,16 @@ Returns NULL otherwise.
 CALL DATABASE_PATH();
 "
 
+"Functions (System)","DECODE","
+DECODE(value, whenValue, thenValue,...)
+","
+Returns the first matching value. NULL is considered to match NULL.
+If no match was found, then NULL or the last parameter (if the parameter count is even) is returned.
+This function is provided for Oracle compatibility (see there for details).
+","
+CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
+"
+
 "Functions (System)","FILE_READ","
 FILE_READ(fileNameString [,encodingString])
 ","

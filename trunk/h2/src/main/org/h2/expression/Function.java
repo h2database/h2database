@@ -95,7 +95,7 @@ public class Function extends Expression implements FunctionCall {
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
             LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228;
+            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228, DECODE = 229;
 
     public static final int ROW_NUMBER = 300;
 
@@ -334,6 +334,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("SET", SET, 2, Value.NULL, false, false, false);
         addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
+        addFunctionWithNull("DECODE", DECODE, VAR_ARGS, Value.NULL);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -775,6 +776,20 @@ public class Function extends Expression implements FunctionCall {
                 expr = argList[1];
             }
             Value v = expr.getValue(session);
+            result = v.convertTo(dataType);
+            break;
+        }
+        case DECODE: {
+            Expression expr = null;
+            for (int i = 1; i < argList.length - 1; i += 2) {
+                if (database.areEqual(v0, argList[i].getValue(session))) {
+                    expr = argList[i + 1];
+                }
+            }
+            if (expr == null && argList.length % 2 == 0) {
+                expr = argList[argList.length - 1];
+            }
+            Value v = expr == null ? ValueNull.INSTANCE : expr.getValue(session);
             result = v.convertTo(dataType);
             break;
         }
@@ -1637,6 +1652,9 @@ public class Function extends Expression implements FunctionCall {
             min = 1;
             max = 2;
             break;
+        case DECODE:
+            min = 3;
+            break;
         default:
             DbException.throwInternalError("type=" + info.type);
         }
@@ -1692,12 +1710,24 @@ public class Function extends Expression implements FunctionCall {
         case NULLIF:
         case COALESCE:
         case LEAST:
-        case GREATEST: {
+        case GREATEST:
+        case DECODE: {
             t = Value.UNKNOWN;
             s = 0;
             p = 0;
             d = 0;
+            int i = 0;
             for (Expression e : args) {
+                if (info.type == DECODE) {
+                    if (i < 2 || ((i % 2 == 1) && (i != args.length - 1))) {
+                        // decode(a, b, whenB)
+                        // decode(a, b, whenB, else)
+                        // decode(a, b, whenB, c, whenC)
+                        // decode(a, b, whenB, c, whenC, end)
+                        i++;
+                        continue;
+                    }
+                }
                 if (e != ValueExpression.getNull()) {
                     int type = e.getType();
                     if (type != Value.UNKNOWN && type != Value.NULL) {
@@ -1707,6 +1737,7 @@ public class Function extends Expression implements FunctionCall {
                         d = Math.max(d, e.getDisplaySize());
                     }
                 }
+                i++;
             }
             if (t == Value.UNKNOWN) {
                 t = Value.STRING;

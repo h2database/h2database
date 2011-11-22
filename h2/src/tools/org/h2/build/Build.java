@@ -729,12 +729,27 @@ public class Build extends BuildBase {
             };
             thread.start();
             Thread.sleep(1000);
-            Socket socket = new Socket();
+            final Socket socket = new Socket();
             socket.setSoTimeout(2000);
-            InetSocketAddress socketAddress = new InetSocketAddress(address, port);
+            final InetSocketAddress socketAddress = new InetSocketAddress(address, port);
             System.out.println("client:" + socketAddress);
             try {
-                socket.connect(socketAddress, 2000);
+                Thread t = new Thread() {
+                    public void run() {
+                        try {
+                            socket.connect(socketAddress, 2000);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                t.start();
+                t.join(5000);
+                if (!socket.isConnected()) {
+                    final InetSocketAddress localhostAddress = new InetSocketAddress("localhost", port);
+                    System.out.println("not connected, trying localhost:" + socketAddress);
+                    socket.connect(localhostAddress, 2000);
+                }
                 Thread.sleep(200);
                 System.out.println("client:" + socket.toString());
                 socket.getOutputStream().write(123);

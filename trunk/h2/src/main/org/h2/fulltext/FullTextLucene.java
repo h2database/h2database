@@ -325,8 +325,9 @@ public class FullTextLucene extends FullText {
             for (int i = 0; i < columnCount; i++) {
                 row[i] = rs.getObject(i + 1);
             }
-            existing.fire(conn, null, row);
+            existing.insert(row, false);
         }
+        existing.commitIndex();
     }
 
     private static void removeIndexFiles(Connection conn) throws SQLException {
@@ -547,7 +548,7 @@ public class FullTextLucene extends FullText {
                     // update
                     if (hasChanged(oldRow, newRow, indexColumns)) {
                         delete(oldRow);
-                        insert(newRow);
+                        insert(newRow, true);
                     }
                 } else {
                     // delete
@@ -555,7 +556,7 @@ public class FullTextLucene extends FullText {
                 }
             } else if (newRow != null) {
                 // insert
-                insert(newRow);
+                insert(newRow, true);
             }
         }
 
@@ -576,12 +577,26 @@ public class FullTextLucene extends FullText {
             // ignore
         }
 
+        public void commitIndex() throws SQLException {
+            try {
+                indexAccess.writer.commit();
+                // recreate Searcher with the IndexWriter's reader.
+                indexAccess.searcher.close();
+                indexAccess.reader.close();
+                IndexReader reader = indexAccess.writer.getReader();
+                indexAccess.reader = reader;
+                indexAccess.searcher = new IndexSearcher(reader);
+            } catch (IOException e) {
+                throw convertException(e);
+            }
+        }
+
         /**
          * Add a row to the index.
          *
          * @param row the row
          */
-        protected void insert(Object[] row) throws SQLException {
+        protected void insert(Object[] row, boolean commitIndex) throws SQLException {
             /*## LUCENE2 ##
             String query = getQuery(row);
             Document doc = new Document();
@@ -645,13 +660,15 @@ public class FullTextLucene extends FullText {
                     Field.Index.ANALYZED));
             try {
                 indexAccess.writer.addDocument(doc);
-                indexAccess.writer.commit();
-                // recreate Searcher with the IndexWriter's reader.
-                indexAccess.searcher.close();
-                indexAccess.reader.close();
-                IndexReader reader = indexAccess.writer.getReader();
-                indexAccess.reader = reader;
-                indexAccess.searcher = new IndexSearcher(reader);
+                if (commitIndex) {
+                    indexAccess.writer.commit();
+                    // recreate Searcher with the IndexWriter's reader.
+                    indexAccess.searcher.close();
+                    indexAccess.reader.close();
+                    IndexReader reader = indexAccess.writer.getReader();
+                    indexAccess.reader = reader;
+                    indexAccess.searcher = new IndexSearcher(reader);
+                }
             } catch (IOException e) {
                 throw convertException(e);
             }

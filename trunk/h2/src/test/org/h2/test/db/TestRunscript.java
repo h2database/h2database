@@ -50,8 +50,8 @@ public class TestRunscript extends TestBase implements Trigger {
         Connection conn;
         conn = getConnection("runscript");
         Statement stat = conn.createStatement();
-        stat.execute("create alias decode for \"java.lang.Integer.decode\"");
-        stat.execute("create table test(x varchar, y int as decode(x))");
+        stat.execute("create alias int_decode for \"java.lang.Integer.decode\"");
+        stat.execute("create table test(x varchar, y int as int_decode(x))");
         stat.execute("script simple drop to '" + getBaseDir() + "/backup.sql'");
         stat.execute("runscript from '" + getBaseDir() + "/backup.sql'");
         conn.close();

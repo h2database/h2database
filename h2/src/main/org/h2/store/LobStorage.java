@@ -69,7 +69,7 @@ public class LobStorage {
     private HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
     private CompressTool compress = CompressTool.getInstance();
-    private long[] hashBlocks = new long[HASH_CACHE_SIZE * 2];
+    private long[] hashBlocks;
 
     private final DataHandler handler;
     private boolean init;
@@ -620,6 +620,7 @@ public class LobStorage {
 
     private long getHashCacheBlock(int hash) {
         if (HASH_CACHE_SIZE > 0) {
+            initHashCache();
             int index = hash & (HASH_CACHE_SIZE - 1);
             long oldHash = hashBlocks[index];
             if (oldHash == hash) {
@@ -631,9 +632,16 @@ public class LobStorage {
 
     private void setHashCacheBlock(int hash, long block) {
         if (HASH_CACHE_SIZE > 0) {
+            initHashCache();
             int index = hash & (HASH_CACHE_SIZE - 1);
             hashBlocks[index] = hash;
             hashBlocks[index + HASH_CACHE_SIZE] = block;
+        }
+    }
+
+    private void initHashCache() {
+        if (hashBlocks == null) {
+            hashBlocks = new long[HASH_CACHE_SIZE * 2];
         }
     }
 

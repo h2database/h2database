@@ -46,12 +46,16 @@ public class NetUtils {
         if (address == null) {
             address = InetAddress.getLocalHost();
         }
-        int test;
-//        try {
-//            return createSocket(getHostAddress(address), port, ssl);
-//        } catch (IOException e) {
-            return createSocket("localhost", port, ssl);
-//        }
+        try {
+            return createSocket(getHostAddress(address), port, ssl);
+        } catch (IOException e) {
+            try {
+                return createSocket("localhost", port, ssl);
+            } catch (IOException e2) {
+                // throw the original exception
+                throw e;
+            }
+        }
     }
 
     /**

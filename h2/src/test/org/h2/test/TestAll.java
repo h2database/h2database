@@ -343,7 +343,7 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.useThreadContextClassLoader", "true");
 
         int testing;
-        System.setProperty("h2.modifyOnWrite", "true");
+        // System.setProperty("h2.modifyOnWrite", "true");
 
         // System.setProperty("h2.storeLocalTime", "true");
 

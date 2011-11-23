@@ -2374,12 +2374,27 @@ public class Database implements DataHandler {
         return dbSettings;
     }
 
+    /**
+     * Create a new hash map. Depending on the configuration, the key is case
+     * sensitive or case insensitive.
+     *
+     * @param <V> the value type
+     * @return the hash map
+     */
     public <V> HashMap<String, V> newStringMap() {
         return dbSettings.databaseToUpper ?
                 new HashMap<String, V>() :
                 new CaseInsensitiveMap<V>();
     }
 
+    /**
+     * Compare two identifiers (table names, column names,...) and verify they
+     * are equal. Case sensitivity depends on the configuration.
+     *
+     * @param a the first identifier
+     * @param b the second identifier
+     * @return true if they match
+     */
     public boolean equalsIdentifiers(String a, String b) {
         if (a == b || a.equals(b)) {
             return true;

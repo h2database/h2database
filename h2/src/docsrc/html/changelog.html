@@ -1,4 +1,3 @@
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
 Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
@@ -23,14 +22,14 @@ Change Log
 </li><li>Lucene fulltext search: creating an index is now faster if the table already contains data.
     Thanks a lot to Angel Leon from the FrostWire Team for the patch!
 </li><li>Update statements with a column list in brackets did not work if the list only contains one column.
-    Example: update test set (id)=(id).    
+    Example: update test set (id)=(id).
 </li><li>Read-only databases in a zip file did not work when using the -baseDir option.
 </li><li>Issue 334: SimpleResultSet.getString now also works for Clob columns.
 </li><li>Subqueries with an aggregate did not always work. Example:
     select (select count(*) from test where a = t.a and b = 0) from test t group by a
-</li><li>Server: in some (theoretical) cases, exceptions while closing the connection were swallowed.
+</li><li>Server: in some (theoretical) cases, exceptions while closing the connection were ignored.
 </li><li>Server.createTcpServer, createPgServer, createWebServer: invalid arguments are now detected.
-</li><li>The selectivity of LOB columns is no longer calculated 
+</li><li>The selectivity of LOB columns is no longer calculated
     because indexes on LOB columns are not supported
     (however this should have little effect on performance, as the selectivity
     is calculated from the hash code and not the data).
@@ -38,14 +37,14 @@ Change Log
     when enabled, the database file is only modified when writing to the database.
     When enabled, the serialized file lock is much faster for read-only operations.
 </li><li>A NullPointerException could occur in TableView.isDeterministic for invalid views.
-</li><li>Issue 180: when deserializing objects, the context class loader is used 
+</li><li>Issue 180: when deserializing objects, the context class loader is used
     instead of the default class loader if the system property "h2.useThreadContextClassLoader" is set.
     Thanks a lot to Noah Fontes for the patch!
-</li><li>When using the exclusive mode, LOB operations could cause the thread to freeze.
+</li><li>When using the exclusive mode, LOB operations could cause the thread to block.
     This also affected the CreateCluster tool (when using BLOB or CLOB data).
 </li><li>The optimization for "group by" was not working correctly if the group by column
     was aliased in the select list.
-</li><li>Issue 326: improved support for case sensitive (mixed case) identifiers 
+</li><li>Issue 326: improved support for case sensitive (mixed case) identifiers
     without quotes when using DATABASE_TO_UPPER=FALSE.
 </li></ul>
 

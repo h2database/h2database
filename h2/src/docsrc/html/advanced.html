@@ -848,7 +848,7 @@ against a database that was created with a user name that is not in the script.
 The <code>Recover</code> tool creates a SQL script from database file. It also processes the transaction log.
 </p>
 <p>
-To verify the database is always recoverable, append <code>;RECOVER_TEST=64</code>
+To verify the database can recover at any time, append <code>;RECOVER_TEST=64</code>
 to the database URL in your test environment. This will simulate an application crash after each 64 writes to the database file.
 A log file named <code>databaseName.h2.db.log</code> is created that lists the operations.
 The recovery is tested using an in-memory file system, that means it may require a larger heap setting.

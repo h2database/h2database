@@ -1275,6 +1275,10 @@ Returns the name of the database."
 DATABASE_PATH()
 ","
 Returns the directory of the database files and the database name, if it is file based."
+"Functions (System)","DECODE","
+DECODE(value, whenValue, thenValue [,...])
+","
+Returns the first matching value."
 "Functions (System)","FILE_READ","
 FILE_READ(fileNameString [,encodingString])
 ","

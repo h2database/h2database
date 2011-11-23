@@ -523,7 +523,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     <td><a href="#execute_sql_on_connection">Execute SQL on connection</a></td>
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;;INIT=RUNSCRIPT FROM '~/create.sql'<br />
-        jdbc:h2:file:~/sample;INIT=RUNSCRIPT FROM '~/create.sql'\\;RUNSCRIPT FROM '~/populate.sql'<br />
+        jdbc:h2:file:~/sample;INIT=RUNSCRIPT FROM '~/create.sql'\;RUNSCRIPT FROM '~/populate.sql'<br />
     </td>
 </tr>
 <tr>
@@ -771,6 +771,13 @@ must be escaped, as in the example below.
 </p>
 <pre>
 String url = "jdbc:h2:mem;INIT=RUNSCRIPT FROM '~/create.sql'\\;RUNSCRIPT FROM '~/populate.sql'";
+</pre>
+<p>
+Please note the double backslash is only required in a Java or properties file.
+In a GUI, or in an XML file, only one backslash is required:
+</p>
+<pre>
+&lt;property name="url" value="jdbc:h2:mem:test;INIT=CREATE SCHEMA IF NOT EXISTS TEST\;RUNSCRIPT FROM '~/sql/populate.sql';DB_CLOSE_DELAY=-1" /&gt;
 </pre>
 
 <h2 id="ignore_unknown_settings">Ignore Unknown Settings</h2>
@@ -1190,8 +1197,8 @@ DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 </pre>
 <p>
-When using this feature, by default the server allocates a random TCP socket.
-It is possible to control the port that the server uses by passing in an <code>AUTO_SERVER_PORT=9090</code> parameter.
+When using this feature, by default the server uses any free TCP port.
+The port can be set manually using <code>AUTO_SERVER_PORT=9090</code>.
 </p>
 
 <h2 id="page_size">Page Size</h2>

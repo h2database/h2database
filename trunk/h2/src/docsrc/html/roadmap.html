@@ -562,8 +562,10 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: index names only need to be unique for the given table.
 </li><li>Issue 352: constraints: distinguish between 'no action' and 'restrict'. Currently, only restrict is supported,
     and 'no action' is internally mapped to 'restrict'. The database meta data returns 'restrict' in all cases.
-</li><li>Oracle compatilibity: support MEDIAN aggregate function.
-</li><li>Issue 348: Oracle compatilibity: division should return a decimal result.
+</li><li>Oracle compatibility: support MEDIAN aggregate function.
+</li><li>Issue 348: Oracle compatibility: division should return a decimal result.
+</li><li>Read rows on demand: instead of reading the whole row, only read up to that column that is requested.
+    Keep an pointer to the data area and the column id that is already read.
 </li></ul>
 
 <h2>Not Planned</h2>

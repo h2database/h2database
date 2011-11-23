@@ -578,8 +578,4 @@ public class Schema extends DbObjectBase {
         }
     }
 
-    public <V> HashMap<String, V> newStringMap() {
-        return database.newStringMap();
-    }
-
 }

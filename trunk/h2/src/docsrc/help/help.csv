@@ -3511,7 +3511,7 @@ CALL DATABASE_PATH();
 "
 
 "Functions (System)","DECODE","
-DECODE(value, whenValue, thenValue,...)
+DECODE(value, whenValue, thenValue [,...])
 ","
 Returns the first matching value. NULL is considered to match NULL.
 If no match was found, then NULL or the last parameter (if the parameter count is even) is returned.

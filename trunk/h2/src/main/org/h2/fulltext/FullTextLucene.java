@@ -577,7 +577,10 @@ public class FullTextLucene extends FullText {
             // ignore
         }
 
-        public void commitIndex() throws SQLException {
+        /**
+         * Commit all changes to the Lucene index.
+         */
+        void commitIndex() throws SQLException {
             try {
                 indexAccess.writer.commit();
                 // recreate Searcher with the IndexWriter's reader.
@@ -595,6 +598,7 @@ public class FullTextLucene extends FullText {
          * Add a row to the index.
          *
          * @param row the row
+         * @param commitIndex whether to commit the changes to the Lucene index
          */
         protected void insert(Object[] row, boolean commitIndex) throws SQLException {
             /*## LUCENE2 ##

@@ -12,14 +12,18 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * Tests the ability to deserialize objects that are not part of the system class-
- * loading scope.
+ * Tests the ability to deserialize objects that are not part of the system
+ * class-loading scope.
  */
 public class TestObjectDeserialization extends TestBase {
 
     private static final String CLAZZ = "org.h2.test.unit.SampleObject";
-    private static final String OBJECT = "aced00057372001d6f72672e68322e746573742e756e69742e53616d706c654f626a65637400000000000000010200007870";
+    private static final String OBJECT =
+        "aced00057372001d6f72672e68322e746573742e756e69742e53616d706c654f626a65637400000000000000010200007870";
 
+    /**
+     * The thread context class loader was used.
+     */
     protected boolean usesThreadContextClassLoader;
 
     /**
@@ -37,6 +41,7 @@ public class TestObjectDeserialization extends TestBase {
     }
 
     private void testThreadContextClassLoader() throws Exception {
+        usesThreadContextClassLoader = false;
         Thread.currentThread().setContextClassLoader(new TestClassLoader());
         try {
             Utils.deserialize(StringUtils.convertHexToBytes(OBJECT));

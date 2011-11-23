@@ -1189,6 +1189,10 @@ DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 // Application 2:
 DriverManager.getConnection("jdbc:h2:/data/test;AUTO_SERVER=TRUE");
 </pre>
+<p>
+When using this feature, by default the server allocates a random TCP socket.
+It is possible to control the port that the server uses by passing in an <code>AUTO_SERVER_PORT=9090</code> parameter.
+</p>
 
 <h2 id="page_size">Page Size</h2>
 <p>

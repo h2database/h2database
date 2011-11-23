@@ -35,6 +35,7 @@ public class TestAutoServer extends TestBase {
     public void test() throws Exception {
         testUnsupportedCombinations();
         testAutoServer(false);
+        testAutoServer(true);
         if (!config.big) {
             int todo;
             // testAutoServer(true);

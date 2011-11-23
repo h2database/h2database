@@ -152,6 +152,7 @@ public class Database implements DataHandler {
     private int maxOperationMemory = Constants.DEFAULT_MAX_OPERATION_MEMORY;
     private SmallLRUCache<String, String[]> lobFileListCache;
     private boolean autoServerMode;
+    private int autoServerPort;
     private Server server;
     private HashMap<TableLinkConnection, TableLinkConnection> linkConnections;
     private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
@@ -189,6 +190,7 @@ public class Database implements DataHandler {
         String lockMethodName = ci.getProperty("FILE_LOCK", null);
         this.accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
+        this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);
         this.cacheSize = ci.getProperty("CACHE_SIZE", Constants.CACHE_SIZE_DEFAULT);
         this.pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
         if ("r".equals(accessModeData)) {
@@ -662,7 +664,7 @@ public class Database implements DataHandler {
     private void startServer(String key) {
         try {
             server = Server.createTcpServer(
-                    "-tcpPort", "0",
+                    "-tcpPort", Integer.toString(autoServerPort),
                     "-tcpAllowOthers",
                     "-tcpDaemon",
                     "-key", key, databaseName);

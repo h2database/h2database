@@ -4565,6 +4565,10 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
+        } else if (readIf("AUTO_SERVER_PORT")) {
+            readIfEqualOrTo();
+            read();
+            return new NoOperation(session);
         } else if (readIf("AUTO_RECONNECT")) {
             readIfEqualOrTo();
             read();

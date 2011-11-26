@@ -1756,21 +1756,13 @@ public class JdbcConnection extends TraceObject implements Connection {
         Object o;
         switch (v.getType()) {
         case Value.CLOB: {
-            if (SysProperties.RETURN_LOB_OBJECTS) {
-                int id = getNextId(TraceObject.CLOB);
-                o = new JdbcClob(this, v, id);
-            } else {
-                o = v.getObject();
-            }
+            int id = getNextId(TraceObject.CLOB);
+            o = new JdbcClob(this, v, id);
             break;
         }
         case Value.BLOB: {
-            if (SysProperties.RETURN_LOB_OBJECTS) {
-                int id = getNextId(TraceObject.BLOB);
-                o = new JdbcBlob(this, v, id);
-            } else {
-                o = v.getObject();
-            }
+            int id = getNextId(TraceObject.BLOB);
+            o = new JdbcBlob(this, v, id);
             break;
         }
         case Value.JAVA_OBJECT:

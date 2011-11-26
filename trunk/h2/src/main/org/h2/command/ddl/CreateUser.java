@@ -8,7 +8,6 @@ package org.h2.command.ddl;
 
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -77,7 +76,7 @@ public class CreateUser extends DefineCommand {
         } else if (password != null) {
             char[] passwordChars = getCharArray(password);
             byte[] userPasswordHash;
-            if (userName.length() == 0 && passwordChars.length == 0 && SysProperties.EMPTY_PASSWORD) {
+            if (userName.length() == 0 && passwordChars.length == 0) {
                 userPasswordHash = new byte[0];
             } else {
                 userPasswordHash = SHA256.getKeyPasswordHash(userName, passwordChars);

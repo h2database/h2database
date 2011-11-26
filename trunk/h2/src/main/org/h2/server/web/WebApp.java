@@ -1683,7 +1683,7 @@ public class WebApp {
         String d = rs.getString(columnIndex);
         if (d == null) {
             return "<i>null</i>";
-        } else if (d.length() > SysProperties.WEB_MAX_VALUE_LENGTH) {
+        } else if (d.length() > 100000) {
             String s;
             if (isBinary(rs.getMetaData().getColumnType(columnIndex))) {
                 s = PageParser.escapeHtml(d.substring(0, 6)) + "... (" + (d.length() / 2) + " ${text.result.bytes})";

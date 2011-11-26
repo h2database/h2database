@@ -9,9 +9,7 @@ package org.h2.value;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
@@ -54,7 +52,7 @@ public class ValueDecimal extends Value {
     private ValueDecimal(BigDecimal value) {
         if (value == null) {
             throw new IllegalArgumentException();
-        } else if (!SysProperties.ALLOW_BIG_DECIMAL_EXTENSIONS && !value.getClass().equals(BigDecimal.class)) {
+        } else if (!value.getClass().equals(BigDecimal.class)) {
             throw DbException.get(ErrorCode.INVALID_CLASS_2,
                     BigDecimal.class.getName(), value.getClass().getName());
         }

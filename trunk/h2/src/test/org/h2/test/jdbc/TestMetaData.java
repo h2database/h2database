@@ -14,8 +14,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.value.DataType;
@@ -239,21 +237,11 @@ public class TestMetaData extends TestBase {
         stat.execute("INSERT INTO t VALUES('', '')");
         ResultSet rs = stat.executeQuery("SELECT blob,clob FROM t");
         ResultSetMetaData rsMeta = rs.getMetaData();
-        if (SysProperties.RETURN_LOB_OBJECTS) {
-            assertEquals("java.sql.Blob", rsMeta.getColumnClassName(1));
-            assertEquals("java.sql.Clob", rsMeta.getColumnClassName(2));
-        } else {
-            assertEquals("java.io.InputStream", rsMeta.getColumnClassName(1));
-            assertEquals("java.io.Reader", rsMeta.getColumnClassName(2));
-        }
+        assertEquals("java.sql.Blob", rsMeta.getColumnClassName(1));
+        assertEquals("java.sql.Clob", rsMeta.getColumnClassName(2));
         rs.next();
-        if (SysProperties.RETURN_LOB_OBJECTS) {
-            assertTrue(rs.getObject(1) instanceof java.sql.Blob);
-            assertTrue(rs.getObject(2) instanceof java.sql.Clob);
-        } else {
-            assertEquals("java.io.ByteArrayInputStream", rs.getObject(1).getClass().getName());
-            assertEquals("java.io.BufferedReader", rs.getObject(2).getClass().getName());
-        }
+        assertTrue(rs.getObject(1) instanceof java.sql.Blob);
+        assertTrue(rs.getObject(2) instanceof java.sql.Clob);
         stat.executeUpdate("DROP TABLE t");
     }
 

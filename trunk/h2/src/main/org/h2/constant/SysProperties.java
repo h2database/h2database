@@ -77,14 +77,6 @@ public class SysProperties {
     public static final String USER_HOME = Utils.getProperty("user.home", "");
 
     /**
-     * System property <code>h2.allowBigDecimalExtensions</code> (default:
-     * false).<br />
-     * When enabled, classes that extend BigDecimal are supported in
-     * PreparedStatement.setBigDecimal.
-     */
-    public static final boolean ALLOW_BIG_DECIMAL_EXTENSIONS = Utils.getProperty("h2.allowBigDecimalExtensions", false);
-
-    /**
      * System property <code>h2.allowedClasses</code> (default: *).<br />
      * Comma separated list of class names or prefixes.
      */
@@ -180,12 +172,6 @@ public class SysProperties {
     public static final int DELAY_WRONG_PASSWORD_MAX = Utils.getProperty("h2.delayWrongPasswordMax", 4000);
 
     /**
-     * System property <code>h2.emptyPassword</code> (default: true).<br />
-     * Don't use a secure hash if the user name and password are empty or not set.
-     */
-    public static final boolean EMPTY_PASSWORD = Utils.getProperty("h2.emptyPassword", true);
-
-    /**
      * System property <code>h2.lobCloseBetweenReads</code> (default: false).<br />
      * Close LOB files between read operations.
      */
@@ -242,13 +228,6 @@ public class SysProperties {
     public static final boolean MODIFY_ON_WRITE = Utils.getProperty("h2.modifyOnWrite", false);
 
     /**
-     * System property <code>h2.minColumnNameMap</code> (default: 3).<br />
-     * The minimum number of columns where a hash table is created when result set
-     * methods with column name (instead of column index) parameter are called.
-     */
-    public static final int MIN_COLUMN_NAME_MAP = Utils.getProperty("h2.minColumnNameMap", 3);
-
-    /**
      * System property <code>h2.nioLoadMapped</code> (default: false).<br />
      * If the mapped buffer should be loaded when the file is opened.
      * This can improve performance.
@@ -297,14 +276,6 @@ public class SysProperties {
      * The prefix for temporary files in the temp directory.
      */
     public static final String PREFIX_TEMP_FILE = Utils.getProperty("h2.prefixTempFile", "h2.temp");
-
-    /**
-     * System property <code>h2.returnLobObjects</code> (default: true).<br />
-     * When true, ResultSet.getObject for CLOB or BLOB will return a
-     * java.sql.Clob / java.sql.Blob object. When set to false, it will return a
-     * java.io.Reader / java.io.InputStream.
-     */
-    public static final boolean RETURN_LOB_OBJECTS = Utils.getProperty("h2.returnLobObjects", true);
 
     /**
      * System property <code>h2.runFinalize</code> (default: true).<br />
@@ -394,14 +365,6 @@ public class SysProperties {
      */
     public static final boolean USE_THREAD_CONTEXT_CLASS_LOADER =
         Utils.getProperty("h2.useThreadContextClassLoader", false);
-
-    /**
-     * System property <code>h2.webMaxValueLength</code> (default: 100000).<br />
-     * The H2 Console will abbreviate (truncate) result values larger than this size.
-     * The data in the database is not truncated, it is only to avoid out of memory
-     * in the H2 Console application.
-     */
-    public static final int WEB_MAX_VALUE_LENGTH = Utils.getProperty("h2.webMaxValueLength", 100000);
 
     private static final String H2_BASE_DIR = "h2.baseDir";
 

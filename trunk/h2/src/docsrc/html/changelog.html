@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.161 (2011-10-28)</h2>
 <ul><li>The following system properties are no longer supported:
     <code>h2.allowBigDecimalExtensions</code>,
     <code>h2.emptyPassword</code>,
@@ -735,86 +739,6 @@ Change Log
 </li><li>CAST('011' AS INT) will no longer use decode the value as an octal number (using Integer.decode) but now use Integer.parseInt.
     The same logic applied to byte, short, and long. This also means that trying to convert hex numbers (0x...) with CAST now fails.
 </li><li>A table in the Recover tool script could not be imported if the script contained duplicate keys.
-</li></ul>
-
-<h2>Version 1.2.144 (2010-10-15)</h2>
-<ul><li>The Windows .bat files did not contain CR+LF.
-</li><li>The LOB storage (when the system property h2.lobInDatabase is set) is now only initialized when needed.
-</li><li>The index condition columnName IS NULL was not efficient when using a clustered index.
-</li><li>The Recover tool did not work for databases larger than 2 GB.
-</li><li>In memory database: outer joins with a condition "column is null" could return the wrong result.
-</li><li>Temporary files were not created in the temporary directory of the system, but in the current working directory.
-    This affected temporary undo log files for read-only databases, temporary files for large result sets when using read-only databases,
-    and temporary LOB files when storing LOBs in the database (system property h2.lobInDatabase).
-    When the setting h2.lobInDatabase is not set,
-    temporary LOB files are still stored in a sub-directory (.lobs.db/) of the current working directory.
-</li><li>New experimental feature to speed up CREATE TABLE ... AS SELECT.
-    To enable the feature, set the system property h2.optimizeInsertFromSelect to true.
-    For large queries, performance can be doubled.
-</li><li>When LOB objects are stored in the database (using the experimental setting h2.lobInDatabase),
-    and using the MVCC mode, opening a database with uncommitted transactions could throw a NullPointerException.
-</li><li>Support of stored procedures with OUT parameters in CallableStatement is implemented.
-</li><li>PreparedStatement.getMetaData() was not always consistent with resulting ResultSet.getMetaData().
-</li><li>The build tool now uses JAVA_HOME for javac as well. Issue 233.
-</li><li>Opening and closing encrypted databases is now much faster.
-</li><li>H2 Console: new experimental feature to support file download and upload,
-    but only if there is a directory called "transfer" in the current working directory.
-    For security reasons, only very simple file names are supported. Sub-directories are not supported.
-    To upload, use transfer.jsp; to download, use transfer/fileName.
-</li><li>A new sample application that shows how to manually create an encrypted
-    and compressed script file.
-</li><li>Performance has been improved a bit.
-</li><li>DatabaseMetaData.getJDBCMajorVersion now returns 4 (instead of 3) when the driver
-    is compiled with Java 6 (the default).
-</li><li>Re-added the internal utility class BitField which improves performance of opening
-    and closing a database (because it supports setByte / getByte, unlike java.util.BitSet).
-</li><li>INFORMATION_SCHEMA.SESSIONS: the start time of a SQL statement
-    is no longer set in each case. It is only set for long running statements.
-    This change should improve performance a bit on some devices, specially when using Android.
-</li><li>A old databases without user name and password (created with H2 version 1.2.142 or older)
-    couldn't be opened with version 1.2.143. Fixed.
-</li><li>The database upgrade classes have been renamed.
-</li><li>The database did not automatically upgrade when using a connection pool or data source.
-</li><li>JaQu: a database object can now also be created using a DataSource. Issue 227.
-</li><li>The built-in profiler now better supports the Dalvik VM.
-</li><li>The jarSmall build target no longer includes assertions
-    (SysProperties.CHECK, CHECK2, system properties h2.check and h2.check2).
-</li><li>The jarSmall build target excluded the DbUpgrade classes by mistake.
-</li></ul>
-
-<h2>Version 1.2.143 (2010-09-18)</h2>
-<ul><li>If the user name and password are not set or empty, then the password is not hashed.
-    To disable this behavior, set the system property h2.emptyPassword to false.
-    TCP server: the default user name for the management database is now an empty string.
-</li><li>Cluster: auto-commit was disabled after opening a connection.
-</li><li>Connection.getAutoCommit() is now much faster, specially when using the server mode.
-</li><li>Statement.cancel() had no effect when using the server mode.
-</li><li>SCRIPT: the SQL script no longer contains settings that match the default value.
-</li><li>Statement.cancel() did not work when running RUNSCRIPT and SCRIPT.
-</li><li>Statement.cancel() could cause a NullPointerException.
-</li><li>In some cases (specially when using a small cache size or a large database over 1 GB) for some
-    operations like ALTER TABLE the data was written before the transaction log entries, which could cause a corrupt database
-    if the process was killed during the ALTER TABLE operation. Thanks a lot to Victor Pyankov for helping solve this problem!
-</li><li>The Recover tool could throw a ArrayIndexOutOfBoundsException
-    when trying to recover a corrupt database file.
-</li><li>The SCRIPT command and tool now uses the default file encoding
-    for the system now instead of UTF-8 (as before).
-    In most cases, this will not affect existing applications, as the encoding
-    only affects how SQL identifiers (table names and so on) that contain special characters
-    are stored. Table data is escaped, and therefore is no problem.
-</li><li>The SCRIPT command and tool now also support the CHARSET option
-    (like RUNSCRIPT).
-</li><li>When closing a database, sometimes empty space in the database was not freed up.
-</li><li>Trying to create a view with parameters in the query will now throw an exception.
-    So far, creating the view was allowed, but the parameter value was not used (null was used instead).
-</li><li>New experimental feature SHUTDOWN DEFRAG.
-    This option re-orders the pages while closing the database so that table scans are faster.
-</li><li>When using the MULTI_THREADED option, concurrently reading from a database
-    (specially from a larger database, or when using a small cache size) could throw an exception.
-</li><li>When adding a comment to a column that has a check constraint,
-    the database couldn't be re-opened.
-</li><li>New system property h2.lobClientMaxSizeMemory to set the maximum size
-    of a LOB object to keep in memory on the client side when using the server mode.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -2853,7 +2853,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         if (columnLabel == null) {
             throw DbException.getInvalidValueException("columnLabel", null);
         }
-        if (columnCount >= SysProperties.MIN_COLUMN_NAME_MAP) {
+        if (columnCount >= 3) {
+            // use a hash table if more than 2 columns
             if (columnLabelMap == null) {
                 HashMap<String, Integer> map = New.hashMap(columnCount);
                 // column labels have higher priority

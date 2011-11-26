@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>When using a VPN, starting a H2 server did not work (for some VPN software).
+<ul><li>The following system properties are no longer supported:
+    <code>h2.allowBigDecimalExtensions</code>,
+    <code>h2.emptyPassword</code>,
+    <code>h2.minColumnNameMap</code>,
+    <code>h2.returnLobObjects</code>,
+    <code>h2.webMaxValueLength</code>.
+</li><li>When using a VPN, starting a H2 server did not work (for some VPN software).
 </li><li>Oracle compatibility: support for DECODE(...).
 </li><li>Lucene fulltext search: creating an index is now faster if the table already contains data.
     Thanks a lot to Angel Leon from the FrostWire Team for the patch!

@@ -6,10 +6,12 @@
  */
 package org.h2.test.jdbc;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.Writer;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -42,6 +44,7 @@ public class TestLobApi extends TestBase {
 
     public void test() throws Exception {
         deleteDb("lob");
+        testLobStaysOpenUntilCommitted();
         testInputStreamThrowsException(true);
         testInputStreamThrowsException(false);
         conn = (JdbcConnection) getConnection("lob");
@@ -57,6 +60,51 @@ public class TestLobApi extends TestBase {
         testClob(1);
         testClob(100);
         testClob(100000);
+        stat.execute("drop table test");
+        conn.close();
+    }
+
+    /**
+     * According to the JDBC spec, BLOB and CLOB objects must stay open even if
+     * the result set is closed (see ResultSet.close).
+     */
+    private void testLobStaysOpenUntilCommitted() throws Exception {
+        Connection conn = getConnection("lob");
+        stat = conn.createStatement();
+        stat.execute("create table test(id identity, c clob, b blob)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(null, ?, ?)");
+        prep.setString(1, "");
+        prep.setBytes(2, new byte[0]);
+        prep.execute();
+        Random r = new Random(1);
+        char[] chars = new char[100000];
+        for (int i = 0; i < chars.length; i++) {
+            chars[i] = (char) r.nextInt(10000);
+        }
+        String d = new String(chars);
+        prep.setCharacterStream(1, new StringReader(d));
+        byte[] bytes = new byte[100000];
+        r.nextBytes(bytes);
+        prep.setBinaryStream(2, new ByteArrayInputStream(bytes));
+        prep.execute();
+        conn.setAutoCommit(false);
+        ResultSet rs = stat.executeQuery("select * from test order by id");
+        rs.next();
+        Clob c1 = rs.getClob(2);
+        Blob b1 = rs.getBlob(3);
+        rs.next();
+        Clob c2 = rs.getClob(2);
+        Blob b2 = rs.getBlob(3);
+        assertFalse(rs.next());
+        rs.close();
+        assertEquals(0, c1.length());
+        assertEquals(0, b1.length());
+        assertEquals(chars.length, c2.length());
+        assertEquals(bytes.length, b2.length());
+        assertEquals("", c1.getSubString(1, 0));
+        assertEquals(new byte[0], b1.getBytes(1, 0));
+        assertEquals(d, c2.getSubString(1, (int) c2.length()));
+        assertEquals(bytes, b2.getBytes(1, (int) b2.length()));
         stat.execute("drop table test");
         conn.close();
     }

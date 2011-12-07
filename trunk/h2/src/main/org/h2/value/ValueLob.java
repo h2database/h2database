@@ -739,10 +739,6 @@ public class ValueLob extends Value {
         return compression;
     }
 
-    public boolean isFileBased() {
-        return fileName != null;
-    }
-
     private static synchronized void deleteFile(DataHandler handler, String fileName) {
         // synchronize on the database, to avoid concurrent temp file creation /
         // deletion / backup

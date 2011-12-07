@@ -31,7 +31,6 @@ public class ResultRemote implements ResultInterface {
     private Value[] currentRow;
     private int rowId, rowCount, rowOffset;
     private ArrayList<Value[]> result;
-    private ArrayList<Value> lobValues;
     private final Trace trace;
 
     public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int fetchSize)
@@ -159,16 +158,6 @@ public class ResultRemote implements ResultInterface {
     }
 
     public void close() {
-        if (lobValues != null) {
-            for (Value v : lobValues) {
-                try {
-                    v.close();
-                } catch (DbException e) {
-                    trace.error(e, "delete lob {0}", v.getTraceSQL());
-                }
-            }
-            lobValues = null;
-        }
         result = null;
         sendClose();
     }
@@ -215,12 +204,6 @@ public class ResultRemote implements ResultInterface {
                     for (int i = 0; i < len; i++) {
                         Value v = transfer.readValue();
                         values[i] = v;
-                        if (v.isFileBased()) {
-                            if (lobValues == null) {
-                                lobValues = New.arrayList();
-                            }
-                            lobValues.add(v);
-                        }
                     }
                     result.add(values);
                 }

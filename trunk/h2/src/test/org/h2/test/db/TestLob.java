@@ -70,7 +70,8 @@ public class TestLob extends TestBase {
         testCreateAsSelect();
         testDropAllObjects();
         testDelete();
-        testTempFilesDeleted();
+        testTempFilesDeleted(true);
+        testTempFilesDeleted(false);
         testAddLobRestart();
         testLobServerMemory();
         if (config.memory) {
@@ -454,7 +455,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testTempFilesDeleted() throws Exception {
+    private void testTempFilesDeleted(boolean stream) throws Exception {
         FileUtils.deleteRecursive(TEMP_DIR, true);
         FileUtils.createDirectories(TEMP_DIR);
         List<String> list = FileUtils.newDirectoryStream(TEMP_DIR);
@@ -464,12 +465,25 @@ public class TestLob extends TestBase {
         Statement stat;
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name text)");
-        stat.execute("insert into test values(1, space(100000))");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(2, ?)");
+        if (stream) {
+            String large = new String(new char[1024 * 1024 * 2]).replace((char) 0, 'x');
+            prep.setCharacterStream(1, new StringReader(large));
+            large = null;
+            prep.execute();
+        } else {
+            stat.execute("insert into test values(1, space(100000))");
+        }
+        /*
+        list = FileUtils.newDirectoryStream(TEMP_DIR);
+        assertEquals("Unexpected temp file: " + list, 0, list.size());
+        */
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
-        rs.next();
-        rs.getCharacterStream("name").close();
-        rs.close();
+        while (rs.next()) {
+            rs.getCharacterStream("name").close();
+        }
+        prep.close();
         conn.close();
         list = FileUtils.newDirectoryStream(TEMP_DIR);
         assertEquals("Unexpected temp file: " + list, 0, list.size());
@@ -1123,7 +1137,8 @@ public class TestLob extends TestBase {
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST WHERE ID=1");
         rs.next();
-        assertEqualStreams(rs.getBinaryStream("TEXT"), new ByteArrayInputStream(data), -1);
+        InputStream in = new ByteArrayInputStream(data);
+        assertEqualStreams(in, rs.getBinaryStream("TEXT"), -1);
 
         prep = conn.prepareStatement("UPDATE TEST SET TEXT = ?");
         prep.setBinaryStream(1, new ByteArrayInputStream(data), 0);

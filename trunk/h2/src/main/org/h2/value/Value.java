@@ -993,16 +993,6 @@ public abstract class Value {
     }
 
     /**
-     * Check if this value is stored in it's own file. For values that are
-     * kept fully in memory, this method returns false.
-     *
-     * @return true if it is
-     */
-    public boolean isFileBased() {
-        return false;
-    }
-
-    /**
      * Close the underlying resource, if any. For values that are kept fully in
      * memory this method has no effect.
      */

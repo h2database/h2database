@@ -190,11 +190,11 @@ public class SysProperties {
     public static final boolean LOB_IN_DATABASE = Utils.getProperty("h2.lobInDatabase", Constants.VERSION_MINOR >= 3);
 
     /**
-     * System property <code>h2.lobClientMaxSizeMemory</code> (default: 65536).<br />
+     * System property <code>h2.lobClientMaxSizeMemory</code> (default: 1048576).<br />
      * The maximum size of a LOB object to keep in memory on the client side
      * when using the server mode.
      */
-    public static final int LOB_CLIENT_MAX_SIZE_MEMORY = Utils.getProperty("h2.lobClientMaxSizeMemory", 65536);
+    public static final int LOB_CLIENT_MAX_SIZE_MEMORY = Utils.getProperty("h2.lobClientMaxSizeMemory", 1024 * 1024);
 
     /**
      * System property <code>h2.maxFileRetry</code> (default: 16).<br />

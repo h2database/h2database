@@ -6,6 +6,7 @@
  */
 package org.h2.store;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -266,17 +267,83 @@ public class LobStorage {
     }
 
     /**
+     * An input stream that reads from a remote LOB.
+     */
+    public class RemoteInputStream extends InputStream {
+
+        /**
+         * The data handler.
+         */
+        private final DataHandler handler;
+
+        /**
+         * The lob id.
+         */
+        private final long lob;
+
+        /**
+         * The position.
+         */
+        private long pos;
+
+        /**
+         * The remaining bytes in the lob.
+         */
+        private long remainingBytes;
+
+        public RemoteInputStream(DataHandler handler, long lob, long byteCount) {
+            this.handler = handler;
+            this.lob = lob;
+            remainingBytes = byteCount;
+        }
+
+        public int read() throws IOException {
+            byte[] buff = new byte[1];
+            int len = read(buff, 0, 1);
+            return len < 0 ? len : (buff[0] & 255);
+        }
+
+        public int read(byte[] buff) throws IOException {
+            return read(buff, 0, buff.length);
+        }
+
+        public int read(byte[] buff, int off, int length) throws IOException {
+            if (length == 0) {
+                return 0;
+            }
+            length = (int) Math.min(length, remainingBytes);
+            if (length == 0) {
+                return -1;
+            }
+            length = handler.readLob(lob, pos, buff, off, length);
+            remainingBytes -= length;
+            if (length == 0) {
+                return -1;
+            }
+            pos += length;
+            return length;
+        }
+
+        public long skip(long n) {
+            remainingBytes -= n;
+            pos += n;
+            return n;
+        }
+
+    }
+
+    /**
      * An input stream that reads from a LOB.
      */
     public class LobInputStream extends InputStream {
 
         /**
-         * The size of the blob.
+         * The size of the lob.
          */
         private long length;
 
         /**
-         * The remaining bytes in the blob.
+         * The remaining bytes in the lob.
          */
         private long remainingBytes;
 
@@ -291,12 +358,12 @@ public class LobStorage {
         private int pos;
 
         /**
-         * The blob id.
+         * The lob id.
          */
         private long lob;
 
         /**
-         * The blob sequence id.
+         * The lob sequence id.
          */
         private int seq;
 
@@ -482,6 +549,12 @@ public class LobStorage {
      */
     public InputStream getInputStream(long lobId, long byteCount) throws IOException {
         init();
+        if (conn == null) {
+            if (byteCount < 0) {
+                byteCount = Long.MAX_VALUE;
+            }
+            return new BufferedInputStream(new RemoteInputStream(handler, lobId, byteCount));
+        }
         if (byteCount == -1) {
             synchronized (handler) {
                 try {
@@ -571,7 +644,7 @@ public class LobStorage {
                 prep.setInt(3, tableId);
                 prep.execute();
                 reuse(sql, prep);
-                ValueLobDb v = ValueLobDb.create(type, this, null, tableId, lobId, byteCount);
+                ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, byteCount);
                 return v;
             } catch (SQLException e) {
                 throw DbException.convert(e);
@@ -610,7 +683,7 @@ public class LobStorage {
                 prep.executeUpdate();
                 reuse(sql, prep);
 
-                ValueLobDb v = ValueLobDb.create(type, this, null, tableId, lobId, length);
+                ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, length);
                 return v;
             } catch (SQLException e) {
                 throw DbException.convert(e);
@@ -786,6 +859,10 @@ public class LobStorage {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
             if (conn == null) {
+                // remote connections:
+                // need to use a temp file, because the input stream could come from
+                // the same database, which would create a weird situation (trying
+                // to read a block while write something)
                 return ValueLobDb.createTempBlob(in, maxLength, handler);
             }
             return addLob(in, maxLength, Value.BLOB);
@@ -804,6 +881,10 @@ public class LobStorage {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
             if (conn == null) {
+                // remote connections:
+                // need to use a temp file, because the input stream could come from
+                // the same database, which would create a weird situation (trying
+                // to read a block while write something)
                 return ValueLobDb.createTempClob(reader, maxLength, handler);
             }
             long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;

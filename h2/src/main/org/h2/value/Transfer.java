@@ -262,6 +262,19 @@ public class Transfer {
     }
 
     /**
+     * Write a number of bytes.
+     *
+     * @param buff the value
+     * @param off the offset
+     * @param len the length
+     * @return itself
+     */
+    public Transfer writeBytes(byte[] buff, int off, int len) throws IOException {
+        out.write(buff, off, len);
+        return this;
+    }
+
+    /**
      * Read a byte array.
      *
      * @return the value
@@ -274,6 +287,17 @@ public class Transfer {
         byte[] b = Utils.newBytes(len);
         in.readFully(b);
         return b;
+    }
+
+    /**
+     * Read a number of bytes.
+     *
+     * @param buff the target buffer
+     * @param off the offset
+     * @param len the number of bytes to read
+     */
+    public void readBytes(byte[] buff, int off, int len) throws IOException {
+        in.readFully(buff, off, len);
     }
 
     /**
@@ -381,6 +405,18 @@ public class Transfer {
             writeString(v.getString());
             break;
         case Value.BLOB: {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
+                if (v instanceof ValueLobDb) {
+                    ValueLobDb lob = (ValueLobDb) v;
+                    if (lob.isStored()) {
+                        writeLong(-1);
+                        writeInt(lob.getTableId());
+                        writeLong(lob.getLobId());
+                        writeLong(lob.getPrecision());
+                        break;
+                    }
+                }
+            }
             long length = v.getPrecision();
             if (length < 0) {
                 throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
@@ -394,6 +430,18 @@ public class Transfer {
             break;
         }
         case Value.CLOB: {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
+                if (v instanceof ValueLobDb) {
+                    ValueLobDb lob = (ValueLobDb) v;
+                    if (lob.isStored()) {
+                        writeLong(-1);
+                        writeInt(lob.getTableId());
+                        writeLong(lob.getLobId());
+                        writeLong(lob.getPrecision());
+                        break;
+                    }
+                }
+            }
             long length = v.getPrecision();
             if (length < 0) {
                 throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "length=" + length);
@@ -519,6 +567,22 @@ public class Transfer {
             return ValueStringFixed.get(readString());
         case Value.BLOB: {
             long length = readLong();
+            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
+                if (length == -1) {
+                    int tableId = readInt();
+                    long id = readLong();
+                    long precision = readLong();
+                    return ValueLobDb.create(Value.BLOB, session.getDataHandler().getLobStorage(), tableId, id, precision);
+                }
+                int len = (int) length;
+                byte[] small = new byte[len];
+                IOUtils.readFully(in, small, 0, len);
+                int magic = readInt();
+                if (magic != LOB_MAGIC) {
+                    throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
+                }
+                return ValueLobDb.createSmallLob(Value.BLOB, small, length);
+            }
             Value v = session.getDataHandler().getLobStorage().createBlob(in, length);
             int magic = readInt();
             if (magic != LOB_MAGIC) {
@@ -528,6 +592,24 @@ public class Transfer {
         }
         case Value.CLOB: {
             long length = readLong();
+            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
+                if (length == -1) {
+                    int tableId = readInt();
+                    long id = readLong();
+                    long precision = readLong();
+                    return ValueLobDb.create(Value.CLOB, session.getDataHandler().getLobStorage(), tableId, id, precision);
+                }
+                DataReader reader = new DataReader(in);
+                int len = (int) length;
+                char[] buff = new char[len];
+                IOUtils.readFully(reader, buff, len);
+                int magic = readInt();
+                if (magic != LOB_MAGIC) {
+                    throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
+                }
+                byte[] small = new String(buff).getBytes("UTF-8");
+                return ValueLobDb.createSmallLob(Value.CLOB, small, length);
+            }
             Value v = session.getDataHandler().getLobStorage().createClob(new DataReader(in), length);
             int magic = readInt();
             if (magic != LOB_MAGIC) {

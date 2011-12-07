@@ -179,4 +179,8 @@ public class TestFile extends TestBase implements DataHandler {
         return null;
     }
 
+    public int readLob(long lobId, long offset, byte[] buff, int off, int length) {
+        return -1;
+    }
+
 }

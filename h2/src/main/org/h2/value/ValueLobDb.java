@@ -46,10 +46,9 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     private FileStore tempFile;
     private String fileName;
 
-    private ValueLobDb(int type, LobStorage lobStorage, String fileName, int tableId, long lobId, long precision) {
+    private ValueLobDb(int type, LobStorage lobStorage, int tableId, long lobId, long precision) {
         this.type = type;
         this.lobStorage = lobStorage;
-        this.fileName = fileName;
         this.tableId = tableId;
         this.lobId = lobId;
         this.precision = precision;
@@ -66,15 +65,14 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      *
      * @param type the type
      * @param lobStorage the storage
-     * @param fileName the file name (may be null)
      * @param tableId the table id
      * @param id the lob id
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */
     public static ValueLobDb create(int type, LobStorage lobStorage,
-            String fileName, int tableId, long id, long precision) {
-        return new ValueLobDb(type, lobStorage, fileName, tableId, id, precision);
+            int tableId, long id, long precision) {
+        return new ValueLobDb(type, lobStorage, tableId, id, precision);
     }
 
     /**
@@ -103,18 +101,26 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             if (lobStorage != null) {
                 Value copy = lobStorage.createClob(getReader(), -1);
                 return copy;
+            } else if (small != null) {
+                return LobStorage.createSmallLob(t, small);
             }
         } else if (t == Value.BLOB) {
             if (lobStorage != null) {
                 Value copy = lobStorage.createBlob(getInputStream(), -1);
                 return copy;
+            } else if (small != null) {
+                return LobStorage.createSmallLob(t, small);
             }
         }
         return super.convertTo(t);
     }
 
     public boolean isLinked() {
-        return tableId != LobStorage.TABLE_ID_SESSION_VARIABLE;
+        return tableId != LobStorage.TABLE_ID_SESSION_VARIABLE && small == null;
+    }
+
+    public boolean isStored() {
+        return small == null && fileName == null;
     }
 
     public void close() {
@@ -337,10 +343,6 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     public boolean equals(Object other) {
         return other instanceof ValueLobDb && compareSecure((Value) other, null) == 0;
-    }
-
-    public boolean isFileBased() {
-        return small == null;
     }
 
     public int getMemory() {

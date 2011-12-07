@@ -345,6 +345,8 @@ java org.h2.test.TestAll timer
         int testing;
         // System.setProperty("h2.modifyOnWrite", "true");
 
+        int testWith_TCP_PROTOCOL_VERSION_10;
+
         // System.setProperty("h2.storeLocalTime", "true");
 
         // speedup

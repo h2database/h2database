@@ -6,7 +6,10 @@
  */
 package org.h2.server;
 
+import java.io.ByteArrayInputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.Socket;
@@ -27,22 +30,28 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.result.ResultColumn;
 import org.h2.result.ResultInterface;
+import org.h2.store.LobStorage;
+import org.h2.util.IOUtils;
+import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
 import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
+import org.h2.value.ValueLobDb;
 
 /**
  * One server thread is opened per client connection.
  */
 public class TcpServerThread implements Runnable {
+
+    protected Transfer transfer;
     private TcpServer server;
     private Session session;
     private boolean stop;
     private Thread thread;
-    private Transfer transfer;
     private Command commit;
     private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
+    private SmallLRUCache<Long, CachedInputStream> lobs = SmallLRUCache.newInstance(SysProperties.SERVER_CACHED_OBJECTS);
     private int threadId;
     private int clientVersion;
     private String sessionId;
@@ -71,12 +80,12 @@ public class TcpServerThread implements Runnable {
                 int minClientVersion = transfer.readInt();
                 if (minClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_10) {
-                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_10);
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_11) {
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_11);
                 }
                 int maxClientVersion = transfer.readInt();
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_10) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_10;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_11) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_11;
                 } else {
                     clientVersion = minClientVersion;
                 }
@@ -383,6 +392,31 @@ public class TcpServerThread implements Runnable {
                 writeInt(session.getUndoLogPos()).flush();
             break;
         }
+        case SessionRemote.LOB_READ: {
+            long lobId = transfer.readLong();
+            CachedInputStream cin = lobs.get(lobId);
+            if (cin == null) {
+                throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            }
+            long offset = transfer.readLong();
+            if (cin.getPos() != offset) {
+                LobStorage lobStorage = session.getDataHandler().getLobStorage();
+                InputStream in = lobStorage.getInputStream(lobId, -1);
+                cin = new CachedInputStream(in);
+                lobs.put(lobId, cin);
+                in.skip(offset);
+            }
+            int length = transfer.readInt();
+            // limit the buffer size
+            length = Math.min(16 * Constants.IO_BUFFER_SIZE, length);
+            transfer.writeInt(SessionRemote.STATUS_OK);
+            byte[] buff = new byte[length];
+            length = IOUtils.readFully(cin, buff, 0, length);
+            transfer.writeInt(length);
+            transfer.writeBytes(buff, 0, length);
+            transfer.flush();
+            break;
+        }
         default:
             trace("Unknown operation: " + operation);
             closeSession();
@@ -402,11 +436,24 @@ public class TcpServerThread implements Runnable {
             transfer.writeBoolean(true);
             Value[] v = result.currentRow();
             for (int i = 0; i < result.getVisibleColumnCount(); i++) {
-                transfer.writeValue(v[i]);
+                writeValue(v[i]);
             }
         } else {
             transfer.writeBoolean(false);
         }
+    }
+
+    private void writeValue(Value v) throws IOException {
+        if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
+            if (v instanceof ValueLobDb) {
+                ValueLobDb lob = (ValueLobDb) v;
+                if (lob.isStored()) {
+                    long id = lob.getLobId();
+                    lobs.put(id, new CachedInputStream(null));
+                }
+            }
+        }
+        transfer.writeValue(v);
     }
 
     void setThread(Thread thread) {
@@ -428,6 +475,51 @@ public class TcpServerThread implements Runnable {
             Command cmd = (Command) cache.getObject(statementId, false);
             cmd.cancel();
         }
+    }
+
+    /**
+     * An input stream with a position.
+     */
+    static class CachedInputStream extends FilterInputStream {
+
+        private static final ByteArrayInputStream DUMMY = new ByteArrayInputStream(new byte[0]);
+        private long pos;
+
+        CachedInputStream(InputStream in) {
+            super(in == null ? DUMMY : in);
+            if (in == null) {
+                pos = -1;
+            }
+        }
+
+        public int read(byte[] buff, int off, int len) throws IOException {
+            len = super.read(buff, off, len);
+            if (len > 0) {
+                pos += len;
+            }
+            return len;
+        }
+
+        public int read() throws IOException {
+            int x = in.read();
+            if (x >= 0) {
+                pos++;
+            }
+            return x;
+        }
+
+        public long skip(long n) throws IOException {
+            n = super.skip(n);
+            if (n > 0) {
+                pos += n;
+            }
+            return n;
+        }
+
+        public long getPos() {
+            return pos;
+        }
+
     }
 
 }

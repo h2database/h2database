@@ -649,7 +649,9 @@ public abstract class TestBase {
             int ca = actual.read();
             actual.read(new byte[0]);
             int ce = expected.read();
-            assertEquals(ce, ca);
+            if (ca != ce) {
+                assertEquals("Error at index " + i, ce, ca);
+            }
             if (ca == -1) {
                 break;
             }

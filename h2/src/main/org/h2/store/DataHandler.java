@@ -107,4 +107,16 @@ public interface DataHandler {
      */
     Connection getLobConnection();
 
+    /**
+     * Read from a lob.
+     *
+     * @param lobId the lob
+     * @param offset the offset within the lob
+     * @param buff the target buffer
+     * @param off the offset within the target buffer
+     * @param length the number of bytes to read
+     * @return the number of bytes read
+     */
+    int readLob(long lobId, long offset, byte[] buff, int off, int length);
+
 }

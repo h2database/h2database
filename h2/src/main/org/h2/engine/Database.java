@@ -2405,4 +2405,8 @@ public class Database implements DataHandler {
         return false;
     }
 
+    public int readLob(long lobId, long offset, byte[] buff, int off, int length) {
+        throw DbException.throwInternalError();
+    }
+
 }

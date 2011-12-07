@@ -1383,6 +1383,14 @@ The exceptions are logged, but opening the database will continue.
 
 <h2 id="computed_columns">Computed Columns / Function Based Index</h2>
 <p>
+A computed column is a column whose value is calculated before storing.
+The formula is evaluated when the row is inserted, and re-evaluated every time the row is updated. 
+One use case is to automatically update the last-modification time:
+</p>
+<pre>
+CREATE TABLE TEST(ID INT, NAME VARCHAR, LAST_MOD TIMESTAMP AS NOW());
+</pre>
+<p>
 Function indexes are not directly supported by this database, but they can be emulated
 by using computed columns. For example, if an index on the upper-case version of
 a column is required, create a computed column with the upper-case version of the original column,

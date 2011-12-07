@@ -687,7 +687,9 @@ public class Build extends BuildBase {
      */
     public void testNetwork() {
         try {
-            System.out.println("localhost:" + InetAddress.getByName("localhost"));
+            long start = System.currentTimeMillis();
+            System.out.println("localhost:");
+            System.out.println("  " + InetAddress.getByName("localhost"));
             for (InetAddress address : InetAddress.getAllByName("localhost")) {
                 System.out.println("  " + address);
             }
@@ -708,6 +710,7 @@ public class Build extends BuildBase {
             System.out.println(serverSocket);
             int port = serverSocket.getLocalPort();
             final ServerSocket accept = serverSocket;
+            start = System.currentTimeMillis();
             Thread thread = new Thread() {
                 public void run() {
                     try {
@@ -728,7 +731,9 @@ public class Build extends BuildBase {
                 }
             };
             thread.start();
+            System.out.println("time: " + (System.currentTimeMillis() - start));
             Thread.sleep(1000);
+            start = System.currentTimeMillis();
             final Socket socket = new Socket();
             socket.setSoTimeout(2000);
             final InetSocketAddress socketAddress = new InetSocketAddress(address, port);
@@ -750,16 +755,21 @@ public class Build extends BuildBase {
                     System.out.println("not connected, trying localhost:" + socketAddress);
                     socket.connect(localhostAddress, 2000);
                 }
+                System.out.println("time: " + (System.currentTimeMillis() - start));
                 Thread.sleep(200);
+                start = System.currentTimeMillis();
                 System.out.println("client:" + socket.toString());
                 socket.getOutputStream().write(123);
+                System.out.println("time: " + (System.currentTimeMillis() - start));
                 Thread.sleep(100);
+                start = System.currentTimeMillis();
                 System.out.println("client read:" + socket.getInputStream().read());
                 socket.close();
             } catch (Throwable t) {
                 t.printStackTrace();
             }
             thread.join(5000);
+            System.out.println("time: " + (System.currentTimeMillis() - start));
             if (thread.isAlive()) {
                 System.out.println("thread is still alive, interrupting");
                 thread.interrupt();

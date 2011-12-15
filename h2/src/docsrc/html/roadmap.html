@@ -57,6 +57,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables.
 </li><li>Compatibility: automatically load functions from a script depending on the mode - see FunctionsMySQL.java, issue 211.
 </li><li>Test very large databases and LOBs (up to 256 GB).
+</li><li>Store all temp files in the temp directory.
 </li><li>Don't use temp files, specially not deleteOnExit (bug 4513817: File.deleteOnExit consumes memory).
     Also to allow opening client / server (remote) connections when using LOBs.
 </li><li>Sequence: add features [NO] MINVALUE, MAXVALUE, CYCLE.
@@ -570,6 +571,8 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Read rows on demand: instead of reading the whole row, only read up to that column that is requested.
     Keep an pointer to the data area and the column id that is already read.
 </li><li>Long running transactions: log session id when detected.
+</li><li>Optimization: "select id from test" should use the index on id even without "order by".
+</li><li>Issue 362: LIMIT support for UPDATE statements (MySQL compatibility).
 </li></ul>
 
 <h2>Not Planned</h2>

@@ -890,6 +890,7 @@ public class MetaTable extends Table {
                 add(rows, "info.FILE_WRITE", "" + store.getWriteCount());
                 add(rows, "info.FILE_READ", "" + store.getReadCount());
                 add(rows, "info.PAGE_COUNT", "" + store.getPageCount());
+                add(rows, "info.PAGE_SIZE", "" + store.getPageSize());
                 add(rows, "info.CACHE_MAX_SIZE", "" + store.getCache().getMaxMemory());
                 add(rows, "info.CACHE_SIZE", "" + store.getCache().getMemory());
             }

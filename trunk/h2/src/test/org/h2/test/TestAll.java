@@ -139,6 +139,7 @@ import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestModifyOnWrite;
 import org.h2.test.unit.TestObjectDeserialization;
+import org.h2.test.unit.TestSort;
 import org.h2.test.unit.TestTraceSystem;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestNetUtils;
@@ -346,6 +347,8 @@ java org.h2.test.TestAll timer
         // System.setProperty("h2.modifyOnWrite", "true");
 
         int testWith_TCP_PROTOCOL_VERSION_10;
+
+        int todoSupportTrailingSemicolonsInDatabaseUrl;
 
         // System.setProperty("h2.storeLocalTime", "true");
 
@@ -691,6 +694,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         runTest("org.h2.test.unit.TestServlet");
         new TestSecurity().runTest(this);
         new TestShell().runTest(this);
+        new TestSort().runTest(this);
         new TestStreams().runTest(this);
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);

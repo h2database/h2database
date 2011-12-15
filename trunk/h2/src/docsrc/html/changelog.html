@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>In the server mode, BLOB and CLOB objects are no longer closed when the result set is closed
+<ul><li>Csv.write now formats date, time, and timestamp values using java.sql.Date / Time / Timestamp.toString().
+    Previously, ResultSet.getString() was used, which didn't work well for Oracle.
+</li><li>The shell script <code>h2.sh</code> can now be run from within a different directory.
+    Thanks a lot to Daniel Serodio for the patch!
+</li><li>The page size of a persistent database can now be queries using:
+    select * from information_schema.settings where name = 'info.PAGE_SIZE'
+</li><li>In the server mode, BLOB and CLOB objects are no longer closed when the result set is closed
     (as required by the JDBC spec).
 </li></ul>
 

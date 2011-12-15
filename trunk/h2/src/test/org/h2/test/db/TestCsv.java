@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -51,6 +52,7 @@ public class TestCsv extends TestBase {
     }
 
     public void test() throws Exception {
+        testWriteResultSetDataType();
         testPreserveWhitespace();
         testChangeData();
         testOptions();
@@ -66,6 +68,24 @@ public class TestCsv extends TestBase {
         testRead();
         testPipe();
         deleteDb("csv");
+    }
+
+    private void testWriteResultSetDataType() throws Exception {
+        // Oracle: ResultSet.getString on a date or time column returns a
+        // strange result (2009-6-30.16.17. 21. 996802000 according to a
+        // customer)
+        StringWriter writer = new StringWriter();
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select timestamp '-100-01-01 12:00:00.0' ts, null n");
+        Csv csv = Csv.getInstance();
+        csv.setFieldDelimiter((char) 0);
+        csv.setLineSeparator(";");
+        csv.write(writer, rs);
+        conn.close();
+        // getTimestamp().getString() needs to be used (not for H2, but for
+        // Oracle)
+        assertEquals("TS,N;0101-01-01 12:00:00.0,;", writer.toString());
     }
 
     private void testPreserveWhitespace() throws Exception {

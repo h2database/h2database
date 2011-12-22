@@ -103,6 +103,7 @@ import org.h2.test.server.TestWeb;
 import org.h2.test.server.TestInit;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
+import org.h2.test.synth.TestDiskFull;
 import org.h2.test.synth.TestFuzzOptimizations;
 import org.h2.test.synth.TestHaltApp;
 import org.h2.test.synth.TestJoin;
@@ -643,6 +644,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // synth
         new TestBtreeIndex().runTest(this);
+        new TestDiskFull().runTest(this);
         new TestCrashAPI().runTest(this);
         new TestFuzzOptimizations().runTest(this);
         new TestLimit().runTest(this);

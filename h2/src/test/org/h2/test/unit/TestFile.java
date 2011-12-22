@@ -139,10 +139,6 @@ public class TestFile extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public void freeUpDiskSpace() {
-        // nothing to do
-    }
-
     public String getDatabasePath() {
         return null;
     }

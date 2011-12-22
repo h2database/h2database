@@ -326,26 +326,11 @@ public class FileStore {
         try {
             FileUtils.writeFully(file, ByteBuffer.wrap(b, off, len));
         } catch (IOException e) {
-            if (freeUpDiskSpace()) {
-                try {
-                    FileUtils.writeFully(file, ByteBuffer.wrap(b, off, len));
-                } catch (IOException e2) {
-                    throw DbException.convertIOException(e2, name);
-                }
-            } else {
-                throw DbException.convertIOException(e, name);
-            }
+            closeFileSilently();
+            throw DbException.convertIOException(e, name);
         }
         filePos += len;
         fileLength = Math.max(filePos, fileLength);
-    }
-
-    private boolean freeUpDiskSpace() {
-        if (handler == null) {
-            return false;
-        }
-        handler.freeUpDiskSpace();
-        return true;
     }
 
     /**
@@ -370,15 +355,8 @@ public class FileStore {
             }
             fileLength = newLength;
         } catch (IOException e) {
-            if (newLength > fileLength && freeUpDiskSpace()) {
-                try {
-                    file.truncate(newLength);
-                } catch (IOException e2) {
-                    throw DbException.convertIOException(e2, name);
-                }
-            } else {
-                throw DbException.convertIOException(e, name);
-            }
+            closeFileSilently();
+            throw DbException.convertIOException(e, name);
         }
     }
 
@@ -434,6 +412,7 @@ public class FileStore {
         try {
             file.force(true);
         } catch (IOException e) {
+            closeFileSilently();
             throw DbException.convertIOException(e, name);
         }
     }
@@ -461,6 +440,19 @@ public class FileStore {
     public void closeFile() throws IOException {
         file.close();
         file = null;
+    }
+
+    /**
+     * Just close the file, without setting the reference to null. This method
+     * is called when writing failed. The reference is not set to null so that
+     * there are no NullPointerExceptions later on.
+     */
+    private void closeFileSilently() {
+        try {
+            file.close();
+        } catch (IOException e) {
+            // ignore
+        }
     }
 
     /**

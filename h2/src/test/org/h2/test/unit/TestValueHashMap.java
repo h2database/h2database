@@ -125,10 +125,6 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public void freeUpDiskSpace() {
-        // nothing to do
-    }
-
     public int getMaxLengthInplaceLob() {
         return 0;
     }

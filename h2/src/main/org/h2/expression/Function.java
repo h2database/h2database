@@ -254,7 +254,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("XMLCOMMENT", XMLCOMMENT, 1, Value.STRING);
         addFunction("XMLCDATA", XMLCDATA, 1, Value.STRING);
         addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.STRING);
-        addFunction("XMLTEXT", XMLTEXT, 1, Value.STRING);
+        addFunction("XMLTEXT", XMLTEXT, VAR_ARGS, Value.STRING);
         addFunction("REGEXP_REPLACE", REGEXP_REPLACE, 3, Value.STRING);
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
@@ -633,9 +633,6 @@ public class Function extends Expression implements FunctionCall {
             break;
         case XMLSTARTDOC:
             result = ValueString.get(StringUtils.xmlStartDoc());
-            break;
-        case XMLTEXT:
-            result = ValueString.get(StringUtils.xmlText(v0.getString()));
             break;
         case DAY_NAME: {
             SimpleDateFormat dayName = new SimpleDateFormat("EEEE", Locale.ENGLISH);
@@ -1042,7 +1039,8 @@ public class Function extends Expression implements FunctionCall {
         case XMLNODE: {
             String attr = v1 == null ? null : v1 == ValueNull.INSTANCE ? null : v1.getString();
             String content = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-            result = ValueString.get(StringUtils.xmlNode(v0.getString(), attr, content));
+            boolean indent = v3 == null ? true : v3.getBoolean();
+            result = ValueString.get(StringUtils.xmlNode(v0.getString(), attr, content, indent));
             break;
         }
         case REGEXP_REPLACE: {
@@ -1207,6 +1205,13 @@ public class Function extends Expression implements FunctionCall {
             result = v0.convertPrecision(v1.getLong(), v2.getBoolean());
             break;
         }
+        case XMLTEXT:
+            if (v1 == null) {
+                result = ValueString.get(StringUtils.xmlText(v0.getString()));
+            } else {
+                result = ValueString.get(StringUtils.xmlText(v0.getString(), v1.getBoolean()));
+            }
+            break;
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
@@ -1620,6 +1625,7 @@ public class Function extends Expression implements FunctionCall {
         case TRIM:
         case FILE_READ:
         case ROUND:
+        case XMLTEXT:
             min = 1;
             max = 2;
             break;
@@ -1640,7 +1646,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case XMLNODE:
             min = 1;
-            max = 3;
+            max = 4;
             break;
         case FORMATDATETIME:
         case PARSEDATETIME:

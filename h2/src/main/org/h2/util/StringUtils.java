@@ -571,11 +571,26 @@ public class StringUtils {
      * @return the node
      */
     public static String xmlNode(String name, String attributes, String content) {
+        return xmlNode(name, attributes, content, true);
+    }
+
+    /**
+     * Create an XML node with optional attributes and content. The data is
+     * indented with 4 spaces if it contains a newline character and the indent
+     * parameter is set to true.
+     *
+     * @param name the element name
+     * @param attributes the attributes (may be null)
+     * @param content the content (may be null)
+     * @param indent whether to indent the content if it contains a newline
+     * @return the node
+     */
+    public static String xmlNode(String name, String attributes, String content, boolean indent) {
         String start = attributes == null ? name : name + attributes;
         if (content == null) {
             return "<" + start + "/>\n";
         }
-        if (content.indexOf('\n') >= 0) {
+        if (indent && content.indexOf('\n') >= 0) {
             content = "\n" + indent(content);
         }
         return "<" + start + ">" + content + "</" + name + ">\n";
@@ -672,6 +687,17 @@ public class StringUtils {
      * @return the escaped text
      */
     public static String xmlText(String text) {
+        return xmlText(text, false);
+    }
+
+    /**
+     * Escapes an XML text element.
+     *
+     * @param text the text data
+     * @param escapeNewline whether to escape newlines
+     * @return the escaped text
+     */
+    public static String xmlText(String text, boolean escapeNewline) {
         int length = text.length();
         StringBuilder buff = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
@@ -694,6 +720,14 @@ public class StringUtils {
                 break;
             case '\r':
             case '\n':
+                if (escapeNewline) {
+                    buff.append("&#x").
+                        append(Integer.toHexString(ch)).
+                        append(';');
+                } else {
+                    buff.append(ch);
+                }
+                break;
             case '\t':
                 buff.append(ch);
                 break;

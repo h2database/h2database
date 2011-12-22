@@ -394,24 +394,24 @@ public class TcpServerThread implements Runnable {
         }
         case SessionRemote.LOB_READ: {
             long lobId = transfer.readLong();
-            CachedInputStream cin = lobs.get(lobId);
-            if (cin == null) {
+            CachedInputStream in = lobs.get(lobId);
+            if (in == null) {
                 throw DbException.get(ErrorCode.OBJECT_CLOSED);
             }
             long offset = transfer.readLong();
-            if (cin.getPos() != offset) {
+            if (in.getPos() != offset) {
                 LobStorage lobStorage = session.getDataHandler().getLobStorage();
-                InputStream in = lobStorage.getInputStream(lobId, -1);
-                cin = new CachedInputStream(in);
-                lobs.put(lobId, cin);
-                in.skip(offset);
+                InputStream lobIn = lobStorage.getInputStream(lobId, -1);
+                in = new CachedInputStream(lobIn);
+                lobs.put(lobId, in);
+                lobIn.skip(offset);
             }
             int length = transfer.readInt();
             // limit the buffer size
             length = Math.min(16 * Constants.IO_BUFFER_SIZE, length);
             transfer.writeInt(SessionRemote.STATUS_OK);
             byte[] buff = new byte[length];
-            length = IOUtils.readFully(cin, buff, 0, length);
+            length = IOUtils.readFully(in, buff, 0, length);
             transfer.writeInt(length);
             transfer.writeBytes(buff, 0, length);
             transfer.flush();

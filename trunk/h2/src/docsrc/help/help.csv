@@ -3108,9 +3108,12 @@ CALL XMLNODE('a', XMLATTR('href', 'http://h2database.com'))
 "
 
 "Functions (String)","XMLNODE","
-XMLNODE(elementString [, attributesString [, contentString]])
+XMLNODE(elementString [, attributesString [, contentString [, indentBoolean]])
 ","
 Create an XML node element.
+An empty or null attribute string means no attributes are set.
+An empty or null content string means the node is empty.
+The content is indented by default if it contains a newline.
 This method returns a string.
 ","
 CALL XMLNODE('a', XMLATTR('href', 'http://h2database.com'), 'H2')
@@ -3139,15 +3142,17 @@ CALL XMLCDATA('data')
 "Functions (String)","XMLSTARTDOC","
 XMLSTARTDOC()
 ","
-The string ""<?xml version='1.0'?>"" is returned.
+Returns the XML decrations.
+The result is always ""<?xml version=""1.0""?>"".
 ","
 CALL XMLSTARTDOC()
 "
 
 "Functions (String)","XMLTEXT","
-XMLTEXT(valueString)
+XMLTEXT(valueString [, escapeNewlineBoolean])
 ","
 Creates an XML text element.
+If enabled, newlines and linefeeds are converted to XML entities (&#).
 This method returns a string.
 ","
 CALL XMLTEXT('test')

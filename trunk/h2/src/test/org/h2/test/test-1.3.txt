@@ -8916,6 +8916,18 @@ CALL XMLNODE('p', null, 'Hello World');
 > <p>Hello World</p>
 > rows: 1
 
+SELECT XMLNODE('p', null, 'Hello' || chr(10) || 'World') X;
+> X
+> ---------------------
+> <p> Hello World </p>
+> rows: 1
+
+SELECT XMLNODE('p', null, 'Hello' || chr(10) || 'World', false) X;
+> X
+> -------------------
+> <p>Hello World</p>
+> rows: 1
+
 CALL XMLCOMMENT('Test');
 > STRINGDECODE('<!-- Test -->\n')
 > -------------------------------
@@ -8956,6 +8968,18 @@ CALL XMLTEXT('<test>');
 > '&lt;test&gt;'
 > --------------
 > &lt;test&gt;
+> rows: 1
+
+CALL XMLTEXT('hello' || chr(10) || 'world');
+> STRINGDECODE('hello\nworld')
+> ----------------------------
+> hello world
+> rows: 1
+
+CALL XMLTEXT('hello' || chr(10) || 'world', true);
+> 'hello&#xa;world'
+> -----------------
+> hello&#xa;world
 > rows: 1
 
 create memory table test(id int primary key, name varchar(255));

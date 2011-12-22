@@ -1366,13 +1366,6 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public void freeUpDiskSpace() {
-        // nothing to do
-    }
-
-    /**
-     * INTERNAL
-     */
     public int getMaxLengthInplaceLob() {
         throw DbException.throwInternalError();
     }

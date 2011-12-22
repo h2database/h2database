@@ -197,10 +197,6 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         session.getDatabase().checkWritingAllowed();
     }
 
-    public void freeUpDiskSpace() {
-        session.getDatabase().freeUpDiskSpace();
-    }
-
     public int getMaxLengthInplaceLob() {
         return session.getDatabase().getMaxLengthInplaceLob();
     }

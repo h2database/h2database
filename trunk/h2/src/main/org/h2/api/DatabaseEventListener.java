@@ -61,13 +61,6 @@ public interface DatabaseEventListener extends EventListener {
     void opened();
 
     /**
-     * This method is called if the disk space is very low. One strategy is to
-     * inform the user and wait for it to clean up disk space. The database
-     * should not be accessed from within this method (even to close it).
-     */
-    void diskSpaceIsLow();
-
-    /**
      * This method is called if an exception occurred.
      *
      * @param e the exception

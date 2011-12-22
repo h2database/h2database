@@ -295,10 +295,6 @@ public class TestDataPage extends TestBase implements DataHandler {
         // ok
     }
 
-    public void freeUpDiskSpace() {
-        // nothing to do
-    }
-
     public int getMaxLengthInplaceLob() {
         throw new AssertionError();
     }

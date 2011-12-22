@@ -614,10 +614,6 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         // ok
     }
 
-    public void freeUpDiskSpace() {
-        // nothing to do
-    }
-
     public String getDatabasePath() {
         return "";
     }

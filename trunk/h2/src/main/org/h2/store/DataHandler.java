@@ -50,14 +50,6 @@ public interface DataHandler {
     void checkWritingAllowed() throws DbException;
 
     /**
-     * Free up disk space if possible.
-     * This method is called if more space is needed.
-     *
-     * @throws DbException if no more space could be freed
-     */
-    void freeUpDiskSpace() throws DbException;
-
-    /**
      * Get the maximum length of a in-place large object
      *
      * @return the maximum size

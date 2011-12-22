@@ -218,10 +218,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
         // nothing to do
     }
 
-    public void freeUpDiskSpace() {
-        // nothing to do
-    }
-
     public String getDatabasePath() {
         return getBaseDir() + "/valueMemory";
     }

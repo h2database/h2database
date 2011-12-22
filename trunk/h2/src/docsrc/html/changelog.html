@@ -18,7 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Csv.write now formats date, time, and timestamp values using java.sql.Date / Time / Timestamp.toString().
+<ul><li>On out of disk space, the database could get corrupt sometimes,
+    if later write operations succeeded. Now the file is closed on the first unsuccessful
+    write operation, so that later requests fail consistently.
+</li><li>DatabaseEventListener.diskSpaceIsLow() is no longer supported because
+    it can't be guaranteed that it always works correctly.
+</li><li>XMLTEXT now supports an optional parameter to escape newlines.
+</li><li>XMLNODE now support an optional parameter to disable indentation.
+</li><li>Csv.write now formats date, time, and timestamp values using java.sql.Date / Time / Timestamp.toString().
     Previously, ResultSet.getString() was used, which didn't work well for Oracle.
 </li><li>The shell script <code>h2.sh</code> can now be run from within a different directory.
     Thanks a lot to Daniel Serodio for the patch!

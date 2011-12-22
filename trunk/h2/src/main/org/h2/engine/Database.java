@@ -1797,12 +1797,6 @@ public class Database implements DataHandler {
         }
     }
 
-    public synchronized void freeUpDiskSpace() {
-        if (eventListener != null) {
-            eventListener.diskSpaceIsLow();
-        }
-    }
-
     /**
      * Set the progress of a long running operation.
      * This method calls the {@link DatabaseEventListener} if one is registered.

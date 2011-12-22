@@ -81,10 +81,10 @@ public class InPlaceStableMergeSort<T> {
             binaryInsertionSort(from, to);
             return;
         }
-        int middle = (from + to) >>> 1;
-        mergeSort(from, middle);
-        mergeSort(middle + 1, to);
-        merge(from, middle + 1, to);
+        int m = (from + to) >>> 1;
+        mergeSort(from, m);
+        mergeSort(m + 1, to);
+        merge(from, m + 1, to);
     }
 
     /**
@@ -165,21 +165,21 @@ public class InPlaceStableMergeSort<T> {
      */
     private void mergeBig(int from, int second, int to) {
         int len1 = second - from, len2 = to - second + 1;
-        int firstCut, secondCut, newMid;
+        int firstCut, secondCut, newSecond;
         if (len1 > len2) {
             firstCut = from + len1 / 2;
             secondCut = findLower(data[firstCut], second, to);
             int len = secondCut - second;
-            newMid = firstCut + len;
+            newSecond = firstCut + len;
         } else {
             int len = len2 / 2;
             secondCut = second + len;
             firstCut = findUpper(data[secondCut], from, second - 1);
-            newMid = firstCut + len;
+            newSecond = firstCut + len;
         }
         swapBlocks(firstCut, second, secondCut - 1);
-        merge(from, firstCut, newMid - 1);
-        merge(newMid, secondCut, to);
+        merge(from, firstCut, newSecond - 1);
+        merge(newSecond, secondCut, to);
     }
 
     /**
@@ -228,9 +228,9 @@ public class InPlaceStableMergeSort<T> {
         int len = to - from + 1, half;
         while (len > 0) {
             half = len / 2;
-            int mid = from + half;
-            if (comp.compare(data[mid], x) < 0) {
-                from = mid + 1;
+            int m = from + half;
+            if (comp.compare(data[m], x) < 0) {
+                from = m + 1;
                 len = len - half - 1;
             } else {
                 len = half;
@@ -252,9 +252,9 @@ public class InPlaceStableMergeSort<T> {
         int len = to - from + 1, half;
         while (len > 0) {
             half = len / 2;
-            int mid = from + half;
-            if (comp.compare(data[mid], x) <= 0) {
-                from = mid + 1;
+            int m = from + half;
+            if (comp.compare(data[m], x) <= 0) {
+                from = m + 1;
                 len = len - half - 1;
             } else {
                 len = half;

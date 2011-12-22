@@ -19,8 +19,14 @@ import org.h2.test.TestBase;
  */
 public class TestSort extends TestBase {
 
+    /**
+     * The number of times the compare method was called.
+     */
     AtomicInteger compareCount = new AtomicInteger();
 
+    /**
+     * The comparison object used in this test.
+     */
     Comparator<Long> comp = new Comparator<Long>() {
         public int compare(Long o1, Long o2) {
             compareCount.incrementAndGet();
@@ -46,32 +52,32 @@ public class TestSort extends TestBase {
         test(Arrays.class);
     }
 
-    void test(Class<?> clazz) throws Exception {
+    private void test(Class<?> clazz) throws Exception {
         this.clazz = clazz;
         ordered(array);
         shuffle(array);
-        stabalize(array);
+        stabilize(array);
         test("random");
         ordered(array);
-        stabalize(array);
+        stabilize(array);
         test("ordered");
         ordered(array);
         reverse(array);
-        stabalize(array);
+        stabilize(array);
         test("reverse");
         ordered(array);
         stretch(array);
         shuffle(array);
-        stabalize(array);
+        stabilize(array);
         test("few random");
         ordered(array);
         stretch(array);
-        stabalize(array);
+        stabilize(array);
         test("few ordered");
         ordered(array);
         reverse(array);
         stretch(array);
-        stabalize(array);
+        stabilize(array);
         test("few reverse");
         System.out.println();
     }
@@ -89,7 +95,7 @@ public class TestSort extends TestBase {
         clazz.getMethod("sort", Object[].class, Comparator.class).invoke(null, array, comp);
 
         // System.out.printf(
-        //    "%4d ms; %10d comparisons sorder: %s data: %s\n",
+        //    "%4d ms; %10d comparisons order: %s data: %s\n",
         //    (System.currentTimeMillis() - t),
         //    compareCount.get(), clazz, type);
 
@@ -149,7 +155,7 @@ public class TestSort extends TestBase {
         }
     }
 
-    private static void stabalize(Long[] array) {
+    private static void stabilize(Long[] array) {
         for (int i = 0; i < array.length; i++) {
             array[i] = (array[i] << 32) + i;
         }

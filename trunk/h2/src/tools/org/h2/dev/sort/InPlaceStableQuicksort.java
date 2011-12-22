@@ -247,13 +247,13 @@ public class InPlaceStableQuicksort<T> {
     }
 
     /**
-     * Select the kth smallest element.
+     * Select the specified element.
      *
      * @param data the array
      * @param from the index of the first element
      * @param to the index of the last element
-     * @param k which element to return
-     * @return the kth smallest element
+     * @param k which element to return (1 means the lowest)
+     * @return the specified element
      */
     private T select(T[] data, int from, int to, int k) {
         while (true) {
@@ -272,7 +272,7 @@ public class InPlaceStableQuicksort<T> {
     }
 
     /**
-     * Partition the elements to select the kth element.
+     * Partition the elements to select an element.
      *
      * @param data the array
      * @param from the index of the first element

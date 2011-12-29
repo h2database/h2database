@@ -50,6 +50,8 @@ Hi,
 
 This looks like a corrupt database. To recover the data, use the tool org.h2.tools.Recover to create the SQL script file, and then re-create the database using this script. Does it work when you do this?
 
+With version 1.3.162 and older: on out of disk space, the database can get corrupt sometimes, if later write operations succeed. The same problem happens on other kinds of I/O exceptions (where one or some of the writes fail, but subsequent writes succeed). Now the file is closed on the first unsuccessful write operation, so that later requests fail consistently.
+
 Important corruption problems were fixed in version 1.2.135 and version 1.2.140 (see the change log). Known causes for corrupt databases are: if the database was created or used with a version older than 1.2.135, and the process was killed while the database was closing or writing a checkpoint. Using the transaction isolation level READ_UNCOMMITTED (LOCK_MODE 0) while at the same time using multiple connections. Disabling database file protection using (setting FILE_LOCK to NO in the database URL). Some other areas that are not fully tested are: Platforms other than Windows XP, Linux, Mac OS X, or JVMs other than Sun 1.5 or 1.6; the feature MULTI_THREADED; the features AUTO_SERVER and AUTO_RECONNECT; the file locking method 'Serialized'.
 
 I am very interested in analyzing and solving this problem. Corruption problems have top priority for me. I have a few questions:

@@ -156,6 +156,7 @@ class FileUnstable extends FileBase {
 
     private final FilePathUnstable file;
     private final FileChannel channel;
+    private boolean closed;
 
     FileUnstable(FilePathUnstable file, FileChannel channel) {
         this.file = file;
@@ -164,6 +165,7 @@ class FileUnstable extends FileBase {
 
     public void implCloseChannel() throws IOException {
         channel.close();
+        closed = true;
     }
 
     public long position() throws IOException {
@@ -200,6 +202,9 @@ class FileUnstable extends FileBase {
     }
 
     private void checkError() throws IOException {
+        if (closed) {
+            throw new IOException("Closed");
+        }
         file.checkError();
     }
 

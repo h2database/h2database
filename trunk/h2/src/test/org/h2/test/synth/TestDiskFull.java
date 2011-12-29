@@ -42,7 +42,9 @@ public class TestDiskFull extends TestBase {
     private boolean test(int x) throws SQLException {
         deleteDb("memFS:", null);
         fs.setDiskFullCount(x);
-        String url = "jdbc:h2:unstable:memFS:diskFull;FILE_LOCK=NO;TRACE_LEVEL_FILE=0;WRITE_DELAY=10;LOCK_TIMEOUT=100;CACHE_SIZE=4096";
+        String url = "jdbc:h2:unstable:memFS:diskFull" + x +
+            ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0;WRITE_DELAY=10;" +
+            "LOCK_TIMEOUT=100;CACHE_SIZE=4096";
         Connection conn = null;
         Statement stat = null;
         boolean opened = false;
@@ -72,6 +74,7 @@ public class TestDiskFull extends TestBase {
             if (stat != null) {
                 try {
                     fs.setDiskFullCount(0);
+                    stat.execute("create table if not exists test(id int primary key, name varchar)");
                     stat.execute("insert into test values(4, space(10000))");
                     stat.execute("update test set name='Hallo' where id=3");
                     conn.close();
@@ -100,11 +103,13 @@ public class TestDiskFull extends TestBase {
         }
         fs.setDiskFullCount(0);
         try {
+            conn = null;
             conn = DriverManager.getConnection(url);
         } catch (SQLException e) {
             if (!opened) {
                 return false;
             }
+            throw e;
         }
         stat = conn.createStatement();
         stat.execute("script to 'memFS:test.sql'");

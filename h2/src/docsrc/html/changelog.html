@@ -19,7 +19,9 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>On out of disk space, the database could get corrupt sometimes,
-    if later write operations succeeded. Now the file is closed on the first unsuccessful
+    if later write operations succeeded. The same problem happened on other
+    kinds of I/O exceptions (where one or some of the writes fail, but subsequent writes
+    succeed). Now the file is closed on the first unsuccessful
     write operation, so that later requests fail consistently.
 </li><li>DatabaseEventListener.diskSpaceIsLow() is no longer supported because
     it can't be guaranteed that it always works correctly.

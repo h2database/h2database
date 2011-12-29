@@ -3108,7 +3108,7 @@ CALL XMLNODE('a', XMLATTR('href', 'http://h2database.com'))
 "
 
 "Functions (String)","XMLNODE","
-XMLNODE(elementString [, attributesString [, contentString [, indentBoolean]])
+XMLNODE(elementString [, attributesString [, contentString [, indentBoolean]]])
 ","
 Create an XML node element.
 An empty or null attribute string means no attributes are set.

@@ -82,10 +82,10 @@ public class TestLobApi extends TestBase {
             chars[i] = (char) r.nextInt(10000);
         }
         String d = new String(chars);
-        prep.setCharacterStream(1, new StringReader(d));
+        prep.setCharacterStream(1, new StringReader(d), -1);
         byte[] bytes = new byte[100000];
         r.nextBytes(bytes);
-        prep.setBinaryStream(2, new ByteArrayInputStream(bytes));
+        prep.setBinaryStream(2, new ByteArrayInputStream(bytes), -1);
         prep.execute();
         conn.setAutoCommit(false);
         ResultSet rs = stat.executeQuery("select * from test order by id");

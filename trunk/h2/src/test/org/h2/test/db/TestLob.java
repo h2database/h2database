@@ -468,7 +468,7 @@ public class TestLob extends TestBase {
         PreparedStatement prep = conn.prepareStatement("insert into test values(2, ?)");
         if (stream) {
             String large = new String(new char[1024 * 1024 * 2]).replace((char) 0, 'x');
-            prep.setCharacterStream(1, new StringReader(large));
+            prep.setCharacterStream(1, new StringReader(large), -1);
             large = null;
             prep.execute();
         } else {

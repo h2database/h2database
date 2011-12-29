@@ -1198,8 +1198,11 @@ public class Database implements DataHandler {
                         pageStore.compact(compactMode);
                     }
                 } catch (DbException e) {
-                    if (e.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED) {
-                        if (SysProperties.CHECK2) {
+                    if (SysProperties.CHECK2) {
+                        int code = e.getErrorCode();
+                        if (code != ErrorCode.DATABASE_IS_CLOSED &&
+                                code != ErrorCode.LOCK_TIMEOUT_1 &&
+                                code != ErrorCode.IO_EXCEPTION_2) {
                             e.printStackTrace();
                         }
                     }

@@ -60,10 +60,6 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         deleteDb("listener");
     }
 
-    public void diskSpaceIsLow() {
-        printTime("diskSpaceIsLow");
-    }
-
     public void exceptionThrown(SQLException e, String sql) {
         TestBase.logError("exceptionThrown sql=" + sql, e);
     }

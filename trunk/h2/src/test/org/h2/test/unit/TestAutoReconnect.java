@@ -179,10 +179,6 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         // ignore
     }
 
-    public void diskSpaceIsLow() {
-        // ignore
-    }
-
     public void exceptionThrown(SQLException e, String sql) {
         // ignore
     }

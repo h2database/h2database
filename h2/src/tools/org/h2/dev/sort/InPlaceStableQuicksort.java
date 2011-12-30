@@ -158,7 +158,8 @@ public class InPlaceStableQuicksort<T> {
     }
 
     /**
-     * Partition a small block using the temporary array. This will speed up partitioning.
+     * Partition a small block using the temporary array. This will speed up
+     * partitioning.
      *
      * @param pivot the pivot
      * @param from the index of the first element

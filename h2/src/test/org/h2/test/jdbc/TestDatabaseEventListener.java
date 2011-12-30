@@ -74,10 +74,6 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
             // nothing to do
         }
 
-        public void diskSpaceIsLow() {
-            // nothing to do
-        }
-
         public void exceptionThrown(SQLException e, String sql) {
             // nothing to do
         }
@@ -216,10 +212,6 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
 
     public void closingDatabase() {
         calledClosingDatabase = true;
-    }
-
-    public void diskSpaceIsLow() {
-        // nothing to do
     }
 
     public void exceptionThrown(SQLException e, String sql) {

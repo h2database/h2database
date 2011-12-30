@@ -752,10 +752,6 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         event("closing");
     }
 
-    public void diskSpaceIsLow() {
-        event("diskSpaceIsLow");
-    }
-
     public void exceptionThrown(SQLException e, String sql) {
         event("exceptionThrown " + e + " " + sql);
     }

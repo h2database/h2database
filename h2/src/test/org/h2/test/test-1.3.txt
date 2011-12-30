@@ -8970,9 +8970,9 @@ CALL XMLTEXT('<test>');
 > &lt;test&gt;
 > rows: 1
 
-CALL XMLTEXT('hello' || chr(10) || 'world');
-> STRINGDECODE('hello\nworld')
-> ----------------------------
+SELECT XMLTEXT('hello' || chr(10) || 'world') X;
+> X
+> -----------
 > hello world
 > rows: 1
 

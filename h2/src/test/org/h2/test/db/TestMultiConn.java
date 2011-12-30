@@ -157,10 +157,6 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         thread.join();
     }
 
-    public void diskSpaceIsLow() {
-        // do nothing
-    }
-
     public void exceptionThrown(SQLException e, String sql) {
         // do nothing
     }

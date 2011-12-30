@@ -110,10 +110,6 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         return DriverManager.getConnection(url, "sa", "");
     }
 
-    public void diskSpaceIsLow() {
-        // nothing to do
-    }
-
     public void exceptionThrown(SQLException e, String sql) {
         // nothing to do
     }

@@ -1069,22 +1069,22 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
- //## Java 1.6 ##
+//## Java 1.6 ##
     public void updateAsciiStream(int columnIndex, InputStream x)
             throws SQLException {
         throw getUnsupportedException();
     }
- //*/
+//*/
 
     /**
      * INTERNAL
      */
- //## Java 1.6 ##
+//## Java 1.6 ##
     public void updateAsciiStream(String columnLabel, InputStream x)
             throws SQLException {
         throw getUnsupportedException();
     }
- //*/
+//*/
 
     /**
      * INTERNAL
@@ -1103,22 +1103,22 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
- //## Java 1.6 ##
+//## Java 1.6 ##
     public void updateAsciiStream(int columnIndex, InputStream x, long length)
             throws SQLException {
         throw getUnsupportedException();
     }
- //*/
+//*/
 
     /**
      * INTERNAL
      */
- //## Java 1.6 ##
+//## Java 1.6 ##
     public void updateAsciiStream(String columnLabel, InputStream x, long length)
             throws SQLException {
         throw getUnsupportedException();
     }
- //*/
+//*/
 
     /**
      * INTERNAL
@@ -1137,22 +1137,22 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
- //## Java 1.6 ##
+//## Java 1.6 ##
     public void updateBinaryStream(int columnLabel, InputStream x)
             throws SQLException {
         throw getUnsupportedException();
     }
- //*/
+//*/
 
     /**
      * INTERNAL
      */
- //## Java 1.6 ##
+//## Java 1.6 ##
     public void updateBinaryStream(String columnLabel, InputStream x)
             throws SQLException {
         throw getUnsupportedException();
     }
- //*/
+//*/
 
     /**
      * INTERNAL
@@ -1171,22 +1171,22 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
- //## Java 1.6 ##
+//## Java 1.6 ##
     public void updateBinaryStream(int columnIndex, InputStream x, long length)
             throws SQLException {
         throw getUnsupportedException();
     }
- //*/
+//*/
 
     /**
      * INTERNAL
      */
- //## Java 1.6 ##
+//## Java 1.6 ##
     public void updateBinaryStream(String columnLabel, InputStream x, long length)
             throws SQLException {
         throw getUnsupportedException();
     }
- //*/
+//*/
 
     /**
      * INTERNAL
@@ -1215,8 +1215,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     public void updateBoolean(String columnLabel, boolean x) throws SQLException {
         throw getUnsupportedException();
     }
-
-// intest
 
     /**
      * INTERNAL
@@ -1317,11 +1315,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-      * INTERNAL
-      */
-     public void updateString(int columnIndex, String x) throws SQLException {
-         throw getUnsupportedException();
-     }
+     * INTERNAL
+     */
+    public void updateString(int columnIndex, String x) throws SQLException {
+        throw getUnsupportedException();
+    }
 
     /**
      * INTERNAL
@@ -1421,343 +1419,333 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         throw getUnsupportedException();
     }
 
-   /**
+    /**
     * INTERNAL
     */
-   public URL getURL(int columnIndex) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public URL getURL(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
+    }
 
-   /**
+    /**
     * INTERNAL
     */
-   public void updateClob(int columnIndex, Clob x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateClob(int columnIndex, Clob x) throws SQLException {
+        throw getUnsupportedException();
+    }
 
-   /**
+    /**
     * INTERNAL
     */
-   public void updateRef(int columnIndex, Ref x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateRef(int columnIndex, Ref x) throws SQLException {
+        throw getUnsupportedException();
+    }
 
-   /**
+    /**
     * INTERNAL
     */
-   public void updateRef(String columnLabel, Ref x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateRef(String columnLabel, Ref x) throws SQLException {
+        throw getUnsupportedException();
+    }
 
-   /**
+    /**
     * INTERNAL
     */
-   public void updateCharacterStream(String columnLabel, Reader reader, int length) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateCharacterStream(String columnLabel, Reader reader, int length) throws SQLException {
+        throw getUnsupportedException();
+    }
 
-   /**
+    /**
     * INTERNAL
     */
-   public void updateArray(String columnLabel, Array x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateArray(String columnLabel, Array x) throws SQLException {
+        throw getUnsupportedException();
+    }
 
-   /**
+    /**
     * INTERNAL
     */
-   public void updateClob(String columnLabel, Clob x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateClob(String columnLabel, Clob x) throws SQLException {
+        throw getUnsupportedException();
+    }
 
-   /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-   public void updateRowId(int columnIndex, RowId x) throws SQLException {
-       throw getUnsupportedException();
-   }
-//*/
-
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateRowId(String columnLabel, RowId x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateRowId(int columnIndex, RowId x) throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNString(int columnIndex, String nString)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateRowId(String columnLabel, RowId x) throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNString(String columnLabel, String nString)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNString(int columnIndex, String nString)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNClob(int columnIndex, NClob nClob)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNString(String columnLabel, String nString)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNClob(String columnLabel, NClob nClob)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNClob(int columnIndex, NClob nClob)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateSQLXML(int columnIndex, SQLXML xmlObject)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNClob(String columnLabel, NClob nClob)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateSQLXML(String columnLabel, SQLXML xmlObject)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateSQLXML(int columnIndex, SQLXML xmlObject)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateBlob(int columnIndex, InputStream x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateSQLXML(String columnLabel, SQLXML xmlObject)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateBlob(String columnLabel, InputStream x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateBlob(int columnIndex, InputStream x) throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateBlob(int columnIndex, InputStream x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateBlob(String columnLabel, InputStream x) throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateBlob(String columnLabel, InputStream x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateBlob(int columnIndex, InputStream x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateCharacterStream(int columnIndex, Reader x)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateBlob(String columnLabel, InputStream x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateCharacterStream(String columnLabel, Reader x)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateCharacterStream(int columnIndex, Reader x)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateCharacterStream(int columnIndex, Reader x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateCharacterStream(String columnLabel, Reader x)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateCharacterStream(String columnLabel, Reader x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateCharacterStream(int columnIndex, Reader x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateClob(int columnIndex, Reader x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateCharacterStream(String columnLabel, Reader x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateClob(String columnLabel, Reader x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateClob(int columnIndex, Reader x) throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateClob(int columnIndex, Reader x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateClob(String columnLabel, Reader x) throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateClob(String columnLabel, Reader x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateClob(int columnIndex, Reader x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNCharacterStream(int columnIndex, Reader x)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateClob(String columnLabel, Reader x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNCharacterStream(String columnLabel, Reader x)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNCharacterStream(int columnIndex, Reader x)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNCharacterStream(int columnIndex, Reader x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNCharacterStream(String columnLabel, Reader x)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNCharacterStream(String columnLabel, Reader x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNCharacterStream(int columnIndex, Reader x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNClob(int columnIndex, Reader x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNCharacterStream(String columnLabel, Reader x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNClob(String columnLabel, Reader x) throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNClob(int columnIndex, Reader x) throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNClob(int columnIndex, Reader x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNClob(String columnLabel, Reader x) throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-   /**
+    /**
     * INTERNAL
     */
 //## Java 1.6 ##
-   public void updateNClob(String columnLabel, Reader x, long length)
-           throws SQLException {
-       throw getUnsupportedException();
-   }
+    public void updateNClob(int columnIndex, Reader x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
 //*/
 
-
-
-
-
-
-
-
-
-
-
-   /**
+    /**
     * INTERNAL
     */
-   public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-       throw getUnsupportedException();
-   }
+//## Java 1.6 ##
+    public void updateNClob(String columnLabel, Reader x, long length)
+            throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+    * INTERNAL
+    */
+    public Time getTime(int columnIndex, Calendar cal) throws SQLException {
+        throw getUnsupportedException();
+    }
 
     /**
      * INTERNAL
@@ -1934,7 +1922,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         throw getUnsupportedException();
     }
 
-    /**
     /**
      * @deprecated INTERNAL
      */

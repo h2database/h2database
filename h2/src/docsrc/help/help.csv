@@ -3142,7 +3142,7 @@ CALL XMLCDATA('data')
 "Functions (String)","XMLSTARTDOC","
 XMLSTARTDOC()
 ","
-Returns the XML decrations.
+Returns the XML declaration.
 The result is always ""<?xml version=""1.0""?>"".
 ","
 CALL XMLSTARTDOC()
@@ -3152,7 +3152,7 @@ CALL XMLSTARTDOC()
 XMLTEXT(valueString [, escapeNewlineBoolean])
 ","
 Creates an XML text element.
-If enabled, newlines and linefeeds are converted to XML entities (&#).
+If enabled, newline and linefeed is converted to an XML entity (&#).
 This method returns a string.
 ","
 CALL XMLTEXT('test')

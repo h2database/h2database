@@ -2159,11 +2159,11 @@ BINARY(1000)
 "Data Types","OTHER Type","
 OTHER
 ","
-This type allows storing serialized Java objects. Internally, a byte array is
-used. Serialization and deserialization is done on the client side only.
-Deserialization is only done get ""getObject"" is called. Java operations cannot be
-executed inside the database engine for security reasons. Use
-""PreparedStatement.setObject"" to store values.
+This type allows storing serialized Java objects. Internally, a byte array is used.
+Serialization and deserialization is done on the client side only.
+Deserialization is only done when ""getObject"" is called.
+Java operations cannot be executed inside the database engine for security reasons.
+Use ""PreparedStatement.setObject"" to store values.
 
 Mapped to ""java.lang.Object"" (or any subclass).
 ","

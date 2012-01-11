@@ -339,37 +339,78 @@ public class TestTools extends TestBase {
         assertNull(rs.getBinaryStream(12));
         assertTrue(rs.wasNull());
 
-        // all 'updateX' methods are not supported
+        // all updateX methods
         for (Method m: rs.getClass().getMethods()) {
             if (m.getName().startsWith("update")) {
+                if (m.getName().equals("updateRow")) {
+                    continue;
+                }
                 int len = m.getParameterTypes().length;
                 Object[] params = new Object[len];
                 int i = 0;
+                String expectedValue = null;
                 for (Class<?> type : m.getParameterTypes()) {
-                    Object o = null;
+                    Object o;
+                    String e = null;
                     if (type == int.class) {
                         o = 1;
+                        e = "1";
                     } else if (type == byte.class) {
-                        o = (byte) 1;
+                        o = (byte) 2;
+                        e = "2";
                     } else if (type == double.class) {
-                        o = (double) 1;
+                        o = (double) 3;
+                        e = "3.0";
                     } else if (type == float.class) {
-                        o = (float) 1;
+                        o = (float) 4;
+                        e = "4.0";
                     } else if (type == long.class) {
-                        o = (long) 1;
+                        o = (long) 5;
+                        e = "5";
                     } else if (type == short.class) {
-                        o = (short) 1;
+                        o = (short) 6;
+                        e = "6";
                     } else if (type == boolean.class) {
                         o = false;
+                        e = "false";
+                    } else if (type == String.class) {
+                        // columnName or value
+                        o = "a";
+                        e = "a";
+                    } else {
+                        o = null;
+                    }
+                    if (i == 1) {
+                        expectedValue = e;
                     }
                     params[i] = o;
                     i++;
                 }
+                m.invoke(rs, params);
+                if (params.length == 1) {
+                    // updateNull
+                    assertEquals(null, rs.getString(1));
+                } else {
+                    assertEquals(expectedValue, rs.getString(1));
+                }
+                // invalid column name / index
+                Object invalidColumn;
+                if (m.getParameterTypes()[0] == String.class) {
+                    invalidColumn = "x";
+                } else {
+                    invalidColumn = 0;
+                }
+                params[0] = invalidColumn;
                 try {
                     m.invoke(rs, params);
+                    fail();
                 } catch (InvocationTargetException e) {
                     SQLException e2 = (SQLException) e.getTargetException();
-                    assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e2.getErrorCode());
+                    if (invalidColumn instanceof String) {
+                        assertEquals(ErrorCode.COLUMN_NOT_FOUND_1, e2.getErrorCode());
+                    } else {
+                        assertEquals(ErrorCode.INVALID_VALUE_2, e2.getErrorCode());
+                    }
                 }
             }
         }

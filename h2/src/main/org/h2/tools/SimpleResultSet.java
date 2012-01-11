@@ -348,173 +348,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns the value as a byte.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public byte getByte(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o != null && !(o instanceof Number)) {
-            o = Byte.decode(o.toString());
-        }
-        return o == null ? 0 : ((Number) o).byteValue();
-    }
-
-    /**
-     * Returns the value as an double.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public double getDouble(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o != null && !(o instanceof Number)) {
-            return Double.parseDouble(o.toString());
-        }
-        return o == null ? 0 : ((Number) o).doubleValue();
-    }
-
-    /**
-     * Returns the value as a float.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public float getFloat(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o != null && !(o instanceof Number)) {
-            return Float.parseFloat(o.toString());
-        }
-        return o == null ? 0 : ((Number) o).floatValue();
-    }
-
-    /**
-     * Returns the value as an int.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public int getInt(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o != null && !(o instanceof Number)) {
-            o = Integer.decode(o.toString());
-        }
-        return o == null ? 0 : ((Number) o).intValue();
-    }
-
-    /**
-     * Returns the value as a long.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public long getLong(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o != null && !(o instanceof Number)) {
-            o = Long.decode(o.toString());
-        }
-        return o == null ? 0 : ((Number) o).longValue();
-    }
-
-    /**
-     * Returns the value as a short.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public short getShort(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o != null && !(o instanceof Number)) {
-            o = Short.decode(o.toString());
-        }
-        return o == null ? 0 : ((Number) o).shortValue();
-    }
-
-    /**
-     * Returns the value as a boolean.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public boolean getBoolean(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o != null && !(o instanceof Boolean)) {
-            o = Boolean.valueOf(o.toString());
-        }
-        return o == null ? false : ((Boolean) o).booleanValue();
-    }
-
-    /**
-     * Returns the value as a byte array.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public byte[] getBytes(int columnIndex) throws SQLException {
-        return (byte[]) get(columnIndex);
-    }
-
-    /**
-     * Returns the value as an Object.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public Object getObject(int columnIndex) throws SQLException {
-        return get(columnIndex);
-    }
-
-    /**
-     * Returns the value as a String.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public String getString(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o == null) {
-            return null;
-        }
-        switch (columns.get(columnIndex - 1).sqlType) {
-        case Types.CLOB:
-            Clob c = (Clob) o;
-            return c.getSubString(1, MathUtils.convertLongToInt(c.length()));
-        }
-        return o.toString();
-    }
-
-    /**
-     * Returns the value as a byte.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public byte getByte(String columnLabel) throws SQLException {
-        return getByte(findColumn(columnLabel));
-    }
-
-    /**
-     * Returns the value as a double.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public double getDouble(String columnLabel) throws SQLException {
-        return getDouble(findColumn(columnLabel));
-    }
-
-    /**
-     * Returns the value as a float.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public float getFloat(String columnLabel) throws SQLException {
-        return getFloat(findColumn(columnLabel));
-    }
-
-    /**
      * Searches for a specific column in the result set. A case-insensitive
      * search is made.
      *
@@ -532,80 +365,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
             }
         }
         throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel).getSQLException();
-    }
-
-    /**
-     * Returns the value as an int.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public int getInt(String columnLabel) throws SQLException {
-        return getInt(findColumn(columnLabel));
-    }
-
-    /**
-     * Returns the value as a long.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public long getLong(String columnLabel) throws SQLException {
-        return getLong(findColumn(columnLabel));
-    }
-
-    /**
-     * Returns the value as a short.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public short getShort(String columnLabel) throws SQLException {
-        return getShort(findColumn(columnLabel));
-    }
-
-    /**
-     * Returns the value as a boolean.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public boolean getBoolean(String columnLabel) throws SQLException {
-        return getBoolean(findColumn(columnLabel));
-    }
-
-    /**
-     * Returns the value as a byte array.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public byte[] getBytes(String columnLabel) throws SQLException {
-        return getBytes(findColumn(columnLabel));
-    }
-
-    /**
-     * Returns the value as a java.math.BigDecimal.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
-        Object o = get(columnIndex);
-        if (o != null && !(o instanceof BigDecimal)) {
-            o = new BigDecimal(o.toString());
-        }
-        return (BigDecimal) o;
-    }
-
-    /**
-     * Returns the value as an java.sql.Date.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public Date getDate(int columnIndex) throws SQLException {
-        return (Date) get(columnIndex);
     }
 
     /**
@@ -636,24 +395,13 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns the value as an java.sql.Time.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
+     * INTERNAL
      */
-    public Time getTime(int columnIndex) throws SQLException {
-        return (Time) get(columnIndex);
+    public void clearWarnings() {
+        // nothing to do
     }
 
-    /**
-     * Returns the value as an java.sql.Timestamp.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
-     */
-    public Timestamp getTimestamp(int columnIndex) throws SQLException {
-        return (Timestamp) get(columnIndex);
-    }
+    // ---- get ---------------------------------------------
 
     /**
      * Returns the value as a java.sql.Array.
@@ -667,41 +415,65 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns the value as a java.io.Reader.
-     * This is only supported for CLOB data.
+     * Returns the value as a java.sql.Array.
      *
-     * @param columnIndex (1,2,...)
+     * @param columnLabel the column label
      * @return the value
      */
-    public Reader getCharacterStream(int columnIndex) throws SQLException {
-        Clob c = (Clob) get(columnIndex);
-        return c == null ? null : c.getCharacterStream();
+    public Array getArray(String columnLabel) throws SQLException {
+        return getArray(findColumn(columnLabel));
     }
 
     /**
-     * Returns the value as a java.sql.Clob.
-     * This is only supported if the
-     * result set was created using a Clob object.
-     *
-     * @param columnIndex (1,2,...)
-     * @return the value
+     * INTERNAL
      */
-    public Clob getClob(int columnIndex) throws SQLException {
-        Clob c = (Clob) get(columnIndex);
-        return c == null ? null : c;
+    public InputStream getAsciiStream(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
     }
 
     /**
-     * Returns the value as a java.sql.Blob.
-     * This is only supported if the
-     * result set was created using a Blob object.
+     * INTERNAL
+     */
+    public InputStream getAsciiStream(String columnLabel) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * Returns the value as a java.math.BigDecimal.
      *
      * @param columnIndex (1,2,...)
      * @return the value
      */
-    public Blob getBlob(int columnIndex) throws SQLException {
-        Blob b = (Blob) get(columnIndex);
-        return b == null ? null : b;
+    public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o != null && !(o instanceof BigDecimal)) {
+            o = new BigDecimal(o.toString());
+        }
+        return (BigDecimal) o;
+    }
+
+    /**
+     * Returns the value as a java.math.BigDecimal.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
+        return getBigDecimal(findColumn(columnLabel));
+    }
+
+    /**
+     * @deprecated INTERNAL
+     */
+    public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * @deprecated INTERNAL
+     */
+    public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
+        throw getUnsupportedException();
     }
 
     /**
@@ -718,63 +490,120 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns the value as an Object.
+     * Returns the value as a java.io.InputStream.
+     * This is only supported if the
+     * result set was created using a Blob object.
      *
      * @param columnLabel the column label
      * @return the value
      */
-    public Object getObject(String columnLabel) throws SQLException {
-        return getObject(findColumn(columnLabel));
+    public InputStream getBinaryStream(String columnLabel) throws SQLException {
+        return getBinaryStream(findColumn(columnLabel));
     }
 
     /**
-     * Returns the value as a String.
+     * Returns the value as a java.sql.Blob.
+     * This is only supported if the
+     * result set was created using a Blob object.
      *
-     * @param columnLabel the column label
+     * @param columnIndex (1,2,...)
      * @return the value
      */
-    public String getString(String columnLabel) throws SQLException {
-        return getString(findColumn(columnLabel));
+    public Blob getBlob(int columnIndex) throws SQLException {
+        Blob b = (Blob) get(columnIndex);
+        return b == null ? null : b;
     }
 
     /**
-     * Returns the value as a java.math.BigDecimal.
+     * Returns the value as a java.sql.Blob.
+     * This is only supported if the
+     * result set was created using a Blob object.
      *
      * @param columnLabel the column label
      * @return the value
      */
-    public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
-        return getBigDecimal(findColumn(columnLabel));
+    public Blob getBlob(String columnLabel) throws SQLException {
+        return getBlob(findColumn(columnLabel));
     }
 
     /**
-     * Returns the value as a java.sql.Date.
+     * Returns the value as a boolean.
      *
-     * @param columnLabel the column label
+     * @param columnIndex (1,2,...)
      * @return the value
      */
-    public Date getDate(String columnLabel) throws SQLException {
-        return getDate(findColumn(columnLabel));
+    public boolean getBoolean(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o != null && !(o instanceof Boolean)) {
+            o = Boolean.valueOf(o.toString());
+        }
+        return o == null ? false : ((Boolean) o).booleanValue();
     }
 
     /**
-     * Returns the value as a java.sql.Time.
+     * Returns the value as a boolean.
      *
      * @param columnLabel the column label
      * @return the value
      */
-    public Time getTime(String columnLabel) throws SQLException {
-        return getTime(findColumn(columnLabel));
+    public boolean getBoolean(String columnLabel) throws SQLException {
+        return getBoolean(findColumn(columnLabel));
     }
 
     /**
-     * Returns the value as a java.sql.Timestamp.
+     * Returns the value as a byte.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public byte getByte(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o != null && !(o instanceof Number)) {
+            o = Byte.decode(o.toString());
+        }
+        return o == null ? 0 : ((Number) o).byteValue();
+    }
+
+    /**
+     * Returns the value as a byte.
      *
      * @param columnLabel the column label
      * @return the value
      */
-    public Timestamp getTimestamp(String columnLabel) throws SQLException {
-        return getTimestamp(findColumn(columnLabel));
+    public byte getByte(String columnLabel) throws SQLException {
+        return getByte(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as a byte array.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public byte[] getBytes(int columnIndex) throws SQLException {
+        return (byte[]) get(columnIndex);
+    }
+
+    /**
+     * Returns the value as a byte array.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public byte[] getBytes(String columnLabel) throws SQLException {
+        return getBytes(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as a java.io.Reader.
+     * This is only supported for CLOB data.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public Reader getCharacterStream(int columnIndex) throws SQLException {
+        Clob c = (Clob) get(columnIndex);
+        return c == null ? null : c.getCharacterStream();
     }
 
     /**
@@ -794,6 +623,19 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * This is only supported if the
      * result set was created using a Clob object.
      *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public Clob getClob(int columnIndex) throws SQLException {
+        Clob c = (Clob) get(columnIndex);
+        return c == null ? null : c;
+    }
+
+    /**
+     * Returns the value as a java.sql.Clob.
+     * This is only supported if the
+     * result set was created using a Clob object.
+     *
      * @param columnLabel the column label
      * @return the value
      */
@@ -802,27 +644,1106 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns the value as a java.sql.Blob.
-     * This is only supported if the
-     * result set was created using a Blob object.
+     * Returns the value as an java.sql.Date.
      *
-     * @param columnLabel the column label
+     * @param columnIndex (1,2,...)
      * @return the value
      */
-    public Blob getBlob(String columnLabel) throws SQLException {
-        return getBlob(findColumn(columnLabel));
+    public Date getDate(int columnIndex) throws SQLException {
+        return (Date) get(columnIndex);
     }
 
     /**
-     * Returns the value as a java.io.InputStream.
-     * This is only supported if the
-     * result set was created using a Blob object.
+     * Returns the value as a java.sql.Date.
      *
      * @param columnLabel the column label
      * @return the value
      */
-    public InputStream getBinaryStream(String columnLabel) throws SQLException {
-        return getBinaryStream(findColumn(columnLabel));
+    public Date getDate(String columnLabel) throws SQLException {
+        return getDate(findColumn(columnLabel));
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Date getDate(int columnIndex, Calendar cal) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Date getDate(String columnLabel, Calendar cal) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * Returns the value as an double.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public double getDouble(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o != null && !(o instanceof Number)) {
+            return Double.parseDouble(o.toString());
+        }
+        return o == null ? 0 : ((Number) o).doubleValue();
+    }
+
+    /**
+     * Returns the value as a double.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public double getDouble(String columnLabel) throws SQLException {
+        return getDouble(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as a float.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public float getFloat(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o != null && !(o instanceof Number)) {
+            return Float.parseFloat(o.toString());
+        }
+        return o == null ? 0 : ((Number) o).floatValue();
+    }
+
+    /**
+     * Returns the value as a float.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public float getFloat(String columnLabel) throws SQLException {
+        return getFloat(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as an int.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public int getInt(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o != null && !(o instanceof Number)) {
+            o = Integer.decode(o.toString());
+        }
+        return o == null ? 0 : ((Number) o).intValue();
+    }
+
+    /**
+     * Returns the value as an int.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public int getInt(String columnLabel) throws SQLException {
+        return getInt(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as a long.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public long getLong(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o != null && !(o instanceof Number)) {
+            o = Long.decode(o.toString());
+        }
+        return o == null ? 0 : ((Number) o).longValue();
+    }
+
+    /**
+     * Returns the value as a long.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public long getLong(String columnLabel) throws SQLException {
+        return getLong(findColumn(columnLabel));
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public Reader getNCharacterStream(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public Reader getNCharacterStream(String columnLabel) throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public NClob getNClob(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public NClob getNClob(String columnLabel) throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public String getNString(int columnIndex) throws SQLException {
+        return getString(columnIndex);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public String getNString(String columnLabel) throws SQLException {
+        return getString(columnLabel);
+    }
+//*/
+
+    /**
+     * Returns the value as an Object.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public Object getObject(int columnIndex) throws SQLException {
+        return get(columnIndex);
+    }
+
+    /**
+     * Returns the value as an Object.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public Object getObject(String columnLabel) throws SQLException {
+        return getObject(findColumn(columnLabel));
+    }
+
+    /**
+     * INTERNAL
+     *
+     * @param columnIndex the column index (1, 2, ...)
+     * @param type the class of the returned value
+     */
+/*## Java 1.7 ##
+    public <T> T getObject(int columnIndex, Class<T> type) {
+        return null;
+    }
+//*/
+
+    /**
+     * INTERNAL
+     *
+     * @param columnName the column name
+     * @param type the class of the returned value
+     */
+/*## Java 1.7 ##
+    public <T> T getObject(String columnName, Class<T> type) {
+        return null;
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Object getObject(String columnLabel, Map<String, Class<?>> map) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Ref getRef(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Ref getRef(String columnLabel) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public RowId getRowId(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public RowId getRowId(String columnLabel) throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+     * Returns the value as a short.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public short getShort(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o != null && !(o instanceof Number)) {
+            o = Short.decode(o.toString());
+        }
+        return o == null ? 0 : ((Number) o).shortValue();
+    }
+
+    /**
+     * Returns the value as a short.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public short getShort(String columnLabel) throws SQLException {
+        return getShort(findColumn(columnLabel));
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public SQLXML getSQLXML(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public SQLXML getSQLXML(String columnLabel) throws SQLException {
+        throw getUnsupportedException();
+    }
+//*/
+
+    /**
+     * Returns the value as a String.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public String getString(int columnIndex) throws SQLException {
+        Object o = get(columnIndex);
+        if (o == null) {
+            return null;
+        }
+        switch (columns.get(columnIndex - 1).sqlType) {
+        case Types.CLOB:
+            Clob c = (Clob) o;
+            return c.getSubString(1, MathUtils.convertLongToInt(c.length()));
+        }
+        return o.toString();
+    }
+
+    /**
+     * Returns the value as a String.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public String getString(String columnLabel) throws SQLException {
+        return getString(findColumn(columnLabel));
+    }
+
+    /**
+     * Returns the value as an java.sql.Time.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public Time getTime(int columnIndex) throws SQLException {
+        return (Time) get(columnIndex);
+    }
+
+    /**
+     * Returns the value as a java.sql.Time.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public Time getTime(String columnLabel) throws SQLException {
+        return getTime(findColumn(columnLabel));
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Time getTime(int columnIndex, Calendar cal) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Time getTime(String columnLabel, Calendar cal) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * Returns the value as an java.sql.Timestamp.
+     *
+     * @param columnIndex (1,2,...)
+     * @return the value
+     */
+    public Timestamp getTimestamp(int columnIndex) throws SQLException {
+        return (Timestamp) get(columnIndex);
+    }
+
+    /**
+     * Returns the value as a java.sql.Timestamp.
+     *
+     * @param columnLabel the column label
+     * @return the value
+     */
+    public Timestamp getTimestamp(String columnLabel) throws SQLException {
+        return getTimestamp(findColumn(columnLabel));
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public Timestamp getTimestamp(String columnLabel, Calendar cal) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * @deprecated INTERNAL
+     */
+    public InputStream getUnicodeStream(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * @deprecated INTERNAL
+     */
+    public InputStream getUnicodeStream(String columnLabel) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public URL getURL(int columnIndex) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    /**
+     * INTERNAL
+     */
+    public URL getURL(String columnLabel) throws SQLException {
+        throw getUnsupportedException();
+    }
+
+    // ---- update ---------------------------------------------
+
+    /**
+     * INTERNAL
+     */
+    public void updateArray(int columnIndex, Array x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateArray(String columnLabel, Array x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateAsciiStream(String columnLabel, InputStream x, int length) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateAsciiStream(int columnIndex, InputStream x, long length)
+            throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateAsciiStream(String columnLabel, InputStream x, long length)
+            throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateBigDecimal(String columnLabel, BigDecimal x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateBinaryStream(String columnLabel, InputStream x, int length) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateBinaryStream(int columnIndex, InputStream x, long length)
+            throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateBinaryStream(String columnLabel, InputStream x, long length)
+            throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateBlob(int columnIndex, Blob x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateBlob(String columnLabel, Blob x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateBlob(int columnIndex, InputStream x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateBlob(String columnLabel, InputStream x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateBlob(int columnIndex, InputStream x, long length)
+            throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateBlob(String columnLabel, InputStream x, long length)
+            throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateBoolean(int columnIndex, boolean x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateBoolean(String columnLabel, boolean x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateByte(int columnIndex, byte x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateByte(String columnLabel, byte x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateBytes(int columnIndex, byte[] x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateBytes(String columnLabel, byte[] x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateCharacterStream(String columnLabel, Reader x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateCharacterStream(String columnLabel, Reader x, int length) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateCharacterStream(int columnIndex, Reader x, long length)
+            throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateCharacterStream(String columnLabel, Reader x, long length)
+            throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateClob(int columnIndex, Clob x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateClob(String columnLabel, Clob x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateClob(int columnIndex, Reader x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateClob(String columnLabel, Reader x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateClob(int columnIndex, Reader x, long length)
+            throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateClob(String columnLabel, Reader x, long length)
+            throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateDate(int columnIndex, Date x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateDate(String columnLabel, Date x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateDouble(int columnIndex, double x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateDouble(String columnLabel, double x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateFloat(int columnIndex, float x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateFloat(String columnLabel, float x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateInt(int columnIndex, int x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateInt(String columnLabel, int x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateLong(int columnIndex, long x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateLong(String columnLabel, long x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNCharacterStream(String columnLabel, Reader x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNCharacterStream(int columnIndex, Reader x, long length)
+            throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNCharacterStream(String columnLabel, Reader x, long length)
+            throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNClob(int columnIndex, NClob x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNClob(String columnLabel, NClob x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNClob(int columnIndex, Reader x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNClob(String columnLabel, Reader x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNClob(int columnIndex, Reader x, long length)
+            throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNClob(String columnLabel, Reader x, long length)
+            throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNString(int columnIndex, String x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateNString(String columnLabel, String x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateNull(int columnIndex) throws SQLException {
+        update(columnIndex, null);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateNull(String columnLabel) throws SQLException {
+        update(columnLabel, null);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateObject(int columnIndex, Object x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateObject(String columnLabel, Object x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateObject(int columnIndex, Object x, int scale) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateObject(String columnLabel, Object x, int scale) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateRef(int columnIndex, Ref x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateRef(String columnLabel, Ref x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateRowId(int columnIndex, RowId x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateRowId(String columnLabel, RowId x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateShort(int columnIndex, short x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateShort(String columnLabel, short x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateSQLXML(int columnIndex, SQLXML x) throws SQLException {
+        update(columnIndex, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+//## Java 1.6 ##
+    public void updateSQLXML(String columnLabel, SQLXML x) throws SQLException {
+        update(columnLabel, x);
+    }
+//*/
+
+    /**
+     * INTERNAL
+     */
+    public void updateString(int columnIndex, String x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateString(String columnLabel, String x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateTime(int columnIndex, Time x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateTime(String columnLabel, Time x) throws SQLException {
+        update(columnLabel, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
+        update(columnIndex, x);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public void updateTimestamp(String columnLabel, Timestamp x) throws SQLException {
+        update(columnLabel, x);
     }
 
     // ---- result set meta data ---------------------------------------------
@@ -1040,712 +1961,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         return null;
     }
 
-    /**
-     * INTERNAL
-     */
-    public void clearWarnings() {
-        // nothing to do
-    }
-
     // ---- unsupported / result set ---------------------------------------------
-
-    /**
-     * INTERNAL
-     */
-    public void updateArray(int columnIndex, Array x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * Returns the value as a java.sql.Array.
-     *
-     * @param columnLabel the column label
-     * @return the value
-     */
-    public Array getArray(String columnLabel) throws SQLException {
-        return getArray(findColumn(columnLabel));
-    }
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public void updateAsciiStream(int columnIndex, InputStream x)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public void updateAsciiStream(String columnLabel, InputStream x)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-    public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateAsciiStream(String columnLabel, InputStream x, int length) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public void updateAsciiStream(int columnIndex, InputStream x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public void updateAsciiStream(String columnLabel, InputStream x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-    public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateBigDecimal(String columnLabel, BigDecimal x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public void updateBinaryStream(int columnLabel, InputStream x)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public void updateBinaryStream(String columnLabel, InputStream x)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-    public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateBinaryStream(String columnLabel, InputStream x, int length) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public void updateBinaryStream(int columnIndex, InputStream x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public void updateBinaryStream(String columnLabel, InputStream x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-    public void updateBlob(int columnIndex, Blob x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateBlob(String columnLabel, Blob x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateBoolean(int columnIndex, boolean x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateBoolean(String columnLabel, boolean x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateNull(int columnIndex) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateNull(String columnLabel) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateByte(int columnIndex, byte x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateByte(String columnLabel, byte x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateShort(int columnIndex, short x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateShort(String columnLabel, short x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateInt(int columnIndex, int x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateInt(String columnLabel, int x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateLong(int columnIndex, long x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateLong(String columnLabel, long x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateFloat(int columnIndex, float x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateFloat(String columnLabel, float x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateDouble(int columnIndex, double x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateDouble(String columnLabel, double x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateString(int columnIndex, String x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateString(String columnLabel, String x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateDate(int columnIndex, Date x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateDate(String columnLabel, Date x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateTime(int columnIndex, Time x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateTime(String columnLabel, Time x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateTimestamp(String columnLabel, Timestamp x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateObject(int columnIndex, Object x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateObject(String columnLabel, Object x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateObject(int columnIndex, Object x, int scale) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateObject(String columnLabel, Object x, int scale) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateBytes(int columnIndex, byte[] x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateBytes(String columnLabel, byte[] x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-    * INTERNAL
-    */
-    public URL getURL(int columnIndex) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-    * INTERNAL
-    */
-    public void updateClob(int columnIndex, Clob x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-    * INTERNAL
-    */
-    public void updateRef(int columnIndex, Ref x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-    * INTERNAL
-    */
-    public void updateRef(String columnLabel, Ref x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-    * INTERNAL
-    */
-    public void updateCharacterStream(String columnLabel, Reader reader, int length) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-    * INTERNAL
-    */
-    public void updateArray(String columnLabel, Array x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-    * INTERNAL
-    */
-    public void updateClob(String columnLabel, Clob x) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateRowId(int columnIndex, RowId x) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateRowId(String columnLabel, RowId x) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNString(int columnIndex, String nString)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNString(String columnLabel, String nString)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNClob(int columnIndex, NClob nClob)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNClob(String columnLabel, NClob nClob)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateSQLXML(int columnIndex, SQLXML xmlObject)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateSQLXML(String columnLabel, SQLXML xmlObject)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateBlob(int columnIndex, InputStream x) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateBlob(String columnLabel, InputStream x) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateBlob(int columnIndex, InputStream x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateBlob(String columnLabel, InputStream x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateCharacterStream(int columnIndex, Reader x)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateCharacterStream(String columnLabel, Reader x)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateCharacterStream(int columnIndex, Reader x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateCharacterStream(String columnLabel, Reader x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateClob(int columnIndex, Reader x) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateClob(String columnLabel, Reader x) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateClob(int columnIndex, Reader x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateClob(String columnLabel, Reader x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNCharacterStream(int columnIndex, Reader x)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNCharacterStream(String columnLabel, Reader x)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNCharacterStream(int columnIndex, Reader x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNCharacterStream(String columnLabel, Reader x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNClob(int columnIndex, Reader x) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNClob(String columnLabel, Reader x) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNClob(int columnIndex, Reader x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-//## Java 1.6 ##
-    public void updateNClob(String columnLabel, Reader x, long length)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-    * INTERNAL
-    */
-    public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-        throw getUnsupportedException();
-    }
 
     /**
      * INTERNAL
@@ -1904,123 +2120,20 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * INTERNAL
      */
-    public InputStream getAsciiStream(int columnIndex) {
-        return null;
-    }
-
-    /**
-     * @deprecated INTERNAL
-     */
-    public InputStream getUnicodeStream(int columnIndex) {
-        return null;
-    }
-
-    /**
-     * INTERNAL
-     */
     public String getCursorName() throws SQLException {
         throw getUnsupportedException();
     }
 
-    /**
-     * @deprecated INTERNAL
-     */
-    public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Ref getRef(int columnIndex) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public InputStream getAsciiStream(String columnLabel) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * @deprecated INTERNAL
-     */
-    public InputStream getUnicodeStream(String columnLabel) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * @deprecated INTERNAL
-     */
-    public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public URL getURL(String columnLabel) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Date getDate(int columnIndex, Calendar cal) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Ref getRef(String colName) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Object getObject(String colName, Map<String, Class<?>> map) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Date getDate(String columnLabel, Calendar cal) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Time getTime(String columnLabel, Calendar cal) throws SQLException {
-        throw getUnsupportedException();
-    }
-
-    /**
-     * INTERNAL
-     */
-    public Timestamp getTimestamp(String columnLabel, Calendar cal) throws SQLException {
-        throw getUnsupportedException();
-    }
-
     // --- private -----------------------------
+
+    private void update(int columnIndex, Object obj) throws SQLException {
+        checkColumnIndex(columnIndex);
+        this.currentRow[columnIndex - 1] = obj;
+    }
+
+    private void update(String columnLabel, Object obj) throws SQLException {
+        this.currentRow[findColumn(columnLabel) - 1] = obj;
+    }
 
     /**
      * INTERNAL
@@ -2030,8 +2143,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     private void checkColumnIndex(int columnIndex) throws SQLException {
-        if (columnIndex < 0 || columnIndex >= columns.size()) {
-            throw DbException.getInvalidValueException("columnIndex", columnIndex + 1).getSQLException();
+        if (columnIndex < 1 || columnIndex > columns.size()) {
+            throw DbException.getInvalidValueException("columnIndex", columnIndex).getSQLException();
         }
     }
 
@@ -2039,35 +2152,17 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         if (currentRow == null) {
             throw DbException.get(ErrorCode.NO_DATA_AVAILABLE).getSQLException();
         }
-        columnIndex--;
         checkColumnIndex(columnIndex);
+        columnIndex--;
         Object o = columnIndex < currentRow.length ? currentRow[columnIndex] : null;
         wasNull = o == null;
         return o;
     }
 
     private Column getColumn(int i) throws SQLException {
-        checkColumnIndex(i);
+        checkColumnIndex(i + 1);
         return columns.get(i);
     }
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public RowId getRowId(int columnIndex) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public RowId getRowId(String columnLabel) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
 
     /**
      * Returns the current result set holdability.
@@ -2091,79 +2186,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public NClob getNClob(int columnIndex) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public NClob getNClob(String columnLabel) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public SQLXML getSQLXML(int columnIndex) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public SQLXML getSQLXML(String columnLabel) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public String getNString(int columnIndex) throws SQLException {
-        return getString(columnIndex);
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public String getNString(String columnLabel) throws SQLException {
-        return getString(columnLabel);
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public Reader getNCharacterStream(int columnIndex) throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
-    public Reader getNCharacterStream(String columnLabel)
-            throws SQLException {
-        throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     */
-//## Java 1.6 ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw getUnsupportedException();
     }
@@ -2175,30 +2197,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 //## Java 1.6 ##
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw getUnsupportedException();
-    }
-//*/
-
-    /**
-     * INTERNAL
-     *
-     * @param columnIndex the column index (1, 2, ...)
-     * @param type the class of the returned value
-     */
-/*## Java 1.7 ##
-    public <T> T getObject(int columnIndex, Class<T> type) {
-        return null;
-    }
-//*/
-
-    /**
-     * INTERNAL
-     *
-     * @param columnName the column name
-     * @param type the class of the returned value
-     */
-/*## Java 1.7 ##
-    public <T> T getObject(String columnName, Class<T> type) {
-        return null;
     }
 //*/
 

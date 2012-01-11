@@ -242,6 +242,9 @@ public class ConnectionInfo implements Cloneable {
             url = url.substring(0, idx);
             String[] list = StringUtils.arraySplit(settings, ';', false);
             for (String setting : list) {
+                if (setting.length() == 0) {
+                    continue;
+                }
                 int equal = setting.indexOf('=');
                 if (equal < 0) {
                     throw getFormatException();

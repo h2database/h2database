@@ -38,6 +38,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testExtraSemicolonInDatabaseURL();
         testGroupSubquery();
         testCountDistinctNotNull();
         testDependencies();
@@ -94,6 +95,14 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testExtraSemicolonInDatabaseURL() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases;");
+        conn.close();
+        conn = getConnection("cases;;mode=mysql;");
+        conn.close();
     }
 
     private void testGroupSubquery() throws SQLException {

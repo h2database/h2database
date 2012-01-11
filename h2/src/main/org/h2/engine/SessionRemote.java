@@ -219,15 +219,15 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             }
         } else {
             if (autoCommit) {
-                if (autoCommitFalse == null) {
-                    autoCommitFalse = prepareCommand("SET AUTOCOMMIT FALSE", Integer.MAX_VALUE);
-                }
-                autoCommitFalse.executeUpdate();
-            } else {
                 if (autoCommitTrue == null) {
                     autoCommitTrue = prepareCommand("SET AUTOCOMMIT TRUE", Integer.MAX_VALUE);
                 }
                 autoCommitTrue.executeUpdate();
+            } else {
+                if (autoCommitFalse == null) {
+                    autoCommitFalse = prepareCommand("SET AUTOCOMMIT FALSE", Integer.MAX_VALUE);
+                }
+                autoCommitFalse.executeUpdate();
             }
         }
     }

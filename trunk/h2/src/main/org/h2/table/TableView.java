@@ -214,9 +214,7 @@ public class TableView extends Table {
     }
 
     public String getDropSQL() {
-        StatementBuilder buff = new StatementBuilder("DROP VIEW IF EXISTS ");
-        buff.append(getSQL());
-        return buff.toString();
+        return "DROP VIEW IF EXISTS " + getSQL() + " CASCADE";
     }
 
     public String getCreateSQLForCopy(Table table, String quotedName) {

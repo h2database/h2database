@@ -770,14 +770,16 @@ the INIT property. Note that multiple commands may be passed to INIT, but the se
 must be escaped, as in the example below.
 </p>
 <pre>
-String url = "jdbc:h2:mem;INIT=RUNSCRIPT FROM '~/create.sql'\\;RUNSCRIPT FROM '~/populate.sql'";
+String url = "jdbc:h2:mem;INIT=runscript from '~/create.sql'\\;runscript from '~/populate.sql'";
 </pre>
 <p>
 Please note the double backslash is only required in a Java or properties file.
 In a GUI, or in an XML file, only one backslash is required:
 </p>
 <pre>
-&lt;property name="url" value="jdbc:h2:mem:test;INIT=CREATE SCHEMA IF NOT EXISTS TEST\;RUNSCRIPT FROM '~/sql/populate.sql';DB_CLOSE_DELAY=-1" /&gt;
+&lt;property name="url" value=
+"jdbc:h2:mem:test;INIT=create schema if not exists test\;runscript from '~/sql/populate.sql';DB_CLOSE_DELAY=-1"
+/&gt;
 </pre>
 
 <h2 id="ignore_unknown_settings">Ignore Unknown Settings</h2>

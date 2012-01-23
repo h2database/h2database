@@ -18,7 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>SimpleResultSet: updating a result set is now supported.
+<ul><li>The script created by SCRIPT DROP did not always work if multiple views
+    existed that depend on each other.
+</li><li>MathUtils.getSecureRandom could log a warning to System.err in case
+    the /dev/random is very slow, and the System.getProperties().toString()
+    returned a string larger than 64 KB. 
+</li><li>The database file locking mechanism "FS" (;FILE_LOCK=FS) 
+    did not work on Linux since version 1.3.161.
+</li><li>Sequences: the functions NEXTVAL and CURRVAL did not work as expected
+    when using quoted, mixed case sequence names.
+</li><li>The constructor for Csv objects is now public, and Csv.getInstance() is now deprecated.
+</li><li>SimpleResultSet: updating a result set is now supported.
 </li><li>Database URL: extra semicolons are not supported.
 </li></ul>
 

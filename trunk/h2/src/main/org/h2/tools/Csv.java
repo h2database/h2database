@@ -70,12 +70,10 @@ public class Csv implements SimpleRowSource {
     private Writer output;
     private boolean endOfLine, endOfFile;
 
-    protected Csv() {
-        // don't allow construction by normal code
-    }
-
     /**
      * Get a new object of this class.
+     *
+     * @deprecated use the public constructor instead
      *
      * @return the new instance
      */

@@ -45,14 +45,14 @@ public class CsvSample {
         rs.addColumn("PHONE", Types.VARCHAR, 255, 0);
         rs.addRow("Bob Meier", "bob.meier@abcde.abc", "+41123456789");
         rs.addRow("John Jones", "john.jones@abcde.abc", "+41976543210");
-        Csv.getInstance().write("data/test.csv", rs, null);
+        new Csv().write("data/test.csv", rs, null);
     }
 
     /**
      * Read a CSV file.
      */
     static void read() throws SQLException {
-        ResultSet rs = Csv.getInstance().read("data/test.csv", null, null);
+        ResultSet rs = new Csv().read("data/test.csv", null, null);
         ResultSetMetaData meta = rs.getMetaData();
         while (rs.next()) {
             for (int i = 0; i < meta.getColumnCount(); i++) {

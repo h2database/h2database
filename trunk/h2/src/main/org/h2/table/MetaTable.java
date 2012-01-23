@@ -939,7 +939,7 @@ public class MetaTable extends Table {
             try {
                 byte[] data = Utils.getResource(resource);
                 Reader reader = new InputStreamReader(new ByteArrayInputStream(data));
-                Csv csv = Csv.getInstance();
+                Csv csv = new Csv();
                 csv.setLineCommentCharacter('#');
                 ResultSet rs = csv.read(reader, null);
                 for (int i = 0; rs.next(); i++) {

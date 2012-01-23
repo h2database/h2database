@@ -75,7 +75,7 @@ public class Bnf {
     private void parse(Reader reader) throws SQLException, IOException {
         Rule functions = null;
         statements = New.arrayList();
-        Csv csv = Csv.getInstance();
+        Csv csv = new Csv();
         csv.setLineCommentCharacter('#');
         ResultSet rs = csv.read(reader, null);
         while (rs.next()) {

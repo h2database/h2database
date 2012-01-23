@@ -132,6 +132,7 @@ import org.h2.test.unit.TestDateIso8601;
 import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
+import org.h2.test.unit.TestFileLockProcess;
 import org.h2.test.unit.TestFileLockSerialized;
 import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
@@ -344,17 +345,14 @@ java org.h2.test.TestAll timer
         System.setProperty("h2.delayWrongPasswordMax", "0");
         System.setProperty("h2.useThreadContextClassLoader", "true");
 
-        int testing;
         // System.setProperty("h2.modifyOnWrite", "true");
-
-        int testWith_TCP_PROTOCOL_VERSION_10;
-
-        int todoSupportTrailingSemicolonsInDatabaseUrl;
 
         // System.setProperty("h2.storeLocalTime", "true");
 
         // speedup
         // System.setProperty("h2.syncMethod", "");
+
+        int testMultiThreadedBackup;
 
 /*
 
@@ -672,6 +670,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestExit().runTest(this);
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);
+        new TestFileLockProcess().runTest(this);
         new TestFileLockSerialized().runTest(this);
         new TestFtp().runTest(this);
         new TestFileSystem().runTest(this);

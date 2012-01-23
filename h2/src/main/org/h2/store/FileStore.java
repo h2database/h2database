@@ -489,7 +489,7 @@ public class FileStore {
     public synchronized boolean tryLock() {
         try {
             lock = file.tryLock();
-            return true;
+            return lock != null;
         } catch (Exception e) {
             // ignore OverlappingFileLockException
             return false;

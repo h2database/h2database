@@ -30,6 +30,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
@@ -1109,7 +1110,7 @@ public class Function extends Expression implements FunctionCall {
         case CSVREAD: {
             String fileName = v0.getString();
             String columnList = v1 == null ? null : v1.getString();
-            Csv csv = Csv.getInstance();
+            Csv csv = new Csv();
             String options = v2 == null ? null : v2.getString();
             String charset = null;
             if (options != null && options.indexOf('=') >= 0) {
@@ -1145,7 +1146,7 @@ public class Function extends Expression implements FunctionCall {
         case CSVWRITE: {
             session.getUser().checkAdmin();
             Connection conn = session.createConnection(false);
-            Csv csv = Csv.getInstance();
+            Csv csv = new Csv();
             String options = v2 == null ? null : v2.getString();
             String charset = null;
             if (options != null && options.indexOf('=') >= 0) {
@@ -1229,14 +1230,9 @@ public class Function extends Expression implements FunctionCall {
                 schemaName = seq.getOriginalTableAliasName();
                 if (schemaName == null) {
                     schemaName = session.getCurrentSchemaName();
+                    sequenceName = sql;
                 } else {
-                    if (schemaName.equals(StringUtils.toLowerEnglish(schemaName))) {
-                        schemaName = StringUtils.toUpperEnglish(schemaName);
-                    }
-                }
-                sequenceName = seq.getColumnName();
-                if (sequenceName.equals(StringUtils.toLowerEnglish(sequenceName))) {
-                    sequenceName = StringUtils.toUpperEnglish(sequenceName);
+                    sequenceName = seq.getColumnName();
                 }
             } else {
                 throw DbException.getSyntaxError(sql, 1);
@@ -1245,7 +1241,17 @@ public class Function extends Expression implements FunctionCall {
             schemaName = v0.getString();
             sequenceName = v1.getString();
         }
-        return database.getSchema(schemaName).getSequence(sequenceName);
+        Schema s = database.findSchema(schemaName);
+        if (s == null) {
+            schemaName = StringUtils.toUpperEnglish(schemaName);
+            s = database.getSchema(schemaName);
+        }
+        Sequence seq = s.findSequence(sequenceName);
+        if (seq == null) {
+            sequenceName = StringUtils.toUpperEnglish(sequenceName);
+            seq = s.getSequence(sequenceName);
+        }
+        return seq;
     }
 
     private static long length(Value v) {
@@ -2011,7 +2017,7 @@ public class Function extends Expression implements FunctionCall {
                 throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "fileName");
             }
             String columnList = argList.length < 2 ? null : argList[1].getValue(session).getString();
-            Csv csv = Csv.getInstance();
+            Csv csv = new Csv();
             String options = argList.length < 3 ? null : argList[2].getValue(session).getString();
             String charset = null;
             if (options != null && options.indexOf('=') >= 0) {

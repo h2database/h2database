@@ -2500,6 +2500,18 @@ drop schema "TestSchema";
 drop sequence main_seq;
 > ok
 
+create sequence "test";
+> ok
+
+select nextval('test');
+> NEXTVAL('test')
+> ---------------
+> 1
+> rows: 1
+
+drop sequence "test";
+> ok
+
 set autocommit on;
 > ok
 

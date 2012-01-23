@@ -30,11 +30,11 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Enable "h2.modifyOnWrite".
 </li><li>Enable Mode.supportOffsetFetch by default, so that "select 1 fetch first 1 row only" works.
 </li><li>The default user name should be an empty string and not "sa".
+</li><li>Deprecate Csv.getInstance() (use the public constructor instead).
 </li></ul>
 
 <h2>Priority 1</h2>
 <ul><li>Bugfixes.
-</li><li>Test if out of disk space can corrupt a database.
 </li><li>More tests with MULTI_THREADED=1 (and MULTI_THREADED with MVCC):
     Online backup (using the 'backup' statement).
 </li><li>Server side cursors.
@@ -238,6 +238,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Improve time to open large databases (see mail 'init time for distributed setup')
 </li><li>Move Maven 2 repository from hsql.sf.net to h2database.sf.net
 </li><li>Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...)
+</li><li>Optimize A=? OR B=? to UNION if the cost is lower.
 </li><li>Javadoc: document design patterns used
 </li><li>Support custom collators, for example for natural sort (for text that contains numbers).
 </li><li>Write an article about SQLInjection (h2/src/docsrc/html/images/SQLInjection.txt)
@@ -314,7 +315,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support a data type "timestamp with timezone" using java.util.Calendar.
 </li><li>Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62
 </li><li>Add database creation date and time to the database.
-</li><li>Optimize A=? OR B=? to UNION if the cost is lower.
 </li><li>Support ASSERTION.
 </li><li>MySQL compatibility: support comparing 1='a'
 </li><li>Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html
@@ -574,6 +574,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Long running transactions: log session id when detected.
 </li><li>Optimization: "select id from test" should use the index on id even without "order by".
 </li><li>Issue 362: LIMIT support for UPDATE statements (MySQL compatibility).
+</li><li>Sybase SQL Anywhere compatibility: SELECT TOP ... START AT ...
 </li></ul>
 
 <h2>Not Planned</h2>

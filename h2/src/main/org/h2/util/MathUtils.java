@@ -133,7 +133,11 @@ public class MathUtils {
 
             // environment
             try {
-                out.writeUTF(System.getProperties().toString());
+                String s = System.getProperties().toString();
+                // can't use writeUTF, as the string
+                // might be larger than 64 KB
+                out.writeInt(s.length());
+                out.write(s.getBytes("UTF-8"));
             } catch (Exception e) {
                 warn("generateAlternativeSeed", e);
             }

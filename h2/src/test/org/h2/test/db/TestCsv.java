@@ -78,7 +78,7 @@ public class TestCsv extends TestBase {
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select timestamp '-100-01-01 12:00:00.0' ts, null n");
-        Csv csv = Csv.getInstance();
+        Csv csv = new Csv();
         csv.setFieldDelimiter((char) 0);
         csv.setLineSeparator(";");
         csv.write(writer, rs);
@@ -129,7 +129,7 @@ public class TestCsv extends TestBase {
     }
 
     private void testOptions() {
-        Csv csv = Csv.getInstance();
+        Csv csv = new Csv();
         assertEquals(",", csv.getFieldSeparatorWrite());
         assertEquals(SysProperties.LINE_SEPARATOR, csv.getLineSeparator());
         assertEquals("", csv.getNullString());
@@ -189,7 +189,7 @@ public class TestCsv extends TestBase {
         out.write("\"ID\", \"NAME\"\n1, Hello".getBytes("UTF-8"));
         byte[] buff = out.toByteArray();
         Reader r = new InputStreamReader(new ByteArrayInputStream(buff), "UTF-8");
-        ResultSet rs = Csv.getInstance().read(r, null);
+        ResultSet rs = new Csv().read(r, null);
         assertEquals("ID", rs.getMetaData().getColumnLabel(1));
         assertEquals("NAME", rs.getMetaData().getColumnLabel(2));
         assertTrue(rs.next());
@@ -200,17 +200,17 @@ public class TestCsv extends TestBase {
 
     private void testColumnNames() throws Exception {
         ResultSet rs;
-        rs = Csv.getInstance().read(new StringReader("Id,First Name,2x,_x2\n1,2,3"), null);
+        rs = new Csv().read(new StringReader("Id,First Name,2x,_x2\n1,2,3"), null);
         assertEquals("ID", rs.getMetaData().getColumnName(1));
         assertEquals("First Name", rs.getMetaData().getColumnName(2));
         assertEquals("2x", rs.getMetaData().getColumnName(3));
         assertEquals("_X2", rs.getMetaData().getColumnName(4));
 
-        rs = Csv.getInstance().read(new StringReader("a,a\n1,2"), null);
+        rs = new Csv().read(new StringReader("a,a\n1,2"), null);
         assertEquals("A", rs.getMetaData().getColumnName(1));
         assertEquals("A1", rs.getMetaData().getColumnName(2));
 
-        rs = Csv.getInstance().read(new StringReader("1,2"), new String[] { "", null });
+        rs = new Csv().read(new StringReader("1,2"), new String[] { "", null });
         assertEquals("C1", rs.getMetaData().getColumnName(1));
         assertEquals("C2", rs.getMetaData().getColumnName(2));
     }
@@ -249,7 +249,7 @@ public class TestCsv extends TestBase {
         byte[] b = csvContent.getBytes("UTF-8");
         out.write(b, 0, b.length);
         out.close();
-        Csv csv = Csv.getInstance();
+        Csv csv = new Csv();
         csv.setNullString("\\N");
         ResultSet rs = csv.read(fileName, null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
@@ -299,7 +299,7 @@ public class TestCsv extends TestBase {
             prep.execute();
         }
         stat.execute("CALL CSVWRITE('" + getBaseDir() + "/test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
-        Csv csv = Csv.getInstance();
+        Csv csv = new Csv();
         csv.setFieldSeparatorRead('|');
         csv.setFieldDelimiter('#');
         ResultSet rs = csv.read(getBaseDir() + "/test.csv", null, "UTF-8");
@@ -436,7 +436,7 @@ public class TestCsv extends TestBase {
         byte[] b = "a,b,c,d\n201,-2,0,18\n, \"abc\"\"\" ,,\"\"\n 1 ,2 , 3, 4 \n5, 6, 7, 8".getBytes();
         out.write(b, 0, b.length);
         out.close();
-        ResultSet rs = Csv.getInstance().read(fileName, null, "UTF8");
+        ResultSet rs = new Csv().read(fileName, null, "UTF8");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(4, meta.getColumnCount());
         assertEquals("A", meta.getColumnLabel(1));
@@ -487,19 +487,19 @@ public class TestCsv extends TestBase {
         }
         long time;
         time = System.currentTimeMillis();
-        Csv.getInstance().write(conn, getBaseDir() + "/testRW.csv",
+        new Csv().write(conn, getBaseDir() + "/testRW.csv",
                 "SELECT X ID, 'Ruebezahl' NAME FROM SYSTEM_RANGE(1, " + len + ")", "UTF8");
         trace("write: " + (System.currentTimeMillis() - time));
         ResultSet rs;
         time = System.currentTimeMillis();
         for (int i = 0; i < 30; i++) {
-            rs = Csv.getInstance().read(getBaseDir() + "/testRW.csv", null, "UTF8");
+            rs = new Csv().read(getBaseDir() + "/testRW.csv", null, "UTF8");
             while (rs.next()) {
                 // ignore
             }
         }
         trace("read: " + (System.currentTimeMillis() - time));
-        rs = Csv.getInstance().read(getBaseDir() + "/testRW.csv", null, "UTF8");
+        rs = new Csv().read(getBaseDir() + "/testRW.csv", null, "UTF8");
         // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());

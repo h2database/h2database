@@ -47,7 +47,7 @@ public class Railroads {
     private void process() throws Exception {
         RailroadImages.main();
         bnf = Bnf.getInstance(getReader());
-        Csv csv = Csv.getInstance();
+        Csv csv = new Csv();
         csv.setLineCommentCharacter('#');
         ResultSet rs = csv.read(getReader(), null);
         map("grammar", rs, true);

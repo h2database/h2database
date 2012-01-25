@@ -40,6 +40,7 @@ public class TestAlter extends TestBase {
         testAlterTableAlterColumn();
         testAlterTableDropIdentityColumn();
         testAlterTableAddColumnIfNotExists();
+        testAlterTableAlterColumn2();
         conn.close();
         deleteDb("alter");
     }
@@ -135,4 +136,11 @@ public class TestAlter extends TestBase {
         stat.execute("drop table t");
     }
 
+    private void testAlterTableAlterColumn2() throws SQLException {
+        // ensure that increasing a VARCHAR columns length takes effect because we optimise this case
+        stat.execute("create table t(x varchar(2)) as select 'x'");
+        stat.execute("alter table t alter column x varchar(20)");
+        stat.execute("insert into t values('Hello')");
+        stat.execute("drop table t");
+    }
 }

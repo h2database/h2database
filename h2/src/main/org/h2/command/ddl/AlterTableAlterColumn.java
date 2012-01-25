@@ -115,7 +115,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE: {
             // If the change is only increasing the length of a VARCHAR type, then we don't need to copy the table
             // because the length is only a constraint, and does not affect the storage structure.
-            if (oldColumn.getType() == Value.STRING
+            if ((oldColumn.getType() == Value.STRING || oldColumn.getType() == Value.STRING_IGNORECASE)
                 && oldColumn.getPrecision() <= newColumn.getPrecision()
                 && oldColumn.isNullable() == newColumn.isNullable()
                 && oldColumn.isAutoIncrement() == newColumn.isAutoIncrement()

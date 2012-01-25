@@ -62,7 +62,7 @@ public class Column {
     public static final int NULLABLE_UNKNOWN = ResultSetMetaData.columnNullableUnknown;
 
     private final int type;
-    private final long precision;
+    private long precision;
     private final int scale;
     private final int displaySize;
     private Table table;
@@ -242,6 +242,10 @@ public class Column {
         return precision;
     }
 
+    public void setPrecision(long p) {
+        precision = p;
+    }
+    
     public int getDisplaySize() {
         return displaySize;
     }

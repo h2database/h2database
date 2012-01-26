@@ -57,11 +57,16 @@ public class TestFileLockProcess extends TestBase {
         }
         deleteDb("lock");
         String url = "jdbc:h2:"+getBaseDir()+"/lock";
-        test(50, url);
+
         println("socket");
         test(4, url + ";file_lock=socket");
+
         println("fs");
         test(4, url + ";file_lock=fs");
+
+        println("default");
+        test(50, url);
+
         deleteDb("lock");
     }
 

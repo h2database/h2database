@@ -3654,11 +3654,6 @@ public class Parser {
             original = "VARCHAR_IGNORECASE";
             dataType = DataType.getTypeByName(original);
         }
-        if (dataType.type == Value.NULL) {
-            // We do support NULL in the database meta data,
-            // but not actually when creating tables.
-            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, original);
-        }
         if (regular) {
             read();
         }

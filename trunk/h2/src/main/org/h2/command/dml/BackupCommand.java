@@ -88,14 +88,19 @@ public class BackupCommand extends Prepared {
         Database db = session.getDatabase();
         fileName = FileUtils.getName(fileName);
         out.putNextEntry(new ZipEntry(fileName));
-        int max = store.getPageCount();
         int pos = 0;
-        while (true) {
-            pos = store.copyDirect(pos, out);
-            if (pos < 0) {
-                break;
+        try {
+            store.setBackup(true);
+            while (true) {
+                pos = store.copyDirect(pos, out);
+                if (pos < 0) {
+                    break;
+                }
+                int max = store.getPageCount();
+                db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, fileName, pos, max);
             }
-            db.setProgress(DatabaseEventListener.STATE_BACKUP_FILE, fileName, pos, max);
+        } finally {
+            store.setBackup(false);
         }
         out.closeEntry();
     }

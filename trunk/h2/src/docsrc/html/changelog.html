@@ -18,7 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The script created by SCRIPT DROP did not always work if multiple views
+<ul><li>TriggerAdapter: in "before" triggers, values can be changed using the ResultSet.updateX methods.
+</li><li>Creating a table with column data type NULL now works (even if not very useful).
+</li><li>ALTER TABLE ALTER COLUMN no longer copies the data for widening conversions
+    (for example if only the precision was increased) unless necessary.
+</li><li>Multi-threaded kernel: concurrently running an online backup
+    and updating the database resulted in a broken (transactionally incorrect) 
+    backup file in some cases.
+</li><li>The script created by SCRIPT DROP did not always work if multiple views
     existed that depend on each other.
 </li><li>MathUtils.getSecureRandom could log a warning to System.err in case
     the /dev/random is very slow, and the System.getProperties().toString()

@@ -1031,18 +1031,6 @@ select t1.pk from t t1, t t2 where t1.pk = t2.attr order by t1.pk;
 drop table t;
 > ok
 
-CREATE TABLE T(A NULL);
-> exception
-
-CREATE TABLE T(A INT);
-> ok
-
-ALTER TABLE T ALTER COLUMN A NULL;
-> exception
-
-DROP TABLE T;
-> ok
-
 CREATE ROLE TEST_A;
 > ok
 

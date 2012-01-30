@@ -17,6 +17,33 @@ import org.h2.api.Trigger;
  */
 public abstract class TriggerAdapter implements Trigger {
 
+    /**
+     * The schema name.
+     */
+    protected String schemaName;
+
+    /**
+     * The name of the trigger.
+     */
+    protected String triggerName;
+
+    /**
+     * The name of the table.
+     */
+    protected String tableName;
+
+    /**
+     * Whether the fire method is called before or after the operation is
+     * performed.
+     */
+    protected boolean before;
+
+    /**
+     * The trigger type: INSERT, UPDATE, DELETE, SELECT, or a combination (a bit
+     * field).
+     */
+    protected int type;
+
     private SimpleResultSet oldResultSet, newResultSet;
     private TriggerRowSource oldSource, newSource;
 
@@ -33,7 +60,8 @@ public abstract class TriggerAdapter implements Trigger {
      * @param tableName the name of the table
      * @param before whether the fire method is called before or after the
      *            operation is performed
-     * @param type the operation type: INSERT, UPDATE, or DELETE
+     * @param type the operation type: INSERT, UPDATE, DELETE, SELECT, or a
+     *            combination (this parameter is a bit field)
      */
     public void init(Connection conn, String schemaName,
             String triggerName, String tableName,
@@ -52,6 +80,11 @@ public abstract class TriggerAdapter implements Trigger {
             oldResultSet.addColumn(column, dataType, precision, scale);
             newResultSet.addColumn(column, dataType, precision, scale);
         }
+        this.schemaName = schemaName;
+        this.triggerName = triggerName;
+        this.tableName = tableName;
+        this.before = before;
+        this.type = type;
     }
 
     /**
@@ -112,6 +145,10 @@ public abstract class TriggerAdapter implements Trigger {
      * fire(Connection conn, Object[] oldRow, Object[] newRow) method.
      * ResultSet.next does not need to be called (and calling it has no effect;
      * it will always return true).
+     * <p>
+     * For "before" triggers, the new values of the new row may be changed
+     * using the ResultSet.updateX methods.
+     * </p>
      *
      * @param conn a connection to the database
      * @param oldRow the old row, or null if no old row is available (for

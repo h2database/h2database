@@ -121,19 +121,25 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("drop table if exists test");
         stat.execute("create table test(id int)");
         stat.execute("create table message(name varchar)");
-        stat.execute("create trigger test_insert after insert, update, delete on test " +
+        stat.execute("create trigger test_insert before insert, update, delete on test " +
                 "for each row call \"" + TestTriggerAdapter.class.getName() + "\"");
         stat.execute("insert into test values(1)");
-        stat.execute("update test set id = 2");
-        stat.execute("delete from test");
         ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        assertEquals(10, rs.getInt(1));
+        stat.execute("update test set id = 2");
+        rs = stat.executeQuery("select * from test");
+        rs.next();
+        assertEquals(20, rs.getInt(1));
+        stat.execute("delete from test");
         rs = stat.executeQuery("select * from message");
         assertTrue(rs.next());
         assertEquals("+1;", rs.getString(1));
         assertTrue(rs.next());
-        assertEquals("-1;+2;", rs.getString(1));
+        assertEquals("-10;+2;", rs.getString(1));
         assertTrue(rs.next());
-        assertEquals("-2;", rs.getString(1));
+        assertEquals("-20;", rs.getString(1));
         assertFalse(rs.next());
         stat.execute("drop table test, message");
         conn.close();
@@ -181,6 +187,30 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             }
             if (newRow != null) {
                 buff.append("+").append(newRow.getString("id")).append(';');
+            }
+            if (!"TEST_INSERT".equals(triggerName)) {
+                throw new RuntimeException("Wrong trigger name: " + triggerName);
+            }
+            if (!"TEST".equals(tableName)) {
+                throw new RuntimeException("Wrong table name: " + tableName);
+            }
+            if (!"PUBLIC".equals(schemaName)) {
+                throw new RuntimeException("Wrong schema name: " + schemaName);
+            }
+            if (type != (Trigger.INSERT | Trigger.UPDATE | Trigger.DELETE)) {
+                throw new RuntimeException("Wrong type: " + type);
+            }
+            if (newRow != null) {
+                if (oldRow == null) {
+                    if (newRow.getInt(1) != 1) {
+                        throw new RuntimeException("Expected: 1 got: " + newRow.getString(1));
+                    }
+                } else {
+                    if (newRow.getInt(1) != 2) {
+                        throw new RuntimeException("Expected: 2 got: " + newRow.getString(1));
+                    }
+                }
+                newRow.updateInt(1, newRow.getInt(1) * 10);
             }
             conn.createStatement().execute("insert into message values('" + buff.toString() + "')");
         }

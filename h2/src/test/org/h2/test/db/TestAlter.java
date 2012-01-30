@@ -143,4 +143,5 @@ public class TestAlter extends TestBase {
         stat.execute("insert into t values('Hello')");
         stat.execute("drop table t");
     }
+
 }

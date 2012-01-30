@@ -63,8 +63,8 @@ public class Column {
 
     private final int type;
     private long precision;
-    private final int scale;
-    private final int displaySize;
+    private int scale;
+    private int displaySize;
     private Table table;
     private String name;
     private int columnId;
@@ -128,19 +128,7 @@ public class Column {
 
     public Column getClone() {
         Column newColumn = new Column(name, type, precision, scale, displaySize);
-        // table is not set
-        // columnId is not set
-        newColumn.nullable = nullable;
-        newColumn.defaultExpression = defaultExpression;
-        newColumn.originalSQL = originalSQL;
-        // autoIncrement, start, increment is not set
-        newColumn.convertNullToDefault = convertNullToDefault;
-        newColumn.sequence = sequence;
-        newColumn.comment = comment;
-        newColumn.computeTableFilter = computeTableFilter;
-        newColumn.isComputed = isComputed;
-        newColumn.selectivity = selectivity;
-        newColumn.primaryKey = primaryKey;
+        newColumn.copy(this);
         return newColumn;
     }
 
@@ -245,7 +233,7 @@ public class Column {
     public void setPrecision(long p) {
         precision = p;
     }
-    
+
     public int getDisplaySize() {
         return displaySize;
     }
@@ -656,6 +644,71 @@ public class Column {
 
     public String toString() {
         return name;
+    }
+
+    /**
+     * Check whether the new column is of the same type and not more restricted
+     * than this column.
+     *
+     * @return true if the new column is compatible
+     */
+    public boolean isWideningConversion(Column newColumn) {
+        if (type != newColumn.type) {
+            return false;
+        }
+        if (precision > newColumn.precision) {
+            return false;
+        }
+        if (scale != newColumn.scale) {
+            return false;
+        }
+        if (nullable && !newColumn.nullable) {
+            return false;
+        }
+        if (convertNullToDefault != newColumn.convertNullToDefault) {
+            return false;
+        }
+        if (primaryKey != newColumn.primaryKey) {
+            return false;
+        }
+        if (autoIncrement || newColumn.autoIncrement) {
+            return false;
+        }
+        if (checkConstraint != null || newColumn.checkConstraint != null) {
+            return false;
+        }
+        if (convertNullToDefault || newColumn.convertNullToDefault) {
+            return false;
+        }
+        if (defaultExpression != null || newColumn.defaultExpression != null) {
+            return false;
+        }
+        if (isComputed || newColumn.isComputed) {
+            return false;
+        }
+        return true;
+    }
+
+    public void copy(Column newColumn) {
+        checkConstraint = newColumn.checkConstraint;
+        checkConstraintSQL = newColumn.checkConstraintSQL;
+        displaySize = newColumn.displaySize;
+        name = newColumn.name;
+        precision = newColumn.precision;
+        scale = newColumn.scale;
+        // table is not set
+        // columnId is not set
+        nullable = newColumn.nullable;
+        defaultExpression = newColumn.defaultExpression;
+        originalSQL = newColumn.originalSQL;
+        // autoIncrement, start, increment is not set
+        convertNullToDefault = newColumn.convertNullToDefault;
+        sequence = newColumn.sequence;
+        comment = newColumn.comment;
+        computeTableFilter = newColumn.computeTableFilter;
+        isComputed = newColumn.isComputed;
+        selectivity = newColumn.selectivity;
+        primaryKey = newColumn.primaryKey;
     }
 
 }

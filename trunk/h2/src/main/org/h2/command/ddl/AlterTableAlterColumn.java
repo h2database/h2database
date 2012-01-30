@@ -32,7 +32,6 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableView;
 import org.h2.util.New;
-import org.h2.value.Value;
 
 /**
  * This class represents the statements
@@ -113,20 +112,14 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE: {
-            // If the change is only increasing the length of a VARCHAR type, then we don't need to copy the table
-            // because the length is only a constraint, and does not affect the storage structure.
-            if ((oldColumn.getType() == Value.STRING || oldColumn.getType() == Value.STRING_IGNORECASE)
-                && oldColumn.getPrecision() <= newColumn.getPrecision()
-                && oldColumn.isNullable() == newColumn.isNullable()
-                && oldColumn.isAutoIncrement() == newColumn.isAutoIncrement()
-                && oldColumn.isPrimaryKey() == newColumn.isPrimaryKey()
-                && oldColumn.getType() == newColumn.getType())
-            {
-                oldColumn.setPrecision(newColumn.getPrecision());
+            // if the change is only increasing the precision, then we don't
+            // need to copy the table because the length is only a constraint,
+            // and does not affect the storage structure.
+            if (oldColumn.isWideningConversion(newColumn)) {
+                convertAutoIncrementColumn(newColumn);
+                oldColumn.copy(newColumn);
                 db.update(session, table);
-            }
-            else
-            {
+            } else {
                 oldColumn.setSequence(null);
                 oldColumn.setDefaultExpression(session, null);
                 oldColumn.setConvertNullToDefault(false);

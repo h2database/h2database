@@ -196,6 +196,7 @@ public class PageStore implements CacheWriter {
     private int logMode = LOG_MODE_SYNC;
     private boolean lockFile;
     private boolean readMode;
+    private int backupLevel;
 
     /**
      * Create a new page store object.
@@ -412,8 +413,9 @@ public class PageStore implements CacheWriter {
      */
     public synchronized void checkpoint() {
         trace.debug("checkpoint");
-        if (log == null || readMode || database.isReadOnly()) {
-            // the file was never fully opened
+        if (log == null || readMode || database.isReadOnly() || backupLevel > 0) {
+            // the file was never fully opened, or is read-only,
+            // or checkpoint is currently disabled
             return;
         }
         database.checkPowerOff();
@@ -1939,6 +1941,10 @@ public class PageStore implements CacheWriter {
 
     public Session getSystemSession() {
         return systemSession;
+    }
+
+    public synchronized void setBackup(boolean start) {
+        backupLevel += start ? 1 : -1;
     }
 
 }

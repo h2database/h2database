@@ -412,7 +412,7 @@ public abstract class TestBase {
      * @throws AssertionError always throws an AssertionError
      */
     public void fail() {
-        fail("Unexpected success");
+        fail("Failure");
     }
 
     /**

@@ -96,7 +96,7 @@ public class Function extends Expression implements FunctionCall {
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
             LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228, DECODE = 229;
+            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230;
 
     public static final int ROW_NUMBER = 300;
 
@@ -320,6 +320,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
         addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET, 2, Value.STRING);
+        addFunction("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN, false, true, false);
         addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, true);
         addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
@@ -870,6 +871,20 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueInt.get(list.length);
             } else {
                 result = ValueNull.INSTANCE;
+            }
+            break;
+        }
+        case ARRAY_CONTAINS: {
+            result = ValueBoolean.get(false);
+            if (v0.getType() == Value.ARRAY) {
+                Value v1 = argList[1].getValue(session);
+                Value[] list = ((ValueArray) v0).getList();
+                for (Value v : list) {
+                    if (v.equals(v1)) {
+                        result = ValueBoolean.get(true);
+                        break;
+                    }
+                }
             }
             break;
         }

@@ -10,6 +10,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.UUID;
 
+import org.h2.constant.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.util.Utils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -100,8 +102,10 @@ public class ValueUuid extends Value {
                 continue;
             } else if (c >= 'A' && c <= 'F') {
                 low = (low << 4) | (c - 'A' + 0xa);
-            } else {
+            } else if (c <= ' ') {
                 continue;
+            } else {
+                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, s);
             }
             if (j++ == 15) {
                 high = low;

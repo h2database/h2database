@@ -157,16 +157,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "TYPE_NAME REF_GENERATION, "
                     + "SQL "
                     + "FROM INFORMATION_SCHEMA.TABLES "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_NAME LIKE ? ESCAPE '\\' "
+                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
+                    + "AND TABLE_NAME LIKE ? ESCAPE ? "
                     + "AND (" + tableType + ") "
                     + "ORDER BY TABLE_TYPE, TABLE_SCHEMA, TABLE_NAME");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, getPattern(tableNamePattern));
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, getPattern(tableNamePattern));
+            prep.setString(6, "\\");
             for (int i = 0; types != null && i < types.length; i++) {
-                prep.setString(4 + i, types[i]);
+                prep.setString(7 + i, types[i]);
             }
             return prep.executeQuery();
         } catch (Exception e) {
@@ -251,18 +254,24 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_SCHEMA, "
                     + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_TABLE, "
                     + "SOURCE_DATA_TYPE, "
-                    + "CASE WHEN SEQUENCE_NAME IS NULL THEN 'NO' ELSE 'YES' END IS_AUTOINCREMENT, "
+                    + "CASE WHEN SEQUENCE_NAME IS NULL THEN CAST(? AS VARCHAR) ELSE CAST(? AS VARCHAR) END IS_AUTOINCREMENT, "
                     + "CAST(SOURCE_DATA_TYPE AS VARCHAR) SCOPE_CATLOG "
                     + "FROM INFORMATION_SCHEMA.COLUMNS "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_NAME LIKE ? ESCAPE '\\' "
-                    + "AND COLUMN_NAME LIKE ? ESCAPE '\\' "
+                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
+                    + "AND TABLE_NAME LIKE ? ESCAPE ? "
+                    + "AND COLUMN_NAME LIKE ? ESCAPE ? "
                     + "ORDER BY TABLE_SCHEM, TABLE_NAME, ORDINAL_POSITION");
-            prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, getPattern(tableNamePattern));
-            prep.setString(4, getPattern(columnNamePattern));
+            prep.setString(1, "NO");
+            prep.setString(2, "YES");
+            prep.setString(3, getCatalogPattern(catalogPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, getSchemaPattern(schemaPattern));
+            prep.setString(6, "\\");
+            prep.setString(7, getPattern(tableNamePattern));
+            prep.setString(8, "\\");
+            prep.setString(9, getPattern(columnNamePattern));
+            prep.setString(10, "\\");
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -334,14 +343,16 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "FILTER_CONDITION, "
                     + "SORT_TYPE "
                     + "FROM INFORMATION_SCHEMA.INDEXES "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE '\\' "
+                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND (" + uniqueCondition + ") "
                     + "AND TABLE_NAME = ? "
                     + "ORDER BY NON_UNIQUE, TYPE, TABLE_SCHEM, INDEX_NAME, ORDINAL_POSITION");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, tableName);
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -385,14 +396,16 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "ORDINAL_POSITION KEY_SEQ, "
                     + "IFNULL(CONSTRAINT_NAME, INDEX_NAME) PK_NAME "
                     + "FROM INFORMATION_SCHEMA.INDEXES "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE '\\' "
+                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND TABLE_NAME = ? "
                     + "AND PRIMARY_KEY = TRUE "
                     + "ORDER BY COLUMN_NAME");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, tableName);
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -562,13 +575,16 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "RETURNS_RESULT PROCEDURE_TYPE, "
                     + "ALIAS_NAME SPECIFIC_NAME "
                     + "FROM INFORMATION_SCHEMA.FUNCTION_ALIASES "
-                    + "WHERE ALIAS_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND ALIAS_SCHEMA LIKE ? ESCAPE '\\' "
-                    + "AND ALIAS_NAME LIKE ? ESCAPE '\\' "
+                    + "WHERE ALIAS_CATALOG LIKE ? ESCAPE ? "
+                    + "AND ALIAS_SCHEMA LIKE ? ESCAPE ? "
+                    + "AND ALIAS_NAME LIKE ? ESCAPE ? "
                     + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, NUM_INPUT_PARAMS");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, getPattern(procedureNamePattern));
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, getPattern(procedureNamePattern));
+            prep.setString(6, "\\");
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -643,22 +659,27 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "NULLABLE, "
                     + "REMARKS, "
                     + "COLUMN_DEFAULT COLUMN_DEF, "
-                    + "0 SQL_DATA_TYPE, "
-                    + "0 SQL_DATETIME_SUB, "
-                    + "0 CHAR_OCTET_LENGTH, "
+                    + "ZERO() SQL_DATA_TYPE, "
+                    + "ZERO() SQL_DATETIME_SUB, "
+                    + "ZERO() CHAR_OCTET_LENGTH, "
                     + "POS ORDINAL_POSITION, "
-                    + "'YES' IS_NULLABLE, "
+                    + "? IS_NULLABLE, "
                     + "ALIAS_NAME SPECIFIC_NAME "
                     + "FROM INFORMATION_SCHEMA.FUNCTION_COLUMNS "
-                    + "WHERE ALIAS_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND ALIAS_SCHEMA LIKE ? ESCAPE '\\' "
-                    + "AND ALIAS_NAME LIKE ? ESCAPE '\\' "
-                    + "AND COLUMN_NAME LIKE ? ESCAPE '\\' "
+                    + "WHERE ALIAS_CATALOG LIKE ? ESCAPE ? "
+                    + "AND ALIAS_SCHEMA LIKE ? ESCAPE ? "
+                    + "AND ALIAS_NAME LIKE ? ESCAPE ? "
+                    + "AND COLUMN_NAME LIKE ? ESCAPE ? "
                     + "ORDER BY PROCEDURE_SCHEM, PROCEDURE_NAME, ORDINAL_POSITION");
-            prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, getPattern(procedureNamePattern));
-            prep.setString(4, getPattern(columnNamePattern));
+            prep.setString(1, "YES");
+            prep.setString(2, getCatalogPattern(catalogPattern));
+            prep.setString(3, "\\");
+            prep.setString(4, getSchemaPattern(schemaPattern));
+            prep.setString(5, "\\");
+            prep.setString(6, getPattern(procedureNamePattern));
+            prep.setString(7, "\\");
+            prep.setString(8, getPattern(columnNamePattern));
+            prep.setString(9, "\\");
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -792,15 +813,18 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "PRIVILEGE_TYPE PRIVILEGE, "
                     + "IS_GRANTABLE "
                     + "FROM INFORMATION_SCHEMA.COLUMN_PRIVILEGES "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE '\\' "
+                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND TABLE_NAME = ? "
-                    + "AND COLUMN_NAME LIKE ? ESCAPE '\\' "
+                    + "AND COLUMN_NAME LIKE ? ESCAPE ? "
                     + "ORDER BY COLUMN_NAME, PRIVILEGE");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, table);
-            prep.setString(4, getPattern(columnNamePattern));
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, table);
+            prep.setString(6, getPattern(columnNamePattern));
+            prep.setString(7, "\\");
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -850,13 +874,16 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "PRIVILEGE_TYPE PRIVILEGE, "
                     + "IS_GRANTABLE "
                     + "FROM INFORMATION_SCHEMA.TABLE_PRIVILEGES "
-                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_SCHEMA LIKE ? ESCAPE '\\' "
-                    + "AND TABLE_NAME LIKE ? ESCAPE '\\' "
+                    + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
+                    + "AND TABLE_NAME LIKE ? ESCAPE ? "
                     + "ORDER BY TABLE_SCHEM, TABLE_NAME, PRIVILEGE");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, getPattern(tableNamePattern));
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, getPattern(tableNamePattern));
+            prep.setString(6, "\\");
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -912,8 +939,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     +" INFORMATION_SCHEMA.COLUMNS C "
                     + "WHERE C.TABLE_NAME = I.TABLE_NAME "
                     + "AND C.COLUMN_NAME = I.COLUMN_NAME "
-                    + "AND C.TABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND C.TABLE_SCHEMA LIKE ? ESCAPE '\\' "
+                    + "AND C.TABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND C.TABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND C.TABLE_NAME = ? "
                     + "AND I.PRIMARY_KEY = TRUE "
                     + "ORDER BY SCOPE");
@@ -922,8 +949,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
             // PSEUDO_COLUMN
             prep.setInt(2, DatabaseMetaData.bestRowNotPseudo);
             prep.setString(3, getCatalogPattern(catalogPattern));
-            prep.setString(4, getSchemaPattern(schemaPattern));
-            prep.setString(5, tableName);
+            prep.setString(4, "\\");
+            prep.setString(5, getSchemaPattern(schemaPattern));
+            prep.setString(6, "\\");
+            prep.setString(7, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1035,13 +1064,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "PK_NAME, "
                     + "DEFERRABILITY "
                     + "FROM INFORMATION_SCHEMA.CROSS_REFERENCES "
-                    + "WHERE FKTABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND FKTABLE_SCHEMA LIKE ? ESCAPE '\\' "
+                    + "WHERE FKTABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND FKTABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND FKTABLE_NAME = ? "
                     + "ORDER BY PKTABLE_CAT, PKTABLE_SCHEM, PKTABLE_NAME, FK_NAME, KEY_SEQ");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, tableName);
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1105,13 +1136,15 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "PK_NAME, "
                     + "DEFERRABILITY "
                     + "FROM INFORMATION_SCHEMA.CROSS_REFERENCES "
-                    + "WHERE PKTABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND PKTABLE_SCHEMA LIKE ? ESCAPE '\\' "
+                    + "WHERE PKTABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND PKTABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND PKTABLE_NAME = ? "
                     + "ORDER BY FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME, KEY_SEQ");
             prep.setString(1, getCatalogPattern(catalogPattern));
-            prep.setString(2, getSchemaPattern(schemaPattern));
-            prep.setString(3, tableName);
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, tableName);
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1185,19 +1218,23 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
                     + "PK_NAME, "
                     + "DEFERRABILITY "
                     + "FROM INFORMATION_SCHEMA.CROSS_REFERENCES "
-                    + "WHERE PKTABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND PKTABLE_SCHEMA LIKE ? ESCAPE '\\' "
+                    + "WHERE PKTABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND PKTABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND PKTABLE_NAME = ? "
-                    + "AND FKTABLE_CATALOG LIKE ? ESCAPE '\\' "
-                    + "AND FKTABLE_SCHEMA LIKE ? ESCAPE '\\' "
+                    + "AND FKTABLE_CATALOG LIKE ? ESCAPE ? "
+                    + "AND FKTABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND FKTABLE_NAME = ? "
                     + "ORDER BY FKTABLE_CAT, FKTABLE_SCHEM, FKTABLE_NAME, FK_NAME, KEY_SEQ");
             prep.setString(1, getCatalogPattern(primaryCatalogPattern));
-            prep.setString(2, getSchemaPattern(primarySchemaPattern));
-            prep.setString(3, primaryTable);
-            prep.setString(4, getCatalogPattern(foreignCatalogPattern));
-            prep.setString(5, getSchemaPattern(foreignSchemaPattern));
-            prep.setString(6, foreignTable);
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(primarySchemaPattern));
+            prep.setString(4, "\\");
+            prep.setString(5, primaryTable);
+            prep.setString(6, getCatalogPattern(foreignCatalogPattern));
+            prep.setString(7, "\\");
+            prep.setString(8, getSchemaPattern(foreignSchemaPattern));
+            prep.setString(9, "\\");
+            prep.setString(10, foreignTable);
             return prep.executeQuery();
         } catch (Exception e) {
             throw logAndConvert(e);

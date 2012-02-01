@@ -1,4 +1,7 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+call cast('null' as uuid);
+> exception
+
 create table test(name varchar(255));
 > ok
 

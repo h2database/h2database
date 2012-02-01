@@ -3360,6 +3360,14 @@ Returns the length of an array.
 CALL ARRAY_LENGTH(('Hello', 'World'))
 "
 
+"Functions (System)","ARRAY_CONTAINS","
+ARRAY_CONTAINS(arrayExpression, value)
+","
+Returns a boolean true if the array contains the value.
+","
+CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
+"
+
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","

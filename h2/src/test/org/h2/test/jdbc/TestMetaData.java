@@ -207,6 +207,8 @@ public class TestMetaData extends TestBase {
         // meta.getSuperTypes()
         // meta.getTypeInfo()
 
+        testAllowLiteralsNone();
+
         conn.close();
 
         deleteDb("metaData");
@@ -892,6 +894,39 @@ public class TestMetaData extends TestBase {
         conn.clearWarnings();
         assertTrue(conn.getWarnings() == null);
 
+    }
+
+    private void testAllowLiteralsNone() throws SQLException {
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
+        stat.execute("SET ALLOW_LITERALS NONE");
+        DatabaseMetaData meta = conn.getMetaData();
+        // meta.getAttributes(null, null, null, null);
+        meta.getBestRowIdentifier(null, null, null, 0, false);
+        meta.getCatalogs();
+        // meta.getClientInfoProperties();
+        meta.getColumnPrivileges(null, null, null, null);
+        meta.getColumns(null, null, null, null);
+        meta.getCrossReference(null, null, null, null, null, null);
+        meta.getExportedKeys(null, null, null);
+        // meta.getFunctionColumns(null, null, null, null);
+        // meta.getFunctions(null, null, null);
+        meta.getImportedKeys(null, null, null);
+        meta.getIndexInfo(null, null, null, false, false);
+        meta.getPrimaryKeys(null, null, null);
+        meta.getProcedureColumns(null, null, null, null);
+        meta.getProcedures(null, null, null);
+        meta.getSchemas();
+        // meta.getSchemas(null, null);
+        meta.getSuperTables(null, null, null);
+        // meta.getSuperTypes(null, null, null);
+        meta.getTablePrivileges(null, null, null);
+        meta.getTables(null, null, null, null);
+        meta.getTableTypes();
+        meta.getTypeInfo();
+        meta.getUDTs(null, null, null, null);
+        meta.getVersionColumns(null, null, null);
+        conn.close();
     }
 
 }

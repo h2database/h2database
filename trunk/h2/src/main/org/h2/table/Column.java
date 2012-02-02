@@ -650,6 +650,7 @@ public class Column {
      * Check whether the new column is of the same type and not more restricted
      * than this column.
      *
+     * @param newColumn the new (target) column
      * @return true if the new column is compatible
      */
     public boolean isWideningConversion(Column newColumn) {
@@ -689,26 +690,31 @@ public class Column {
         return true;
     }
 
-    public void copy(Column newColumn) {
-        checkConstraint = newColumn.checkConstraint;
-        checkConstraintSQL = newColumn.checkConstraintSQL;
-        displaySize = newColumn.displaySize;
-        name = newColumn.name;
-        precision = newColumn.precision;
-        scale = newColumn.scale;
+    /**
+     * Copy the data of the source column into the current column.
+     *
+     * @param source the source column
+     */
+    public void copy(Column source) {
+        checkConstraint = source.checkConstraint;
+        checkConstraintSQL = source.checkConstraintSQL;
+        displaySize = source.displaySize;
+        name = source.name;
+        precision = source.precision;
+        scale = source.scale;
         // table is not set
         // columnId is not set
-        nullable = newColumn.nullable;
-        defaultExpression = newColumn.defaultExpression;
-        originalSQL = newColumn.originalSQL;
+        nullable = source.nullable;
+        defaultExpression = source.defaultExpression;
+        originalSQL = source.originalSQL;
         // autoIncrement, start, increment is not set
-        convertNullToDefault = newColumn.convertNullToDefault;
-        sequence = newColumn.sequence;
-        comment = newColumn.comment;
-        computeTableFilter = newColumn.computeTableFilter;
-        isComputed = newColumn.isComputed;
-        selectivity = newColumn.selectivity;
-        primaryKey = newColumn.primaryKey;
+        convertNullToDefault = source.convertNullToDefault;
+        sequence = source.sequence;
+        comment = source.comment;
+        computeTableFilter = source.computeTableFilter;
+        isComputed = source.isComputed;
+        selectivity = source.selectivity;
+        primaryKey = source.primaryKey;
     }
 
 }

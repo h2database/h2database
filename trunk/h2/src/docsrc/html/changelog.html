@@ -20,21 +20,21 @@ Change Log
 <h2>Next Version (unreleased)</h2>
 <ul><li>New built-in function ARRAY_CONTAINS.
 </li><li>Some DatabaseMetaData methods didn't work when using ALLOW_LITERALS NONE.
-</li><li>Trying to convert a VARCHAR to UUID will now fail if the text contains 
+</li><li>Trying to convert a VARCHAR to UUID will now fail if the text contains
     a character that is not a hex digit, '-', or not a whitespace.
 </li><li>TriggerAdapter: in "before" triggers, values can be changed using the ResultSet.updateX methods.
 </li><li>Creating a table with column data type NULL now works (even if not very useful).
 </li><li>ALTER TABLE ALTER COLUMN no longer copies the data for widening conversions
     (for example if only the precision was increased) unless necessary.
 </li><li>Multi-threaded kernel: concurrently running an online backup
-    and updating the database resulted in a broken (transactionally incorrect) 
+    and updating the database resulted in a broken (transactionally incorrect)
     backup file in some cases.
 </li><li>The script created by SCRIPT DROP did not always work if multiple views
     existed that depend on each other.
 </li><li>MathUtils.getSecureRandom could log a warning to System.err in case
     the /dev/random is very slow, and the System.getProperties().toString()
-    returned a string larger than 64 KB. 
-</li><li>The database file locking mechanism "FS" (;FILE_LOCK=FS) 
+    returned a string larger than 64 KB.
+</li><li>The database file locking mechanism "FS" (;FILE_LOCK=FS)
     did not work on Linux since version 1.3.161.
 </li><li>Sequences: the functions NEXTVAL and CURRVAL did not work as expected
     when using quoted, mixed case sequence names.

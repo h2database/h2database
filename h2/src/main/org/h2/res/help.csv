@@ -1234,7 +1234,7 @@ Returns the length of an array."
 "Functions (System)","ARRAY_CONTAINS","
 ARRAY_CONTAINS(arrayExpression, value)
 ","
-Returns true if the array contains the value."
+Returns a boolean true if the array contains the value."
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","

@@ -70,7 +70,7 @@ public class TestFileLockProcess extends TestBase {
         deleteDb("lock");
     }
 
-    public void test(int count, String url) throws Exception {
+    private void test(int count, String url) throws Exception {
         Connection conn = DriverManager.getConnection(url);
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = { "java", selfDestruct,

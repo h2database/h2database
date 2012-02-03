@@ -1,0 +1,22 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>@version@</version>
+    <packaging>jar</packaging>
+    <name>H2 Database Engine</name>
+    <url>http://www.h2database.com</url>
+    <description>H2 Database Engine</description>
+    <licenses>
+        <license>
+            <name>The H2 License, Version 1.0</name>
+            <url>http://h2database.com/html/license.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>http://h2database.googlecode.com/svn/trunk</url>
+    </scm>
+    <dependencies>
+    </dependencies>
+</project>

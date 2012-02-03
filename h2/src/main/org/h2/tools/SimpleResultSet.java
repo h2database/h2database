@@ -1104,7 +1104,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
+    public void updateAsciiStream(int columnIndex, InputStream x)
+            throws SQLException {
         update(columnIndex, x);
     }
 //*/
@@ -1113,7 +1114,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
+    public void updateAsciiStream(String columnLabel, InputStream x)
+            throws SQLException {
         update(columnLabel, x);
     }
 //*/
@@ -1170,7 +1172,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
+    public void updateBinaryStream(int columnIndex, InputStream x)
+            throws SQLException {
         update(columnIndex, x);
     }
 //*/
@@ -1179,7 +1182,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
+    public void updateBinaryStream(String columnLabel, InputStream x)
+            throws SQLException {
         update(columnLabel, x);
     }
 //*/
@@ -1316,7 +1320,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
+    public void updateCharacterStream(int columnIndex, Reader x)
+            throws SQLException {
         update(columnIndex, x);
     }
 //*/
@@ -1325,7 +1330,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public void updateCharacterStream(String columnLabel, Reader x) throws SQLException {
+    public void updateCharacterStream(String columnLabel, Reader x)
+            throws SQLException {
         update(columnLabel, x);
     }
 //*/
@@ -1490,7 +1496,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
+    public void updateNCharacterStream(int columnIndex, Reader x)
+            throws SQLException {
         update(columnIndex, x);
     }
 //*/
@@ -1499,7 +1506,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
 //## Java 1.6 ##
-    public void updateNCharacterStream(String columnLabel, Reader x) throws SQLException {
+    public void updateNCharacterStream(String columnLabel, Reader x)
+            throws SQLException {
         update(columnLabel, x);
     }
 //*/

@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.164 (2012-02-03)</h2>
 <ul><li>New built-in function ARRAY_CONTAINS.
 </li><li>Some DatabaseMetaData methods didn't work when using ALLOW_LITERALS NONE.
 </li><li>Trying to convert a VARCHAR to UUID will now fail if the text contains
@@ -628,159 +632,6 @@ Change Log
 </li><li>Issue 264: the Hibernate dialect in src/tools was removed because it is outdated.
 </li><li>Cache size limit could be exceeded for certain queries, leading to an OutOfMemoryError
     in some cases. Fixed.
-</li></ul>
-
-<h2>Version 1.3.148 Beta (2010-12-12)</h2>
-<ul><li>The built-in connection pool was simplified a bit.
-    The dispose() method no longer throws an exception (it only logs it).
-</li><li>The database upgrade (to upgrade from H2 version 1.1.x) has been simplified.
-</li><li>The feature to log all errors (system properties h2.logAllErrors and h2.logAllErrorsFile) has been removed.
-</li><li>When starting the H2 Console, the properties file can now be completely disabled.
-</li><li>Server.openBrowser no longer writes to System.out directly if opening the URL failed.
-</li><li>The INSERT optimizations (INSERT ... DIRECT SORTED SELECT) were not parsed correctly when using a column list.
-</li><li>H2 Console: the tables and columns are now listed for SQLite as well.
-</li><li>H2 Console: improved autocomplete feature (also simplified the source code for this feature).
-</li><li>Issue 260: the DbStarter servlet context listener now starts the server before opening a connection,
-    so that connecting using the server mode works.
-</li><li>The Shell tool can now enable, disable, and display the current autocommit mode.
-</li><li>Issue 259: there is a limitation in the cluster mode:
-    The SQL statement SET AUTOCOMMIT FALSE doesn't work.
-    To disable autocommit, the method Connection.setAutoCommit(false) needs to be called.
-    This is now documented.
-</li><li>Connection pool / DataSource: a NullPointerException was thrown when
-    using a database URL that doesn't start with "jdbc:h2:".
-</li><li>Using the java.sql.Blob or java.sql.Clob interfaces could throw the wrong
-    exception after the object was closed.
-</li><li>LOB: in server mode, if the feature "LOBs in database" is disabled,
-    the temporary files are now created in the temp directory (the same as
-    when "LOBs in database" is enabled).
-</li></ul>
-
-<h2>Version 1.2.147 (2010-11-21)</h2>
-<ul><li>H2 Console: the server properties directory can now be set on the command line using
-    java ... -properties &lt;directory&gt;. Issue 159.
-</li><li>New feature INSERT INTO ... DIRECT SELECT, mainly to speed up loading tables
-    from a CSV file. When using DIRECT, then the results from the query are directly applied
-    in the target table without any intermediate step (without temporary file).
-</li><li>Converting binary data to UUID was incorrect when the converting more than 31 bytes.
-    Now always the first 16 bytes are used.
-</li><li>Improved date / time arithmetics. Now supported are
-    multiplying and dividing a time with / by a number,
-    adding and subtracting a time to / from a time or date,
-    subtracting a time or timestamp from a timestamp.
-</li><li>The Ant build script has been removed because it is no longer up to date.
-</li><li>Nested outer joins without brackets were not working as expected. Example:
-    select * from a inner join b inner join c on c.id = b.id on b.id = a.id;
-</li><li>JMX (the Java management extension) is now supported. Issue 253.
-</li><li>Creating a comment on a column didn't work if the schema name was equal the database name.
-</li><li>When using multi-version concurrency, re-running a prepared statement with the same parameters
-    would sometimes give the same result even if another connection committed a change (the previous result was sometimes
-    re-used incorrectly).
-</li><li>When using SELECT_FOR_UPDATE_MVCC (lock only the selected rows when using MVCC),
-    the selected rows were sometimes not locked correctly.
-</li><li>When using Lucene 3, the index files were not always closed when the database was closed.
-</li><li>Concurrently preparing a statement and altering a table could throw a table not found exception.
-</li><li>When concurrently preparing many statements with a subquery, in some cases the query didn't run
-    (Column "..." must be in the GROUP BY list).
-</li><li>CallableStatement: now the syntax "{? = CALL...}" is supported as well.
-</li><li>Lob in databases: two small BLOB or CLOB values were always considered equal.
-    This also affected unique indexes.
-</li><li>The shutdown hook is (re-) enabled by default even for H2 version 1.3.x.
-</li><li>When creating a database from a recovery script, the same user can now be used
-    (CREATE USER now always includes IF EXISTS).
-</li><li>The H2 Console now prints a status message if started with parameters.
-</li></ul>
-
-<h2>Version 1.3.146 Beta (2010-11-08)</h2>
-<ul><li>This is a beta version. The next version will be 1.2.147. The differences between 1.2.x and 1.3.x are:
-</li><li>In version 1.3.x, h2.lobInDatabase (store CLOB and BLOB in the database file) is enabled by default.
-</li><li>In version 1.3.x, ANALYZE_AUTO is 2000 (automatic ANALYZE).
-</li><li>In version 1.3.x, DB_CLOSE_ON_EXIT (the shutdown hook) is disabled by default.
-</li><li>In version 1.3.x, DROP_RESTRICT (default action for DROP is RESTRICT) is enabled.
-</li><li>In version 1.3.x, FUNCTIONS_IN_SCHEMA (allow to store functions in a schema) is enabled.
-</li><li>In version 1.3.x, LARGE_TRANSACTIONS (support for very large transactions) is enabled.
-    Changes to tables without a primary key can be buffered to disk.
-</li><li>In version 1.3.x, MAX_MEMORY_ROWS_DISTINCT is set to a 10000.
-</li><li>In version 1.3.x, NESTED_JOINS (nested joins and right outer joins) is enabled.
-</li><li>In version 1.3.x, OPTIMIZE_INSERT_FROM_SELECT (speed up CREATE TABLE ... AS SELECT) is enabled.
-</li><li>In version 1.3.x, OPTIMIZE_OR (convert OR conditions to IN(..) if possible) is enabled.
-</li><li>In version 1.3.x, QUERY_CACHE_SIZE is enabled.
-</li><li>In version 1.3.x, SELECT_FOR_UPDATE_MVCC (MVCC and SELECT FOR UPDATE) is enabled.
-</li><li>In version 1.3.x, RUNSCRIPT and SCRIPT (commands and tools), use UTF-8 by default (ScriptCommand.charset).
-</li><li>In version 1.3.x, Lucene 3 is used by default. Issue 147.
-</li><li>When the system property h2.lobInDatabase is set, the lob tables were always
-    created when closing the database, even if the tables were not needed.
-</li><li>In the MySQL mode, SHOW TABLES didn't work, and meta data tables were not
-    case insensitive. Updatable result sets didn't work as expected. Issue 249.
-</li><li>Connection-created Clob and Blob objects can now be filled using
-    Clob.setCharacterStream(1), Clob.setString(1, s), Blob.setBytes(1, x), Blob.setBinaryStream(1).
-    Issue 235.
-</li><li>Trying to convert a very small CLOB to a BLOB or a very small CLOB to a BLOB threw a NullPointerException.
-</li><li>INFORMATION_SCHEMA.SETTINGS: now the current page count can be queried using
-    select * from information_schema.settings where name = 'info.PAGE_COUNT'.
-</li><li>For an invalid value exception, the parameter name and value was
-    switched in some cases.
-</li><li>When using trace level 3, opening a database no longer prints
-    there is a EOFException (because that is the expected behavior).
-</li><li>CALL calling a Java function with return type ResultSet and
-    return value null threw a ClassCastException.
-</li><li>SELECT ... FROM CSVREAD no longer creates a temporary file.
-    Some large imports are now twice as fast.
-</li></ul>
-
-<h2>Version 1.2.145 (2010-11-02)</h2>
-<ul><li>A new String cache is now created at most once every 5 second, so that out of memory exceptions
-    are not artificially delayed.
-</li><li>After closing a database, the writer thread will stop after 100 ms at the latest (instead of 1 second).
-</li><li>Opening a large database could fail in theory if the process was killed and then
-    not fully compacted (because the unique transaction log key was re-used).
-</li><li>Views now store the schema for Java functions if "functions in schemas" is enabled
-    (system property h2.functionsInSchema).
-</li><li>Improved error message if the LOB files are already deleted on the client side.
-</li><li>Closing a Statement or PreparedStatement at the same time as executing a statement
-    could throw a strange exception. Issue 241.
-</li><li>The Recover tool did not work with compressed lob files (set compress_lob lzf).
-    Also, sometimes the Recover tool was very slow, specially using a 64-bit JVM, because
-    it tried to de-compress lob files even if they were not compressed
-    (which could allocate a lot of memory).
-</li><li>H2 Console: webAllowOthers and webSSL were swapped if they didn't exist in the properties file. Issue 244.
-</li><li>When the system property h2.lobInDatabase is set, CREATE TABLE ... AS SELECT
-    with a LOB column did not always work.
-</li><li>Some system properties are not supported any longer, because they can
-    already be set in the database URL. The constants are:
-    CACHE_SIZE_DEFAULT, CACHE_TYPE_DEFAULT, DEFAULT_LOCK_MODE,
-    LOCK_MODE_READ_COMMITTED, DEFAULT_MAX_LENGTH_INPLACE_LOB,
-    DEFAULT_MAX_LENGTH_INPLACE_LOB2, DEFAULT_MAX_MEMORY_UNDO,
-    DEFAULT_MAX_OPERATION_MEMORY, DEFAULT_PAGE_SIZE,
-    DEFAULT_RESULT_SET_CONCURRENCY, MIN_WRITE_DELAY.
-</li><li>Various system properties have been replaced with database level settings:
-    ALIAS_COLUMN_NAME, ANALYZE_AUTO, ANALYZE_SAMPLE, DATABASE_TO_UPPER,
-    DEFAULT_ESCAPE, DEFRAG_ALWAYS, DROP_RESTRICT,
-    ESTIMATED_FUNCTION_TABLE_ROWS, FUNCTIONS_IN_SCHEMA,
-    LARGE_RESULT_BUFFER_SIZE, LARGE_TRANSACTIONS, MAX_COMPACT_COUNT,
-    MAX_COMPACT_TIME, MAX_MEMORY_ROWS_DISTINCT, MAX_QUERY_TIMEOUT,
-    NESTED_JOINS, OPTIMIZE_DISTINCT, OPTIMIZE_EVALUATABLE_SUBQUERIES,
-    OPTIMIZE_INSERT_FROM_SELECT, OPTIMIZE_IN_LIST, OPTIMIZE_IS_NULL,
-    OPTIMIZE_OR, OPTIMIZE_SUBQUERY_CACHE, OPTIMIZE_TWO_EQUALS,
-    OPTIMIZE_UPDATE, PAGE_STORE_INTERNAL_COUNT, PAGE_STORE_TRIM,
-    QUERY_CACHE_SIZE, RECOMPILE_ALWAYS, RECONNECT_CHECK_DELAY,
-    SELECT_FOR_UPDATE_MVCC, SHARE_LINKED_CONNECTIONS.
-    See the Javadoc documentation of DbSettings for details.
-    The system properties are still supported for backward compatibility.
-</li><li>When the system property h2.nestedJoins was enabled, some outer joins returned the wrong result.
-</li><li>Opening a database could throw a NullPointerException.
-</li><li>After a crash, the database file did not always shrink because
-    old transaction log pages were not removed from the file.
-</li><li>Various CallableStatement methods could throw a NullPointerException.
-</li><li>LOB files were not deleted when running DROP ALL OBJECTS.
-</li><li>MS SQL Server compatibility: support "N" in front of string literals ("National Language" strings). Issue 240.
-</li><li>CAST: when converting a string to binary, it is hex encoded (every byte two characters);
-    a hex string can be converted to a number by first converting it to binary. Examples:
-    CAST(CAST('FFFF' AS BINARY) AS INT) = 65535, CAST(65535 AS BINARY) = '0000FFFF'.
-</li><li>When a domain (user defined data type) contained a user defined function, the database could not be opened.
-</li><li>CAST('011' AS INT) will no longer use decode the value as an octal number (using Integer.decode) but now use Integer.parseInt.
-    The same logic applied to byte, short, and long. This also means that trying to convert hex numbers (0x...) with CAST now fails.
-</li><li>A table in the Recover tool script could not be imported if the script contained duplicate keys.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

@@ -74,7 +74,7 @@ public class Function extends Expression implements FunctionCall {
             CEILING = 8, COS = 9, COT = 10, DEGREES = 11, EXP = 12, FLOOR = 13, LOG = 14, LOG10 = 15, MOD = 16,
             PI = 17, POWER = 18, RADIANS = 19, RAND = 20, ROUND = 21, ROUNDMAGIC = 22, SIGN = 23, SIN = 24, SQRT = 25,
             TAN = 26, TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30, DECRYPT = 31, COMPRESS = 32,
-            EXPAND = 33, ZERO = 34, RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38;
+            EXPAND = 33, ZERO = 34, RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52, CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55,
             HEXTORAW = 56, INSERT = 57, INSTR = 58, LCASE = 59, LEFT = 60, LENGTH = 61, LOCATE = 62, LTRIM = 63,
@@ -182,7 +182,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("EXP", EXP, 1, Value.DOUBLE);
         addFunction("FLOOR", FLOOR, 1, Value.DOUBLE);
         addFunction("LOG", LOG, 1, Value.DOUBLE);
-        addFunction("LN", LOG, 1, Value.DOUBLE);
+        addFunction("LN", LN, 1, Value.DOUBLE);
         addFunction("LOG10", LOG10, 1, Value.DOUBLE);
         addFunction("MOD", MOD, 2, Value.LONG);
         addFunction("PI", PI, 0, Value.DOUBLE);
@@ -495,8 +495,15 @@ public class Function extends Expression implements FunctionCall {
         case FLOOR:
             result = ValueDouble.get(Math.floor(v0.getDouble()));
             break;
-        case LOG:
+        case LN:
             result = ValueDouble.get(Math.log(v0.getDouble()));
+            break;
+        case LOG:
+            if (database.getMode().logIsLogBase10) {
+                result = ValueDouble.get(Math.log10(v0.getDouble()));
+            } else {
+                result = ValueDouble.get(Math.log(v0.getDouble()));
+            }
             break;
         case LOG10:
             result = ValueDouble.get(log10(v0.getDouble()));

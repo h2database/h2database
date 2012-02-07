@@ -114,6 +114,11 @@ public class Mode {
      */
     public boolean allowPlusForStringConcat;
 
+    /**
+     * The function LOG() uses base 10 instead of E.
+     */
+    public boolean logIsLogBase10;
+
     private String name;
 
     static {
@@ -167,6 +172,7 @@ public class Mode {
         mode.roundWhenConvertToLong = true;
         mode.supportOffsetFetch = true;
         mode.systemColumns = true;
+        mode.logIsLogBase10 = true;
         add(mode);
     }
 

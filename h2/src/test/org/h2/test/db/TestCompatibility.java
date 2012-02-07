@@ -43,6 +43,7 @@ public class TestCompatibility extends TestBase {
         testColumnAlias();
         testUniqueIndexSingleNull();
         testUniqueIndexOracle();
+        testPostgreSQL();
         testHsqlDb();
         testMySQL();
         testDB2();
@@ -177,6 +178,9 @@ public class TestCompatibility extends TestBase {
 
     private void testHsqlDb() throws SQLException {
         Statement stat = conn.createStatement();
+        stat.execute("set mode hsqldb");
+        testLog(Math.log(10), stat);
+
         stat.execute("DROP TABLE TEST IF EXISTS; CREATE TABLE TEST(ID INT PRIMARY KEY); ");
         stat.execute("CALL CURRENT_TIME");
         stat.execute("CALL CURRENT_TIMESTAMP");
@@ -191,7 +195,24 @@ public class TestCompatibility extends TestBase {
         prep.setInt(1, 2);
         prep.executeQuery();
         stat.execute("DROP TABLE TEST IF EXISTS");
+    }
 
+    private void testLog(double expected, Statement stat) throws SQLException {
+        stat.execute("create table log(id int)");
+        stat.execute("insert into log values(1)");
+        ResultSet rs = stat.executeQuery("select log(10) from log");
+        rs.next();
+        assertEquals((int) (expected * 100), (int) (rs.getDouble(1) * 100));
+        rs = stat.executeQuery("select ln(10) from log");
+        rs.next();
+        assertEquals((int) (Math.log(10) * 100), (int) (rs.getDouble(1) * 100));
+        stat.execute("drop table log");
+    }
+
+    private void testPostgreSQL() throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("SET MODE PostgreSQL");
+        testLog(Math.log10(10), stat);
     }
 
     private void testMySQL() throws SQLException {
@@ -213,6 +234,9 @@ public class TestCompatibility extends TestBase {
         // need to reconnect, because meta data tables may be initialized
         conn.close();
         conn = getConnection("compatibility;MODE=MYSQL");
+        stat = conn.createStatement();
+        testLog(Math.log(10), stat);
+
         stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         assertResult("test", stat, "SHOW TABLES");
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
@@ -271,6 +295,9 @@ public class TestCompatibility extends TestBase {
 
     private void testDB2() throws SQLException {
         conn = getConnection("compatibility;MODE=DB2");
+        Statement stat = conn.createStatement();
+        testLog(Math.log(10), stat);
+
         ResultSet res = conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1");
         res.next();
         assertEquals("1", res.getString(1));
@@ -280,11 +307,11 @@ public class TestCompatibility extends TestBase {
                 executeQuery("SELECT 1 FROM sysibm.sysdummy1");
         conn.close();
         conn = getConnection("compatibility;MODE=DB2");
-        Statement stmt = conn.createStatement();
-        stmt.execute("drop table test");
-        stmt.execute("create table test(id varchar)");
-        stmt.execute("insert into test values ('3'),('1'),('2')");
-        res = stmt.executeQuery("select id from test order by id fetch next 2 rows only");
+        stat = conn.createStatement();
+        stat.execute("drop table test");
+        stat.execute("create table test(id varchar)");
+        stat.execute("insert into test values ('3'),('1'),('2')");
+        res = stat.executeQuery("select id from test order by id fetch next 2 rows only");
         conn = getConnection("compatibility");
         res.next();
         assertEquals("1", res.getString(1));
@@ -295,6 +322,9 @@ public class TestCompatibility extends TestBase {
 
     private void testDerby() throws SQLException {
         conn = getConnection("compatibility;MODE=Derby");
+        Statement stat = conn.createStatement();
+        testLog(Math.log(10), stat);
+
         ResultSet res = conn.createStatement().executeQuery("SELECT 1 FROM sysibm.sysdummy1 fetch next 1 row only");
         res.next();
         assertEquals("1", res.getString(1));

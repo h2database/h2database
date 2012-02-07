@@ -2625,6 +2625,7 @@ FLOOR(A)
 { LOG | LN } (numeric)
 ","
 See also Java ""Math.log"".
+In the PostgreSQL mode, LOG(x) is base 10.
 This method returns a double.
 ","
 LOG(A)

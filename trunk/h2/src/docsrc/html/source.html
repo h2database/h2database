@@ -12,13 +12,13 @@ Initial Developer: H2 Group
 
 function getVersion(build) {
     if (build == 64) {
-        return '1.0.' + build;
+        return '1.0/version-1.0.' + build;
     } else if (build >= 146 && build != 147) {
         return '1.3.' + build;
     } else if (build >= 120) {
-        return '1.2.' + build;
+        return '1.2/version-1.2.' + build;
     } else if (build >= 100) {
-        return '1.1.' + build;
+        return '1.1/version-1.1.' + build;
     }
     return '1.0.' + build;
 }

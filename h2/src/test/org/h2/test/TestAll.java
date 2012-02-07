@@ -352,8 +352,6 @@ java org.h2.test.TestAll timer
         // speedup
         // System.setProperty("h2.syncMethod", "");
 
-        int testMultiThreadedBackup;
-
 /*
 
 recovery tests with small freeList pages, page size 64

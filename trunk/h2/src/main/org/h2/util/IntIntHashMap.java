@@ -44,12 +44,7 @@ public class IntIntHashMap extends HashBase {
             zeroValue = value;
             return;
         }
-        try {
-            checkSizePut();
-        } catch (Exception e) {
-            // in fact, it is never thrown
-            // TODO hash: maybe optimize it
-        }
+        checkSizePut();
         int index = getIndex(key);
         int plus = 1;
         int deleted = -1;
@@ -92,12 +87,7 @@ public class IntIntHashMap extends HashBase {
             zeroKey = false;
             return;
         }
-        try {
-            checkSizeRemove();
-        } catch (Exception e) {
-            // in fact, it is never thrown
-            // TODO hash: maybe optimize it
-        }
+        checkSizeRemove();
         int index = getIndex(key);
         int plus = 1;
         do {

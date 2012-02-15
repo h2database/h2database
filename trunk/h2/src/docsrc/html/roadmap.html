@@ -49,6 +49,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
     Issue 208: Access rights for schemas.
 </li><li>Test multi-threaded in-memory db access.
 </li><li>MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes.
+</li><li>Support GRANT SELECT, UPDATE ON [schemaName.] *.
 </li><li>Migrate database tool (also from other database engines). For Oracle, maybe use
     DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL.
 </li><li>Clustering: support mixed clustering mode (one embedded, others in server mode).
@@ -81,7 +82,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Drop with invalidate views (so that source code is not lost). Check what other databases do exactly.
 </li><li>Index usage for (ID, NAME)=(1, 'Hi'); document.
 </li><li>Set a connection read only (Connection.setReadOnly) or using a connection parameter.
-</li><li>Support GRANT SELECT, UPDATE ON [schemaName.] *.
 </li><li>Access rights: finer grained access control (grant access for specific functions).
 </li><li>ROW_NUMBER() OVER([PARTITION BY columnName][ORDER BY columnName]).
 </li><li>Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP).

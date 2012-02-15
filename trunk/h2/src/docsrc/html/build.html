@@ -149,6 +149,21 @@ New versions of this database are first uploaded to http://hsql.sourceforge.net/
 synchronized with the main <a href="http://repo2.maven.org/maven2/com/h2database/h2/">Maven repository</a>;
 however after a new release it may take a few hours before they are available there.
 </p>
+<h3>Maven Plugin to Start and Stop the TCP Server</h3>
+<p>
+A Maven plugin to start and stop the H2 TCP server is available from
+<a href="https://github.com/ljnelson/h2-maven-plugin">Laird Nelson at GitHub</a>.
+To start the H2 server, use:
+</p>
+<pre>
+mvn com.edugility.h2-maven-plugin:1.0-SNAPSHOT:spawn
+</pre>
+<p>
+To stop the H2 server, use:
+</p>
+<pre>
+mvn com.edugility.h2-maven-plugin:1.0-SNAPSHOT:stop
+</pre>
 
 <h3>Using Snapshot Version</h3>
 <p>

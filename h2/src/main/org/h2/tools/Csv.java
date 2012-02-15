@@ -51,6 +51,7 @@ public class Csv implements SimpleRowSource {
     private char fieldDelimiter = '\"';
     private char fieldSeparatorRead = ',';
     private String fieldSeparatorWrite = ",";
+    private boolean caseSensitiveColumnNames;
     private boolean preserveWhitespace;
 
     // TODO change the docs at setLineCommentCharacter
@@ -370,7 +371,7 @@ public class Csv implements SimpleRowSource {
             } else {
                 if (v.length() == 0) {
                     v = "COLUMN" + list.size();
-                } else if (isSimpleColumnName(v)) {
+                } else if (!caseSensitiveColumnNames && isSimpleColumnName(v)) {
                     v = v.toUpperCase();
                 }
                 list.add(v);
@@ -648,6 +649,25 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
+     * Override the case sensitive column names setting. The default is false.
+     * If enabled, the case of all column names is always preserved.
+     *
+     * @param caseSensitiveColumnNames whether column names are case sensitive
+     */
+    public void setCaseSensitiveColumnNames(boolean caseSensitiveColumnNames) {
+        this.caseSensitiveColumnNames = caseSensitiveColumnNames;
+    }
+
+    /**
+     * Get the current case sensitive column names setting.
+     *
+     * @return whether column names are case sensitive
+     */
+    public boolean getCaseSensitiveColumnNames() {
+        return caseSensitiveColumnNames;
+    }
+
+    /**
      * Override the field separator for reading. The default is ','.
      *
      * @param fieldSeparatorRead the field separator
@@ -853,6 +873,8 @@ public class Csv implements SimpleRowSource {
                 charset = value;
             } else if (isParam(key, "preserveWhitespace")) {
                 setPreserveWhitespace(Boolean.parseBoolean(value));
+            } else if (isParam(key, "caseSensitiveColumnNames")) {
+                setCaseSensitiveColumnNames(Boolean.parseBoolean(value));
             } else {
                 throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
             }

@@ -52,6 +52,7 @@ public class TestCsv extends TestBase {
     }
 
     public void test() throws Exception {
+        testCaseSensitiveColumnNames();
         testWriteResultSetDataType();
         testPreserveWhitespace();
         testChangeData();
@@ -86,6 +87,27 @@ public class TestCsv extends TestBase {
         // getTimestamp().getString() needs to be used (not for H2, but for
         // Oracle)
         assertEquals("TS,N;0101-01-01 12:00:00.0,;", writer.toString());
+    }
+
+    private void testCaseSensitiveColumnNames() throws Exception {
+        OutputStream out = FileUtils.newOutputStream(getBaseDir() + "/test.tsv", false);
+        out.write("lower,Mixed,UPPER\n 1 , 2, 3 \n".getBytes());
+        out.close();
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
+        rs.next();
+        assertEquals("LOWER", rs.getMetaData().getColumnName(1));
+        assertEquals("MIXED", rs.getMetaData().getColumnName(2));
+        assertEquals("UPPER", rs.getMetaData().getColumnName(3));
+        rs = stat.executeQuery("select * from csvread('" + getBaseDir()
+                + "/test.tsv', null, 'caseSensitiveColumnNames=true')");
+        rs.next();
+        assertEquals("lower", rs.getMetaData().getColumnName(1));
+        assertEquals("Mixed", rs.getMetaData().getColumnName(2));
+        assertEquals("UPPER", rs.getMetaData().getColumnName(3));
+        conn.close();
     }
 
     private void testPreserveWhitespace() throws Exception {
@@ -151,9 +173,11 @@ public class TestCsv extends TestBase {
         assertEquals("\n", csv.getFieldSeparatorWrite());
         assertEquals('"', csv.getLineCommentCharacter());
         assertEquals(" \\ ", csv.getLineSeparator());
+        assertFalse(csv.getPreserveWhitespace());
+        assertFalse(csv.getCaseSensitiveColumnNames());
 
         charset = csv.setOptions("escape=1x fieldDelimiter=2x fieldSeparator=3x " + "lineComment=4x lineSeparator=5x "
-                + "null=6x rowSeparator=7x charset=8x preserveWhitespace=true");
+                + "null=6x rowSeparator=7x charset=8x preserveWhitespace=true caseSensitiveColumnNames=true");
         assertEquals('1', csv.getEscapeCharacter());
         assertEquals('2', csv.getFieldDelimiter());
         assertEquals('3', csv.getFieldSeparatorRead());
@@ -164,6 +188,7 @@ public class TestCsv extends TestBase {
         assertEquals("7x", csv.getRowSeparatorWrite());
         assertEquals("8x", charset);
         assertTrue(csv.getPreserveWhitespace());
+        assertTrue(csv.getCaseSensitiveColumnNames());
 
         charset = csv.setOptions("escape= fieldDelimiter= fieldSeparator= " + "lineComment= lineSeparator=\r\n "
                 + "null=\0 rowSeparator= charset=");

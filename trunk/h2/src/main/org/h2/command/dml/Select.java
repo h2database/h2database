@@ -588,7 +588,6 @@ public class Select extends Query {
         topTableFilter.startQuery(session);
         topTableFilter.reset();
         boolean exclusive = isForUpdate && !isForUpdateMvcc;
-        topTableFilter.lock(session, exclusive, exclusive);
         if (isForUpdateMvcc) {
             if (isGroupQuery) {
                 throw DbException.getUnsupportedException("FOR UPDATE && GROUP");
@@ -602,6 +601,7 @@ public class Select extends Query {
                 throw DbException.getUnsupportedException("FOR UPDATE && JOIN");
             }
         }
+        topTableFilter.lock(session, exclusive, exclusive);
         ResultTarget to = result != null ? result : target;
         if (limitRows != 0) {
             if (isQuickAggregateQuery) {

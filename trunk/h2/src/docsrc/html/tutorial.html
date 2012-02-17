@@ -913,7 +913,7 @@ public class TestCsv {
         rs.addColumn("EMAIL", Types.VARCHAR, 255, 0);
         rs.addRow("Bob Meier", "bob.meier@abcde.abc");
         rs.addRow("John Jones", "john.jones@abcde.abc");
-        Csv.getInstance().write("data/test.csv", rs, null);
+        new Csv().write("data/test.csv", rs, null);
     }
 }
 </pre>
@@ -928,8 +928,7 @@ import java.sql.*;
 import org.h2.tools.Csv;
 public class TestCsv {
     public static void main(String[] args) throws Exception {
-        ResultSet rs = Csv.getInstance().
-            read("data/test.csv", null, null);
+        ResultSet rs = new Csv().read("data/test.csv", null, null);
         ResultSetMetaData meta = rs.getMetaData();
         while (rs.next()) {
             for (int i = 0; i &lt; meta.getColumnCount(); i++) {

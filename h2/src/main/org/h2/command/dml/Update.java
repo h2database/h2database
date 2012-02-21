@@ -29,6 +29,7 @@ import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -38,6 +39,10 @@ public class Update extends Prepared {
 
     private Expression condition;
     private TableFilter tableFilter;
+
+    /** The limit expression as specified in the LIMIT clause. */
+    private Expression limitExpr;
+
     private ArrayList<Column> columns = New.arrayList();
     private HashMap<Column, Expression> expressionMap  = New.hashMap();
 
@@ -86,8 +91,18 @@ public class Update extends Prepared {
             setCurrentRowNumber(0);
             int count = 0;
             Column[] columns = table.getColumns();
+            int limitRows = -1;
+            if (limitExpr != null) {
+                Value v = limitExpr.getValue(session);
+                if (v != ValueNull.INSTANCE) {
+                    limitRows = v.getInt();
+                }
+            }
             while (tableFilter.next()) {
                 setCurrentRowNumber(count+1);
+                if (limitRows >= 0 && count >= limitRows) {
+                    break;
+                }
                 if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                     Row oldRow = tableFilter.get();
                     Row newRow = table.getTemplateRow();
@@ -183,6 +198,10 @@ public class Update extends Prepared {
 
     public int getType() {
         return CommandInterface.UPDATE;
+    }
+
+    public void setLimit(Expression limit) {
+        this.limitExpr = limit;
     }
 
     public boolean isCacheable() {

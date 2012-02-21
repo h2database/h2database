@@ -5,6 +5,9 @@ call cast('null' as uuid);
 create table test(name varchar(255));
 > ok
 
+select * from test union select * from test order by test.name;
+> exception
+
 insert into test values('a'), ('b'), ('c');
 > update count: 3
 

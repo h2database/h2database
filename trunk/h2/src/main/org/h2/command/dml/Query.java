@@ -353,12 +353,14 @@ public abstract class Query extends Prepared {
                             String ca = c.getOriginalTableAliasName();
                             if (ca == null) {
                                 found = false;
-                                // select id from test order by test.id
-                                for (int i = 0, size = filters.size(); i < size; i++) {
-                                    TableFilter f = filters.get(i);
-                                    if (db.equalsIdentifiers(f.getTableAlias(), tableAlias)) {
-                                        found = true;
-                                        break;
+                                if (filters != null) {
+                                    // select id from test order by test.id
+                                    for (int i = 0, size = filters.size(); i < size; i++) {
+                                        TableFilter f = filters.get(i);
+                                        if (db.equalsIdentifiers(f.getTableAlias(), tableAlias)) {
+                                            found = true;
+                                            break;
+                                        }
                                     }
                                 }
                             } else {

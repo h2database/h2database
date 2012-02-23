@@ -199,7 +199,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
             boolean isRefOwner = false;
-            if (refIndex != null && refIndex.getTable() == refTable) {
+            if (refIndex != null && refIndex.getTable() == refTable &&
+                    canUseIndex(refIndex, refTable, refIndexColumns)) {
                 isRefOwner = true;
                 refIndex.getIndexType().setBelongsToConstraint(true);
             } else {

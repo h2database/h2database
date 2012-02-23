@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The wrong kind of exception (NullPointerException) was thrown in a UNION query
+<ul><li>Issue 380: ALTER TABLE ADD FOREIGN KEY with an explicit index didn't verify
+    the index can be used, which would lead to a NullPointerException later on.
+</li><li>The wrong kind of exception (NullPointerException) was thrown in a UNION query
     with an incorrect ORDER BY expression.
 </li><li>Issue 362: support LIMIT in UPDATE statements.
 </li><li>Browser: if no default browser is set, Google Chrome is now used if available.

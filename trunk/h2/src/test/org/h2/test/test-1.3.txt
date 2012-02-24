@@ -5,15 +5,15 @@ create table test (id int not null, pid int);
 create index idx_test_pid on test (pid);
 > ok
 
-alter table test add constraint fk_test foreign key (pid) 
+alter table test add constraint fk_test foreign key (pid)
 references test (id) index idx_test_pid;
 > ok
 
 insert into test values (2, null);
-> ok
+> update count: 1
 
 update test set pid = 1 where id = 2;
-> ok
+> exception
 
 drop table test;
 > ok

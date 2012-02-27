@@ -4948,19 +4948,37 @@ public class Parser {
 
     private AlterTableAlterColumn parseAlterTableAddColumn(Table table) {
         readIf("COLUMN");
-        boolean ifNotExists = readIfNoExists();
         Schema schema = table.getSchema();
         AlterTableAlterColumn command = new AlterTableAlterColumn(session, schema);
-        command.setIfNotExists(ifNotExists);
         command.setType(CommandInterface.ALTER_TABLE_ADD_COLUMN);
         command.setTable(table);
-        String columnName = readColumnIdentifier();
-        Column column = parseColumnForTable(columnName, true);
-        command.setNewColumn(column);
-        if (readIf("BEFORE")) {
-            command.setAddBefore(readColumnIdentifier());
+        ArrayList<Column> columnsToAdd = New.arrayList();
+
+        boolean b = readIf("(");
+        if (b) {
+            command.setIfNotExists(false);
+            do{
+                String columnName = readColumnIdentifier();
+                Column column = parseColumnForTable(columnName, true);
+                columnsToAdd.add(column);
+            }   while (readIf(","));
+            read(")");
+            command.setNewColumns(columnsToAdd);
+
+        } else {
+            boolean ifNotExists = readIfNoExists();
+            command.setIfNotExists(ifNotExists);
+            String columnName = readColumnIdentifier();
+            Column column = parseColumnForTable(columnName, true);
+            columnsToAdd.add(column);
+            if (readIf("BEFORE")) {
+                command.setAddBefore(readColumnIdentifier());
+            }
+
         }
+        command.setNewColumns(columnsToAdd);
         return command;
+
     }
 
     private int parseAction() {

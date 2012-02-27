@@ -40,6 +40,7 @@ public class TestAlter extends TestBase {
         testAlterTableAlterColumn();
         testAlterTableDropIdentityColumn();
         testAlterTableAddColumnIfNotExists();
+        testAlterTableAddMultipleColumns();
         testAlterTableAlterColumn2();
         conn.close();
         deleteDb("alter");
@@ -133,6 +134,15 @@ public class TestAlter extends TestBase {
         stat.execute("create table t(x varchar) as select 'x'");
         stat.execute("alter table t add if not exists y int");
         stat.execute("select x, y from t");
+        stat.execute("drop table t");
+    }
+
+    private void testAlterTableAddMultipleColumns() throws SQLException {
+        stat.execute("create table t(x varchar) as select 'x'");
+        stat.execute("alter table t add (y int, z varchar)");
+        stat.execute("drop table t");
+        stat.execute("create table t(x varchar) as select 'x'");
+        stat.execute("alter table t add (y int)");
         stat.execute("drop table t");
     }
 

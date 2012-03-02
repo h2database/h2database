@@ -8,14 +8,10 @@ package org.h2.test.unit;
 
 import java.lang.management.ManagementFactory;
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import javax.management.Attribute;
-import javax.management.JMException;
 import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanInfo;
 import javax.management.MBeanOperationInfo;
@@ -38,12 +34,8 @@ public class TestJmx extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @SuppressWarnings("unchecked")
     public void test() throws Exception {
-        testJMX();
-        testTransactionsInProgress();
-    }
-    
-    private void testJMX() throws Exception {
         HashMap<String, MBeanAttributeInfo> attrMap;
         HashMap<String, MBeanOperationInfo> opMap;
         String result;
@@ -112,8 +104,8 @@ public class TestJmx extends TestBase {
         conn = getConnection("jmx;jmx=true");
 
         name = new ObjectName("org.h2:name=JMX,*");
-        Set<ObjectName> set = mbeanServer.queryNames(name, null);
-        name = set.iterator().next();
+        Set set = mbeanServer.queryNames(name, null);
+        name = (ObjectName) set.iterator().next();
 
         assertEquals("16384", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
         mbeanServer.setAttribute(name, new Attribute("CacheSizeMax", 1));
@@ -130,34 +122,4 @@ public class TestJmx extends TestBase {
 
     }
 
-    private void testTransactionsInProgress() throws SQLException, InterruptedException, JMException, NullPointerException {
-        MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
-        ObjectName name = new ObjectName("org.h2:name=JMX,path=mem_jmx");
-        
-        deleteDb("jmx");
-        final Connection conn = getConnection("mem:jmx;jmx=true");
-        final CountDownLatch latch = new CountDownLatch(1);
-        
-        new Thread("TestJmx,sleep") {
-            public void run() {
-                try {
-                    conn.setAutoCommit(false);
-                    Statement stat = conn.createStatement();
-                    stat.execute("CREATE ALIAS sleep FOR \"java.lang.Thread.sleep\"");
-                    stat.execute("begin");
-                    latch.countDown();
-                    stat.execute("call sleep(2000)");
-                } catch (SQLException ex) {}
-            }
-        }.start();
-
-        latch.await(2000, TimeUnit.MILLISECONDS);
-        Thread.sleep(200);
-        
-        String result = mbeanServer.invoke(name, "listSessions", null, null).toString();
-        assertTrue(result.indexOf("transactionStart:") >= 0);
-        assertTrue(result.indexOf("call sleep") >= 0);
-        
-        conn.close();
-    }
 }

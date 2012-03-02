@@ -141,6 +141,7 @@ public class PageStore implements CacheWriter {
     private Cache cache;
     private int freeListPagesPerList;
     private boolean recoveryRunning;
+    private boolean ignoreBigLog;
 
     /**
      * The index to the first free-list page that potentially has free space.
@@ -1427,9 +1428,38 @@ public class PageStore implements CacheWriter {
         checkOpen();
         openForWriting();
         log.commit(session.getId());
-        if (log.getSize() - logSizeBase > maxLogSize) {
+        long size = log.getSize();
+        if (size - logSizeBase > maxLogSize) {
             checkpoint();
-            logSizeBase = log.getSize();
+            if (ignoreBigLog) {
+                return;
+            }
+            long newSize = log.getSize();
+            if (newSize < size || size < maxLogSize) {
+                ignoreBigLog = false;
+                return;
+            }
+            ignoreBigLog = true;
+            trace.error(null, "Transaction log could not be truncated; size: " + (newSize / 1024 / 1024) + " MB");
+            long logSizeLimit = database.getSettings().logSizeLimit;
+            if (logSizeLimit == 0 || newSize < logSizeLimit) {
+                return;
+            }
+            int firstUncommittedSection = log.getLogSectionId();
+            Session[] sessions = database.getSessions(true);
+            Session oldestSession = null;
+            for (Session s : sessions) {
+                int firstUncommitted = s.getFirstUncommittedLog();
+                if (firstUncommitted != Session.LOG_WRITTEN) {
+                    if (firstUncommitted < firstUncommittedSection) {
+                        firstUncommittedSection = firstUncommitted;
+                        oldestSession = s;
+                    }
+                }
+            }
+            trace.info("Rolling back session #" +oldestSession.getId() + " (the oldest uncommitted)");
+            oldestSession.rollback();
+            logSizeBase = newSize;
         }
     }
 

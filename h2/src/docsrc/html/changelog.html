@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>ALTER TABLE ADD can now add more than one column at a time.
+<ul><li>If the transaction log could not be truncated because of an uncommitted transaction,
+    now "Transaction log could not be truncated" is written to the .trace.db file.
+    Before, the database file was growing and it was hard to find out what the root cause was.
+    To avoid the database file from growing, a new feature to automatically rollback the oldest
+    transaction is available now. To enable it, append ;LOG_SIZE_LIMIT=32 to the database URL
+    (in that case, the oldest session is rolled back if the transaction log is 32 MB).
+</li><li>ALTER TABLE ADD can now add more than one column at a time.
 </li><li>Issue 380: ALTER TABLE ADD FOREIGN KEY with an explicit index didn't verify
     the index can be used, which would lead to a NullPointerException later on.
 </li><li>The wrong kind of exception (NullPointerException) was thrown in a UNION query

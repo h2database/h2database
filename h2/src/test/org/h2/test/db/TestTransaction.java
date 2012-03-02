@@ -36,6 +36,7 @@ public class TestTransaction extends TestBase {
     }
 
     public void test() throws SQLException {
+        testCommitOnAutoCommitChange();
         testConcurrentSelectForUpdate();
         testLogMode();
         testRollback();
@@ -46,6 +47,36 @@ public class TestTransaction extends TestBase {
         testSavepoint();
         testIsolation();
         deleteDb("transaction");
+    }
+
+    private void testCommitOnAutoCommitChange() throws SQLException {
+        deleteDb("transaction");
+        Connection conn = getConnection("transaction");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key)");
+
+        Connection conn2 = getConnection("transaction");
+        Statement stat2 = conn2.createStatement();
+
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values(1)");
+
+        // should have no effect
+        conn.setAutoCommit(false);
+
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).
+            executeQuery("select count(*) from test");
+
+        // should commit
+        conn.setAutoCommit(true);
+
+        ResultSet rs = stat2.executeQuery("select * from test");
+        assertTrue(rs.next());
+
+        stat.execute("drop table test");
+
+        conn2.close();
+        conn.close();
     }
 
     private void testLogMode() throws SQLException {

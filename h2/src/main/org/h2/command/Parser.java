@@ -4953,18 +4953,15 @@ public class Parser {
         command.setType(CommandInterface.ALTER_TABLE_ADD_COLUMN);
         command.setTable(table);
         ArrayList<Column> columnsToAdd = New.arrayList();
-
-        boolean b = readIf("(");
-        if (b) {
+        if (readIf("(")) {
             command.setIfNotExists(false);
-            do{
+            do {
                 String columnName = readColumnIdentifier();
                 Column column = parseColumnForTable(columnName, true);
                 columnsToAdd.add(column);
-            }   while (readIf(","));
+            } while (readIf(","));
             read(")");
             command.setNewColumns(columnsToAdd);
-
         } else {
             boolean ifNotExists = readIfNoExists();
             command.setIfNotExists(ifNotExists);
@@ -4974,11 +4971,9 @@ public class Parser {
             if (readIf("BEFORE")) {
                 command.setAddBefore(readColumnIdentifier());
             }
-
         }
         command.setNewColumns(columnsToAdd);
         return command;
-
     }
 
     private int parseAction() {

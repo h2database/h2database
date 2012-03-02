@@ -175,17 +175,14 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         StringBuilder buff = new StringBuilder();
         for (Session session : database.getSessions(false)) {
             buff.append("session id: ").append(session.getId());
-            buff.append("\tuser: ").append(session.getUser().getName()).append('\n');
-            buff.append("\tconnected: ").append(new Timestamp(session.getSessionStart())).append('\n');
-            if (session.getTransactionStart() != 0) {
-                buff.append("\ttransactionStart: ").append(new Timestamp(session.getTransactionStart())).append('\n');
-            }
+            buff.append(" user: ").append(session.getUser().getName()).append('\n');
+            buff.append("connected: ").append(new Timestamp(session.getSessionStart())).append('\n');
             Command command = session.getCurrentCommand();
             if (command != null) {
-                buff.append("\tstatement: ").append(session.getCurrentCommand()).append('\n');
+                buff.append("statement: ").append(session.getCurrentCommand()).append('\n');
                 long commandStart = session.getCurrentCommandStart();
                 if (commandStart != 0) {
-                    buff.append("\tstarted: ").append(new Timestamp(commandStart)).append('\n');
+                    buff.append("started: ").append(new Timestamp(commandStart)).append('\n');
                 }
             }
             Table[] t = session.getLocks();

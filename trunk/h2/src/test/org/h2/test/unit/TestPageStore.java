@@ -6,6 +6,8 @@
  */
 package org.h2.test.unit;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -22,6 +24,7 @@ import org.h2.result.Row;
 import org.h2.store.Page;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -43,6 +46,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testLogLimit();
         testRecoverLobInDatabase();
         testWriteTransactionLogBeforeData();
         testDefrag();
@@ -71,6 +75,52 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testCreateIndexLater();
         testFuzzOperations();
         deleteDb("pageStore");
+    }
+
+    private void testLogLimit() throws Exception {
+        testLogLimit(false);
+        testLogLimit(true);
+    }
+
+    private void testLogLimit(boolean autoRollback) throws Exception {
+        deleteDb("pageStore");
+        Connection conn, conn2;
+        Statement stat, stat2;
+        String url = "pageStore;TRACE_LEVEL_FILE=2";
+        if (autoRollback) {
+            url += ";LOG_SIZE_LIMIT=1";
+        }
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key)");
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values(1)");
+
+        conn2 = getConnection(url);
+        stat2 = conn2.createStatement();
+        stat2.execute("create table t2(id identity, name varchar)");
+        stat2.execute("set max_log_size 1");
+        for (int i = 0; i < 10; i++) {
+            stat2.execute("insert into t2(name) select space(100) from system_range(1, 1000)");
+        }
+        InputStream in = FileUtils.newInputStream(getBaseDir() + "/pageStore.trace.db");
+        String s = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
+        assertTrue(s.indexOf("Transaction log could not be truncated") > 0);
+        if (autoRollback) {
+            assertTrue(s, s.indexOf("Rolling back session") > 0);
+        } else {
+            assertTrue(s, s.indexOf("Rolling back session") < 0);
+        }
+        conn.commit();
+        ResultSet rs = stat2.executeQuery("select * from test");
+        if (autoRollback) {
+            assertFalse(rs.next());
+        } else {
+            assertTrue(rs.next());
+        }
+
+        conn2.close();
+        conn.close();
     }
 
     private void testRecoverLobInDatabase() throws SQLException {

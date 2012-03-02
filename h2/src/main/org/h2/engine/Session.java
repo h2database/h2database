@@ -488,7 +488,6 @@ public class Session extends SessionWithState {
             unlinkLobMap = null;
         }
         unlockAll();
-        transactionStart = 0;
     }
 
     private void checkCommitRollback() {
@@ -517,7 +516,6 @@ public class Session extends SessionWithState {
             autoCommit = true;
             autoCommitAtTransactionEnd = false;
         }
-        transactionStart = 0;
     }
 
     /**
@@ -836,6 +834,9 @@ public class Session extends SessionWithState {
      * Wait for some time if this session is throttled (slowed down).
      */
     public void throttle() {
+        if (currentCommandStart == 0) {
+            currentCommandStart = System.currentTimeMillis();
+        }
         if (throttle == 0) {
             return;
         }
@@ -859,14 +860,10 @@ public class Session extends SessionWithState {
      */
     public void setCurrentCommand(Command command) {
         this.currentCommand = command;
-        if (command != null) {
+        if (queryTimeout > 0 && command != null) {
             long now = System.currentTimeMillis();
             currentCommandStart = now;
-            if (queryTimeout > 0) {
-                cancelAt = now + queryTimeout;
-            }
-        } else {
-            currentCommandStart = 0;
+            cancelAt = now + queryTimeout;
         }
     }
 
@@ -1057,7 +1054,6 @@ public class Session extends SessionWithState {
     public void begin() {
         autoCommitAtTransactionEnd = true;
         autoCommit = false;
-        transactionStart = System.currentTimeMillis();
     }
 
     public long getSessionStart() {
@@ -1065,6 +1061,9 @@ public class Session extends SessionWithState {
     }
 
     public long getTransactionStart() {
+        if (transactionStart == 0) {
+            transactionStart = System.currentTimeMillis();
+        }
         return transactionStart;
     }
 

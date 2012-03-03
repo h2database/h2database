@@ -253,8 +253,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @param sql the SQL statement
      * @return the prepared statement
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public PreparedStatement prepareStatement(String sql) throws SQLException {
         try {
@@ -297,8 +296,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Gets the database meta data for this database.
      *
      * @return the database meta data
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public DatabaseMetaData getMetaData() throws SQLException {
         try {
@@ -393,13 +391,11 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Switches auto commit on or off. Calling this function does not commit the
-     * current transaction.
+     * Switches auto commit on or off. Enabling it commits an uncommitted
+     * transaction, if there is one.
      *
-     * @param autoCommit
-     *            true for auto commit on, false for off
-     * @throws SQLException
-     *             if the connection is closed
+     * @param autoCommit true for auto commit on, false for off
+     * @throws SQLException if the connection is closed
      */
     public synchronized void setAutoCommit(boolean autoCommit) throws SQLException {
         try {
@@ -407,6 +403,9 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCode("setAutoCommit(" + autoCommit + ");");
             }
             checkClosed();
+            if (autoCommit && !session.getAutoCommit()) {
+                commit();
+            }
             session.setAutoCommit(autoCommit);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -417,8 +416,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Gets the current setting for auto commit.
      *
      * @return true for on, false for off
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public synchronized boolean getAutoCommit() throws SQLException {
         try {
@@ -431,11 +429,10 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Commits the current transaction. This call has only an effect if
-     * auto commit is switched off.
+     * Commits the current transaction. This call has only an effect if auto
+     * commit is switched off.
      *
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public synchronized void commit() throws SQLException {
         try {
@@ -453,11 +450,10 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Rolls back the current transaction. This call has only an effect if
-     * auto commit is switched off.
+     * Rolls back the current transaction. This call has only an effect if auto
+     * commit is switched off.
      *
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public synchronized void rollback() throws SQLException {
         try {
@@ -492,8 +488,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @param sql the SQL statement with or without JDBC escape sequences
      * @return the translated statement
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public String nativeSQL(String sql) throws SQLException {
         try {
@@ -506,13 +501,11 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * According to the JDBC specs, this
-     * setting is only a hint to the database to enable optimizations - it does
-     * not cause writes to be prohibited.
+     * According to the JDBC specs, this setting is only a hint to the database
+     * to enable optimizations - it does not cause writes to be prohibited.
      *
      * @param readOnly ignored
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public void setReadOnly(boolean readOnly) throws SQLException {
         try {
@@ -529,8 +522,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Returns true if the database is read-only.
      *
      * @return if the database is read-only
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public boolean isReadOnly() throws SQLException {
         try {
@@ -547,8 +539,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Set the default catalog name.
-     * This call is ignored.
+     * Set the default catalog name. This call is ignored.
      *
      * @param catalog ignored
      * @throws SQLException if the connection is closed
@@ -807,8 +798,7 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Gets the type map.
      *
      * @return null
-     * @throws SQLException
-     *             if the connection is closed
+     * @throws SQLException if the connection is closed
      */
     public Map<String, Class<?>> getTypeMap() throws SQLException {
         try {

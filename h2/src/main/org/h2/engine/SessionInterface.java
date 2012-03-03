@@ -109,7 +109,8 @@ public interface SessionInterface extends Closeable {
     boolean getAutoCommit();
 
     /**
-     * Set the auto-commit mode.
+     * Set the auto-commit mode. This call doesn't commit the current
+     * transaction.
      *
      * @param autoCommit the new value
      */

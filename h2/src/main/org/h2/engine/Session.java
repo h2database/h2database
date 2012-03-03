@@ -349,10 +349,7 @@ public class Session extends SessionWithState {
     }
 
     public void setAutoCommit(boolean b) {
-        if (autoCommit != b) {
-            commit(false);
-            autoCommit = b;
-        }
+        autoCommit = b;
     }
 
     public int getLockTimeout() {

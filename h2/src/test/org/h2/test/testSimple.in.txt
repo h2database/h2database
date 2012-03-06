@@ -1,3 +1,7 @@
+select substr('[Hello]', 2, 5);
+> Hello;
+select substr('Hello World', -5);
+> World;
 create table test(id null);
 drop table test;
 select select decode(null, null, 'a');

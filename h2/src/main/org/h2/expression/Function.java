@@ -1049,8 +1049,12 @@ public class Function extends Expression implements FunctionCall {
         case SUBSTR:
         case SUBSTRING: {
             String s = v0.getString();
+            int offset = v1.getInt();
+            if (offset < 0) {
+                offset = s.length() + offset + 1;
+            }
             int length = v2 == null ? s.length() : v2.getInt();
-            result = ValueString.get(substring(s, v1.getInt(), length));
+            result = ValueString.get(substring(s, offset, length));
             break;
         }
         case POSITION:

@@ -3096,10 +3096,12 @@ CALL UTF8TOSTRING(STRINGTOUTF8('This is a test'))
 { SUBSTRING | SUBSTR } ( string, startInt [, lengthInt ] )
 ","
 Returns a substring of a string starting at a position.
+If the start index is negative, then the start index is relative to the end of the string.
 The length is optional.
 Also supported is: ""SUBSTRING(string FROM start [FOR length])"".
 ","
-SUBSTR(NAME, 1)
+CALL SUBSTR('[Hello]', 2, 5);
+CALL SUBSTR('Hello World', -5);
 "
 
 "Functions (String)","UTF8TOSTRING","

@@ -16,7 +16,7 @@ class Node {
     private static final int FLAG_BLACK = 1;
     // private static final int FLAG_BACK_REFERENCES = 2;
 
-    private final TreeMapStore store;
+    private final StoredMap<?, ?> map;
     private long id;
     private long leftId, rightId;
     private long transaction;
@@ -25,36 +25,36 @@ class Node {
     private Node left, right;
     private int flags;
 
-    private Node(TreeMapStore store) {
-        this.store = store;
+    private Node(StoredMap<?, ?> map) {
+        this.map = map;
     }
 
-    static Node create(TreeMapStore store, Object key, Object data) {
-        Node n = new Node(store);
+    static Node create(StoredMap<?, ?> map, Object key, Object data) {
+        Node n = new Node(map);
         n.key = key;
         n.data = data;
-        n.transaction = store.getTransaction();
-        n.id = store.nextTempNodeId();
+        n.transaction = map.getTransaction();
+        n.id = map.nextTempNodeId();
         return n;
     }
 
-    static Node load(TreeMapStore store, long id, ByteBuffer buff) {
-        Node n = new Node(store);
+    static Node read(StoredMap<?, ?> map, long id, ByteBuffer buff) {
+        Node n = new Node(map);
         n.id = id;
-        n.load(buff);
+        n.read(buff);
         return n;
     }
 
     Node getLeft() {
         if (left == null && leftId != 0) {
-            left = store.loadNode(leftId);
+            return map.readNode(leftId);
         }
         return left;
     }
 
     Node getRight() {
         if (right == null && rightId != 0) {
-            right = store.loadNode(rightId);
+            return map.readNode(rightId);
         }
         return right;
     }
@@ -87,12 +87,12 @@ class Node {
         this.rightId = r == null ? 0 : r.getId();
     }
 
-    private Node copyOnWrite(long writeTransaction) {
-        if (writeTransaction == transaction) {
+    private Node copyOnWrite() {
+        if (transaction == map.getTransaction()) {
             return this;
         }
-        store.removeNode(id);
-        Node n2 = create(store, key, data);
+        map.removeNode(id);
+        Node n2 = create(map, key, data);
         n2.leftId = leftId;
         n2.left = left;
         n2.rightId = rightId;
@@ -124,9 +124,9 @@ class Node {
 
     private void flipColor() {
         flags = flags ^ FLAG_BLACK;
-        setLeft(getLeft().copyOnWrite(transaction));
+        setLeft(getLeft().copyOnWrite());
         getLeft().flags = getLeft().flags ^ FLAG_BLACK;
-        setRight(getRight().copyOnWrite(transaction));
+        setRight(getRight().copyOnWrite());
         getRight().flags = getRight().flags ^ FLAG_BLACK;
     }
 
@@ -147,7 +147,7 @@ class Node {
     }
 
     private Node rotateLeft() {
-        Node x = getRight().copyOnWrite(store.getTransaction());
+        Node x = getRight().copyOnWrite();
         setRight(x.getLeft());
         x.setLeft(this);
         x.flags = flags;
@@ -157,7 +157,7 @@ class Node {
     }
 
     private Node rotateRight() {
-        Node x = getLeft().copyOnWrite(store.getTransaction());
+        Node x = getLeft().copyOnWrite();
         setLeft(x.getRight());
         x.setRight(this);
         x.flags = flags;
@@ -187,7 +187,7 @@ class Node {
         return this;
     }
 
-    private Node min() {
+    private Node getMin() {
         Node n = this;
         while (n.getLeft() != null) {
             n = n.getLeft();
@@ -195,61 +195,61 @@ class Node {
         return n;
     }
 
-    private Node deleteMin() {
+    private Node removeMin() {
         if (getLeft() == null) {
-            store.removeNode(id);
+            map.removeNode(id);
             return null;
         }
-        Node n = copyOnWrite(transaction);
+        Node n = copyOnWrite();
         if (!isRed(n.getLeft()) && !isRed(n.getLeft().getLeft())) {
             n = n.moveRedLeft();
         }
-        n.setLeft(n.getLeft().deleteMin());
+        n.setLeft(n.getLeft().removeMin());
         return n.fixUp();
     }
 
     static Node remove(Node n, Object key) {
-        if (findNode(n, key) == null) {
+        if (getNode(n, key) == null) {
             return n;
         }
-        return n.delete(key);
+        return n.remove(key);
     }
 
-    private int compare(Object key) {
-        return store.compare(key, this.key);
+    int compare(Object key) {
+        return map.compare(key, this.key);
     }
 
-    private Node delete(Object key) {
-        Node n = copyOnWrite(transaction);
-        if (store.compare(key, n) < 0) {
+    private Node remove(Object key) {
+        Node n = copyOnWrite();
+        if (map.compare(key, n.key) < 0) {
             if (!isRed(n.getLeft()) && !isRed(n.getLeft().getLeft())) {
                 n = n.moveRedLeft();
             }
-            n.setLeft(n.getLeft().delete(key));
+            n.setLeft(n.getLeft().remove(key));
         } else {
             if (isRed(n.getLeft())) {
                 n = n.rotateRight();
             }
             if (n.compare(key) == 0 && n.getRight() == null) {
-                store.removeNode(id);
+                map.removeNode(id);
                 return null;
             }
             if (!isRed(n.getRight()) && !isRed(n.getRight().getLeft())) {
                 n = n.moveRedRight();
             }
             if (n.compare(key) == 0) {
-                Node min = n.getRight().min();
+                Node min = n.getRight().getMin();
                 n.key = min.key;
                 n.data = min.data;
-                n.setRight(n.getRight().deleteMin());
+                n.setRight(n.getRight().removeMin());
             } else {
-                n.setRight(n.getRight().delete(key));
+                n.setRight(n.getRight().remove(key));
             }
         }
         return n.fixUp();
     }
 
-    static Node findNode(Node n, Object key) {
+    static Node getNode(Node n, Object key) {
         while (n != null) {
             int compare = n.compare(key);
             if (compare == 0) {
@@ -263,19 +263,19 @@ class Node {
         return null;
     }
 
-    static Node add(TreeMapStore store, Node n, Object key, Object data) {
+    static Node put(StoredMap<?, ?> map, Node n, Object key, Object data) {
         if (n == null) {
-            n = Node.create(store, key, data);
+            n = Node.create(map, key, data);
             return n;
         }
-        n = n.copyOnWrite(store.getTransaction());
+        n = n.copyOnWrite();
         int compare = n.compare(key);
         if (compare == 0) {
             n.data = data;
         } else if (compare < 0) {
-            n.setLeft(add(store, n.getLeft(), key, data));
+            n.setLeft(put(map, n.getLeft(), key, data));
         } else {
-            n.setRight(add(store, n.getRight(), key, data));
+            n.setRight(put(map, n.getRight(), key, data));
         }
         return n.fixUp();
     }
@@ -298,25 +298,25 @@ class Node {
         return n != null && (n.flags & FLAG_BLACK) == 0;
     }
 
-    private void load(ByteBuffer buff) {
+    private void read(ByteBuffer buff) {
         flags = buff.get();
         leftId = buff.getLong();
         rightId = buff.getLong();
-        key = store.getKeyType().read(buff);
-        data = store.getValueType().read(buff);
+        key = map.getKeyType().read(buff);
+        data = map.getValueType().read(buff);
     }
 
-    void store(ByteBuffer buff) {
+    void write(ByteBuffer buff) {
         buff.put((byte) flags);
         buff.putLong(leftId);
         buff.putLong(rightId);
-        store.getKeyType().write(buff, key);
-        store.getValueType().write(buff, data);
+        map.getKeyType().write(buff, key);
+        map.getValueType().write(buff, data);
     }
 
     int length() {
-        return store.getKeyType().length(key) +
-                store.getValueType().length(data) + 17;
+        return map.getKeyType().length(key) +
+                map.getValueType().length(data) + 17;
     }
 
 }

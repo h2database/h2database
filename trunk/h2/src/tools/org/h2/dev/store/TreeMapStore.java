@@ -11,11 +11,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.TreeSet;
 import org.h2.store.fs.FilePath;
+import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 
 /*
@@ -57,18 +57,19 @@ todo:
  */
 
 /**
- * A persistent tree map.
+ * A persistent storage for tree maps.
  */
 public class TreeMapStore {
 
-    private final KeyType keyType;
-    private final ValueType valueType;
     private final String fileName;
     private FileChannel file;
     private int pageSize = 4 * 1024;
     private long rootPos;
     private HashMap<Long, Node> cache = SmallLRUCache.newInstance(50000);
     private TreeSet<Block> blocks = new TreeSet<Block>();
+    private StoredMap<String, String> meta;
+    private HashMap<String, StoredMap<?, ?>> maps = New.hashMap();
+    private HashMap<String, StoredMap<?, ?>> mapsChanged = New.hashMap();
 
     // TODO use an int instead? (with rollover to 0)
     private long transaction;
@@ -76,35 +77,41 @@ public class TreeMapStore {
     private int tempNodeId;
     private long storePos;
 
-    private Node root;
-
     private int loadCount;
 
-    private TreeMapStore(String fileName, Class<?> keyClass, Class<?> valueClass) {
+    private TreeMapStore(String fileName) {
         this.fileName = fileName;
-        if (keyClass == Integer.class) {
-            keyType = new IntegerType();
-        } else if (keyClass == String.class) {
-            keyType = new StringType();
-        } else {
-            throw new RuntimeException("Unsupported key class " + keyClass.toString());
-        }
-        if (valueClass == Integer.class) {
-            valueType = new IntegerType();
-        } else if (valueClass == String.class) {
-            valueType = new StringType();
-        } else {
-            throw new RuntimeException("Unsupported value class " + keyClass.toString());
-        }
     }
 
-    static TreeMapStore open(String fileName, Class<?> keyClass, Class<?> valueClass) {
-        TreeMapStore s = new TreeMapStore(fileName, keyClass, valueClass);
+    public static TreeMapStore open(String fileName) {
+        TreeMapStore s = new TreeMapStore(fileName);
         s.open();
         return s;
     }
 
+    public <K, V> StoredMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
+        @SuppressWarnings("unchecked")
+        StoredMap<K, V> m = (StoredMap<K, V>) maps.get(name);
+        if (m == null) {
+            String root = meta.get("map." + name);
+            m = StoredMap.open(this, name, keyClass, valueClass);
+            maps.put(name, m);
+            if (root != null) {
+                m.setRoot(Long.parseLong(root));
+            }
+        }
+        return m;
+    }
+
+    void changed(String name, StoredMap<?, ?> map) {
+        if (map != meta) {
+            mapsChanged.put(name, map);
+        }
+    }
+
     void open() {
+        meta = StoredMap.open(this, "meta", String.class, String.class);
+
         new File(fileName).getParentFile().mkdirs();
         try {
             file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
@@ -114,7 +121,7 @@ public class TreeMapStore {
             } else {
                 readHeader();
                 if (rootPos > 0) {
-                    root = loadNode(rootPos);
+                    meta.setRoot(rootPos);
                 }
             }
         } catch (Exception e) {
@@ -165,9 +172,7 @@ public class TreeMapStore {
     }
 
     public void close() {
-        if (root != null && root.getId() < 0) {
-            store();
-        }
+        store();
         if (file != null) {
             try {
                 file.close();
@@ -201,7 +206,7 @@ public class TreeMapStore {
             n.setRightId(right.getId());
         }
         int count = 1;
-        n.store(buff);
+        n.write(buff);
         if (left != null) {
             count += store(buff, left);
         }
@@ -211,18 +216,31 @@ public class TreeMapStore {
         return count;
     }
 
-    void store() {
-        if (root == null || root.getId() >= 0) {
+    public void store() {
+        if (!meta.isChanged() && mapsChanged.size() == 0) {
             // TODO truncate file if empty
             return;
         }
         commit();
         Block b = new Block(storePos);
         b.transaction = transaction;
-        long end = updateId(root, storePos + 1);
+        long end = storePos + 1 + 8;
+        for (StoredMap<?, ?> m : mapsChanged.values()) {
+            meta.put("map." + m.getName(), String.valueOf(end));
+            end = updateId(m.getRoot(), end);
+        }
+        long metaPos = end;
+        end = updateId(meta.getRoot(), end);
+
         ByteBuffer buff = ByteBuffer.allocate((int) (end - storePos));
         buff.put((byte) 'd');
-        b.entryCount = store(buff, root);
+        buff.putLong(metaPos - storePos);
+        int entryCount = 0;
+        for (StoredMap<?, ?> m : mapsChanged.values()) {
+            entryCount += store(buff, m.getRoot());
+        }
+        entryCount += store(buff, meta.getRoot());
+        b.entryCount = entryCount;
         b.liveCount = b.entryCount;
         b.length = buff.limit();
         blocks.add(b);
@@ -236,17 +254,18 @@ public class TreeMapStore {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        rootPos = meta.getRoot().getId();
         storePos = end;
-        rootPos = root.getId();
         writeHeader();
         tempNodeId = 0;
+        mapsChanged.clear();
     }
 
-    public long getTransaction() {
+    long getTransaction() {
         return transaction;
     }
 
-    public long nextTempNodeId() {
+    long nextTempNodeId() {
         return -(++tempNodeId);
     }
 
@@ -254,24 +273,7 @@ public class TreeMapStore {
         return ++transaction;
     }
 
-    public void add(Object key, Object data) {
-        root = Node.add(this, root, key, data);
-    }
-
-    public void remove(Object key) {
-        root = Node.remove(root, key);
-    }
-
-    public Object find(Object key) {
-        Node n = Node.findNode(root, key);
-        return n == null ? null : n.getData();
-    }
-
-    public Object getRoot() {
-        return root;
-    }
-
-    public Node loadNode(long id) {
+    Node readNode(StoredMap<?, ?> map, long id) {
         Node n = cache.get(id);
         if (n == null) {
             try {
@@ -285,7 +287,7 @@ public class TreeMapStore {
                     }
                 } while (buff.remaining() > 0);
                 buff.rewind();
-                n = Node.load(this, id, buff);
+                n = Node.read(map, id, buff);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -344,98 +346,6 @@ public class TreeMapStore {
         return x;
     }
 
-    int compare(Object a, Object b) {
-        return keyType.compare(a, b);
-    }
-
-    /**
-     * A value type.
-     */
-    static interface ValueType {
-        int length(Object obj);
-        void write(ByteBuffer buff, Object x);
-        Object read(ByteBuffer buff);
-    }
-
-    /**
-     * A key type.
-     */
-    static interface KeyType extends ValueType {
-        int compare(Object a, Object b);
-    }
-
-    /**
-     * An integer type.
-     */
-    static class IntegerType implements KeyType {
-
-        public int compare(Object a, Object b) {
-            return ((Integer) a).compareTo((Integer) b);
-        }
-
-        public int length(Object obj) {
-            return getVarIntLen((Integer) obj);
-        }
-
-        public Integer read(ByteBuffer buff) {
-            return readVarInt(buff);
-        }
-
-        public void write(ByteBuffer buff, Object x) {
-            writeVarInt(buff, (Integer) x);
-        }
-
-    }
-
-    /**
-     * A string type.
-     */
-    static class StringType implements KeyType {
-
-        public int compare(Object a, Object b) {
-            return a.toString().compareTo(b.toString());
-        }
-
-        public int length(Object obj) {
-            try {
-                byte[] bytes = obj.toString().getBytes("UTF-8");
-                return getVarIntLen(bytes.length) + bytes.length;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public String read(ByteBuffer buff) {
-            int len = readVarInt(buff);
-            byte[] bytes = new byte[len];
-            buff.get(bytes);
-            try {
-                return new String(bytes, "UTF-8");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public void write(ByteBuffer buff, Object x) {
-            try {
-                byte[] bytes = x.toString().getBytes("UTF-8");
-                writeVarInt(buff, bytes.length);
-                buff.put(bytes);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-    }
-
-    KeyType getKeyType() {
-        return keyType;
-    }
-
-    ValueType getValueType() {
-        return valueType;
-    }
-
     void removeNode(long id) {
         if (id > 0) {
             getBlock(id).liveCount--;
@@ -445,95 +355,6 @@ public class TreeMapStore {
     private Block getBlock(long pos) {
         return blocks.lower(new Block(pos));
     }
-
-    public Cursor cursor() {
-        return new Cursor(root);
-    }
-
-    /**
-     * A cursor to iterate over all elements.
-     */
-    public static class Cursor {
-        Node current;
-        ArrayList<Node> parents = new ArrayList<Node>();
-
-        Cursor(Node root) {
-            min(root);
-        }
-
-        void min(Node n) {
-            while (true) {
-                Node x = n.getLeft();
-                if (x == null) {
-                    break;
-                }
-                parents.add(n);
-                n = x;
-            }
-            current = n;
-        }
-
-        Object next() {
-            Node c = current;
-            if (c != null) {
-                fetchNext();
-            }
-            return c == null ? null : c.getKey();
-        }
-
-        private void fetchNext() {
-            Node r = current.getRight();
-            if (r != null) {
-                min(r);
-                return;
-            }
-            if (parents.size() == 0) {
-                current = null;
-                return;
-            }
-            current = parents.remove(parents.size() - 1);
-        }
-    }
-
-    /**
-     * A cursor to iterate beginning from the root
-     * (not in ascending order).
-     */
-    public static class RootCursor {
-        Node current;
-        ArrayList<Node> parents = new ArrayList<Node>();
-        RootCursor(Node root) {
-            current = root;
-        }
-        Object next() {
-            Node c = current;
-            if (c != null) {
-                fetchNext();
-            }
-            return c == null ? null : c.getKey();
-        }
-        private void fetchNext() {
-            Node l = current.getLeft();
-            if (l != null) {
-                parents.add(current);
-                current = l;
-                return;
-            }
-            while (true) {
-                Node r = current.getRight();
-                if (r != null) {
-                    current = r;
-                    return;
-                }
-                if (parents.size() == 0) {
-                    current = null;
-                    return;
-                }
-                current = parents.remove(parents.size() - 1);
-            }
-        }
-    }
-
     /**
      * A block of data.
      */

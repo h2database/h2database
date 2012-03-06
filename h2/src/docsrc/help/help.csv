@@ -2264,6 +2264,11 @@ To store values, use ""PreparedStatement.setBytes"",
 ""setString"", or ""setObject(uuid)"" (where ""uuid"" is a ""java.util.UUID"").
 ""ResultSet.getObject"" will return a ""java.util.UUID"".
 
+Please note that using an index on randomly generated data will
+result on poor performance once there are millions of rows in a table.
+The reason is that the cache behavior is very bad with randomly distributed data.
+This is a problem for any database system.
+
 For details, see the documentation of ""java.util.UUID"".
 ","
 UUID
@@ -2692,6 +2697,11 @@ RAND()
 RANDOM_UUID()
 ","
 Returns a new UUID with 122 pseudo random bits.
+
+Please note that using an index on randomly generated data will
+result on poor performance once there are millions of rows in a table.
+The reason is that the cache behavior is very bad with randomly distributed data.
+This is a problem for any database system.
 ","
 RANDOM_UUID()
 "

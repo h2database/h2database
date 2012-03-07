@@ -167,9 +167,11 @@ public class ConstraintReferential extends Constraint {
      * Get a short description of the constraint. This includes the constraint
      * name (if set), and the constraint expression.
      *
+     * @param searchIndex the index, or null
+     * @param check the row, or null
      * @return the description
      */
-    private String getShortDescription() {
+    private String getShortDescription(Index searchIndex, SearchRow check) {
         StatementBuilder buff = new StatementBuilder(getName());
         buff.append(": ").append(table.getSQL()).append(" FOREIGN KEY(");
         for (IndexColumn c : columns) {
@@ -182,7 +184,21 @@ public class ConstraintReferential extends Constraint {
             buff.appendExceptFirst(", ");
             buff.append(r.getSQL());
         }
-        return buff.append(')').toString();
+        buff.append(')');
+        if (searchIndex != null && check != null) {
+            buff.append(" (");
+            buff.resetCount();
+            Column[] cols = searchIndex.getColumns();
+            int len = Math.min(columns.length, cols.length);
+            for (int i = 0; i < len; i++) {
+                int idx = cols[i].getColumnId();
+                Value c = check.getValue(idx);
+                buff.appendExceptFirst(", ");
+                buff.append(c == null ? "" : c.toString());
+            }
+            buff.append(')');
+        }
+        return buff.toString();
     }
 
     public String getCreateSQLWithoutIndexes() {
@@ -343,7 +359,7 @@ public class ConstraintReferential extends Constraint {
         }
         if (!existsRow(session, refIndex, check, null)) {
             throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
-                    getShortDescription());
+                    getShortDescription(refIndex, check));
         }
     }
 
@@ -396,7 +412,7 @@ public class ConstraintReferential extends Constraint {
         Row excluding = (refTable == table) ? oldRow : null;
         if (existsRow(session, index, check, excluding)) {
             throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1,
-                    getShortDescription());
+                    getShortDescription(index, check));
         }
     }
 
@@ -638,7 +654,7 @@ public class ConstraintReferential extends Constraint {
         ResultInterface r = session.prepare(sql).query(1);
         if (r.next()) {
             throw DbException.get(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1,
-                    getShortDescription());
+                    getShortDescription(null, null));
         }
     }
 

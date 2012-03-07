@@ -56,10 +56,12 @@ abstract class ScriptBase extends Prepared implements DataHandler {
      * The file name (if set).
      */
     private Expression fileNameExpr;
+
+    private Expression password;
+
     private String fileName;
 
     private String cipher;
-    private byte[] key;
     private FileStore store;
     private String compressionAlgorithm;
 
@@ -75,8 +77,8 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         return cipher != null;
     }
 
-    public void setPassword(char[] password) {
-        key = SHA256.getKeyPasswordHash("script", password);
+    public void setPassword(Expression password) {
+        this.password = password;
     }
 
     public void setFileNameExpr(Expression file) {
@@ -110,7 +112,11 @@ abstract class ScriptBase extends Prepared implements DataHandler {
 
     private void initStore() {
         Database db = session.getDatabase();
-        // script files are always in text format
+        byte[] key = null;
+        if (cipher != null && password != null) {
+            char[] pass = password.optimize(session).getValue(session).getString().toCharArray();
+            key = SHA256.getKeyPasswordHash("script", pass);
+        }
         String file = getFileName();
         store = FileStore.open(db, file, "rw", cipher, key);
         store.setCheckedWriting(false);

@@ -201,11 +201,16 @@ public class TestRunscript extends TestBase implements Trigger {
         PreparedStatement prep = conn1.prepareStatement("insert into blob values (?)");
         prep.setBytes(1, new byte[65536]);
         prep.execute();
-        String sql = "script to '" + getBaseDir() + "/backup.2.sql'";
+        String sql = "script to ?";
         if (password) {
-            sql += " CIPHER AES PASSWORD 't1e2s3t4'";
+            sql += " CIPHER AES PASSWORD ?";
         }
-        stat1.execute(sql);
+        prep = conn1.prepareStatement(sql);
+        prep.setString(1, getBaseDir() + "/backup.2.sql");
+        if (password) {
+            prep.setString(2, "t1e2s3t4");
+        }
+        prep.execute();
 
         deleteDb("runscriptRestore");
         conn2 = getConnection("runscriptRestore");

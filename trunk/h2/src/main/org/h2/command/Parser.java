@@ -4677,7 +4677,7 @@ public class Parser {
         if (readIf("CIPHER")) {
             command.setCipher(readUniqueIdentifier());
             if (readIf("PASSWORD")) {
-                command.setPassword(readString().toCharArray());
+                command.setPassword(readExpression());
             }
         }
         if (readIf("CHARSET")) {
@@ -4721,7 +4721,7 @@ public class Parser {
             if (readIf("CIPHER")) {
                 command.setCipher(readUniqueIdentifier());
                 if (readIf("PASSWORD")) {
-                    command.setPassword(readString().toCharArray());
+                    command.setPassword(readExpression());
                 }
             }
             if (readIf("CHARSET")) {

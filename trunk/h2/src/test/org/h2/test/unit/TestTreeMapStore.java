@@ -29,17 +29,45 @@ public class TestTreeMapStore extends TestBase {
     }
 
     public void test() throws Exception {
+        // testReuseSpace();
         testRandom();
         testKeyValueClasses();
         testIterate();
         testSimple();
     }
 
+    private void testReuseSpace() {
+        String fileName = getBaseDir() + "/data.h3";
+        FileUtils.delete(fileName);
+        for (int j = 0; j < 10; j++) {
+            System.out.println("@@@open");
+            TreeMapStore s = TreeMapStore.open(fileName);
+            StoredMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
+            System.out.println(s);
+            System.out.println("get0: " + m.get(0));
+            System.out.println("@@@add");
+            for (int i = 0; i < 10; i++) {
+                m.put(i, "Hello");
+            }
+            s.store();
+            System.out.println(s);
+            System.out.println("@@@remove");
+            for (int i = 0; i < 10; i++) {
+                m.remove(i);
+            }
+            s.store();
+            System.out.println(s);
+            System.out.println("@@@close");
+            s.close();
+        }
+        if(true)System.exit(0);
+    }
+
     private void testRandom() {
         String fileName = getBaseDir() + "/data.h3";
         FileUtils.delete(fileName);
         TreeMapStore s = TreeMapStore.open(fileName);
-        StoredMap<Integer, Integer> m = s.openMap("intString", Integer.class, Integer.class);
+        StoredMap<Integer, Integer> m = s.openMap("data", Integer.class, Integer.class);
         TreeMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
         Random r = new Random(1);
         for (int i = 0; i < 100; i++) {

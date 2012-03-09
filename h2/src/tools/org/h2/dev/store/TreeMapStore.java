@@ -9,9 +9,12 @@ package org.h2.dev.store;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.TreeSet;
 import org.h2.store.fs.FilePath;
@@ -24,18 +27,15 @@ file format:
 
 header
 header
-[ transaction log | data ] *
+[ chunk ] *
 
 header:
 # H3 store #
 pageSize=4096
 r=1
 
-data:
+chunk:
 'd' [length] root ...
-
-transaction log:
-'t' [length] ...
 
 todo:
 
@@ -75,7 +75,7 @@ public class TreeMapStore {
     private long transaction;
 
     private int tempNodeId;
-    private long storePos;
+    private int nextBlockId;
 
     private int loadCount;
 
@@ -111,21 +111,33 @@ public class TreeMapStore {
 
     void open() {
         meta = StoredMap.open(this, "meta", String.class, String.class);
-
         new File(fileName).getParentFile().mkdirs();
         try {
             file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
             if (file.size() == 0) {
                 writeHeader();
-                storePos = pageSize * 2;
             } else {
                 readHeader();
                 if (rootPos > 0) {
                     meta.setRoot(rootPos);
                 }
+                readMeta();
             }
         } catch (Exception e) {
             throw convert(e);
+        }
+    }
+
+    private void readMeta() {
+        Iterator<String> it = meta.keyIterator("block.");
+        while (it.hasNext()) {
+            String s = it.next();
+            if (!s.startsWith("block.")) {
+                break;
+            }
+            Block b = Block.fromString(meta.get(s));
+            nextBlockId = Math.max(b.id + 1, nextBlockId);
+            blocks.add(b);
         }
     }
 
@@ -136,8 +148,7 @@ public class TreeMapStore {
                 "read-version: 1\n" +
                 "write-version: 1\n" +
                 "root: " + rootPos + "\n" +
-                "transaction: " + transaction + "\n" +
-                "storePos: " + storePos + "\n").getBytes());
+                "transaction: " + transaction + "\n").getBytes());
             file.position(0);
             file.write(header);
             file.position(pageSize);
@@ -156,7 +167,6 @@ public class TreeMapStore {
             Properties prop = new Properties();
             prop.load(new ByteArrayInputStream(header));
             rootPos = Long.parseLong(prop.get("root").toString());
-            storePos = Long.parseLong(prop.get("storePos").toString());
             transaction = Long.parseLong(prop.get("transaction").toString());
         } catch (Exception e) {
             throw convert(e);
@@ -164,7 +174,7 @@ public class TreeMapStore {
     }
 
     public String toString() {
-        return "cache size: " + cache.size() + " loadCount: " + this.loadCount + " " + blocks;
+        return "cache size: " + cache.size() + " loadCount: " + loadCount + "\n" + blocks.toString().replace('\n', ' ');
     }
 
     private static RuntimeException convert(Exception e) {
@@ -183,20 +193,39 @@ public class TreeMapStore {
         }
     }
 
-    private long updateId(Node n, long offset) {
-        n.setId(offset);
-        cache.put(offset, n);
-        offset += n.length();
-        if (n.getLeftId() < 0) {
-            offset = updateId(n.getLeft(), offset);
+    private int length(Node n) {
+        int len = 0;
+        if (n != null) {
+            len += n.length();
+            if (n.getLeftId() < 0) {
+                len += length(n.getLeft());
+            }
+            if (n.getRightId() < 0) {
+                len += length(n.getRight());
+            }
         }
-        if (n.getRightId() < 0) {
-            offset = updateId(n.getRight(), offset);
+        return len;
+    }
+
+    private long updateId(Node n, long offset) {
+        if (n != null) {
+            n.setId(offset);
+            cache.put(offset, n);
+            offset += n.length();
+            if (n.getLeftId() < 0) {
+                offset = updateId(n.getLeft(), offset);
+            }
+            if (n.getRightId() < 0) {
+                offset = updateId(n.getRight(), offset);
+            }
         }
         return offset;
     }
 
-    private int store(ByteBuffer buff, Node n) {
+    private void store(ByteBuffer buff, Node n) {
+        if (n == null) {
+            return;
+        }
         Node left = n.getLeftId() < 0 ? n.getLeft() : null;
         if (left != null) {
             n.setLeftId(left.getId());
@@ -205,15 +234,13 @@ public class TreeMapStore {
         if (right != null) {
             n.setRightId(right.getId());
         }
-        int count = 1;
         n.write(buff);
         if (left != null) {
-            count += store(buff, left);
+            store(buff, left);
         }
         if (right != null) {
-            count += store(buff, right);
+            store(buff, right);
         }
-        return count;
     }
 
     public void store() {
@@ -222,28 +249,55 @@ public class TreeMapStore {
             return;
         }
         commit();
-        Block b = new Block(storePos);
-        b.transaction = transaction;
+
+        // the length estimate is not correct,
+        // as we don't know the exact positions and entry counts
+        int lenEstimate = 1 + 8;
+        for (StoredMap<?, ?> m : mapsChanged.values()) {
+            meta.put("map." + m.getName(), String.valueOf(Long.MAX_VALUE));
+            lenEstimate += length(m.getRoot());
+        }
+        Block b = new Block(nextBlockId++);
+        b.start = Long.MAX_VALUE;
+        b.entryCount = Integer.MAX_VALUE;
+        b.liveCount = Integer.MAX_VALUE;
+        blocks.add(b);
+        for (Block x : blocks) {
+            if (x.liveCount == 0) {
+                meta.remove("block." + x.id);
+            } else {
+                meta.put("block." + x.id, x.toString());
+            }
+        }
+        lenEstimate += length(meta.getRoot());
+        b.length = lenEstimate;
+
+        long storePos = allocate(lenEstimate);
+
+        int test;
+        // System.out.println("use " + storePos + ".." + (storePos + lenEstimate));
+
         long end = storePos + 1 + 8;
         for (StoredMap<?, ?> m : mapsChanged.values()) {
             meta.put("map." + m.getName(), String.valueOf(end));
             end = updateId(m.getRoot(), end);
         }
         long metaPos = end;
+
+        b.start = storePos;
+        b.entryCount = tempNodeId;
+        b.liveCount = b.entryCount;
+        meta.put("block." + b.id, b.toString());
+
         end = updateId(meta.getRoot(), end);
 
         ByteBuffer buff = ByteBuffer.allocate((int) (end - storePos));
         buff.put((byte) 'd');
         buff.putLong(metaPos - storePos);
-        int entryCount = 0;
         for (StoredMap<?, ?> m : mapsChanged.values()) {
-            entryCount += store(buff, m.getRoot());
+            store(buff, m.getRoot());
         }
-        entryCount += store(buff, meta.getRoot());
-        b.entryCount = entryCount;
-        b.liveCount = b.entryCount;
-        b.length = buff.limit();
-        blocks.add(b);
+        store(buff, meta.getRoot());
         if (buff.hasRemaining()) {
             throw new RuntimeException("remaining: " + buff.remaining());
         }
@@ -255,10 +309,39 @@ public class TreeMapStore {
             throw new RuntimeException(e);
         }
         rootPos = meta.getRoot().getId();
-        storePos = end;
         writeHeader();
         tempNodeId = 0;
         mapsChanged.clear();
+    }
+
+    private long allocate(long length) {
+        BitSet set = new BitSet();
+        set.set(0);
+        set.set(1);
+        for (Block b : blocks) {
+            if (b.start == Long.MAX_VALUE) {
+                continue;
+            }
+            int first = (int) (b.start / pageSize);
+            int last = (int) ((b.start + b.length) / pageSize);
+            set.set(first, last +1);
+        }
+        int required = (int) (length / pageSize) + 1;
+        for (int i = 0; i < set.size(); i++) {
+            if (!set.get(i)) {
+                boolean ok = true;
+                for (int j = 1; j <= required; j++) {
+                    if (set.get(i + j)) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) {
+                    return i * pageSize;
+                }
+            }
+        }
+        return set.size() * pageSize;
     }
 
     long getTransaction() {
@@ -353,21 +436,39 @@ public class TreeMapStore {
     }
 
     private Block getBlock(long pos) {
-        return blocks.lower(new Block(pos));
+        Block b = new Block(0);
+        b.start = pos;
+        return blocks.headSet(b).last();
     }
     /**
      * A block of data.
      */
     static class Block implements Comparable<Block> {
-        long transaction;
+        int id;
         long start;
         long length;
         int entryCount;
         int liveCount;
-        int referencesToOthers;
+//        int outRevCount;
 
-        Block(long start) {
-            this.start = start;
+        Block(int id) {
+            this.id = id;
+        }
+
+        public static Block fromString(String s) {
+            Block b = new Block(0);
+            Properties prop = new Properties();
+            try {
+                prop.load(new StringReader(s));
+                b.id = Integer.parseInt(prop.get("id").toString());
+                b.start = Long.parseLong(prop.get("start").toString());
+                b.length = Long.parseLong(prop.get("length").toString());
+                b.entryCount = Integer.parseInt(prop.get("entryCount").toString());
+                b.liveCount = Integer.parseInt(prop.get("liveCount").toString());
+                return b;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public int compareTo(Block o) {
@@ -375,8 +476,12 @@ public class TreeMapStore {
         }
 
         public String toString() {
-            return "[" + start + "-" + (start + length - 1) + " c:" + entryCount + " l:"
-                    + liveCount + " " + (100 * liveCount / entryCount) + "%]";
+            return
+                "id:" + id + "\n" +
+                "start:" + start + "\n" +
+                "length:" + length + "\n" +
+                "entryCount:" + entryCount + "\n" +
+                "liveCount:" + liveCount + "\n";
         }
 
     }

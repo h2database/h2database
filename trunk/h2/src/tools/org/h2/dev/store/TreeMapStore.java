@@ -9,7 +9,6 @@ package org.h2.dev.store;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.BitSet;
@@ -459,7 +458,7 @@ public class TreeMapStore {
             Block b = new Block(0);
             Properties prop = new Properties();
             try {
-                prop.load(new StringReader(s));
+                prop.load(new ByteArrayInputStream(s.getBytes("UTF-8")));
                 b.id = Integer.parseInt(prop.get("id").toString());
                 b.start = Long.parseLong(prop.get("start").toString());
                 b.length = Long.parseLong(prop.get("length").toString());

@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -95,7 +96,7 @@ public class TreeMapStore {
             String root = meta.get("map." + name);
             m = StoredMap.open(this, name, keyClass, valueClass);
             maps.put(name, m);
-            if (root != null) {
+            if (root != null && !root.equals("0")) {
                 m.setRoot(Long.parseLong(root));
             }
         }
@@ -221,6 +222,20 @@ public class TreeMapStore {
         return offset;
     }
 
+    private int count(Node n) {
+        if (n == null) {
+            return 0;
+        }
+        int count = 1;
+        if (n.getLeftId() < 0) {
+            count += count(n.getLeft());
+        }
+        if (n.getRightId() < 0) {
+            count += count(n.getRight());
+        }
+        return count;
+    }
+
     private void store(ByteBuffer buff, Node n) {
         if (n == null) {
             return;
@@ -265,6 +280,16 @@ public class TreeMapStore {
             if (x.liveCount == 0) {
                 meta.remove("block." + x.id);
             } else {
+                meta.put("block." + x.id, "temp " + x.toString());
+            }
+        }
+        // modifying the meta can itself affect the metadata
+        // TODO solve this in a better way
+        for (Block x : new ArrayList<Block>(blocks)) {
+            if (x.liveCount == 0) {
+                meta.remove("block." + x.id);
+                blocks.remove(x);
+            } else {
                 meta.put("block." + x.id, x.toString());
             }
         }
@@ -273,19 +298,27 @@ public class TreeMapStore {
 
         long storePos = allocate(lenEstimate);
 
-        int test;
-        // System.out.println("use " + storePos + ".." + (storePos + lenEstimate));
-
         long end = storePos + 1 + 8;
         for (StoredMap<?, ?> m : mapsChanged.values()) {
-            meta.put("map." + m.getName(), String.valueOf(end));
-            end = updateId(m.getRoot(), end);
+            Node r = m.getRoot();
+            long p = r == null ? 0 : end;
+            meta.put("map." + m.getName(), String.valueOf(p));
+            end = updateId(r, end);
         }
         long metaPos = end;
 
+        // add a dummy entry so the count is correct
+        meta.put("block." + b.id, b.toString());
+        int count = 0;
+        for (StoredMap<?, ?> m : mapsChanged.values()) {
+            count += count(m.getRoot());
+        }
+        count += count(meta.getRoot());
+
         b.start = storePos;
-        b.entryCount = tempNodeId;
+        b.entryCount = count;
         b.liveCount = b.entryCount;
+
         meta.put("block." + b.id, b.toString());
 
         end = updateId(meta.getRoot(), end);
@@ -430,6 +463,9 @@ public class TreeMapStore {
 
     void removeNode(long id) {
         if (id > 0) {
+            if (getBlock(id).liveCount == 0) {
+                System.out.println("??");
+            }
             getBlock(id).liveCount--;
         }
     }

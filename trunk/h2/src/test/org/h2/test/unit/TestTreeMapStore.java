@@ -158,6 +158,7 @@ public class TestTreeMapStore extends TestBase {
             }
             assertFalse(it.hasNext());
         }
+        s.close();
     }
 
     private void testSimple() {

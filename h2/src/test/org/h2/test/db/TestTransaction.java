@@ -64,13 +64,20 @@ public class TestTransaction extends TestBase {
         // should have no effect
         conn.setAutoCommit(false);
 
-        assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).
-            executeQuery("select count(*) from test");
+        ResultSet rs;
+        if (config.mvcc) {
+            rs = stat2.executeQuery("select count(*) from test");
+            rs.next();
+            assertEquals(0, rs.getInt(1));
+        } else {
+            assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).
+                executeQuery("select count(*) from test");
+        }
 
         // should commit
         conn.setAutoCommit(true);
 
-        ResultSet rs = stat2.executeQuery("select * from test");
+        rs = stat2.executeQuery("select * from test");
         assertTrue(rs.next());
 
         stat.execute("drop table test");

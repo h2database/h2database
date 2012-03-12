@@ -71,6 +71,9 @@ public interface DatabaseEventListener extends EventListener {
     /**
      * This method is called for long running events, such as recovering,
      * scanning a file or building an index.
+     * <p>
+     * More states might be added in future versions, therefore implementations
+     * should silently ignore states that they don't understand.
      *
      * @param state the state
      * @param name the object name

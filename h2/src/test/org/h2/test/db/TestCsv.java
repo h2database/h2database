@@ -52,6 +52,7 @@ public class TestCsv extends TestBase {
     }
 
     public void test() throws Exception {
+        testWriteColumnHeader();
         testCaseSensitiveColumnNames();
         testWriteResultSetDataType();
         testPreserveWhitespace();
@@ -70,6 +71,19 @@ public class TestCsv extends TestBase {
         testPipe();
         deleteDb("csv");
     }
+
+    private void testWriteColumnHeader() throws Exception {
+        Connection conn = getConnection("csv");
+        Statement stat = conn.createStatement();
+        stat.execute("call csvwrite('" + getBaseDir() + "/test.tsv', 'select x from dual', 'writeColumnHeader=false')");
+        String x = IOUtils.readStringAndClose(IOUtils.getReader(FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
+        assertEquals("\"1\"", x.trim());
+        stat.execute("call csvwrite('" + getBaseDir() + "/test.tsv', 'select x from dual', 'writeColumnHeader=true')");
+        x = IOUtils.readStringAndClose(IOUtils.getReader(FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
+        assertEquals("\"X\"\n\"1\"", x.trim());
+        conn.close();
+    }
+
 
     private void testWriteResultSetDataType() throws Exception {
         // Oracle: ResultSet.getString on a date or time column returns a
@@ -203,7 +217,7 @@ public class TestCsv extends TestBase {
         assertEquals("", charset);
 
         createClassProxy(Csv.class);
-        assertThrows(ErrorCode.UNSUPPORTED_SETTING_1, csv).setOptions("escape=a error=b");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, csv).setOptions("escape=a error=b");
         assertEquals('a', csv.getEscapeCharacter());
     }
 

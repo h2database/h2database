@@ -1700,11 +1700,12 @@ combined into a space separated key-value pairs, as follows:
 ""STRINGDECODE('charset=UTF-8 escape=\"" fieldDelimiter=\"" fieldSeparator=, ' ||""
 ""'lineComment=# lineSeparator=\n null= rowSeparator=')"".
 The following options are supported:
+""caseSensitiveColumnNames"" (true or false; disabled by default),
 ""charset"", ""escape"", ""fieldDelimiter"", ""fieldSeparator"",
 ""lineComment"" (disabled by default),
 ""lineSeparator"", ""null"", ""rowSeparator"" (not set by default),
 ""preserveWhitespace"" (true or false; disabled by default),
-""caseSensitiveColumnNames"" (true or false; disabled by default).
+""writeColumnHeader"" (true or false; enabled by default).
 For a newline or other special character, use STRINGDECODE as in the example above.
 A space needs to be escaped with a backslash (""'\ '""), and
 a backslash needs to be escaped with another backslash (""'\\'"").

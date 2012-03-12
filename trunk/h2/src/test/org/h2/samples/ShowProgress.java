@@ -122,6 +122,8 @@ public class ShowProgress implements DatabaseEventListener {
         case STATE_RECOVER:
             stateName = "Recover";
             break;
+        default:
+             return;
         }
         try {
             Thread.sleep(1);

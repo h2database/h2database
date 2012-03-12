@@ -53,6 +53,7 @@ public class Csv implements SimpleRowSource {
     private String fieldSeparatorWrite = ",";
     private boolean caseSensitiveColumnNames;
     private boolean preserveWhitespace;
+    private boolean writeColumnHeader = true;
 
     // TODO change the docs at setLineCommentCharacter
     // TODO also change help.csv
@@ -84,8 +85,8 @@ public class Csv implements SimpleRowSource {
 
     private int writeResultSet(ResultSet rs) throws SQLException {
         try {
-            ResultSetMetaData meta = rs.getMetaData();
             int rows = 0;
+            ResultSetMetaData meta = rs.getMetaData();
             int columnCount = meta.getColumnCount();
             String[] row = new String[columnCount];
             int[] sqlTypes = new int[columnCount];
@@ -93,7 +94,9 @@ public class Csv implements SimpleRowSource {
                 row[i] = meta.getColumnLabel(i + 1);
                 sqlTypes[i] = meta.getColumnType(i + 1);
             }
-            writeRow(row);
+            if (writeColumnHeader) {
+                writeRow(row);
+            }
             while (rs.next()) {
                 for (int i = 0; i < columnCount; i++) {
                     Object o;
@@ -837,6 +840,24 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
+     * Enable or disable writing the column header.
+     *
+     * @param value the new value for the setting
+     */
+    public void setWriteColumnHeader(boolean value) {
+        this.writeColumnHeader = value;
+    }
+
+    /**
+     * Whether the column header is written.
+     *
+     * @return the current value for the setting
+     */
+    public boolean getWriteColumnHeader() {
+        return writeColumnHeader;
+    }
+
+    /**
      * INTERNAL.
      * Parse and set the CSV options.
      *
@@ -873,10 +894,12 @@ public class Csv implements SimpleRowSource {
                 charset = value;
             } else if (isParam(key, "preserveWhitespace")) {
                 setPreserveWhitespace(Boolean.parseBoolean(value));
+            } else if (isParam(key, "writeColumnHeader")) {
+                setWriteColumnHeader(Boolean.parseBoolean(value));
             } else if (isParam(key, "caseSensitiveColumnNames")) {
                 setCaseSensitiveColumnNames(Boolean.parseBoolean(value));
             } else {
-                throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
+                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, key);
             }
         }
         return charset;

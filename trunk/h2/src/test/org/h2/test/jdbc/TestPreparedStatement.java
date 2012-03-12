@@ -51,6 +51,7 @@ public class TestPreparedStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testChangeType(conn);
         testDateTimeTimestampWithCalendar(conn);
         testCallTablePrepared(conn);
         testValues(conn);
@@ -87,6 +88,18 @@ public class TestPreparedStatement extends TestBase {
         testParameterMetaData(conn);
         conn.close();
         deleteDb("preparedStatement");
+    }
+
+    private void testChangeType(Connection conn) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement("select (? || ? || ?) from dual");
+        prep.setString(1, "a");
+        prep.setString(2, "b");
+        prep.setString(3, "c");
+        prep.executeQuery();
+        prep.setInt(1, 1);
+        prep.setString(2, "ab");
+        prep.setInt(3, 45);
+        prep.executeQuery();
     }
 
     private void testDateTimeTimestampWithCalendar(Connection conn) throws SQLException {

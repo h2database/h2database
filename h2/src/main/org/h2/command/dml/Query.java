@@ -236,7 +236,8 @@ public abstract class Query extends Prepared {
         }
         Database db = s.getDatabase();
         for (int i = 0; i < params.length; i++) {
-            if (!db.areEqual(lastParams[i], params[i])) {
+            Value a = lastParams[i], b = params[i];
+            if (a.getType() != b.getType() || !db.areEqual(a, b)) {
                 return false;
             }
         }

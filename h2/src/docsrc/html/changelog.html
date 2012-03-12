@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>In error messages about referential constraint violation, the values are now included.
+<ul><li>Prepared statements could only be re-used if the same data types were used
+    the second time they were executed.
+</li><li>In error messages about referential constraint violation, the values are now included.
 </li><li>SCRIPT and RUNSCRIPT: the password can now be set using a prepared statement.
     Previously, it was required to be a literal in the SQL statement.
 </li><li>MySQL compatibility: SUBSTR with a negative start index now works like MySQL.
@@ -40,6 +42,8 @@ Change Log
 </li><li>Issue 362: support LIMIT in UPDATE statements.
 </li><li>Browser: if no default browser is set, Google Chrome is now used if available.
     If not available, then Konqueror, Netscape, or Opera is used if available (as before).
+</li><li>CSV tool: new feature to disable writing the column header
+    (option writeColumnHeader).
 </li><li>CSV tool: new feature to preserve the case sensitivity of column names
     (option caseSensitiveColumnNames).
 </li><li>PostgreSQL compatibility: LOG(x) is base 10 in the PostgreSQL mode.

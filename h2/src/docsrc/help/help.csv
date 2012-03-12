@@ -682,7 +682,7 @@ Drops an existing user-defined aggregate function.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
-CREATE AGGREGATE MEDIAN
+DROP AGGREGATE MEDIAN
 "
 
 "Commands (DDL)","DROP ALIAS","
@@ -693,7 +693,7 @@ Drops an existing function alias.
 Admin rights are required to execute this command.
 This command commits an open transaction.
 ","
-CREATE ALIAS MY_SQRT
+DROP ALIAS MY_SQRT
 "
 
 "Commands (DDL)","DROP ALL OBJECTS","

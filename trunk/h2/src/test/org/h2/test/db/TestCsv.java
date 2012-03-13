@@ -80,7 +80,9 @@ public class TestCsv extends TestBase {
         assertEquals("\"1\"", x.trim());
         stat.execute("call csvwrite('" + getBaseDir() + "/test.tsv', 'select x from dual', 'writeColumnHeader=true')");
         x = IOUtils.readStringAndClose(IOUtils.getReader(FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
-        assertEquals("\"X\"\n\"1\"", x.trim());
+        x = x.trim();
+        assertTrue(x.startsWith("\"X\""));
+        assertTrue(x.endsWith("\"1\""));
         conn.close();
     }
 

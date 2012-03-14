@@ -106,7 +106,7 @@ public class TestFileLockProcess extends TestBase {
             }
             proc.waitFor();
             assertEquals(0, proc.exitValue());
-            assertTrue(buff.toString(), buff.length() == 0);
+            assertTrue(i + ": " + buff.toString(), buff.length() == 0);
         }
         Thread.sleep(100);
         conn.close();

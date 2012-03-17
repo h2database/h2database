@@ -134,7 +134,12 @@ public class ValueDecimal extends Value {
 
     public String getString() {
         if (valueString == null) {
-            valueString = value.toString();
+            String p = value.toPlainString();
+            if (p.length() < 40) {
+                valueString = p;
+            } else {
+                valueString = value.toString();
+            }
         }
         return valueString;
     }

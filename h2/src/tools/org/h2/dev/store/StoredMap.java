@@ -43,6 +43,15 @@ public class StoredMap<K, V> {
         }
     }
 
+    static Class<?> getClass(String name) {
+        if (name.equals("i")) {
+            return Integer.class;
+        } else if (name.equals("s")) {
+            return String.class;
+        }
+        throw new RuntimeException("Unknown class name " + name);
+    }
+
     static <K, V> StoredMap<K, V> open(TreeMapStore store, String name, Class<K> keyClass, Class<V> valueClass) {
         return new StoredMap<K, V>(store, name, keyClass, valueClass);
     }
@@ -58,6 +67,10 @@ public class StoredMap<K, V> {
     public V get(K key) {
         Node n = Node.getNode(root, key);
         return (V) (n == null ? null : n.getData());
+    }
+
+   Node getNode(Object key) {
+        return Node.getNode(root, key);
     }
 
     public void remove(K key) {
@@ -78,6 +91,7 @@ public class StoredMap<K, V> {
         int length(Object obj);
         void write(ByteBuffer buff, Object x);
         Object read(ByteBuffer buff);
+        String getName();
     }
 
     /**
@@ -110,6 +124,10 @@ public class StoredMap<K, V> {
 
         public void write(ByteBuffer buff, Object x) {
             TreeMapStore.writeVarInt(buff, (Integer) x);
+        }
+
+        public String getName() {
+            return "i";
         }
 
     }
@@ -153,6 +171,10 @@ public class StoredMap<K, V> {
             }
         }
 
+        public String getName() {
+            return "s";
+        }
+
     }
 
     KeyType getKeyType() {
@@ -182,7 +204,6 @@ public class StoredMap<K, V> {
     void setRoot(long rootPos) {
         root = readNode(rootPos);
     }
-
 
     public Iterator<K> keyIterator(K from) {
         return new Cursor(root, from);

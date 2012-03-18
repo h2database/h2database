@@ -104,10 +104,10 @@ public class TestTreeMapStore extends TestBase {
                 map.remove(k);
             }
             Iterator<Integer> it = m.keyIterator(null);
-            Iterator<Integer> itm = map.keySet().iterator();
-            while (itm.hasNext()) {
+            Iterator<Integer> it2 = map.keySet().iterator();
+            while (it2.hasNext()) {
                 assertTrue(it.hasNext());
-                assertEquals(itm.next(), it.next());
+                assertEquals(it2.next(), it.next());
             }
             assertFalse(it.hasNext());
         }

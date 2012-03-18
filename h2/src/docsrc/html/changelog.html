@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.165 (2012-03-18)</h2>
 <ul><li>Better string representation for decimal values (for example 0.00000000 instead of 0E-26).
 </li><li>Prepared statements could only be re-used if the same data types were used
     the second time they were executed.
@@ -558,109 +562,6 @@ Change Log
     Now the escape mechanism is changed to support it.
 </li><li>The pseudo-column "_ROWID_" now supports insert, update, and merge (only enabled for version 1.3.x).
 </li><li>Deleting rows in the trigger table inside a trigger could result in a NullPointerException.
-</li></ul>
-
-<h2>Version 1.3.151 Beta (2011-02-12)</h2>
-<ul><li>Server: it was possible to open a database outside of the base URL
-    (if one was set). The test case was broken.
-</li><li>The H2 Console tool now supports a database URL as a command line option.
-</li><li>Clob.getSubString and Blob.getBytes are now up to 3 times faster.
-</li><li>New database setting DEFAULT_CONNECTION (disabled by default)
-    to support DriverManager.getConnection("jdbc:default:connection").
-    Please note the Oracle JDBC driver will try to resolve this database URL if it is loaded before the H2 driver.
-</li><li>JaQu: the static map Db.TOKENS was not synchronized.
-</li><li>DatabaseMetaData.getProcedureColumns returned the wrong data
-    (it also returned the Connection parameter if there was any).
-</li><li>Issue 284: If the query cache was used (enabled by default in version 1.3.x),
-    and multiple threads used the same connection,
-    and the same query but different prepared statements,
-    parameters of one prepared statement could be overwritten by another.
-</li><li>If the query cache was used (enabled by default in version 1.3.x),
-    parameters of re-used queries were not reset in prepared statements.
-</li><li>CallableStatement: the first row of the result set was skipped when using CallableStatement.execute().
-</li><li>Batch update exceptions now include the root cause and all chained exceptions (getNextException).
-</li><li>Reading a large result set with a BLOB or CLOB column could throw a NullPointerException.
-</li><li>Support for the MS SQL Server syntax VARCHAR(MAX).
-</li><li>The Recover tool could print "/ by zero" on an empty database.
-</li><li>For tables without a single column primary key of type INT or LONG,
-    the unique row id had gaps, which didn't look nice.
-</li><li>Each table now has a pseudo-column "_ROWID_" to get the unique row id (only enabled for version 1.3.x).
-</li><li>User defined functions can now have parameters of any class. Values of type
-    OTHER (or OBJECT or JAVA_OBJECT) are automatically de-serialized in that case.
-</li><li>Linked tables: for NUMERIC column, Oracle reports precision 0 and scale -127.
-    A workaround has been implemented (the same as for DECIMAL columns in version 1.3.150).
-</li><li>Issue 279: Auto-Server mode: unclear error message when trying to connect using AUTO_SERVER
-    if the database is already open without the flag (Connection is broken: "null").
-</li><li>Issue 238: Can drop a column that has a single-column constraint.
-</li></ul>
-
-<h2>Version 1.3.150 Beta (2011-01-28)</h2>
-<ul><li>CSVREAD / CSVWRITE: instead of setting the options one by one,
-    all options can be combined into a space separated key-value pairs.
-</li><li>CSVREAD / CSV tool: there is a new option "lineCommentCharacter" to set or disable line comments.
-    For H2 version 1.2, the default is '#' (as before). For H2 version 1.3, line comments are disabled by default.
-</li><li>Issue 277: JaQu didn't correctly convert a CLOB column to a String.
-</li><li>./build.sh testNetwork could block if there was a network configuration problem.
-</li><li>Reading input streams from the classpath is now supported. Example:
-    RUNSCRIPT FROM 'classpath:org/h2/samples/newsfeed.sql'.
-</li><li>PreparedStatement.toString() now includes the parameter values in a human readable format.
-</li><li>New database setting OPTIMIZE_IN_SELECT (enabled by default for version 1.3.x).
-    If enabled, IN(SELECT...) conditions are faster if there are many rows in the table or subquery.
-</li><li>Linked tables: for DECIMAL column, Oracle reports precision 0 and scale -127.
-    A workaround has been implemented.
-</li><li>TCP Server: a base directory with a prefix with a database name with prefix didn't work as expected
-    (this only applies to non-disk and wrapped file systems).
-</li><li>Version 1.3: when re-running the same query so that the previous result was re-used,
-    and if the result set was large so that it was stored externally (in a temp file or in a temp table),
-    then reading rows from both result sets resulted in an exception or wrong behavior.
-</li><li>A new sample application that shows how to create
-    a read-only database in a zip file where the database file is split into multiple smaller parts.
-</li><li>The Backup tool now supports compressing all files in a given directory.
-</li><li>H2 Console: the special syntax @list and @meta can not be combined.
-</li><li>The wrong error message was thrown when trying to open a database where the database file
-    could not be read for some reason (for example because the split file system was used, and the file
-    was split at the wrong position).
-</li><li>There was a memory leak in the trace system. Opening and closing many connections could run out of memory.
-</li><li>The scan-resistant cache type "TQ" (two queue) is again available.
-    To use it, append ;CACHE_TYPE=TQ to the database URL.
-</li></ul>
-
-<h2>Version 1.3.149 Beta (2011-01-07)</h2>
-<ul><li>Lob in database: after the process was killed while adding a lob,
-    inserting a lob could throw an exception (primary key violation in LOB_MAP).
-</li><li>Server tool: the tcpShutdown feature now also stops other servers (web server and PostgreSQL server).
-</li><li>Server tool: the tcpShutdown url must now end with the port if the port is used.
-</li><li>Server tool: when starting one service fails, the started services are now stopped.
-</li><li>Multi-version concurrency: SELECT ... FOR UPDATE threw a "concurrent update" exception immediately
-    instead of a "lock timeout" exception after the set lock timeout if the row was already locked by another connection.
-</li><li>Translation: the H2 Console and error messages have been translated to Czech by Hannibal (http://hannibal.cestiny.cz/). Thanks a lot!
-</li><li>When the system property h2.lobInDatabase is set, reading a BLOB is a bit faster
-    because the length is not read.
-</li><li>The SimpleResultSet now has a feature to not close the result set after reading the last row.
-</li><li>Native fulltext search: the ignore list doesn't need to be all uppercase now.
-</li><li>Improved statistics output in the Recover tool.
-</li><li>Issue 269: GROUP BY queries with a column or having clause that contains IN(SELECT ...)
-    could return the wrong values. Example: SELECT X IN(SELECT Y) FROM Z GROUP BY X.
-</li><li>After closing a database, the writer thread will stop almost immediately (instead of after at most 100 ms).
-    This should avoid error messages in the Tomcat log file after a shutdown.
-</li><li>Issue 271: ResultSet.getConcurrency() did not correctly detect that the result set is not updatable.
-</li><li>The SLF4J 1.6 API is now used by default (this should not have any user visible effect).
-</li><li>The org.h2.tools.Console no longer calls System.exit on shutdown
-    (this should not have any user visible effect, but should allow to integrate the tool easier into other applications).
-</li><li>Improved date / time arithmetics. Adding and subtracting a
-    floating point value from a date or timestamp is now supported.
-</li><li>When creating a BLOB with in InputStream or a CLOB with a Reader, and the InputStream or Reader
-    threw an non-IOException, then the LOB storage was broken when storing LOBs in the database.
-</li><li>EXPLAIN SELECT didn't include the sample size if one was set.
-</li><li>Improved EXPLAIN plan formatting and documentation.
-</li><li>Issue 266: Domains: a NOT NULL clause in a domain definition ignored.
-</li><li>More accurate calculation of variance and standard deviation for large number of samples with low variance
-    (now using Welford's method).
-</li><li>Server: CLOB data with unicode characters between character code 0xd800 and 0xdfff
-    were not transferred correctly. In many cases, the thread was stuck afterwards.
-</li><li>Issue 264: the Hibernate dialect in src/tools was removed because it is outdated.
-</li><li>Cache size limit could be exceeded for certain queries, leading to an OutOfMemoryError
-    in some cases. Fixed.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

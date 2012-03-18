@@ -29,6 +29,14 @@ class Node {
         this.map = map;
     }
 
+    /**
+     * Create a new node.
+     *
+     * @param map the map
+     * @param key the key
+     * @param data the value
+     * @return the node
+     */
     static Node create(StoredMap<?, ?> map, Object key, Object data) {
         Node n = new Node(map);
         n.key = key;
@@ -38,6 +46,14 @@ class Node {
         return n;
     }
 
+    /**
+     * Read a node.
+     *
+     * @param map the map
+     * @param id the node id
+     * @param buff the source buffer
+     * @return the node
+     */
     static Node read(StoredMap<?, ?> map, long id, ByteBuffer buff) {
         Node n = new Node(map);
         n.id = id;
@@ -45,6 +61,11 @@ class Node {
         return n;
     }
 
+    /**
+     * Get the left child.
+     *
+     * @return the left child
+     */
     Node getLeft() {
         if (left == null && leftId != 0) {
             return map.readNode(leftId);
@@ -52,6 +73,11 @@ class Node {
         return left;
     }
 
+    /**
+     * Get the right child.
+     *
+     * @return the right child
+     */
     Node getRight() {
         if (right == null && rightId != 0) {
             return map.readNode(rightId);
@@ -59,19 +85,39 @@ class Node {
         return right;
     }
 
+    /**
+     * Get the node id of the left child.
+     *
+     * @return the node id
+     */
     long getLeftId() {
         return leftId;
     }
 
+    /**
+     * Set the node id of the left child.
+     *
+     * @param leftId the node id
+     */
     void setLeftId(long leftId) {
         this.leftId = leftId;
         left = null;
     }
 
+    /**
+     * Get the node id of the right child.
+     *
+     * @return the node id
+     */
     long getRightId() {
         return rightId;
     }
 
+    /**
+     * Set the node id of the right child.
+     *
+     * @param rightId the node id
+     */
     void setRightId(long rightId) {
         this.rightId = rightId;
         left = null;
@@ -130,19 +176,39 @@ class Node {
         getRight().flags = getRight().flags ^ FLAG_BLACK;
     }
 
-    public long getId() {
+    /**
+     * Get the node id.
+     *
+     * @return the node id
+     */
+    long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    /**
+     * Set the node id.
+     *
+     * @param id the new id
+     */
+    void setId(long id) {
         this.id = id;
     }
 
-    public Object getKey() {
+    /**
+     * Get the key.
+     *
+     * @return the key
+     */
+    Object getKey() {
         return key;
     }
 
-    public Object getData() {
+    /**
+     * Get the value.
+     *
+     * @return the value
+     */
+    Object getData() {
         return data;
     }
 
@@ -208,6 +274,13 @@ class Node {
         return n.fixUp();
     }
 
+    /**
+     * Remove the node.
+     *
+     * @param n the root node
+     * @param key the key
+     * @return the new root node
+     */
     static Node remove(Node n, Object key) {
         if (getNode(n, key) == null) {
             return n;
@@ -215,6 +288,13 @@ class Node {
         return n.remove(key);
     }
 
+    /**
+     * Compare the key with the key of this node.
+     *
+     * @param key the key
+     * @return -1 if the key is smaller than this nodes key, 1 if bigger, and 0
+     *         if equal
+     */
     int compare(Object key) {
         return map.compare(key, this.key);
     }
@@ -249,6 +329,13 @@ class Node {
         return n.fixUp();
     }
 
+    /**
+     * Get the node.
+     *
+     * @param n the root
+     * @param key the key
+     * @return the node, or null
+     */
     static Node getNode(Node n, Object key) {
         while (n != null) {
             int compare = n.compare(key);
@@ -263,6 +350,15 @@ class Node {
         return null;
     }
 
+    /**
+     * Put the node in the map.
+     *
+     * @param map the map
+     * @param n the node
+     * @param key the key
+     * @param data the value
+     * @return the root node
+     */
     static Node put(StoredMap<?, ?> map, Node n, Object key, Object data) {
         if (n == null) {
             n = Node.create(map, key, data);
@@ -306,6 +402,11 @@ class Node {
         data = map.getValueType().read(buff);
     }
 
+    /**
+     * Store the node.
+     *
+     * @param buff the target buffer
+     */
     void write(ByteBuffer buff) {
         buff.put((byte) flags);
         buff.putLong(leftId);
@@ -314,6 +415,11 @@ class Node {
         map.getValueType().write(buff, data);
     }
 
+    /**
+     * Get the length in bytes.
+     *
+     * @return the length
+     */
     int length() {
         return map.getKeyType().length(key) +
                 map.getValueType().length(data) + 17;

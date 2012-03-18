@@ -123,7 +123,7 @@ public class ShowProgress implements DatabaseEventListener {
             stateName = "Recover";
             break;
         default:
-             return;
+            return;
         }
         try {
             Thread.sleep(1);

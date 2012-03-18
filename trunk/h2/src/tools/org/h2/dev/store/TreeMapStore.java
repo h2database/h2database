@@ -53,11 +53,11 @@ todo:
 - don't use any 't' blocks
 
 - floating header (avoid duplicate header)
-  for each chunk, store chunk (a counter)
-  for each page, store chunk id and offset to root
-  for each chunk, store position of expected next chunks
+    for each chunk, store chunk (a counter)
+    for each page, store chunk id and offset to root
+    for each chunk, store position of expected next chunks
 
- */
+*/
 
 /**
  * A persistent storage for tree maps.
@@ -86,12 +86,28 @@ public class TreeMapStore {
         this.fileName = fileName;
     }
 
+    /**
+     * Open a tree store.
+     *
+     * @param fileName the file name
+     * @return the store
+     */
     public static TreeMapStore open(String fileName) {
         TreeMapStore s = new TreeMapStore(fileName);
         s.open();
         return s;
     }
 
+    /**
+     * Open a map.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param name the name of the map
+     * @param keyClass the key class
+     * @param valueClass the value class
+     * @return the map
+     */
     public <K, V> StoredMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
         @SuppressWarnings("unchecked")
         StoredMap<K, V> m = (StoredMap<K, V>) maps.get(name);
@@ -109,13 +125,19 @@ public class TreeMapStore {
         return m;
     }
 
-    void changed(String name, StoredMap<?, ?> map) {
+    /**
+     * Mark a map as changed.
+     *
+     * @param name the map name
+     * @param the map
+     */
+    void markChanged(String name, StoredMap<?, ?> map) {
         if (map != meta) {
             mapsChanged.put(name, map);
         }
     }
 
-    void open() {
+    private void open() {
         meta = StoredMap.open(this, "meta", String.class, String.class);
         new File(fileName).getParentFile().mkdirs();
         try {
@@ -186,6 +208,9 @@ public class TreeMapStore {
         throw new RuntimeException("Exception: " + e, e);
     }
 
+    /**
+     * Close the file.
+     */
     public void close() {
         store();
         if (file != null) {
@@ -272,6 +297,9 @@ public class TreeMapStore {
         return ((long) blockId << 32) | offset;
     }
 
+    /**
+     * Persist all changes to disk.
+     */
     public void store() {
         if (!meta.isChanged() && mapsChanged.size() == 0) {
             // TODO truncate file if empty
@@ -395,14 +423,29 @@ public class TreeMapStore {
         return set.size() * pageSize;
     }
 
+    /**
+     * Get the current transaction number.
+     *
+     * @return the transaction number
+     */
     long getTransaction() {
         return transaction;
     }
 
+    /**
+     * Get the next temporary node id.
+     *
+     * @return the node id
+     */
     long nextTempNodeId() {
         return -(++tempNodeId);
     }
 
+    /**
+     * Commit the current transaction.
+     *
+     * @return the transaction id
+     */
     public long commit() {
         return ++transaction;
     }
@@ -422,6 +465,9 @@ public class TreeMapStore {
         }
     }
 
+    /**
+     * Try to reduce the file size.
+     */
     public void compact() {
         if (blocks.size() <= 1) {
             return;
@@ -514,10 +560,12 @@ public class TreeMapStore {
         }
 
 //
-//                meta = StoredMap.open(this, "meta", String.class, String.class);
+//                meta = StoredMap.open(this, "meta",
+//                        String.class, String.class);
 //                new File(fileName).getParentFile().mkdirs();
 //                try {
-//                    file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
+//                    file = FilePathCache.
+//                            wrap(FilePath.get(fileName).open("rw"));
 //                    if (file.size() == 0) {
 //                        writeHeader();
 //                    } else {
@@ -540,6 +588,13 @@ public class TreeMapStore {
 
     }
 
+    /**
+     * Read a node.
+     *
+     * @param map the map
+     * @param id the node id
+     * @return the node
+     */
     Node readNode(StoredMap<?, ?> map, long id) {
         Node n = cache.get(id);
         if (n == null) {
@@ -563,56 +618,11 @@ public class TreeMapStore {
         return n;
     }
 
-    static int getVarIntLen(int x) {
-        if ((x & (-1 << 7)) == 0) {
-            return 1;
-        } else if ((x & (-1 << 14)) == 0) {
-            return 2;
-        } else if ((x & (-1 << 21)) == 0) {
-            return 3;
-        } else if ((x & (-1 << 28)) == 0) {
-            return 4;
-        }
-        return 5;
-    }
-
-    static void writeVarInt(ByteBuffer buff, int x) {
-        while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
-            x >>>= 7;
-        }
-        buff.put((byte) x);
-    }
-
-    static int readVarInt(ByteBuffer buff) {
-        int b = buff.get();
-        if (b >= 0) {
-            return b;
-        }
-        // a separate function so that this one can be inlined
-        return readVarIntRest(buff, b);
-    }
-
-    static int readVarIntRest(ByteBuffer buff, int b) {
-        int x = b & 0x7f;
-        b = buff.get();
-        if (b >= 0) {
-            return x | (b << 7);
-        }
-        x |= (b & 0x7f) << 7;
-        b = buff.get();
-        if (b >= 0) {
-            return x | (b << 14);
-        }
-        x |= (b & 0x7f) << 14;
-        b = buff.get();
-        if (b >= 0) {
-            return x | b << 21;
-        }
-        x |= ((b & 0x7f) << 21) | (buff.get() << 28);
-        return x;
-    }
-
+    /**
+     * Remove a node.
+     *
+     * @param id the node id
+     */
     void removeNode(long id) {
         if (id > 0) {
             if (getBlock(id).liveCount == 0) {
@@ -641,7 +651,13 @@ public class TreeMapStore {
             this.id = id;
         }
 
-        public static Block fromString(String s) {
+        /**
+         * Build a block from the given string.
+         *
+         * @param s the string
+         * @return the block
+         */
+        static Block fromString(String s) {
             Block b = new Block(0);
             Properties prop = new Properties();
             try {

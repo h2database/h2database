@@ -74,6 +74,7 @@ public interface DatabaseEventListener extends EventListener {
      * <p>
      * More states might be added in future versions, therefore implementations
      * should silently ignore states that they don't understand.
+     * </p>
      *
      * @param state the state
      * @param name the object name

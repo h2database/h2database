@@ -312,11 +312,10 @@ public class DbSettings extends SettingsBase {
     public final boolean shareLinkedConnections = get("SHARE_LINKED_CONNECTIONS", true);
 
     /**
-     * Database setting <code>LOG_SIZE_LIMIT</code>
-     * (default: 0).<br />
-     * The maximum size of the transaction log (in MB). If the transaction log is bigger
-     * than this value the oldest session is rolled back. The value 0 means the
-     * sessions are never rolled back.
+     * Database setting <code>LOG_SIZE_LIMIT</code> (default: 0).<br />
+     * The maximum size of the transaction log (in MB). If the transaction log
+     * is bigger than this value the oldest session is rolled back. The value 0
+     * means the sessions are never rolled back.
      */
     public long logSizeLimit = get("LOG_SIZE_LIMIT", 0);
 

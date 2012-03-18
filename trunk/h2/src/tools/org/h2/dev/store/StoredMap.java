@@ -43,6 +43,12 @@ public class StoredMap<K, V> {
         }
     }
 
+    /**
+     * Get the class with the given tag name.
+     *
+     * @param name the tag name
+     * @return the class
+     */
     static Class<?> getClass(String name) {
         if (name.equals("i")) {
             return Integer.class;
@@ -52,34 +58,73 @@ public class StoredMap<K, V> {
         throw new RuntimeException("Unknown class name " + name);
     }
 
+    /**
+     * Open a map.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param store the tree store
+     * @param name the name of the map
+     * @param keyClass the key class
+     * @param valueClass the value class
+     * @return the map
+     */
     static <K, V> StoredMap<K, V> open(TreeMapStore store, String name, Class<K> keyClass, Class<V> valueClass) {
         return new StoredMap<K, V>(store, name, keyClass, valueClass);
     }
 
+    /**
+     * Store a key-value pair.
+     *
+     * @param key the key
+     * @param data the value
+     */
     public void put(K key, V data) {
         if (!isChanged()) {
-            store.changed(name, this);
+            store.markChanged(name, this);
         }
         root = Node.put(this, root, key, data);
     }
 
+    /**
+     * Get a value.
+     *
+     * @param key the key
+     * @return the value
+     */
     @SuppressWarnings("unchecked")
     public V get(K key) {
         Node n = Node.getNode(root, key);
         return (V) (n == null ? null : n.getData());
     }
 
-   Node getNode(Object key) {
+    /**
+     * Get the node with the given key.
+     *
+     * @param key the key
+     * @return the node
+     */
+    Node getNode(Object key) {
         return Node.getNode(root, key);
     }
 
+    /**
+     * Remove a key-value pair.
+     *
+     * @param key the key
+     */
     public void remove(K key) {
         if (!isChanged()) {
-            store.changed(name, this);
+            store.markChanged(name, this);
         }
         root = Node.remove(root, key);
     }
 
+    /**
+     * Was this map changed.
+     *
+     * @return true if yes
+     */
     boolean isChanged() {
         return root != null && root.getId() < 0;
     }
@@ -88,19 +133,62 @@ public class StoredMap<K, V> {
      * A value type.
      */
     static interface ValueType {
+
+        /**
+         * Get the length in bytes.
+         *
+         * @param obj the object
+         * @return the length
+         */
         int length(Object obj);
+
+        /**
+         * Write the object.
+         *
+         * @param buff the target buffer
+         * @param x the value
+         */
         void write(ByteBuffer buff, Object x);
+
+        /**
+         * Read an object.
+         *
+         * @param buff the source buffer
+         * @return the object
+         */
         Object read(ByteBuffer buff);
+
+        /**
+         * Get the tag name of the class.
+         *
+         * @return the tag name
+         */
         String getName();
+
     }
 
     /**
      * A key type.
      */
     static interface KeyType extends ValueType {
+
+        /**
+         * Compare two keys.
+         *
+         * @param a the first key
+         * @param b the second key
+         * @return -1 if the first key is smaller, 1 if larger, and 0 if equal
+         */
         int compare(Object a, Object b);
     }
 
+    /**
+     * Compare two keys.
+     *
+     * @param a the first key
+     * @param b the second key
+     * @return -1 if the first key is smaller, 1 if bigger, 0 if equal
+     */
     int compare(Object a, Object b) {
         return keyType.compare(a, b);
     }
@@ -115,15 +203,15 @@ public class StoredMap<K, V> {
         }
 
         public int length(Object obj) {
-            return TreeMapStore.getVarIntLen((Integer) obj);
+            return getVarIntLen((Integer) obj);
         }
 
         public Integer read(ByteBuffer buff) {
-            return TreeMapStore.readVarInt(buff);
+            return readVarInt(buff);
         }
 
         public void write(ByteBuffer buff, Object x) {
-            TreeMapStore.writeVarInt(buff, (Integer) x);
+            writeVarInt(buff, (Integer) x);
         }
 
         public String getName() {
@@ -144,14 +232,14 @@ public class StoredMap<K, V> {
         public int length(Object obj) {
             try {
                 byte[] bytes = obj.toString().getBytes("UTF-8");
-                return TreeMapStore.getVarIntLen(bytes.length) + bytes.length;
+                return getVarIntLen(bytes.length) + bytes.length;
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }
 
         public String read(ByteBuffer buff) {
-            int len = TreeMapStore.readVarInt(buff);
+            int len = readVarInt(buff);
             byte[] bytes = new byte[len];
             buff.get(bytes);
             try {
@@ -164,7 +252,7 @@ public class StoredMap<K, V> {
         public void write(ByteBuffer buff, Object x) {
             try {
                 byte[] bytes = x.toString().getBytes("UTF-8");
-                TreeMapStore.writeVarInt(buff, bytes.length);
+                writeVarInt(buff, bytes.length);
                 buff.put(bytes);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -177,10 +265,20 @@ public class StoredMap<K, V> {
 
     }
 
+    /**
+     * Get the key type.
+     *
+     * @return the key type
+     */
     KeyType getKeyType() {
         return keyType;
     }
 
+    /**
+     * Get the value type.
+     *
+     * @return the value type
+     */
     ValueType getValueType() {
         return valueType;
     }
@@ -189,22 +287,49 @@ public class StoredMap<K, V> {
         return store.getTransaction();
     }
 
+    /**
+     * Get the next temporary node id.
+     *
+     * @return the node id
+     */
     long nextTempNodeId() {
         return store.nextTempNodeId();
     }
 
-    public Node readNode(long id) {
+    /**
+     * Read a node.
+     *
+     * @param id the node id
+     * @return the node
+     */
+    Node readNode(long id) {
         return store.readNode(this, id);
     }
 
+    /**
+     * Remove a node.
+     *
+     * @param id the node id
+     */
     void removeNode(long id) {
         store.removeNode(id);
     }
 
+    /**
+     * Set the position of the root node.
+     *
+     * @param rootPos the position
+     */
     void setRoot(long rootPos) {
         root = readNode(rootPos);
     }
 
+    /**
+     * Iterate over all keys.
+     *
+     * @param from the first key to return
+     * @return the iterator
+     */
     public Iterator<K> keyIterator(K from) {
         return new Cursor(root, from);
     }
@@ -271,12 +396,91 @@ public class StoredMap<K, V> {
         }
     }
 
+    /**
+     * Get the root node.
+     *
+     * @return the root node
+     */
     Node getRoot() {
         return root;
     }
 
+    /**
+     * Get the map name.
+     *
+     * @return the name
+     */
     String getName() {
         return name;
+    }
+
+
+    /**
+     * Read a variable size int.
+     *
+     * @param buff the source buffer
+     * @return the value
+     */
+    static int readVarInt(ByteBuffer buff) {
+        int b = buff.get();
+        if (b >= 0) {
+            return b;
+        }
+        // a separate function so that this one can be inlined
+        return readVarIntRest(buff, b);
+    }
+
+    private static int readVarIntRest(ByteBuffer buff, int b) {
+        int x = b & 0x7f;
+        b = buff.get();
+        if (b >= 0) {
+            return x | (b << 7);
+        }
+        x |= (b & 0x7f) << 7;
+        b = buff.get();
+        if (b >= 0) {
+            return x | (b << 14);
+        }
+        x |= (b & 0x7f) << 14;
+        b = buff.get();
+        if (b >= 0) {
+            return x | b << 21;
+        }
+        x |= ((b & 0x7f) << 21) | (buff.get() << 28);
+        return x;
+    }
+
+    /**
+     * Get the length of the variable size int.
+     *
+     * @param x the value
+     * @return the length in bytes
+     */
+    static int getVarIntLen(int x) {
+        if ((x & (-1 << 7)) == 0) {
+            return 1;
+        } else if ((x & (-1 << 14)) == 0) {
+            return 2;
+        } else if ((x & (-1 << 21)) == 0) {
+            return 3;
+        } else if ((x & (-1 << 28)) == 0) {
+            return 4;
+        }
+        return 5;
+    }
+
+    /**
+     * Write a variable size int.
+     *
+     * @param buff the target buffer
+     * @param x the value
+     */
+    static void writeVarInt(ByteBuffer buff, int x) {
+        while ((x & ~0x7f) != 0) {
+            buff.put((byte) (0x80 | (x & 0x7f)));
+            x >>>= 7;
+        }
+        buff.put((byte) x);
     }
 
 }

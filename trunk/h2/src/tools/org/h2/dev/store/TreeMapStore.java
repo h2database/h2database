@@ -13,13 +13,16 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.TreeSet;
+import java.util.TreeMap;
 import org.h2.store.fs.FilePath;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
+import org.h2.util.StringUtils;
 
 /*
 
@@ -35,7 +38,7 @@ pageSize=4096
 r=1
 
 chunk:
-'d' [length] root ...
+'d' [id] [metaRootOffset] data ...
 
 todo:
 
@@ -64,9 +67,9 @@ public class TreeMapStore {
     private final String fileName;
     private FileChannel file;
     private int pageSize = 4 * 1024;
-    private long rootPos;
+    private long rootBlockStart;
     private HashMap<Long, Node> cache = SmallLRUCache.newInstance(50000);
-    private TreeSet<Block> blocks = new TreeSet<Block>();
+    private TreeMap<Integer, Block> blocks = new TreeMap<Integer, Block>();
     private StoredMap<String, String> meta;
     private HashMap<String, StoredMap<?, ?>> maps = New.hashMap();
     private HashMap<String, StoredMap<?, ?>> mapsChanged = New.hashMap();
@@ -75,7 +78,7 @@ public class TreeMapStore {
     private long transaction;
 
     private int tempNodeId;
-    private int nextBlockId;
+    private int lastBlockId;
 
     private int loadCount;
 
@@ -96,8 +99,11 @@ public class TreeMapStore {
             String root = meta.get("map." + name);
             m = StoredMap.open(this, name, keyClass, valueClass);
             maps.put(name, m);
-            if (root != null && !root.equals("0")) {
-                m.setRoot(Long.parseLong(root));
+            if (root != null) {
+                root = StringUtils.arraySplit(root, ',', false)[0];
+                if (!root.equals("0")) {
+                    m.setRoot(Long.parseLong(root));
+                }
             }
         }
         return m;
@@ -118,9 +124,6 @@ public class TreeMapStore {
                 writeHeader();
             } else {
                 readHeader();
-                if (rootPos > 0) {
-                    meta.setRoot(rootPos);
-                }
                 readMeta();
             }
         } catch (Exception e) {
@@ -129,6 +132,8 @@ public class TreeMapStore {
     }
 
     private void readMeta() {
+        long rootPos = readMetaRootPos(rootBlockStart);
+        meta.setRoot(rootPos);
         Iterator<String> it = meta.keyIterator("block.");
         while (it.hasNext()) {
             String s = it.next();
@@ -136,8 +141,8 @@ public class TreeMapStore {
                 break;
             }
             Block b = Block.fromString(meta.get(s));
-            nextBlockId = Math.max(b.id + 1, nextBlockId);
-            blocks.add(b);
+            lastBlockId = Math.max(b.id, lastBlockId);
+            blocks.put(b.id, b);
         }
     }
 
@@ -147,7 +152,7 @@ public class TreeMapStore {
                 "# H2 1.5\n" +
                 "read-version: 1\n" +
                 "write-version: 1\n" +
-                "root: " + rootPos + "\n" +
+                "rootBlock: " + rootBlockStart + "\n" +
                 "transaction: " + transaction + "\n").getBytes());
             file.position(0);
             file.write(header);
@@ -166,7 +171,7 @@ public class TreeMapStore {
             file.read(ByteBuffer.wrap(header));
             Properties prop = new Properties();
             prop.load(new ByteArrayInputStream(header));
-            rootPos = Long.parseLong(prop.get("root").toString());
+            rootBlockStart = Long.parseLong(prop.get("rootBlock").toString());
             transaction = Long.parseLong(prop.get("transaction").toString());
         } catch (Exception e) {
             throw convert(e);
@@ -257,6 +262,16 @@ public class TreeMapStore {
         }
     }
 
+    private long getPosition(long nodeId) {
+        long pos = getBlock(nodeId).start;
+        pos += (int) (nodeId & Integer.MAX_VALUE);
+        return pos;
+    }
+
+    private long getId(int blockId, int offset) {
+        return ((long) blockId << 32) | offset;
+    }
+
     public void store() {
         if (!meta.isChanged() && mapsChanged.size() == 0) {
             // TODO truncate file if empty
@@ -268,15 +283,17 @@ public class TreeMapStore {
         // as we don't know the exact positions and entry counts
         int lenEstimate = 1 + 8;
         for (StoredMap<?, ?> m : mapsChanged.values()) {
-            meta.put("map." + m.getName(), String.valueOf(Long.MAX_VALUE));
+            meta.put("map." + m.getName(), String.valueOf(Long.MAX_VALUE) +
+                    "," + m.getKeyType().getName() + "," + m.getValueType().getName());
             lenEstimate += length(m.getRoot());
         }
-        Block b = new Block(nextBlockId++);
+        int blockId = ++lastBlockId;
+        Block b = new Block(blockId);
         b.start = Long.MAX_VALUE;
         b.entryCount = Integer.MAX_VALUE;
         b.liveCount = Integer.MAX_VALUE;
-        blocks.add(b);
-        for (Block x : blocks) {
+        blocks.put(b.id, b);
+        for (Block x : blocks.values()) {
             if (x.liveCount == 0) {
                 meta.remove("block." + x.id);
             } else {
@@ -285,10 +302,10 @@ public class TreeMapStore {
         }
         // modifying the meta can itself affect the metadata
         // TODO solve this in a better way
-        for (Block x : new ArrayList<Block>(blocks)) {
+        for (Block x : new ArrayList<Block>(blocks.values())) {
             if (x.liveCount == 0) {
                 meta.remove("block." + x.id);
-                blocks.remove(x);
+                blocks.remove(x.id);
             } else {
                 meta.put("block." + x.id, x.toString());
             }
@@ -296,16 +313,17 @@ public class TreeMapStore {
         lenEstimate += length(meta.getRoot());
         b.length = lenEstimate;
 
-        long storePos = allocate(lenEstimate);
+        // TODO allocate as late as possible
+        long storePos = allocateBlock(lenEstimate);
 
-        long end = storePos + 1 + 8;
+        long nodeId = getId(blockId, 1 + 8);
         for (StoredMap<?, ?> m : mapsChanged.values()) {
             Node r = m.getRoot();
-            long p = r == null ? 0 : end;
-            meta.put("map." + m.getName(), String.valueOf(p));
-            end = updateId(r, end);
+            long p = r == null ? 0 : nodeId;
+            meta.put("map." + m.getName(), String.valueOf(p) + "," + m.getKeyType().getName() + "," + m.getValueType().getName());
+            nodeId = updateId(r, nodeId);
         }
-        long metaPos = end;
+        long metaNodeOffset = nodeId - getId(blockId, 0);
 
         // add a dummy entry so the count is correct
         meta.put("block." + b.id, b.toString());
@@ -321,11 +339,12 @@ public class TreeMapStore {
 
         meta.put("block." + b.id, b.toString());
 
-        end = updateId(meta.getRoot(), end);
+        nodeId = updateId(meta.getRoot(), nodeId);
+        int len = (int) (nodeId - getId(blockId, 0));
 
-        ByteBuffer buff = ByteBuffer.allocate((int) (end - storePos));
+        ByteBuffer buff = ByteBuffer.allocate(len);
         buff.put((byte) 'd');
-        buff.putLong(metaPos - storePos);
+        buff.putLong(metaNodeOffset);
         for (StoredMap<?, ?> m : mapsChanged.values()) {
             store(buff, m.getRoot());
         }
@@ -340,17 +359,17 @@ public class TreeMapStore {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        rootPos = meta.getRoot().getId();
+        rootBlockStart = storePos;
         writeHeader();
         tempNodeId = 0;
         mapsChanged.clear();
     }
 
-    private long allocate(long length) {
+    private long allocateBlock(long length) {
         BitSet set = new BitSet();
         set.set(0);
         set.set(1);
-        for (Block b : blocks) {
+        for (Block b : blocks.values()) {
             if (b.start == Long.MAX_VALUE) {
                 continue;
             }
@@ -386,6 +405,139 @@ public class TreeMapStore {
 
     public long commit() {
         return ++transaction;
+    }
+
+    private long readMetaRootPos(long blockStart) {
+        try {
+            file.position(blockStart);
+            ByteBuffer buff = ByteBuffer.wrap(new byte[16]);
+            file.read(buff);
+            buff.rewind();
+            if (buff.get() != 'd') {
+                throw new RuntimeException("File corrupt");
+            }
+            return buff.getLong() + blockStart;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void compact() {
+        if (blocks.size() <= 1) {
+            return;
+        }
+        long liveCountTotal = 0, entryCountTotal = 0;
+        for (Block b : blocks.values()) {
+            entryCountTotal += b.entryCount;
+            liveCountTotal += b.liveCount;
+        }
+        int averageEntryCount = (int) (entryCountTotal / blocks.size());
+        if (entryCountTotal == 0) {
+            return;
+        }
+        int percentTotal = (int) (100 * liveCountTotal / entryCountTotal);
+        if (percentTotal > 80) {
+            return;
+        }
+        System.out.println("--- defrag ---");
+        ArrayList<Block> old = New.arrayList();
+        for (Block b : blocks.values()) {
+            int age = lastBlockId - b.id;
+            b.collectPriority = b.getFillRate() / age;
+            old.add(b);
+        }
+        Collections.sort(old, new Comparator<Block>() {
+            public int compare(Block o1, Block o2) {
+                return new Integer(o1.collectPriority).compareTo(o2.collectPriority);
+            }
+        });
+        int moveCount = 0;
+        Block move = null;
+        for (Block b : old) {
+            if (moveCount + b.liveCount > averageEntryCount) {
+                break;
+            }
+            System.out.println(" block " + b.id + " " + b.getFillRate() + " % full; prio=" + b.collectPriority);
+            moveCount += b.liveCount;
+            move = b;
+        }
+        boolean remove = false;
+        for (Iterator<Block> it = old.iterator(); it.hasNext();) {
+            Block b = it.next();
+            if (move == b) {
+                remove = true;
+            } else if (remove) {
+                it.remove();
+            }
+        }
+        long oldMetaPos = readMetaRootPos(move.start);
+        System.out.println("  meta:" + oldMetaPos);
+        StoredMap<String, String> oldMeta = StoredMap.open(this, "old-meta", String.class, String.class);
+        oldMeta.setRoot(oldMetaPos);
+        Iterator<String> it = oldMeta.keyIterator(null);
+        while (it.hasNext()) {
+            String k = it.next();
+            String v = oldMeta.get(k);
+            System.out.println("    " + k + " " + v.replace('\n', ' '));
+            if (!k.startsWith("map.")) {
+                continue;
+            }
+            k = k.substring("map.".length());
+            if (!maps.containsKey(k)) {
+                continue;
+            }
+            String[] d = StringUtils.arraySplit(v, ',', false);
+            Class<?> kt = StoredMap.getClass(d[1]);
+            Class<?> vt = StoredMap.getClass(d[2]);
+            StoredMap<?, ?> oldData = StoredMap.open(this, "old-" + k, kt, vt);
+            long oldDataRoot = Long.parseLong(d[0]);
+            oldData.setRoot(oldDataRoot);
+            @SuppressWarnings("unchecked")
+            StoredMap<Object, Object> data = (StoredMap<Object, Object>) maps.get(k);
+            Iterator<?> dataIt = oldData.keyIterator(null);
+            while (dataIt.hasNext()) {
+                Object o = dataIt.next();
+                Node n = data.getNode(o);
+                if (n == null) {
+                    // was removed later - ignore
+                } else if (n.getId() < 0) {
+                    // temporarily changed - ok
+                } else {
+                    Block b = getBlock(n.getId());
+                    if (old.contains(b)) {
+                        System.out.println("      move " + o);
+                        data.remove(o);
+                        data.put(o, n.getData());
+                    }
+                }
+            }
+        }
+
+//
+//                meta = StoredMap.open(this, "meta", String.class, String.class);
+//                new File(fileName).getParentFile().mkdirs();
+//                try {
+//                    file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
+//                    if (file.size() == 0) {
+//                        writeHeader();
+//                    } else {
+//                        readHeader();
+//                        if (rootPos > 0) {
+//                            meta.setRoot(rootPos);
+//                        }
+//                        readMeta();
+
+//
+//            }
+//        }
+//        Iterator<String> it = meta.keyIterator(null);
+//        while (it.hasNext()) {
+//            String m = it.next();
+//            System.out.println("meta " + m);
+//        }
+//        System.out.println("---");
+//        // TODO Auto-generated method stub
+
     }
 
     Node readNode(StoredMap<?, ?> map, long id) {
@@ -471,20 +623,19 @@ public class TreeMapStore {
     }
 
     private Block getBlock(long pos) {
-        Block b = new Block(0);
-        b.start = pos;
-        return blocks.headSet(b).last();
+        int b = (int) (pos >>> 32);
+        return blocks.get(b);
     }
     /**
      * A block of data.
      */
     static class Block implements Comparable<Block> {
+        public int collectPriority;
         int id;
         long start;
         long length;
         int entryCount;
         int liveCount;
-//        int outRevCount;
 
         Block(int id) {
             this.id = id;
@@ -506,8 +657,20 @@ public class TreeMapStore {
             }
         }
 
+        public int getFillRate() {
+            return entryCount == 0 ? 0 : 100 * liveCount / entryCount;
+        }
+
         public int compareTo(Block o) {
             return start == o.start ? 0 : start < o.start ? -1 : 1;
+        }
+
+        public int hashCode() {
+            return id;
+        }
+
+        public boolean equals(Object o) {
+            return o instanceof Block && ((Block) o).id == id;
         }
 
         public String toString() {

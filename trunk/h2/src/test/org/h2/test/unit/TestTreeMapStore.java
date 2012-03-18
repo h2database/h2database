@@ -29,11 +29,36 @@ public class TestTreeMapStore extends TestBase {
     }
 
     public void test() throws Exception {
+//        testDefragment();
         testReuseSpace();
         testRandom();
         testKeyValueClasses();
         testIterate();
         testSimple();
+    }
+
+    private void testDefragment() {
+        String fileName = getBaseDir() + "/data.h3";
+        FileUtils.delete(fileName);
+        long initialLength = 0;
+        for (int j = 0; j < 10; j++) {
+            TreeMapStore s = TreeMapStore.open(fileName);
+            StoredMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
+            for (int i = 0; i < 10; i++) {
+                m.put(j + i, "Hello " + j);
+            }
+            s.store();
+            System.out.println(s.toString());
+            s.compact();
+            s.close();
+            long len = FileUtils.size(fileName);
+            System.out.println("   len:" + len);
+//            if (initialLength == 0) {
+//                initialLength = len;
+//            } else {
+//                assertTrue(len <= initialLength * 2);
+//            }
+        }
     }
 
     private void testReuseSpace() {

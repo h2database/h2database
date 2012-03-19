@@ -38,7 +38,7 @@ pageSize=4096
 r=1
 
 chunk:
-'d' [id] [metaRootOffset] data ...
+'d' [id] [metaRootPos] data ...
 
 todo:
 
@@ -141,6 +141,7 @@ public class TreeMapStore {
         meta = StoredMap.open(this, "meta", String.class, String.class);
         new File(fileName).getParentFile().mkdirs();
         try {
+            log("file open");
             file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
             if (file.size() == 0) {
                 writeHeader();
@@ -154,15 +155,19 @@ public class TreeMapStore {
     }
 
     private void readMeta() {
-        long rootPos = readMetaRootPos(rootBlockStart);
-        meta.setRoot(rootPos);
+        long rootId = readMetaRootId(rootBlockStart);
+        lastBlockId = getBlockId(rootId);
+        Block b = new Block(lastBlockId);
+        b.start = rootBlockStart;
+        blocks.put(b.id, b);
+        meta.setRoot(rootId);
         Iterator<String> it = meta.keyIterator("block.");
         while (it.hasNext()) {
             String s = it.next();
             if (!s.startsWith("block.")) {
                 break;
             }
-            Block b = Block.fromString(meta.get(s));
+            b = Block.fromString(meta.get(s));
             lastBlockId = Math.max(b.id, lastBlockId);
             blocks.put(b.id, b);
         }
@@ -215,6 +220,7 @@ public class TreeMapStore {
         store();
         if (file != null) {
             try {
+                log("file close");
                 file.close();
             } catch (Exception e) {
                 file = null;
@@ -288,7 +294,11 @@ public class TreeMapStore {
     }
 
     private long getPosition(long nodeId) {
-        long pos = getBlock(nodeId).start;
+        Block b = getBlock(nodeId);
+        if (b == null) {
+            throw new RuntimeException("Block " + getBlockId(nodeId) + " not found");
+        }
+        long pos = b.start;
         pos += (int) (nodeId & Integer.MAX_VALUE);
         return pos;
     }
@@ -341,7 +351,6 @@ public class TreeMapStore {
         lenEstimate += length(meta.getRoot());
         b.length = lenEstimate;
 
-        // TODO allocate as late as possible
         long storePos = allocateBlock(lenEstimate);
 
         long nodeId = getId(blockId, 1 + 8);
@@ -351,7 +360,7 @@ public class TreeMapStore {
             meta.put("map." + m.getName(), String.valueOf(p) + "," + m.getKeyType().getName() + "," + m.getValueType().getName());
             nodeId = updateId(r, nodeId);
         }
-        long metaNodeOffset = nodeId - getId(blockId, 0);
+       int metaNodeOffset = (int) (nodeId - getId(blockId, 0));
 
         // add a dummy entry so the count is correct
         meta.put("block." + b.id, b.toString());
@@ -372,7 +381,8 @@ public class TreeMapStore {
 
         ByteBuffer buff = ByteBuffer.allocate(len);
         buff.put((byte) 'd');
-        buff.putLong(metaNodeOffset);
+        buff.putInt(b.id);
+        buff.putInt(metaNodeOffset);
         for (StoredMap<?, ?> m : mapsChanged.values()) {
             store(buff, m.getRoot());
         }
@@ -450,7 +460,7 @@ public class TreeMapStore {
         return ++transaction;
     }
 
-    private long readMetaRootPos(long blockStart) {
+    private long readMetaRootId(long blockStart) {
         try {
             file.position(blockStart);
             ByteBuffer buff = ByteBuffer.wrap(new byte[16]);
@@ -459,14 +469,17 @@ public class TreeMapStore {
             if (buff.get() != 'd') {
                 throw new RuntimeException("File corrupt");
             }
-            return buff.getLong() + blockStart;
+            int blockId = buff.getInt();
+            int offset = buff.getInt();
+            return getId(blockId, offset);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     /**
-     * Try to reduce the file size.
+     * Try to reduce the file size. Blocks with a low number of live items will
+     * be re-written.
      */
     public void compact() {
         if (blocks.size() <= 1) {
@@ -485,10 +498,9 @@ public class TreeMapStore {
         if (percentTotal > 80) {
             return;
         }
-        System.out.println("--- defrag ---");
         ArrayList<Block> old = New.arrayList();
         for (Block b : blocks.values()) {
-            int age = lastBlockId - b.id;
+            int age = lastBlockId - b.id + 1;
             b.collectPriority = b.getFillRate() / age;
             old.add(b);
         }
@@ -503,7 +515,7 @@ public class TreeMapStore {
             if (moveCount + b.liveCount > averageEntryCount) {
                 break;
             }
-            System.out.println(" block " + b.id + " " + b.getFillRate() + " % full; prio=" + b.collectPriority);
+            log(" block " + b.id + " " + b.getFillRate() + "% full; prio=" + b.collectPriority);
             moveCount += b.liveCount;
             move = b;
         }
@@ -516,15 +528,26 @@ public class TreeMapStore {
                 it.remove();
             }
         }
-        long oldMetaPos = readMetaRootPos(move.start);
-        System.out.println("  meta:" + oldMetaPos);
+        long oldMetaRootId = readMetaRootId(move.start);
+        long offset = getPosition(oldMetaRootId);
+        log("  meta:" + move.id + "/" + offset);
         StoredMap<String, String> oldMeta = StoredMap.open(this, "old-meta", String.class, String.class);
-        oldMeta.setRoot(oldMetaPos);
+        oldMeta.setRoot(oldMetaRootId);
         Iterator<String> it = oldMeta.keyIterator(null);
+        ArrayList<Integer> oldBlocks = New.arrayList();
         while (it.hasNext()) {
             String k = it.next();
             String v = oldMeta.get(k);
-            System.out.println("    " + k + " " + v.replace('\n', ' '));
+            log("    " + k + " " + v.replace('\n', ' '));
+            if (k.startsWith("block.")) {
+                String s = oldMeta.get(k);
+                Block b = Block.fromString(s);
+                if (!blocks.containsKey(b.id)) {
+                    oldBlocks.add(b.id);
+                    blocks.put(b.id, b);
+                }
+                continue;
+            }
             if (!k.startsWith("map.")) {
                 continue;
             }
@@ -551,41 +574,16 @@ public class TreeMapStore {
                 } else {
                     Block b = getBlock(n.getId());
                     if (old.contains(b)) {
-                        System.out.println("      move " + o);
+                        log("       move key:" + o + " block:" + b.id);
                         data.remove(o);
                         data.put(o, n.getData());
                     }
                 }
             }
         }
-
-//
-//                meta = StoredMap.open(this, "meta",
-//                        String.class, String.class);
-//                new File(fileName).getParentFile().mkdirs();
-//                try {
-//                    file = FilePathCache.
-//                            wrap(FilePath.get(fileName).open("rw"));
-//                    if (file.size() == 0) {
-//                        writeHeader();
-//                    } else {
-//                        readHeader();
-//                        if (rootPos > 0) {
-//                            meta.setRoot(rootPos);
-//                        }
-//                        readMeta();
-
-//
-//            }
-//        }
-//        Iterator<String> it = meta.keyIterator(null);
-//        while (it.hasNext()) {
-//            String m = it.next();
-//            System.out.println("meta " + m);
-//        }
-//        System.out.println("---");
-//        // TODO Auto-generated method stub
-
+        for (int o : oldBlocks) {
+            blocks.remove(o);
+        }
     }
 
     /**
@@ -599,7 +597,8 @@ public class TreeMapStore {
         Node n = cache.get(id);
         if (n == null) {
             try {
-                file.position(id);
+                long pos = getPosition(id);
+                file.position(pos);
                 ByteBuffer buff = ByteBuffer.wrap(new byte[1024]);
                 // TODO read fully; read only required bytes
                 do {
@@ -626,16 +625,20 @@ public class TreeMapStore {
     void removeNode(long id) {
         if (id > 0) {
             if (getBlock(id).liveCount == 0) {
-                System.out.println("??");
+                throw new RuntimeException("Negative live count: " + id);
             }
             getBlock(id).liveCount--;
         }
     }
 
-    private Block getBlock(long pos) {
-        int b = (int) (pos >>> 32);
-        return blocks.get(b);
+    private int getBlockId(long nodeId) {
+        return (int) (nodeId >>> 32);
     }
+
+    private Block getBlock(long nodeId) {
+        return blocks.get(getBlockId(nodeId));
+    }
+
     /**
      * A block of data.
      */
@@ -698,6 +701,15 @@ public class TreeMapStore {
                 "liveCount:" + liveCount + "\n";
         }
 
+    }
+
+    /**
+     * Log the string, if logging is enabled.
+     *
+     * @param string the string to log
+     */
+    public void log(String string) {
+         // System.out.println(string);
     }
 
 }

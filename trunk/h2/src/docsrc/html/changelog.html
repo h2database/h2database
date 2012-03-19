@@ -42,7 +42,7 @@ Change Log
 </li><li>ALTER TABLE ADD can now add more than one column at a time.
 </li><li>Issue 380: ALTER TABLE ADD FOREIGN KEY with an explicit index didn't verify
     the index can be used, which would lead to a NullPointerException later on.
-</li><li>The wrong kind of exception (NullPointerException) was thrown in a UNION query
+</li><li>Issue 384: the wrong kind of exception (NullPointerException) was thrown in a UNION query
     with an incorrect ORDER BY expression.
 </li><li>Issue 362: support LIMIT in UPDATE statements.
 </li><li>Browser: if no default browser is set, Google Chrome is now used if available.

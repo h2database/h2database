@@ -166,6 +166,9 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     public int compareRows(SearchRow rowData, SearchRow compare) {
+        if (rowData == compare) {
+            return 0;
+        }
         for (int i = 0, len = indexColumns.length; i < len; i++) {
             int index = columnIds[i];
             Value v = compare.getValue(index);

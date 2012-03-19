@@ -3740,6 +3740,7 @@ SET(@variableName, value)
 Updates a variable with the given value.
 The new value is returned.
 When used in a query, the value is updated in the order the rows are read.
+When used in a subquery, not all rows might be read depending on the query plan.
 This can be used to implement running totals / cumulative sums.
 ","
 SELECT X, SET(@I, IFNULL(@I, 0)+X) RUNNING_TOTAL FROM SYSTEM_RANGE(1, 10)

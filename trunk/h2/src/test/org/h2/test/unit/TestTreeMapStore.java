@@ -29,7 +29,7 @@ public class TestTreeMapStore extends TestBase {
     }
 
     public void test() throws Exception {
-//        testDefragment();
+        testDefragment();
         testReuseSpace();
         testRandom();
         testKeyValueClasses();
@@ -41,23 +41,23 @@ public class TestTreeMapStore extends TestBase {
         String fileName = getBaseDir() + "/data.h3";
         FileUtils.delete(fileName);
         long initialLength = 0;
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < 20; j++) {
             TreeMapStore s = TreeMapStore.open(fileName);
             StoredMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
             for (int i = 0; i < 10; i++) {
                 m.put(j + i, "Hello " + j);
             }
             s.store();
-            System.out.println(s.toString());
+            // s.log(s.toString());
             s.compact();
             s.close();
             long len = FileUtils.size(fileName);
-            System.out.println("   len:" + len);
-//            if (initialLength == 0) {
-//                initialLength = len;
-//            } else {
-//                assertTrue(len <= initialLength * 2);
-//            }
+            // System.out.println("   len:" + len);
+            if (initialLength == 0) {
+                initialLength = len;
+            } else {
+                assertTrue("initial: " + initialLength + " len: " + len, len <= initialLength * 3);
+            }
         }
     }
 

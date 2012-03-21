@@ -3483,6 +3483,7 @@ This function can be used like a table: ""SELECT * FROM CSVREAD(...)"".
 Instead of a file, an URL may be used, for example
 ""jar:file:///c:/temp/example.zip!/org/example/nested.csv"".
 To read a stream from the classpath, use the prefix ""classpath:"".
+To read from HTTP, use the prefix ""http:"" (as in a browser).
 
 For performance reason, CSVREAD should not be used inside a join.
 Instead, import the data first (possibly into a temporary table) and then use the table.

@@ -1458,7 +1458,9 @@ public class PageStore implements CacheWriter {
                 }
             }
             trace.info("Rolling back session #" +oldestSession.getId() + " (the oldest uncommitted)");
-            oldestSession.rollback();
+            synchronized (oldestSession) {
+                oldestSession.rollback();
+            }
             logSizeBase = log.getSize();
         }
     }

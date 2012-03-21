@@ -718,12 +718,18 @@ public class PageLog {
      */
     private int removeUntil(int trunkPage, int firstDataPageToKeep) {
         trace.debug("log.removeUntil " + trunkPage + " " + firstDataPageToKeep);
+        int last = trunkPage;
         while (true) {
             Page p = store.getPage(trunkPage);
             PageStreamTrunk t = (PageStreamTrunk) p;
+            if (t == null) {
+                throw DbException.throwInternalError(
+                        "log.removeUntil not found: " + firstDataPageToKeep + " last " + last);
+            }
             logKey = t.getLogKey();
+            last = t.getPos();
             if (t.contains(firstDataPageToKeep)) {
-                return t.getPos();
+                return last;
             }
             trunkPage = t.getNextTrunk();
             IntArray list = new IntArray();

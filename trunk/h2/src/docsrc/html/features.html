@@ -67,8 +67,6 @@ Features
     Read Only Databases</a><br />
 <a href="#database_in_zip">
     Read Only Databases in Zip or Jar File</a><br />
-<a href="#low_disk_space">
-    Graceful Handling of Low Disk Space Situations</a><br />
 <a href="#computed_columns">
     Computed Columns / Function Based Index</a><br />
 <a href="#multi_dimensional">
@@ -1365,17 +1363,6 @@ a regular database.
 If the database is larger than a few megabytes, performance is much better if the database file is split into multiple smaller files,
 because random access in compressed files is not possible.
 See also the sample application <a href="http://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/ReadOnlyDatabaseInZip.java">ReadOnlyDatabaseInZip</a>.
-</p>
-
-<h2 id="low_disk_space">Graceful Handling of Low Disk Space Situations</h2>
-<p>
-If the database needs more disk space, it calls the database event listener if one is installed.
-The application may then delete temporary files, or display a message and wait until
-the user has resolved the problem. To install a listener, run the SQL statement
-<code>SET DATABASE_EVENT_LISTENER</code> or use a database URL of the form
-<code>jdbc:h2:~/test;DATABASE_EVENT_LISTENER='com.acme.DbListener'</code>
-(the quotes around the class name are required).
-See also the <code>DatabaseEventListener</code> API.
 </p>
 
 <h3>Opening a Corrupted Database</h3>

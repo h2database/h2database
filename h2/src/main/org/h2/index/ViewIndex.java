@@ -260,6 +260,9 @@ public class ViewIndex extends BaseIndex {
         if (masks == null) {
             return q;
         }
+        if (!q.allowGlobalConditions()) {
+            return q;
+        }
         int firstIndexParam = originalParameters == null ? 0 : originalParameters.size();
         firstIndexParam += view.getParameterOffset();
         IntArray paramIndex = new IntArray();

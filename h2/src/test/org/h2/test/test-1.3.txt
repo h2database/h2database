@@ -1,4 +1,18 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int, name varchar);
+> ok
+
+insert into test values(5, 'b'), (5, 'b'), (20, 'a');
+> update count: 3
+
+select * from (select * from test order by name limit 1) where id < 10;
+> ID NAME
+> -- ----
+> rows (ordered): 0
+
+drop table test;
+> ok
+
 create table test (id int not null, pid int);
 > ok
 

@@ -172,6 +172,15 @@ public abstract class Query extends Prepared {
     public abstract void addGlobalCondition(Parameter param, int columnId, int comparisonType);
 
     /**
+     * Check whether adding condition to the query is allowed. This is not
+     * allowed for views that have an order by and a limit, as it would affect
+     * the returned results.
+     *
+     * @return true if adding global conditions is allowed
+     */
+    public abstract boolean allowGlobalConditions();
+
+    /**
      * Check if this expression and all sub-expressions can fulfill a criteria.
      * If any part returns false, the result is false.
      *

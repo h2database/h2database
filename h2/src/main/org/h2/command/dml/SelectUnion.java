@@ -413,4 +413,8 @@ public class SelectUnion extends Query {
         return CommandInterface.SELECT;
     }
 
+    public boolean allowGlobalConditions() {
+        return left.allowGlobalConditions() && right.allowGlobalConditions();
+    }
+
 }

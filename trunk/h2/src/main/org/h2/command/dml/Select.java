@@ -1258,4 +1258,11 @@ public class Select extends Query {
         return CommandInterface.SELECT;
     }
 
+    public boolean allowGlobalConditions() {
+        if (offsetExpr == null && (limitExpr == null || sort == null)) {
+            return true;
+        }
+        return false;
+    }
+
 }

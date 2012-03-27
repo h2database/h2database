@@ -145,7 +145,7 @@ public class ConvertTraceFile extends Tool {
                 if (line.length() > 0) {
                     String statement = sql;
                     int count = 0;
-                    int time = 0;
+                    long time = 0;
                     line = line.trim();
                     if (line.length() > 0) {
                         StringTokenizer tk = new StringTokenizer(line, " :");
@@ -157,7 +157,7 @@ public class ConvertTraceFile extends Tool {
                             } else if ("#".equals(token)) {
                                 count = Integer.parseInt(tk.nextToken());
                             } else if ("t".equals(token)) {
-                                time = Integer.parseInt(tk.nextToken());
+                                time = Long.parseLong(tk.nextToken());
                             }
                         }
                     }
@@ -211,7 +211,7 @@ public class ConvertTraceFile extends Tool {
         return StringUtils.pad(String.valueOf(number), digits, " ", false);
     }
 
-    private void addToStats(String sql, int resultCount, int time) {
+    private void addToStats(String sql, int resultCount, long time) {
         Stat stat = stats.get(sql);
         if (stat == null) {
             stat = new Stat();

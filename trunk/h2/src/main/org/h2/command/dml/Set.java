@@ -157,11 +157,10 @@ public class Set extends Prepared {
         }
         case SetTypes.DB_CLOSE_DELAY: {
             int x = getIntValue();
-            if (!session.getDatabase().isPersistent() && x == -1) {
+            if (x == -1) {
                 // -1 is a special value for in-memory databases, 
                 // which means "keep the DB alive and use the same DB for all connections"
-            }
-            else if (x < 0) {
+            } else if (x < 0) {
                 throw DbException.getInvalidValueException("DB_CLOSE_DELAY", x);
             }
             session.getUser().checkAdmin();

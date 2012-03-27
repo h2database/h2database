@@ -8,8 +8,10 @@ package org.h2.test.unit;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.TreeMap;
-import org.h2.dev.store.StoredMap;
-import org.h2.dev.store.TreeMapStore;
+import org.h2.dev.store.btree.BtreeMap;
+import org.h2.dev.store.btree.BtreeMapStore;
+import org.h2.dev.store.tree.StoredMap;
+import org.h2.dev.store.tree.TreeMapStore;
 import org.h2.jaqu.bytecode.Null;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -29,12 +31,41 @@ public class TestTreeMapStore extends TestBase {
     }
 
     public void test() throws Exception {
+        // btree
+        testBtreeStore();
+
+        // left leaning red-black tree
         testDefragment();
         testReuseSpace();
         testRandom();
         testKeyValueClasses();
         testIterate();
         testSimple();
+    }
+
+    private void testBtreeStore() {
+        String fileName = getBaseDir() + "/data.h3";
+        FileUtils.delete(fileName);
+        BtreeMapStore s = BtreeMapStore.open(fileName);
+        BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
+        int count = 5;
+        for (int i = 0; i < count; i++) {
+            m.put(i, "hello " + i);
+        }
+        s.store();
+        m.remove(0);
+        assertNull(m.get(0));
+        for (int i = 1; i < count; i++) {
+            assertEquals("hello " + i, m.get(i));
+        }
+        s.close();
+//        s = BtreeMapStore.open(fileName);
+//        m = s.openMap("data", Integer.class, String.class);
+//        assertNull(m.get(0));
+//        for (int i = 1; i < count; i++) {
+//            assertEquals("hello " + i, m.get(i));
+//        }
+//        s.close();
     }
 
     private void testDefragment() {

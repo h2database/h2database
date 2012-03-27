@@ -156,8 +156,13 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.DB_CLOSE_DELAY: {
-            if (getIntValue() < 0) {
-                throw DbException.getInvalidValueException("DB_CLOSE_DELAY", getIntValue());
+            int x = getIntValue();
+            if (!session.getDatabase().isPersistent() && x == -1) {
+                // -1 is a special value for in-memory databases, 
+                // which means "keep the DB alive and use the same DB for all connections"
+            }
+            else if (x < 0) {
+                throw DbException.getInvalidValueException("DB_CLOSE_DELAY", x);
             }
             session.getUser().checkAdmin();
             database.setCloseDelay(getIntValue());

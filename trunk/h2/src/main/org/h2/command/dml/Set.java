@@ -79,6 +79,9 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.CACHE_SIZE:
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("CACHE_SIZE", getIntValue());
+            }
             session.getUser().checkAdmin();
             database.setCacheSize(getIntValue());
             addOrUpdateSetting(name, null, getIntValue());
@@ -153,12 +156,18 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.DB_CLOSE_DELAY: {
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("DB_CLOSE_DELAY", getIntValue());
+            }
             session.getUser().checkAdmin();
             database.setCloseDelay(getIntValue());
             addOrUpdateSetting(name, null, getIntValue());
             break;
         }
         case SetTypes.DEFAULT_LOCK_TIMEOUT:
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("DEFAULT_LOCK_TIMEOUT", getIntValue());
+            }
             session.getUser().checkAdmin();
             addOrUpdateSetting(name, null, getIntValue());
             break;
@@ -196,6 +205,9 @@ public class Set extends Prepared {
             addOrUpdateSetting(name, null, getIntValue());
             break;
         case SetTypes.LOCK_TIMEOUT:
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("LOCK_TIMEOUT", getIntValue());
+            }
             session.setLockTimeout(getIntValue());
             break;
         case SetTypes.LOG: {
@@ -216,11 +228,17 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.MAX_LOG_SIZE:
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("MAX_LOG_SIZE", getIntValue());
+            }
             session.getUser().checkAdmin();
             database.setMaxLogSize((long) getIntValue() * 1024 * 1024);
             addOrUpdateSetting(name, null, getIntValue());
             break;
         case SetTypes.MAX_MEMORY_ROWS: {
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("MAX_MEMORY_ROWS", getIntValue());
+            }
             session.getUser().checkAdmin();
             database.setMaxMemoryRows(getIntValue());
             addOrUpdateSetting(name, null, getIntValue());
@@ -236,6 +254,9 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.MAX_OPERATION_MEMORY: {
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("MAX_OPERATION_MEMORY", getIntValue());
+            }
             session.getUser().checkAdmin();
             int value = getIntValue();
             database.setMaxOperationMemory(value);
@@ -268,6 +289,9 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.QUERY_TIMEOUT: {
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("QUERY_TIMEOUT", getIntValue());
+            }
             int value = getIntValue();
             session.setQueryTimeout(value);
             break;
@@ -314,6 +338,9 @@ public class Set extends Prepared {
             }
             break;
         case SetTypes.TRACE_MAX_FILE_SIZE: {
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("TRACE_MAX_FILE_SIZE", getIntValue());
+            }
             session.getUser().checkAdmin();
             int size = getIntValue() * 1024 * 1024;
             database.getTraceSystem().setMaxFileSize(size);
@@ -341,6 +368,9 @@ public class Set extends Prepared {
             break;
         }
         case SetTypes.WRITE_DELAY: {
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("WRITE_DELAY", getIntValue());
+            }
             session.getUser().checkAdmin();
             database.setWriteDelay(getIntValue());
             addOrUpdateSetting(name, null, getIntValue());

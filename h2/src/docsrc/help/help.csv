@@ -615,6 +615,7 @@ null and length constraint checks have been made;
 but before other constraints have been checked.
 If there are multiple triggers, the order in which they are called is undefined.
 
+ROLLBACK can be specified in combination with INSERT, UPDATE, and DELETE.
 Only row based AFTER trigger can be called on ROLLBACK.
 Exceptions that occur within such triggers are ignored.
 As the operations that occur within a trigger are part of the transaction,

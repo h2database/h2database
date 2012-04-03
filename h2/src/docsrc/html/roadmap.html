@@ -31,6 +31,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Enable Mode.supportOffsetFetch by default, so that "select 1 fetch first 1 row only" works.
 </li><li>The default user name should be an empty string and not "sa".
 </li><li>Deprecate Csv.getInstance() (use the public constructor instead).
+</li><li>Move ErrorCode class to org.h2.api.
 </li></ul>
 
 <h2>Priority 1</h2>
@@ -574,6 +575,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimization: "select id from test" should use the index on id even without "order by".
 </li><li>Issue 362: LIMIT support for UPDATE statements (MySQL compatibility).
 </li><li>Sybase SQL Anywhere compatibility: SELECT TOP ... START AT ...
+</li><li>Use Java 6 SQLException subclasses.
 </li></ul>
 
 <h2>Not Planned</h2>

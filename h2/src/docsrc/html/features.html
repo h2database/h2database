@@ -779,6 +779,10 @@ In a GUI, or in an XML file, only one backslash is required:
 "jdbc:h2:mem:test;INIT=create schema if not exists test\;runscript from '~/sql/populate.sql';DB_CLOSE_DELAY=-1"
 /&gt;
 </pre>
+<p>
+Backslashed within the init script (for example within a runscript statement, to specify the folder names in Windows) 
+would need to be escaped as well (using a backslash). It might be simpler to avoid backslashes in folder names for this reason.
+</p>
 
 <h2 id="ignore_unknown_settings">Ignore Unknown Settings</h2>
 <p>

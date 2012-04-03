@@ -32,10 +32,10 @@ import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.util.Task;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
+import org.h2.util.Task;
+import org.h2.util.Utils;
 import org.h2.value.ValueLob;
 
 /**
@@ -55,6 +55,7 @@ public class TestLob extends TestBase {
     }
 
     public void test() throws Exception {
+        testReadManyLobs();
         testLobSkip();
         testLobSkipPastEnd();
         testCreateIndexOnLob();
@@ -101,6 +102,29 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testReadManyLobs() throws Exception {
+        //
+        deleteDb("lob");
+        Connection conn;
+        conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id identity, data clob)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test values(null, ?)");
+        byte[] data = new byte[256];
+        Random r = new Random(1);
+        for (int i = 0; i < 1000; i++) {
+            r.nextBytes(data);
+            prep.setBinaryStream(1, new ByteArrayInputStream(data));
+            prep.execute();
+        }
+        ResultSet rs = stat.executeQuery("select * from test");
+        while (rs.next()) {
+            rs.getString(2);
+        }
+        conn.close();
     }
 
     private void testLobSkip() throws Exception {

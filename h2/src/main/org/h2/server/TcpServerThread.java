@@ -51,7 +51,8 @@ public class TcpServerThread implements Runnable {
     private Thread thread;
     private Command commit;
     private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
-    private SmallLRUCache<Long, CachedInputStream> lobs = SmallLRUCache.newInstance(SysProperties.SERVER_CACHED_OBJECTS);
+    private SmallLRUCache<Long, CachedInputStream> lobs =
+        SmallLRUCache.newInstance(SysProperties.SERVER_RESULT_SET_FETCH_SIZE * 2);
     private int threadId;
     private int clientVersion;
     private String sessionId;

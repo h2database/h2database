@@ -48,24 +48,35 @@ public class TestTreeMapStore extends TestBase {
         FileUtils.delete(fileName);
         BtreeMapStore s = BtreeMapStore.open(fileName);
         BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
-        int count = 5;
+        int count = 10000;
+        // Profiler p = new Profiler();
+        // p.startCollecting();
+        // long t = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             m.put(i, "hello " + i);
+            assertEquals("hello " + i, m.get(i));
         }
+        // System.out.println("put: " + (System.currentTimeMillis() - t));
+        // System.out.println(p.getTop(5));
+        // p = new Profiler();
+        //p.startCollecting();
+        // t = System.currentTimeMillis();
         s.store();
+        // System.out.println("store: " + (System.currentTimeMillis() - t));
+        // System.out.println(p.getTop(5));
         m.remove(0);
         assertNull(m.get(0));
         for (int i = 1; i < count; i++) {
             assertEquals("hello " + i, m.get(i));
         }
         s.close();
-//        s = BtreeMapStore.open(fileName);
-//        m = s.openMap("data", Integer.class, String.class);
-//        assertNull(m.get(0));
-//        for (int i = 1; i < count; i++) {
-//            assertEquals("hello " + i, m.get(i));
-//        }
-//        s.close();
+        s = BtreeMapStore.open(fileName);
+        m = s.openMap("data", Integer.class, String.class);
+        assertNull(m.get(0));
+        for (int i = 1; i < count; i++) {
+            assertEquals("hello " + i, m.get(i));
+        }
+        s.close();
     }
 
     private void testDefragment() {

@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>ConvertTraceFile: the time in the trace file is now parsed as a long.
+<ul><li>Server mode: when retrieving more than 64 rows each containing a CLOB or BLOB,
+    the error message "The object is already closed" was thrown.
+</li><li>ConvertTraceFile: the time in the trace file is now parsed as a long.
 </li><li>Invalid connection settings are now detected.
 </li><li>Issue 387: WHERE condition getting pushed into sub-query with LIMIT.
 </li></ul>

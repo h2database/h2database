@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.TreeMap;
 import org.h2.dev.store.FilePathCache;
 import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
@@ -140,7 +141,7 @@ public class BtreeMapStore {
 
     private void open() {
         meta = BtreeMap.open(this, "meta", String.class, String.class);
-        new File(fileName).getParentFile().mkdirs();
+        FileUtils.createDirectories(FileUtils.getParent(fileName));
         try {
             log("file open");
             file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
@@ -546,7 +547,7 @@ public class BtreeMapStore {
             try {
                 long pos = getPosition(id);
                 file.position(pos);
-                ByteBuffer buff = ByteBuffer.wrap(new byte[1024]);
+                ByteBuffer buff = ByteBuffer.wrap(new byte[8 * 1024]);
                 // TODO read fully; read only required bytes
                 do {
                     int len = file.read(buff);

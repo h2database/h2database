@@ -7,13 +7,14 @@
 package org.h2.dev.store.btree;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 /**
  * A btree page implementation.
  */
 class Page {
 
-    private static final int MAX_SIZE = 4;
+    private static final int MAX_SIZE = 20;
 
     private final BtreeMap<?, ?> map;
     private long id;
@@ -55,7 +56,7 @@ class Page {
      */
     static Page read(BtreeMap<?, ?> map, long id, ByteBuffer buff) {
         Page p = new Page(map);
-        p.id = id;
+        p.id = p.storedId = id;
         p.read(buff);
         return p;
     }
@@ -79,7 +80,7 @@ class Page {
                 buff.append(" ");
             }
             if (children != null) {
-                buff.append("[" + children[i] + "]");
+                buff.append("[" + children[i] + "] ");
             }
             if (i < keys.length) {
                 buff.append(keys[i]);
@@ -143,6 +144,70 @@ class Page {
         return -(low + 1);
     }
 
+    /**
+     * A position in a cursor
+     */
+    static class CursorPos {
+        Page page;
+        int index;
+    }
+
+    static void min(Page p, ArrayList<CursorPos> parents, Object key) {
+        int todo;
+        while (p != null) {
+            int x = key == null ? 0 : p.findKey(key);
+            if (p.children != null) {
+                if (x < 0) {
+                    x = -x - 1;
+                } else {
+                    x++;
+                }
+                p = p.map.readPage(p.children[x]);
+                CursorPos c = new CursorPos();
+                c.page = p;
+                c.index = x;
+                parents.add(c);
+            } else {
+                if (x < 0) {
+                    x = -x - 1;
+                }
+                CursorPos c = new CursorPos();
+                c.page = p;
+                c.index = x;
+                parents.add(c);
+                return;
+            }
+        }
+    }
+
+    public static Object nextKey(ArrayList<CursorPos> parents) {
+        int todoTest;
+        if (parents.size() == 0) {
+            return null;
+        }
+        while (true) {
+            // TODO avoid remove/add pairs is possible
+            CursorPos p = parents.remove(parents.size() - 1);
+            int index = p.index++;
+            if (index < p.page.keys.length) {
+                parents.add(p);
+                return p.page.keys[index];
+            }
+            while (true) {
+                if (parents.size() == 0) {
+                    return null;
+                }
+                p = parents.remove(parents.size() - 1);
+                index = p.index++;
+                if (index < p.page.children.length) {
+                    parents.add(p);
+                    min(p.page, parents, null);
+                    break;
+                }
+            }
+        }
+    }
+
     private int size() {
         return keys.length;
     }
@@ -151,7 +216,7 @@ class Page {
         return children == null;
     }
 
-    private Page split(int at) {
+    private Page splitLeaf(int at) {
         int a = at, b = keys.length - a;
         Object[] aKeys = new Object[a];
         Object[] bKeys = new Object[b];
@@ -160,22 +225,27 @@ class Page {
         keys = aKeys;
         Object[] aValues = new Object[a];
         Object[] bValues = new Object[b];
+        bValues = new Object[b];
         System.arraycopy(values, 0, aValues, 0, a);
         System.arraycopy(values, a, bValues, 0, b);
         values = aValues;
-        long[] bChildren;
-        if (children == null) {
-            bChildren = null;
-        } else {
-            a = children.length / 2;
-            b = children.length - a;
-            long[] aChildren = new long[a];
-            bChildren = new long[b];
-            System.arraycopy(children, 0, aChildren, 0, a);
-            System.arraycopy(children, a, bChildren, 0, b);
-            children = aChildren;
-        }
-        Page newPage = create(map, bKeys, bValues, bChildren);
+        Page newPage = create(map, bKeys, bValues, null);
+        return newPage;
+    }
+
+    private Page splitNode(int at) {
+        int a = at, b = keys.length - a;
+        Object[] aKeys = new Object[a];
+        Object[] bKeys = new Object[b - 1];
+        System.arraycopy(keys, 0, aKeys, 0, a);
+        System.arraycopy(keys, a + 1, bKeys, 0, b - 1);
+        keys = aKeys;
+        long[] aChildren = new long[a + 1];
+        long[] bChildren = new long[b];
+        System.arraycopy(children, 0, aChildren, 0, a + 1);
+        System.arraycopy(children, a + 1, bChildren, 0, b);
+        children = aChildren;
+        Page newPage = create(map, bKeys, null, bChildren);
         return newPage;
     }
 
@@ -203,23 +273,40 @@ class Page {
             if (parent != null) {
                 parent.children[parentIndex] = p.id;
             }
+            if (!p.isLeaf()) {
+                if (p.size() >= MAX_SIZE) {
+                    // TODO almost duplicate code
+                    int pos = p.size() / 2;
+                    Object k = p.keys[pos];
+                    Page split = p.splitNode(pos);
+                    if (parent == null) {
+                        Object[] keys = { k };
+                        long[] children = { p.getId(), split.getId() };
+                        top = create(map, keys, null, children);
+                        p = top;
+                    } else {
+                        parent.insert(parentIndex, k, null, split.getId());
+                        p = parent;
+                    }
+                }
+            }
             int index = p.findKey(key);
             if (p.isLeaf()) {
                 if (index >= 0) {
                     p.values[index] = value;
-                } else {
-                    index = -index - 1;
-                    p.insert(index, key, value, 0);
-                    if (p.size() >= MAX_SIZE) {
-                        int pos = p.size() / 2;
-                        Object k = p.keys[pos];
-                        Page split = p.split(pos);
-                        if (parent == null) {
-                            Object[] keys = { k };
-                            long[] children = { p.getId(), split.getId() };
-                            Page newRoot = create(map, keys, null, children);
-                            return newRoot;
-                        }
+                    break;
+                }
+                index = -index - 1;
+                p.insert(index, key, value, 0);
+                if (p.size() >= MAX_SIZE) {
+                    int pos = p.size() / 2;
+                    Object k = p.keys[pos];
+                    Page split = p.splitLeaf(pos);
+                    if (parent == null) {
+                        Object[] keys = { k };
+                        long[] children = { p.getId(), split.getId() };
+                        top = create(map, keys, null, children);
+                    } else {
                         parent.insert(parentIndex, k, null, split.getId());
                     }
                 }
@@ -235,7 +322,6 @@ class Page {
         }
         return top;
     }
-
 
     /**
      * Remove a key-value pair.
@@ -317,8 +403,8 @@ class Page {
         }
         if (children != null) {
             long[] newChildren = new long[children.length + 1];
-            copyWithGap(children, newChildren, children.length, index);
-            newChildren[index] = child;
+            copyWithGap(children, newChildren, children.length, index + 1);
+            newChildren[index + 1] = child;
             children = newChildren;
         }
     }
@@ -407,6 +493,10 @@ class Page {
      */
     int lengthIncludingTempChildren() {
         int len = length();
+if (len > 1024) {
+    int test;
+    System.out.println("??");
+}
         if (children != null) {
             int size = children.length;
             for (int i = 0; i < size; i++) {
@@ -506,6 +596,10 @@ class Page {
         if (removeIndex < oldSize) {
             System.arraycopy(src, removeIndex + 1, dst, removeIndex, oldSize - removeIndex - 1);
         }
+    }
+
+    public Object getKey(int index) {
+        return keys[index];
     }
 
 }

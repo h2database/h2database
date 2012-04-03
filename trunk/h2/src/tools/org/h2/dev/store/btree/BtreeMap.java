@@ -331,57 +331,25 @@ public class BtreeMap<K, V> {
      * A cursor to iterate over elements in ascending order.
      */
     class Cursor implements Iterator<K> {
-        Page current;
-        ArrayList<Page> parents = new ArrayList<Page>();
+        private ArrayList<Page.CursorPos> parents = new ArrayList<Page.CursorPos>();
+        private K current;
 
         Cursor(Page root, K from) {
-            min(root, from);
+            Page.min(root, parents, from);
+            fetchNext();
         }
 
-        private void min(Page p, K key) {
-            int todo;
-//            while (n != null) {
-//                int compare = key == null ? -1 : n.compare(key);
-//                if (compare == 0) {
-//                    current = n;
-//                    return;
-//                } else if (compare > 0) {
-//                    n = n.getRight();
-//                } else {
-//                    parents.add(n);
-//                    n = n.getLeft();
-//                }
-//            }
-//            if (parents.size() == 0) {
-//                current = null;
-//                return;
-//            }
-//            current = parents.remove(parents.size() - 1);
+        public K next() {
+            K c = current;
+            if (c != null) {
+                fetchNext();
+            }
+            return c == null ? null : c;
         }
 
         @SuppressWarnings("unchecked")
-        public K next() {
-            int todo;
-            return null;
-//            Page c = current;
-//            if (c != null) {
-//                fetchNext();
-//            }
-//            return c == null ? null : (K) c.getKey();
-        }
-
         private void fetchNext() {
-            int todo;
-//            Page r = current.getRight();
-//            if (r != null) {
-//                min(r, null);
-//                return;
-//            }
-//            if (parents.size() == 0) {
-//                current = null;
-//                return;
-//            }
-//            current = parents.remove(parents.size() - 1);
+            current = (K) Page.nextKey(parents);
         }
 
         public boolean hasNext() {
@@ -391,6 +359,7 @@ public class BtreeMap<K, V> {
         public void remove() {
             throw new UnsupportedOperationException();
         }
+
     }
 
     /**

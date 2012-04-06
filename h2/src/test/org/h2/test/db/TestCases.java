@@ -99,6 +99,9 @@ public class TestCases extends TestBase {
     }
 
     private void testLargeKeys() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();

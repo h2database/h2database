@@ -701,8 +701,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
         new TestTools().runTest(this);
-        int test;
-        // new TestTreeMapStore().runTest(this);
+        new TestTreeMapStore().runTest(this);
         new TestTraceSystem().runTest(this);
         new TestUpgrade().runTest(this);
         new TestUtils().runTest(this);

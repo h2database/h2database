@@ -38,6 +38,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testLargeKeys();
         testExtraSemicolonInDatabaseURL();
         testGroupSubquery();
         testCountDistinctNotNull();
@@ -95,6 +96,24 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testLargeKeys() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("create index on test(name)");
+        stat.execute("insert into test values(1, '1' || space(1500))");
+        conn.close();
+        conn = getConnection("cases");
+        stat = conn.createStatement();
+        stat.execute("insert into test values(2, '2' || space(1500))");
+        conn.close();
+        conn = getConnection("cases");
+        stat = conn.createStatement();
+        stat.executeQuery("select name from test order by name");
+        conn.close();
     }
 
     private void testExtraSemicolonInDatabaseURL() throws SQLException {

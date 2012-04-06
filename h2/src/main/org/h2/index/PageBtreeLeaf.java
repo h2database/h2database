@@ -120,6 +120,7 @@ public class PageBtreeLeaf extends PageBtree {
                 return x < third ? third : x >= 2 * third ? 2 * third : x;
             }
             readAllRows();
+            writtenData = false;
             onlyPosition = true;
             // change the offsets (now storing only positions)
             int o = pageSize;

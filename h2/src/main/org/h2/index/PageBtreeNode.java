@@ -124,7 +124,7 @@ public class PageBtreeNode extends PageBtree {
      * @return the split point of this page, or -1 if no split is required
      */
     private int addChildTry(SearchRow row) {
-        if (entryCount < 3) {
+        if (entryCount < 4) {
             return -1;
         }
         int startData;

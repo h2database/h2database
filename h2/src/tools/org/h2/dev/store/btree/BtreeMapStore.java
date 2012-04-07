@@ -300,7 +300,7 @@ public class BtreeMapStore {
                 pageId = r.updatePageIds(pageId);
             }
         }
-       int metaRootOffset = (int) (pageId - getId(blockId, 0));
+        int metaRootOffset = (int) (pageId - getId(blockId, 0));
 
         // add a dummy entry so the count is correct
         meta.put("block." + b.id, b.toString());
@@ -657,7 +657,7 @@ public class BtreeMapStore {
      * @param string the string to log
      */
     public void log(String string) {
-         // System.out.println(string);
+        // System.out.println(string);
     }
 
 }

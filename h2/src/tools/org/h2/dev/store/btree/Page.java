@@ -32,8 +32,9 @@ class Page {
      * Create a new page.
      *
      * @param map the map
-     * @param key the keys
+     * @param keys the keys
      * @param values the values
+     * @param children the children
      * @return the page
      */
     static Page create(BtreeMap<?, ?> map, Object[] keys, Object[] values, long[] children) {
@@ -111,6 +112,12 @@ class Page {
         this.id = id;
     }
 
+    /**
+     * Get the value for the given key, or null if not found.
+     *
+     * @param key the key
+     * @return the value or null
+     */
     Object find(Object key) {
         int x = findKey(key);
         if (children != null) {
@@ -148,10 +155,25 @@ class Page {
      * A position in a cursor
      */
     static class CursorPos {
+
+        /**
+         * The current page.
+         */
         Page page;
+
+        /**
+         * The current index.
+         */
         int index;
     }
 
+    /**
+     * Go to the first element for the given key.
+     *
+     * @param p the current page
+     * @param parents the stack of parent page positions
+     * @param key the key
+     */
     static void min(Page p, ArrayList<CursorPos> parents, Object key) {
         int todo;
         while (p != null) {
@@ -180,6 +202,12 @@ class Page {
         }
     }
 
+    /**
+     * Get the next key.
+     *
+     * @param parents the stack of parent page positions
+     * @return the next key
+     */
     public static Object nextKey(ArrayList<CursorPos> parents) {
         int todoTest;
         if (parents.size() == 0) {
@@ -390,7 +418,7 @@ class Page {
         return p;
     }
 
-    void insert(int index, Object key, Object value, long child) {
+    private void insert(int index, Object key, Object value, long child) {
         Object[] newKeys = new Object[keys.length + 1];
         copyWithGap(keys, newKeys, keys.length, index);
         newKeys[index] = key;
@@ -409,7 +437,7 @@ class Page {
         }
     }
 
-    void remove(int index) {
+    private void remove(int index) {
         Object[] newKeys = new Object[keys.length - 1];
         copyExcept(keys, newKeys, keys.length, index);
         keys = newKeys;
@@ -493,10 +521,6 @@ class Page {
      */
     int lengthIncludingTempChildren() {
         int len = length();
-if (len > 1024) {
-    int test;
-    System.out.println("??");
-}
         if (children != null) {
             int size = children.length;
             for (int i = 0; i < size; i++) {
@@ -509,6 +533,12 @@ if (len > 1024) {
         return len;
     }
 
+    /**
+     * Update the page ids recursively.
+     *
+     * @param pageId the new page id
+     * @return the next page id
+     */
     long updatePageIds(long pageId) {
         this.storedId = pageId;
         pageId += length();
@@ -524,6 +554,12 @@ if (len > 1024) {
         return pageId;
     }
 
+    /**
+     * Store this page.
+     *
+     * @param buff the target buffer
+     * @return the page id
+     */
     long storeTemp(ByteBuffer buff) {
         write(buff);
         if (children != null) {
@@ -539,6 +575,11 @@ if (len > 1024) {
         return id;
     }
 
+    /**
+     * Count the temporary pages recursively.
+     *
+     * @return the number of temporary pages
+     */
     int countTemp() {
         int count = 1;
         if (children != null) {
@@ -596,10 +637,6 @@ if (len > 1024) {
         if (removeIndex < oldSize) {
             System.arraycopy(src, removeIndex + 1, dst, removeIndex, oldSize - removeIndex - 1);
         }
-    }
-
-    public Object getKey(int index) {
-        return keys[index];
     }
 
 }

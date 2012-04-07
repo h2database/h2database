@@ -361,7 +361,7 @@ public class TreeMapStore {
             meta.put("map." + m.getName(), String.valueOf(p) + "," + m.getKeyType().getName() + "," + m.getValueType().getName());
             nodeId = updateId(r, nodeId);
         }
-       int metaNodeOffset = (int) (nodeId - getId(blockId, 0));
+        int metaNodeOffset = (int) (nodeId - getId(blockId, 0));
 
         // add a dummy entry so the count is correct
         meta.put("block." + b.id, b.toString());
@@ -710,7 +710,7 @@ public class TreeMapStore {
      * @param string the string to log
      */
     public void log(String string) {
-         // System.out.println(string);
+        // System.out.println(string);
     }
 
 }

@@ -117,7 +117,7 @@ public class TestLob extends TestBase {
         Random r = new Random(1);
         for (int i = 0; i < 1000; i++) {
             r.nextBytes(data);
-            prep.setBinaryStream(1, new ByteArrayInputStream(data));
+            prep.setBinaryStream(1, new ByteArrayInputStream(data), -1);
             prep.execute();
         }
         ResultSet rs = stat.executeQuery("select * from test");

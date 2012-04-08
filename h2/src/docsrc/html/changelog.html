@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.166 (2012-04-08)</h2>
 <ul><li>Indexes on column that are larger than half the page size (wide indexes)
     could sometimes get corrupt, resulting in an ArrayIndexOutOfBoundsException in PageBtree.getRow
     or "Row not found" in PageBtreeLeaf. Also, such indexes used too much disk space.
@@ -477,98 +481,6 @@ Change Log
 </li><li>SHUTDOWN DEFRAG didn't defragment the database completely if there was a unique hash index for a memory table.
 </li><li>There were some smaller changes in the encrypting file system (work in progress).
 </li><li>Some time and timezone functions didn't support years before 1.
-</li></ul>
-
-<h2>Version 1.3.153 (2011-03-14)</h2>
-<ul><li>Issue 294: The Maven source bundle now contains a manifest file that allows Eclipse to automatically
-    attach the source code (if Maven is used).
-</li><li>A query with an explicit LIMIT 0 will now return no rows (so far it meant no limit),
-    which is compatible with PostgreSQL and MySQL.
-    A negative limit value, (as well as LIMIT NULL) mean no limit (so far a negative limit meant a limit of one row).
-    There were similar problems with OFFSET.
-</li><li>A new encrypting file system has been implemented.
-    It is currently experimental, and not included in the main jar file.
-    The idea is to allow encrypting all files, not just database files.
-    Also implemented is a simple file system shell tool. At some point,
-    this might replace the Backup, ChangeFileEncryption, DeleteDbFiles, and Restore tools.
-</li><li>Lob in database: storing lob objects was not correctly synchronized.
-    This was specially a problem when using Connection.createBlob() / createClob().
-</li><li>Updated the license page (thanks a lot to Abe to help me with this).
-</li><li>Support for database paths with '\' on non-Windows systems.
-</li><li>The NIO cleaner hack wasn't working as expected, because the clear method was called
-    instead of the clean method. This has been fixed. Please note this hack is not enabled by default,
-    to try it you need to set the system property "h2.nioCleanerHack" to true.
-</li><li>Improved MS SQL Server and MySQL compatibility: support DELETE with TOP or LIMIT.
-</li><li>Support for COSH, SINH, and TANH functions.
-</li><li>Support for the % operator (modulo) thanks to Noel Grandin.
-</li><li>Issue 288: Some right outer join queries failed to produce the correct result or
-    threw exceptions such as "column x must be in the group by list".
-</li><li>Some right outer joins with invalid column referenced (typos) threw a NullPointerException instead of
-    "column not found" exception.
-</li><li>New database setting EARLY_FILTER to allow table implementations
-    to apply filter conditions early on.
-</li><li>Cluster: in a two node cluster, if cluster node stopped, and autocommit was enabled,
-    then changes on the remaining cluster node didn't get committed automatically.
-</li><li>Issue 291: Allow org.h2.value.Value as FUNCTION ALIAS params and return value.
-</li><li>Issue 265: Linked tables: auto-reconnect if the backside connection is lost
-    (workaround for the MySQL problem that disconnects after 8 hours of inactivity).
-</li><li>Linked tables: the index conditions was sometimes not used when querying the remote database.
-</li><li>Issue 294: OSGi: the versions were missing in manifest package exports.
-</li><li>The option -baseDir didn't work with symbolic links.
-</li><li>Support for ALTER TABLE ADD COLUMN IF NOT EXISTS.
-</li><li>Database-level connection settings could only be set in the database URL,
-    but not using the Properties parameter of DriverManager.getConnection(String url, Properties info).
-</li></ul>
-
-<h2>Version 1.3.152 Beta (2011-03-01)</h2>
-<ul><li>H2 Console: browser detection didn't work for Mac OS X with OpenJDK 1.7.
-</li><li>The double or float value -0.0 is now distinct from 0.0 (as in Java).
-</li><li>TCP and PG server: if the default port is already in use, the services are now started on
-    another free port (unless the port is explicitly set). This allows to start the H2 Console
-    even if the TCP or PG servers are already running.
-</li><li>LIKE didn't use an index unless the right hand side was a literal or parameter.
-    Now an index is used for LIKE CONCAT(?, '%').
-</li><li>Array literals with zero or one element were not be parsed correctly.
-    Now trailing commas are ignored (as in Java). Expressions of the form '(1)' are still parsed as the value 1.
-    An empty array is '()'. An array with one element must contain a comma to be parsed as an array, as in '(1,)'.
-</li><li>Issue 290: Conditions using subqueries were sometimes evaluated before much simpler conditions,
-    which was very bad for performance. This includes subqueries returning a value, EXISTS subqueries,
-    and IN(SELECT ..) subqueries.
-</li><li>Issue 288: Some queries with right outer joins or nested joins could throw a NullPointerException.
-</li><li>The database can now be compiled with Java 7.
-    Stub methods for the new JDBC 4.1 methods have been implemented,
-    but the new features can't be used yet.
-</li><li>Issue 289: Railroads (BNF) for "Column Definition" was incorrect.
-</li><li>Issue 287: Railroads (BNF) is not readable for certain web-browser configurations (dark background).
-</li><li>Executing a CSVREAD query multiple times could result in an exception if the data was changed on disk.
-</li><li>SQL railroad diagrams: improved images for people with black background settings.
-</li><li>Build-in documentation search: improved results if searching for multiple words.
-</li><li>DatabaseMetaData.getColumns: there is a typo in the JDBC specification, so that the column #19 is named
-    SCOPE_CATLOG instead of SCOPE_CATALOG. For compatibility with the specification, a new column #24
-    named SCOPE_CATLOG is added. This typo is fixed in the JDBC 4.1 specification.
-    Please note that MySQL only supports SCOPE_CATALOG, while other databases only support SCOPE_CATLOG.
-</li><li>Build: jar files are now downloaded using Maven if possible (and cached in the local Maven repository).
-    Unfortunately, in many cases this will download more data from the Maven repository.
-</li><li>JaQu has been improved a lot thanks to the new committer James Moger.
-</li><li>New sample application that shows how to use "instead of" triggers to support updatable views.
-</li><li>H2 Console: opening a MS SQL Server database is now faster.
-    Also, listing the database meta data sometimes resulted in an exception.
-</li><li>Linked tables / MS SQL Server: if the tables were created in mixed case in MS SQL Server,
-    then the identifiers in the linked tables were case sensitive (in H2).
-</li><li>MVCC: the probability of a lock timeout is now lower if multiple threads try to update the same rows.
-</li><li>Building only the documentation (without compiling all classes) didn't work, specially: ./build.sh clean javadocImpl.
-</li><li>Documentation on how data is stored internally and how indexes work (in the performance section).
-</li><li>Some people reported NullPointerException in FileObjectDiskMapped.
-    The most likely explanation is that multiple threads access the same object at the same time.
-    Therefore, the public methods in this class are now synchronized.
-</li><li>Improved error detection when starting a server with invalid arguments,
-    such as "-tcpPort=9091" or "-tcpPort 9091" (as one parameter) instead of "-tcpPort", "9091".
-</li><li>The function STRINGDECODE ignored characters after a non-escaped double quote.
-    This is no longer the case.
-</li><li>The new CSV option feature introduced in version 1.3.150 didn't support spaces.
-    Now the escape mechanism is changed to support it.
-</li><li>The pseudo-column "_ROWID_" now supports insert, update, and merge (only enabled for version 1.3.x).
-</li><li>Deleting rows in the trigger table inside a trigger could result in a NullPointerException.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

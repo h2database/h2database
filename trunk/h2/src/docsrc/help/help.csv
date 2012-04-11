@@ -625,7 +625,8 @@ INSTEAD OF triggers are implicitly row based and behave like BEFORE triggers.
 Only the first such trigger is called. Such triggers on views are supported.
 They can be used to make views updatable.
 
-A BEFORE SELECT trigger can be used to update a table on demand.
+A BEFORE SELECT trigger is fired just before the database engine tries to read from the table.
+The trigger can be used to update a table on demand.
 The trigger is called with both 'old' and 'new' set to null.
 
 The MERGE statement will call both INSERT and UPDATE triggers.

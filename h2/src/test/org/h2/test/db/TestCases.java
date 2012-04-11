@@ -38,6 +38,7 @@ public class TestCases extends TestBase {
     }
 
     public void test() throws Exception {
+        testViewParameters();
         testLargeKeys();
         testExtraSemicolonInDatabaseURL();
         testGroupSubquery();
@@ -96,6 +97,21 @@ public class TestCases extends TestBase {
         testConstraintReconnect();
         testCollation();
         deleteDb("cases");
+    }
+
+    private void testViewParameters() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute(
+                "create view test as select 0 value, 'x' name from dual");
+        PreparedStatement prep = conn.prepareStatement(
+                "select 1 from test where name=? and value=? and value<=?");
+        prep.setString(1, "x");
+        prep.setInt(2, 0);
+        prep.setInt(3, 1);
+        prep.executeQuery();
+        conn.close();
     }
 
     private void testLargeKeys() throws SQLException {

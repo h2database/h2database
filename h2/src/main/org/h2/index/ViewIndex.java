@@ -274,7 +274,7 @@ public class ViewIndex extends BaseIndex {
             }
             indexColumnCount++;
             paramIndex.add(i);
-            if ((mask & IndexCondition.RANGE) == IndexCondition.RANGE) {
+            if (Integer.bitCount(mask) > 1) {
                 // two parameters for range queries: >= x AND <= y
                 paramIndex.add(i);
             }
@@ -289,17 +289,16 @@ public class ViewIndex extends BaseIndex {
                 Parameter param = new Parameter(firstIndexParam + i);
                 q.addGlobalCondition(param, idx, Comparison.EQUAL_NULL_SAFE);
                 i++;
-            } else {
-                if ((mask & IndexCondition.START) == IndexCondition.START) {
-                    Parameter param = new Parameter(firstIndexParam + i);
-                    q.addGlobalCondition(param, idx, Comparison.BIGGER_EQUAL);
-                    i++;
-                }
-                if ((mask & IndexCondition.END) == IndexCondition.END) {
-                    Parameter param = new Parameter(firstIndexParam + i);
-                    q.addGlobalCondition(param, idx, Comparison.SMALLER_EQUAL);
-                    i++;
-                }
+            }
+            if ((mask & IndexCondition.START) == IndexCondition.START) {
+                Parameter param = new Parameter(firstIndexParam + i);
+                q.addGlobalCondition(param, idx, Comparison.BIGGER_EQUAL);
+                i++;
+            }
+            if ((mask & IndexCondition.END) == IndexCondition.END) {
+                Parameter param = new Parameter(firstIndexParam + i);
+                q.addGlobalCondition(param, idx, Comparison.SMALLER_EQUAL);
+                i++;
             }
         }
         columns = new Column[columnList.size()];

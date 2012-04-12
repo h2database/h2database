@@ -635,6 +635,9 @@ and AFTER SELECT triggers.
 
 Committing or rolling back a transaction within a trigger is not allowed, except for SELECT triggers.
 
+By default a trigger is called once for each statement, without the old and new rows.
+FOR EACH ROW triggers are called once for each inserted, updated, or deleted row.
+
 The trigger need to be created in the same schema as the table.
 The schema name does not need to be specified when creating the trigger.
 

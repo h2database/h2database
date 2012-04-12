@@ -291,6 +291,7 @@ public class MetaTable extends Table {
                     "JAVA_CLASS",
                     "JAVA_METHOD",
                     "DATA_TYPE INT",
+                    "TYPE_NAME",
                     "COLUMN_COUNT INT",
                     "RETURNS_RESULT SMALLINT",
                     "REMARKS",
@@ -1088,6 +1089,8 @@ public class MetaTable extends Table {
                             alias.getJavaMethodName(),
                             // DATA_TYPE
                             "" + DataType.convertTypeToSQLType(method.getDataType()),
+                            // TYPE_NAME
+                            DataType.getDataType(method.getDataType()).name,
                             // COLUMN_COUNT INT
                             "" + method.getParameterCount(),
                             // RETURNS_RESULT SMALLINT
@@ -1117,6 +1120,8 @@ public class MetaTable extends Table {
                         "",
                         // DATA_TYPE
                         "" + DataType.convertTypeToSQLType(Value.NULL),
+                        // TYPE_NAME
+                        DataType.getDataType(Value.NULL).name,
                         // COLUMN_COUNT INT
                         "1",
                         // RETURNS_RESULT SMALLINT

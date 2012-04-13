@@ -23,6 +23,7 @@ import org.h2.test.TestBase;
 public class TestDatabaseEventListener extends TestBase implements DatabaseEventListener {
 
     private static boolean calledOpened, calledClosingDatabase, calledScan, calledCreateIndex;
+    private static boolean calledStatementStart, calledStatementEnd;
 
     /**
      * Run just this test.
@@ -40,6 +41,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         testCalled();
         testCloseLog0(false);
         testCloseLog0(true);
+        testCalledForStatement();
         deleteDb("databaseEventListener");
     }
 
@@ -90,7 +92,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         }
         deleteDb("databaseEventListener");
         String url = getURL("databaseEventListener", true);
-        url += ";DATABASE_EVENT_LISTENER='"+ Init.class.getName() + "'";
+        url += ";DATABASE_EVENT_LISTENER='" + Init.class.getName() + "'";
         Connection conn = DriverManager.getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("select * from test");
@@ -210,6 +212,24 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         assertTrue(calledClosingDatabase);
     }
 
+    private void testCalledForStatement() throws SQLException {
+        Properties p = new Properties();
+        p.setProperty("user", "sa");
+        p.setProperty("password", "sa");
+        calledStatementStart = false;
+        calledStatementEnd = false;
+        p.put("DATABASE_EVENT_LISTENER", getClass().getName());
+        org.h2.Driver.load();
+        String url = "jdbc:h2:mem:databaseEventListener";
+        Connection conn = org.h2.Driver.load().connect(url, p);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("select * from test");
+        conn.close();
+        assertTrue(calledStatementStart);
+        assertTrue(calledStatementEnd);
+    }
+
     public void closingDatabase() {
         calledClosingDatabase = true;
     }
@@ -233,6 +253,17 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         if (state == DatabaseEventListener.STATE_CREATE_INDEX) {
             if (!name.startsWith("SYS:")) {
                 calledCreateIndex = true;
+            }
+        }
+        if (state == STATE_STATEMENT_START) {
+            System.out.println("name = " + name);
+            if (name.equals("select * from test")) {
+                calledStatementStart = true;
+            }
+        }
+        if (state == STATE_STATEMENT_END) {
+            if (name.equals("select * from test")) {
+                calledStatementEnd = true;
             }
         }
     }

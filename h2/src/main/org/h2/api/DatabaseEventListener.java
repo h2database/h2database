@@ -45,6 +45,16 @@ public interface DatabaseEventListener extends EventListener {
     int STATE_RECONNECTED = 4;
 
     /**
+     * This state is used when a query starts.
+     */
+    int STATE_STATEMENT_START = 5;
+
+    /**
+     * This state is used when a query ends.
+     */
+    int STATE_STATEMENT_END = 6;
+
+    /**
      * This method is called just after creating the object.
      * This is done when opening the database if the listener is specified
      * in the database URL, but may be later if the listener is set at
@@ -79,7 +89,7 @@ public interface DatabaseEventListener extends EventListener {
      * @param state the state
      * @param name the object name
      * @param x the current position
-     * @param max the highest value
+     * @param max the highest value, -1 if the max value is unknown
      */
     void setProgress(int state, String name, int x, int max);
 

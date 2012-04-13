@@ -8,6 +8,8 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -121,6 +123,14 @@ public abstract class Command implements CommandInterface {
         if (trace.isInfoEnabled()) {
             startTime = System.currentTimeMillis();
         }
+    }
+
+    void publishStart() {
+        session.getDatabase().publishEvent(DatabaseEventListener.STATE_STATEMENT_START, sql);
+    }
+
+    void publishEnd() {
+        session.getDatabase().publishEvent(DatabaseEventListener.STATE_STATEMENT_END, sql);
     }
 
     /**

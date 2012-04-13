@@ -67,20 +67,24 @@ class CommandContainer extends Command {
 
     public int update() {
         recompileIfRequired();
+        publishStart();
         start();
         session.setLastIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
         int updateCount = prepared.update();
         prepared.trace(startTime, updateCount);
+        publishEnd();
         return updateCount;
     }
 
     public ResultInterface query(int maxrows) {
         recompileIfRequired();
+        publishStart();
         start();
         prepared.checkParameters();
         ResultInterface result = prepared.query(maxrows);
         prepared.trace(startTime, result.getRowCount());
+        publishEnd();
         return result;
     }
 

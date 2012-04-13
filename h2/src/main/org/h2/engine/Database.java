@@ -2406,4 +2406,9 @@ public class Database implements DataHandler {
         throw DbException.throwInternalError();
     }
 
+    public void publishEvent(int state, String sql) {
+        if (eventListener!= null) {
+            eventListener.setProgress(state, sql, 0, -1);
+        }
+    }
 }

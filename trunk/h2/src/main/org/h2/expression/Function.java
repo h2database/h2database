@@ -201,6 +201,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("TAN", TAN, 1, Value.DOUBLE);
         addFunction("TANH", TANH, 1, Value.DOUBLE);
         addFunction("TRUNCATE", TRUNCATE, 2, Value.DOUBLE);
+        // same as TRUNCATE
+        addFunction("TRUNC", TRUNCATE, 2, Value.DOUBLE);
         addFunction("HASH", HASH, 3, Value.BYTES);
         addFunction("ENCRYPT", ENCRYPT, 3, Value.BYTES);
         addFunction("DECRYPT", DECRYPT, 3, Value.BYTES);

@@ -277,7 +277,7 @@ public class FilePathDisk extends FilePath {
                 }
                 InputStream in = getClass().getResourceAsStream(fileName);
                 if (in == null) {
-                    Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+                    in = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
                 }
                 if (in == null) {
                     throw new FileNotFoundException("resource " + fileName);

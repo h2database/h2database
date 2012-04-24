@@ -7,6 +7,7 @@
 package org.h2.command;
 
 import java.util.ArrayList;
+import org.h2.api.DatabaseEventListener;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
@@ -67,24 +68,24 @@ class CommandContainer extends Command {
 
     public int update() {
         recompileIfRequired();
-        publishStart();
+        setProgress(DatabaseEventListener.STATE_STATEMENT_START);
         start();
         session.setLastIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
         int updateCount = prepared.update();
         prepared.trace(startTime, updateCount);
-        publishEnd();
+        setProgress(DatabaseEventListener.STATE_STATEMENT_END);
         return updateCount;
     }
 
     public ResultInterface query(int maxrows) {
         recompileIfRequired();
-        publishStart();
+        setProgress(DatabaseEventListener.STATE_STATEMENT_START);
         start();
         prepared.checkParameters();
         ResultInterface result = prepared.query(maxrows);
         prepared.trace(startTime, result.getRowCount());
-        publishEnd();
+        setProgress(DatabaseEventListener.STATE_STATEMENT_END);
         return result;
     }
 

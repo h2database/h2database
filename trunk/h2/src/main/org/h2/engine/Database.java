@@ -1809,7 +1809,6 @@ public class Database implements DataHandler {
      * @param x the current position
      * @param max the highest value
      */
-
     public void setProgress(int state, String name, int x, int max) {
         if (eventListener != null) {
             try {
@@ -2406,9 +2405,4 @@ public class Database implements DataHandler {
         throw DbException.throwInternalError();
     }
 
-    public void publishEvent(int state, String sql) {
-        if (eventListener!= null) {
-            eventListener.setProgress(state, sql, 0, -1);
-        }
-    }
 }

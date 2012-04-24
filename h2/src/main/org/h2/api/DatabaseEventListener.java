@@ -89,7 +89,7 @@ public interface DatabaseEventListener extends EventListener {
      * @param state the state
      * @param name the object name
      * @param x the current position
-     * @param max the highest value, -1 if the max value is unknown
+     * @param max the highest possible value (might be 0)
      */
     void setProgress(int state, String name, int x, int max);
 

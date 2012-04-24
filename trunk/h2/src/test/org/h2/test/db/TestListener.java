@@ -69,6 +69,9 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         if (state == lastState && time < last + 1000) {
             return;
         }
+        if (state == STATE_STATEMENT_START || state == STATE_STATEMENT_END) {
+            return;
+        }
         if (name.length() > 30) {
             name = "..." + name.substring(name.length() - 30);
         }

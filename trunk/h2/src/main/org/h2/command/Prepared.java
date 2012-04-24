@@ -304,7 +304,7 @@ public abstract class Prepared {
      * @param count the update count
      */
     void trace(long startTime, int count) {
-        if (session.getTrace().isInfoEnabled()) {
+        if (session.getTrace().isInfoEnabled() && startTime > 0) {
             long time = System.currentTimeMillis() - startTime;
             String params = Trace.formatParams(parameters);
             session.getTrace().infoSQL(sqlStatement, params, count, time);

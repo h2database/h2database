@@ -8,8 +8,6 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -125,12 +123,8 @@ public abstract class Command implements CommandInterface {
         }
     }
 
-    void publishStart() {
-        session.getDatabase().publishEvent(DatabaseEventListener.STATE_STATEMENT_START, sql);
-    }
-
-    void publishEnd() {
-        session.getDatabase().publishEvent(DatabaseEventListener.STATE_STATEMENT_END, sql);
+    void setProgress(int state) {
+        session.getDatabase().setProgress(state, sql, 0, 0);
     }
 
     /**
@@ -160,7 +154,7 @@ public abstract class Command implements CommandInterface {
                 }
             }
         }
-        if (trace.isInfoEnabled()) {
+        if (trace.isInfoEnabled() && startTime > 0) {
             long time = System.currentTimeMillis() - startTime;
             if (time > Constants.SLOW_QUERY_LIMIT_MS) {
                 trace.info("slow query: {0} ms", time);

@@ -1441,26 +1441,6 @@ public class PageStore implements CacheWriter {
             }
             ignoreBigLog = true;
             trace.error(null, "Transaction log could not be truncated; size: " + (newSize / 1024 / 1024) + " MB");
-            long logSizeLimit = database.getSettings().logSizeLimit;
-            if (logSizeLimit == 0 || newSize < logSizeLimit) {
-                return;
-            }
-            int firstUncommittedSection = log.getLogSectionId();
-            Session[] sessions = database.getSessions(true);
-            Session oldestSession = null;
-            for (Session s : sessions) {
-                int firstUncommitted = s.getFirstUncommittedLog();
-                if (firstUncommitted != Session.LOG_WRITTEN) {
-                    if (firstUncommitted < firstUncommittedSection) {
-                        firstUncommittedSection = firstUncommitted;
-                        oldestSession = s;
-                    }
-                }
-            }
-            trace.info("Rolling back session #" +oldestSession.getId() + " (the oldest uncommitted)");
-            synchronized (oldestSession) {
-                oldestSession.rollback();
-            }
             logSizeBase = log.getSize();
         }
     }

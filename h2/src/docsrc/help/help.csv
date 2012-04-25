@@ -1255,9 +1255,10 @@ SET MAX_LENGTH_INPLACE_LOB 128
 "Commands (Other)","SET MAX_LOG_SIZE","
 SET MAX_LOG_SIZE int
 ","
-Sets the maximum size of the transaction log, in megabytes. If the log exceeds the
-limit, a new stream is created. Old streams (that are not used for recovery) are
-freed automatically. The default max size is 16 MB.
+Sets the maximum size of the transaction log, in megabytes.
+If the log is larger, and if there is no open transaction, the transaction log is truncated.
+If there is an option transaction, the transaction log will continue to grow however.
+The default max size is 16 MB.
 This setting has no effect for in-memory databases.
 
 Admin rights are required to execute this command, as it affects all connections.

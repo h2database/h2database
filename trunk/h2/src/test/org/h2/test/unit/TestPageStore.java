@@ -78,18 +78,10 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testLogLimit() throws Exception {
-        testLogLimit(false);
-        testLogLimit(true);
-    }
-
-    private void testLogLimit(boolean autoRollback) throws Exception {
         deleteDb("pageStore");
         Connection conn, conn2;
         Statement stat, stat2;
         String url = "pageStore;TRACE_LEVEL_FILE=2";
-        if (autoRollback) {
-            url += ";LOG_SIZE_LIMIT=1";
-        }
         conn = getConnection(url);
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
@@ -106,19 +98,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         InputStream in = FileUtils.newInputStream(getBaseDir() + "/pageStore.trace.db");
         String s = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
         assertTrue(s.indexOf("Transaction log could not be truncated") > 0);
-        if (autoRollback) {
-            assertTrue(s, s.indexOf("Rolling back session") > 0);
-        } else {
-            assertTrue(s, s.indexOf("Rolling back session") < 0);
-        }
         conn.commit();
         ResultSet rs = stat2.executeQuery("select * from test");
-        if (autoRollback) {
-            assertFalse(rs.next());
-        } else {
-            assertTrue(rs.next());
-        }
-
+        assertTrue(rs.next());
         conn2.close();
         conn.close();
     }

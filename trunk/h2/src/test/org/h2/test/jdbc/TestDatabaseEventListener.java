@@ -256,7 +256,6 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
             }
         }
         if (state == STATE_STATEMENT_START) {
-            System.out.println("name = " + name);
             if (name.equals("select * from test")) {
                 calledStatementStart = true;
             }

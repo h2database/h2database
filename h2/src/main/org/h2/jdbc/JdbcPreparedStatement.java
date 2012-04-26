@@ -22,6 +22,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.expression.ParameterInterface;
@@ -62,6 +64,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     protected CommandInterface command;
     private final String sqlStatement;
     private ArrayList<Value[]> batchParameters;
+    private HashMap<String, Integer> cachedColumnLabelMap = null;
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int id, int resultSetType,
                 int resultSetConcurrency, boolean closeWithResultSet) {
@@ -71,6 +74,14 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
         command = conn.prepareCommand(sql, fetchSize);
     }
 
+    /**
+     * Looking up the column index can sometimes show up on the performance profile,
+     * so cache the map.
+     */
+    void setCachedColumnLabelMap( HashMap<String, Integer> cachedColumnLabelMap) {
+    	this.cachedColumnLabelMap = cachedColumnLabelMap;
+    }
+    
     /**
      * Executes a query (select statement) and returns the result set. If
      * another result set exists for this statement, this will be closed (even
@@ -97,7 +108,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
                 } finally {
                     setExecutingStatement(null);
                 }
-                resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable);
+                resultSet = new JdbcResultSet(conn, this, result, id, closedByResultSet, scrollable, updatable, cachedColumnLabelMap);               
             }
             return resultSet;
         } catch (Exception e) {

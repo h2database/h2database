@@ -9755,6 +9755,12 @@ select ifnull(null, '1') x1, ifnull(null, null) xn, ifnull('a', 'b') xa from tes
 > 1  null a
 > rows: 1
 
+select isnull(null, '1') x1, isnull(null, null) xn, isnull('a', 'b') xa from test;
+> X1 XN   XA
+> -- ---- --
+> 1  null a
+> rows: 1
+
 select casewhen(null, '1', '2') xn, casewhen(1>0, 'n', 'y') xy, casewhen(0<1, 'a', 'b') xa from test;
 > XN XY XA
 > -- -- --

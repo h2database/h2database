@@ -310,6 +310,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("DATABASE_PATH", DATABASE_PATH, 0, Value.STRING);
         addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT, 0, Value.INT);
         addFunctionWithNull("IFNULL", IFNULL, 2, Value.NULL);
+        addFunctionWithNull("ISNULL", IFNULL, 2, Value.NULL);
         addFunctionWithNull("CASEWHEN", CASEWHEN, 3, Value.NULL);
         addFunctionWithNull("CONVERT", CONVERT, 1, Value.NULL);
         addFunctionWithNull("CAST", CAST, 1, Value.NULL);

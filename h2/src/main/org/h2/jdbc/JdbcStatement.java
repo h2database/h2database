@@ -284,26 +284,6 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
-     * Moves to the next result set - however there is always only one result
-     * set. This call also closes the current result set (if there is one).
-     * Returns true if there is a next result set (that means - it always
-     * returns false).
-     *
-     * @return false
-     * @throws SQLException if this object is closed.
-     */
-    public boolean getMoreResults() throws SQLException {
-        try {
-            debugCodeCall("getMoreResults");
-            checkClosed();
-            closeOldResultSet();
-            return false;
-        } catch (Exception e) {
-            throw logAndConvert(e);
-        }
-    }
-
-    /**
      * Sets the name of the cursor. This call is ignored.
      *
      * @param name ignored
@@ -681,6 +661,26 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
+     * Moves to the next result set - however there is always only one result
+     * set. This call also closes the current result set (if there is one).
+     * Returns true if there is a next result set (that means - it always
+     * returns false).
+     *
+     * @return false
+     * @throws SQLException if this object is closed.
+     */
+    public boolean getMoreResults() throws SQLException {
+        try {
+            debugCodeCall("getMoreResults");
+            checkClosed();
+            closeOldResultSet();
+            return false;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
      * Move to the next result set.
      * This method always returns false.
      *
@@ -695,9 +695,8 @@ public class JdbcStatement extends TraceObject implements Statement {
             switch (current) {
             case Statement.CLOSE_CURRENT_RESULT:
             case Statement.CLOSE_ALL_RESULTS:
-                if (resultSet != null) {
-                    resultSet.close();
-                }
+                checkClosed();
+                closeOldResultSet();
                 break;
             case Statement.KEEP_CURRENT_RESULT:
                 // nothing to do

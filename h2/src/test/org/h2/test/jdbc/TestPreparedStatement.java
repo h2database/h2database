@@ -83,6 +83,7 @@ public class TestPreparedStatement extends TestBase {
             testIdentity(conn);
         }
         testDataTypes(conn);
+        testGetMoreResults(conn);
         testBlob(conn);
         testClob(conn);
         testParameterMetaData(conn);
@@ -863,23 +864,39 @@ public class TestPreparedStatement extends TestBase {
 
         rs = stat.executeQuery("SELECT VALUE FROM T_DECIMAL_0 ORDER BY ID");
         checkBigDecimal(rs, new String[] { "" + Long.MAX_VALUE, "" + Long.MIN_VALUE, "10", "-20", "30", "-40" });
+    }
 
-        // getMoreResults
+    private void testGetMoreResults(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        PreparedStatement prep;
+        ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("INSERT INTO TEST VALUES(1)");
+        
         prep = conn.prepareStatement("SELECT * FROM TEST");
         // just to check if it doesn't throw an exception - it may be null
         prep.getMetaData();
         assertTrue(prep.execute());
         rs = prep.getResultSet();
         assertFalse(prep.getMoreResults());
+        assertEquals(-1, prep.getUpdateCount());
         // supposed to be closed now
         assertThrows(ErrorCode.OBJECT_CLOSED, rs).next();
-        assertTrue(prep.getUpdateCount() == -1);
+        assertEquals(-1, prep.getUpdateCount());
+        
+        prep = conn.prepareStatement("UPDATE TEST SET ID = 2");
+        assertFalse(prep.execute());
+        assertEquals(1, prep.getUpdateCount());
+        assertFalse(prep.getMoreResults(Statement.CLOSE_CURRENT_RESULT));
+        assertEquals(-1, prep.getUpdateCount());
+        // supposed to be closed now
+        assertThrows(ErrorCode.OBJECT_CLOSED, rs).next();
+        assertEquals(-1, prep.getUpdateCount());
+        
         prep = conn.prepareStatement("DELETE FROM TEST");
         prep.executeUpdate();
         assertFalse(prep.getMoreResults());
-        assertTrue(prep.getUpdateCount() == -1);
+        assertEquals(-1, prep.getUpdateCount());
     }
 
     private void testObject(Connection conn) throws SQLException {

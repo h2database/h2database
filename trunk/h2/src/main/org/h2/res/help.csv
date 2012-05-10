@@ -973,7 +973,7 @@ HASH(algorithmString, dataBytes, iterationInt)
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations."
 "Functions (Numeric)","TRUNCATE","
-TRUNCATE(numeric, digitsInt)
+{ TRUNC | TRUNCATE } (numeric, digitsInt)
 ","
 Truncates to a number of digits (to the next value closer to 0)."
 "Functions (Numeric)","COMPRESS","

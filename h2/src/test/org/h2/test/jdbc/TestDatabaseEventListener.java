@@ -23,7 +23,7 @@ import org.h2.test.TestBase;
 public class TestDatabaseEventListener extends TestBase implements DatabaseEventListener {
 
     private static boolean calledOpened, calledClosingDatabase, calledScan, calledCreateIndex;
-    private static boolean calledStatementStart, calledStatementEnd;
+    private static boolean calledStatementStart, calledStatementEnd, calledStatementProgress;
 
     /**
      * Run just this test.
@@ -218,6 +218,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         p.setProperty("password", "sa");
         calledStatementStart = false;
         calledStatementEnd = false;
+        calledStatementProgress = false;
         p.put("DATABASE_EVENT_LISTENER", getClass().getName());
         org.h2.Driver.load();
         String url = "jdbc:h2:mem:databaseEventListener";
@@ -228,6 +229,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         conn.close();
         assertTrue(calledStatementStart);
         assertTrue(calledStatementEnd);
+        assertTrue(calledStatementProgress);
     }
 
     public void closingDatabase() {
@@ -263,6 +265,11 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         if (state == STATE_STATEMENT_END) {
             if (name.equals("select * from test")) {
                 calledStatementEnd = true;
+            }
+        }
+        if (state == STATE_STATEMENT_PROGRESS) {
+            if (name.equals("select * from test")) {
+                calledStatementProgress = true;
             }
         }
     }

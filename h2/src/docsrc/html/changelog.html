@@ -29,6 +29,7 @@ Change Log
 </li><li>Then reading from a resource using the prefix "classpath:", the ContextClassLoader
     is now used if the resource can't be read otherwise.
 </li><li>DatabaseEventListener now calls setProgress whenever a statement starts and ends.
+</li><li>DatabaseEventListener now calls setProgress periodically while a statement is running.
 </li><li>The table INFORMATION_SCHEMA.FUNCTION_ALIASES now includes a column TYPE_NAME.
 </li><li>Issue 378: when using views, the wrong values were bound to a parameter in some cases.
 </li><li>Terrence Huang has translated the error messages to Chinese. Thanks a lot!

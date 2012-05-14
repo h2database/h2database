@@ -91,7 +91,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     private Value[] updateRow;
     private HashMap<String, Integer> columnLabelMap;
     private HashMap<Integer, Value[]> patchedRows;
-    private JdbcPreparedStatement preparedStatement = null;
+    private JdbcPreparedStatement preparedStatement;
 
     JdbcResultSet(JdbcConnection conn, JdbcStatement stat, ResultInterface result, int id,
                 boolean closeStatement, boolean scrollable, boolean updatable) {
@@ -104,7 +104,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         this.scrollable = scrollable;
         this.updatable = updatable;
     }
-    
+
     /**
      * Overload used to explicitly set the column-mapping.
      */

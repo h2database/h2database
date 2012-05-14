@@ -593,6 +593,7 @@ public class JdbcStatement extends TraceObject implements Statement {
 
     /**
      * Executes the batch.
+     * If one of the batched statements fails, this database will continue.
      *
      * @return the array of update counts
      */

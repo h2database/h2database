@@ -634,9 +634,15 @@ public class TableFilter implements ColumnResolver {
                 buffNested.append('\n');
                 n = n.getJoin();
             } while (n != null);
-            buff.append("(\n");
-            buff.append(StringUtils.indent(buffNested.toString(), 4, false));
-            buff.append(')');
+            String nested = buffNested.toString();
+            boolean enclose = !nested.startsWith("(");
+            if (enclose) {
+                buff.append("(\n");
+            }
+            buff.append(StringUtils.indent(nested, 4, false));
+            if (enclose) {
+                buff.append(')');
+            }
             if (isJoin) {
                 buff.append(" ON ");
                 if (joinCondition == null) {

@@ -1,3 +1,5 @@
+select 1 from(select 2 from(select 1) a right join dual b) c;
+> 1;
 select 1.00 / 3 * 0.00;
 > 0.00000000000000000000000000000;
 select 1.00000 / 3 * 0.0000;

@@ -18,8 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Server mode: the number of CLOB / BLOB values that were cached on the server
-    is now 5 times the SERVER_RESULT_SET_FETCH_SIZE (which is 100 by default).
+<ul><li>Lukas Eder has updated the jOOQ documentation.
+</li><li>Some nested joins could not be executed, for example:
+    select * from (select * from (select * from a) a right join b b) c;
+</li><li>MS SQL Server compatibility: ISNULL is now an alias for IFNULL.
+</li><li>Terrence Huang has completed the translation of the H2 Console tool to Chinese. Thanks a lot!
+</li><li>Server mode: the number of CLOB / BLOB values that were cached on the server
+    is now the maximum of: 5 times the SERVER_RESULT_SET_FETCH_SIZE (which is 100 by default),
+    and SysProperties.SERVER_CACHED_OBJECTS.
 </li><li>In the trace file, the query execution time was incorrect in some cases, specially
     for the statement SET TRACE_LEVEL_FILE 2.
 </li><li>The feature LOG_SIZE_LIMIT that was introduced in version 1.3.165 did not always work

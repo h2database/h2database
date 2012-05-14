@@ -55,7 +55,7 @@ public interface DatabaseEventListener extends EventListener {
     int STATE_STATEMENT_END = 6;
 
     /**
-     * This state is used for periodic notification during long-running queries
+     * This state is used for periodic notification during long-running queries.
      */
     int STATE_STATEMENT_PROGRESS = 7;
 

@@ -567,7 +567,8 @@ When using Hibernate, try to use the <code>H2Dialect</code> if possible.
 When using the <code>H2Dialect</code>,
 compatibility modes such as <code>MODE=MySQL</code> are not supported.
 When using such a compatibility mode, use the Hibernate dialect for the
-corresponding database instead of the <code>H2Dialect</code>.
+corresponding database instead of the <code>H2Dialect</code>;
+but please note H2 does not support all features of all databases.
 </p>
 
 <h2 id="using_toplink">Using TopLink and Glassfish</h2>
@@ -646,24 +647,35 @@ then run the jOOQ code generator on the command line using this command:
 </p>
 <pre>
 java -cp jooq.jar;jooq-meta.jar;jooq-codegen.jar;h2-1.3.158.jar;.
-org.jooq.util.GenerationTool /codegen.properties
+org.jooq.util.GenerationTool /codegen.xml
 </pre>
 <p>
-...where <code>codegen.properties</code> contains this information
+...where <code>codegen.xml</code> is on the classpath and contains this information
 </p>
 <pre>
-jdbc.Driver=org.h2.Driver
-jdbc.URL=jdbc:h2:~/test
-jdbc.Schema=PUBLIC
-jdbc.User=sa
-jdbc.Password=
-generator=org.jooq.util.DefaultGenerator
-generator.database=org.jooq.util.h2.H2Database
-generator.database.includes=.*
-generator.database.excludes=
-generator.generate.relations=true
-generator.target.package=org.jooq.h2.generated
-generator.target.directory=./src
+&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+&lt;configuration xmlns="http://www.jooq.org/xsd/jooq-codegen-2.3.0.xsd">
+    &lt;jdbc>
+        &lt;driver>org.h2.Driver&lt;/driver>
+        &lt;url>jdbc:h2:~/test&lt;/url>
+        &lt;user>sa&lt;/user>
+        &lt;password>&lt;/password>
+    &lt;/jdbc>
+    &lt;generator>
+        &lt;name>org.jooq.util.DefaultGenerator&lt;/name>
+        &lt;database>
+            &lt;name>org.jooq.util.h2.H2Database&lt;/name>
+            &lt;includes>.*&lt;/includes>
+            &lt;excludes>&lt;/excludes>
+            &lt;inputSchema>PUBLIC&lt;/inputSchema>
+        &lt;/database>
+        &lt;generate>&lt;/generate>
+        &lt;target>
+            &lt;packageName>org.jooq.h2.generated&lt;/packageName>
+            &lt;directory>./src&lt;/directory>
+        &lt;/target>
+    &lt;/generator>
+&lt;/configuration>
 </pre>
 <p>
 Using the generated source, you can query the database as follows:
@@ -678,7 +690,7 @@ create.selectFrom(USER)
 </pre>
 <p>
 See more details on <a href="http://www.jooq.org">jOOQ Homepage</a>
-and in the <a href="http://sourceforge.net/apps/trac/jooq/wiki/Manual/META/Configuration">jOOQ Manual</a>
+and in the <a href="http://www.jooq.org/tutorial.php">jOOQ Tutorial</a>
 </p>
 
 <h2 id="web_applications">Using Databases in Web Applications</h2>

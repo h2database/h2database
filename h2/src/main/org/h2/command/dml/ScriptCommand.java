@@ -16,10 +16,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Set;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
+import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Comment;
@@ -64,6 +67,8 @@ import org.h2.value.ValueString;
 public class ScriptCommand extends ScriptBase {
 
     private String charset = Constants.VERSION_MINOR < 3 ? SysProperties.FILE_ENCODING : Constants.UTF8;
+    private Set<String> schemaNames;
+    private Collection<Table> tables;
     private boolean passwords;
     private boolean data;
     private boolean settings;
@@ -85,6 +90,14 @@ public class ScriptCommand extends ScriptBase {
     }
 
     // TODO lock all tables for 'script' command
+
+    public void setSchemaNames(Set<String> schemaNames) {
+        this.schemaNames = schemaNames;
+    }
+
+    public void setTables(Collection<Table> tables) {
+        this.tables = tables;
+    }
 
     public void setData(boolean data) {
         this.data = data;
@@ -121,6 +134,15 @@ public class ScriptCommand extends ScriptBase {
     public ResultInterface query(int maxrows) {
         session.getUser().checkAdmin();
         reset();
+        Database db = session.getDatabase();
+        if (schemaNames != null) {
+            for (String schemaName : schemaNames) {
+                Schema schema = db.findSchema(schemaName);
+                if (schema == null) {
+                    throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
+                }
+            }
+        }
         try {
             result = createResult();
             deleteStore();
@@ -128,7 +150,6 @@ public class ScriptCommand extends ScriptBase {
             if (out != null) {
                 buffer = new byte[Constants.IO_BUFFER_SIZE];
             }
-            Database db = session.getDatabase();
             if (settings) {
                 for (Setting setting : db.getAllSettings()) {
                     if (setting.getName().equals(SetTypes.getTypeName(SetTypes.CREATE_BUILD))) {
@@ -149,6 +170,9 @@ public class ScriptCommand extends ScriptBase {
                 add(role.getCreateSQL(true), false);
             }
             for (Schema schema : db.getAllSchemas()) {
+                if (excludeSchema(schema)) {
+                    continue;
+                }
                 add(schema.getCreateSQL(), false);
             }
             for (UserDataType datatype : db.getAllUserDataTypes()) {
@@ -158,6 +182,9 @@ public class ScriptCommand extends ScriptBase {
                 add(datatype.getCreateSQL(), false);
             }
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.CONSTANT)) {
+                if (excludeSchema(obj.getSchema())) {
+                    continue;
+                }
                 Constant constant = (Constant) obj;
                 add(constant.getCreateSQL(), false);
             }
@@ -170,6 +197,12 @@ public class ScriptCommand extends ScriptBase {
                 }
             });
             for (Table table : tables) {
+                if (excludeSchema(table.getSchema())) {
+                    continue;
+                }
+                if (excludeTable(table)) {
+                    continue;
+                }
                 if (table.isHidden()) {
                     continue;
                 }
@@ -184,6 +217,9 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
+                if (excludeSchema(obj.getSchema())) {
+                    continue;
+                }
                 if (drop) {
                     add(obj.getDropSQL(), false);
                 }
@@ -196,6 +232,9 @@ public class ScriptCommand extends ScriptBase {
                 add(agg.getCreateSQL(), false);
             }
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE)) {
+                if (excludeSchema(obj.getSchema())) {
+                    continue;
+                }
                 Sequence sequence = (Sequence) obj;
                 if (drop) {
                     add(sequence.getDropSQL(), false);
@@ -204,6 +243,12 @@ public class ScriptCommand extends ScriptBase {
             }
             int count = 0;
             for (Table table : tables) {
+                if (excludeSchema(table.getSchema())) {
+                    continue;
+                }
+                if (excludeTable(table)) {
+                    continue;
+                }
                 if (table.isHidden()) {
                     continue;
                 }
@@ -311,7 +356,13 @@ public class ScriptCommand extends ScriptBase {
                 }
             });
             for (SchemaObject obj : constraints) {
+                if (excludeSchema(obj.getSchema())) {
+                    continue;
+                }
                 Constraint constraint = (Constraint) obj;
+                if (excludeTable(constraint.getTable())) {
+                    continue;
+                }
                 if (constraint.getTable().isHidden()) {
                     continue;
                 }
@@ -320,10 +371,25 @@ public class ScriptCommand extends ScriptBase {
                 }
             }
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.TRIGGER)) {
+                if (excludeSchema(obj.getSchema())) {
+                    continue;
+                }
                 TriggerObject trigger = (TriggerObject) obj;
+                if (excludeTable(trigger.getTable())) {
+                    continue;
+                }
                 add(trigger.getCreateSQL(), false);
             }
             for (Right right : db.getAllRights()) {
+                Table table = right.getGrantedTable();
+                if (table != null) {
+                    if (excludeSchema(table.getSchema())) {
+                        continue;
+                    }
+                    if (excludeTable(table)) {
+                        continue;
+                    }
+                }
                 add(right.getCreateSQL(), false);
             }
             for (Comment comment : db.getAllComments()) {
@@ -547,6 +613,28 @@ public class ScriptCommand extends ScriptBase {
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }
+    }
+
+    private boolean excludeSchema(Schema schema) {
+        if (this.schemaNames != null && !this.schemaNames.contains(schema.getName())) {
+            return true;
+        }
+        if (this.tables != null) {
+            boolean containsTable = false;
+            for (Table table : schema.getAllTablesAndViews()) {
+                if (tables.contains(table)) {
+                    table.checkSupportAlter(); // This may not be the correct way to ensure that only real tables can be used as arguments.
+                    containsTable = true;
+                }
+            }
+            if (!containsTable)
+                return true;
+        }
+        return false;
+    }
+
+    private boolean excludeTable(Table table) {
+        return this.tables != null && !this.tables.contains(table);
     }
 
     private void add(String s, boolean insert) throws IOException {

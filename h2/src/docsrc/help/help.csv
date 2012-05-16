@@ -147,6 +147,10 @@ SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 [ TO fileNameString [ scriptCompression ]
     [ CIPHER cipher PASSWORD string ] ]
 [ CHARSET charsetString ]
+[ TABLE tableName ]
+[ TABLE ( tableName, ... ) ]
+[ SCHEMA schemaName ]
+[ SCHEMA ( schemaName, ... ) ]
 ","
 Creates a SQL script from the database.
 
@@ -169,6 +173,10 @@ and LZF are supported (LZF is faster but uses more space).
 The password must be in single quotes; it is case sensitive and can contain spaces.
 
 This command locks objects while it is running.
+
+TABLE will dump the DDL only for the selected table.
+
+SCHEMA will dump the DDL only for objects in the selected schema.
 ","
 SCRIPT NODATA
 "

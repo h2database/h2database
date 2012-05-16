@@ -4692,27 +4692,16 @@ public class Parser {
         boolean data = true, passwords = true, settings = true, dropTables = false, simple = false;
         if (readIf("SCHEMA")) {
             java.util.Set<String> schemaNames = new HashSet<String>();
-            if (readIf("(")) {
-                do {
-                    schemaNames.add(readUniqueIdentifier());
-                } while (readIf(","));
-                read(")");
-            } else {
+            do {
                 schemaNames.add(readUniqueIdentifier());
-            }
+            } while (readIf(","));
             command.setSchemaNames(schemaNames);
         } else if (readIf("TABLE")) {
             Collection<Table> tables = new ArrayList<Table>();
-            if (readIf("(")) {
-                do {
-                    Table table = readTableOrView();
-                    tables.add(table);
-                } while (readIf(","));
-                read(")");
-            } else {
+            do {
                 Table table = readTableOrView();
                 tables.add(table);
-            }
+            } while (readIf(","));
             command.setTables(tables);
         }
         if (readIf("SIMPLE")) {

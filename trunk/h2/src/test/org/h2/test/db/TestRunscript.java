@@ -93,7 +93,7 @@ public class TestRunscript extends TestBase implements Trigger {
         }
         rs.close();
         stat.execute("create schema include_schema2");
-        stat.execute("script schema (include_schema1, include_schema2)");
+        stat.execute("script schema include_schema1, include_schema2");
         rs = stat.getResultSet();
         assertResultRowCount(3, rs); // User and one row pr schema = 3
         rs.close();

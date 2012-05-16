@@ -8,6 +8,7 @@ package org.h2.test.db;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -36,6 +37,14 @@ public class TestRunscript extends TestBase implements Trigger {
     public void test() throws Exception {
         testDropReferencedUserDefinedFunction();
         testDropCascade();
+        testScriptExcludeSchema();
+        testScriptExcludeTable();
+        testScriptExcludeFunctionAlias();
+        testScriptExcludeConstant();
+        testScriptExcludeSequence();
+        testScriptExcludeConstraint();
+        testScriptExcludeTrigger();
+        testScriptExcludeRight();
         testRunscriptFromClasspath();
         testCancelScript();
         testEncoding();
@@ -66,6 +75,211 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("create view a as select * from b");
         stat.execute("script simple drop to '" + getBaseDir() + "/backup.sql'");
         stat.execute("runscript from '" + getBaseDir() + "/backup.sql'");
+        conn.close();
+    }
+
+    private void testScriptExcludeSchema() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        ResultSet rs;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create schema include_schema1");
+        stat.execute("create schema exclude_schema1");
+        stat.execute("script schema include_schema1");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The schema 'exclude_schema1' should not be present in the script", rs.getString(1).indexOf("exclude_schema1".toUpperCase()) == -1);
+        }
+        rs.close();
+        stat.execute("create schema include_schema2");
+        stat.execute("script schema (include_schema1, include_schema2)");
+        rs = stat.getResultSet();
+        assertResultRowCount(3, rs); // User and one row pr schema = 3
+        rs.close();
+        conn.close();
+    }
+
+    private void testScriptExcludeTable() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        ResultSet rs;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create schema a");
+        stat.execute("create schema b");
+        stat.execute("create schema c");
+        stat.execute("create table a.test1(x varchar, y int)");
+        stat.execute("create table a.test2(x varchar, y int)");
+        stat.execute("create table b.test1(x varchar, y int)");
+        stat.execute("create table b.test2(x varchar, y int)");
+        stat.execute("script table a.test1");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The table 'a.test2' should not be present in the script", rs.getString(1).indexOf("a.test2".toUpperCase()) == -1);
+            assertTrue("The table 'b.test1' should not be present in the script", rs.getString(1).indexOf("b.test1".toUpperCase()) == -1);
+            assertTrue("The table 'b.test2' should not be present in the script", rs.getString(1).indexOf("b.test2".toUpperCase()) == -1);
+        }
+        rs.close();
+        stat.execute("set schema b");
+        stat.execute("script table test1");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The table 'a.test1' should not be present in the script", rs.getString(1).indexOf("a.test1".toUpperCase()) == -1);
+            assertTrue("The table 'a.test2' should not be present in the script", rs.getString(1).indexOf("a.test2".toUpperCase()) == -1);
+            assertTrue("The table 'b.test2' should not be present in the script", rs.getString(1).indexOf("b.test2".toUpperCase()) == -1);
+        }
+        stat.execute("script table (a.test1, test2)");
+        rs = stat.getResultSet();
+        assertResultRowCount(7, rs); //User, Schemas 'a' & 'b' and 2 rows pr table = 7
+        rs.close();
+        conn.close();
+    }
+
+    private void testScriptExcludeFunctionAlias() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        ResultSet rs;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create schema a");
+        stat.execute("create schema b");
+        stat.execute("create schema c");
+        stat.execute("create alias a.int_decode for \"java.lang.Integer.decode\"");
+        stat.execute("create table a.test(x varchar, y int as a.int_decode(x))");
+        stat.execute("script schema b");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The function alias 'int_decode' should not be present in the script", rs.getString(1).indexOf("int_decode".toUpperCase()) == -1);
+        }
+        rs.close();
+        conn.close();
+    }
+
+    private void testScriptExcludeConstant() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        ResultSet rs;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create schema a");
+        stat.execute("create schema b");
+        stat.execute("create schema c");
+        stat.execute("create constant a.default_email value 'no@thanks.org'");
+        stat.execute("create table a.test1(x varchar, email varchar default a.default_email)");
+        stat.execute("script schema b");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The constant 'default_email' should not be present in the script", rs.getString(1).indexOf("default_email".toUpperCase()) == -1);
+        }
+        rs.close();
+        conn.close();
+    }
+
+    private void testScriptExcludeSequence() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        ResultSet rs;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create schema a");
+        stat.execute("create schema b");
+        stat.execute("create schema c");
+        stat.execute("create sequence a.seq_id");
+        stat.execute("script schema b");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The sequence 'seq_id' should not be present in the script", rs.getString(1).indexOf("seq_id".toUpperCase()) == -1);
+        }
+        rs.close();
+        conn.close();
+    }
+
+    private void testScriptExcludeConstraint() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        ResultSet rs;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create schema a");
+        stat.execute("create schema b");
+        stat.execute("create schema c");
+        stat.execute("create table a.test1(x varchar, y int)");
+        stat.execute("alter table a.test1 add constraint unique_constraint unique (x, y) ");
+        stat.execute("script schema b");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The sequence 'unique_constraint' should not be present in the script", rs.getString(1).indexOf("unique_constraint".toUpperCase()) == -1);
+        }
+        rs.close();
+        stat.execute("create table a.test2(x varchar, y int)");
+        stat.execute("script table a.test2");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The sequence 'unique_constraint' should not be present in the script", rs.getString(1).indexOf("unique_constraint".toUpperCase()) == -1);
+        }
+        rs.close();
+        conn.close();
+    }
+
+    private void testScriptExcludeTrigger() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        ResultSet rs;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create schema a");
+        stat.execute("create schema b");
+        stat.execute("create schema c");
+        stat.execute("create table a.test1(x varchar, y int)");
+        stat.execute("create trigger trigger_insert before insert on a.test1 for each row call \"org.h2.test.db.TestRunscript\"");
+        stat.execute("script schema b");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The trigger 'trigger_insert' should not be present in the script", rs.getString(1).indexOf("trigger_insert".toUpperCase()) == -1);
+        }
+        rs.close();
+        stat.execute("create table a.test2(x varchar, y int)");
+        stat.execute("script table a.test2");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The trigger 'trigger_insert' should not be present in the script", rs.getString(1).indexOf("trigger_insert".toUpperCase()) == -1);
+        }
+        rs.close();
+        conn.close();
+    }
+
+    private void testScriptExcludeRight() throws Exception {
+        deleteDb("runscript");
+        Connection conn;
+        ResultSet rs;
+        conn = getConnection("runscript");
+        Statement stat = conn.createStatement();
+        stat.execute("create user USER_A1 password 'test'");
+        stat.execute("create user USER_B1 password 'test'");
+        stat.execute("create schema a");
+        stat.execute("create schema b");
+        stat.execute("create schema c");
+        stat.execute("create table a.test1(x varchar, y int)");
+        stat.execute("create table b.test1(x varchar, y int)");
+        stat.execute("grant select on a.test1 to USER_A1");
+        stat.execute("grant select on b.test1 to USER_B1");
+        stat.execute("script schema b");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The grant to 'USER_A1' should not be present in the script", rs.getString(1).indexOf("to USER_A1".toUpperCase()) == -1);
+        }
+        rs.close();
+        stat.execute("create user USER_A2 password 'test'");
+        stat.execute("create table a.test2(x varchar, y int)");
+        stat.execute("grant select on a.test2 to USER_A2");
+        stat.execute("script table a.test2");
+        rs = stat.getResultSet();
+        while (rs.next()) {
+            assertTrue("The grant to 'USER_A1' should not be present in the script", rs.getString(1).indexOf("to USER_A1".toUpperCase()) == -1);
+            assertTrue("The grant to 'USER_B1' should not be present in the script", rs.getString(1).indexOf("to USER_B1".toUpperCase()) == -1);
+        }
+        rs.close();
         conn.close();
     }
 

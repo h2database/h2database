@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -4689,6 +4690,31 @@ public class Parser {
     private ScriptCommand parseScript() {
         ScriptCommand command = new ScriptCommand(session);
         boolean data = true, passwords = true, settings = true, dropTables = false, simple = false;
+        if (readIf("SCHEMA")) {
+            java.util.Set<String> schemaNames = new HashSet<String>();
+            if (readIf("(")) {
+                do {
+                    schemaNames.add(readUniqueIdentifier());
+                } while (readIf(","));
+                read(")");
+            } else {
+                schemaNames.add(readUniqueIdentifier());
+            }
+            command.setSchemaNames(schemaNames);
+        } else if (readIf("TABLE")) {
+            Collection<Table> tables = new ArrayList<Table>();
+            if (readIf("(")) {
+                do {
+                    Table table = readTableOrView();
+                    tables.add(table);
+                } while (readIf(","));
+                read(")");
+            } else {
+                Table table = readTableOrView();
+                tables.add(table);
+            }
+            command.setTables(tables);
+        }
         if (readIf("SIMPLE")) {
             simple = true;
         }

@@ -58,6 +58,8 @@ SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 [ TO fileNameString [ scriptCompression ]
     [ CIPHER cipher PASSWORD string ] ]
 [ CHARSET charsetString ]
+[ TABLE tableName [, ...] ]
+[ SCHEMA schemaName [, ...] ]
 ","
 Creates a SQL script from the database."
 "Commands (DML)","SHOW","

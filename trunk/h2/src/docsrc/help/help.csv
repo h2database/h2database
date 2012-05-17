@@ -172,9 +172,7 @@ The password must be in single quotes; it is case sensitive and can contain spac
 
 This command locks objects while it is running.
 
-TABLE will dump the DDL only for the selected table.
-
-SCHEMA will dump the DDL only for objects in the selected schema.
+When using the TABLE or SCHEMA option, only the selected table(s) / schema(s) are included.
 ","
 SCRIPT NODATA
 "

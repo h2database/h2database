@@ -57,7 +57,7 @@ public class Engine implements SessionFactory {
             opened = true;
             if (database.getAllUsers().size() == 0) {
                 // users is the last thing we add, so if no user is around,
-                // the database is not initialized correctly
+                // the database is new (or not initialized correctly)
                 user = new User(database, database.allocateObjectId(), ci.getUserName(), false);
                 user.setAdmin(true);
                 user.setUserPasswordHash(ci.getUserPasswordHash());

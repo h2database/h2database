@@ -616,7 +616,19 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private boolean excludeSchema(Schema schema) {
-        return schemaNames != null && !schemaNames.contains(schema.getName());
+        if (schemaNames != null && !schemaNames.contains(schema.getName())) {
+            return true;
+        }
+        if (tables != null) {
+            // if filtering on specific tables, only include those schemas
+            for (Table table : schema.getAllTablesAndViews()) {
+                if (tables.contains(table)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     private boolean excludeTable(Table table) {

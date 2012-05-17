@@ -89,13 +89,15 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script schema include_schema1");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The schema 'exclude_schema1' should not be present in the script", rs.getString(1).indexOf("exclude_schema1".toUpperCase()) == -1);
+            assertTrue("The schema 'exclude_schema1' should not be present in the script",
+                    rs.getString(1).indexOf("exclude_schema1".toUpperCase()) == -1);
         }
         rs.close();
         stat.execute("create schema include_schema2");
         stat.execute("script schema include_schema1, include_schema2");
         rs = stat.getResultSet();
-        assertResultRowCount(3, rs); // User and one row pr schema = 3
+        // user and one row per schema = 3
+        assertResultRowCount(3, rs);
         rs.close();
         conn.close();
     }
@@ -116,22 +118,29 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script table a.test1");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The table 'a.test2' should not be present in the script", rs.getString(1).indexOf("a.test2".toUpperCase()) == -1);
-            assertTrue("The table 'b.test1' should not be present in the script", rs.getString(1).indexOf("b.test1".toUpperCase()) == -1);
-            assertTrue("The table 'b.test2' should not be present in the script", rs.getString(1).indexOf("b.test2".toUpperCase()) == -1);
+            assertTrue("The table 'a.test2' should not be present in the script",
+                    rs.getString(1).indexOf("a.test2".toUpperCase()) == -1);
+            assertTrue("The table 'b.test1' should not be present in the script",
+                    rs.getString(1).indexOf("b.test1".toUpperCase()) == -1);
+            assertTrue("The table 'b.test2' should not be present in the script",
+                    rs.getString(1).indexOf("b.test2".toUpperCase()) == -1);
         }
         rs.close();
         stat.execute("set schema b");
         stat.execute("script table test1");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The table 'a.test1' should not be present in the script", rs.getString(1).indexOf("a.test1".toUpperCase()) == -1);
-            assertTrue("The table 'a.test2' should not be present in the script", rs.getString(1).indexOf("a.test2".toUpperCase()) == -1);
-            assertTrue("The table 'b.test2' should not be present in the script", rs.getString(1).indexOf("b.test2".toUpperCase()) == -1);
+            assertTrue("The table 'a.test1' should not be present in the script",
+                    rs.getString(1).indexOf("a.test1".toUpperCase()) == -1);
+            assertTrue("The table 'a.test2' should not be present in the script",
+                    rs.getString(1).indexOf("a.test2".toUpperCase()) == -1);
+            assertTrue("The table 'b.test2' should not be present in the script",
+                    rs.getString(1).indexOf("b.test2".toUpperCase()) == -1);
         }
-        stat.execute("script table (a.test1, test2)");
+        stat.execute("script table a.test1, test2");
         rs = stat.getResultSet();
-        assertResultRowCount(7, rs); //User, Schemas 'a' & 'b' and 2 rows pr table = 7
+        // user, schemas 'a' & 'b' and 2 rows per table = 7
+        assertResultRowCount(7, rs);
         rs.close();
         conn.close();
     }
@@ -150,7 +159,8 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The function alias 'int_decode' should not be present in the script", rs.getString(1).indexOf("int_decode".toUpperCase()) == -1);
+            assertTrue("The function alias 'int_decode' should not be present in the script",
+                    rs.getString(1).indexOf("int_decode".toUpperCase()) == -1);
         }
         rs.close();
         conn.close();
@@ -170,7 +180,8 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The constant 'default_email' should not be present in the script", rs.getString(1).indexOf("default_email".toUpperCase()) == -1);
+            assertTrue("The constant 'default_email' should not be present in the script",
+                    rs.getString(1).indexOf("default_email".toUpperCase()) == -1);
         }
         rs.close();
         conn.close();
@@ -189,7 +200,8 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The sequence 'seq_id' should not be present in the script", rs.getString(1).indexOf("seq_id".toUpperCase()) == -1);
+            assertTrue("The sequence 'seq_id' should not be present in the script",
+                    rs.getString(1).indexOf("seq_id".toUpperCase()) == -1);
         }
         rs.close();
         conn.close();
@@ -209,14 +221,16 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The sequence 'unique_constraint' should not be present in the script", rs.getString(1).indexOf("unique_constraint".toUpperCase()) == -1);
+            assertTrue("The sequence 'unique_constraint' should not be present in the script",
+                    rs.getString(1).indexOf("unique_constraint".toUpperCase()) == -1);
         }
         rs.close();
         stat.execute("create table a.test2(x varchar, y int)");
         stat.execute("script table a.test2");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The sequence 'unique_constraint' should not be present in the script", rs.getString(1).indexOf("unique_constraint".toUpperCase()) == -1);
+            assertTrue("The sequence 'unique_constraint' should not be present in the script",
+                    rs.getString(1).indexOf("unique_constraint".toUpperCase()) == -1);
         }
         rs.close();
         conn.close();
@@ -232,18 +246,21 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("create schema b");
         stat.execute("create schema c");
         stat.execute("create table a.test1(x varchar, y int)");
-        stat.execute("create trigger trigger_insert before insert on a.test1 for each row call \"org.h2.test.db.TestRunscript\"");
+        stat.execute("create trigger trigger_insert before insert on a.test1 " +
+                "for each row call \"org.h2.test.db.TestRunscript\"");
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The trigger 'trigger_insert' should not be present in the script", rs.getString(1).indexOf("trigger_insert".toUpperCase()) == -1);
+            assertTrue("The trigger 'trigger_insert' should not be present in the script",
+                    rs.getString(1).indexOf("trigger_insert".toUpperCase()) == -1);
         }
         rs.close();
         stat.execute("create table a.test2(x varchar, y int)");
         stat.execute("script table a.test2");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The trigger 'trigger_insert' should not be present in the script", rs.getString(1).indexOf("trigger_insert".toUpperCase()) == -1);
+            assertTrue("The trigger 'trigger_insert' should not be present in the script",
+                    rs.getString(1).indexOf("trigger_insert".toUpperCase()) == -1);
         }
         rs.close();
         conn.close();
@@ -267,7 +284,8 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The grant to 'USER_A1' should not be present in the script", rs.getString(1).indexOf("to USER_A1".toUpperCase()) == -1);
+            assertTrue("The grant to 'USER_A1' should not be present in the script",
+                    rs.getString(1).indexOf("to USER_A1".toUpperCase()) == -1);
         }
         rs.close();
         stat.execute("create user USER_A2 password 'test'");
@@ -276,8 +294,10 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script table a.test2");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The grant to 'USER_A1' should not be present in the script", rs.getString(1).indexOf("to USER_A1".toUpperCase()) == -1);
-            assertTrue("The grant to 'USER_B1' should not be present in the script", rs.getString(1).indexOf("to USER_B1".toUpperCase()) == -1);
+            assertTrue("The grant to 'USER_A1' should not be present in the script",
+                    rs.getString(1).indexOf("to USER_A1".toUpperCase()) == -1);
+            assertTrue("The grant to 'USER_B1' should not be present in the script",
+                    rs.getString(1).indexOf("to USER_B1".toUpperCase()) == -1);
         }
         rs.close();
         conn.close();

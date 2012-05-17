@@ -616,25 +616,11 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private boolean excludeSchema(Schema schema) {
-        if (this.schemaNames != null && !this.schemaNames.contains(schema.getName())) {
-            return true;
-        }
-        if (this.tables != null) {
-            boolean containsTable = false;
-            for (Table table : schema.getAllTablesAndViews()) {
-                if (tables.contains(table)) {
-                    table.checkSupportAlter(); // This may not be the correct way to ensure that only real tables can be used as arguments.
-                    containsTable = true;
-                }
-            }
-            if (!containsTable)
-                return true;
-        }
-        return false;
+        return schemaNames != null && !schemaNames.contains(schema.getName());
     }
 
     private boolean excludeTable(Table table) {
-        return this.tables != null && !this.tables.contains(table);
+        return tables != null && !tables.contains(table);
     }
 
     private void add(String s, boolean insert) throws IOException {

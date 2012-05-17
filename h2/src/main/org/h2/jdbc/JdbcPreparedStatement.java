@@ -75,8 +75,10 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     }
 
     /**
-     * Looking up the column index can sometimes show up on the performance profile,
-     * so cache the map.
+     * Cache the column labels (looking up the column index can sometimes show
+     * up on the performance profile).
+     *
+     * @param cachedColumnLabelMap the column map
      */
     void setCachedColumnLabelMap(HashMap<String, Integer> cachedColumnLabelMap) {
         this.cachedColumnLabelMap = cachedColumnLabelMap;

@@ -872,7 +872,7 @@ public class TestPreparedStatement extends TestBase {
         ResultSet rs;
         stat.execute("CREATE TABLE TEST(ID INT)");
         stat.execute("INSERT INTO TEST VALUES(1)");
-        
+
         prep = conn.prepareStatement("SELECT * FROM TEST");
         // just to check if it doesn't throw an exception - it may be null
         prep.getMetaData();
@@ -883,7 +883,7 @@ public class TestPreparedStatement extends TestBase {
         // supposed to be closed now
         assertThrows(ErrorCode.OBJECT_CLOSED, rs).next();
         assertEquals(-1, prep.getUpdateCount());
-        
+
         prep = conn.prepareStatement("UPDATE TEST SET ID = 2");
         assertFalse(prep.execute());
         assertEquals(1, prep.getUpdateCount());
@@ -892,7 +892,7 @@ public class TestPreparedStatement extends TestBase {
         // supposed to be closed now
         assertThrows(ErrorCode.OBJECT_CLOSED, rs).next();
         assertEquals(-1, prep.getUpdateCount());
-        
+
         prep = conn.prepareStatement("DELETE FROM TEST");
         prep.executeUpdate();
         assertFalse(prep.getMoreResults());

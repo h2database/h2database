@@ -105,14 +105,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         this.updatable = updatable;
     }
 
-    /**
-     * Overload used to explicitly set the column-mapping.
-     */
     JdbcResultSet(JdbcConnection conn, JdbcPreparedStatement preparedStatement, ResultInterface result, int id,
             boolean closeStatement, boolean scrollable, boolean updatable, HashMap<String, Integer> columnLabelMap) {
-    	  this(conn, preparedStatement, result, id, closeStatement, scrollable, updatable);
-    	  this.columnLabelMap = columnLabelMap;
-    	  this.preparedStatement = preparedStatement;
+        this(conn, preparedStatement, result, id, closeStatement, scrollable, updatable);
+        this.columnLabelMap = columnLabelMap;
+        this.preparedStatement = preparedStatement;
     }
 
     /**

@@ -4689,19 +4689,6 @@ public class Parser {
     private ScriptCommand parseScript() {
         ScriptCommand command = new ScriptCommand(session);
         boolean data = true, passwords = true, settings = true, dropTables = false, simple = false;
-        if (readIf("SCHEMA")) {
-            HashSet<String> schemaNames = New.hashSet();
-            do {
-                schemaNames.add(readUniqueIdentifier());
-            } while (readIf(","));
-            command.setSchemaNames(schemaNames);
-        } else if (readIf("TABLE")) {
-            ArrayList<Table> tables = New.arrayList();
-            do {
-                tables.add(readTableOrView());
-            } while (readIf(","));
-            command.setTables(tables);
-        }
         if (readIf("SIMPLE")) {
             simple = true;
         }
@@ -4740,6 +4727,19 @@ public class Parser {
             if (readIf("CHARSET")) {
                 command.setCharset(readString());
             }
+        }
+        if (readIf("SCHEMA")) {
+            HashSet<String> schemaNames = New.hashSet();
+            do {
+                schemaNames.add(readUniqueIdentifier());
+            } while (readIf(","));
+            command.setSchemaNames(schemaNames);
+        } else if (readIf("TABLE")) {
+            ArrayList<Table> tables = New.arrayList();
+            do {
+                tables.add(readTableOrView());
+            } while (readIf(","));
+            command.setTables(tables);
         }
         return command;
     }

@@ -94,7 +94,7 @@ public class TestRunscript extends TestBase implements Trigger {
         }
         rs.close();
         stat.execute("create schema include_schema2");
-        stat.execute("script schema include_schema1, include_schema2");
+        stat.execute("script nosettings schema include_schema1, include_schema2");
         rs = stat.getResultSet();
         // user and one row per schema = 3
         assertResultRowCount(3, rs);
@@ -137,7 +137,7 @@ public class TestRunscript extends TestBase implements Trigger {
             assertTrue("The table 'b.test2' should not be present in the script",
                     rs.getString(1).indexOf("b.test2".toUpperCase()) == -1);
         }
-        stat.execute("script table a.test1, test2");
+        stat.execute("script nosettings table a.test1, test2");
         rs = stat.getResultSet();
         // user, schemas 'a' & 'b' and 2 rows per table = 7
         assertResultRowCount(7, rs);

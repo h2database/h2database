@@ -145,8 +145,8 @@ RUNSCRIPT FROM 'backup.sql'
 SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 [ DROP ] [ BLOCKSIZE blockSizeInt ]
 [ TO fileNameString [ scriptCompression ]
-    [ CIPHER cipher PASSWORD string ] ]
-[ CHARSET charsetString ]
+    [ CIPHER cipher PASSWORD string ]
+    [ CHARSET charsetString ] ]
 [ TABLE tableName [, ...] ]
 [ SCHEMA schemaName [, ...] ]
 ","

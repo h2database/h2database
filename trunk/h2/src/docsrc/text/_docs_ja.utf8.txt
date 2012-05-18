@@ -527,7 +527,7 @@ Database
 # The database name. This can include connections settings. By default, the database is stored in the current working directory where the Server is started except when the -baseDir setting is used. The name must be at least 3 characters. 
 
 @advanced_1176_td
-#Servername #localhost
+#Servername
 
 @advanced_1177_td
 localhost
@@ -539,7 +539,7 @@ localhost
 デフォルトでは、リモート接続のみ許可されています。
 
 @advanced_1180_td
-#Username #sa
+#Username
 
 @advanced_1181_td
 sa
@@ -551,7 +551,7 @@ sa
 #SSL
 
 @advanced_1184_td
-#false (disabled) #現時点で、SSLはサポートされていません。
+#false (disabled)
 
 @advanced_1185_td
 現時点で、SSLはサポートされていません。
@@ -1220,31 +1220,31 @@ SSL/TLS 接続
 AES-128
 
 @advanced_1407_td
-#A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a> #Birthday Paradox
+#A block encryption algorithm. See also: <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">Wikipedia: AES</a>
 
 @advanced_1408_td
 Birthday Paradox
 
 @advanced_1409_td
-#Describes the higher than expected probability that two persons in a room have the same birthday. Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a> #Digest
+#Describes the higher than expected probability that two persons in a room have the same birthday. Also valid for randomly generated UUIDs. See also: <a href="http://en.wikipedia.org/wiki/Birthday_paradox">Wikipedia: Birthday Paradox</a>
 
 @advanced_1410_td
 Digest
 
 @advanced_1411_td
-#Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a> #GCJ
+#Protocol to protect a password (but not to protect data). See also: <a href="http://www.faqs.org/rfcs/rfc2617.html">RFC 2617: HTTP Digest Access Authentication</a>
 
 @advanced_1412_td
 GCJ
 
 @advanced_1413_td
-#Compiler for Java. <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a> #HTTPS
+#Compiler for Java. <a href="http://gcc.gnu.org/java">GNU Compiler for the Java</a> and <a href="http://www.dobysoft.com/products/nativej">NativeJ (commercial)</a>
 
 @advanced_1414_td
 HTTPS
 
 @advanced_1415_td
-#A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a> #Modes of Operation
+#A protocol to provide security to HTTP connections. See also: <a href="http://www.ietf.org/rfc/rfc2818.txt">RFC 2818: HTTP Over TLS</a>
 
 @advanced_1416_td
 Modes of Operation
@@ -1256,31 +1256,31 @@ Modes of Operation
 Salt
 
 @advanced_1419_td
-#Random number to increase the security of passwords. See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a> #SHA-256
+#Random number to increase the security of passwords. See also: <a href="http://en.wikipedia.org/wiki/Key_derivation_function">Wikipedia: Key derivation function</a>
 
 @advanced_1420_td
 SHA-256
 
 @advanced_1421_td
-#A cryptographic one-way hash function. See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a> #SQLインジェクション
+#A cryptographic one-way hash function. See also: <a href="http://en.wikipedia.org/wiki/SHA_family">Wikipedia: SHA hash functions</a>
 
 @advanced_1422_td
 SQLインジェクション
 
 @advanced_1423_td
-#A security vulnerability where an application embeds SQL statements or expressions in user input. See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a> #Watermark Attack (透かし攻撃)
+#A security vulnerability where an application embeds SQL statements or expressions in user input. See also: <a href="http://en.wikipedia.org/wiki/SQL_injection">Wikipedia: SQL Injection</a>
 
 @advanced_1424_td
 Watermark Attack (透かし攻撃)
 
 @advanced_1425_td
-#Security problem of certain encryption programs where the existence of certain data can be proven without decrypting. For more information, search in the internet for 'watermark attack cryptoloop' #SSL/TLS
+#Security problem of certain encryption programs where the existence of certain data can be proven without decrypting. For more information, search in the internet for 'watermark attack cryptoloop'
 
 @advanced_1426_td
 SSL/TLS
 
 @advanced_1427_td
-#Secure Sockets Layer / Transport Layer Security. See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a> #XTEA
+#Secure Sockets Layer / Transport Layer Security. See also: <a href="http://java.sun.com/products/jsse/">Java Secure Socket Extension (JSSE)</a>
 
 @advanced_1428_td
 XTEA

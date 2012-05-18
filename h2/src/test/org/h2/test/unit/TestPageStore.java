@@ -801,6 +801,12 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             // ignore
             return;
         }
+        switch (state) {
+        case DatabaseEventListener.STATE_STATEMENT_START:
+        case DatabaseEventListener.STATE_STATEMENT_END:
+        case DatabaseEventListener.STATE_STATEMENT_PROGRESS:
+            return;
+        }
         event("setProgress " + state + " " + name + " " + x + " " + max);
     }
 

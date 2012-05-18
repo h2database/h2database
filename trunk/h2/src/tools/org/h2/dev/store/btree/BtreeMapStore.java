@@ -7,7 +7,6 @@
 package org.h2.dev.store.btree;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -273,15 +272,16 @@ public class BtreeMapStore {
             if (x.liveCount == 0) {
                 meta.remove("block." + x.id);
             } else {
-                meta.put("block." + x.id, "temp " + x.toString());
+                meta.put("block." + x.id, "temp-" + x.toString());
             }
         }
         // modifying the meta can itself affect the metadata
         // TODO solve this in a better way
+        ArrayList<Integer> removedBlocks = New.arrayList();
         for (Block x : new ArrayList<Block>(blocks.values())) {
             if (x.liveCount == 0) {
                 meta.remove("block." + x.id);
-                blocks.remove(x.id);
+                removedBlocks.add(x.id);
             } else {
                 meta.put("block." + x.id, x.toString());
             }
@@ -289,7 +289,13 @@ public class BtreeMapStore {
         lenEstimate += meta.getRoot().lengthIncludingTempChildren();
         b.length = lenEstimate;
 
+        blocks.remove(b.id);
         long storePos = allocateBlock(lenEstimate);
+        blocks.put(b.id, b);
+
+        for (int id : removedBlocks) {
+            blocks.remove(id);
+        }
 
         long pageId = getId(blockId, 1 + 8);
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
@@ -301,7 +307,6 @@ public class BtreeMapStore {
             }
         }
         int metaRootOffset = (int) (pageId - getId(blockId, 0));
-
         // add a dummy entry so the count is correct
         meta.put("block." + b.id, b.toString());
         int count = 0;
@@ -424,7 +429,6 @@ public class BtreeMapStore {
      * be re-written.
      */
     public void compact() {
-        if(true)throw new RuntimeException("not implemented yet");
         if (blocks.size() <= 1) {
             return;
         }
@@ -473,7 +477,7 @@ public class BtreeMapStore {
         }
         long oldMetaRootId = readMetaRootId(move.start);
         long offset = getPosition(oldMetaRootId);
-        log("  meta:" + move.id + "/" + offset);
+        log("  meta:" + move.id + "/" + offset + " start: " + move.start);
         BtreeMap<String, String> oldMeta = BtreeMap.open(this, "old-meta", String.class, String.class);
         oldMeta.setRoot(oldMetaRootId);
         Iterator<String> it = oldMeta.keyIterator(null);
@@ -509,19 +513,19 @@ public class BtreeMapStore {
             Iterator<?> dataIt = oldData.keyIterator(null);
             while (dataIt.hasNext()) {
                 Object o = dataIt.next();
-                int todo;
-                Page p = null; // data.getNode(o);
+                Page p = data.getPage(o);
                 if (p == null) {
                     // was removed later - ignore
                 } else if (p.getId() < 0) {
                     // temporarily changed - ok
+                    // TODO move old data if changed temporarily?
                 } else {
                     Block b = getBlock(p.getId());
                     if (old.contains(b)) {
                         log("       move key:" + o + " block:" + b.id);
+                        Object value = data.get(o);
                         data.remove(o);
-                        int todo2;
-                        // data.put(o, n.getData());
+                        data.put(o, value);
                     }
                 }
             }
@@ -657,6 +661,7 @@ public class BtreeMapStore {
      * @param string the string to log
      */
     public void log(String string) {
+        // TODO logging
         // System.out.println(string);
     }
 

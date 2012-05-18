@@ -135,6 +135,29 @@ class Page {
         return null;
     }
 
+    /**
+     * Get the value for the given key, or null if not found.
+     *
+     * @param key the key
+     * @return the page or null
+     */
+    Page findPage(Object key) {
+        int x = findKey(key);
+        if (children != null) {
+            if (x < 0) {
+                x = -x - 1;
+            } else {
+                x++;
+            }
+            Page p = map.readPage(children[x]);
+            return p.findPage(key);
+        }
+        if (x >= 0) {
+            return this;
+        }
+        return null;
+    }
+
     private int findKey(Object key) {
         int low = 0, high = keys.length - 1;
         while (low <= high) {
@@ -175,7 +198,6 @@ class Page {
      * @param key the key
      */
     static void min(Page p, ArrayList<CursorPos> parents, Object key) {
-        int todo;
         while (p != null) {
             int x = key == null ? 0 : p.findKey(key);
             if (p.children != null) {
@@ -184,11 +206,11 @@ class Page {
                 } else {
                     x++;
                 }
-                p = p.map.readPage(p.children[x]);
                 CursorPos c = new CursorPos();
                 c.page = p;
                 c.index = x;
                 parents.add(c);
+                p = p.map.readPage(p.children[x]);
             } else {
                 if (x < 0) {
                     x = -x - 1;
@@ -209,12 +231,11 @@ class Page {
      * @return the next key
      */
     public static Object nextKey(ArrayList<CursorPos> parents) {
-        int todoTest;
         if (parents.size() == 0) {
             return null;
         }
         while (true) {
-            // TODO avoid remove/add pairs is possible
+            // TODO avoid remove/add pairs if possible
             CursorPos p = parents.remove(parents.size() - 1);
             int index = p.index++;
             if (index < p.page.keys.length) {
@@ -229,7 +250,9 @@ class Page {
                 index = p.index++;
                 if (index < p.page.children.length) {
                     parents.add(p);
-                    min(p.page, parents, null);
+                    Page x = p.page;
+                    x = x.map.readPage(x.children[index]);
+                    min(x, parents, null);
                     break;
                 }
             }
@@ -321,6 +344,11 @@ class Page {
             int index = p.findKey(key);
             if (p.isLeaf()) {
                 if (index >= 0) {
+                    // create a copy
+                    // TODO might not be required, but needs a "modified" flag
+                    Object[] v2 = new Object[p.values.length];
+                    System.arraycopy(p.values, 0, v2, 0, v2.length);
+                    p.values = v2;
                     p.values[index] = value;
                     break;
                 }
@@ -396,26 +424,6 @@ class Page {
             p = p.copyOnWrite();
         }
         return top;
-    }
-
-    /**
-     * Remove a key.
-     *
-     * @param key the key
-     * @return the new page or null if the page is now empty
-     */
-    private Page remove(Object key) {
-        int index = findKey(key);
-        if (isLeaf()) {
-            if (index < 0) {
-                // not found
-                return this;
-            }
-        }
-
-        Page p = copyOnWrite();
-        p = p.remove(key);
-        return p;
     }
 
     private void insert(int index, Object key, Object value, long child) {

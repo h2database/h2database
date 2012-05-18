@@ -90,7 +90,7 @@ public class BtreeMap<K, V> {
      * Get a value.
      *
      * @param key the key
-     * @return the value
+     * @return the value, or null if not found
      */
     @SuppressWarnings("unchecked")
     public V get(K key) {
@@ -98,6 +98,19 @@ public class BtreeMap<K, V> {
             return null;
         }
         return (V) root.find(key);
+    }
+
+    /**
+     * Get the page for the given value.
+     *
+     * @param key the key
+     * @return the value, or null if not found
+     */
+    public Page getPage(K key) {
+        if (root == null) {
+            return null;
+        }
+        return root.findPage(key);
     }
 
     /**
@@ -109,7 +122,9 @@ public class BtreeMap<K, V> {
         if (!isChanged()) {
             store.markChanged(name, this);
         }
-        root = Page.remove(root, key);
+        if (root != null) {
+            root = Page.remove(root, key);
+        }
     }
 
     /**

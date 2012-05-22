@@ -1693,6 +1693,9 @@ public class WebApp {
             return "<div style='display: none'>=+</div>" + s;
         } else if (d.equals("null") || d.startsWith("= ") || d.startsWith("=+")) {
             return "<div style='display: none'>= </div>" + PageParser.escapeHtml(d);
+        } else if (d.equals("")) {
+            // PageParser.escapeHtml replaces "" with a non-breaking space
+            return "";
         }
         return PageParser.escapeHtml(d);
     }

@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Lukas Eder has updated the jOOQ documentation.
+<ul><li>H2 Console: when editing a row, an empty varchar column was replaced with a single space.
+</li><li>Lukas Eder has updated the jOOQ documentation.
 </li><li>Some nested joins could not be executed, for example:
     select * from (select * from (select * from a) a right join b b) c;
 </li><li>MS SQL Server compatibility: ISNULL is now an alias for IFNULL.

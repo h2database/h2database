@@ -396,6 +396,27 @@ public class BtreeMap<K, V> {
     }
 
     /**
+     * Read a variable size long.
+     *
+     * @param buff the source buffer
+     * @return the value
+     */
+    static long readVarLong(ByteBuffer buff) {
+        long x = buff.get();
+        if (x >= 0) {
+            return x;
+        }
+        x &= 0x7f;
+        for (int s = 7;; s += 7) {
+            long b = buff.get();
+            x |= (b & 0x7f) << s;
+            if (b >= 0) {
+                return x;
+            }
+        }
+    }
+
+    /**
      * Read a variable size int.
      *
      * @param buff the source buffer
@@ -450,12 +471,43 @@ public class BtreeMap<K, V> {
     }
 
     /**
+     * Get the length of the variable size long.
+     *
+     * @param x the value
+     * @return the length in bytes
+     */
+    static int getVarLongLen(long x) {
+        int i = 1;
+        while (true) {
+            x >>>= 7;
+            if (x == 0) {
+                return i;
+            }
+            i++;
+        }
+    }
+
+    /**
      * Write a variable size int.
      *
      * @param buff the target buffer
      * @param x the value
      */
     static void writeVarInt(ByteBuffer buff, int x) {
+        while ((x & ~0x7f) != 0) {
+            buff.put((byte) (0x80 | (x & 0x7f)));
+            x >>>= 7;
+        }
+        buff.put((byte) x);
+    }
+
+    /**
+     * Write a variable size int.
+     *
+     * @param buff the target buffer
+     * @param x the value
+     */
+    static void writeVarLong(ByteBuffer buff, long x) {
         while ((x & ~0x7f) != 0) {
             buff.put((byte) (0x80 | (x & 0x7f)));
             x >>>= 7;

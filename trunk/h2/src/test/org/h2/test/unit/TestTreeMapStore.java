@@ -43,7 +43,8 @@ public class TestTreeMapStore extends TestBase {
         FileUtils.delete(fileName);
         BtreeMapStore s = BtreeMapStore.open(fileName);
         BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
-        int count = 10000;
+//        int count = 0;
+        int count = 2000;
         // Profiler p = new Profiler();
         // p.startCollecting();
         // long t = System.currentTimeMillis();
@@ -71,6 +72,14 @@ public class TestTreeMapStore extends TestBase {
         for (int i = 1; i < count; i++) {
             assertEquals("hello " + i, m.get(i));
         }
+        for (int i = 1; i < count; i++) {
+            m.remove(i);
+        }
+        s.store();
+        assertNull(m.get(0));
+        for (int i = 0; i < count; i++) {
+            assertNull(m.get(i));
+        }
         s.close();
     }
 
@@ -95,6 +104,24 @@ public class TestTreeMapStore extends TestBase {
                 assertTrue("initial: " + initialLength + " len: " + len, len <= initialLength * 3);
             }
         }
+        long len = FileUtils.size(fileName);
+        // System.out.println("len0: " + len);
+        BtreeMapStore s = BtreeMapStore.open(fileName);
+        BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
+        for (int i = 0; i < 100; i++) {
+            m.remove(i);
+        }
+        s.store();
+        s.compact();
+        s.close();
+        len = FileUtils.size(fileName);
+        // System.out.println("len1: " + len);
+        s = BtreeMapStore.open(fileName);
+        m = s.openMap("data", Integer.class, String.class);
+        s.compact();
+        s.close();
+        len = FileUtils.size(fileName);
+        // System.out.println("len2: " + len);
     }
 
     private void testReuseSpace() {
@@ -129,23 +156,43 @@ public class TestTreeMapStore extends TestBase {
         BtreeMap<Integer, Integer> m = s.openMap("data", Integer.class, Integer.class);
         TreeMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
         Random r = new Random(1);
-        for (int i = 0; i < 100; i++) {
-            int k = r.nextInt(20);
+        int operationCount = 1000;
+        int maxValue = 20;
+        for (int i = 0; i < operationCount; i++) {
+            int k = r.nextInt(maxValue);
             int v = r.nextInt();
-            if (r.nextBoolean()) {
+            boolean compareAll;
+            switch (r.nextInt(3)) {
+            case 0:
                 m.put(k, v);
                 map.put(k, v);
-            } else {
+                compareAll = true;
+                break;
+            case 1:
                 m.remove(k);
                 map.remove(k);
+                compareAll = true;
+                break;
+            default:
+                Integer a = map.get(k);
+                Integer b = m.get(k);
+                if (a == null || b == null) {
+                    assertTrue(a == b);
+                } else {
+                    assertEquals(a.intValue(), b.intValue());
+                }
+                compareAll = false;
+                break;
             }
-            Iterator<Integer> it = m.keyIterator(null);
-            Iterator<Integer> it2 = map.keySet().iterator();
-            while (it2.hasNext()) {
-                assertTrue(it.hasNext());
-                assertEquals(it2.next(), it.next());
+            if (compareAll) {
+                Iterator<Integer> it = m.keyIterator(null);
+                Iterator<Integer> it2 = map.keySet().iterator();
+                while (it2.hasNext()) {
+                    assertTrue(it.hasNext());
+                    assertEquals(it2.next(), it.next());
+                }
+                assertFalse(it.hasNext());
             }
-            assertFalse(it.hasNext());
         }
         s.close();
     }

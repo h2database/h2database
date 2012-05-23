@@ -612,12 +612,36 @@ public class BtreeMapStore {
      * A block of data.
      */
     static class Block {
-        public int collectPriority;
+
+        /**
+         * The block id.
+         */
         int id;
+
+        /**
+         * The start position within the file.
+         */
         long start;
+
+        /**
+         * The length in bytes.
+         */
         long length;
+
+        /**
+         * The entry count.
+         */
         int entryCount;
+
+        /**
+         * The number of life (non-garbage) objects.
+         */
         int liveCount;
+
+        /**
+         * The garbage collection priority.
+         */
+        int collectPriority;
 
         Block(int id) {
             this.id = id;

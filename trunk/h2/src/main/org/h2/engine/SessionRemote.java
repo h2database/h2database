@@ -340,9 +340,11 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             int level = Integer.parseInt(traceLevelFile);
             String prefix = getFilePrefix(SysProperties.CLIENT_TRACE_DIRECTORY);
             try {
-                String file = FileUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
-                traceSystem.setFileName(file);
                 traceSystem.setLevelFile(level);
+                if (level > 0) {
+                    String file = FileUtils.createTempFile(prefix, Constants.SUFFIX_TRACE_FILE, false, false);
+                    traceSystem.setFileName(file);
+                }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, prefix);
             }

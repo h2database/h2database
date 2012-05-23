@@ -83,6 +83,10 @@ public class BtreeMapStore {
 
     private int loadCount;
 
+    // TODO support quota (per map, per storage)
+    // TODO support r-tree
+    // TODO support triggers and events (possibly on a different layer)
+
     private BtreeMapStore(String fileName) {
         this.fileName = fileName;
     }
@@ -260,7 +264,10 @@ public class BtreeMapStore {
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
             meta.put("map." + m.getName(), String.valueOf(Long.MAX_VALUE) +
                     "," + m.getKeyType().getName() + "," + m.getValueType().getName());
-            lenEstimate += m.getRoot().lengthIncludingTempChildren();
+            Page p = m.getRoot();
+            if (p != null) {
+                lenEstimate += p.lengthIncludingTempChildren();
+            }
         }
         int blockId = ++lastBlockId;
         Block b = new Block(blockId);
@@ -311,7 +318,10 @@ public class BtreeMapStore {
         meta.put("block." + b.id, b.toString());
         int count = 0;
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
-            count += m.getRoot().countTemp();
+            Page p = m.getRoot();
+            if (p != null) {
+                count += p.countTemp();
+            }
         }
         count += meta.getRoot().countTemp();
 
@@ -329,7 +339,10 @@ public class BtreeMapStore {
         buff.putInt(b.id);
         buff.putInt(metaRootOffset);
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
-            m.getRoot().storeTemp(buff);
+            Page p = m.getRoot();
+            if (p != null) {
+                p.storeTemp(buff);
+            }
         }
         meta.getRoot().storeTemp(buff);
         if (buff.hasRemaining()) {
@@ -507,25 +520,29 @@ public class BtreeMapStore {
             Class<?> vt = BtreeMap.getClass(d[2]);
             BtreeMap<?, ?> oldData = BtreeMap.open(this, "old-" + k, kt, vt);
             long oldDataRoot = Long.parseLong(d[0]);
-            oldData.setRoot(oldDataRoot);
-            @SuppressWarnings("unchecked")
-            BtreeMap<Object, Object> data = (BtreeMap<Object, Object>) maps.get(k);
-            Iterator<?> dataIt = oldData.keyIterator(null);
-            while (dataIt.hasNext()) {
-                Object o = dataIt.next();
-                Page p = data.getPage(o);
-                if (p == null) {
-                    // was removed later - ignore
-                } else if (p.getId() < 0) {
-                    // temporarily changed - ok
-                    // TODO move old data if changed temporarily?
-                } else {
-                    Block b = getBlock(p.getId());
-                    if (old.contains(b)) {
-                        log("       move key:" + o + " block:" + b.id);
-                        Object value = data.get(o);
-                        data.remove(o);
-                        data.put(o, value);
+            if (oldDataRoot == 0) {
+                // no rows
+            } else {
+                oldData.setRoot(oldDataRoot);
+                @SuppressWarnings("unchecked")
+                BtreeMap<Object, Object> data = (BtreeMap<Object, Object>) maps.get(k);
+                Iterator<?> dataIt = oldData.keyIterator(null);
+                while (dataIt.hasNext()) {
+                    Object o = dataIt.next();
+                    Page p = data.getPage(o);
+                    if (p == null) {
+                        // was removed later - ignore
+                    } else if (p.getId() < 0) {
+                        // temporarily changed - ok
+                        // TODO move old data if changed temporarily?
+                    } else {
+                        Block b = getBlock(p.getId());
+                        if (old.contains(b)) {
+                            log("       move key:" + o + " block:" + b.id);
+                            Object value = data.get(o);
+                            data.remove(o);
+                            data.put(o, value);
+                        }
                     }
                 }
             }
@@ -594,7 +611,7 @@ public class BtreeMapStore {
     /**
      * A block of data.
      */
-    static class Block implements Comparable<Block> {
+    static class Block {
         public int collectPriority;
         int id;
         long start;
@@ -630,10 +647,6 @@ public class BtreeMapStore {
 
         public int getFillRate() {
             return entryCount == 0 ? 0 : 100 * liveCount / entryCount;
-        }
-
-        public int compareTo(Block o) {
-            return start == o.start ? 0 : start < o.start ? -1 : 1;
         }
 
         public int hashCode() {

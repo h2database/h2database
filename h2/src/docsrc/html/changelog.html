@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.167 (2012-05-23)</h2>
 <ul><li>H2 Console: when editing a row, an empty varchar column was replaced with a single space.
 </li><li>Lukas Eder has updated the jOOQ documentation.
 </li><li>Some nested joins could not be executed, for example:
@@ -455,57 +459,6 @@ Change Log
     Slower growth may slow down operation, but speed up closing database.
 </li><li>A read only database with writable linked tables could lead to a DATABASE_IS_READ_ONLY (90097) error.
     This is fixed now.
-</li></ul>
-
-<h2>Version 1.3.154 (2011-04-04)</h2>
-<ul><li>The SQL state of the following exceptions has been changed:
-    From 90005 to 22001: "Value too long for column ...: ...".
-    From 90039 to 22003: "The value is too large for the precision ..." is merged with "Numeric value out of range".
-    From 90110 to 22003: "... out of range" is merged with "Numeric value out of range".
-    From 90021 to 22018: "Data conversion error converting ...".
-    From 90006 to 23502: "NULL not allowed for column ...".
-    From 23003 to 23503: "Referential integrity constraint violation: ...".
-    From 23001 to 23505: "Unique index or primary key violation: ...".
-    From 23002 to 23506: "Referential integrity constraint violation: ...".
-    From 90056 to 23507: "No default value is set for column ...".
-    From 23000 to 23513: "Check constraint violation: ...".
-    From 08004 to 28000: "Wrong user name or password".
-    From 90051 to 57014: "Statement was canceled or the session timed out".
-</li><li>The H2 Console now detects unsupported command line options.
-    (In the future, it will be combined with the Server tool.)
-</li><li>MySQL compatibility: SHOW COLUMN FOR schemaName.columnName.
-</li><li>DatabaseMetaData.getCrossReference now also lists the name of the primary index (PK_NAME).
-</li><li>If the database contained many CLOB or BLOB values, then closing a connection was very slow.
-    Reason: was that when closing a connection, the temporary CLOB and BLOB values for this connection
-    were removed, but there was no index on this column.
-    For existing databases with many CLOB and BLOB values, creating the index may take a few seconds.
-    The index is added to existing databases automatically.
-</li><li>If a CLOB or BLOB was copied into the same table using INSERT INTO X ... SELECT ... FROM X,
-    and then the original row was deleted, then the copied value was also deleted.
-    This could also result in an ArrayIndexOutOfBoundsException on checkpoint or when closing the database.
-</li><li>Improved performance (up to 10%) due to changed synchronization in the page store.
-</li><li>Reading a resource from the classpath didn't work if there was a leading slash
-    (classpath:/org/...). Now resources can be loaded with or without leading slash.
-</li><li>Support INSERT INTO TEST SET ID = 1, NAME = 'World' (MySQL compatibility).
-</li><li>Issue 304: The condition [NOT] IN (SELECT ...) could throw the exception "Unexpected code path" if the subquery contained ORDER BY.
-</li><li>ALTER TABLE ALTER ADD / REMOVE /ALTER COLUMN dropped some dependent objects
-    (access rights, triggers) of views that depend on the modified table.
-</li><li>CREATE OR REPLACE VIEW dropped some dependent objects (access rights, triggers)
-    if the view already existed before.
-</li><li>New aggregate function HISTOGRAM to calculate the histogram.
-    The plan is to use this function is only used internally when running ANALYZE
-    to generate the histogram that is then used by the query optimizer.
-</li><li>New system function TRUNCATE_VALUE to truncate a value to the required precision.
-    This is the same as for CAST, but without changing the data type, and support for truncating decimal values.
-    (The main use case for this function is to build a histogram of the truncated values).
-    Now BINARY, BLOB, and CLOB can be truncated / cast efficiently as well.
-</li><li>The precision of an ARRAY value is now the sum of the precision of all elements,
-    and result set values have the precision Integer.MAX_VALUE.
-</li><li>CAST(x AS VARCHAR_IGNORECASE(y) / CHAR(y)) returned a VARCHAR
-    if the new precision was lower than the old precision.
-</li><li>SHUTDOWN DEFRAG didn't defragment the database completely if there was a unique hash index for a memory table.
-</li><li>There were some smaller changes in the encrypting file system (work in progress).
-</li><li>Some time and timezone functions didn't support years before 1.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

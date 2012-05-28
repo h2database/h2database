@@ -663,11 +663,10 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Compile and run all tests.
+     * Compile and run all tests. This does not include the compile step.
      */
     public void test() {
         downloadTest();
-        compile();
         String testClass = System.getProperty("test", "org.h2.test.TestAll");
         java(testClass, null);
     }

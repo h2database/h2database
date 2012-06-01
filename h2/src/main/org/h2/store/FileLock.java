@@ -15,6 +15,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Properties;
+import org.h2.Driver;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
@@ -347,6 +348,7 @@ public class FileLock implements Runnable {
             throw getExceptionFatal("Concurrent update", null);
         }
         watchdog = new Thread(this, "H2 File Lock Watchdog " + fileName);
+        Driver.setThreadContextClassLoader(watchdog);
         watchdog.setDaemon(true);
         watchdog.setPriority(Thread.MAX_PRIORITY - 1);
         watchdog.start();

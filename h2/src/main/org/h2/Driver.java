@@ -180,4 +180,21 @@ public class Driver implements java.sql.Driver {
         DEFAULT_CONNECTION.set(c);
     }
 
+    /**
+     * INTERNAL
+     */
+    public static void setThreadContextClassLoader(Thread thread) {
+        // Apache Tomcat: use the classloader of the driver to avoid the
+        // following log message:
+        // org.apache.catalina.loader.WebappClassLoader clearReferencesThreads
+        // SEVERE: The web application appears to have started a thread named
+        // ... but has failed to stop it.
+        // This is very likely to create a memory leak.
+        try {
+            thread.setContextClassLoader(Driver.class.getClassLoader());
+        } catch (Throwable t) {
+            // ignore
+        }
+    }
+
 }

@@ -8,6 +8,7 @@ package org.h2.store;
 
 import java.lang.ref.WeakReference;
 import java.security.AccessControlException;
+import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.Trace;
@@ -61,6 +62,7 @@ public class WriterThread implements Runnable {
         try {
             WriterThread writer = new WriterThread(database, writeDelay);
             writer.thread = new Thread(writer, "H2 Log Writer " + database.getShortName());
+            Driver.setThreadContextClassLoader(writer.thread);
             writer.thread.setDaemon(true);
             return writer;
         } catch (AccessControlException e) {

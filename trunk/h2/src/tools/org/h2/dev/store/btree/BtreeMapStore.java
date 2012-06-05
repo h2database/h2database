@@ -81,8 +81,6 @@ public class BtreeMapStore {
 
     private int lastBlockId;
 
-    private int loadCount;
-
     // TODO support quota (per map, per storage)
     // TODO support r-tree
     // TODO support triggers and events (possibly on a different layer)
@@ -210,16 +208,12 @@ public class BtreeMapStore {
         }
     }
 
-    public String toString() {
-        return "cache size: " + cache.size() + " loadCount: " + loadCount + "\n" + blocks.toString().replace('\n', ' ');
-    }
-
     private static RuntimeException convert(Exception e) {
         throw new RuntimeException("Exception: " + e, e);
     }
 
     /**
-     * Close the file.
+     * Close the file. Uncommitted changes are ignored.
      */
     public void close() {
         store();
@@ -249,14 +243,16 @@ public class BtreeMapStore {
     }
 
     /**
-     * Persist all changes to disk.
+     * Commit all changes and persist them to disk.
+     *
+     * @return the transaction id
      */
-    public void store() {
+    public long store() {
         if (!meta.isChanged() && mapsChanged.size() == 0) {
             // TODO truncate file if empty
-            return;
+            return transaction;
         }
-        commit();
+        long trans = commit();
 
         // the length estimate is not correct,
         // as we don't know the exact positions and entry counts
@@ -359,6 +355,7 @@ public class BtreeMapStore {
         writeHeader();
         mapsChanged.clear();
         temp.clear();
+        return trans;
     }
 
     private long allocateBlock(long length) {
@@ -697,7 +694,7 @@ public class BtreeMapStore {
      *
      * @param string the string to log
      */
-    public void log(String string) {
+    void log(String string) {
         // TODO logging
         // System.out.println(string);
     }

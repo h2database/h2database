@@ -39,11 +39,10 @@ public class TestTreeMapStore extends TestBase {
     }
 
     private void testBtreeStore() {
-        String fileName = getBaseDir() + "/data.h3";
+        String fileName = getBaseDir() + "/testBtreeStore.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = BtreeMapStore.open(fileName);
         BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
-//        int count = 0;
         int count = 2000;
         // Profiler p = new Profiler();
         // p.startCollecting();
@@ -84,7 +83,7 @@ public class TestTreeMapStore extends TestBase {
     }
 
     private void testDefragment() {
-        String fileName = getBaseDir() + "/data.h3";
+        String fileName = getBaseDir() + "/testDefragment.h3";
         FileUtils.delete(fileName);
         long initialLength = 0;
         for (int j = 0; j < 20; j++) {
@@ -125,7 +124,7 @@ public class TestTreeMapStore extends TestBase {
     }
 
     private void testReuseSpace() {
-        String fileName = getBaseDir() + "/data.h3";
+        String fileName = getBaseDir() + "/testReuseSpace.h3";
         FileUtils.delete(fileName);
         long initialLength = 0;
         for (int j = 0; j < 10; j++) {
@@ -150,7 +149,7 @@ public class TestTreeMapStore extends TestBase {
     }
 
     private void testRandom() {
-        String fileName = getBaseDir() + "/data.h3";
+        String fileName = getBaseDir() + "/testRandom.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = BtreeMapStore.open(fileName);
         BtreeMap<Integer, Integer> m = s.openMap("data", Integer.class, Integer.class);
@@ -198,7 +197,7 @@ public class TestTreeMapStore extends TestBase {
     }
 
     private void testKeyValueClasses() {
-        String fileName = getBaseDir() + "/data.h3";
+        String fileName = getBaseDir() + "/testKeyValueClasses.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = BtreeMapStore.open(fileName);
         BtreeMap<Integer, String> is = s.openMap("intString", Integer.class, String.class);
@@ -235,7 +234,7 @@ public class TestTreeMapStore extends TestBase {
     }
 
     private void testIterate() {
-        String fileName = getBaseDir() + "/data.h3";
+        String fileName = getBaseDir() + "/testIterate.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = BtreeMapStore.open(fileName);
         BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
@@ -268,7 +267,7 @@ public class TestTreeMapStore extends TestBase {
     }
 
     private void testSimple() {
-        String fileName = getBaseDir() + "/data.h3";
+        String fileName = getBaseDir() + "/testSimple.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = BtreeMapStore.open(fileName);
         BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);

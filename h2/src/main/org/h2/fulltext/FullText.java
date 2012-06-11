@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -490,6 +491,9 @@ public class FullText {
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BINARY:
+        	if (data instanceof UUID) {
+        		return "'" + data.toString() + "'";
+        	}
             return "'" + StringUtils.convertBytesToHex((byte[]) data) + "'";
         case Types.CLOB:
         case Types.JAVA_OBJECT:

@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -39,6 +40,7 @@ public class TestFullText extends TestBase {
     }
 
     public void test() throws Exception {
+    	testUuidPrimaryKey(false);
         testAutoAnalyze();
         testNativeFeatures();
         testTransaction(false);
@@ -54,6 +56,7 @@ public class TestFullText extends TestBase {
         String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
         try {
             Class.forName(luceneFullTextClassName);
+            testUuidPrimaryKey(true);
             testMultiThreaded(true);
             testMultiThreaded(false);
             testTransaction(true);
@@ -147,6 +150,31 @@ public class TestFullText extends TestBase {
         conn.setAutoCommit(true);
 
         conn.close();
+    }
+
+    private void testUuidPrimaryKey(boolean lucene) throws SQLException {
+    	deleteDb("fullText");
+    	Connection conn = getConnection("fullText");
+    	Statement stat = conn.createStatement();
+    	String prefix = lucene ? "FTL" : "FT";
+        String className = lucene ? "FullTextLucene" : "FullText";
+        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
+        stat.execute("CALL " + prefix + "_INIT()");
+        stat.execute("CREATE TABLE TEST(ID UUID PRIMARY KEY, NAME VARCHAR)");
+        String id = UUID.randomUUID().toString();
+        stat.execute("INSERT INTO TEST VALUES('"+ id +"', 'Hello World')");
+        stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME')");
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        assertTrue(rs.next());
+        stat.execute("UPDATE TEST SET NAME=NULL WHERE ID='" + id + "'");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        assertFalse(rs.next());
+        stat.execute("UPDATE TEST SET NAME='Good Bye' WHERE ID='" + id + "'");
+        rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('bye', 0, 0)");
+        assertTrue(rs.next());
+        FullText.dropAll(conn);
+        conn.close();
+        deleteDb("fullText");
     }
 
     private void testTransaction(boolean lucene) throws SQLException {

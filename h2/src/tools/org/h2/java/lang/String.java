@@ -6,6 +6,8 @@
  */
 package org.h2.java.lang;
 
+import org.h2.java.Ignore;
+
 /* c:
 
 #include <stdlib.h>
@@ -38,16 +40,24 @@ package org.h2.java.lang;
 
 void* new_array(jint object, jint size, jint length);
 void* new_object(jint type, jint size);
-void* set_object(void** target, void* o);
+void* reference(void* o);
+void release(void* o);
+void* set(void* o, void* n);
 void* string(char* s);
 
 */
 
 /*
  * Object layout:
- * m-3: arrays: length; otherwise not allocated
- * m-2: arrays: 0; otherwise type
+ * m-2: data type
  * m-1: number of references
+ * m: object data
+ *
+ * Array layout:
+ * m-3: length (number of elements)
+ * m-2: 0 (array marker)
+ * m-1: number of references
+ * m: first element
  */
 
 /**
@@ -57,25 +67,57 @@ public class String {
 
 /* c:
 
-void* new_array(jint object, jint size, jint length) {
-    int count = sizeof(jint) * 3 + size * length;
-    int* m = (jint*) calloc(1, count);
+void* new_array_with_count(jint object, jint size, jint length, jint refCount) {
+    jint count = sizeof(jint) * 3 + size * length;
+    jint* m = (jint*) calloc(1, count);
     *m = length;
-    *(m + 2) = 1;
+    *(m + 2) = refCount;
     return m + 3;
 }
 
-void* new_object(jint type, jint size) {
-    int count = sizeof(jint) * 2 + size;
-    int* m = (jint*) calloc(1, count);
+void* new_array(jint object, jint size, jint length) {
+    return new_array_with_count(object, size, length, 1);
+}
+
+void* new_static_array(jint object, jint size, jint length) {
+    return new_array_with_count(object, size, length, 0);
+}
+
+void* new_object_with_count(jint type, jint size, jint refCount) {
+    jint count = sizeof(jint) * 2 + size;
+    jint* m = (jint*) calloc(1, count);
     *m = type;
-    *(m + 1) = 1;
+    *(m + 1) = refCount;
     return m + 2;
 }
 
-void* set_object(void** target, void* o) {
-    int* m = (jint*) target;
-    if (*(m - 1) == 1) {
+void* new_object(jint type, jint size) {
+    return new_object_with_count(type, size, 1);
+}
+
+void* new_static_object(jint type, jint size) {
+    return new_object_with_count(type, size, 0);
+}
+
+void* reference(void* o) {
+    if (o != 0) {
+        jint* m = (jint*) o;
+        if (*(m - 1) > 0) {
+            (*(m - 1))++;
+        }
+    }
+    return o;
+}
+
+void release(void* o) {
+    if (o == 0) {
+        return;
+    }
+    jint* m = (jint*) o;
+    if (*(m - 1) <= 1) {
+        if (*(m - 1) == 0) {
+            return;
+        }
         if (*(m - 2) == 0) {
             free(m - 3);
         } else {
@@ -84,16 +126,15 @@ void* set_object(void** target, void* o) {
     } else {
         (*(m - 1))--;
     }
-    *target = o;
-    m = (jint*) target;
-    if (o != 0) {
-        (*(m - 1))++;
-    }
-    return m;
+}
+
+void* set(void* o, void* n) {
+    release(o);
+    return reference(n);
 }
 
 void* string(char* s) {
-    int len = strlen(s);
+    jint len = strlen(s);
     jchar* chars = NEW_ARRAY(sizeof(jchar), len);
     for (int i = 0; i < len; i++) {
         chars[i] = s[i];
@@ -142,6 +183,16 @@ void* string(char* s) {
      */
     public int length() {
         return chars.length;
+    }
+
+    @Ignore
+    public java.lang.String asString() {
+        return new java.lang.String(chars);
+    }
+
+    @Ignore
+    public static String wrap(java.lang.String x) {
+        return new String(x.toCharArray());
     }
 
 }

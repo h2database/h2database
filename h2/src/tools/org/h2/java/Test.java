@@ -26,10 +26,14 @@ public class Test extends TestBase {
     }
 
     public void test() throws IOException {
-        // gcc --std=c99 test.c
+        // gcc --std=c99 -o test test.cpp
+        // chmod +x test
+        // ./test
+
         // (for "mixed declarations and code")
 
         // not supported yet:
+        // exceptions
         // HexadecimalFloatingPointLiteral
         // int x()[] { return null; }
         // annotations

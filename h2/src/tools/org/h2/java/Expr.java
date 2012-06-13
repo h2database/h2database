@@ -54,25 +54,37 @@ class CallExpr implements Expr {
         StringBuilder buff = new StringBuilder();
         String methodName;
         initMethod();
-        if (method.isVirtual) {
-            methodName = "virtual_" + method.name + "[CLASS_ID("+expr.toString()+")]";
-        } else {
-            methodName = JavaParser.toC(classObj.toString() + "." + method.name);
-        }
-        buff.append(methodName).append("(");
-        int i = 0;
-        if (expr != null) {
-            buff.append(expr.toString());
-            i++;
-        }
-        for (Expr a : args) {
-            if (i > 0) {
-                buff.append(", ");
+        if (method.isIgnore) {
+            if (args.size() == 0) {
+                // ignore
+            } else if (args.size() == 1) {
+                buff.append(args.get(0));
+            } else {
+                throw new IllegalArgumentException(
+                        "Cannot ignore method with multiple arguments: " + method);
             }
-            i++;
-            buff.append(a);
+        } else {
+            if (method.isVirtual) {
+                methodName = "virtual_" + method.name + "[CLASS_ID("+expr.toString()+")]";
+            } else {
+                methodName = JavaParser.toC(classObj.toString() + "." + method.name);
+            }
+            buff.append(methodName).append("(");
+            int i = 0;
+            if (expr != null) {
+                buff.append(expr.toString());
+                i++;
+            }
+            for (Expr a : args) {
+                if (i > 0) {
+                    buff.append(", ");
+                }
+                i++;
+                buff.append(a);
+            }
+            buff.append(")");
         }
-        return buff.append(")").toString();
+        return buff.toString();
     }
 
     public Type getType() {
@@ -92,12 +104,17 @@ class AssignExpr implements Expr {
     Expr right;
 
     public String toString() {
-        return left + " " + op + " " + right;
+        if (left.getType().isSimplePrimitive()) {
+            return left + " " + op + " " + right;
+        }
+        if (right.toString().equals("null")) {
+            return "release(" + left + ")";
+        }
+        return left + " = set(" + left + ", " + right + ")";
     }
 
     public Type getType() {
-        // TODO
-        return null;
+        return left.getType();
     }
 
 }
@@ -115,8 +132,7 @@ class ConditionalExpr implements Expr {
     }
 
     public Type getType() {
-        // TODO
-        return null;
+        return ifTrue.getType();
     }
 
 }
@@ -289,6 +305,11 @@ class NewExpr implements Expr {
 class StringExpr implements Expr {
 
     /**
+     * The constant name.
+     */
+    String constantName;
+
+    /**
      * The literal.
      */
     String text;
@@ -301,7 +322,7 @@ class StringExpr implements Expr {
     }
 
     public String toString() {
-        return "STRING(\"" + javaEncode(text) + "\")";
+        return constantName;
     }
 
     public Type getType() {
@@ -407,13 +428,16 @@ class VariableExpr implements Expr {
 
     private void init() {
         if (field == null) {
+            if (base == null) {
+                System.out.println("??");
+            }
             Type t = base.getType();
             if (t.arrayLevel > 0) {
                 if ("length".equals(name)) {
                     field = new FieldObj();
                     field.type = context.getClassObj("int").baseType;
                 } else {
-                    throw new RuntimeException("Unknown array method: " + name);
+                    throw new IllegalArgumentException("Unknown array method: " + name);
                 }
             } else {
                 field = t.classObj.getField(name);

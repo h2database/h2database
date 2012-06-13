@@ -33,6 +33,8 @@ public class System {
         memmove(((jchar*)dest) + destPos,
             ((jchar*)src) + srcPos, sizeof(jchar) * length);
         */
+        // c: return;
+        java.lang.System.arraycopy(src, srcPos, dest, destPos, length);
     }
 
     /**
@@ -50,7 +52,8 @@ public class System {
         memmove(((jbyte*)dest) + destPos,
             ((jbyte*)src) + srcPos, sizeof(jbyte) * length);
         */
+        // c: return;
+        java.lang.System.arraycopy(src, srcPos, dest, destPos, length);
     }
-
 
 }

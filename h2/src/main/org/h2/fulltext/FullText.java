@@ -491,9 +491,9 @@ public class FullText {
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
         case Types.BINARY:
-        	if (data instanceof UUID) {
-        		return "'" + data.toString() + "'";
-        	}
+            if (data instanceof UUID) {
+                return "'" + data.toString() + "'";
+            }
             return "'" + StringUtils.convertBytesToHex((byte[]) data) + "'";
         case Types.CLOB:
         case Types.JAVA_OBJECT:

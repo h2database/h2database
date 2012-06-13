@@ -11,9 +11,11 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import org.h2.util.New;
 
 /**
  * Converts Java to C.
@@ -27,11 +29,11 @@ public class JavaParser {
     private static final int TOKEN_IDENTIFIER = 4;
     private static final int TOKEN_OTHER = 5;
 
-    private static final HashSet<String> RESERVED = new HashSet<String>();
-    private static final HashMap<String, String> JAVA_IMPORT_MAP = new HashMap<String, String>();
+    private static final HashSet<String> RESERVED = New.hashSet();
+    private static final HashMap<String, String> JAVA_IMPORT_MAP = New.hashMap();
 
-    private final ArrayList<ClassObj> allClasses = new ArrayList<ClassObj>();
-    private final HashMap<String, ClassObj> builtInTypes = new HashMap<String, ClassObj>();
+    private final ArrayList<ClassObj> allClasses = New.arrayList();
+    private final HashMap<String, ClassObj> builtInTypes = New.hashMap();
 
     private String source;
 
@@ -42,12 +44,15 @@ public class JavaParser {
     private int nextClassId;
     private MethodObj method;
     private FieldObj thisPointer;
-    private HashMap<String, String> importMap = new HashMap<String, String>();
-    private HashMap<String, ClassObj> classes = new HashMap<String, ClassObj>();
+    private HashMap<String, String> importMap = New.hashMap();
+    private HashMap<String, ClassObj> classes = New.hashMap();
     private LinkedHashMap<String, FieldObj> localVars = new LinkedHashMap<String, FieldObj>();
-    private HashMap<String, MethodObj> allMethodsMap = new HashMap<String, MethodObj>();
+    private HashMap<String, MethodObj> allMethodsMap = New.hashMap();
 
-    private ArrayList<Statement> nativeHeaders = new ArrayList<Statement>();
+    private ArrayList<Statement> nativeHeaders = New.arrayList();
+
+    private HashMap<String, String> stringToStringConstantMap = New.hashMap();
+    private HashMap<String, String> stringConstantToStringMap = New.hashMap();
 
     public JavaParser() {
         addBuiltInTypes();
@@ -279,6 +284,12 @@ public class JavaParser {
                 classObj.nativeCode.add(s);
             }
             thisPointer = null;
+            HashSet<String> annotations = New.hashSet();
+            while (readIf("@")) {
+                String annotation = readIdentifier();
+                annotations.add(annotation);
+            }
+            boolean isIgnore = annotations.contains("Ignore");
             boolean isStatic = false;
             boolean isFinal = false;
             boolean isPrivate = false;
@@ -301,6 +312,7 @@ public class JavaParser {
             }
             if (readIf("{")) {
                 method = new MethodObj();
+                method.isIgnore = isIgnore;
                 method.name = isStatic ? "cl_init_obj" : "init_obj";
                 method.isStatic = isStatic;
                 localVars.clear();
@@ -313,6 +325,7 @@ public class JavaParser {
                 String typeName = readTypeOrIdentifier();
                 Type type = readType(typeName);
                 method = new MethodObj();
+                method.isIgnore = isIgnore;
                 method.returnType = type;
                 method.isStatic = isStatic;
                 method.isFinal = isFinal;
@@ -347,6 +360,7 @@ public class JavaParser {
                         addMethod(method);
                     } else {
                         FieldObj field = new FieldObj();
+                        field.isIgnore = isIgnore;
                         field.type = type;
                         field.name = name;
                         field.isStatic = isStatic;
@@ -354,11 +368,6 @@ public class JavaParser {
                         field.isPublic = isPublic;
                         field.isPrivate = isPrivate;
                         field.declaredClass = classObj;
-                        if (isStatic) {
-                            classObj.addStaticField(field);
-                        } else {
-                            classObj.addInstanceField(field);
-                        }
                         if (readIf("=")) {
                             if (field.type.arrayLevel > 0 && readIf("{")) {
                                 field.value = readArrayInit(field.type);
@@ -367,6 +376,11 @@ public class JavaParser {
                             }
                         }
                         read(";");
+                        if (isStatic) {
+                            classObj.addStaticField(field);
+                        } else {
+                            classObj.addInstanceField(field);
+                        }
                     }
                 }
             }
@@ -409,7 +423,7 @@ public class JavaParser {
     private void initThisPointer() {
         thisPointer = new FieldObj();
         thisPointer.isLocal = true;
-        thisPointer.name = "this";
+        thisPointer.name = "thiz";
         thisPointer.type = new Type();
         thisPointer.type.classObj = classObj;
     }
@@ -464,7 +478,7 @@ public class JavaParser {
 
     private Statement readNativeStatementIf() {
         if (readIf("//")) {
-            read();
+            boolean isC = readIdentifierIf("c");
             int start = current.index;
             while (source.charAt(current.index) != '\n') {
                 current.index++;
@@ -472,9 +486,9 @@ public class JavaParser {
             StatementNative stat = new StatementNative();
             stat.code = source.substring(start, current.index).trim();
             read();
-            return stat;
+            return isC ? stat : null;
         } else if (readIf("/*")) {
-            read();
+            boolean isC = readIdentifierIf("c");
             int start = current.index;
             while (source.charAt(current.index) != '*' || source.charAt(current.index + 1) != '/') {
                 current.index++;
@@ -483,7 +497,7 @@ public class JavaParser {
             stat.code = source.substring(start, current.index).trim();
             current.index += 2;
             read();
-            return stat;
+            return isC ? stat : null;
         }
         return null;
     }
@@ -745,21 +759,28 @@ public class JavaParser {
             LiteralExpr expr = new LiteralExpr(this, "boolean");
             expr.literal = "false";
             return expr;
-        }
-        if (readIf("true")) {
+        } else if (readIf("true")) {
             LiteralExpr expr = new LiteralExpr(this, "boolean");
             expr.literal = "true";
             return expr;
-        }
-        if (readIf("null")) {
+        } else if (readIf("null")) {
             LiteralExpr expr = new LiteralExpr(this, "java.lang.Object");
             expr.literal = "null";
             return expr;
-        }
-        if (current.type == TOKEN_LITERAL_NUMBER) {
+        } else if (current.type == TOKEN_LITERAL_NUMBER) {
             // TODO or long, float, double
             LiteralExpr expr = new LiteralExpr(this, "int");
             expr.literal = current.token.substring(1);
+            readToken();
+            return expr;
+        } else if (current.type == TOKEN_LITERAL_CHAR) {
+            LiteralExpr expr = new LiteralExpr(this, "char");
+            expr.literal = current.token + "'";
+            readToken();
+            return expr;
+        } else if (current.type == TOKEN_LITERAL_STRING) {
+            String text = current.token.substring(1);
+            StringExpr expr = getStringConstant(text);
             readToken();
             return expr;
         }
@@ -799,6 +820,47 @@ public class JavaParser {
         return expr;
     }
 
+    private StringExpr getStringConstant(String s) {
+        String c = stringToStringConstantMap.get(s);
+        if (c == null) {
+            StringBuilder buff = new StringBuilder();
+            for (int i = 0; i < s.length() && i < 16; i++) {
+                char ch = s.charAt(i);
+                if (ch >= 'a' && ch <= 'z') {
+                    // don't use Character.toUpperCase
+                    // to avoid locale problems
+                    // (the uppercase of i isn't always I)
+                    buff.append((char) (ch + 'A' - 'a'));
+                } else if (ch >= 'A' && ch <= 'Z') {
+                    buff.append(ch);
+                } else if (ch == '_' || ch == ' ') {
+                    buff.append('_');
+                }
+            }
+            c = buff.toString();
+            if (c.length() == 0 || stringConstantToStringMap.containsKey(c)) {
+                if (c.length() == 0) {
+                    c = "X";
+                }
+                int i = 2;
+                for (;; i++) {
+                    String c2 = c + "_" + i;
+                    if (!stringConstantToStringMap.containsKey(c2)) {
+                        c = c2;
+                        break;
+                    }
+                }
+            }
+            c = "STRING_" + c;
+            stringToStringConstantMap.put(s, c);
+            stringConstantToStringMap.put(c, s);
+        }
+        StringExpr expr = new StringExpr(this);
+        expr.text = s;
+        expr.constantName = c;
+        return expr;
+    }
+
     private Expr readExpr5() {
         if (readIf("new")) {
             NewExpr expr = new NewExpr(this);
@@ -820,12 +882,6 @@ public class JavaParser {
                     read("]");
                 }
             }
-            return expr;
-        }
-        if (current.type == TOKEN_LITERAL_STRING) {
-            StringExpr expr = new StringExpr(this);
-            expr.text = current.token.substring(1);
-            readToken();
             return expr;
         }
         if (readIf("this")) {
@@ -945,6 +1001,14 @@ public class JavaParser {
         String result = current.token;
         readToken();
         return result;
+    }
+
+    private boolean readIdentifierIf(String token) {
+        if (current.type == TOKEN_IDENTIFIER && token.equals(current.token)) {
+            readToken();
+            return true;
+        }
+        return false;
     }
 
     private boolean readIf(String token) {
@@ -1123,6 +1187,7 @@ public class JavaParser {
         case ',':
         case '?':
         case ':':
+        case '@':
             break;
         case '.':
             if (source.charAt(current.index) == '.' && source.charAt(current.index + 1) == '.') {
@@ -1159,7 +1224,8 @@ public class JavaParser {
             }
             break;
         case '/':
-            if (source.charAt(current.index) == '*' || source.charAt(current.index) == '/') {
+            if (source.charAt(current.index) == '*' || source.charAt(current.index) == '/'
+                    || source.charAt(current.index) == '=') {
                 current.index++;
             }
             break;
@@ -1318,7 +1384,9 @@ public class JavaParser {
         }
         out.println();
         for (ClassObj c : classes.values()) {
-            out.println("/* " + c.className + ".h */");
+            out.println("struct " + toC(c.className) + ";");
+        }
+        for (ClassObj c : classes.values()) {
             for (FieldObj f : c.staticFields.values()) {
                 StringBuilder buff = new StringBuilder();
                 buff.append("extern ");
@@ -1336,21 +1404,36 @@ public class JavaParser {
                 buff.append(";");
                 out.println(buff.toString());
             }
-            out.println("struct " + toC(c.className) + " {");
+            out.println("typedef struct " + toC(c.className) + " {");
             for (FieldObj f : c.instanceFields.values()) {
-                out.print("    " + toC(f.type.toString()) + " " + f.name);
+                out.print("    ");
+                if (!f.type.classObj.isPrimitive) {
+                    out.print("struct ");
+                }
+                out.print(toC(f.type.toString()) + " " + f.name);
                 if (f.value != null) {
                     out.print(" = " + f.value);
                 }
                 out.println(";");
             }
             if (c.instanceFields.size() == 0) {
-                out.println("int dummy;");
+                out.println("    int dummy;");
             }
-            out.println("};");
-            out.println("typedef struct " + toC(c.className) + " " + toC(c.className) + ";");
+            out.println("} " + toC(c.className) + ";");
+        }
+        ArrayList<String> constantNames = New.arrayList(stringConstantToStringMap.keySet());
+        Collections.sort(constantNames);
+        for (String c : constantNames) {
+            String s = stringConstantToStringMap.get(c);
+            out.println("const java_lang_String* " + c + " = STRING(\"" + s + "\");");
+        }
+        for (ClassObj c : classes.values()) {
+            out.println("/* " + c.className + " */");
             for (ArrayList<MethodObj> list : c.methods.values()) {
                 for (MethodObj m : list) {
+                    if (m.isIgnore) {
+                        continue;
+                    }
                     out.print(m.returnType + " " + toC(c.className) + "_" + m.name + "(");
                     int i = 0;
                     if (!m.isStatic && !m.isConstructor) {
@@ -1398,6 +1481,9 @@ public class JavaParser {
     void writeSource(PrintWriter out) {
         out.println("/* method pointers */");
         for (MethodObj m : allMethodsMap.values()) {
+            if (m.isIgnore) {
+                continue;
+            }
             out.print(m.returnType + " (*virtual_" + m.name + "[])(");
             int i = 0;
             if (!m.isConstructor) {
@@ -1448,6 +1534,9 @@ public class JavaParser {
             }
             for (ArrayList<MethodObj> list : c.methods.values()) {
                 for (MethodObj m : list) {
+                    if (m.isIgnore) {
+                        continue;
+                    }
                     out.print(m.returnType + " " + toC(c.className) + "_" + m.name + "(");
                     int i = 0;
                     if (!m.isStatic && !m.isConstructor) {

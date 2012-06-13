@@ -205,6 +205,11 @@ class MethodObj {
     boolean isVirtual;
 
     /**
+     * Whether this method is to be ignored (using the Ignore annotation).
+     */
+    boolean isIgnore;
+
+    /**
      * The name.
      */
     String name;
@@ -286,6 +291,11 @@ class FieldObj {
     boolean isPublic;
 
     /**
+     * Whether this method is to be ignored (using the Ignore annotation).
+     */
+    boolean isIgnore;
+
+    /**
      * The initial value expression (may be null).
      */
     Expr value;
@@ -316,6 +326,15 @@ class Type {
      * Whether this is a var args parameter.
      */
     boolean isVarArgs;
+
+    /**
+     * Whether this is a non-array primitive type.
+     *
+     * @return true if yes
+     */
+    public boolean isSimplePrimitive() {
+        return arrayLevel == 0 && classObj.isPrimitive;
+    }
 
     public String toString() {
         StringBuilder buff = new StringBuilder();

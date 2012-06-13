@@ -18,7 +18,7 @@ public class Arrays {
      * @param x the value
      */
     public static void fill(char[] array, char x) {
-        for (int i = 0; i < array.length; i++) {
+        for (int i = 0, size = array.length; i < size; i++) {
             array[i] = x;
         }
     }

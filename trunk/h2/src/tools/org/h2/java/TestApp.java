@@ -25,7 +25,11 @@ int main(int argc, char** argv) {
      * @param args the command line arguments
      */
     public static void main(String... args) {
-        System.out.println("Hello " + "World" + 1);
+        for (int i = 0; i < 10; i++) {
+            String s = "Hello " + i;
+            System.out.println(s);
+            s = null;
+        }
     }
 
 }

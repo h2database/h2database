@@ -11,6 +11,10 @@ package org.h2.java.lang;
  */
 public class Integer {
 
+    public static final int MIN_VALUE = 1 << 31;
+
+    public static final int MAX_VALUE = (int) ((1L << 31) - 1);
+
     /**
      * Convert a value to a String.
      *
@@ -21,7 +25,32 @@ public class Integer {
         // c: char ch[20];
         // c: snprintf(ch, 20, "%d", x);
         // c: return string(ch);
-        return null;
+        // c: return;
+        if (x == MIN_VALUE) {
+            return String.wrap("-2147483648");
+        }
+        char[] ch = new char[20];
+        int i = 20 - 1, count = 0;
+        boolean negative;
+        if (x < 0) {
+            negative = true;
+            x = -x;
+        } else {
+            negative = false;
+        }
+        for (; i >= 0; i--) {
+            ch[i] = (char) ('0' + (x % 10));
+            x /= 10;
+            count++;
+            if (x == 0) {
+                break;
+            }
+        }
+        if (negative) {
+            ch[--i] = '-';
+            count++;
+        }
+        return new String(ch, i, count);
     }
 
 }

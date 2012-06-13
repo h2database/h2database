@@ -13,66 +13,93 @@ import java.util.ArrayList;
  */
 public interface Statement {
 
+    boolean isEnd();
+
     // toString
+
+}
+
+/**
+ * The base class for statements.
+ */
+abstract class StatementBase implements Statement {
+
+    public boolean isEnd() {
+        return false;
+    }
 
 }
 
 /**
  * A "return" statement.
  */
-class ReturnStatement implements Statement {
+class ReturnStatement extends StatementBase {
+
     Expr expr;
+
     public String toString() {
         return "return " + (expr == null ? "" : expr) + ";";
     }
+
 }
 
 /**
  * A "do .. while" statement.
  */
-class DoWhileStatement implements Statement {
+class DoWhileStatement extends StatementBase {
+
     Expr condition;
     Statement block;
+
     public String toString() {
         return "do {\n" + block + "} while (" + condition + ");";
     }
+
 }
 
 /**
  * A "continue" statement.
  */
-class ContinueStatement implements Statement {
+class ContinueStatement extends StatementBase {
+
     public String toString() {
         return "continue;";
     }
+
 }
 
 /**
  * A "break" statement.
  */
-class BreakStatement implements Statement {
+class BreakStatement extends StatementBase {
+
     public String toString() {
         return "break;";
     }
+
 }
 
 /**
  * An empty statement.
  */
-class EmptyStatement implements Statement {
+class EmptyStatement extends StatementBase {
+
     public String toString() {
         return ";";
     }
+
 }
 
 /**
  * A "switch" statement.
  */
-class SwitchStatement implements Statement {
+class SwitchStatement extends StatementBase {
+
     Expr expr;
     StatementBlock defaultBlock;
     ArrayList<Expr> cases = new ArrayList<Expr>();
     ArrayList<StatementBlock> blocks = new  ArrayList<StatementBlock>();
+
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append("switch (").append(expr).append(") {\n");
@@ -87,38 +114,47 @@ class SwitchStatement implements Statement {
         buff.append("}");
         return buff.toString();
     }
+
 }
 
 /**
  * An expression statement.
  */
-class ExprStatement implements Statement {
+class ExprStatement extends StatementBase {
+
     Expr expr;
+
     public String toString() {
         return expr + ";";
     }
+
 }
 
 /**
  * A "while" statement.
  */
-class WhileStatement implements Statement {
+class WhileStatement extends StatementBase {
+
     Expr condition;
     Statement block;
+
     public String toString() {
         String w = "while (" + condition + ")";
         String s = block.toString();
         return w + "\n" + s;
     }
+
 }
 
 /**
  * An "if" statement.
  */
-class IfStatement implements Statement {
+class IfStatement extends StatementBase {
+
     Expr condition;
     Statement block;
     Statement elseBlock;
+
     public String toString() {
         String w = "if (" + condition + ") {\n";
         String s = block.toString();
@@ -127,12 +163,14 @@ class IfStatement implements Statement {
         }
         return w + s + "}";
     }
+
 }
 
 /**
  * A "for" statement.
  */
-class ForStatement implements Statement {
+class ForStatement extends StatementBase {
+
     Statement init;
     Expr condition;
     Expr update;
@@ -141,6 +179,7 @@ class ForStatement implements Statement {
     Type iterableType;
     String iterableVariable;
     Expr iterable;
+
     public String toString() {
         StringBuffer buff = new StringBuffer();
         buff.append("for (");
@@ -174,54 +213,81 @@ class ForStatement implements Statement {
         }
         return buff.toString();
     }
+
 }
 
 /**
  * A statement block.
  */
-class StatementBlock implements Statement {
+class StatementBlock extends StatementBase {
+
     ArrayList<Statement> instructions = new ArrayList<Statement>();
+
     public String toString() {
         StringBuilder buff = new StringBuilder();
         for (Statement s : instructions) {
+            if (s.isEnd()) {
+                break;
+            }
             buff.append(JavaParser.indent(s.toString()));
         }
         return buff.toString();
     }
+
 }
 
 /**
  * A variable declaration.
  */
-class VarDecStatement implements Statement {
+class VarDecStatement extends StatementBase {
+
     Type type;
     ArrayList<String> variables = new ArrayList<String>();
     ArrayList<Expr> values = new ArrayList<Expr>();
+
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append(type).append(' ');
+        StringBuilder assign = new StringBuilder();
         for (int i = 0; i < variables.size(); i++) {
             if (i > 0) {
                 buff.append(", ");
             }
-            buff.append(variables.get(i));
+            String varName = variables.get(i);
+            buff.append(varName);
             Expr value = values.get(i);
             if (value != null) {
-                buff.append(" = ").append(value);
+                if (value.getType().isSimplePrimitive()) {
+                    buff.append(" = ").append(value);
+                } else {
+                    assign.append(varName).append(" = reference(").append(value).append(");\n");
+                }
             }
         }
         buff.append(";");
+        if (assign.length() > 0) {
+            buff.append("\n");
+            buff.append(assign);
+        }
         return buff.toString();
     }
+
 }
 
 /**
  * A native statement.
  */
-class StatementNative implements Statement {
+class StatementNative extends StatementBase {
+
     String code;
+
     public String toString() {
         return code;
     }
+
+    public boolean isEnd() {
+        return code.equals("return;");
+    }
+
 }
 

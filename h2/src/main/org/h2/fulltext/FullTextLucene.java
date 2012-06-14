@@ -48,6 +48,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.apache.lucene.index.IndexWriter;
 //*/
@@ -70,6 +71,8 @@ public class FullTextLucene extends FullText {
     private static final String LUCENE_FIELD_QUERY = "_QUERY";
     private static final String LUCENE_FIELD_MODIFIED = "_modified";
     private static final String LUCENE_FIELD_COLUMN_PREFIX = "_";
+
+    private static final String IN_MEMORY_PERFIX = "mem:";
 
     /**
      * Initializes full text search functionality for this database. This adds
@@ -262,8 +265,7 @@ public class FullTextLucene extends FullText {
                     access.modifier = new IndexModifier(path, analyzer, recreate);
                     //*/
                     //## LUCENE3 ##
-                    File f = new File(path);
-                    Directory indexDir = FSDirectory.open(f);
+                    Directory indexDir = path.startsWith(IN_MEMORY_PERFIX) ? new RAMDirectory() : FSDirectory.open(new File(path));
                     boolean recreate = !IndexReader.indexExists(indexDir);
                     Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
                     IndexWriter writer = new IndexWriter(indexDir, analyzer,
@@ -296,7 +298,12 @@ public class FullTextLucene extends FullText {
         rs.next();
         String path = rs.getString(1);
         if (path == null) {
-            throw throwException("Fulltext search for in-memory databases is not supported.");
+            /*## LUCENE2 ##
+            throw throwException("Fulltext search for in-memory databases is not supported with Lucene 2. Please use Lucene 3 instead.");
+    	    //*/
+            //## LUCENE3 ##
+            return IN_MEMORY_PERFIX + conn.getCatalog();
+            //*/
         }
         int index = path.lastIndexOf(':');
         // position 1 means a windows drive letter is used, ignore that
@@ -336,7 +343,9 @@ public class FullTextLucene extends FullText {
         if (access != null) {
             removeIndexAccess(access, path);
         }
-        FileUtils.deleteRecursive(path, false);
+        if (!path.startsWith(IN_MEMORY_PERFIX)) {
+            FileUtils.deleteRecursive(path, false);
+        }
     }
 
     /**
@@ -547,12 +556,12 @@ public class FullTextLucene extends FullText {
                 if (newRow != null) {
                     // update
                     if (hasChanged(oldRow, newRow, indexColumns)) {
-                        delete(oldRow);
+                        delete(oldRow, false);
                         insert(newRow, true);
                     }
                 } else {
                     // delete
-                    delete(oldRow);
+                    delete(oldRow, true);
                 }
             } else if (newRow != null) {
                 // insert
@@ -665,13 +674,7 @@ public class FullTextLucene extends FullText {
             try {
                 indexAccess.writer.addDocument(doc);
                 if (commitIndex) {
-                    indexAccess.writer.commit();
-                    // recreate Searcher with the IndexWriter's reader.
-                    indexAccess.searcher.close();
-                    indexAccess.reader.close();
-                    IndexReader reader = indexAccess.writer.getReader();
-                    indexAccess.reader = reader;
-                    indexAccess.searcher = new IndexSearcher(reader);
+                    commitIndex();
                 }
             } catch (IOException e) {
                 throw convertException(e);
@@ -683,8 +686,9 @@ public class FullTextLucene extends FullText {
          * Delete a row from the index.
          *
          * @param row the row
+         * @param commitIndex whether to commit the changes to the Lucene index
          */
-        protected void delete(Object[] row) throws SQLException {
+        protected void delete(Object[] row, boolean commitIndex) throws SQLException {
             String query = getQuery(row);
             try {
                 Term term = new Term(LUCENE_FIELD_QUERY, query);
@@ -693,6 +697,9 @@ public class FullTextLucene extends FullText {
                 //*/
                 //## LUCENE3 ##
                 indexAccess.writer.deleteDocuments(term);
+                if (commitIndex) {
+                	commitIndex();
+                }
                 //*/
             } catch (IOException e) {
                 throw convertException(e);

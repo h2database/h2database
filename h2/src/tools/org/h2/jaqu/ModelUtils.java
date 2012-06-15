@@ -298,7 +298,7 @@ public class ModelUtils {
             try {
                 // delegate to static valueOf() method to parse string
                 Method m = modelClass.getMethod("valueOf", String.class);
-                Object o = m.invoke(null, unquoted);
+                m.invoke(null, unquoted);
             } catch (NumberFormatException ex) {
                 return false;
             } catch (Throwable t) {

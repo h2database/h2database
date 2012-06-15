@@ -44,7 +44,6 @@ public class Indexer {
     private HashMap<String, Word> words = new HashMap<String, Word>();
     private HashSet<String> noIndex = new HashSet<String>();
     private ArrayList <Word>wordList;
-    private int totalAllWeights;
     private PrintWriter output;
     private Page page;
     private boolean title;
@@ -350,7 +349,6 @@ public class Indexer {
                 word.name = token.compareTo(word.name) > 0 ? token : word.name;
             }
             page.totalWeight += weight;
-            totalAllWeights += weight;
             word.addPage(page, weight);
         }
     }

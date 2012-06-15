@@ -347,23 +347,20 @@ public class TestTableEngines extends TestBase {
                 }
 
                 public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
-                    return find(filter.getSession(), filter.getFilterCondition(), first, last);
+                    return find(filter.getFilterCondition());
                 }
 
                 public Cursor find(Session session, SearchRow first, SearchRow last) {
-                    return find(session, null, first, last);
+                    return find(null);
                 }
 
                 /**
                  * Search within the table.
                  *
-                 * @param session the session
                  * @param filter the table filter (optional)
-                 * @param first the first row (optional)
-                 * @param last the last row (optional)
                  * @return the cursor
                  */
-                private Cursor find(Session session, Expression filter, SearchRow first, SearchRow last) {
+                private Cursor find(Expression filter) {
                     if (filter != null) {
                         row.setValue(1, ValueString.get(filter.getSQL()));
                     }

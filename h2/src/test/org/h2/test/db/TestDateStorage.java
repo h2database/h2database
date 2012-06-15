@@ -153,7 +153,6 @@ public class TestDateStorage extends TestBase {
         // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6772689
         java.sql.Date date = java.sql.Date.valueOf(s);
         long time = date.getTime();
-        int plus = 0;
         while (true) {
             date = new java.sql.Date(time);
             String x = date.toString();
@@ -161,7 +160,6 @@ public class TestDateStorage extends TestBase {
                 break;
             }
             time += 1000;
-            plus += 1000;
         }
         if (!date.toString().equals(s)) {
             println(TimeZone.getDefault().getID() + " " + s + " <> " + date.toString());

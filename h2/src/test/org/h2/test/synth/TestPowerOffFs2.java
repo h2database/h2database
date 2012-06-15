@@ -31,7 +31,6 @@ public class TestPowerOffFs2 extends TestBase {
     private String password = "sa";
     private ArrayList<Connection> connections = New.arrayList();
     private ArrayList<String> tables = New.arrayList();
-    private int openCount;
 
     /**
      * Run just this test.
@@ -84,7 +83,6 @@ public class TestPowerOffFs2 extends TestBase {
     private void testCrash(int x) throws SQLException {
         connections.clear();
         tables.clear();
-        openCount = 0;
         Random random = new Random(x);
         for (int i = 0;; i++) {
             if (i > 200 && connections.size() > 1 && tables.size() > 1) {
@@ -167,7 +165,6 @@ public class TestPowerOffFs2 extends TestBase {
     }
 
     private Connection openConnection() throws SQLException {
-        openCount++;
         Connection conn = DriverManager.getConnection(url, user, password);
         connections.add(conn);
         return conn;

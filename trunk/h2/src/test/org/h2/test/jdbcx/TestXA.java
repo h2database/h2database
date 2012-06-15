@@ -323,8 +323,12 @@ public class TestXA extends TestBase {
             JdbcUtils.closeSilently(stat2);
             JdbcUtils.closeSilently(conn1);
             JdbcUtils.closeSilently(conn2);
-            xaConn1.close();
-            xaConn2.close();
+            if (xaConn1 != null) {
+                xaConn1.close();
+            }
+            if (xaConn2 != null) {
+                xaConn2.close();
+            }
         }
     }
 

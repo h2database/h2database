@@ -307,11 +307,9 @@ public class TestRecover {
     }
 
     private static boolean testConsistency() {
-        FileOutputStream out = null;
         PrintWriter p = null;
         try {
-            out = new FileOutputStream(TEST_DIRECTORY + "/result.txt");
-            p = new PrintWriter(out);
+            p = new PrintWriter(new FileOutputStream(TEST_DIRECTORY + "/result.txt"));
             p.println("Results");
             p.flush();
         } catch (Throwable t) {
@@ -338,9 +336,11 @@ public class TestRecover {
                     t2.printStackTrace(p);
                 }
             }
-            p.flush();
-            p.close();
-            IOUtils.closeSilently(out);
+            if (p != null) {
+                p.flush();
+                p.close();
+                IOUtils.closeSilently(p);
+            }
         }
     }
 

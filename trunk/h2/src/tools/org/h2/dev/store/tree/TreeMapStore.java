@@ -130,7 +130,7 @@ public class TreeMapStore {
      * Mark a map as changed.
      *
      * @param name the map name
-     * @param the map
+     * @param map the map
      */
     void markChanged(String name, StoredMap<?, ?> map) {
         if (map != meta) {

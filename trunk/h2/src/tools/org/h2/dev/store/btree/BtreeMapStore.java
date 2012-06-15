@@ -132,7 +132,7 @@ public class BtreeMapStore {
      * Mark a map as changed.
      *
      * @param name the map name
-     * @param the map
+     * @param map the map
      */
     void markChanged(String name, BtreeMap<?, ?> map) {
         if (map != meta) {

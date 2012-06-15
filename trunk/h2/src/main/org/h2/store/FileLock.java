@@ -225,7 +225,7 @@ public class FileLock implements Runnable {
             transfer.setSocket(socket);
             transfer.init();
             transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_11);
+            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_12);
             transfer.writeString(null);
             transfer.writeString(null);
             transfer.writeString(id);

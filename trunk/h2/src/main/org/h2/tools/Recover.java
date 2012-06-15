@@ -193,7 +193,7 @@ public class Recover extends Tool implements DataHandler {
     public static Value.ValueBlob readBlobDb(Connection conn, long lobId, long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         LobStorage lobStorage = h.getLobStorage();
-        return ValueLobDb.create(Value.BLOB, lobStorage, LobStorage.TABLE_TEMP, lobId, precision);
+        return ValueLobDb.create(Value.BLOB, lobStorage, LobStorage.TABLE_TEMP, lobId, null, precision);
     }
 
     /**
@@ -202,7 +202,7 @@ public class Recover extends Tool implements DataHandler {
     public static Value.ValueClob readClobDb(Connection conn, long lobId, long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         LobStorage lobStorage = h.getLobStorage();
-        return ValueLobDb.create(Value.CLOB, lobStorage, LobStorage.TABLE_TEMP, lobId, precision);
+        return ValueLobDb.create(Value.CLOB, lobStorage, LobStorage.TABLE_TEMP, lobId, null, precision);
     }
 
     private void trace(String message) {
@@ -1415,7 +1415,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public int readLob(long lobId, long offset, byte[] buff, int off, int length) {
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         throw DbException.throwInternalError();
     }
 

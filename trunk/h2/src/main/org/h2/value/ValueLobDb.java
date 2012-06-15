@@ -39,6 +39,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     private LobStorage lobStorage;
     private long lobId;
+    private byte[] hmac;
 
     private byte[] small;
 
@@ -46,11 +47,12 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     private FileStore tempFile;
     private String fileName;
 
-    private ValueLobDb(int type, LobStorage lobStorage, int tableId, long lobId, long precision) {
+    private ValueLobDb(int type, LobStorage lobStorage, int tableId, long lobId, byte[] hmac, long precision) {
         this.type = type;
         this.lobStorage = lobStorage;
         this.tableId = tableId;
         this.lobId = lobId;
+        this.hmac = hmac;
         this.precision = precision;
     }
 
@@ -71,8 +73,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      * @return the value
      */
     public static ValueLobDb create(int type, LobStorage lobStorage,
-            int tableId, long id, long precision) {
-        return new ValueLobDb(type, lobStorage, tableId, id, precision);
+            int tableId, long id, byte[] hmac, long precision) {
+        return new ValueLobDb(type, lobStorage, tableId, id, hmac, precision);
     }
 
     /**
@@ -285,7 +287,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
         long byteCount = (type == Value.BLOB) ? precision : -1;
         try {
-            return lobStorage.getInputStream(lobId, byteCount);
+            return lobStorage.getInputStream(lobId, hmac, byteCount);
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }

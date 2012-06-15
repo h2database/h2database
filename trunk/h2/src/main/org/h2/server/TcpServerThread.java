@@ -37,7 +37,6 @@ import org.h2.util.SmallMap;
 import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
-import org.h2.value.ValueLobDb;
 
 /**
  * One server thread is opened per client connection.
@@ -51,10 +50,7 @@ public class TcpServerThread implements Runnable {
     private Thread thread;
     private Command commit;
     private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
-    private SmallLRUCache<Long, CachedInputStream> lobs =
-        SmallLRUCache.newInstance(Math.max(
-                SysProperties.SERVER_CACHED_OBJECTS,
-                SysProperties.SERVER_RESULT_SET_FETCH_SIZE * 5));
+    private SmallLRUCache<Long, CachedInputStream> lobs = SmallLRUCache.newInstance(SysProperties.SERVER_CACHED_OBJECTS);
     private int threadId;
     private int clientVersion;
     private String sessionId;
@@ -83,12 +79,12 @@ public class TcpServerThread implements Runnable {
                 int minClientVersion = transfer.readInt();
                 if (minClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_11) {
-                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_11);
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_12) {
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_12);
                 }
                 int maxClientVersion = transfer.readInt();
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_11) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_11;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_12;
                 } else {
                     clientVersion = minClientVersion;
                 }
@@ -396,15 +392,18 @@ public class TcpServerThread implements Runnable {
             break;
         }
         case SessionRemote.LOB_READ: {
+            byte[] hmac = transfer.readBytes();
             long lobId = transfer.readLong();
+            transfer.verifyLobMac(hmac, lobId);
             CachedInputStream in = lobs.get(lobId);
             if (in == null) {
-                throw DbException.get(ErrorCode.OBJECT_CLOSED);
+                in = new CachedInputStream(null);
+                lobs.put(lobId, in);
             }
             long offset = transfer.readLong();
             if (in.getPos() != offset) {
                 LobStorage lobStorage = session.getDataHandler().getLobStorage();
-                InputStream lobIn = lobStorage.getInputStream(lobId, -1);
+                InputStream lobIn = lobStorage.getInputStream(lobId, hmac, -1);
                 in = new CachedInputStream(lobIn);
                 lobs.put(lobId, in);
                 lobIn.skip(offset);
@@ -426,7 +425,7 @@ public class TcpServerThread implements Runnable {
             close();
         }
     }
-
+    
     private int getState(int oldModificationId) {
         if (session.getModificationId() == oldModificationId) {
             return SessionRemote.STATUS_OK;
@@ -439,24 +438,11 @@ public class TcpServerThread implements Runnable {
             transfer.writeBoolean(true);
             Value[] v = result.currentRow();
             for (int i = 0; i < result.getVisibleColumnCount(); i++) {
-                writeValue(v[i]);
+                transfer.writeValue(v[i]);
             }
         } else {
             transfer.writeBoolean(false);
         }
-    }
-
-    private void writeValue(Value v) throws IOException {
-        if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
-            if (v instanceof ValueLobDb) {
-                ValueLobDb lob = (ValueLobDb) v;
-                if (lob.isStored()) {
-                    long id = lob.getLobId();
-                    lobs.put(id, new CachedInputStream(null));
-                }
-            }
-        }
-        transfer.writeValue(v);
     }
 
     void setThread(Thread thread) {

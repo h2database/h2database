@@ -23,6 +23,8 @@ Change Log
 </li><li>Apache Tomcat 7.x will now longer log a warning when unloading the web application, if using a connection pool.
 </li><li>H2 Console: support the Midori browser (for Debian / Raspberry Pi)
 </li><li>When opening a remote session, don't open a temporary file if the trace level is set to zero
+</li><li>Use HMAC for authenticating remote LOB id's, removing the need for maintaining a cache, and removing the limit
+on the number of LOBs per result set.
 </li></ul>
 
 <h2>Version 1.3.167 (2012-05-23)</h2>

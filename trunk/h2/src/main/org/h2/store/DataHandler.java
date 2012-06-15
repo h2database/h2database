@@ -109,6 +109,6 @@ public interface DataHandler {
      * @param length the number of bytes to read
      * @return the number of bytes read
      */
-    int readLob(long lobId, long offset, byte[] buff, int off, int length);
+    int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length);
 
 }

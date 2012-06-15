@@ -564,15 +564,19 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             conn.close();
             FileUtils.delete(getBaseDir() + "/pageStore.sql");
         } catch (Exception e) {
-            try {
-                stat.execute("shutdown immediately");
-            } catch (SQLException e2) {
-                // ignore
+            if (stat != null) {
+                try {
+                    stat.execute("shutdown immediately");
+                } catch (SQLException e2) {
+                    // ignore
+                }
             }
-            try {
-                conn.close();
-            } catch (SQLException e2) {
-                // ignore
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e2) {
+                    // ignore
+                }
             }
             throw new RuntimeException("count: " + count, e);
         }

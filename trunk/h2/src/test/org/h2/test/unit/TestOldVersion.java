@@ -44,6 +44,7 @@ public class TestOldVersion extends TestBase {
         driver = getDriver(cl);
         if (driver == null) {
             println("not found: ext/h2-1.2.127.jar - test skipped");
+            return;
         }
         Connection conn = driver.connect("jdbc:h2:mem:", null);
         assertEquals("1.2.127 (2010-01-15)", conn.getMetaData().getDatabaseProductVersion());

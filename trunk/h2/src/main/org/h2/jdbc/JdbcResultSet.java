@@ -755,7 +755,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * [Not supported]
-     * @deprecated
+     * @deprecated since JDBC 2.0, use getCharacterStream
      */
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
         throw unsupported("unicodeStream");
@@ -763,7 +763,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 
     /**
      * [Not supported]
-     * @deprecated
+     * @deprecated since JDBC 2.0, use setCharacterStream
      */
     public InputStream getUnicodeStream(String columnLabel) throws SQLException {
         throw unsupported("unicodeStream");

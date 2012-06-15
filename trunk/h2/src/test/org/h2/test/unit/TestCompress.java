@@ -159,13 +159,12 @@ public class TestCompress extends TestBase {
             long time = System.currentTimeMillis();
             for (int i = 0; i < 1000; i++) {
                 InputStream in = FileUtils.newInputStream("memFS:compress.h2.db");
-                int total = 0;
                 while (true) {
                     int len = in.read(buff);
                     if (len < 0) {
                         break;
                     }
-                    total += compress.compress(buff, pageSize, test, 0);
+                    compress.compress(buff, pageSize, test, 0);
                 }
                 in.close();
             }

@@ -128,7 +128,7 @@ public class TestMultiDimension extends TestBase {
         long timeMulti = 0, timeRegular = 0;
         int timeMax = getSize(500, 2000);
         Random rand = new Random(1);
-        for (int i = 0; timeMulti < timeMax; i++) {
+        while (timeMulti < timeMax) {
             int size = rand.nextInt(max / 10);
             int minX = rand.nextInt(max - size);
             int minY = rand.nextInt(max - size);
@@ -199,7 +199,7 @@ public class TestMultiDimension extends TestBase {
         long timeMulti = 0, timeRegular = 0;
         int timeMax = getSize(500, 2000);
         Random rand = new Random(1);
-        for (int i = 0; timeMulti < timeMax; i++) {
+        while (timeMulti < timeMax) {
             int size = rand.nextInt(max / 10);
             int minX = rand.nextInt(max - size);
             int minY = rand.nextInt(max - size);

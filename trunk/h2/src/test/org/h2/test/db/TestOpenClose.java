@@ -85,7 +85,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         conn.close();
         Thread.sleep(950);
         long time = System.currentTimeMillis();
-        for (int i = 0; System.currentTimeMillis() - time < 100; i++) {
+        while (System.currentTimeMillis() - time < 100) {
             conn = DriverManager.getConnection(url, user, password);
             conn.close();
         }

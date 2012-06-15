@@ -126,7 +126,7 @@ public class TestThreads extends TestBase implements Runnable {
             ResultSet rs;
             int max = master.getMaxId();
             int rid = random.nextInt(max);
-            for (int i = 0; !master.stop; i++) {
+            while (!master.stop) {
                 switch (type) {
                 case INSERT:
                     max = master.incrementMaxId();

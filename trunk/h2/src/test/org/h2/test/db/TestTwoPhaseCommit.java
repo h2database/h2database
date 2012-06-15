@@ -55,7 +55,7 @@ public class TestTwoPhaseCommit extends TestBase {
         stat.execute("CREATE TABLE TEST2(ID INT)");
         String name = "tx12345678";
         try {
-            for (int i = 0;; i++) {
+            while (true) {
                 stat.execute("INSERT INTO TEST2 VALUES(1)");
                 name += "x";
                 stat.execute("PREPARE COMMIT " + name);

@@ -88,12 +88,10 @@ public class TestCache extends TestBase implements CacheWriter {
             int rc;
             prep = conn.prepareStatement("select * from test where id = ?");
             rc = getReadCount(stat);
-            int p = 0;
             for (int x = 0; x < 2; x++) {
                 for (int i = 0; i < 15000; i++) {
                     prep.setInt(1, i);
                     prep.executeQuery();
-                    p++;
                 }
             }
             int rcData = getReadCount(stat) - rc;

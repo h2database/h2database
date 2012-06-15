@@ -281,6 +281,8 @@ public class LobStorage {
          */
         private final long lob;
 
+        private final byte[] hmac;
+        
         /**
          * The position.
          */
@@ -291,9 +293,10 @@ public class LobStorage {
          */
         private long remainingBytes;
 
-        public RemoteInputStream(DataHandler handler, long lob, long byteCount) {
+        public RemoteInputStream(DataHandler handler, long lob, byte[] hmac, long byteCount) {
             this.handler = handler;
             this.lob = lob;
+            this.hmac = hmac;
             remainingBytes = byteCount;
         }
 
@@ -315,7 +318,7 @@ public class LobStorage {
             if (length == 0) {
                 return -1;
             }
-            length = handler.readLob(lob, pos, buff, off, length);
+            length = handler.readLob(lob, hmac, pos, buff, off, length);
             remainingBytes -= length;
             if (length == 0) {
                 return -1;
@@ -547,13 +550,13 @@ public class LobStorage {
      * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */
-    public InputStream getInputStream(long lobId, long byteCount) throws IOException {
+    public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
         init();
         if (conn == null) {
             if (byteCount < 0) {
                 byteCount = Long.MAX_VALUE;
             }
-            return new BufferedInputStream(new RemoteInputStream(handler, lobId, byteCount));
+            return new BufferedInputStream(new RemoteInputStream(handler, lobId, hmac, byteCount));
         }
         if (byteCount == -1) {
             synchronized (handler) {
@@ -644,7 +647,7 @@ public class LobStorage {
                 prep.setInt(3, tableId);
                 prep.execute();
                 reuse(sql, prep);
-                ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, byteCount);
+                ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, null, byteCount);
                 return v;
             } catch (SQLException e) {
                 throw DbException.convert(e);
@@ -683,7 +686,7 @@ public class LobStorage {
                 prep.executeUpdate();
                 reuse(sql, prep);
 
-                ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, length);
+                ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, null, length);
                 return v;
             } catch (SQLException e) {
                 throw DbException.convert(e);

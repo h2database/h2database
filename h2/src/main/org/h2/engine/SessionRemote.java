@@ -96,7 +96,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_11);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_12);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -691,13 +691,14 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         return null;
     }
 
-    public synchronized int readLob(long lobId, long offset, byte[] buff, int off, int length) {
+    public synchronized int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             Transfer transfer = transferList.get(i);
             try {
                 traceOperation("LOB_READ", (int) lobId);
                 transfer.writeInt(SessionRemote.LOB_READ);
                 transfer.writeLong(lobId);
+                transfer.writeBytes(hmac);
                 transfer.writeLong(offset);
                 transfer.writeInt(length);
                 done(transfer);

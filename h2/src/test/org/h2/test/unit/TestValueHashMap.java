@@ -153,7 +153,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         return null;
     }
 
-    public int readLob(long lobId, long offset, byte[] buff, int off, int length) {
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         return -1;
     }
 

@@ -235,7 +235,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         return null;
     }
 
-    public int readLob(long lobId, long offset, byte[] buff, int off, int length) {
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         throw DbException.throwInternalError();
     }
 

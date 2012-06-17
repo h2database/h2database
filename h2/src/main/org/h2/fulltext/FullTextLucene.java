@@ -698,7 +698,7 @@ public class FullTextLucene extends FullText {
                 //## LUCENE3 ##
                 indexAccess.writer.deleteDocuments(term);
                 if (commitIndex) {
-                	commitIndex();
+                    commitIndex();
                 }
                 //*/
             } catch (IOException e) {

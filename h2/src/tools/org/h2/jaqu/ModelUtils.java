@@ -302,6 +302,8 @@ public class ModelUtils {
             } catch (NumberFormatException ex) {
                 return false;
             } catch (Throwable t) {
+                // TODO is this correct?
+                // ignore
             }
         }
         return true;

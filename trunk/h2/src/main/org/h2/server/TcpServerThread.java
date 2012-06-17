@@ -37,6 +37,7 @@ import org.h2.util.SmallMap;
 import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
+import org.h2.value.ValueLobDb;
 
 /**
  * One server thread is opened per client connection.
@@ -50,7 +51,10 @@ public class TcpServerThread implements Runnable {
     private Thread thread;
     private Command commit;
     private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
-    private SmallLRUCache<Long, CachedInputStream> lobs = SmallLRUCache.newInstance(SysProperties.SERVER_CACHED_OBJECTS);
+    private SmallLRUCache<Long, CachedInputStream> lobs =
+        SmallLRUCache.newInstance(Math.max(
+                SysProperties.SERVER_CACHED_OBJECTS,
+                SysProperties.SERVER_RESULT_SET_FETCH_SIZE * 5));
     private int threadId;
     private int clientVersion;
     private String sessionId;
@@ -392,13 +396,27 @@ public class TcpServerThread implements Runnable {
             break;
         }
         case SessionRemote.LOB_READ: {
-            byte[] hmac = transfer.readBytes();
             long lobId = transfer.readLong();
-            transfer.verifyLobMac(hmac, lobId);
-            CachedInputStream in = lobs.get(lobId);
-            if (in == null) {
-                in = new CachedInputStream(null);
-                lobs.put(lobId, in);
+            byte[] hmac;
+            CachedInputStream in;
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_11) {
+                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
+                    hmac = transfer.readBytes();
+                    transfer.verifyLobMac(hmac, lobId);
+                } else {
+                    hmac = null;
+                }
+                in = lobs.get(lobId);
+                if (in == null) {
+                    in = new CachedInputStream(null);
+                    lobs.put(lobId, in);
+                }
+            } else {
+                hmac = null;
+                in = lobs.get(lobId);
+                if (in == null) {
+                    throw DbException.get(ErrorCode.OBJECT_CLOSED);
+                }
             }
             long offset = transfer.readLong();
             if (in.getPos() != offset) {
@@ -425,7 +443,7 @@ public class TcpServerThread implements Runnable {
             close();
         }
     }
-    
+
     private int getState(int oldModificationId) {
         if (session.getModificationId() == oldModificationId) {
             return SessionRemote.STATUS_OK;
@@ -438,11 +456,28 @@ public class TcpServerThread implements Runnable {
             transfer.writeBoolean(true);
             Value[] v = result.currentRow();
             for (int i = 0; i < result.getVisibleColumnCount(); i++) {
-                transfer.writeValue(v[i]);
+                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
+                    transfer.writeValue(v[i]);
+                } else {
+                    writeValue(v[i]);
+                }
             }
         } else {
             transfer.writeBoolean(false);
         }
+    }
+
+    private void writeValue(Value v) throws IOException {
+        if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
+            if (v instanceof ValueLobDb) {
+                ValueLobDb lob = (ValueLobDb) v;
+                if (lob.isStored()) {
+                    long id = lob.getLobId();
+                    lobs.put(id, new CachedInputStream(null));
+                }
+            }
+        }
+        transfer.writeValue(v);
     }
 
     void setThread(Thread thread) {

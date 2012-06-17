@@ -21,6 +21,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
@@ -46,7 +47,7 @@ public class Transfer {
     private static final int BUFFER_SIZE = 16 * 1024;
     private static final int LOB_MAGIC = 0x1234;
     private static final int LOB_MAC_SALT_LENGTH = 16;
-    
+
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
@@ -409,14 +410,16 @@ public class Transfer {
             writeString(v.getString());
             break;
         case Value.BLOB: {
-            if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
                 if (v instanceof ValueLobDb) {
                     ValueLobDb lob = (ValueLobDb) v;
                     if (lob.isStored()) {
                         writeLong(-1);
                         writeInt(lob.getTableId());
                         writeLong(lob.getLobId());
-                        writeBytes(calculateLobMac(lob.getLobId()));
+                        if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+                            writeBytes(calculateLobMac(lob.getLobId()));
+                        }
                         writeLong(lob.getPrecision());
                         break;
                     }
@@ -435,14 +438,16 @@ public class Transfer {
             break;
         }
         case Value.CLOB: {
-            if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
                 if (v instanceof ValueLobDb) {
                     ValueLobDb lob = (ValueLobDb) v;
                     if (lob.isStored()) {
                         writeLong(-1);
                         writeInt(lob.getTableId());
-                        writeBytes(calculateLobMac(lob.getLobId()));
                         writeLong(lob.getLobId());
+                        if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+                            writeBytes(calculateLobMac(lob.getLobId()));
+                        }
                         writeLong(lob.getPrecision());
                         break;
                     }
@@ -573,11 +578,16 @@ public class Transfer {
             return ValueStringFixed.get(readString());
         case Value.BLOB: {
             long length = readLong();
-            if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
                 if (length == -1) {
                     int tableId = readInt();
                     long id = readLong();
-                    byte[] hmac = readBytes();
+                    byte[] hmac;
+                    if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+                        hmac = readBytes();
+                    } else {
+                        hmac = null;
+                    }
                     long precision = readLong();
                     return ValueLobDb.create(Value.BLOB, session.getDataHandler().getLobStorage(), tableId, id, hmac, precision);
                 }
@@ -599,11 +609,16 @@ public class Transfer {
         }
         case Value.CLOB: {
             long length = readLong();
-            if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+            if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
                 if (length == -1) {
                     int tableId = readInt();
                     long id = readLong();
-                    byte[] hmac = readBytes();
+                    byte[] hmac;
+                    if (version >= Constants.TCP_PROTOCOL_VERSION_12) {
+                        hmac = readBytes();
+                    } else {
+                        hmac = null;
+                    }
                     long precision = readLong();
                     return ValueLobDb.create(Value.CLOB, session.getDataHandler().getLobStorage(), tableId, id, hmac, precision);
                 }
@@ -712,11 +727,13 @@ public class Transfer {
     }
 
     /**
+     * Verify the HMAC.
+     *
      * @throws DbException if the HMAC does not verify
      */
     public void verifyLobMac(byte[] hmacData, long lobId) {
         byte[] result = calculateLobMac(lobId);
-        if (!result.equals(hmacData)) {
+        if (!Arrays.equals(result, hmacData)) {
             throw DbException.get(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
         }
     }
@@ -725,23 +742,10 @@ public class Transfer {
         if (lobMacSalt == null) {
             lobMacSalt = MathUtils.secureRandomBytes(LOB_MAC_SALT_LENGTH);
         }
-
-        byte[] hmacData = SHA256.getHashWithSalt(longToBytes(lobId), lobMacSalt);
+        byte[] data = new byte[8];
+        Utils.writeLong(data, 0, lobId);
+        byte[] hmacData = SHA256.getHashWithSalt(data, lobMacSalt);
         return hmacData;
     }
-
-    private static byte[] longToBytes(long src) {
-        byte[] data = new byte[8];
-        data[0] = (byte) (src >> 56);
-        data[1] = (byte) (src >> 48);
-        data[2] = (byte) (src >> 40);
-        data[3] = (byte) (src >> 32);
-        data[4] = (byte) (src >> 24);
-        data[5] = (byte) (src >> 16);
-        data[6] = (byte) (src >> 8);
-        data[7] = (byte) src;
-        return data;
-    }
-    
 
 }

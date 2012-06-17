@@ -698,7 +698,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
                 traceOperation("LOB_READ", (int) lobId);
                 transfer.writeInt(SessionRemote.LOB_READ);
                 transfer.writeLong(lobId);
-                transfer.writeBytes(hmac);
+                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
+                    transfer.writeBytes(hmac);
+                }
                 transfer.writeLong(offset);
                 transfer.writeInt(length);
                 done(transfer);

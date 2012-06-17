@@ -79,7 +79,7 @@ public class TestSort extends TestBase {
         stretch(array);
         stabilize(array);
         test("few reverse");
-        System.out.println();
+        // System.out.println();
     }
 
     /**

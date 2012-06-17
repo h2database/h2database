@@ -64,6 +64,26 @@ public class Utils {
     }
 
     /**
+     * Write a long value to the byte array at the given position. The most
+     * significant byte is written first.
+     *
+     * @param buff the byte array
+     * @param pos the position
+     * @param x the value to write
+     */
+    public static void writeLong(byte[] buff, int pos, long x) {
+        writeInt(buff, pos, (int) (x >> 32));
+        writeInt(buff, pos + 4, (int) x);
+    }
+
+    private static void writeInt(byte[] buff, int pos, int x) {
+        buff[pos++] = (byte) (x >> 24);
+        buff[pos++] = (byte) (x >> 16);
+        buff[pos++] = (byte) (x >> 8);
+        buff[pos++] = (byte) x;
+    }
+
+    /**
      * Read a long value from the byte array at the given position. The most
      * significant byte is read first.
      *

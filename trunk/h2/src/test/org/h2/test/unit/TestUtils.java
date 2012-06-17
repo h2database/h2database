@@ -8,6 +8,7 @@ package org.h2.test.unit;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
 
@@ -31,10 +32,28 @@ public class TestUtils extends TestBase {
     }
 
     public void test() throws Exception {
+        testWriteReadLong();
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testReflectionUtils();
+    }
+
+    private void testWriteReadLong() {
+        byte[] buff = new byte[8];
+        for (long x : new long[]{Long.MIN_VALUE, Long.MAX_VALUE, 0, 1, -1,
+                Integer.MIN_VALUE, Integer.MAX_VALUE}) {
+            Utils.writeLong(buff, 0, x);
+            long y = Utils.readLong(buff, 0);
+            assertEquals(x, y);
+        }
+        Random r = new Random(1);
+        for (int i = 0; i < 1000; i++) {
+            long x = r.nextLong();
+            Utils.writeLong(buff, 0, x);
+            long y = Utils.readLong(buff, 0);
+            assertEquals(x, y);
+        }
     }
 
     private void testGetNonPrimitiveClass() throws Exception {

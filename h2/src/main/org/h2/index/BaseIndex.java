@@ -125,7 +125,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param rowCount the number of rows in the index
      * @return the estimated cost
      */
-    long getCostRangeIndex(int[] masks, long rowCount) {
+    protected long getCostRangeIndex(int[] masks, long rowCount) {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;
         long rows = rowCount;

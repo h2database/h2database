@@ -92,12 +92,12 @@ public class OutputCatcher {
          */
         final PrintStream print;
 
-        private final HtmlOutputStream out;
+        private final HtmlOutputStream htmlOut;
         private final boolean error;
 
         DualOutputStream(HtmlOutputStream out, PrintStream print, boolean error) {
             super(out);
-            this.out = out;
+            this.htmlOut = out;
             this.print = print;
             this.error = error;
         }
@@ -114,7 +114,7 @@ public class OutputCatcher {
 
         public void write(int b) throws IOException {
             print.write(b);
-            out.write(error, b);
+            htmlOut.write(error, b);
         }
     }
 

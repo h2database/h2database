@@ -269,7 +269,7 @@ public class LobStorage {
     /**
      * An input stream that reads from a remote LOB.
      */
-    public class RemoteInputStream extends InputStream {
+    public static class RemoteInputStream extends InputStream {
 
         /**
          * The data handler.

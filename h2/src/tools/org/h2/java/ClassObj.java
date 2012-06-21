@@ -101,7 +101,8 @@ public class ClassObj {
             list = new ArrayList<MethodObj>();
             methods.put(method.name, list);
         } else {
-            method.name = method.name + "_" + (list.size() + 1);
+            // for overloaded methods
+            // method.name = method.name + "_" + (list.size() + 1);
         }
         list.add(method);
     }
@@ -248,6 +249,11 @@ class MethodObj {
      * Whether this is a constructor.
      */
     boolean isConstructor;
+
+    public String toString() {
+        return name;
+    }
+
 }
 
 /**
@@ -305,6 +311,10 @@ class FieldObj {
      */
     ClassObj declaredClass;
 
+    public String toString() {
+        return name;
+    }
+
 }
 
 /**
@@ -338,12 +348,12 @@ class Type {
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append(JavaParser.toC(classObj.toString()));
-        if (!classObj.isPrimitive) {
-            buff.append("*");
-        }
         for (int i = 0; i < arrayLevel; i++) {
-            buff.append("*");
+            buff.append("ptr<array< ");
+        }
+        buff.append(classObj.toString());
+        for (int i = 0; i < arrayLevel; i++) {
+            buff.append(" > >");
         }
         return buff.toString();
     }

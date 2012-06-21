@@ -38,7 +38,13 @@ class ReturnStatement extends StatementBase {
     Expr expr;
 
     public String toString() {
-        return "return " + (expr == null ? "" : expr) + ";";
+        if (expr == null) {
+            return "return;";
+        }
+        if (expr.getType().isSimplePrimitive()) {
+            return "return " + expr + ";";
+        }
+        return "return " + JavaParser.toCType(expr.getType()) + "(" + expr + ");";
     }
 
 }
@@ -187,9 +193,9 @@ class ForStatement extends StatementBase {
             Type it = iterable.getType();
             if (it != null && it.arrayLevel > 0) {
                 String idx = "i_" + iterableVariable;
-                buff.append("int " + idx + " = 0; " + idx + " < LENGTH(" + iterable + "); " + idx + "++");
+                buff.append("int " + idx + " = 0; " + idx + " < " + iterable + "->length(); " + idx + "++");
                 buff.append(") {\n");
-                buff.append(JavaParser.indent(iterableType + " " + iterableVariable + " = " + iterable + "["+ idx +"];\n"));
+                buff.append(JavaParser.indent(iterableType + " " + iterableVariable + " = " + iterable + "->at("+ idx +");\n"));
                 buff.append(block.toString()).append("}");
             } else {
                 // TODO iterate over a collection
@@ -247,7 +253,7 @@ class VarDecStatement extends StatementBase {
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append(type).append(' ');
+        buff.append(JavaParser.toCType(type)).append(' ');
         StringBuilder assign = new StringBuilder();
         for (int i = 0; i < variables.size(); i++) {
             if (i > 0) {
@@ -260,7 +266,7 @@ class VarDecStatement extends StatementBase {
                 if (value.getType().isSimplePrimitive()) {
                     buff.append(" = ").append(value);
                 } else {
-                    assign.append(varName).append(" = reference(").append(value).append(");\n");
+                    assign.append(varName).append(" = ").append(value).append(";\n");
                 }
             }
         }

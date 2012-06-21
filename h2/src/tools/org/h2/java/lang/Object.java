@@ -11,14 +11,16 @@ package org.h2.java.lang;
  */
 public class Object {
 
-    private static final int[] K = { 1 };
-
     public int hashCode() {
-        return K[0];
+        return 0;
     }
 
     public boolean equals(Object other) {
-        return this == other;
+        return other == this;
+    }
+
+    public java.lang.String toString() {
+        return "?";
     }
 
 }

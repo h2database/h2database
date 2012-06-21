@@ -22,9 +22,9 @@ public class Integer {
      * @return the String
      */
     public static String toString(int x) {
-        // c: char ch[20];
-        // c: snprintf(ch, 20, "%d", x);
-        // c: return string(ch);
+        // c: wchar_t ch[20];
+        // c: swprintf(ch, 20, L"%d", x);
+        // c: return STRING(ch);
         // c: return;
         if (x == MIN_VALUE) {
             return String.wrap("-2147483648");

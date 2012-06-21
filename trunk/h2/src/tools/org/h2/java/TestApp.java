@@ -14,7 +14,7 @@ public class TestApp {
 /* c:
 
 int main(int argc, char** argv) {
-    org_h2_java_TestApp_main(null);
+    org_h2_java_TestApp_main(ptr<array<ptr<java_lang_String> > >());
 }
 
 */
@@ -26,9 +26,7 @@ int main(int argc, char** argv) {
      */
     public static void main(String... args) {
         for (int i = 0; i < 10; i++) {
-            String s = "Hello " + i;
-            System.out.println(s);
-            s = null;
+            System.out.println("Hello " + i);
         }
     }
 

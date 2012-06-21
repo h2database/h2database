@@ -26,7 +26,7 @@ public class Test extends TestBase {
     }
 
     public void test() throws IOException {
-        // gcc --std=c99 -o test test.cpp
+        // g++ -o test test.cpp
         // chmod +x test
         // ./test
 
@@ -76,7 +76,7 @@ public class Test extends TestBase {
         parser.writeHeader(w);
         parser.writeSource(w);
         w.flush();
-        w = new PrintWriter(new FileWriter("bin/test.c"));
+        w = new PrintWriter(new FileWriter("bin/test.cpp"));
         parser.writeHeader(w);
         parser.writeSource(w);
         w.close();

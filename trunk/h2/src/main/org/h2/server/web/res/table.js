@@ -59,7 +59,18 @@ function editRow(row, session, write, undo) {
     for(i=1; i<cells.length; i++) {
         var cell = cells[i];
         var text = getInnerText(cell);
-        cell.innerHTML = '<input type="text" name="r'+row+'c' + i + '" value="'+text+'" size="' + (text.length+5) + '" onkeydown="return editKeyDown(' + row + ', this, event)" />';
+        // escape stuff so we can edit data that contains HTML special characters
+        text = text.replace(/&/g, '&amp;') /* This MUST be the 1st replacement. */
+            .replace(/'/g, '&apos;') /* The 4 other predefined entities, required. */
+            .replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        var newHTML = '<input type="text" name="$rowName" value="$t" size="$size" onkeydown="return editKeyDown($row, this, event)" />';
+        newHTML = newHTML.replace('$rowName', 'r' + row + 'c' + i);
+        newHTML = newHTML.replace('$row', row);
+        newHTML = newHTML.replace('$t', text);
+        newHTML = newHTML.replace('$size', text.length+5);
+        cell.innerHTML = newHTML;
     }
 }
 

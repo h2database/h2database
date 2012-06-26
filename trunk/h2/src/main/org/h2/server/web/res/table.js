@@ -59,17 +59,26 @@ function editRow(row, session, write, undo) {
     for(i=1; i<cells.length; i++) {
         var cell = cells[i];
         var text = getInnerText(cell);
-        // escape stuff so we can edit data that contains HTML special characters
-        text = text.replace(/&/g, '&amp;') /* This MUST be the 1st replacement. */
-            .replace(/'/g, '&apos;') /* The 4 other predefined entities, required. */
-            .replace(/"/g, '&quot;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-        var newHTML = '<input type="text" name="$rowName" value="$t" size="$size" onkeydown="return editKeyDown($row, this, event)" />';
+        // escape so we can edit data that contains HTML special characters
+        // '&' needs to be replaced first
+        text = text.replace(/&/g, '&amp;').
+            replace(/'/g, '&apos;').
+            replace(/"/g, '&quot;').
+            replace(/</g, '&lt;').
+            replace(/>/g, '&gt;');
+        var size;
+        var newHTML;
+        if (text.indexOf('\n') >= 0) {  
+            size = 40;
+            newHTML = '<textarea name="$rowName" cols="$size" onkeydown="return editKeyDown($row, this, event)">$t</textarea/>';
+        } else {
+            size = text.length+5;
+            newHTML = '<input type="text" name="$rowName" value="$t" size="$size" onkeydown="return editKeyDown($row, this, event)" />';
+        }
         newHTML = newHTML.replace('$rowName', 'r' + row + 'c' + i);
         newHTML = newHTML.replace('$row', row);
         newHTML = newHTML.replace('$t', text);
-        newHTML = newHTML.replace('$size', text.length+5);
+        newHTML = newHTML.replace('$size', size);
         cell.innerHTML = newHTML;
     }
 }
@@ -95,8 +104,10 @@ function editKeyDown(row, object, event) {
         object.value = 'null';
         return false;
     } else if(key == 13) {
-        editOk(row);
-        return false;
+        if (!event.ctrlKey && !event.shiftKey && !event.altKey) {
+            editOk(row);
+            return false;
+        }
     } else if(key == 27) {
         editCancel(row);
         return false;

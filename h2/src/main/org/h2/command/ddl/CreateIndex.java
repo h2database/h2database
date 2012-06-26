@@ -58,6 +58,12 @@ public class CreateIndex extends SchemaCommand {
         Database db = session.getDatabase();
         boolean persistent = db.isPersistent();
         Table table = getSchema().getTableOrView(session, tableName);
+        if (getSchema().findIndex(session, indexName) != null) {
+            if (ifNotExists) {
+                return 0;
+            }
+            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, indexName);
+        }
         session.getUser().checkRight(table, Right.ALL);
         table.lock(session, true, true);
         if (!table.isPersistIndexes()) {
@@ -70,12 +76,6 @@ public class CreateIndex extends SchemaCommand {
             } else {
                 indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_INDEX);
             }
-        }
-        if (getSchema().findIndex(session, indexName) != null) {
-            if (ifNotExists) {
-                return 0;
-            }
-            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, indexName);
         }
         IndexType indexType;
         if (primaryKey) {

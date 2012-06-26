@@ -100,9 +100,14 @@ public class TestReadOnly extends TestBase {
     private void testReadOnlyDbCreate() throws SQLException {
         deleteDb("readonly");
         Connection conn = getConnection("readonly");
+        Statement stat = conn.createStatement();
+        stat.execute("create table a(id int)");
+        stat.execute("create index ai on a(id)");
         conn.close();
         conn = getConnection("readonly;ACCESS_MODE_DATA=r");
-        Statement stat = conn.createStatement();
+        stat = conn.createStatement();
+        stat.execute("create table if not exists a(id int)");
+        stat.execute("create index if not exists ai on a(id)");
         assertThrows(ErrorCode.DATABASE_IS_READ_ONLY, stat).
                 execute("CREATE TABLE TEST(ID INT)");
         assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).

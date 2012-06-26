@@ -24,16 +24,63 @@ public class TestMvcc3 extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.mvcc = true;
+        test.test();
     }
 
     public void test() throws SQLException {
+        testConcurrentUpdate();
         testInsertUpdateRollback();
         testCreateTableAsSelect();
         testSequence();
         testDisableAutoCommit();
         testRollback();
         deleteDb("mvcc3");
+    }
+
+    private void testConcurrentUpdate() throws SQLException {
+        if (!config.mvcc) {
+            return;
+        }
+        deleteDb("mvcc3");
+        Connection c1 = getConnection("mvcc3");
+        c1.setAutoCommit(false);
+        Statement s1 = c1.createStatement();
+        Connection c2 = getConnection("mvcc3");
+        c2.setAutoCommit(false);
+        Statement s2 = c2.createStatement();
+
+        s1.execute("create table test(id int primary key, name varchar) as select x, x from system_range(1, 2)");
+        s1.execute("create unique index on test(name)");
+        s1.executeUpdate("update test set name = 100 where id = 1");
+
+        try {
+            s2.executeUpdate("update test set name = 100 where id = 2");
+            fail();
+        } catch (SQLException e) {
+            // expected
+        }
+
+
+        ResultSet rs = s1.executeQuery("select * from test order by id");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals("100", rs.getString(2));
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertEquals("2", rs.getString(2));
+        assertFalse(rs.next());
+        rs = s2.executeQuery("select * from test order by id");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertEquals("1", rs.getString(2));
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertEquals("2", rs.getString(2));
+        assertFalse(rs.next());
+        c1.close();
+        c2.close();
     }
 
     private void testInsertUpdateRollback() throws SQLException {
@@ -188,6 +235,7 @@ public class TestMvcc3 extends TestBase {
         assertEquals(1, rs.getInt(1));
         conn.close();
     }
+
 }
 
 

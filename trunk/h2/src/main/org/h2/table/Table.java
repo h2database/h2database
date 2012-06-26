@@ -419,6 +419,8 @@ public abstract class Table extends SchemaObjectBase {
      *            new row,...
      */
     public void updateRows(Prepared prepared, Session session, RowList rows) {
+        // in case we need to undo the update
+        int rollback = session.getUndoLogPos();
         // remove the old rows
         int rowScanCount = 0;
         for (rows.reset(); rows.hasNext();) {
@@ -437,7 +439,14 @@ public abstract class Table extends SchemaObjectBase {
             }
             rows.next();
             Row n = rows.next();
-            addRow(session, n);
+            try {
+                addRow(session, n);
+            } catch (DbException e) {
+                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
+                    session.rollbackTo(rollback, false);
+                }
+                throw e;
+            }
             session.log(this, UndoLogRecord.INSERT, n);
         }
     }

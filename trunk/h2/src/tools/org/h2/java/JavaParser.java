@@ -295,6 +295,7 @@ public class JavaParser {
                 annotations.add(annotation);
             }
             boolean isIgnore = annotations.contains("Ignore");
+            boolean isLocalField = annotations.contains("Local");
             boolean isStatic = false;
             boolean isFinal = false;
             boolean isPrivate = false;
@@ -369,6 +370,7 @@ public class JavaParser {
                     } else {
                         FieldObj field = new FieldObj();
                         field.isIgnore = isIgnore;
+                        field.isLocalField = isLocalField;
                         field.type = type;
                         field.name = name;
                         field.isStatic = isStatic;
@@ -430,7 +432,7 @@ public class JavaParser {
 
     private void initThisPointer() {
         thisPointer = new FieldObj();
-        thisPointer.isLocal = true;
+        thisPointer.isVariable = true;
         thisPointer.name = "this";
         thisPointer.type = new Type();
         thisPointer.type.classObj = classObj;
@@ -456,7 +458,7 @@ public class JavaParser {
         }
         while (true) {
             FieldObj field = new FieldObj();
-            field.isLocal = true;
+            field.isVariable = true;
             String typeName = readTypeOrIdentifier();
             field.type = readType(typeName);
             if (field.type.isVarArgs) {
@@ -593,7 +595,7 @@ public class JavaParser {
                 FieldObj f = new FieldObj();
                 f.name = name;
                 f.type = type;
-                f.isLocal = true;
+                f.isVariable = true;
                 localVars.put(name, f);
                 read(":");
                 forStat.iterableType = type;
@@ -646,7 +648,7 @@ public class JavaParser {
                             }
                         }
                         FieldObj f = new FieldObj();
-                        f.isLocal = true;
+                        f.isVariable = true;
                         f.type = dec.type;
                         f.name = varName;
                         localVars.put(varName, f);
@@ -706,12 +708,163 @@ public class JavaParser {
     }
 
     private Expr readExpr2() {
+        Expr expr = readExpr2a();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("||")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2a();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2a() {
+        Expr expr = readExpr2b();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("&&")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2b();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2b() {
+        Expr expr = readExpr2c();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("|")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2c();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2c() {
+        Expr expr = readExpr2d();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("^")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2d();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2d() {
+        Expr expr = readExpr2e();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("&")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2e();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2e() {
+        Expr expr = readExpr2f();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("==") || readIf("!=")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2f();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2f() {
+        Expr expr = readExpr2g();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("<") || readIf(">") || readIf("<=") || readIf(">=")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2g();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2g() {
+        Expr expr = readExpr2h();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("<<") || readIf(">>") || readIf(">>>")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2h();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2h() {
+        Expr expr = readExpr2i();
+        while (true) {
+            String infixOp = current.token;
+            if (readIf("+") || readIf("-")) {
+                OpExpr opExpr = new OpExpr(this);
+                opExpr.left = expr;
+                opExpr.op = infixOp;
+                opExpr.right = readExpr2i();
+                expr = opExpr;
+            } else {
+                break;
+            }
+        }
+        return expr;
+    }
+
+    private Expr readExpr2i() {
         Expr expr = readExpr3();
         while (true) {
             String infixOp = current.token;
-            if (readIf("||") || readIf("&&") || readIf("|") || readIf("^") || readIf("&") || readIf("==") || readIf("!=")
-                    || readIf("<") || readIf(">") || readIf("<=") || readIf(">=") || readIf("<<") || readIf(">>")
-                    || readIf(">>>") || readIf("+") || readIf("-") || readIf("*") || readIf("/") || readIf("%")) {
+            if (readIf("*") || readIf("/") || readIf("%")) {
                 OpExpr opExpr = new OpExpr(this);
                 opExpr.left = expr;
                 opExpr.op = infixOp;
@@ -798,7 +951,7 @@ public class JavaParser {
             if (readIf(".")) {
                 String n = readIdentifier();
                 if (readIf("(")) {
-                    CallExpr e2 = new CallExpr(this, expr, null, n, false);
+                    CallExpr e2 = new CallExpr(this, expr, null, n);
                     if (!readIf(")")) {
                         while (true) {
                             e2.args.add(readExpr());
@@ -894,17 +1047,24 @@ public class JavaParser {
         }
         if (readIf("this")) {
             VariableExpr expr = new VariableExpr(this);
-            expr.field = thisPointer;
             if (thisPointer == null) {
                 throw getSyntaxException("'this' used in a static context");
             }
+            expr.field = thisPointer;
             return expr;
         }
         String name = readIdentifier();
         if (readIf("(")) {
-            VariableExpr t = new VariableExpr(this);
-            t.field = thisPointer;
-            CallExpr expr = new CallExpr(this, t, classObj.className, name, false);
+            VariableExpr t;
+            if (thisPointer == null) {
+                // static method calling another static method
+                t = null;
+            } else {
+                // non-static method calling a static or non-static method
+                t = new VariableExpr(this);
+                t.field = thisPointer;
+            }
+            CallExpr expr = new CallExpr(this, t, classObj.className, name);
             if (!readIf(")")) {
                 while (true) {
                     expr.args.add(readExpr());
@@ -937,7 +1097,7 @@ public class JavaParser {
                 if (readIf(".")) {
                     String n = readIdentifier();
                     if (readIf("(")) {
-                        CallExpr e2 = new CallExpr(this, null, imp, n, true);
+                        CallExpr e2 = new CallExpr(this, null, imp, n);
                         if (!readIf(")")) {
                             while (true) {
                                 e2.args.add(readExpr());
@@ -961,7 +1121,7 @@ public class JavaParser {
             }
         }
         expr.field = f;
-        if (f != null && (!f.isLocal && !f.isStatic)) {
+        if (f != null && (!f.isVariable && !f.isStatic)) {
             VariableExpr ve = new VariableExpr(this);
             ve.field = thisPointer;
             expr.base = ve;
@@ -1391,7 +1551,6 @@ public class JavaParser {
             out.println(s);
         }
         out.println();
-        // two classes, similar to the pimpl idiom
         for (ClassObj c : classes.values()) {
             out.println("class " + toC(c.className) + ";");
         }
@@ -1402,7 +1561,7 @@ public class JavaParser {
                 if (f.isFinal) {
                     buff.append("const ");
                 }
-                buff.append(toCType(f.type));
+                buff.append(toCType(f.type, !f.isLocalField));
                 buff.append(" ").append(toC(c.className + "." + f.name));
                 buff.append(";");
                 out.println(buff.toString());
@@ -1413,14 +1572,14 @@ public class JavaParser {
                         continue;
                     }
                     if (m.isStatic) {
-                        out.print(toCType(m.returnType));
+                        out.print(toCType(m.returnType, true));
                         out.print(" " + toC(c.className + "_" + m.name) + "(");
                         int i = 0;
                         for (FieldObj p : m.parameters.values()) {
                             if (i > 0) {
                                 out.print(", ");
                             }
-                            out.print(toCType(p.type) + " " + p.name);
+                            out.print(toCType(p.type, false) + " " + p.name);
                             i++;
                         }
                         out.println(");");
@@ -1441,7 +1600,7 @@ public class JavaParser {
             out.println("public:");
             for (FieldObj f : c.instanceFields.values()) {
                 out.print("    ");
-                out.print(toCType(f.type) + " " + f.name);
+                out.print(toCType(f.type, !f.isLocalField) + " " + f.name);
                 if (f.value != null) {
                     out.print(" = " + f.value);
                 }
@@ -1459,14 +1618,14 @@ public class JavaParser {
                     if (m.isConstructor) {
                         out.print("    " + toC(c.className) + "(");
                     } else {
-                        out.print("    " + toCType(m.returnType) + " " + m.name + "(");
+                        out.print("    " + toCType(m.returnType, true) + " " + m.name + "(");
                     }
                     int i = 0;
                     for (FieldObj p : m.parameters.values()) {
                         if (i > 0) {
                             out.print(", ");
                         }
-                        out.print(toCType(p.type));
+                        out.print(toCType(p.type, false));
                         out.print(" " + p.name);
                         i++;
                     }
@@ -1499,7 +1658,7 @@ public class JavaParser {
                 if (f.isFinal) {
                     buff.append("const ");
                 }
-                buff.append(toCType(f.type));
+                buff.append(toCType(f.type, !f.isLocalField));
                 buff.append(" ").append(toC(c.className + "." + f.name));
                 if (f.value != null) {
                     buff.append(" = " + f.value);
@@ -1513,18 +1672,18 @@ public class JavaParser {
                         continue;
                     }
                     if (m.isStatic) {
-                        out.print(toCType(m.returnType) + " " + toC(c.className + "_" + m.name) + "(");
+                        out.print(toCType(m.returnType, true) + " " + toC(c.className + "_" + m.name) + "(");
                     } else  if (m.isConstructor) {
                         out.print(toC(c.className) + "::" + toC(c.className) + "(");
                     } else {
-                        out.print(toCType(m.returnType) + " " + toC(c.className) + "::" + m.name + "(");
+                        out.print(toCType(m.returnType, true) + " " + toC(c.className) + "::" + m.name + "(");
                     }
                     int i = 0;
                     for (FieldObj p : m.parameters.values()) {
                         if (i > 0) {
                             out.print(", ");
                         }
-                        out.print(toCType(p.type) + " " + p.name);
+                        out.print(toCType(p.type, false) + " " + p.name);
                         i++;
                     }
                     out.println(") {");
@@ -1578,18 +1737,35 @@ public class JavaParser {
         return identifier.replace('.', '_');
     }
 
-    static String toCType(Type type) {
+    static String toCType(Type type, boolean refCounted) {
+        // TODO not everything needs to be ref-counted
+        refCounted = true;
         StringBuilder buff = new StringBuilder();
         for (int i = 0; i < type.arrayLevel; i++) {
-            buff.append("ptr<array< ");
+            if (refCounted) {
+                buff.append("ptr<array< ");
+            } else {
+                buff.append("array< ");
+            }
         }
         if (type.classObj.isPrimitive) {
             buff.append(toC(type.classObj.toString()));
         } else {
-            buff.append("ptr<").append(toC(type.classObj.toString())).append('>');
+            if (refCounted) {
+                buff.append("ptr<").append(toC(type.classObj.toString())).append('>');
+            } else {
+                buff.append(toC(type.classObj.toString()));
+            }
         }
         for (int i = 0; i < type.arrayLevel; i++) {
-            buff.append(" > >");
+            if (refCounted) {
+                buff.append(" > >");
+            } else {
+                buff.append(" >");
+            }
+        }
+        if (!refCounted) {
+            buff.append("*");
         }
         return buff.toString();
     }

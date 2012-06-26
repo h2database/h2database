@@ -23,21 +23,19 @@ public interface Expr {
  */
 class CallExpr implements Expr {
 
-    final JavaParser context;
-    final Expr expr;
     final ArrayList<Expr> args = new ArrayList<Expr>();
-    final boolean isStatic;
-    final String className;
-    final String name;
+    private final JavaParser context;
+    private final String className;
+    private final String name;
+    private Expr expr;
     private ClassObj classObj;
     private MethodObj method;
 
-    CallExpr(JavaParser context, Expr expr, String className, String name, boolean isStatic) {
+    CallExpr(JavaParser context, Expr expr, String className, String name) {
         this.context = context;
         this.expr = expr;
         this.className = className;
         this.name = name;
-        this.isStatic = isStatic;
     }
 
     private void initMethod() {
@@ -50,6 +48,9 @@ class CallExpr implements Expr {
             classObj = expr.getType().classObj;
         }
         method = classObj.getMethod(name, args);
+        if (method.isStatic) {
+            expr = null;
+        }
     }
 
     public String toString() {
@@ -165,7 +166,7 @@ class LiteralExpr implements Expr {
 
     public String toString() {
         if ("null".equals(literal)) {
-            return JavaParser.toCType(type) + "()";
+            return JavaParser.toCType(type, true) + "()";
         }
         return literal;
     }
@@ -301,7 +302,7 @@ class NewExpr implements Expr {
             }
             buff.append("))");
         } else {
-            buff.append("new " + JavaParser.toC(classObj.toString()));
+            buff.append("ptr<" + JavaParser.toC(classObj.toString()) + ">(new " + JavaParser.toC(classObj.toString()));
             buff.append("(");
             int i = 0;
             for (Expr a : args) {
@@ -310,7 +311,7 @@ class NewExpr implements Expr {
                 }
                 buff.append(a);
             }
-            buff.append(")");
+            buff.append("))");
         }
         return buff.toString();
     }
@@ -458,9 +459,6 @@ class VariableExpr implements Expr {
 
     private void init() {
         if (field == null) {
-            if (base == null) {
-                System.out.println("??");
-            }
             Type t = base.getType();
             if (t.arrayLevel > 0) {
                 if ("length".equals(name)) {

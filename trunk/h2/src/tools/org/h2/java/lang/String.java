@@ -7,6 +7,7 @@
 package org.h2.java.lang;
 
 import org.h2.java.Ignore;
+import org.h2.java.Local;
 
 /* c:
 
@@ -37,7 +38,7 @@ protected:
     jint refCount;
 public:
     RefBase() {
-        refCount = 1;
+        refCount = 0;
     }
     void reference() {
         refCount++;
@@ -46,6 +47,8 @@ public:
         if (--refCount == 0) {
             delete this;
         }
+    }
+    virtual ~RefBase() {
     }
 };
 template <class T> class ptr {
@@ -137,6 +140,7 @@ public class String {
     /**
      * The character array.
      */
+    @Local
     char[] chars;
 
     private int hash;
@@ -152,18 +156,17 @@ public class String {
     }
 
     public int hashCode() {
-        if (hash == 0) {
-            if (chars.length == 0) {
-                return 0;
+        int h = hash;
+        if (h == 0) {
+            int size = chars.length;
+            if (size != 0) {
+                for (int i = 0; i < size; i++) {
+                    h = h * 31 + chars[i];
+                }
+                hash = h;
             }
-            int h = 0;
-            for (char c : chars) {
-                h = h * 31 + c;
-            }
-            hash = h;
-            return h;
         }
-        return hash;
+        return h;
     }
 
     /**

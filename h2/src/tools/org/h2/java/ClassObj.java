@@ -267,9 +267,14 @@ class FieldObj {
     Type type;
 
     /**
-     * Whether this is a local field.
+     * Whether this is a variable or parameter.
      */
-    boolean isLocal;
+    boolean isVariable;
+
+    /**
+     * Whether this is a local field (not separately garbage collected).
+     */
+    boolean isLocalField;
 
     /**
      * The field name.

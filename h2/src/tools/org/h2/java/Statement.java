@@ -44,7 +44,7 @@ class ReturnStatement extends StatementBase {
         if (expr.getType().isSimplePrimitive()) {
             return "return " + expr + ";";
         }
-        return "return " + JavaParser.toCType(expr.getType()) + "(" + expr + ");";
+        return "return " + JavaParser.toCType(expr.getType(), true) + "(" + expr + ");";
     }
 
 }
@@ -253,7 +253,7 @@ class VarDecStatement extends StatementBase {
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append(JavaParser.toCType(type)).append(' ');
+        buff.append(JavaParser.toCType(type, true)).append(' ');
         StringBuilder assign = new StringBuilder();
         for (int i = 0; i < variables.size(); i++) {
             if (i > 0) {

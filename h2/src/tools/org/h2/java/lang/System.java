@@ -56,4 +56,21 @@ public class System {
         java.lang.System.arraycopy(src, srcPos, dest, destPos, length);
     }
 
+    /**
+     * Get the current time in milliseconds since 1970-01-01.
+     *
+     * @return the milliseconds
+     */
+    public static long nanoTime() {
+        /* c:
+        #if CLOCKS_PER_SEC == 1000000
+        return (jlong) clock() * 1000;
+        #else
+        return (jlong) clock() * 1000000 / CLOCKS_PER_SEC;
+        #endif
+        */
+        // c: return;
+        return java.lang.System.nanoTime();
+    }
+
 }

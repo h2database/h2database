@@ -30,13 +30,16 @@ public class Test extends TestBase {
         // chmod +x test
         // ./test
 
-        // (for "mixed declarations and code")
+        // include files:
+        // /usr/include/c++/4.2.1/tr1/stdio.h
+        // /usr/include/stdio.h
+
+        // TODO initialize fields
 
         // not supported yet:
         // exceptions
         // HexadecimalFloatingPointLiteral
         // int x()[] { return null; }
-        // annotations
         // import static
         // import *
         // initializer blocks
@@ -66,6 +69,7 @@ public class Test extends TestBase {
         parser.parse("src/tools/org/h2", "java.lang.String");
         parser.parse("src/tools/org/h2", "java.lang.Math");
         parser.parse("src/tools/org/h2", "java.lang.Integer");
+        parser.parse("src/tools/org/h2", "java.lang.Long");
         parser.parse("src/tools/org/h2", "java.lang.StringBuilder");
         parser.parse("src/tools/org/h2", "java.io.PrintStream");
         parser.parse("src/tools/org/h2", "java.lang.System");

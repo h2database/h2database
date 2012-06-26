@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Fulltext search: in-memory Lucene indexes are now supported.
+<ul><li>Executing the statement CREATE INDEX IF ALREADY EXISTS if the index already exists
+    no longer fails for a read only database.
+</li><li>MVCC: concurrently updating a row could result in the row to appear deleted in the second connection,
+    if there are multiple unique indexes (or a primary key and at least one unique index).
+    Thanks a lot to Teruo for the patch!
+</li><li>Fulltext search: in-memory Lucene indexes are now supported.
 </li><li>Fulltext search: UUID primary keys are now supported.
 </li><li>Apache Tomcat 7.x will now longer log a warning when unloading the web application, if using a connection pool.
 </li><li>H2 Console: support the Midori browser (for Debian / Raspberry Pi)

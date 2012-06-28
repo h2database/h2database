@@ -129,7 +129,7 @@ public class ClassObj {
         if (isPrimitive) {
             return "j" + className;
         }
-        return className;
+        return JavaParser.toC(className);
     }
 
     /**
@@ -176,6 +176,18 @@ public class ClassObj {
      */
     FieldObj getField(String name) {
         return instanceFields.get(name);
+    }
+
+    public int hashCode() {
+        return className.hashCode();
+    }
+
+    public boolean equals(Object other) {
+        if (other instanceof ClassObj) {
+            ClassObj c = (ClassObj) other;
+            return c.className.equals(className);
+        }
+        return false;
     }
 
 }
@@ -343,28 +355,54 @@ class Type {
     boolean isVarArgs;
 
     /**
-     * Whether this is a non-array primitive type.
+     * Use ref-counting.
+     */
+    boolean refCount = JavaParser.REF_COUNT;
+
+    /**
+     * Whether this is a array or an non-primitive type.
      *
      * @return true if yes
      */
-    public boolean isSimplePrimitive() {
-        return arrayLevel == 0 && classObj.isPrimitive;
+    public boolean isObject() {
+        return arrayLevel > 0 || !classObj.isPrimitive;
     }
 
     public String toString() {
-        StringBuilder buff = new StringBuilder();
-        for (int i = 0; i < arrayLevel; i++) {
-            buff.append("ptr<array< ");
-        }
-        buff.append(classObj.toString());
-        for (int i = 0; i < arrayLevel; i++) {
-            buff.append(" > >");
-        }
-        return buff.toString();
+        return asString();
     }
 
-    boolean isObject() {
-        return arrayLevel > 0 || !classObj.isPrimitive;
+    public String asString() {
+        StringBuilder buff = new StringBuilder();
+        for (int i = 0; i < arrayLevel; i++) {
+            if (refCount) {
+                buff.append("ptr< ");
+            }
+            buff.append("array< ");
+        }
+        if (refCount) {
+            if (!classObj.isPrimitive) {
+                buff.append("ptr< ");
+            }
+        }
+        buff.append(classObj.toString());
+        if (refCount) {
+            if (!classObj.isPrimitive) {
+                buff.append(" >");
+            }
+        }
+        for (int i = 0; i < arrayLevel; i++) {
+            buff.append(" >");
+            if (refCount) {
+                buff.append(" >");
+            }
+        }
+        if (!refCount) {
+            if (isObject()) {
+                buff.append("*");
+            }
+        }
+        return buff.toString();
     }
 
     public int hashCode() {
@@ -373,7 +411,8 @@ class Type {
 
     public boolean equals(Object other) {
         if (other instanceof Type) {
-            return this.toString().equals(other.toString());
+            Type t = (Type) other;
+            return t.classObj.equals(classObj) && t.arrayLevel == arrayLevel && t.isVarArgs == isVarArgs;
         }
         return false;
     }

@@ -22,6 +22,8 @@ import org.h2.util.New;
  */
 public class JavaParser {
 
+    public static final boolean REF_COUNT = true;
+
     private static final HashMap<String, ClassObj> BUILT_IN_CLASSES = New.hashMap();
 
     private static final int TOKEN_LITERAL_CHAR = 0;
@@ -1561,7 +1563,7 @@ public class JavaParser {
                 if (f.isFinal) {
                     buff.append("const ");
                 }
-                buff.append(toCType(f.type, !f.isLocalField));
+                buff.append(f.type.asString());
                 buff.append(" ").append(toC(c.className + "." + f.name));
                 buff.append(";");
                 out.println(buff.toString());
@@ -1572,14 +1574,14 @@ public class JavaParser {
                         continue;
                     }
                     if (m.isStatic) {
-                        out.print(toCType(m.returnType, true));
+                        out.print(m.returnType.asString());
                         out.print(" " + toC(c.className + "_" + m.name) + "(");
                         int i = 0;
                         for (FieldObj p : m.parameters.values()) {
                             if (i > 0) {
                                 out.print(", ");
                             }
-                            out.print(toCType(p.type, false) + " " + p.name);
+                            out.print(p.type.asString() + " " + p.name);
                             i++;
                         }
                         out.println(");");
@@ -1600,7 +1602,7 @@ public class JavaParser {
             out.println("public:");
             for (FieldObj f : c.instanceFields.values()) {
                 out.print("    ");
-                out.print(toCType(f.type, !f.isLocalField) + " " + f.name);
+                out.print(f.type.asString() + " " + f.name);
                 if (f.value != null) {
                     out.print(" = " + f.value);
                 }
@@ -1618,14 +1620,14 @@ public class JavaParser {
                     if (m.isConstructor) {
                         out.print("    " + toC(c.className) + "(");
                     } else {
-                        out.print("    " + toCType(m.returnType, true) + " " + m.name + "(");
+                        out.print("    " + m.returnType.asString() + " " + m.name + "(");
                     }
                     int i = 0;
                     for (FieldObj p : m.parameters.values()) {
                         if (i > 0) {
                             out.print(", ");
                         }
-                        out.print(toCType(p.type, false));
+                        out.print(p.type.asString());
                         out.print(" " + p.name);
                         i++;
                     }
@@ -1638,7 +1640,11 @@ public class JavaParser {
         Collections.sort(constantNames);
         for (String c : constantNames) {
             String s = stringConstantToStringMap.get(c);
-            out.println("ptr<java_lang_String> " + c + " = STRING(L\"" + s + "\");");
+            if (JavaParser.REF_COUNT) {
+                out.println("ptr<java_lang_String> " + c + " = STRING(L\"" + s + "\");");
+            } else {
+                out.println("java_lang_String* " + c + " = STRING(L\"" + s + "\");");
+            }
         }
     }
 
@@ -1658,10 +1664,10 @@ public class JavaParser {
                 if (f.isFinal) {
                     buff.append("const ");
                 }
-                buff.append(toCType(f.type, !f.isLocalField));
+                buff.append(f.type.asString());
                 buff.append(" ").append(toC(c.className + "." + f.name));
                 if (f.value != null) {
-                    buff.append(" = " + f.value);
+                    buff.append(" = ").append(f.value.asString());
                 }
                 buff.append(";");
                 out.println(buff.toString());
@@ -1672,18 +1678,18 @@ public class JavaParser {
                         continue;
                     }
                     if (m.isStatic) {
-                        out.print(toCType(m.returnType, true) + " " + toC(c.className + "_" + m.name) + "(");
+                        out.print(m.returnType.asString() + " " + toC(c.className + "_" + m.name) + "(");
                     } else  if (m.isConstructor) {
                         out.print(toC(c.className) + "::" + toC(c.className) + "(");
                     } else {
-                        out.print(toCType(m.returnType, true) + " " + toC(c.className) + "::" + m.name + "(");
+                        out.print(m.returnType.asString() + " " + toC(c.className) + "::" + m.name + "(");
                     }
                     int i = 0;
                     for (FieldObj p : m.parameters.values()) {
                         if (i > 0) {
                             out.print(", ");
                         }
-                        out.print(toCType(p.type, false) + " " + p.name);
+                        out.print(p.type.asString() + " " + p.name);
                         i++;
                     }
                     out.println(") {");
@@ -1735,39 +1741,6 @@ public class JavaParser {
      */
     static String toC(String identifier) {
         return identifier.replace('.', '_');
-    }
-
-    static String toCType(Type type, boolean refCounted) {
-        // TODO not everything needs to be ref-counted
-        refCounted = true;
-        StringBuilder buff = new StringBuilder();
-        for (int i = 0; i < type.arrayLevel; i++) {
-            if (refCounted) {
-                buff.append("ptr<array< ");
-            } else {
-                buff.append("array< ");
-            }
-        }
-        if (type.classObj.isPrimitive) {
-            buff.append(toC(type.classObj.toString()));
-        } else {
-            if (refCounted) {
-                buff.append("ptr<").append(toC(type.classObj.toString())).append('>');
-            } else {
-                buff.append(toC(type.classObj.toString()));
-            }
-        }
-        for (int i = 0; i < type.arrayLevel; i++) {
-            if (refCounted) {
-                buff.append(" > >");
-            } else {
-                buff.append(" >");
-            }
-        }
-        if (!refCounted) {
-            buff.append("*");
-        }
-        return buff.toString();
     }
 
     ClassObj getClassObj() {

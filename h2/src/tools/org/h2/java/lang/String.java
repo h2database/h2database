@@ -33,6 +33,8 @@ import org.h2.java.Local;
 
 #define STRING(s) ptr<java_lang_String>(new java_lang_String(ptr< array<jchar> >(new array<jchar>(s, (jint) wcslen(s)))));
 
+// #define STRING(s) new java_lang_String(new array<jchar>(s, (jint) wcslen(s)));
+
 class RefBase {
 protected:
     jint refCount;

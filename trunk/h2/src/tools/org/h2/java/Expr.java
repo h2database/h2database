@@ -13,15 +13,26 @@ import java.util.Iterator;
  * An expression.
  */
 public interface Expr {
-    // toString
+
+    String asString();
     Type getType();
     Expr cast(Type type);
+
+}
+
+/**
+ * The base expression class.
+ */
+abstract class ExprBase implements Expr {
+    public final String toString() {
+        return "_" + asString() + "_";
+    }
 }
 
 /**
  * A method call.
  */
-class CallExpr implements Expr {
+class CallExpr extends ExprBase {
 
     final ArrayList<Expr> args = new ArrayList<Expr>();
     private final JavaParser context;
@@ -53,7 +64,7 @@ class CallExpr implements Expr {
         }
     }
 
-    public String toString() {
+    public String asString() {
         StringBuilder buff = new StringBuilder();
         initMethod();
         if (method.isIgnore) {
@@ -70,7 +81,7 @@ class CallExpr implements Expr {
                 // static method
                 buff.append(JavaParser.toC(classObj.toString() + "." + method.name));
             } else {
-                buff.append(expr.toString()).append("->");
+                buff.append(expr.asString()).append("->");
                 buff.append(method.name);
             }
             buff.append("(");
@@ -82,7 +93,7 @@ class CallExpr implements Expr {
                 }
                 FieldObj f = paramIt.next();
                 i++;
-                buff.append(a.cast(f.type));
+                buff.append(a.cast(f.type).asString());
             }
             buff.append(")");
         }
@@ -103,14 +114,14 @@ class CallExpr implements Expr {
 /**
  * A assignment expression.
  */
-class AssignExpr implements Expr {
+class AssignExpr extends ExprBase {
 
     Expr left;
     String op;
     Expr right;
 
-    public String toString() {
-        return left + " " + op + " " + right.cast(left.getType());
+    public String asString() {
+        return left.asString() + " " + op + " " + right.cast(left.getType()).asString();
     }
 
     public Type getType() {
@@ -126,13 +137,13 @@ class AssignExpr implements Expr {
 /**
  * A conditional expression.
  */
-class ConditionalExpr implements Expr {
+class ConditionalExpr extends ExprBase {
 
     Expr condition;
     Expr ifTrue, ifFalse;
 
-    public String toString() {
-        return condition + " ? " + ifTrue + " : " + ifFalse;
+    public String asString() {
+        return condition.asString() + " ? " + ifTrue.asString() + " : " + ifFalse.asString();
     }
 
     public Type getType() {
@@ -152,7 +163,7 @@ class ConditionalExpr implements Expr {
 /**
  * A literal.
  */
-class LiteralExpr implements Expr {
+class LiteralExpr extends ExprBase {
 
     String literal;
     private final JavaParser context;
@@ -164,9 +175,9 @@ class LiteralExpr implements Expr {
         this.className = className;
     }
 
-    public String toString() {
+    public String asString() {
         if ("null".equals(literal)) {
-            return JavaParser.toCType(type, true) + "()";
+            return type.asString() + "()";
         }
         return literal;
     }
@@ -192,7 +203,7 @@ class LiteralExpr implements Expr {
 /**
  * An operation.
  */
-class OpExpr implements Expr {
+class OpExpr extends ExprBase {
 
     Expr left;
     String op;
@@ -203,11 +214,11 @@ class OpExpr implements Expr {
         this.context = context;
     }
 
-    public String toString() {
+    public String asString() {
         if (left == null) {
-            return op + right;
+            return op + right.asString();
         } else if (right == null) {
-            return left + op;
+            return left.asString() + op;
         }
         if (op.equals(">>>")) {
             // ujint / ujlong
@@ -216,7 +227,11 @@ class OpExpr implements Expr {
             if (left.getType().isObject() || right.getType().isObject()) {
                 // TODO convert primitive to to String, call toString
                 StringBuilder buff = new StringBuilder();
-                buff.append("ptr<java_lang_StringBuilder>(new java_lang_StringBuilder(");
+                if (JavaParser.REF_COUNT) {
+                    buff.append("ptr<java_lang_StringBuilder>(new java_lang_StringBuilder(");
+                } else {
+                    buff.append("(new java_lang_StringBuilder(");
+                }
                 buff.append(convertToString(left));
                 buff.append("))->append(");
                 buff.append(convertToString(right));
@@ -224,7 +239,7 @@ class OpExpr implements Expr {
                 return buff.toString();
             }
         }
-        return "(" + left + " " + op + " " + right + ")";
+        return "(" + left.asString() + " " + op + " " + right.asString() + ")";
     }
 
     private String convertToString(Expr e) {
@@ -234,11 +249,11 @@ class OpExpr implements Expr {
         }
         if (t.classObj.isPrimitive) {
             ClassObj wrapper = context.getWrapper(t.classObj);
-            return JavaParser.toC(wrapper + ".toString") + "(" + e.toString() + ")";
-        } else if (e.getType().toString().equals("java_lang_String*")) {
-            return e.toString();
+            return JavaParser.toC(wrapper + ".toString") + "(" + e.asString() + ")";
+        } else if (e.getType().asString().equals("java_lang_String*")) {
+            return e.asString();
         }
-        return e.toString() + "->toString()";
+        return e.asString() + "->toString()";
     }
 
     private static boolean isComparison(String op) {
@@ -282,7 +297,7 @@ class OpExpr implements Expr {
 /**
  * A "new" expression.
  */
-class NewExpr implements Expr {
+class NewExpr extends ExprBase {
 
     ClassObj classObj;
     ArrayList<Expr> arrayInitExpr = new ArrayList<Expr>();
@@ -293,23 +308,29 @@ class NewExpr implements Expr {
         this.context = context;
     }
 
-    public String toString() {
+    public String asString() {
         StringBuilder buff = new StringBuilder();
         if (arrayInitExpr.size() > 0) {
-            buff.append("ptr<array<" + classObj + "> >(new array<" + classObj + ">(1 ");
+            if (JavaParser.REF_COUNT) {
+                buff.append("ptr< array< " + classObj.toString() + " > >");
+            }
+            buff.append("(new array< " + classObj + " >(1 ");
             for (Expr e : arrayInitExpr) {
-                buff.append("* ").append(e);
+                buff.append("* ").append(e.asString());
             }
             buff.append("))");
         } else {
-            buff.append("ptr<" + JavaParser.toC(classObj.toString()) + ">(new " + JavaParser.toC(classObj.toString()));
+            if (JavaParser.REF_COUNT) {
+                buff.append("ptr< " + classObj.toString() + " >");
+            }
+            buff.append("(new " + JavaParser.toC(classObj.toString()));
             buff.append("(");
             int i = 0;
             for (Expr a : args) {
                 if (i++ > 0) {
                     buff.append(", ");
                 }
-                buff.append(a);
+                buff.append(a.asString());
             }
             buff.append("))");
         }
@@ -332,7 +353,7 @@ class NewExpr implements Expr {
 /**
  * A String literal.
  */
-class StringExpr implements Expr {
+class StringExpr extends ExprBase {
 
     /**
      * The constant name.
@@ -351,7 +372,7 @@ class StringExpr implements Expr {
         this.context = context;
     }
 
-    public String toString() {
+    public String asString() {
         return constantName;
     }
 
@@ -426,7 +447,7 @@ class StringExpr implements Expr {
 /**
  * A variable.
  */
-class VariableExpr implements Expr {
+class VariableExpr extends ExprBase {
 
     Expr base;
     FieldObj field;
@@ -437,11 +458,11 @@ class VariableExpr implements Expr {
         this.context = context;
     }
 
-    public String toString() {
+    public String asString() {
         init();
         StringBuilder buff = new StringBuilder();
         if (base != null) {
-            buff.append(base.toString()).append("->");
+            buff.append(base.asString()).append("->");
         }
         if (field != null) {
             if (field.isStatic) {
@@ -487,12 +508,12 @@ class VariableExpr implements Expr {
 /**
  * A array access expression.
  */
-class ArrayExpr implements Expr {
+class ArrayExpr extends ExprBase {
 
     Expr expr;
     ArrayList<Expr> indexes = new ArrayList<Expr>();
 
-    public String toString() {
+    public String asString() {
         StringBuilder buff = new StringBuilder();
         buff.append(expr.toString());
         for (Expr e : indexes) {
@@ -514,7 +535,7 @@ class ArrayExpr implements Expr {
 /**
  * An array initializer expression.
  */
-class ArrayInitExpr implements Expr {
+class ArrayInitExpr extends ExprBase {
 
     Type type;
     ArrayList<Expr> list = new ArrayList<Expr>();
@@ -523,7 +544,7 @@ class ArrayInitExpr implements Expr {
         return type;
     }
 
-    public String toString() {
+    public String asString() {
         StringBuilder buff = new StringBuilder("{ ");
         int i = 0;
         for (Expr e : list) {
@@ -545,7 +566,7 @@ class ArrayInitExpr implements Expr {
 /**
  * A type cast expression.
  */
-class CastExpr implements Expr {
+class CastExpr extends ExprBase {
 
     Type type;
     Expr expr;
@@ -554,8 +575,8 @@ class CastExpr implements Expr {
         return type;
     }
 
-    public String toString() {
-        return "(" + type + ") " + expr;
+    public String asString() {
+        return "(" + type.asString() + ") " + expr.asString();
     }
 
     public Expr cast(Type type) {
@@ -567,7 +588,7 @@ class CastExpr implements Expr {
 /**
  * An array access expression (get or set).
  */
-class ArrayAccessExpr implements Expr {
+class ArrayAccessExpr extends ExprBase {
 
     Expr base;
     Expr index;
@@ -579,8 +600,8 @@ class ArrayAccessExpr implements Expr {
         return t;
     }
 
-    public String toString() {
-        return base + "->at(" + index + ")";
+    public String asString() {
+        return base.asString() + "->at(" + index.asString() + ")";
     }
 
     public Expr cast(Type type) {

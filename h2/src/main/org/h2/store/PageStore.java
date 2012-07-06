@@ -175,7 +175,10 @@ public class PageStore implements CacheWriter {
     private boolean isNew;
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
     private Session systemSession;
-    /** each free page is marked with a set bit */
+
+    /**
+     * Each free page is marked with a set bit.
+     */
     private BitField freed = new BitField();
     private ArrayList<PageFreeList> freeLists = New.arrayList();
 

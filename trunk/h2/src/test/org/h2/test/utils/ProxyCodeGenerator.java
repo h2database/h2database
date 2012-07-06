@@ -142,7 +142,7 @@ public class ProxyCodeGenerator {
         methods.put(getMethodName(m), m);
     }
 
-    private String getMethodName(Method m) {
+    private static String getMethodName(Method m) {
         StringBuilder buff = new StringBuilder();
         buff.append(m.getReturnType()).append(' ');
         buff.append(m.getName());

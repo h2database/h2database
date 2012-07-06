@@ -64,7 +64,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         deleteDb("autoReconnect");
         Server tcp = Server.createTcpServer().start();
         try {
-            Connection conn = getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE");
+            conn = getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
                     getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).

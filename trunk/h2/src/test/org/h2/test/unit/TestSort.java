@@ -52,8 +52,8 @@ public class TestSort extends TestBase {
         test(Arrays.class);
     }
 
-    private void test(Class<?> clazz) throws Exception {
-        this.clazz = clazz;
+    private void test(Class<?> c) throws Exception {
+        this.clazz = c;
         ordered(array);
         shuffle(array);
         stabilize(array);

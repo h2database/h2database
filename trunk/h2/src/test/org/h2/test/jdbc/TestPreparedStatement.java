@@ -91,7 +91,7 @@ public class TestPreparedStatement extends TestBase {
         deleteDb("preparedStatement");
     }
 
-    private void testChangeType(Connection conn) throws SQLException {
+    private static void testChangeType(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("select (? || ? || ?) from dual");
         prep.setString(1, "a");
         prep.setString(2, "b");
@@ -192,7 +192,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("drop table d");
     }
 
-    private void testCallTablePrepared(Connection conn) throws SQLException {
+    private static void testCallTablePrepared(Connection conn) throws SQLException {
         PreparedStatement prep = conn.prepareStatement("call table(x int = (1))");
         prep.executeQuery();
         prep.executeQuery();

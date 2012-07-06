@@ -100,12 +100,12 @@ public class TestCompress extends TestBase {
             Task t = new Task() {
                 public void call() {
                     CompressTool tool = CompressTool.getInstance();
-                    byte[] buff = new byte[1024];
+                    byte[] b = new byte[1024];
                     Random r = new Random();
                     while (!stop) {
-                        r.nextBytes(buff);
-                        byte[] test = tool.expand(tool.compress(buff, "LZF"));
-                        assertEquals(buff, test);
+                        r.nextBytes(b);
+                        byte[] test = tool.expand(tool.compress(b, "LZF"));
+                        assertEquals(b, test);
                     }
                 }
             };
@@ -120,17 +120,17 @@ public class TestCompress extends TestBase {
 
     private void testVariableEnd() throws Exception {
         CompressTool utils = CompressTool.getInstance();
-        StringBuilder buff = new StringBuilder();
+        StringBuilder b = new StringBuilder();
         for (int i = 0; i < 90; i++) {
-            buff.append('0');
+            b.append('0');
         }
-        String prefix = buff.toString();
+        String prefix = b.toString();
         for (int i = 0; i < 100; i++) {
-            buff = new StringBuilder(prefix);
+            b = new StringBuilder(prefix);
             for (int j = 0; j < i; j++) {
-                buff.append((char) ('1' + j));
+                b.append((char) ('1' + j));
             }
-            String test = buff.toString();
+            String test = b.toString();
             byte[] in = test.getBytes();
             assertEquals(in, utils.expand(utils.compress(in, "LZF")));
         }
@@ -152,19 +152,19 @@ public class TestCompress extends TestBase {
         conn.close();
         Compressor compress = new CompressLZF();
         int pageSize = Constants.DEFAULT_PAGE_SIZE;
-        byte[] buff = new byte[pageSize];
+        byte[] buff2 = new byte[pageSize];
         byte[] test = new byte[2 * pageSize];
-        compress.compress(buff, pageSize, test, 0);
+        compress.compress(buff2, pageSize, test, 0);
         for (int j = 0; j < 4; j++) {
             long time = System.currentTimeMillis();
             for (int i = 0; i < 1000; i++) {
                 InputStream in = FileUtils.newInputStream("memFS:compress.h2.db");
                 while (true) {
-                    int len = in.read(buff);
+                    int len = in.read(buff2);
                     if (len < 0) {
                         break;
                     }
-                    compress.compress(buff, pageSize, test, 0);
+                    compress.compress(buff2, pageSize, test, 0);
                 }
                 in.close();
             }
@@ -175,11 +175,11 @@ public class TestCompress extends TestBase {
             ArrayList<byte[]> comp = New.arrayList();
             InputStream in = FileUtils.newInputStream("memFS:compress.h2.db");
             while (true) {
-                int len = in.read(buff);
+                int len = in.read(buff2);
                 if (len < 0) {
                     break;
                 }
-                int b = compress.compress(buff, pageSize, test, 0);
+                int b = compress.compress(buff2, pageSize, test, 0);
                 byte[] data = new byte[b];
                 System.arraycopy(test, 0, data, 0, b);
                 comp.add(data);
@@ -200,24 +200,24 @@ public class TestCompress extends TestBase {
     private void test(int len) throws IOException {
         Random r = new Random(len);
         for (int pattern = 0; pattern < 4; pattern++) {
-            byte[] buff = new byte[len];
+            byte[] b = new byte[len];
             switch (pattern) {
             case 0:
                 // leave empty
                 break;
             case 1: {
-                r.nextBytes(buff);
+                r.nextBytes(b);
                 break;
             }
             case 2: {
                 for (int x = 0; x < len; x++) {
-                    buff[x] = (byte) (x & 10);
+                    b[x] = (byte) (x & 10);
                 }
                 break;
             }
             case 3: {
                 for (int x = 0; x < len; x++) {
-                    buff[x] = (byte) (x / 10);
+                    b[x] = (byte) (x / 10);
                 }
                 break;
             }
@@ -226,7 +226,7 @@ public class TestCompress extends TestBase {
             if (r.nextInt(2) < 1) {
                 for (int x = 0; x < len; x++) {
                     if (r.nextInt(20) < 1) {
-                        buff[x] = (byte) (r.nextInt(255));
+                        b[x] = (byte) (r.nextInt(255));
                     }
                 }
             }
@@ -234,27 +234,27 @@ public class TestCompress extends TestBase {
             // level 9 is highest, strategy 2 is huffman only
             for (String a : new String[] { "LZF", "No", "Deflate", "Deflate level 9 strategy 2" }) {
                 long time = System.currentTimeMillis();
-                byte[] out = utils.compress(buff, a);
+                byte[] out = utils.compress(b, a);
                 byte[] test = utils.expand(out);
                 if (testPerformance) {
                     System.out.println("p:" + pattern + " len: " + out.length + " time: " + (System.currentTimeMillis() - time) + " " + a);
                 }
-                assertEquals(buff.length, test.length);
-                assertEquals(buff, test);
+                assertEquals(b.length, test.length);
+                assertEquals(b, test);
                 Arrays.fill(test, (byte) 0);
                 CompressTool.expand(out, test, 0);
-                assertEquals(buff, test);
+                assertEquals(b, test);
             }
             for (String a : new String[] { null, "LZF", "DEFLATE", "ZIP", "GZIP" }) {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 OutputStream out2 = CompressTool.wrapOutputStream(out, a, "test");
-                IOUtils.copy(new ByteArrayInputStream(buff), out2);
+                IOUtils.copy(new ByteArrayInputStream(b), out2);
                 out2.close();
                 InputStream in = new ByteArrayInputStream(out.toByteArray());
                 in = CompressTool.wrapInputStream(in, a, "test");
                 out.reset();
                 IOUtils.copy(in, out);
-                assertEquals(buff, out.toByteArray());
+                assertEquals(b, out.toByteArray());
             }
         }
     }

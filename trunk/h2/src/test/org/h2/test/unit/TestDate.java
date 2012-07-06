@@ -351,7 +351,7 @@ public class TestDate extends TestBase {
         }
     }
 
-    private void testCalculateLocalMillis() {
+    private static void testCalculateLocalMillis() {
         TimeZone defaultTimeZone = TimeZone.getDefault();
         try {
             for (TimeZone tz : TestDate.getDistinctTimeZones()) {

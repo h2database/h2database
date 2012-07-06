@@ -86,7 +86,7 @@ public class RailroadImages {
         savePng(flipHorizontal(img), "div-ke.png");
     }
 
-    private void setStroke(Graphics2D g, int i) {
+    private static void setStroke(Graphics2D g, int i) {
         if (i == 0) {
             g.setColor(Color.WHITE);
             g.setStroke(new BasicStroke(STROKE * 2));

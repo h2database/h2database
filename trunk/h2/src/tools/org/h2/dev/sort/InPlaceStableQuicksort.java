@@ -56,18 +56,18 @@ public class InPlaceStableQuicksort<T> {
     /**
      * Sort an array using the given comparator.
      *
-     * @param data the data array to sort
-     * @param comp the comparator
+     * @param d the data array to sort
+     * @param c the comparator
      */
-    public void sortArray(T[] data, Comparator<T> comp) {
-        this.data = data;
-        this.comp = comp;
-        int len = Math.max((int) (100 * Math.log(data.length)), TEMP_SIZE);
-        len = Math.min(data.length, len);
+    public void sortArray(T[] d, Comparator<T> c) {
+        this.data = d;
+        this.comp = c;
+        int len = Math.max((int) (100 * Math.log(d.length)), TEMP_SIZE);
+        len = Math.min(d.length, len);
         @SuppressWarnings("unchecked")
         T[] t = (T[]) new Object[len];
         this.temp = t;
-        quicksort(0, data.length - 1);
+        quicksort(0, d.length - 1);
     }
 
     /**
@@ -250,19 +250,19 @@ public class InPlaceStableQuicksort<T> {
     /**
      * Select the specified element.
      *
-     * @param data the array
+     * @param d the array
      * @param from the index of the first element
      * @param to the index of the last element
      * @param k which element to return (1 means the lowest)
      * @return the specified element
      */
-    private T select(T[] data, int from, int to, int k) {
+    private T select(T[] d, int from, int to, int k) {
         while (true) {
             int pivotIndex = (to + from) >>> 1;
-            int pivotNewIndex = selectPartition(data, from, to, pivotIndex);
+            int pivotNewIndex = selectPartition(d, from, to, pivotIndex);
             int pivotDist = pivotNewIndex - from + 1;
             if (pivotDist == k) {
-                return data[pivotNewIndex];
+                return d[pivotNewIndex];
             } else if (k < pivotDist) {
                 to = pivotNewIndex - 1;
             } else {
@@ -275,37 +275,37 @@ public class InPlaceStableQuicksort<T> {
     /**
      * Partition the elements to select an element.
      *
-     * @param data the array
+     * @param d the array
      * @param from the index of the first element
      * @param to the index of the last element
      * @param pivotIndex the index of the pivot
      * @return the new index
      */
-    private int selectPartition(T[] data, int from, int to, int pivotIndex) {
-        T pivotValue = data[pivotIndex];
-        swap(data, pivotIndex, to);
+    private int selectPartition(T[] d, int from, int to, int pivotIndex) {
+        T pivotValue = d[pivotIndex];
+        swap(d, pivotIndex, to);
         int storeIndex = from;
         for (int i = from; i <= to; i++) {
-            if (comp.compare(data[i], pivotValue) < 0) {
-                swap(data, storeIndex, i);
+            if (comp.compare(d[i], pivotValue) < 0) {
+                swap(d, storeIndex, i);
                 storeIndex++;
             }
         }
-        swap(data, to, storeIndex);
+        swap(d, to, storeIndex);
         return storeIndex;
     }
 
     /**
      * Swap two elements in the array.
      *
-     * @param data the array
+     * @param d the array
      * @param a the index of the first element
      * @param b the index of the second element
      */
-    private void swap(T[] data, int a, int b) {
-        T temp = data[a];
-        data[a] = data[b];
-        data[b] = temp;
+    private void swap(T[] d, int a, int b) {
+        T t = d[a];
+        d[a] = d[b];
+        d[b] = t;
     }
 
 }

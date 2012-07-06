@@ -17,11 +17,9 @@ import org.h2.jaqu.Table.JQTable;
 @JQTable(createIfRequired = false)
 public class ProductNoCreateTable {
 
-    @SuppressWarnings("unused")
     @JQColumn(name = "id")
     private Integer productId;
 
-    @SuppressWarnings("unused")
     @JQColumn(name = "name")
     private String productName;
 

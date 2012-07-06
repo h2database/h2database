@@ -93,8 +93,8 @@ public class TestUtils extends TestBase {
         String pathSeparator = (String) Utils.getStaticField("java.io.File.pathSeparator");
         assertEquals(File.pathSeparator, pathSeparator);
         // Instance fields
-        String testField = (String) Utils.getField(this, "testField");
-        assertEquals(this.testField, testField);
+        String test = (String) Utils.getField(this, "testField");
+        assertEquals(this.testField, test);
         // Class present?
         assertFalse(Utils.isClassPresent("abc"));
         assertTrue(Utils.isClassPresent(getClass().getName()));

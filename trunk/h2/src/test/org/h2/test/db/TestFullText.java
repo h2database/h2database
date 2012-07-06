@@ -19,7 +19,6 @@ import java.util.StringTokenizer;
 import java.util.UUID;
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
-import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -76,7 +75,7 @@ public class TestFullText extends TestBase {
         deleteDb("fullTextReopen");
     }
 
-    private void close(Collection<Connection> conns) throws SQLException {
+    private static void close(Collection<Connection> conns) throws SQLException {
     	for (Connection conn : conns) {
     		conn.close();
     	}

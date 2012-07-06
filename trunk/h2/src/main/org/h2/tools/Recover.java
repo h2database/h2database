@@ -1257,7 +1257,7 @@ public class Recover extends Tool implements DataHandler {
         }
     }
 
-    private boolean isSchemaObjectTypeDelayed(MetaRecord m) {
+    private static boolean isSchemaObjectTypeDelayed(MetaRecord m) {
         switch (m.getObjectType()) {
         case DbObject.INDEX:
         case DbObject.CONSTRAINT:

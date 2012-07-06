@@ -291,39 +291,39 @@ class Node {
     /**
      * Compare the key with the key of this node.
      *
-     * @param key the key
+     * @param k the key
      * @return -1 if the key is smaller than this nodes key, 1 if bigger, and 0
      *         if equal
      */
-    int compare(Object key) {
-        return map.compare(key, this.key);
+    int compare(Object k) {
+        return map.compare(k, this.key);
     }
 
-    private Node remove(Object key) {
+    private Node remove(Object k) {
         Node n = copyOnWrite();
-        if (map.compare(key, n.key) < 0) {
+        if (map.compare(k, n.key) < 0) {
             if (!isRed(n.getLeft()) && !isRed(n.getLeft().getLeft())) {
                 n = n.moveRedLeft();
             }
-            n.setLeft(n.getLeft().remove(key));
+            n.setLeft(n.getLeft().remove(k));
         } else {
             if (isRed(n.getLeft())) {
                 n = n.rotateRight();
             }
-            if (n.compare(key) == 0 && n.getRight() == null) {
+            if (n.compare(k) == 0 && n.getRight() == null) {
                 map.removeNode(id);
                 return null;
             }
             if (!isRed(n.getRight()) && !isRed(n.getRight().getLeft())) {
                 n = n.moveRedRight();
             }
-            if (n.compare(key) == 0) {
+            if (n.compare(k) == 0) {
                 Node min = n.getRight().getMin();
                 n.key = min.key;
                 n.data = min.data;
                 n.setRight(n.getRight().removeMin());
             } else {
-                n.setRight(n.getRight().remove(key));
+                n.setRight(n.getRight().remove(k));
             }
         }
         return n.fixUp();
@@ -390,7 +390,7 @@ class Node {
         return n;
     }
 
-    private boolean isRed(Node n) {
+    private static boolean isRed(Node n) {
         return n != null && (n.flags & FLAG_BLACK) == 0;
     }
 

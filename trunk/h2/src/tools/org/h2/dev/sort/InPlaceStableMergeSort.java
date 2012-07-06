@@ -56,18 +56,18 @@ public class InPlaceStableMergeSort<T> {
     /**
      * Sort an array using the given comparator.
      *
-     * @param data the data array to sort
-     * @param comp the comparator
+     * @param d the data array to sort
+     * @param c the comparator
      */
-    public void sortArray(T[] data, Comparator<T> comp) {
-        this.data = data;
-        this.comp = comp;
-        int len = Math.max((int) (100 * Math.log(data.length)), TEMP_SIZE);
-        len = Math.min(data.length, len);
+    public void sortArray(T[] d, Comparator<T> c) {
+        this.data = d;
+        this.comp = c;
+        int len = Math.max((int) (100 * Math.log(d.length)), TEMP_SIZE);
+        len = Math.min(d.length, len);
         @SuppressWarnings("unchecked")
         T[] t = (T[]) new Object[len];
         this.temp = t;
-        mergeSort(0, data.length - 1);
+        mergeSort(0, d.length - 1);
     }
 
     /**
@@ -309,14 +309,14 @@ public class InPlaceStableMergeSort<T> {
     /**
      * Swap two elements in the array.
      *
-     * @param data the array
+     * @param d the array
      * @param a the index of the first element
      * @param b the index of the second element
      */
-    private void swap(T[] data, int a, int b) {
-        T temp = data[a];
-        data[a] = data[b];
-        data[b] = temp;
+    private void swap(T[] d, int a, int b) {
+        T t = d[a];
+        d[a] = d[b];
+        d[b] = t;
     }
 
 }

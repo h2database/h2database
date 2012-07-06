@@ -77,7 +77,7 @@ public class PageBtreeIndex extends PageIndex {
         memoryPerPage = (Constants.MEMORY_PAGE_BTREE + store.getPageSize()) >> 2;
     }
 
-    private void checkIndexColumnTypes(IndexColumn[] columns) {
+    private static void checkIndexColumnTypes(IndexColumn[] columns) {
         for (IndexColumn c : columns) {
             int type = c.column.getType();
             if (type == Value.CLOB || type == Value.BLOB) {

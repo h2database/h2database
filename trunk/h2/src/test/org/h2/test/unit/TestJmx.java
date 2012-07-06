@@ -34,7 +34,6 @@ public class TestJmx extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    @SuppressWarnings("unchecked")
     public void test() throws Exception {
         HashMap<String, MBeanAttributeInfo> attrMap;
         HashMap<String, MBeanOperationInfo> opMap;
@@ -104,6 +103,7 @@ public class TestJmx extends TestBase {
         conn = getConnection("jmx;jmx=true");
 
         name = new ObjectName("org.h2:name=JMX,*");
+        @SuppressWarnings("rawtypes")
         Set set = mbeanServer.queryNames(name, null);
         name = (ObjectName) set.iterator().next();
 

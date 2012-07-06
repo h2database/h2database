@@ -32,11 +32,10 @@ public class TestFileLockProcess extends TestBase {
             return;
         }
         String url = args[0];
-        TestFileLockProcess app = new TestFileLockProcess();
-        app.execute(url);
+        execute(url);
     }
 
-    private void execute(String url) {
+    private static void execute(String url) {
         org.h2.Driver.load();
         try {
             Class.forName("org.h2.Driver");

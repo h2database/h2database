@@ -285,7 +285,7 @@ public class FileShell extends Tool {
         return true;
     }
 
-    private void end(String[] list, int index) throws IOException {
+    private static void end(String[] list, int index) throws IOException {
         if (list.length != index) {
             throw new IOException("End of command expected, got: " + list[index]);
         }
@@ -298,14 +298,14 @@ public class FileShell extends Tool {
         if (FileUtils.isDirectory(fileName)) {
             print("Is a directory: " + fileName);
         }
-        InputStream in = null;
+        InputStream inFile = null;
         try {
-            in = FileUtils.newInputStream(fileName);
-            IOUtils.copy(in, out, length);
+            inFile = FileUtils.newInputStream(fileName);
+            IOUtils.copy(inFile, out, length);
         } catch (IOException e) {
             error(e);
         } finally {
-            IOUtils.closeSilently(in);
+            IOUtils.closeSilently(inFile);
         }
         println("");
     }
@@ -333,7 +333,7 @@ public class FileShell extends Tool {
         }
     }
 
-    private void zip(String zipFileName, String base, ArrayList<String> source) {
+    private static void zip(String zipFileName, String base, ArrayList<String> source) {
         FileUtils.delete(zipFileName);
         OutputStream fileOut = null;
         try {
@@ -376,10 +376,10 @@ public class FileShell extends Tool {
     }
 
     private void unzip(String zipFileName, String targetDir) {
-        InputStream in = null;
+        InputStream inFile = null;
         try {
-            in = FileUtils.newInputStream(zipFileName);
-            ZipInputStream zipIn = new ZipInputStream(in);
+            inFile = FileUtils.newInputStream(zipFileName);
+            ZipInputStream zipIn = new ZipInputStream(inFile);
             while (true) {
                 ZipEntry entry = zipIn.getNextEntry();
                 if (entry == null) {
@@ -407,7 +407,7 @@ public class FileShell extends Tool {
         } catch (IOException e) {
             error(e);
         } finally {
-            IOUtils.closeSilently(in);
+            IOUtils.closeSilently(inFile);
         }
     }
 

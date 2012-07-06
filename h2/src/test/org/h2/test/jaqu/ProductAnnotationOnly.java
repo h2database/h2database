@@ -33,7 +33,6 @@ public class ProductAnnotationOnly {
     @JQColumn(name = "name")
     private String productName;
 
-    @SuppressWarnings("unused")
     @JQColumn
     private Double unitPrice;
 

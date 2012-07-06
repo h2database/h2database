@@ -55,7 +55,8 @@ public class TestClassLoaderLeak extends TestBase {
         // using -XX:+HeapDumpOnOutOfMemoryError
         // which can be analyzed using EclipseMAT
         // (check incoming references to TestClassLoader)
-        if (false) {
+        boolean fillMemory = false;
+        if (fillMemory) {
             ArrayList<byte[]> memory = New.arrayList();
             for (int i = 0; i < Integer.MAX_VALUE; i++) {
                 memory.add(new byte[1024]);

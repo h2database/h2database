@@ -283,7 +283,7 @@ public class TestFileSystem extends TestBase {
         }
     }
 
-    private void testDirectories(String fsBase) {
+    private static void testDirectories(String fsBase) {
         final String fileName = fsBase + "/testFile";
         if (FileUtils.exists(fileName)) {
             FileUtils.delete(fileName);
@@ -299,7 +299,7 @@ public class TestFileSystem extends TestBase {
         }
     }
 
-    private void testMoveTo(String fsBase) {
+    private static void testMoveTo(String fsBase) {
         final String fileName = fsBase + "/testFile";
         final String fileName2 = fsBase + "/testFile2";
         if (FileUtils.exists(fileName)) {
@@ -319,7 +319,7 @@ public class TestFileSystem extends TestBase {
         }
     }
 
-    private void testUnsupportedFeatures(String fsBase) throws IOException {
+    private static void testUnsupportedFeatures(String fsBase) throws IOException {
         final String fileName = fsBase + "/testFile";
         if (FileUtils.exists(fileName)) {
             FileUtils.delete(fileName);

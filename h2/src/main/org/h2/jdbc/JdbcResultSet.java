@@ -2918,7 +2918,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
         throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel);
     }
 
-    private void mapColumn(HashMap<String, Integer> map, String label, int index) {
+    private static void mapColumn(HashMap<String, Integer> map, String label, int index) {
         // put the index (usually that's the only operation)
         Integer old = map.put(label, index);
         if (old != null) {

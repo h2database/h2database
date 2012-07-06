@@ -207,11 +207,11 @@ public class FilePathZip2 extends FilePath {
                 if (entry == null) {
                     break;
                 }
-                String name = entry.getName();
-                if (name.startsWith(dirName) && name.length() > dirName.length()) {
-                    int idx = name.indexOf('/', dirName.length());
-                    if (idx < 0 || idx >= name.length() - 1) {
-                        list.add(getPath(prefix + name));
+                String entryName = entry.getName();
+                if (entryName.startsWith(dirName) && entryName.length() > dirName.length()) {
+                    int idx = entryName.indexOf('/', dirName.length());
+                    if (idx < 0 || idx >= entryName.length() - 1) {
+                        list.add(getPath(prefix + entryName));
                     }
                 }
                 file.closeEntry();

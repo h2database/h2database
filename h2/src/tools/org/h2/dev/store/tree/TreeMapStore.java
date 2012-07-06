@@ -304,7 +304,7 @@ public class TreeMapStore {
         return pos;
     }
 
-    private long getId(int blockId, int offset) {
+    private static long getId(int blockId, int offset) {
         return ((long) blockId << 32) | offset;
     }
 
@@ -632,7 +632,7 @@ public class TreeMapStore {
         }
     }
 
-    private int getBlockId(long nodeId) {
+    private static int getBlockId(long nodeId) {
         return (int) (nodeId >>> 32);
     }
 

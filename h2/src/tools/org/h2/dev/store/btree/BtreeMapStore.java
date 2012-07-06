@@ -238,7 +238,7 @@ public class BtreeMapStore {
         return pos;
     }
 
-    private long getId(int blockId, int offset) {
+    private static long getId(int blockId, int offset) {
         return ((long) blockId << 32) | offset;
     }
 
@@ -597,7 +597,7 @@ public class BtreeMapStore {
         }
     }
 
-    private int getBlockId(long pageId) {
+    private static int getBlockId(long pageId) {
         return (int) (pageId >>> 32);
     }
 

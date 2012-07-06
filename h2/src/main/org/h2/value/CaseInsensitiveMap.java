@@ -34,7 +34,7 @@ public class CaseInsensitiveMap<V> extends HashMap<String, V> {
         return super.remove(toUpper(key));
     }
 
-    private String toUpper(Object key) {
+    private static String toUpper(Object key) {
         return key == null ? null : StringUtils.toUpperEnglish(key.toString());
     }
 

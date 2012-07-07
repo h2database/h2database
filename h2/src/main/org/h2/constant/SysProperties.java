@@ -6,7 +6,6 @@
  */
 package org.h2.constant;
 
-import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
@@ -187,7 +186,7 @@ public class SysProperties {
      * System property <code>h2.lobInDatabase</code> (default: true).<br />
      * Store LOB files in the database.
      */
-    public static final boolean LOB_IN_DATABASE = Utils.getProperty("h2.lobInDatabase", Constants.VERSION_MINOR >= 3);
+    public static final boolean LOB_IN_DATABASE = Utils.getProperty("h2.lobInDatabase", true);
 
     /**
      * System property <code>h2.lobClientMaxSizeMemory</code> (default:

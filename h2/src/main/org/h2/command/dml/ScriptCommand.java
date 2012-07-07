@@ -66,7 +66,7 @@ import org.h2.value.ValueString;
  */
 public class ScriptCommand extends ScriptBase {
 
-    private String charset = Constants.VERSION_MINOR < 3 ? SysProperties.FILE_ENCODING : Constants.UTF8;
+    private String charset = Constants.UTF8;
     private Set<String> schemaNames;
     private Collection<Table> tables;
     private boolean passwords;

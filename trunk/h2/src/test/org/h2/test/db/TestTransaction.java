@@ -16,7 +16,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.util.New;
 
@@ -161,7 +160,7 @@ public class TestTransaction extends TestBase {
         Connection conn2 = getConnection("transaction");
         conn2.setAutoCommit(false);
         Statement stat2 = conn2.createStatement();
-        if (config.mvcc && Constants.VERSION_MINOR >= 3) {
+        if (config.mvcc) {
             stat2.execute("update test set name = 'Welt' where id = 2");
         }
         assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).

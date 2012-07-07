@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Csv;
@@ -176,7 +175,7 @@ public class TestCsv extends TestBase {
         assertEquals('"', csv.getFieldDelimiter());
         assertEquals(',', csv.getFieldSeparatorRead());
         assertEquals(",", csv.getFieldSeparatorWrite());
-        assertEquals(Constants.VERSION_MINOR == 3 ? 0 : '#', csv.getLineCommentCharacter());
+        assertEquals(0, csv.getLineCommentCharacter());
         assertEquals(false, csv.getPreserveWhitespace());
 
         String charset;

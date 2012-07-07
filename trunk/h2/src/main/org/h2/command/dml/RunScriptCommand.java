@@ -11,7 +11,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -24,7 +23,7 @@ import org.h2.util.ScriptReader;
  */
 public class RunScriptCommand extends ScriptBase {
 
-    private String charset = Constants.VERSION_MINOR < 3 ? SysProperties.FILE_ENCODING : Constants.UTF8;
+    private String charset = Constants.UTF8;
 
     public RunScriptCommand(Session session) {
         super(session);

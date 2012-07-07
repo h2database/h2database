@@ -54,11 +54,7 @@ public class Csv implements SimpleRowSource {
     private boolean caseSensitiveColumnNames;
     private boolean preserveWhitespace;
     private boolean writeColumnHeader = true;
-
-    // TODO change the docs at setLineCommentCharacter
-    // TODO also change help.csv
-    private char lineComment = Constants.VERSION_MINOR == 3 ? 0 : '#';
-
+    private char lineComment = 0;
     private String lineSeparator = SysProperties.LINE_SEPARATOR;
     private String nullString = "";
 
@@ -710,7 +706,7 @@ public class Csv implements SimpleRowSource {
 
     /**
      * Set the line comment character. The default is character code 0 (line
-     * comments are disabled) for H2 version 1.3, and '#' for H2 version 1.2.
+     * comments are disabled).
      *
      * @param lineCommentCharacter the line comment character
      */

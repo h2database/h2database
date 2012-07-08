@@ -166,8 +166,8 @@ public class TestDataPage extends TestBase implements DataHandler {
         testValue(ValueTime.get(new Time(0)));
         testValue(ValueTimestamp.get(new Timestamp(System.currentTimeMillis())));
         testValue(ValueTimestamp.get(new Timestamp(0)));
-        testValue(ValueJavaObject.getNoCopy(new byte[0]));
-        testValue(ValueJavaObject.getNoCopy(new byte[100]));
+        testValue(ValueJavaObject.getNoCopy(null, new byte[0]));
+        testValue(ValueJavaObject.getNoCopy(null, new byte[100]));
         for (int i = 0; i < 300; i++) {
             testValue(ValueBytes.getNoCopy(new byte[i]));
         }

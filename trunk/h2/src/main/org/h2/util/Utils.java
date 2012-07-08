@@ -237,7 +237,7 @@ public class Utils {
         }
         int len = b.length;
         if (len == 0) {
-            return b;
+            return EMPTY_BYTES;
         }
         byte[] copy = new byte[len];
         System.arraycopy(b, 0, copy, 0, len);
@@ -401,6 +401,28 @@ public class Utils {
             return EMPTY_LONG_ARRAY;
         }
         return new long[len];
+    }
+
+    /**
+     * Checks if given classes have common Comparable superclass.
+     */
+    public static boolean haveCommonComparableSuperclass(Class<?> c1, Class<?> c2) {
+        if (c1 == c2 || c1.isAssignableFrom(c2) || c2.isAssignableFrom(c1)) {
+            return true;
+        }
+        Class<?> top1;
+        do {
+            top1 = c1;
+            c1 = c1.getSuperclass();
+        } while (Comparable.class.isAssignableFrom(c1));
+
+        Class<?> top2;
+        do {
+            top2 = c2;
+            c2 = c2.getSuperclass();
+        } while (Comparable.class.isAssignableFrom(c2));
+
+        return top1 == top2;
     }
 
     /**

@@ -8,6 +8,9 @@ package org.h2.test.unit;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
@@ -101,6 +104,12 @@ public class TestUtils extends TestBase {
         Utils.callStaticMethod("java.lang.String.valueOf", "a");
         Utils.callStaticMethod("java.awt.AWTKeyStroke.getAWTKeyStroke",
                 'x', java.awt.event.InputEvent.SHIFT_DOWN_MASK);
+        // Common comparable superclass
+        assertFalse(Utils.haveCommonComparableSuperclass(Integer.class, Long.class));
+        assertTrue(Utils.haveCommonComparableSuperclass(Integer.class, Integer.class));
+        assertTrue(Utils.haveCommonComparableSuperclass(Timestamp.class, Date.class));
+        assertFalse(Utils.haveCommonComparableSuperclass(ArrayList.class, Long.class));
+        assertFalse(Utils.haveCommonComparableSuperclass(Integer.class, ArrayList.class));
     }
 
 }

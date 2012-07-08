@@ -1756,8 +1756,10 @@ public class JdbcConnection extends TraceObject implements Connection {
             break;
         }
         case Value.JAVA_OBJECT:
-            o = Utils.deserialize(v.getBytesNoCopy());
-            break;
+            if (SysProperties.SERIALIZE_JAVA_OBJECT) {
+                o = Utils.deserialize(v.getBytesNoCopy());
+                break;
+            }
         default:
             o = v.getObject();
         }

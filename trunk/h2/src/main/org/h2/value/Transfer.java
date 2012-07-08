@@ -527,7 +527,7 @@ public class Transfer {
         case Value.UUID:
             return ValueUuid.get(readLong(), readLong());
         case Value.JAVA_OBJECT:
-            return ValueJavaObject.getNoCopy(readBytes());
+            return ValueJavaObject.getNoCopy(null, readBytes());
         case Value.BOOLEAN:
             return ValueBoolean.get(readBoolean());
         case Value.BYTE:

@@ -759,7 +759,7 @@ public class Data {
             int len = readVarInt();
             byte[] b = Utils.newBytes(len);
             read(b, 0, len);
-            return ValueJavaObject.getNoCopy(b);
+            return ValueJavaObject.getNoCopy(null, b);
         }
         case Value.UUID:
             return ValueUuid.get(readLong(), readLong());

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.engine.SessionInterface;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
@@ -577,8 +578,13 @@ public class DataType {
                 break;
             }
             case Value.JAVA_OBJECT: {
-                byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? (Value) ValueNull.INSTANCE : ValueJavaObject.getNoCopy(buff);
+                if (SysProperties.SERIALIZE_JAVA_OBJECT) {
+                    byte[] buff = rs.getBytes(columnIndex);
+                    v = buff == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(null, buff);
+                } else {
+                    Object o = rs.getObject(columnIndex);
+                    v = o == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(o, null);
+                }
                 break;
             }
             case Value.ARRAY: {
@@ -861,7 +867,7 @@ public class DataType {
             return ValueNull.INSTANCE;
         }
         if (type == Value.JAVA_OBJECT) {
-            return ValueJavaObject.getNoCopy(Utils.serialize(x));
+            return ValueJavaObject.getNoCopy(x, null);
         }
         if (x instanceof String) {
             return ValueString.get((String) x);
@@ -932,7 +938,7 @@ public class DataType {
         } else if (x instanceof Character) {
             return ValueStringFixed.get(((Character) x).toString());
         } else {
-            return ValueJavaObject.getNoCopy(Utils.serialize(x));
+            return ValueJavaObject.getNoCopy(x, null);
         }
     }
 
@@ -1059,7 +1065,7 @@ public class DataType {
             return new JdbcClob(conn, v, 0);
         }
         if (v.getType() == Value.JAVA_OBJECT) {
-            Object o = Utils.deserialize(v.getBytes());
+            Object o = SysProperties.SERIALIZE_JAVA_OBJECT ? Utils.deserialize(v.getBytes()) : v.getObject();
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
             }

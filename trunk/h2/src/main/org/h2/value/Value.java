@@ -761,7 +761,7 @@ public abstract class Value {
                 switch(getType()) {
                 case BYTES:
                 case BLOB:
-                    return ValueJavaObject.getNoCopy(getBytesNoCopy());
+                    return ValueJavaObject.getNoCopy(null, getBytesNoCopy());
                 }
                 break;
             }
@@ -820,7 +820,7 @@ public abstract class Value {
             case BYTES:
                 return ValueBytes.getNoCopy(StringUtils.convertHexToBytes(s.trim()));
             case JAVA_OBJECT:
-                return ValueJavaObject.getNoCopy(StringUtils.convertHexToBytes(s.trim()));
+                return ValueJavaObject.getNoCopy(null, StringUtils.convertHexToBytes(s.trim()));
             case STRING:
                 return ValueString.get(s);
             case STRING_IGNORECASE:

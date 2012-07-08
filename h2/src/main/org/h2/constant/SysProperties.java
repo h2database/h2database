@@ -366,6 +366,32 @@ public class SysProperties {
     public static final boolean USE_THREAD_CONTEXT_CLASS_LOADER =
         Utils.getProperty("h2.useThreadContextClassLoader", false);
 
+    /**
+     * System property <code>h2.serializeJavaObject</code>
+     * (default: true).<br />
+     * <b>If true</b>, values of type OTHER will be stored in serialized form
+     * and have the semantics of binary data for all operations (such as sorting and conversion to string).
+     * <br />
+     * <b>If false</b>, the objects will be serialized only for I/O operations and few other special cases 
+     * (for example when someone tries to get the value in binary form or when comparing objects
+     * other way than in binary form is impossible).
+     * <br />
+     * If the object implements the Comparable interface, the method compareTo 
+     * will be used for sorting (but only if objects being compared have a common comparable
+     * super type). Otherwise the objects will be compared by types, and if they are the same by hashCode, and 
+     * if the hash codes are equal, but objects are not, the serialized forms (the byte arrays) are compared. 
+     * <br />
+     * The string representation of the values use the toString method of object.
+     * <br />
+     * In client-server mode, the server must have all required classes in the class path.
+     * On the client side, this setting is required to be disabled as well, to have correct string representation 
+     * and display size.
+     * <br />
+     * In embedded mode, no data copying occurs, so the user has to make defensive copy himself before storing,
+     * to make sure that value object is immutable and will not be modified later.
+     */
+    public static final boolean SERIALIZE_JAVA_OBJECT = Utils.getProperty("h2.serializeJavaObject", true);
+
     private static final String H2_BASE_DIR = "h2.baseDir";
 
     private SysProperties() {

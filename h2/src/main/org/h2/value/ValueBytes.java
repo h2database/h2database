@@ -21,8 +21,8 @@ public class ValueBytes extends Value {
 
     private static final ValueBytes EMPTY = new ValueBytes(Utils.EMPTY_BYTES);
 
-    private final byte[] value;
-    private int hash;
+    protected byte[] value;
+    protected int hash;
 
     protected ValueBytes(byte[] v) {
         this.value = v;
@@ -66,7 +66,7 @@ public class ValueBytes extends Value {
     }
 
     public String getSQL() {
-        return "X'" + getString() + "'";
+        return "X'" + StringUtils.convertBytesToHex(getBytesNoCopy()) + "'";
     }
 
     public byte[] getBytesNoCopy() {
@@ -74,7 +74,7 @@ public class ValueBytes extends Value {
     }
 
     public byte[] getBytes() {
-        return Utils.cloneByteArray(value);
+        return Utils.cloneByteArray(getBytesNoCopy());
     }
 
     protected int compareSecure(Value v, CompareMode mode) {

@@ -19,7 +19,23 @@ import java.nio.channels.WritableByteChannel;
  */
 public abstract class FileBase extends FileChannel {
 
+    public abstract long size() throws IOException;
+
+    public abstract long position() throws IOException;
+
+    public abstract FileChannel position(long newPosition) throws IOException;
+
+    public abstract int read(ByteBuffer dst) throws IOException;
+
+    public abstract int write(ByteBuffer src) throws IOException;
+
+    public abstract FileChannel truncate(long size) throws IOException;
+
     public void force(boolean metaData) throws IOException {
+        // ignore
+    }
+
+    protected void implCloseChannel() throws IOException {
         // ignore
     }
 
@@ -31,12 +47,6 @@ public abstract class FileBase extends FileChannel {
         throw new UnsupportedOperationException();
     }
 
-    public abstract long position() throws IOException;
-
-    public abstract FileChannel position(long newPosition) throws IOException;
-
-    public abstract int read(ByteBuffer dst) throws IOException;
-
     public int read(ByteBuffer dst, long position) throws IOException {
         throw new UnsupportedOperationException();
     }
@@ -44,8 +54,6 @@ public abstract class FileBase extends FileChannel {
     public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
         throw new UnsupportedOperationException();
     }
-
-    public abstract long size() throws IOException;
 
     public long transferFrom(ReadableByteChannel src, long position, long count) throws IOException {
         throw new UnsupportedOperationException();
@@ -56,22 +64,14 @@ public abstract class FileBase extends FileChannel {
         throw new UnsupportedOperationException();
     }
 
-    public abstract FileChannel truncate(long size) throws IOException;
-
     public FileLock tryLock(long position, long size, boolean shared) throws IOException {
         throw new UnsupportedOperationException();
     }
-
-    public abstract int write(ByteBuffer src) throws IOException;
 
     public int write(ByteBuffer src, long position) throws IOException {
         throw new UnsupportedOperationException();    }
 
     public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
         throw new UnsupportedOperationException();    }
-
-    protected void implCloseChannel() throws IOException {
-        // ignore
-    }
 
 }

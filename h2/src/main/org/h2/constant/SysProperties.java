@@ -372,13 +372,13 @@ public class SysProperties {
      * <b>If true</b>, values of type OTHER will be stored in serialized form
      * and have the semantics of binary data for all operations (such as sorting and conversion to string).
      * <br />
-     * <b>If false</b>, the objects will be serialized only for I/O operations and few other special cases 
+     * <b>If false</b>, the objects will be serialized only for I/O operations and a few other special cases 
      * (for example when someone tries to get the value in binary form or when comparing objects
-     * other way than in binary form is impossible).
+     * that are not comparable otherwise).
      * <br />
-     * If the object implements the Comparable interface, the method compareTo 
+     * If the object implements the Comparable interface, the method compareTo
      * will be used for sorting (but only if objects being compared have a common comparable
-     * super type). Otherwise the objects will be compared by types, and if they are the same by hashCode, and 
+     * super type). Otherwise the objects will be compared by type, and if they are the same by hashCode, and 
      * if the hash codes are equal, but objects are not, the serialized forms (the byte arrays) are compared. 
      * <br />
      * The string representation of the values use the toString method of object.
@@ -388,7 +388,7 @@ public class SysProperties {
      * and display size.
      * <br />
      * In embedded mode, no data copying occurs, so the user has to make defensive copy himself before storing,
-     * to make sure that value object is immutable and will not be modified later.
+     * or ensure that the value object is immutable.
      */
     public static final boolean SERIALIZE_JAVA_OBJECT = Utils.getProperty("h2.serializeJavaObject", true);
 

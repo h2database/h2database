@@ -24,13 +24,13 @@ public class TestUndoLogMemory {
      * @param args ignored
      */
     public static void main(String... args) throws Exception {
-        new TestUndoLogMemory().test(10, "null");
-        new TestUndoLogMemory().test(100, "space(100000)");
+        TestUndoLogMemory.test(10, "null");
+        TestUndoLogMemory.test(100, "space(100000)");
         // new TestUndoLogMemory().test(100000, "null");
         // new TestUndoLogMemory().test(1000, "space(100000)");
     }
 
-    private void test(int count, String defaultValue) throws SQLException {
+    private static void test(int count, String defaultValue) throws SQLException {
 
         // -Xmx1m -XX:+HeapDumpOnOutOfMemoryError
         DeleteDbFiles.execute("data", "test", true);

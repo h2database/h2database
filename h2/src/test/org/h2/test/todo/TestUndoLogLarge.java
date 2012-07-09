@@ -25,10 +25,10 @@ public class TestUndoLogLarge {
      */
     public static void main(String... args) throws Exception {
         // System.setProperty("h2.largeTransactions", "true");
-        new TestUndoLogLarge().test();
+        TestUndoLogLarge.test();
     }
 
-    private void test() throws SQLException {
+    private static void test() throws SQLException {
         DeleteDbFiles.execute("data", "test", true);
         Connection conn = DriverManager.getConnection("jdbc:h2:data/test");
         Statement stat = conn.createStatement();

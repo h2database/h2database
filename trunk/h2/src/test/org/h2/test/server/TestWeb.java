@@ -51,7 +51,7 @@ public class TestWeb extends TestBase {
         testWebApp();
     }
 
-    private void testWrongParameters() throws Exception {
+    private static void testWrongParameters() throws Exception {
         new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
             public void test() throws SQLException {
                 Server.createPgServer("-pgPort 8182");

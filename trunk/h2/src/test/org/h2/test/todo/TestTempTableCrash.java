@@ -25,10 +25,10 @@ public class TestTempTableCrash {
      * @param args ignored
      */
     public static void main(String[] args) throws Exception {
-        new TestTempTableCrash().test();
+        TestTempTableCrash.test();
     }
 
-    private void test() throws Exception {
+    private static void test() throws Exception {
         Connection conn;
         Statement stat;
 

@@ -21,7 +21,8 @@ import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 
 /**
- * Tests java object values when {@link SysProperties#SERIALIZE_JAVA_OBJECT} property is disabled.
+ * Tests java object values when SysProperties.SERIALIZE_JAVA_OBJECT property is
+ * disabled.
  *
  * @author Sergi Vladykin
  */
@@ -38,7 +39,7 @@ public class TestJavaObject extends TestBase {
         TestAll conf = new TestAll();
         conf.traceTest = true;
         conf.memory = true;
-//        conf.networked = true;
+        // conf.networked = true;
         TestBase.createCaller().init(conf).test();
     }
 
@@ -83,7 +84,8 @@ public class TestJavaObject extends TestBase {
                 x = o1.hashCode() < o2.hashCode() ? o1 : o2;
             }
         } else {
-            int cmp = ((Comparable) o1).compareTo(o2);
+            @SuppressWarnings("unchecked")
+            int cmp = ((Comparable<Object>) o1).compareTo(o2);
             assertFalse(cmp == 0);
             x = cmp < 0 ? o1 : o2;
         }

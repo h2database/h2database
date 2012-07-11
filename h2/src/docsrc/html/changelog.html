@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New system property "h2.serializeJavaObject" (default: true) that allows to disable
+<ul><li>New system property "h2.ext.fnAutoreg" (default: false) and jdbc-property "EXT_FN_AUTOREG" 
+	that allows to autoregister aggregates and functions from special provided jars.
+</li><li>New system property "h2.serializeJavaObject" (default: true) that allows to disable
     serializing Java objects, so that the objects compareTo and toString methods can be used.
 </li><li>Dylan has translated the H2 Console tool to Korean. Thanks a lot!
 </li><li>Executing the statement CREATE INDEX IF ALREADY EXISTS if the index already exists

@@ -23,6 +23,7 @@ import org.h2.constant.DbSettings;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
+import org.h2.ext.AutoRegisterFunctionAliases;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -174,6 +175,8 @@ public class Database implements DataHandler {
     private final DbSettings dbSettings;
     private final int reconnectCheckDelay;
     private int logMode;
+    private boolean autoRegisterFnAliases = false;
+    private String autoRegisterFnModules = "";
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -209,6 +212,8 @@ public class Database implements DataHandler {
         }
         this.multiVersion = ci.getProperty("MVCC", false);
         this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
+        this.autoRegisterFnAliases = ci.getProperty("EXT_FN_AUTOREG", false);
+        this.autoRegisterFnModules = ci.getProperty("EXT_FN_AUTOREG_MODULE", "common");
         boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
@@ -655,6 +660,26 @@ public class Database implements DataHandler {
         }
         getLobStorage().init();
         systemSession.commit(true);
+        
+        // load extension functions/aggregates into default schema
+        try {
+            if (autoRegisterFnAliases) {
+                AutoRegisterFunctionAliases.registerFromClasspath(trace, getClass().getClassLoader(), systemSession,
+                        mainSchema, "");
+
+                for (String fnMod : this.autoRegisterFnModules.split(",")) {
+                    AutoRegisterFunctionAliases.registerFromClasspath(trace, getClass().getClassLoader(),
+                            systemSession, mainSchema, fnMod.trim());
+                }
+            } else if (Boolean.parseBoolean(System.getProperty(AutoRegisterFunctionAliases.SYS_PROP_AUTOREG, "false")
+                    .trim())) {
+                AutoRegisterFunctionAliases.registerFromClasspath(trace, getClass().getClassLoader(), systemSession,
+                        mainSchema, null);
+            }
+        } catch (Exception ex) {
+            trace.error(ex, "problem with function auto-register");
+        }
+        
         trace.info("opened {0}", databaseName);
         if (checkpointAllowed > 0) {
             afterWriting();

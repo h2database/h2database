@@ -21,7 +21,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
@@ -729,11 +728,13 @@ public class Transfer {
     /**
      * Verify the HMAC.
      *
-     * @throws DbException if the HMAC does not verify
+     * @param hmac the message authentication code
+     * @param lobId the lobId
+     * @throws DbException if the HMAC does not match
      */
-    public void verifyLobMac(byte[] hmacData, long lobId) {
+    public void verifyLobMac(byte[] hmac, long lobId) {
         byte[] result = calculateLobMac(lobId);
-        if (!Arrays.equals(result, hmacData)) {
+        if (!Utils.compareSecure(hmac,  result)) {
             throw DbException.get(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
         }
     }

@@ -404,7 +404,11 @@ public class Utils {
     }
 
     /**
-     * Checks if given classes have common Comparable superclass.
+     * Checks if given classes have a common Comparable superclass.
+     *
+     * @param c1 the first class
+     * @param c2 the second class
+     * @return true if they have
      */
     public static boolean haveCommonComparableSuperclass(Class<?> c1, Class<?> c2) {
         if (c1 == c2 || c1.isAssignableFrom(c2) || c2.isAssignableFrom(c1)) {

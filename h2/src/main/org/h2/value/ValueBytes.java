@@ -21,7 +21,14 @@ public class ValueBytes extends Value {
 
     private static final ValueBytes EMPTY = new ValueBytes(Utils.EMPTY_BYTES);
 
+    /**
+     * The value.
+     */
     protected byte[] value;
+
+    /**
+     * The hash code.
+     */
     protected int hash;
 
     protected ValueBytes(byte[] v) {

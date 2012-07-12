@@ -282,7 +282,7 @@ public class LobStorage {
         private final long lob;
 
         private final byte[] hmac;
-        
+
         /**
          * The position.
          */
@@ -547,6 +547,7 @@ public class LobStorage {
      * Get the input stream for the given lob.
      *
      * @param lobId the lob id
+     * @param hmac the message authentication code (for remote input streams)
      * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */

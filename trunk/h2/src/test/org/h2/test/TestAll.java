@@ -612,7 +612,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestCancel().runTest(this);
         new TestDatabaseEventListener().runTest(this);
         new TestDriver().runTest(this);
-//        new TestJavaObject().runTest(this);
+        new TestJavaObject().runTest(this);
         new TestLimitUpdates().runTest(this);
         new TestLobApi().runTest(this);
         new TestManyJdbcObjects().runTest(this);

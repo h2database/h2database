@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.UUID;
+import org.h2.constant.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 
@@ -34,7 +35,7 @@ public class TestJavaObject extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        System.setProperty("h2.serializeJavaObject", "false");
+        // System.setProperty("h2.serializeJavaObject", "false");
 
         TestAll conf = new TestAll();
         conf.traceTest = true;
@@ -45,16 +46,21 @@ public class TestJavaObject extends TestBase {
 
     @Override
     public void test() throws Exception {
-        trace("Test Java Object");
-        startServerIfRequired();
-        doTest(Arrays.asList(UUID.randomUUID(), null), Arrays.asList(UUID.randomUUID(), UUID.randomUUID()), true);
-        doTest(new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis() + 10000), false);
-        doTest(200, 100, false);
-        doTest(200, 100L, true);
-        doTest(new Date(System.currentTimeMillis() + 1000), new Date(System.currentTimeMillis()), false);
-        doTest(new java.util.Date(System.currentTimeMillis() + 1000), new java.util.Date(System.currentTimeMillis()), false);
-        doTest(new Time(System.currentTimeMillis() + 1000), new Date(System.currentTimeMillis()), false);
-        doTest(new Time(System.currentTimeMillis() + 1000), new Timestamp(System.currentTimeMillis()), false);
+        SysProperties.SERIALIZE_JAVA_OBJECT = false;
+        try {
+            trace("Test Java Object");
+            startServerIfRequired();
+            doTest(Arrays.asList(UUID.randomUUID(), null), Arrays.asList(UUID.randomUUID(), UUID.randomUUID()), true);
+            doTest(new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis() + 10000), false);
+            doTest(200, 100, false);
+            doTest(200, 100L, true);
+            doTest(new Date(System.currentTimeMillis() + 1000), new Date(System.currentTimeMillis()), false);
+            doTest(new java.util.Date(System.currentTimeMillis() + 1000), new java.util.Date(System.currentTimeMillis()), false);
+            doTest(new Time(System.currentTimeMillis() + 1000), new Date(System.currentTimeMillis()), false);
+            doTest(new Time(System.currentTimeMillis() + 1000), new Timestamp(System.currentTimeMillis()), false);
+        } finally {
+            SysProperties.SERIALIZE_JAVA_OBJECT = true;
+        }
     }
 
     private void doTest(Object o1, Object o2, boolean hash) throws SQLException {

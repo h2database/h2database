@@ -395,7 +395,7 @@ public class SysProperties {
      * defensive copy himself before storing, or ensure that the value object is
      * immutable.
      */
-    public static final boolean SERIALIZE_JAVA_OBJECT = Utils.getProperty("h2.serializeJavaObject", true);
+    public static boolean SERIALIZE_JAVA_OBJECT = Utils.getProperty("h2.serializeJavaObject", true);
 
     private static final String H2_BASE_DIR = "h2.baseDir";
 

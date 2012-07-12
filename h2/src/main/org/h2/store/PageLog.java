@@ -684,6 +684,10 @@ public class PageLog {
         return logSectionId;
     }
 
+    int getLogFirstSectionId() {
+        return firstSectionId;
+    }
+
     long getLogPos() {
         return logPos;
     }

@@ -1434,8 +1434,15 @@ public class PageStore implements CacheWriter {
         log.commit(session.getId());
         long size = log.getSize();
         if (size - logSizeBase > maxLogSize) {
+            int firstSection = log.getLogFirstSectionId();
             checkpoint();
             if (ignoreBigLog) {
+                return;
+            }
+            int newSection = log.getLogSectionId();
+            if (newSection - firstSection <= 2) {
+                // one section is always kept, and checkpoint
+                // advances two sections each time it is called
                 return;
             }
             long newSize = log.getSize();

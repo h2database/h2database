@@ -89,7 +89,7 @@ public class FilePathCache extends FilePathWrapper {
             return len;
         }
 
-        private long getCachePos(long pos) {
+        private static long getCachePos(long pos) {
             return (pos / CACHE_BLOCK_SIZE) * CACHE_BLOCK_SIZE;
         }
 

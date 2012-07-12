@@ -69,6 +69,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      * @param lobStorage the storage
      * @param tableId the table id
      * @param id the lob id
+     * @param hmac the message authentication code
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */

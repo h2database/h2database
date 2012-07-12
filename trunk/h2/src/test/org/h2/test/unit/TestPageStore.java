@@ -46,6 +46,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testLogLimitFalsePositive();
         testLogLimit();
         testRecoverLobInDatabase();
         testWriteTransactionLogBeforeData();
@@ -102,6 +103,23 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         ResultSet rs = stat2.executeQuery("select * from test");
         assertTrue(rs.next());
         conn2.close();
+        conn.close();
+    }
+
+    private void testLogLimitFalsePositive() throws Exception {
+        deleteDb("pageStore");
+        String url = "pageStore;TRACE_LEVEL_FILE=2";
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("set max_log_size 1");
+        stat.execute("create table test(x varchar)");
+        for (int i = 0; i < 1000; ++i) {
+                stat.execute("insert into test values (space(2000))");
+        }
+        stat.execute("checkpoint");
+        InputStream in = FileUtils.newInputStream(getBaseDir() + "/pageStore.trace.db");
+        String s = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
+        assertFalse(s.indexOf("Transaction log could not be truncated") > 0);
         conn.close();
     }
 

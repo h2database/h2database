@@ -80,12 +80,6 @@ public class CheckJavadoc {
             System.out.println("No Javadoc comment: " + file.getAbsolutePath());
             errorCount++;
         }
-        int open = text.indexOf('{');
-        if (open < 0 || open < comment) {
-            System.out.println("No '{' or '{' before the first Javadoc comment: " +
-                    file.getAbsolutePath());
-            errorCount++;
-        }
         int pos = 0;
         int lineNumber = 1;
         boolean inComment = false;

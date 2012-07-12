@@ -42,7 +42,7 @@ public class TestFullText extends TestBase {
     }
 
     public void test() throws Exception {
-    	testUuidPrimaryKey(false);
+        testUuidPrimaryKey(false);
         testAutoAnalyze();
         testNativeFeatures();
         testTransaction(false);
@@ -75,16 +75,16 @@ public class TestFullText extends TestBase {
         deleteDb("fullTextReopen");
     }
 
-    private static void close(Collection<Connection> conns) throws SQLException {
-    	for (Connection conn : conns) {
-    		conn.close();
-    	}
+    private static void close(Collection<Connection> list) throws SQLException {
+        for (Connection conn : list) {
+            conn.close();
+        }
     }
 
-    private Connection getConnection(String name, Collection<Connection> conns) throws SQLException {
-    	Connection conn = getConnection(name);
-    	conns.add(conn);
-    	return conn;
+    private Connection getConnection(String name, Collection<Connection> list) throws SQLException {
+        Connection conn = getConnection(name);
+        list.add(conn);
+        return conn;
     }
 
     private void testAutoAnalyze() throws SQLException {
@@ -92,9 +92,9 @@ public class TestFullText extends TestBase {
         Connection conn;
         Statement stat;
 
-        ArrayList<Connection> conns = new ArrayList<Connection>();
+        ArrayList<Connection> connList = new ArrayList<Connection>();
 
-        conn = getConnection("fullTextNative", conns);
+        conn = getConnection("fullTextNative", connList);
         stat = conn.createStatement();
         stat.execute("create alias if not exists ft_init for \"org.h2.fulltext.FullText.init\"");
         stat.execute("call ft_init()");
@@ -102,19 +102,19 @@ public class TestFullText extends TestBase {
         stat.execute("call ft_create_index('PUBLIC', 'TEST', 'NAME')");
 
         if (!config.memory) {
-        	conn.close();
+            conn.close();
         }
 
-        conn = getConnection("fullTextNative", conns);
+        conn = getConnection("fullTextNative", connList);
         stat = conn.createStatement();
         stat.execute("insert into test select x, 'x' from system_range(1, 3000)");
-        close(conns);
+        close(connList);
     }
 
     private void testNativeFeatures() throws SQLException {
         deleteDb("fullTextNative");
-        ArrayList<Connection> conns = new ArrayList<Connection>();
-        Connection conn = getConnection("fullTextNative", conns);
+        ArrayList<Connection> connList = new ArrayList<Connection>();
+        Connection conn = getConnection("fullTextNative", connList);
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
         stat.execute("CALL FT_INIT()");
@@ -149,9 +149,9 @@ public class TestFullText extends TestBase {
         assertFalse(rs.next());
 
         if (!config.memory) {
-        	conn.close();
+            conn.close();
         }
-        conn = getConnection("fullTextNative", conns);
+        conn = getConnection("fullTextNative", connList);
         stat = conn.createStatement();
         conn.setAutoCommit(false);
         stat.execute("delete from test");
@@ -161,14 +161,14 @@ public class TestFullText extends TestBase {
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('Welcome', 0, 0)");
         assertTrue(rs.next());
         conn.setAutoCommit(true);
-        close(conns);
+        close(connList);
     }
 
     private void testUuidPrimaryKey(boolean lucene) throws SQLException {
-    	deleteDb("fullText");
-    	Connection conn = getConnection("fullText");
-    	Statement stat = conn.createStatement();
-    	String prefix = lucene ? "FTL" : "FT";
+        deleteDb("fullText");
+        Connection conn = getConnection("fullText");
+        Statement stat = conn.createStatement();
+        String prefix = lucene ? "FTL" : "FT";
         String className = lucene ? "FullTextLucene" : "FullText";
         stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
         stat.execute("CALL " + prefix + "_INIT()");
@@ -193,8 +193,8 @@ public class TestFullText extends TestBase {
         String prefix = lucene ? "FTL" : "FT";
         deleteDb("fullTextTransaction");
         FileUtils.deleteRecursive(getBaseDir() + "/fullTextTransaction", false);
-        ArrayList<Connection> conns = new ArrayList<Connection>();
-        Connection conn = getConnection("fullTextTransaction", conns);
+        ArrayList<Connection> connList = new ArrayList<Connection>();
+        Connection conn = getConnection("fullTextTransaction", connList);
         Statement stat = conn.createStatement();
         String className = lucene ? "FullTextLucene" : "FullText";
         stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
@@ -210,16 +210,16 @@ public class TestFullText extends TestBase {
         stat.execute("insert into test values(2, 'Hello Moon!')");
         conn.rollback();
         if (!config.memory) {
-        	conn.close();
+            conn.close();
         }
-        conn = getConnection("fullTextTransaction", conns);
+        conn = getConnection("fullTextTransaction", connList);
         stat = conn.createStatement();
         rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
         assertTrue(rs.next());
         rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Moon', 0, 0)");
         assertFalse(rs.next());
         FullText.dropAll(conn);
-        close(conns);
+        close(connList);
         deleteDb("fullTextTransaction");
         FileUtils.deleteRecursive(getBaseDir() + "/fullTextTransaction", false);
     }
@@ -228,13 +228,13 @@ public class TestFullText extends TestBase {
         final String prefix = lucene ? "FTL" : "FT";
         trace("Testing multithreaded " + prefix);
         deleteDb("fullText");
-        ArrayList<Connection> conns = new ArrayList<Connection>();
+        ArrayList<Connection> connList = new ArrayList<Connection>();
         int len = 2;
         Task[] task = new Task[len];
         for (int i = 0; i < len; i++) {
             // final Connection conn =
             // getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
-            final Connection conn = getConnection("fullText", conns);
+            final Connection conn = getConnection("fullText", connList);
             Statement stat = conn.createStatement();
             String className = lucene ? "FullTextLucene" : "FullText";
             stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
@@ -271,7 +271,7 @@ public class TestFullText extends TestBase {
                     }
                     trace("closing connection");
                     if (!config.memory) {
-                    	conn.close();
+                        conn.close();
                     }
                     trace("completed thread " + Thread.currentThread());
                 }
@@ -289,7 +289,7 @@ public class TestFullText extends TestBase {
             t.get();
             trace("done joining " + t);
         }
-        close(conns);
+        close(connList);
     }
 
     private void testStreamLob() throws SQLException {
@@ -347,8 +347,8 @@ public class TestFullText extends TestBase {
     }
 
     private void testReopen(boolean lucene) throws SQLException {
-    	if (config.memory) {
-        	return;
+        if (config.memory) {
+            return;
         }
         String prefix = lucene ? "FTL" : "FT";
         deleteDb("fullTextReopen");
@@ -427,8 +427,8 @@ public class TestFullText extends TestBase {
             return;
         }
         deleteDb("fullText");
-        ArrayList<Connection> conns = new ArrayList<Connection>();
-        Connection conn = getConnection("fullText", conns);
+        ArrayList<Connection> connList = new ArrayList<Connection>();
+        Connection conn = getConnection("fullText", connList);
         String prefix = lucene ? "FTL_" : "FT_";
         Statement stat = conn.createStatement();
         String className = lucene ? "FullTextLucene" : "FullText";
@@ -512,15 +512,15 @@ public class TestFullText extends TestBase {
         }
 
         if (!config.memory) {
-        	conn.close();
+            conn.close();
         }
 
-        conn = getConnection("fullText", conns);
+        conn = getConnection("fullText", connList);
         stat = conn.createStatement();
         stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0)");
 
         stat.execute("CALL " + prefix + "DROP_ALL()");
 
-        close(conns);
+        close(connList);
     }
 }

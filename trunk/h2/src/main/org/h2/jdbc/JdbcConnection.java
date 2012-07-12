@@ -31,7 +31,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.message.DbException;
-import org.h2.message.Trace;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
@@ -81,7 +80,6 @@ public class JdbcConnection extends TraceObject implements Connection {
     private CommandInterface setQueryTimeout, getQueryTimeout;
 
     private int savepointId;
-    private Trace trace;
     private String catalog;
     private Statement executingStatement;
     private CompareMode compareMode = CompareMode.getInstance(null, 0);

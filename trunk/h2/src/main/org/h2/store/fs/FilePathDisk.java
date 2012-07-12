@@ -268,8 +268,10 @@ public class FilePathDisk extends FilePath {
     }
 
     public InputStream newInputStream() throws IOException {
-        if (name.indexOf(':') > 1) {
-            // if the : is in position 1, a windows file access is assumed: C:.. or D:
+        int index = name.indexOf(':');
+        if (index > 1 && index < 20) {
+            // if the ':' is in position 1, a windows file access is assumed: C:.. or D:
+            // if the ':' is not at the beginning, assume its a file name with a colon
             if (name.startsWith(CLASSPATH_PREFIX)) {
                 String fileName = name.substring(CLASSPATH_PREFIX.length());
                 if (!fileName.startsWith("/")) {

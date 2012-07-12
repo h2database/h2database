@@ -72,7 +72,11 @@ public class FullTextLucene extends FullText {
     private static final String LUCENE_FIELD_MODIFIED = "_modified";
     private static final String LUCENE_FIELD_COLUMN_PREFIX = "_";
 
-    private static final String IN_MEMORY_PERFIX = "mem:";
+    /**
+     * The prefix for a in-memory path. This prefix is only used internally
+     * within this class and not related to the database URL.
+     */
+    private static final String IN_MEMORY_PREFIX = "mem:";
 
     /**
      * Initializes full text search functionality for this database. This adds
@@ -265,7 +269,7 @@ public class FullTextLucene extends FullText {
                     access.modifier = new IndexModifier(path, analyzer, recreate);
                     //*/
                     //## LUCENE3 ##
-                    Directory indexDir = path.startsWith(IN_MEMORY_PERFIX) ? new RAMDirectory() : FSDirectory.open(new File(path));
+                    Directory indexDir = path.startsWith(IN_MEMORY_PREFIX) ? new RAMDirectory() : FSDirectory.open(new File(path));
                     boolean recreate = !IndexReader.indexExists(indexDir);
                     Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
                     IndexWriter writer = new IndexWriter(indexDir, analyzer,
@@ -299,10 +303,11 @@ public class FullTextLucene extends FullText {
         String path = rs.getString(1);
         if (path == null) {
             /*## LUCENE2 ##
-            throw throwException("Fulltext search for in-memory databases is not supported with Lucene 2. Please use Lucene 3 instead.");
-    	    //*/
+            throw throwException("Fulltext search for in-memory databases " +
+                "is not supported with Lucene 2. Please use Lucene 3 instead.");
+            //*/
             //## LUCENE3 ##
-            return IN_MEMORY_PERFIX + conn.getCatalog();
+            return IN_MEMORY_PREFIX + conn.getCatalog();
             //*/
         }
         int index = path.lastIndexOf(':');
@@ -343,7 +348,7 @@ public class FullTextLucene extends FullText {
         if (access != null) {
             removeIndexAccess(access, path);
         }
-        if (!path.startsWith(IN_MEMORY_PERFIX)) {
+        if (!path.startsWith(IN_MEMORY_PREFIX)) {
             FileUtils.deleteRecursive(path, false);
         }
     }

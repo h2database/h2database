@@ -6,8 +6,6 @@
  */
 package org.h2.dev.store.btree;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -20,8 +18,8 @@ public class BtreeMap<K, V> {
 
     private final BtreeMapStore store;
     private final String name;
-    private final KeyType keyType;
-    private final ValueType valueType;
+    private final DataType keyType;
+    private final DataType valueType;
     private Page root;
 
     private BtreeMap(BtreeMapStore store, String name, Class<K> keyClass, Class<V> valueClass) {
@@ -137,59 +135,6 @@ public class BtreeMap<K, V> {
     }
 
     /**
-     * A value type.
-     */
-    static interface ValueType {
-
-        /**
-         * Get the length in bytes.
-         *
-         * @param obj the object
-         * @return the length
-         */
-        int length(Object obj);
-
-        /**
-         * Write the object.
-         *
-         * @param buff the target buffer
-         * @param x the value
-         */
-        void write(ByteBuffer buff, Object x);
-
-        /**
-         * Read an object.
-         *
-         * @param buff the source buffer
-         * @return the object
-         */
-        Object read(ByteBuffer buff);
-
-        /**
-         * Get the tag name of the class.
-         *
-         * @return the tag name
-         */
-        String getName();
-
-    }
-
-    /**
-     * A key type.
-     */
-    static interface KeyType extends ValueType {
-
-        /**
-         * Compare two keys.
-         *
-         * @param a the first key
-         * @param b the second key
-         * @return -1 if the first key is smaller, 1 if larger, and 0 if equal
-         */
-        int compare(Object a, Object b);
-    }
-
-    /**
      * Compare two keys.
      *
      * @param a the first key
@@ -201,83 +146,11 @@ public class BtreeMap<K, V> {
     }
 
     /**
-     * An integer type.
-     */
-    static class IntegerType implements KeyType {
-
-        public int compare(Object a, Object b) {
-            return ((Integer) a).compareTo((Integer) b);
-        }
-
-        public int length(Object obj) {
-            return getVarIntLen((Integer) obj);
-        }
-
-        public Integer read(ByteBuffer buff) {
-            return readVarInt(buff);
-        }
-
-        public void write(ByteBuffer buff, Object x) {
-            writeVarInt(buff, (Integer) x);
-        }
-
-        public String getName() {
-            return "i";
-        }
-
-    }
-
-    /**
-     * A string type.
-     */
-    static class StringType implements KeyType {
-
-        public int compare(Object a, Object b) {
-            return a.toString().compareTo(b.toString());
-        }
-
-        public int length(Object obj) {
-            try {
-                byte[] bytes = obj.toString().getBytes("UTF-8");
-                return getVarIntLen(bytes.length) + bytes.length;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public String read(ByteBuffer buff) {
-            int len = readVarInt(buff);
-            byte[] bytes = new byte[len];
-            buff.get(bytes);
-            try {
-                return new String(bytes, "UTF-8");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public void write(ByteBuffer buff, Object x) {
-            try {
-                byte[] bytes = x.toString().getBytes("UTF-8");
-                writeVarInt(buff, bytes.length);
-                buff.put(bytes);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        public String getName() {
-            return "s";
-        }
-
-    }
-
-    /**
      * Get the key type.
      *
      * @return the key type
      */
-    KeyType getKeyType() {
+    DataType getKeyType() {
         return keyType;
     }
 
@@ -286,7 +159,7 @@ public class BtreeMap<K, V> {
      *
      * @return the value type
      */
-    ValueType getValueType() {
+    DataType getValueType() {
         return valueType;
     }
 
@@ -339,42 +212,7 @@ public class BtreeMap<K, V> {
      * @return the iterator
      */
     public Iterator<K> keyIterator(K from) {
-        return new Cursor(root, from);
-    }
-
-    /**
-     * A cursor to iterate over elements in ascending order.
-     */
-    class Cursor implements Iterator<K> {
-        private ArrayList<Page.CursorPos> parents = new ArrayList<Page.CursorPos>();
-        private K current;
-
-        Cursor(Page root, K from) {
-            Page.min(root, parents, from);
-            fetchNext();
-        }
-
-        public K next() {
-            K c = current;
-            if (c != null) {
-                fetchNext();
-            }
-            return c == null ? null : c;
-        }
-
-        @SuppressWarnings("unchecked")
-        private void fetchNext() {
-            current = (K) Page.nextKey(parents);
-        }
-
-        public boolean hasNext() {
-            return current != null;
-        }
-
-        public void remove() {
-            throw new UnsupportedOperationException();
-        }
-
+        return new Cursor<K>(root, from);
     }
 
     /**
@@ -393,126 +231,6 @@ public class BtreeMap<K, V> {
      */
     String getName() {
         return name;
-    }
-
-    /**
-     * Read a variable size long.
-     *
-     * @param buff the source buffer
-     * @return the value
-     */
-    static long readVarLong(ByteBuffer buff) {
-        long x = buff.get();
-        if (x >= 0) {
-            return x;
-        }
-        x &= 0x7f;
-        for (int s = 7;; s += 7) {
-            long b = buff.get();
-            x |= (b & 0x7f) << s;
-            if (b >= 0) {
-                return x;
-            }
-        }
-    }
-
-    /**
-     * Read a variable size int.
-     *
-     * @param buff the source buffer
-     * @return the value
-     */
-    static int readVarInt(ByteBuffer buff) {
-        int b = buff.get();
-        if (b >= 0) {
-            return b;
-        }
-        // a separate function so that this one can be inlined
-        return readVarIntRest(buff, b);
-    }
-
-    private static int readVarIntRest(ByteBuffer buff, int b) {
-        int x = b & 0x7f;
-        b = buff.get();
-        if (b >= 0) {
-            return x | (b << 7);
-        }
-        x |= (b & 0x7f) << 7;
-        b = buff.get();
-        if (b >= 0) {
-            return x | (b << 14);
-        }
-        x |= (b & 0x7f) << 14;
-        b = buff.get();
-        if (b >= 0) {
-            return x | b << 21;
-        }
-        x |= ((b & 0x7f) << 21) | (buff.get() << 28);
-        return x;
-    }
-
-    /**
-     * Get the length of the variable size int.
-     *
-     * @param x the value
-     * @return the length in bytes
-     */
-    static int getVarIntLen(int x) {
-        if ((x & (-1 << 7)) == 0) {
-            return 1;
-        } else if ((x & (-1 << 14)) == 0) {
-            return 2;
-        } else if ((x & (-1 << 21)) == 0) {
-            return 3;
-        } else if ((x & (-1 << 28)) == 0) {
-            return 4;
-        }
-        return 5;
-    }
-
-    /**
-     * Get the length of the variable size long.
-     *
-     * @param x the value
-     * @return the length in bytes
-     */
-    static int getVarLongLen(long x) {
-        int i = 1;
-        while (true) {
-            x >>>= 7;
-            if (x == 0) {
-                return i;
-            }
-            i++;
-        }
-    }
-
-    /**
-     * Write a variable size int.
-     *
-     * @param buff the target buffer
-     * @param x the value
-     */
-    static void writeVarInt(ByteBuffer buff, int x) {
-        while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
-            x >>>= 7;
-        }
-        buff.put((byte) x);
-    }
-
-    /**
-     * Write a variable size int.
-     *
-     * @param buff the target buffer
-     * @param x the value
-     */
-    static void writeVarLong(ByteBuffer buff, long x) {
-        while ((x & ~0x7f) != 0) {
-            buff.put((byte) (0x80 | (x & 0x7f)));
-            x >>>= 7;
-        }
-        buff.put((byte) x);
     }
 
 }

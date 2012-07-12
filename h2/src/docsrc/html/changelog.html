@@ -18,8 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New system property "h2.ext.fnAutoreg" (default: false) and jdbc-property "EXT_FN_AUTOREG" 
-	that allows to autoregister aggregates and functions from special provided jars.
+<ul><li>The message "Transaction log could not be truncated" was sometimes written
+    to the .trace.db file even if there was no problem truncating the transaction log.
+</li><li>New system property "h2.serializeJavaObject" (default: true) that allows to disable
 </li><li>New system property "h2.serializeJavaObject" (default: true) that allows to disable
     serializing Java objects, so that the objects compareTo and toString methods can be used.
 </li><li>Dylan has translated the H2 Console tool to Korean. Thanks a lot!

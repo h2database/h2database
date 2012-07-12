@@ -30,11 +30,12 @@ public class Test extends TestBase {
         // chmod +x test
         // ./test
 
+        // TODO initialize fields
+
         // include files:
         // /usr/include/c++/4.2.1/tr1/stdio.h
         // /usr/include/stdio.h
-
-        // TODO initialize fields
+        // inttypes.h
 
         // not supported yet:
         // exceptions

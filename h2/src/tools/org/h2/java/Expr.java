@@ -14,9 +14,15 @@ import java.util.Iterator;
  */
 public interface Expr {
 
+    /**
+     * Get the C++ code.
+     *
+     * @return the C++ code
+     */
     String asString();
+
     Type getType();
-    Expr cast(Type type);
+    void setType(Type type);
 
 }
 
@@ -34,13 +40,18 @@ abstract class ExprBase implements Expr {
  */
 class CallExpr extends ExprBase {
 
+    /**
+     * The parameters.
+     */
     final ArrayList<Expr> args = new ArrayList<Expr>();
+
     private final JavaParser context;
     private final String className;
     private final String name;
     private Expr expr;
     private ClassObj classObj;
     private MethodObj method;
+    private Type type;
 
     CallExpr(JavaParser context, Expr expr, String className, String name) {
         this.context = context;
@@ -93,7 +104,8 @@ class CallExpr extends ExprBase {
                 }
                 FieldObj f = paramIt.next();
                 i++;
-                buff.append(a.cast(f.type).asString());
+                a.setType(f.type);
+                buff.append(a.asString());
             }
             buff.append(")");
         }
@@ -105,8 +117,8 @@ class CallExpr extends ExprBase {
         return method.returnType;
     }
 
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }
@@ -116,20 +128,37 @@ class CallExpr extends ExprBase {
  */
 class AssignExpr extends ExprBase {
 
+    /**
+     * The target variable or field.
+     */
     Expr left;
+
+    /**
+     * The operation (=, +=,...).
+     */
     String op;
+
+    /**
+     * The expression.
+     */
     Expr right;
 
+    /**
+     * The type.
+     */
+    Type type;
+
     public String asString() {
-        return left.asString() + " " + op + " " + right.cast(left.getType()).asString();
+        right.setType(left.getType());
+        return left.asString() + " " + op + " " + right.asString();
     }
 
     public Type getType() {
         return left.getType();
     }
 
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }
@@ -139,8 +168,20 @@ class AssignExpr extends ExprBase {
  */
 class ConditionalExpr extends ExprBase {
 
+    /**
+     * The condition.
+     */
     Expr condition;
-    Expr ifTrue, ifFalse;
+
+    /**
+     * The 'true' expression.
+     */
+    Expr ifTrue;
+
+    /**
+     * The 'false' expression.
+     */
+    Expr ifFalse;
 
     public String asString() {
         return condition.asString() + " ? " + ifTrue.asString() + " : " + ifFalse.asString();
@@ -150,12 +191,9 @@ class ConditionalExpr extends ExprBase {
         return ifTrue.getType();
     }
 
-    public Expr cast(Type type) {
-        ConditionalExpr e2 = new ConditionalExpr();
-        e2.condition = condition;
-        e2.ifTrue = ifTrue.cast(type);
-        e2.ifFalse = ifFalse.cast(type);
-        return e2;
+    public void setType(Type type) {
+        ifTrue.setType(type);
+        ifFalse.setType(type);
     }
 
 }
@@ -165,7 +203,11 @@ class ConditionalExpr extends ExprBase {
  */
 class LiteralExpr extends ExprBase {
 
+    /**
+     * The literal expression.
+     */
     String literal;
+
     private final JavaParser context;
     private final String className;
     private Type type;
@@ -177,7 +219,11 @@ class LiteralExpr extends ExprBase {
 
     public String asString() {
         if ("null".equals(literal)) {
-            return type.asString() + "()";
+            Type t = getType();
+            if (t.isObject()) {
+                return "(" + getType().asString() + ") 0";
+            }
+            return t.asString() + "()";
         }
         return literal;
     }
@@ -190,12 +236,8 @@ class LiteralExpr extends ExprBase {
         return type;
     }
 
-    public Expr cast(Type type) {
-        if ("null".equals(literal)) {
-            // TODO should be immutable
-            this.type = type;
-        }
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }
@@ -205,10 +247,23 @@ class LiteralExpr extends ExprBase {
  */
 class OpExpr extends ExprBase {
 
+    /**
+     * The left hand side.
+     */
     Expr left;
+
+    /**
+     * The operation.
+     */
     String op;
+
+    /**
+     * The right hand side.
+     */
     Expr right;
+
     private final JavaParser context;
+    private Type type;
 
     OpExpr(JavaParser context) {
         this.context = context;
@@ -227,7 +282,7 @@ class OpExpr extends ExprBase {
             if (left.getType().isObject() || right.getType().isObject()) {
                 // TODO convert primitive to to String, call toString
                 StringBuilder buff = new StringBuilder();
-                if (JavaParser.REF_COUNT) {
+                if (type.refCount) {
                     buff.append("ptr<java_lang_StringBuilder>(new java_lang_StringBuilder(");
                 } else {
                     buff.append("(new java_lang_StringBuilder(");
@@ -288,8 +343,8 @@ class OpExpr extends ExprBase {
         return lt;
     }
 
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }
@@ -299,31 +354,55 @@ class OpExpr extends ExprBase {
  */
 class NewExpr extends ExprBase {
 
+    /**
+     * The class.
+     */
     ClassObj classObj;
-    ArrayList<Expr> arrayInitExpr = new ArrayList<Expr>();
-    ArrayList<Expr> args = new ArrayList<Expr>();
-    final JavaParser context;
 
-    NewExpr(JavaParser context) {
-        this.context = context;
-    }
+    /**
+     * The constructor parameters (for objects).
+     */
+    final ArrayList<Expr> args = new ArrayList<Expr>();
+
+    /**
+     * The array bounds (for arrays).
+     */
+    final ArrayList<Expr> arrayInitExpr = new ArrayList<Expr>();
+
+    /**
+     * The type.
+     */
+    Type type;
 
     public String asString() {
+        boolean refCount = type.refCount;
         StringBuilder buff = new StringBuilder();
         if (arrayInitExpr.size() > 0) {
-            if (JavaParser.REF_COUNT) {
-                buff.append("ptr< array< " + classObj.toString() + " > >");
+            if (refCount) {
+                if (classObj.isPrimitive) {
+                    buff.append("ptr< array< " + classObj + " > >");
+                } else {
+                    buff.append("ptr< array< ptr< " + classObj + " > > >");
+                }
             }
-            buff.append("(new array< " + classObj + " >(1 ");
+            if (classObj.isPrimitive) {
+                buff.append("(new array< " + classObj + " >(1 ");
+            } else {
+                if (refCount) {
+                    buff.append("(new array< ptr< " + classObj + " > >(1 ");
+                } else {
+                    buff.append("(new array< " + classObj + "* >(1 ");
+                }
+            }
             for (Expr e : arrayInitExpr) {
                 buff.append("* ").append(e.asString());
             }
             buff.append("))");
         } else {
-            if (JavaParser.REF_COUNT) {
-                buff.append("ptr< " + classObj.toString() + " >");
+            if (refCount) {
+                buff.append("ptr< " + classObj + " >");
             }
-            buff.append("(new " + JavaParser.toC(classObj.toString()));
+            buff.append("(new " + classObj);
             buff.append("(");
             int i = 0;
             for (Expr a : args) {
@@ -344,8 +423,8 @@ class NewExpr extends ExprBase {
         return t;
     }
 
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }
@@ -438,8 +517,7 @@ class StringExpr extends ExprBase {
         return buff.toString();
     }
 
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
     }
 
 }
@@ -449,9 +527,22 @@ class StringExpr extends ExprBase {
  */
 class VariableExpr extends ExprBase {
 
-    Expr base;
-    FieldObj field;
+    /**
+     * The variable name.
+     */
     String name;
+
+    /**
+     * The base expression (the first element in a.b variables).
+     */
+    Expr base;
+
+    /**
+     * The field.
+     */
+    FieldObj field;
+
+    private Type type;
     private final JavaParser context;
 
     VariableExpr(JavaParser context) {
@@ -499,35 +590,8 @@ class VariableExpr extends ExprBase {
         return field.type;
     }
 
-    public Expr cast(Type type) {
-        return this;
-    }
-
-}
-
-/**
- * A array access expression.
- */
-class ArrayExpr extends ExprBase {
-
-    Expr expr;
-    ArrayList<Expr> indexes = new ArrayList<Expr>();
-
-    public String asString() {
-        StringBuilder buff = new StringBuilder();
-        buff.append(expr.toString());
-        for (Expr e : indexes) {
-            buff.append('[').append(e.toString()).append(']');
-        }
-        return buff.toString();
-    }
-
-    public Type getType() {
-        return expr.getType();
-    }
-
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }
@@ -537,8 +601,15 @@ class ArrayExpr extends ExprBase {
  */
 class ArrayInitExpr extends ExprBase {
 
+    /**
+     * The expression list.
+     */
+    final ArrayList<Expr> list = new ArrayList<Expr>();
+
+    /**
+     * The type.
+     */
     Type type;
-    ArrayList<Expr> list = new ArrayList<Expr>();
 
     public Type getType() {
         return type;
@@ -557,8 +628,8 @@ class ArrayInitExpr extends ExprBase {
         return buff.toString();
     }
 
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }
@@ -568,8 +639,15 @@ class ArrayInitExpr extends ExprBase {
  */
 class CastExpr extends ExprBase {
 
-    Type type;
+    /**
+     * The expression.
+     */
     Expr expr;
+
+    /**
+     * The cast type.
+     */
+    Type type;
 
     public Type getType() {
         return type;
@@ -579,8 +657,8 @@ class CastExpr extends ExprBase {
         return "(" + type.asString() + ") " + expr.asString();
     }
 
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }
@@ -590,8 +668,20 @@ class CastExpr extends ExprBase {
  */
 class ArrayAccessExpr extends ExprBase {
 
+    /**
+     * The base expression.
+     */
     Expr base;
+
+    /**
+     * The index.
+     */
     Expr index;
+
+    /**
+     * The type.
+     */
+    Type type;
 
     public Type getType() {
         Type t = new Type();
@@ -604,8 +694,8 @@ class ArrayAccessExpr extends ExprBase {
         return base.asString() + "->at(" + index.asString() + ")";
     }
 
-    public Expr cast(Type type) {
-        return this;
+    public void setType(Type type) {
+        this.type = type;
     }
 
 }

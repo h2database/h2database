@@ -11,8 +11,14 @@ package org.h2.java.lang;
  */
 public class Integer {
 
+    /**
+     * The smallest possible value.
+     */
     public static final int MIN_VALUE = 1 << 31;
 
+    /**
+     * The largest possible value.
+     */
     public static final int MAX_VALUE = (int) ((1L << 31) - 1);
 
     /**
@@ -23,7 +29,7 @@ public class Integer {
      */
     public static String toString(int x) {
         // c: wchar_t ch[20];
-        // c: swprintf(ch, 20, L"%d", x);
+        // c: swprintf(ch, 20, L"%" PRId32, x);
         // c: return STRING(ch);
         // c: return;
         if (x == MIN_VALUE) {

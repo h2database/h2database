@@ -372,6 +372,11 @@ class Type {
         return asString();
     }
 
+    /**
+     * Get the C++ code.
+     *
+     * @return the C++ code
+     */
     public String asString() {
         StringBuilder buff = new StringBuilder();
         for (int i = 0; i < arrayLevel; i++) {
@@ -392,10 +397,14 @@ class Type {
             }
         }
         for (int i = 0; i < arrayLevel; i++) {
-            buff.append(" >");
             if (refCount) {
                 buff.append(" >");
+            } else {
+                if (!classObj.isPrimitive) {
+                    buff.append("*");
+                }
             }
+            buff.append(" >");
         }
         if (!refCount) {
             if (isObject()) {
@@ -415,6 +424,27 @@ class Type {
             return t.classObj.equals(classObj) && t.arrayLevel == arrayLevel && t.isVarArgs == isVarArgs;
         }
         return false;
+    }
+
+    /**
+     * Get the default value, for primitive types (0 usually).
+     *
+     * @param context the context
+     * @return the expression
+     */
+    public Expr getDefaultValue(JavaParser context) {
+        if (classObj.isPrimitive) {
+            LiteralExpr literal = new LiteralExpr(context, classObj.className);
+            literal.literal = "0";
+            CastExpr cast = new CastExpr();
+            cast.type = this;
+            cast.expr = literal;
+            cast.type = this;
+            return cast;
+        }
+        LiteralExpr literal = new LiteralExpr(context, classObj.className);
+        literal.literal = "null";
+        return literal;
     }
 
 }

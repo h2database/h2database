@@ -14,8 +14,11 @@ import org.h2.java.Local;
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include <wchar.h>
 #include <stdint.h>
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #define jvoid void
 #define jboolean int8_t
@@ -31,9 +34,12 @@ import org.h2.java.Local;
 #define false 0
 #define null 0
 
-#define STRING(s) ptr<java_lang_String>(new java_lang_String(ptr< array<jchar> >(new array<jchar>(s, (jint) wcslen(s)))));
+#define STRING_REF(s) ptr<java_lang_String> \
+    (new java_lang_String(ptr< array<jchar> > \
+    (new array<jchar>(s, (jint) wcslen(s)))));
 
-// #define STRING(s) new java_lang_String(new array<jchar>(s, (jint) wcslen(s)));
+#define STRING_PTR(s) new java_lang_String \
+    (new array<jchar>(s, (jint) wcslen(s)));
 
 class RefBase {
 protected:
@@ -86,6 +92,9 @@ public:
     T& operator*() {
         return *pointer;
     }
+    T* getPointer() {
+        return pointer;
+    }
     T* operator->() {
         return pointer;
     }
@@ -112,7 +121,7 @@ public:
     ~array() {
         delete[] data;
     }
-    T* getData() {
+    T* getPointer() {
         return data;
     }
     jint length() {
@@ -180,15 +189,31 @@ public class String {
         return chars.length;
     }
 
+    /**
+     * The toString method.
+     *
+     * @return the string
+     */
     public String toStringMethod() {
         return this;
     }
 
+    /**
+     * Get the java.lang.String.
+     *
+     * @return the string
+     */
     @Ignore
     public java.lang.String asString() {
         return new java.lang.String(chars);
     }
 
+    /**
+     * Wrap a java.lang.String.
+     *
+     * @param x the string
+     * @return the object
+     */
     @Ignore
     public static String wrap(java.lang.String x) {
         return new String(x.toCharArray());

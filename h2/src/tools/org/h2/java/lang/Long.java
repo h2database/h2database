@@ -12,8 +12,14 @@ package org.h2.java.lang;
  */
 public class Long {
 
+    /**
+     * The smallest possible value.
+     */
     public static final long MIN_VALUE = 1L << 63;
 
+    /**
+     * The largest possible value.
+     */
     public static final long MAX_VALUE = (1L << 63) - 1;
 
     /**
@@ -24,7 +30,7 @@ public class Long {
      */
     public static String toString(long x) {
         // c: wchar_t ch[30];
-        // c: swprintf(ch, 30, L"%ld", x);
+        // c: swprintf(ch, 30, L"%" PRId64, x);
         // c: return STRING(ch);
         // c: return;
         if (x == MIN_VALUE) {

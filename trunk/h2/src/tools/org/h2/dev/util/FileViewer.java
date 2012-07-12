@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import org.h2.message.DbException;
 import org.h2.util.Tool;
 
-
 /**
  * A text file viewer that support very large files.
  */

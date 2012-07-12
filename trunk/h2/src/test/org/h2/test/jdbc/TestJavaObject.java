@@ -85,9 +85,9 @@ public class TestJavaObject extends TestBase {
             }
         } else {
             @SuppressWarnings("unchecked")
-            int cmp = ((Comparable<Object>) o1).compareTo(o2);
-            assertFalse(cmp == 0);
-            x = cmp < 0 ? o1 : o2;
+            int compare = ((Comparable<Object>) o1).compareTo(o2);
+            assertFalse(compare == 0);
+            x = compare < 0 ? o1 : o2;
         }
 
         assertEquals(x.toString(), rs.getString(1));
@@ -98,24 +98,24 @@ public class TestJavaObject extends TestBase {
         assertFalse(rs.next());
         rs.close();
 
-        PreparedStatement slct = conn.prepareStatement("select id from t where val = ?");
+        PreparedStatement prep = conn.prepareStatement("select id from t where val = ?");
 
-        slct.setObject(1, o1, Types.JAVA_OBJECT);
-        rs = slct.executeQuery();
+        prep.setObject(1, o1, Types.JAVA_OBJECT);
+        rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertFalse(rs.next());
         rs.close();
 
-        slct.setObject(1, o2, Types.JAVA_OBJECT);
-        rs = slct.executeQuery();
+        prep.setObject(1, o2, Types.JAVA_OBJECT);
+        rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
         rs.close();
 
         stmt.close();
-        slct.close();
+        prep.close();
 
         conn.close();
         deleteDb("javaObject");

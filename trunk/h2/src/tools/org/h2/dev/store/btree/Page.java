@@ -168,22 +168,6 @@ class Page {
     }
 
     /**
-     * A position in a cursor
-     */
-    static class CursorPos {
-
-        /**
-         * The current page.
-         */
-        Page page;
-
-        /**
-         * The current index.
-         */
-        int index;
-    }
-
-    /**
      * Go to the first element for the given key.
      *
      * @param p the current page
@@ -453,7 +437,7 @@ class Page {
     private void read(ByteBuffer buff) {
         boolean node = buff.get() == 1;
         if (node) {
-            int len = BtreeMap.readVarInt(buff);
+            int len = DataUtils.readVarInt(buff);
             children = new long[len];
             keys = new Object[len - 1];
             for (int i = 0; i < len; i++) {
@@ -463,7 +447,7 @@ class Page {
                 }
             }
         } else {
-            int len = BtreeMap.readVarInt(buff);
+            int len = DataUtils.readVarInt(buff);
             keys = new Object[len];
             values = new Object[len];
             for (int i = 0; i < len; i++) {
@@ -482,7 +466,7 @@ class Page {
         if (children != null) {
             buff.put((byte) 1);
             int len = children.length;
-            BtreeMap.writeVarInt(buff, len);
+            DataUtils.writeVarInt(buff, len);
             for (int i = 0; i < len; i++) {
                 long c = map.readPage(children[i]).storedId;
                 buff.putLong(c);
@@ -493,7 +477,7 @@ class Page {
         } else {
             buff.put((byte) 0);
             int len = keys.length;
-            BtreeMap.writeVarInt(buff, len);
+            DataUtils.writeVarInt(buff, len);
             for (int i = 0; i < len; i++) {
                 map.getKeyType().write(buff, keys[i]);
                 map.getValueType().write(buff, values[i]);
@@ -590,7 +574,7 @@ class Page {
         int byteCount = 1;
         if (children != null) {
             int len = children.length;
-            byteCount += BtreeMap.getVarIntLen(len);
+            byteCount += DataUtils.getVarIntLen(len);
             for (int i = 0; i < len; i++) {
                 byteCount += 8;
                 if (i < keys.length) {
@@ -599,7 +583,7 @@ class Page {
             }
         } else {
             int len = keys.length;
-            byteCount += BtreeMap.getVarIntLen(len);
+            byteCount += DataUtils.getVarIntLen(len);
             for (int i = 0; i < len; i++) {
                 byteCount += map.getKeyType().length(keys[i]);
                 byteCount += map.getValueType().length(values[i]);

@@ -68,7 +68,7 @@ function editRow(row, session, write, undo) {
             replace(/>/g, '&gt;');
         var size;
         var newHTML;
-        if (text.indexOf('\n') >= 0) {  
+        if (text.indexOf('\n') >= 0) {
             size = 40;
             newHTML = '<textarea name="$rowName" cols="$size" onkeydown="return editKeyDown($row, this, event)">$t</textarea/>';
         } else {

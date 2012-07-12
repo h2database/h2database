@@ -1622,36 +1622,6 @@ CREATE ALIAS MATRIX FOR "org.h2.samples.Function.getMatrix";
 SELECT * FROM MATRIX(4) ORDER BY X, Y;
 </pre>
 
-<h3>Auto-Referencing Compiled Methods / Aggregates from prepared JARs</h3>
-<p>
-You can enable auto-registration of methods by adding special prepared JARs
-and setting the system-property "h2.ext.fnAutoreg" to "true".
-The Classpath will be scanned for files named "/META-INF/org.h2.ext.FunctionRegistry", 
-which should look like: 
-</p>
-<pre>
-my.aggregate.Method   my_AGGR
-my.aggregate.my_AGGR2
-my.function.MySQL_FN_Library
-</pre>
-<p>
-If "my.function.MySQL_FN_Library" implements any static methods prefixed with "FN_", they will be registered in the database by calling <code>CREATE ALIAS ... FOR</code>:
-</p>
-<pre>
-CREATE ALIAS UNIX_TIMESTAMP FOR "my.function.MySQL_FN_Library.FN_unix_TIMEstamp";
-</pre>
-<p>
-If "my.aggregate.my_AGGR2" implements the "org.h2.api.AggregateFunction" interface it will be registered in the database by calling <code>CREATE AGGREGATE ... FOR</code>:
-</p>
-<pre>
-CREATE AGGREGATE MY_AGGR2 FOR "my.aggregate.my_AGGR2";
-</pre>
-<p>
-If "my.aggregate.Method" implements the "org.h2.api.AggregateFunction" interface it will be registered in the database by calling <code>CREATE AGGREGATE ... FOR</code>:
-</p>
-<pre>
-CREATE AGGREGATE MY_AGGR FOR "my.aggregate.Method";
-</pre>
 
 <h2 id="triggers">Triggers</h2>
 <p>

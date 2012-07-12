@@ -22,7 +22,15 @@ import org.h2.util.New;
  */
 public class JavaParser {
 
-    public static final boolean REF_COUNT = true;
+    /**
+     * Whether ref-counting is used.
+     */
+    public static final boolean REF_COUNT = false;
+
+    /**
+     * Whether ref-counting is used for constants.
+     */
+    public static final boolean REF_COUNT_STATIC = false;
 
     private static final HashMap<String, ClassObj> BUILT_IN_CLASSES = New.hashMap();
 
@@ -245,6 +253,12 @@ public class JavaParser {
         return c;
     }
 
+    /**
+     * Get the class for a built-in type.
+     *
+     * @param type the type
+     * @return the class or null if not found
+     */
     static ClassObj getBuiltInClass(String type) {
         return BUILT_IN_CLASSES.get(type);
     }
@@ -386,6 +400,8 @@ public class JavaParser {
                             } else {
                                 field.value = readExpr();
                             }
+                        } else {
+                            field.value = field.type.getDefaultValue(this);
                         }
                         read(";");
                         if (isStatic) {
@@ -495,8 +511,8 @@ public class JavaParser {
             while (source.charAt(current.index) != '\n') {
                 current.index++;
             }
-            StatementNative stat = new StatementNative();
-            stat.code = source.substring(start, current.index).trim();
+            String s = source.substring(start, current.index).trim();
+            StatementNative stat = new StatementNative(s);
             read();
             return isC ? stat : null;
         } else if (readIf("/*")) {
@@ -505,8 +521,8 @@ public class JavaParser {
             while (source.charAt(current.index) != '*' || source.charAt(current.index + 1) != '/') {
                 current.index++;
             }
-            StatementNative stat = new StatementNative();
-            stat.code = source.substring(start, current.index).trim();
+            String s = source.substring(start, current.index).trim();
+            StatementNative stat = new StatementNative(s);
             current.index += 2;
             read();
             return isC ? stat : null;
@@ -554,16 +570,16 @@ public class JavaParser {
             read(";");
             return new ContinueStatement();
         } else if (readIf("switch")) {
-            SwitchStatement switchStat = new SwitchStatement();
+
             read("(");
-            switchStat.expr = readExpr();
+            SwitchStatement switchStat = new SwitchStatement(readExpr());
             read(")");
             read("{");
             while (true) {
                 if (readIf("default")) {
                     read(":");
                     StatementBlock block = new StatementBlock();
-                    switchStat.defaultBlock = block;
+                    switchStat.setDefaultBlock(block);
                     while (true) {
                         block.instructions.add(readStatement());
                         if (current.token.equals("case") || current.token.equals("default") || current.token.equals("}")) {
@@ -571,7 +587,7 @@ public class JavaParser {
                         }
                     }
                 } else if (readIf("case")) {
-                    switchStat.cases.add(readExpr());
+                    Expr expr = readExpr();
                     read(":");
                     StatementBlock block = new StatementBlock();
                     while (true) {
@@ -580,7 +596,7 @@ public class JavaParser {
                             break;
                         }
                     }
-                    switchStat.blocks.add(block);
+                    switchStat.addCase(expr, block);
                 } else if (readIf("}")) {
                     break;
                 }
@@ -654,8 +670,7 @@ public class JavaParser {
                         f.type = dec.type;
                         f.name = varName;
                         localVars.put(varName, f);
-                        dec.variables.add(varName);
-                        dec.values.add(value);
+                        dec.addVariable(varName, value);
                         if (readIf(";")) {
                             break;
                         }
@@ -666,8 +681,7 @@ public class JavaParser {
                 current = start;
                 // ExprStatement
             }
-            ExprStatement stat = new ExprStatement();
-            stat.expr = readExpr();
+            ExprStatement stat = new ExprStatement(readExpr());
             read(";");
             return stat;
         }
@@ -992,7 +1006,7 @@ public class JavaParser {
                 if (ch >= 'a' && ch <= 'z') {
                     // don't use Character.toUpperCase
                     // to avoid locale problems
-                    // (the uppercase of i isn't always I)
+                    // (the uppercase of 'i' is not always 'I')
                     buff.append((char) (ch + 'A' - 'a'));
                 } else if (ch >= 'A' && ch <= 'Z') {
                     buff.append(ch);
@@ -1026,7 +1040,7 @@ public class JavaParser {
 
     private Expr readExpr5() {
         if (readIf("new")) {
-            NewExpr expr = new NewExpr(this);
+            NewExpr expr = new NewExpr();
             String typeName = readTypeOrIdentifier();
             expr.classObj = getClass(typeName);
             if (readIf("(")) {
@@ -1550,7 +1564,12 @@ public class JavaParser {
      */
     void writeHeader(PrintWriter out) {
         for (Statement s : nativeHeaders) {
-            out.println(s);
+            out.println(s.asString());
+        }
+        if (JavaParser.REF_COUNT_STATIC) {
+            out.println("#define STRING(s) STRING_REF(s)");
+        } else {
+            out.println("#define STRING(s) STRING_PTR(s)");
         }
         out.println();
         for (ClassObj c : classes.values()) {
@@ -1603,9 +1622,6 @@ public class JavaParser {
             for (FieldObj f : c.instanceFields.values()) {
                 out.print("    ");
                 out.print(f.type.asString() + " " + f.name);
-                if (f.value != null) {
-                    out.print(" = " + f.value);
-                }
                 out.println(";");
             }
             out.println("public:");
@@ -1640,7 +1656,7 @@ public class JavaParser {
         Collections.sort(constantNames);
         for (String c : constantNames) {
             String s = stringConstantToStringMap.get(c);
-            if (JavaParser.REF_COUNT) {
+            if (JavaParser.REF_COUNT_STATIC) {
                 out.println("ptr<java_lang_String> " + c + " = STRING(L\"" + s + "\");");
             } else {
                 out.println("java_lang_String* " + c + " = STRING(L\"" + s + "\");");
@@ -1655,9 +1671,9 @@ public class JavaParser {
      */
     void writeSource(PrintWriter out) {
         for (ClassObj c : classes.values()) {
-            out.println("/* " + c.className + ".cpp */");
+            out.println("/* " + c.className + " */");
             for (Statement s : c.nativeCode) {
-                out.println(s);
+                out.println(s.asString());
             }
             for (FieldObj f : c.staticFields.values()) {
                 StringBuilder buff = new StringBuilder();
@@ -1694,10 +1710,16 @@ public class JavaParser {
                     }
                     out.println(") {");
                     if (m.isConstructor) {
-                        // TODO
+                        for (FieldObj f : c.instanceFields.values()) {
+                            out.print("    ");
+                            out.print("this->" + f.name);
+                            out.print(" = " + f.value.asString());
+                            out.println(";");
+                        }
                     }
                     if (m.block != null) {
-                        out.print(m.block.toString());
+                        m.block.setMethod(m);
+                        out.print(m.block.asString());
                     }
                     out.println("}");
                     out.println();

@@ -13,9 +13,15 @@ import java.util.ArrayList;
  */
 public interface Statement {
 
+    void setMethod(MethodObj method);
     boolean isEnd();
 
-    // toString
+    /**
+     * Get the C++ code.
+     *
+     * @return the C++ code
+     */
+    String asString();
 
 }
 
@@ -35,16 +41,27 @@ abstract class StatementBase implements Statement {
  */
 class ReturnStatement extends StatementBase {
 
+    /**
+     * The return expression.
+     */
     Expr expr;
 
-    public String toString() {
+    private MethodObj method;
+
+    public void setMethod(MethodObj method) {
+        this.method = method;
+    }
+
+    public String asString() {
         if (expr == null) {
             return "return;";
         }
+        Type returnType = method.returnType;
+        expr.setType(returnType);
         if (!expr.getType().isObject()) {
             return "return " + expr.asString() + ";";
         }
-        if (JavaParser.REF_COUNT) {
+        if (returnType.refCount) {
             return "return " + expr.getType().asString() + "(" + expr.asString() + ");";
         }
         return "return " + expr.asString() + ";";
@@ -57,10 +74,21 @@ class ReturnStatement extends StatementBase {
  */
 class DoWhileStatement extends StatementBase {
 
+    /**
+     * The condition.
+     */
     Expr condition;
+
+    /**
+     * The execution block.
+     */
     Statement block;
 
-    public String toString() {
+    public void setMethod(MethodObj method) {
+        block.setMethod(method);
+    }
+
+    public String asString() {
         return "do {\n" + block + "} while (" + condition.asString() + ");";
     }
 
@@ -71,7 +99,11 @@ class DoWhileStatement extends StatementBase {
  */
 class ContinueStatement extends StatementBase {
 
-    public String toString() {
+    public void setMethod(MethodObj method) {
+        // ignore
+    }
+
+    public String asString() {
         return "continue;";
     }
 
@@ -82,7 +114,11 @@ class ContinueStatement extends StatementBase {
  */
 class BreakStatement extends StatementBase {
 
-    public String toString() {
+    public void setMethod(MethodObj method) {
+        // ignore
+    }
+
+    public String asString() {
         return "break;";
     }
 
@@ -93,7 +129,11 @@ class BreakStatement extends StatementBase {
  */
 class EmptyStatement extends StatementBase {
 
-    public String toString() {
+    public void setMethod(MethodObj method) {
+        // ignore
+    }
+
+    public String asString() {
         return ";";
     }
 
@@ -104,12 +144,23 @@ class EmptyStatement extends StatementBase {
  */
 class SwitchStatement extends StatementBase {
 
-    Expr expr;
-    StatementBlock defaultBlock;
-    ArrayList<Expr> cases = new ArrayList<Expr>();
-    ArrayList<StatementBlock> blocks = new  ArrayList<StatementBlock>();
+    private StatementBlock defaultBlock;
+    private final ArrayList<Expr> cases = new ArrayList<Expr>();
+    private final ArrayList<StatementBlock> blocks = new  ArrayList<StatementBlock>();
+    private final Expr expr;
 
-    public String toString() {
+    public SwitchStatement(Expr expr) {
+        this.expr = expr;
+    }
+
+    public void setMethod(MethodObj method) {
+        defaultBlock.setMethod(method);
+        for (StatementBlock b : blocks) {
+            b.setMethod(method);
+        }
+    }
+
+    public String asString() {
         StringBuilder buff = new StringBuilder();
         buff.append("switch (").append(expr.asString()).append(") {\n");
         for (int i = 0; i < cases.size(); i++) {
@@ -124,6 +175,21 @@ class SwitchStatement extends StatementBase {
         return buff.toString();
     }
 
+    public void setDefaultBlock(StatementBlock block) {
+        this.defaultBlock = block;
+    }
+
+    /**
+     * Add a case.
+     *
+     * @param expr the case expression
+     * @param block the execution block
+     */
+    public void addCase(Expr expr, StatementBlock block) {
+        cases.add(expr);
+        blocks.add(block);
+    }
+
 }
 
 /**
@@ -131,9 +197,17 @@ class SwitchStatement extends StatementBase {
  */
 class ExprStatement extends StatementBase {
 
-    Expr expr;
+    private final Expr expr;
 
-    public String toString() {
+    public ExprStatement(Expr expr) {
+        this.expr = expr;
+    }
+
+    public void setMethod(MethodObj method) {
+        // ignore
+    }
+
+    public String asString() {
         return expr.asString() + ";";
     }
 
@@ -144,10 +218,21 @@ class ExprStatement extends StatementBase {
  */
 class WhileStatement extends StatementBase {
 
+    /**
+     * The condition.
+     */
     Expr condition;
+
+    /**
+     * The execution block.
+     */
     Statement block;
 
-    public String toString() {
+    public void setMethod(MethodObj method) {
+        block.setMethod(method);
+    }
+
+    public String asString() {
         String w = "while (" + condition.asString() + ")";
         String s = block.toString();
         return w + "\n" + s;
@@ -160,15 +245,33 @@ class WhileStatement extends StatementBase {
  */
 class IfStatement extends StatementBase {
 
+    /**
+     * The condition.
+     */
     Expr condition;
+
+    /**
+     * The execution block.
+     */
     Statement block;
+
+    /**
+     * The else block.
+     */
     Statement elseBlock;
 
-    public String toString() {
-        String w = "if (" + condition.asString() + ") {\n";
-        String s = block.toString();
+    public void setMethod(MethodObj method) {
+        block.setMethod(method);
         if (elseBlock != null) {
-            s += "} else {\n" + elseBlock.toString();
+            elseBlock.setMethod(method);
+        }
+    }
+
+    public String asString() {
+        String w = "if (" + condition.asString() + ") {\n";
+        String s = block.asString();
+        if (elseBlock != null) {
+            s += "} else {\n" + elseBlock.asString();
         }
         return w + s + "}";
     }
@@ -180,24 +283,59 @@ class IfStatement extends StatementBase {
  */
 class ForStatement extends StatementBase {
 
+    /**
+     * The init block.
+     */
     Statement init;
+
+    /**
+     * The condition.
+     */
     Expr condition;
+
+    /**
+     * The main loop block.
+     */
     Statement block;
+
+    /**
+     * The update list.
+     */
     ArrayList<Expr> updates = new ArrayList<Expr>();
+
+    /**
+     * The type of the iterable.
+     */
     Type iterableType;
+
+    /**
+     * The iterable variable name.
+     */
     String iterableVariable;
+
+    /**
+     * The iterable expression.
+     */
     Expr iterable;
 
-    public String toString() {
+    public void setMethod(MethodObj method) {
+        block.setMethod(method);
+    }
+
+    public String asString() {
         StringBuffer buff = new StringBuffer();
         buff.append("for (");
         if (iterableType != null) {
             Type it = iterable.getType();
             if (it != null && it.arrayLevel > 0) {
                 String idx = "i_" + iterableVariable;
-                buff.append("int " + idx + " = 0; " + idx + " < " + iterable.asString() + "->length(); " + idx + "++");
+                buff.append("int " + idx + " = 0; " +
+                        idx + " < " + iterable.asString() + "->length(); " +
+                        idx + "++");
                 buff.append(") {\n");
-                buff.append(JavaParser.indent(iterableType + " " + iterableVariable + " = " + iterable.asString() + "->at("+ idx +");\n"));
+                buff.append(JavaParser.indent(iterableType +
+                        " " + iterableVariable + " = " +
+                        iterable.asString() + "->at("+ idx +");\n"));
                 buff.append(block.toString()).append("}");
             } else {
                 // TODO iterate over a collection
@@ -208,7 +346,7 @@ class ForStatement extends StatementBase {
                 buff.append(block.toString()).append("}");
             }
         } else {
-            buff.append(init.toString());
+            buff.append(init.asString());
             buff.append(" ").append(condition.asString()).append("; ");
             for (int i = 0; i < updates.size(); i++) {
                 if (i > 0) {
@@ -217,7 +355,7 @@ class ForStatement extends StatementBase {
                 buff.append(updates.get(i).asString());
             }
             buff.append(") {\n");
-            buff.append(block.toString()).append("}");
+            buff.append(block.asString()).append("}");
         }
         return buff.toString();
     }
@@ -229,15 +367,24 @@ class ForStatement extends StatementBase {
  */
 class StatementBlock extends StatementBase {
 
-    ArrayList<Statement> instructions = new ArrayList<Statement>();
+    /**
+     * The list of instructions.
+     */
+    final ArrayList<Statement> instructions = new ArrayList<Statement>();
 
-    public String toString() {
+    public void setMethod(MethodObj method) {
+        for (Statement s : instructions) {
+            s.setMethod(method);
+        }
+    }
+
+    public String asString() {
         StringBuilder buff = new StringBuilder();
         for (Statement s : instructions) {
             if (s.isEnd()) {
                 break;
             }
-            buff.append(JavaParser.indent(s.toString()));
+            buff.append(JavaParser.indent(s.asString()));
         }
         return buff.toString();
     }
@@ -249,11 +396,19 @@ class StatementBlock extends StatementBase {
  */
 class VarDecStatement extends StatementBase {
 
+    /**
+     * The type.
+     */
     Type type;
-    ArrayList<String> variables = new ArrayList<String>();
-    ArrayList<Expr> values = new ArrayList<Expr>();
 
-    public String toString() {
+    private ArrayList<String> variables = new ArrayList<String>();
+    private ArrayList<Expr> values = new ArrayList<Expr>();
+
+    public void setMethod(MethodObj method) {
+        // ignore
+    }
+
+    public String asString() {
         StringBuilder buff = new StringBuilder();
         buff.append(type.asString()).append(' ');
         StringBuilder assign = new StringBuilder();
@@ -268,6 +423,7 @@ class VarDecStatement extends StatementBase {
                 if (!value.getType().isObject()) {
                     buff.append(" = ").append(value.asString());
                 } else {
+                    value.setType(type);
                     assign.append(varName).append(" = ").append(value.asString()).append(";\n");
                 }
             }
@@ -280,6 +436,17 @@ class VarDecStatement extends StatementBase {
         return buff.toString();
     }
 
+    /**
+     * Add a variable.
+     *
+     * @param name the variable name
+     * @param value the init value
+     */
+    public void addVariable(String name, Expr value) {
+        variables.add(name);
+        values.add(value);
+    }
+
 }
 
 /**
@@ -287,9 +454,17 @@ class VarDecStatement extends StatementBase {
  */
 class StatementNative extends StatementBase {
 
-    String code;
+    private final String code;
 
-    public String toString() {
+    StatementNative(String code) {
+        this.code = code;
+    }
+
+    public void setMethod(MethodObj method) {
+        // ignore
+    }
+
+    public String asString() {
         return code;
     }
 

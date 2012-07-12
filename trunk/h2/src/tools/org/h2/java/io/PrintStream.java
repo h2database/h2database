@@ -18,7 +18,7 @@ public class PrintStream {
      */
     public void println(String s) {
         // c: int x = s->chars->length();
-        // c: printf("%.*S\n", x, s->chars->getData());
+        // c: printf("%.*S\n", x, s->chars->getPointer());
     }
 
 }

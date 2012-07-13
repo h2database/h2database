@@ -513,8 +513,8 @@ public class BtreeMapStore {
                 continue;
             }
             String[] d = StringUtils.arraySplit(v, ',', false);
-            Class<?> kt = BtreeMap.getClass(d[1]);
-            Class<?> vt = BtreeMap.getClass(d[2]);
+            DataType kt = DataTypeFactory.getDataType(d[1]);
+            DataType vt = DataTypeFactory.getDataType(d[2]);
             BtreeMap<?, ?> oldData = BtreeMap.open(this, "old-" + k, kt, vt);
             long oldDataRoot = Long.parseLong(d[0]);
             if (oldDataRoot == 0) {

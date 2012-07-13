@@ -1421,7 +1421,7 @@ public abstract class TestBase {
         }
         try {
             Class<?> pc = ProxyCodeGenerator.getClassProxy(c);
-            Constructor cons = pc.getConstructor(new Class<?>[] { InvocationHandler.class });
+            Constructor<?> cons = pc.getConstructor(new Class<?>[] { InvocationHandler.class });
             return (T) cons.newInstance(new Object[] { ih });
         } catch (Exception e) {
             throw new RuntimeException(e);

@@ -6,6 +6,7 @@
  */
 package org.h2.test.jdbc;
 
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -18,7 +19,6 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.UUID;
 import org.h2.constant.SysProperties;
-import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 
 /**
@@ -35,13 +35,13 @@ public class TestJavaObject extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        // System.setProperty("h2.serializeJavaObject", "false");
-
-        TestAll conf = new TestAll();
-        conf.traceTest = true;
-        conf.memory = true;
-        // conf.networked = true;
-        TestBase.createCaller().init(conf).test();
+        TestBase test = createCaller().init();
+        test.config.traceTest = true;
+        test.config.memory = true;
+        test.config.networked = true;
+        test.config.beforeTest();
+        test.test();
+        test.config.afterTest();
     }
 
     @Override
@@ -49,7 +49,7 @@ public class TestJavaObject extends TestBase {
         SysProperties.SERIALIZE_JAVA_OBJECT = false;
         try {
             trace("Test Java Object");
-            startServerIfRequired();
+            doTest(new MyObj(1), new MyObj(2), false);
             doTest(Arrays.asList(UUID.randomUUID(), null), Arrays.asList(UUID.randomUUID(), UUID.randomUUID()), true);
             doTest(new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis() + 10000), false);
             doTest(200, 100, false);
@@ -66,8 +66,8 @@ public class TestJavaObject extends TestBase {
     private void doTest(Object o1, Object o2, boolean hash) throws SQLException {
         deleteDb("javaObject");
         Connection conn = getConnection("javaObject");
-        Statement stmt = conn.createStatement();
-        stmt.execute("create table t(id identity, val other)");
+        Statement stat = conn.createStatement();
+        stat.execute("create table t(id identity, val other)");
 
         PreparedStatement ins = conn.prepareStatement("insert into t(val) values(?)");
 
@@ -77,30 +77,30 @@ public class TestJavaObject extends TestBase {
         ins.setObject(1, o2, Types.JAVA_OBJECT);
         assertEquals(1, ins.executeUpdate());
 
-        ResultSet rs = stmt.executeQuery("select val from t order by val limit 1");
+        ResultSet rs = stat.executeQuery("select val from t order by val limit 1");
 
         assertTrue(rs.next());
 
-        Object x;
+        Object smallest;
         if (hash) {
             if (o1.getClass() != o2.getClass()) {
-                x = o1.getClass().getName().compareTo(o2.getClass().getName()) < 0 ? o1 : o2;
+                smallest = o1.getClass().getName().compareTo(o2.getClass().getName()) < 0 ? o1 : o2;
             } else {
                 assertFalse(o1.hashCode() == o2.hashCode());
-                x = o1.hashCode() < o2.hashCode() ? o1 : o2;
+                smallest = o1.hashCode() < o2.hashCode() ? o1 : o2;
             }
         } else {
             @SuppressWarnings("unchecked")
             int compare = ((Comparable<Object>) o1).compareTo(o2);
             assertFalse(compare == 0);
-            x = compare < 0 ? o1 : o2;
+            smallest = compare < 0 ? o1 : o2;
         }
 
-        assertEquals(x.toString(), rs.getString(1));
+        assertEquals(smallest.toString(), rs.getString(1));
 
         Object y = rs.getObject(1);
 
-        assertTrue(x.equals(y));
+        assertTrue(smallest.equals(y));
         assertFalse(rs.next());
         rs.close();
 
@@ -120,11 +120,41 @@ public class TestJavaObject extends TestBase {
         assertFalse(rs.next());
         rs.close();
 
-        stmt.close();
+        stat.close();
         prep.close();
 
         conn.close();
         deleteDb("javaObject");
-        trace("ok: " + o1.getClass().getName() + " vs " + o2.getClass().getName());
+        // trace("ok: " + o1.getClass().getName() + " vs " + o2.getClass().getName());
+    }
+
+    /**
+     * A test class.
+     */
+    public static class MyObj implements Comparable<MyObj>, Serializable {
+
+        private static final long serialVersionUID = 1L;
+        private final int value;
+
+        MyObj(int value) {
+            this.value = value;
+        }
+
+        public String toString() {
+            return "" + value;
+        }
+
+        public int compareTo(MyObj o) {
+            return value - o.value;
+        }
+
+        public boolean equals(Object o) {
+            return value == ((MyObj) o).value;
+        }
+
+        public int hashCode() {
+            return -value;
+        }
+
     }
 }

@@ -655,7 +655,7 @@ public class Database implements DataHandler {
         }
         getLobStorage().init();
         systemSession.commit(true);
-        
+
         trace.info("opened {0}", databaseName);
         if (checkpointAllowed > 0) {
             afterWriting();

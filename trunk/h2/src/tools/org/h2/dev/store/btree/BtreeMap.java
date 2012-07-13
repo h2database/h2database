@@ -22,38 +22,11 @@ public class BtreeMap<K, V> {
     private final DataType valueType;
     private Page root;
 
-    private BtreeMap(BtreeMapStore store, String name, Class<K> keyClass, Class<V> valueClass) {
+    private BtreeMap(BtreeMapStore store, String name, DataType keyType, DataType valueType) {
         this.store = store;
         this.name = name;
-        if (keyClass == Integer.class) {
-            keyType = new IntegerType();
-        } else if (keyClass == String.class) {
-            keyType = new StringType();
-        } else {
-            throw new RuntimeException("Unsupported key class " + keyClass.toString());
-        }
-        if (valueClass == Integer.class) {
-            valueType = new IntegerType();
-        } else if (valueClass == String.class) {
-            valueType = new StringType();
-        } else {
-            throw new RuntimeException("Unsupported value class " + keyClass.toString());
-        }
-    }
-
-    /**
-     * Get the class with the given tag name.
-     *
-     * @param name the tag name
-     * @return the class
-     */
-    static Class<?> getClass(String name) {
-        if (name.equals("i")) {
-            return Integer.class;
-        } else if (name.equals("s")) {
-            return String.class;
-        }
-        throw new RuntimeException("Unknown class name " + name);
+        this.keyType = keyType;
+        this.valueType = valueType;
     }
 
     /**
@@ -68,7 +41,24 @@ public class BtreeMap<K, V> {
      * @return the map
      */
     static <K, V> BtreeMap<K, V> open(BtreeMapStore store, String name, Class<K> keyClass, Class<V> valueClass) {
-        return new BtreeMap<K, V>(store, name, keyClass, valueClass);
+        DataType keyType = DataTypeFactory.getDataType(keyClass);
+        DataType valueType = DataTypeFactory.getDataType(valueClass);
+        return new BtreeMap<K, V>(store, name, keyType, valueType);
+    }
+
+    /**
+     * Open a map.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param store the tree store
+     * @param name the name of the map
+     * @param keyClass the key class
+     * @param valueClass the value class
+     * @return the map
+     */
+    static <K, V> BtreeMap<K, V> open(BtreeMapStore store, String name, DataType keyType, DataType valueType) {
+        return new BtreeMap<K, V>(store, name, keyType, valueType);
     }
 
     /**

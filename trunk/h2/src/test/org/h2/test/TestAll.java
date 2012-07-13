@@ -731,7 +731,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      * old database files in the test directory and trace files. It also starts
      * a TCP server if the test uses remote connections.
      */
-    void beforeTest() throws SQLException {
+    public void beforeTest() throws SQLException {
         Driver.load();
         FileUtils.deleteRecursive(TestBase.BASE_TEST_DIR, true);
         DeleteDbFiles.execute(TestBase.BASE_TEST_DIR, null, true);
@@ -749,7 +749,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         }
     }
 
-    private void afterTest() {
+    /**
+     * Stop the server if it was started.
+     */
+    public void afterTest() {
         FileUtils.deleteRecursive("trace.db", true);
         if (networked && server != null) {
             server.stop();

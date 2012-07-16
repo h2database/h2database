@@ -40,23 +40,6 @@ public class BtreeMap<K, V> {
      * @param valueClass the value class
      * @return the map
      */
-    static <K, V> BtreeMap<K, V> open(BtreeMapStore store, String name, Class<K> keyClass, Class<V> valueClass) {
-        DataType keyType = DataTypeFactory.getDataType(keyClass);
-        DataType valueType = DataTypeFactory.getDataType(valueClass);
-        return new BtreeMap<K, V>(store, name, keyType, valueType);
-    }
-
-    /**
-     * Open a map.
-     *
-     * @param <K> the key type
-     * @param <V> the value type
-     * @param store the tree store
-     * @param name the name of the map
-     * @param keyClass the key class
-     * @param valueClass the value class
-     * @return the map
-     */
     static <K, V> BtreeMap<K, V> open(BtreeMapStore store, String name, DataType keyType, DataType valueType) {
         return new BtreeMap<K, V>(store, name, keyType, valueType);
     }

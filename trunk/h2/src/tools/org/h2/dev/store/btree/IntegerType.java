@@ -29,7 +29,7 @@ class IntegerType implements DataType {
         DataUtils.writeVarInt(buff, (Integer) x);
     }
 
-    public String getName() {
+    public String asString() {
         return "i";
     }
 

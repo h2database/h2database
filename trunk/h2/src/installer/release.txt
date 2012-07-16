@@ -24,7 +24,7 @@ svn commit
 svn copy: /svn/trunk /svn/tags/version-1.1.x; Version 1.1.x (yyyy-mm-dd)
 Newsletter: prepare (always to BCC)
 Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
-Add to freshmeat.net
-Add to twitter.com
+Add to http://freecode.com/
+Add to http://twitter.com
 Close bugs: http://code.google.com/p/h2database/issues/list
 

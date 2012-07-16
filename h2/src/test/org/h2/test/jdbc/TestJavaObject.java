@@ -141,7 +141,7 @@ public class TestJavaObject extends TestBase {
         }
 
         public String toString() {
-            return "" + value;
+            return "myObj:" + value;
         }
 
         public int compareTo(MyObj o) {
@@ -149,7 +149,7 @@ public class TestJavaObject extends TestBase {
         }
 
         public boolean equals(Object o) {
-            return value == ((MyObj) o).value;
+            return toString().equals(o.toString());
         }
 
         public int hashCode() {

@@ -51,8 +51,6 @@ todo:
 
 - encode length in pos (1=32, 2=128, 3=512,...)
 
-- don't use any 't' blocks
-
 - floating header (avoid duplicate header)
     for each chunk, store chunk (a counter)
     for each page, store chunk id and offset to root
@@ -64,6 +62,8 @@ todo:
  * A persistent storage for tree maps.
  */
 public class BtreeMapStore {
+
+    private static final StringType STRING_TYPE = new StringType();
 
     private final String fileName;
     private FileChannel file;
@@ -115,17 +115,35 @@ public class BtreeMapStore {
         @SuppressWarnings("unchecked")
         BtreeMap<K, V> m = (BtreeMap<K, V>) maps.get(name);
         if (m == null) {
-            String root = meta.get("map." + name);
-            m = BtreeMap.open(this, name, keyClass, valueClass);
+            String root = meta.get("root." + name);
+            DataType keyType = getDataType(keyClass);
+            DataType valueType = getDataType(valueClass);
+            m = BtreeMap.open(this, name, keyType, valueType);
             maps.put(name, m);
-            if (root != null) {
-                root = StringUtils.arraySplit(root, ',', false)[0];
+            if (root == null) {
+                String info = m.getKeyType().asString() + "/" + m.getValueType().asString();
+                meta.put("map." + name, info);
+            } else {
                 if (!root.equals("0")) {
                     m.setRoot(Long.parseLong(root));
                 }
             }
         }
         return m;
+    }
+
+    private DataType getDataType(Class<?> clazz) {
+        if (clazz == String.class) {
+            return STRING_TYPE;
+        }
+        return DataTypeFactory.getDataType(clazz);
+    }
+
+    private DataType getDataType(String s) {
+        if (s.equals("")) {
+            return STRING_TYPE;
+        }
+        return DataTypeFactory.fromString(s);
     }
 
     /**
@@ -141,7 +159,7 @@ public class BtreeMapStore {
     }
 
     private void open() {
-        meta = BtreeMap.open(this, "meta", String.class, String.class);
+        meta = BtreeMap.open(this, "meta", STRING_TYPE, STRING_TYPE);
         FileUtils.createDirectories(FileUtils.getParent(fileName));
         try {
             log("file open");
@@ -258,8 +276,7 @@ public class BtreeMapStore {
         // as we don't know the exact positions and entry counts
         int lenEstimate = 1 + 8;
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
-            meta.put("map." + m.getName(), String.valueOf(Long.MAX_VALUE) +
-                    "," + m.getKeyType().getName() + "," + m.getValueType().getName());
+            meta.put("root." + m.getName(), String.valueOf(Long.MAX_VALUE));
             Page p = m.getRoot();
             if (p != null) {
                 lenEstimate += p.lengthIncludingTempChildren();
@@ -304,7 +321,7 @@ public class BtreeMapStore {
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
             Page r = m.getRoot();
             long p = r == null ? 0 : pageId;
-            meta.put("map." + m.getName(), String.valueOf(p) + "," + m.getKeyType().getName() + "," + m.getValueType().getName());
+            meta.put("root." + m.getName(), "" + p);
             if (r != null) {
                 pageId = r.updatePageIds(pageId);
             }
@@ -488,16 +505,15 @@ public class BtreeMapStore {
         long oldMetaRootId = readMetaRootId(move.start);
         long offset = getPosition(oldMetaRootId);
         log("  meta:" + move.id + "/" + offset + " start: " + move.start);
-        BtreeMap<String, String> oldMeta = BtreeMap.open(this, "old-meta", String.class, String.class);
+        BtreeMap<String, String> oldMeta = BtreeMap.open(this, "old-meta", STRING_TYPE, STRING_TYPE);
         oldMeta.setRoot(oldMetaRootId);
         Iterator<String> it = oldMeta.keyIterator(null);
         ArrayList<Integer> oldBlocks = New.arrayList();
         while (it.hasNext()) {
             String k = it.next();
-            String v = oldMeta.get(k);
-            log("    " + k + " " + v.replace('\n', ' '));
+            String s = oldMeta.get(k);
+            log("    " + k + " " + s.replace('\n', ' '));
             if (k.startsWith("block.")) {
-                String s = oldMeta.get(k);
                 Block b = Block.fromString(s);
                 if (!blocks.containsKey(b.id)) {
                     oldBlocks.add(b.id);
@@ -512,11 +528,11 @@ public class BtreeMapStore {
             if (!maps.containsKey(k)) {
                 continue;
             }
-            String[] d = StringUtils.arraySplit(v, ',', false);
-            DataType kt = DataTypeFactory.getDataType(d[1]);
-            DataType vt = DataTypeFactory.getDataType(d[2]);
+            String[] types = StringUtils.arraySplit(s, '/', false);
+            DataType kt = getDataType(types[0]);
+            DataType vt = getDataType(types[1]);
+            long oldDataRoot = Long.parseLong(oldMeta.get("root." + k));
             BtreeMap<?, ?> oldData = BtreeMap.open(this, "old-" + k, kt, vt);
-            long oldDataRoot = Long.parseLong(d[0]);
             if (oldDataRoot == 0) {
                 // no rows
             } else {

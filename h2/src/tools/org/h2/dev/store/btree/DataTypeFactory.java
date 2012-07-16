@@ -6,24 +6,33 @@
  */
 package org.h2.dev.store.btree;
 
+import java.io.IOException;
+import java.io.StringReader;
+
 /**
  * A factory for data types.
  */
 public class DataTypeFactory {
 
     /**
-     * Get the class with the given name.
+     * Read the data type.
      *
-     * @param name the name
-     * @return the data type
+     * @param buff the buffer
+     * @return the type
      */
-    static DataType getDataType(String name) {
-        if (name.equals("i")) {
-            return new IntegerType();
-        } else if (name.equals("s")) {
-            return new StringType();
+    static DataType fromString(String s) {
+        StringReader r = new StringReader(s);
+        char c;
+        try {
+            c = (char) r.read();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        throw new RuntimeException("Unknown data type name " + name);
+        switch (c) {
+        case 'i':
+            return new IntegerType();
+        }
+        throw new RuntimeException("Unknown data type " + c);
     }
 
     /**

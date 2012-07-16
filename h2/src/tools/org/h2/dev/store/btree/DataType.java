@@ -9,9 +9,9 @@ package org.h2.dev.store.btree;
 import java.nio.ByteBuffer;
 
 /**
- * A value type.
+ * A data type.
  */
-interface DataType {
+public interface DataType {
 
     /**
      * Compare two keys.
@@ -47,11 +47,11 @@ interface DataType {
     Object read(ByteBuffer buff);
 
     /**
-     * Get the tag name of the class.
+     * Get the string representation of this type.
      *
-     * @return the tag name
+     * @return the string
      */
-    String getName();
+    String asString();
 
 }
 

@@ -47,8 +47,8 @@ class StringType implements DataType {
         }
     }
 
-    public String getName() {
-        return "s";
+    public String asString() {
+        return "";
     }
 
 }

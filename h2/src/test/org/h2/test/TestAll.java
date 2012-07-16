@@ -103,6 +103,7 @@ import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestWeb;
 import org.h2.test.server.TestInit;
+import org.h2.test.store.TestTreeMapStore;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
 import org.h2.test.synth.TestDiskFull;
@@ -164,7 +165,6 @@ import org.h2.test.unit.TestStreams;
 import org.h2.test.unit.TestStringCache;
 import org.h2.test.unit.TestStringUtils;
 import org.h2.test.unit.TestTools;
-import org.h2.test.unit.TestTreeMapStore;
 import org.h2.test.unit.TestUtils;
 import org.h2.test.unit.TestValue;
 import org.h2.test.unit.TestValueHashMap;
@@ -661,6 +661,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void testUnit() {
+        // store
+        new TestTreeMapStore().runTest(this);
+
+        // unit
         new TestAutoReconnect().runTest(this);
         new TestCache().runTest(this);
         new TestClearReferences().runTest(this);
@@ -703,7 +707,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
         new TestTools().runTest(this);
-        new TestTreeMapStore().runTest(this);
         new TestTraceSystem().runTest(this);
         new TestUpgrade().runTest(this);
         new TestUtils().runTest(this);

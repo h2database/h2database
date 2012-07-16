@@ -3,7 +3,7 @@
  * 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
-package org.h2.test.unit;
+package org.h2.test.store;
 
 import java.util.Iterator;
 import java.util.Random;

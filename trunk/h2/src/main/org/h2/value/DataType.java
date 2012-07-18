@@ -578,7 +578,7 @@ public class DataType {
                 break;
             }
             case Value.JAVA_OBJECT: {
-                if (SysProperties.SERIALIZE_JAVA_OBJECT) {
+                if (SysProperties.serializeJavaObject) {
                     byte[] buff = rs.getBytes(columnIndex);
                     v = buff == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(null, buff);
                 } else {
@@ -1065,7 +1065,7 @@ public class DataType {
             return new JdbcClob(conn, v, 0);
         }
         if (v.getType() == Value.JAVA_OBJECT) {
-            Object o = SysProperties.SERIALIZE_JAVA_OBJECT ? Utils.deserialize(v.getBytes()) : v.getObject();
+            Object o = SysProperties.serializeJavaObject ? Utils.deserialize(v.getBytes()) : v.getObject();
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
             }

@@ -37,7 +37,7 @@ public class ValueJavaObject extends ValueBytes {
             return EMPTY;
         }
         ValueJavaObject obj;
-        if (SysProperties.SERIALIZE_JAVA_OBJECT) {
+        if (SysProperties.serializeJavaObject) {
             if (b == null) {
                 b = Utils.serialize(javaObject);
             }
@@ -62,7 +62,7 @@ public class ValueJavaObject extends ValueBytes {
 
     /**
      * Value which serializes java object only for I/O operations.
-     * Used when property {@link SysProperties#SERIALIZE_JAVA_OBJECT} is disabled.
+     * Used when property {@link SysProperties#serializeJavaObject} is disabled.
      *
      * @author Sergi Vladykin
      */

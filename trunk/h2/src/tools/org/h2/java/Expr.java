@@ -518,6 +518,7 @@ class StringExpr extends ExprBase {
     }
 
     public void setType(Type type) {
+        // ignore
     }
 
 }

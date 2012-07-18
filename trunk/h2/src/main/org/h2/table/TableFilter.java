@@ -995,7 +995,7 @@ public class TableFilter implements ColumnResolver {
     /**
      * A visitor for table filters.
      */
-    public static interface TableFilterVisitor {
+    public interface TableFilterVisitor {
 
         /**
          * This method is called for each nested or joined table filter.

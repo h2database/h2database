@@ -49,7 +49,7 @@ public class FileContentHash {
             System.out.println("Usage: java " + getClass().getName() + " <dir>");
             return;
         }
-        for (int i=0; i<args.length; i++) {
+        for (int i = 0; i < args.length; i++) {
             Info info = hash(args[i]);
             System.out.println("size: " + info.size);
         }

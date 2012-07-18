@@ -54,7 +54,7 @@ public class Csv implements SimpleRowSource {
     private boolean caseSensitiveColumnNames;
     private boolean preserveWhitespace;
     private boolean writeColumnHeader = true;
-    private char lineComment = 0;
+    private char lineComment;
     private String lineSeparator = SysProperties.LINE_SEPARATOR;
     private String nullString = "";
 

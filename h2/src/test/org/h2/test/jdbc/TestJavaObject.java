@@ -46,7 +46,7 @@ public class TestJavaObject extends TestBase {
 
     @Override
     public void test() throws Exception {
-        SysProperties.SERIALIZE_JAVA_OBJECT = false;
+        SysProperties.serializeJavaObject = false;
         try {
             trace("Test Java Object");
             doTest(new MyObj(1), new MyObj(2), false);
@@ -59,7 +59,7 @@ public class TestJavaObject extends TestBase {
             doTest(new Time(System.currentTimeMillis() + 1000), new Date(System.currentTimeMillis()), false);
             doTest(new Time(System.currentTimeMillis() + 1000), new Timestamp(System.currentTimeMillis()), false);
         } finally {
-            SysProperties.SERIALIZE_JAVA_OBJECT = true;
+            SysProperties.serializeJavaObject = true;
         }
     }
 

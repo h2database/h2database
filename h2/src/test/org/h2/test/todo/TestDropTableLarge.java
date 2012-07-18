@@ -42,10 +42,11 @@ public class TestDropTableLarge {
         PreparedStatement prep2 = conn.prepareStatement(
                 "insert into test2(name) values(space(255))");
         for (int i = 0; i < 50000; i++) {
-            if (i % 7 != 0)
+            if (i % 7 != 0) {
                 prep1.execute();
-            else
+            } else {
                 prep2.execute();
+            }
         }
         Profiler prof = new Profiler();
         prof.startCollecting();

@@ -128,14 +128,15 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * Returns the schema name.
      *
      * @param column the column index (1,2,...)
-     * @return the schema name
+     * @return the schema name, or "" (an empty string) if not applicable
      * @throws SQLException if the result set is closed or invalid
      */
     public String getSchemaName(int column) throws SQLException {
         try {
             debugCodeCall("getSchemaName", column);
             checkColumnIndex(column);
-            return result.getSchemaName(--column);
+            String schema = result.getSchemaName(--column);
+            return schema == null ? "" : schema;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -152,7 +153,8 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
         try {
             debugCodeCall("getTableName", column);
             checkColumnIndex(column);
-            return result.getTableName(--column);
+            String table = result.getTableName(--column);
+            return table == null ? "" : table;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -169,7 +171,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
         try {
             debugCodeCall("getCatalogName", column);
             checkColumnIndex(column);
-            return catalog;
+            return catalog == null ? "" : catalog;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

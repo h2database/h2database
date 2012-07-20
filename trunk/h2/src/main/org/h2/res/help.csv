@@ -539,10 +539,11 @@ compare { { { ALL | ANY | SOME } ( select ) } | operand }
 ","
 The right hand side of a condition."
 "Other Grammar","Constraint","
-[ constraintNameDefinition ] {
-    CHECK expression | UNIQUE ( columnName [,...] )
-    | referentialConstraint }
-    | PRIMARY KEY [ HASH ] ( columnName [,...] )
+[ constraintNameDefinition ]
+{ CHECK expression
+    | UNIQUE ( columnName [,...] )
+    | referentialConstraint
+    | PRIMARY KEY [ HASH ] ( columnName [,...] ) }
 ","
 Defines a constraint."
 "Other Grammar","Constraint Name Definition","

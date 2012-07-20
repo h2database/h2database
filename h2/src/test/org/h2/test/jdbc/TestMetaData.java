@@ -230,6 +230,15 @@ public class TestMetaData extends TestBase {
         assertTrue(rs.getObject(1) instanceof java.sql.ResultSet);
         assertEquals("org.h2.tools.SimpleResultSet", rs.getObject(1).getClass().getName());
         stat.executeUpdate("drop alias x");
+
+        rs = stat.executeQuery("select 1 from dual");
+        rs.next();
+        rsMeta = rs.getMetaData();
+        assertTrue(rsMeta.getCatalogName(1) != null);
+        assertEquals("1", rsMeta.getColumnLabel(1));
+        assertEquals("1", rsMeta.getColumnName(1));
+        assertEquals("", rsMeta.getSchemaName(1));
+        assertEquals("", rsMeta.getTableName(1));
         stat.executeUpdate("drop table test");
     }
 

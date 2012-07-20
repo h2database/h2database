@@ -1678,10 +1678,11 @@ LIKE 'Jo%'
 "
 
 "Other Grammar","Constraint","
-[ constraintNameDefinition ] {
-    CHECK expression | UNIQUE ( columnName [,...] )
-    | referentialConstraint }
-    | PRIMARY KEY [ HASH ] ( columnName [,...] )
+[ constraintNameDefinition ]
+{ CHECK expression
+    | UNIQUE ( columnName [,...] )
+    | referentialConstraint
+    | PRIMARY KEY [ HASH ] ( columnName [,...] ) }
 ","
 Defines a constraint.
 The check condition must evaluate to TRUE, FALSE or NULL.

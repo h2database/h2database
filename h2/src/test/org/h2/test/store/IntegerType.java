@@ -4,9 +4,11 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.dev.store.btree;
+package org.h2.test.store;
 
 import java.nio.ByteBuffer;
+import org.h2.dev.store.btree.DataType;
+import org.h2.dev.store.btree.DataUtils;
 
 /**
  * An integer type.
@@ -19,6 +21,14 @@ class IntegerType implements DataType {
 
     public int length(Object obj) {
         return DataUtils.getVarIntLen((Integer) obj);
+    }
+
+    public int getMaxLength(Object obj) {
+        return DataUtils.MAX_VAR_INT_LEN;
+    }
+
+    public int getMemory(Object obj) {
+        return 20;
     }
 
     public Integer read(ByteBuffer buff) {

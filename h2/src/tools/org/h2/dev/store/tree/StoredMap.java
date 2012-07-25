@@ -132,7 +132,7 @@ public class StoredMap<K, V> {
     /**
      * A value type.
      */
-    static interface ValueType {
+    interface ValueType {
 
         /**
          * Get the length in bytes.
@@ -170,7 +170,7 @@ public class StoredMap<K, V> {
     /**
      * A key type.
      */
-    static interface KeyType extends ValueType {
+    interface KeyType extends ValueType {
 
         /**
          * Compare two keys.

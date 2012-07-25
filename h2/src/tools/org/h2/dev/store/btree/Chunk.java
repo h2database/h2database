@@ -11,12 +11,12 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * A block of data.
+ * A chunk of data, containing one or multiple pages
  */
-class Block {
+class Chunk {
 
     /**
-     * The block id.
+     * The chunk id.
      */
     int id;
 
@@ -26,7 +26,7 @@ class Block {
     long start;
 
     /**
-     * The length in bytes.
+     * The length in bytes (may be larger than the actual value).
      */
     long length;
 
@@ -45,7 +45,12 @@ class Block {
      */
     int collectPriority;
 
-    Block(int id) {
+    /**
+     * The offset of the meta root.
+     */
+    int metaRootOffset;
+
+    Chunk(int id) {
         this.id = id;
     }
 
@@ -55,17 +60,18 @@ class Block {
      * @param s the string
      * @return the block
      */
-    static Block fromString(String s) {
-        Block b = new Block(0);
+    static Chunk fromString(String s) {
+        Chunk c = new Chunk(0);
         Properties prop = new Properties();
         try {
             prop.load(new ByteArrayInputStream(s.getBytes("UTF-8")));
-            b.id = Integer.parseInt(prop.get("id").toString());
-            b.start = Long.parseLong(prop.get("start").toString());
-            b.length = Long.parseLong(prop.get("length").toString());
-            b.entryCount = Integer.parseInt(prop.get("entryCount").toString());
-            b.liveCount = Integer.parseInt(prop.get("liveCount").toString());
-            return b;
+            c.id = Integer.parseInt(prop.get("id").toString());
+            c.start = Long.parseLong(prop.get("start").toString());
+            c.length = Long.parseLong(prop.get("length").toString());
+            c.entryCount = Integer.parseInt(prop.get("entryCount").toString());
+            c.liveCount = Integer.parseInt(prop.get("liveCount").toString());
+            c.metaRootOffset = Integer.parseInt(prop.get("metaRoot").toString());
+            return c;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -80,7 +86,7 @@ class Block {
     }
 
     public boolean equals(Object o) {
-        return o instanceof Block && ((Block) o).id == id;
+        return o instanceof Chunk && ((Chunk) o).id == id;
     }
 
     public String toString() {
@@ -89,7 +95,8 @@ class Block {
             "start:" + start + "\n" +
             "length:" + length + "\n" +
             "entryCount:" + entryCount + "\n" +
-            "liveCount:" + liveCount + "\n";
+            "liveCount:" + liveCount + "\n" +
+            "metaRoot:" + metaRootOffset + "\n";
     }
 
 }

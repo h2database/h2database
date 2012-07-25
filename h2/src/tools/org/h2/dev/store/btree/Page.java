@@ -10,19 +10,20 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 /**
- * A btree page implementation.
+ * A btree page (a node or a leaf).
+ * <p>
+ * For nodes, the key at a given index is larger than the largest key of the
+ * child at the same index.
  */
-class Page {
-
-    private static final int MAX_SIZE = 20;
+public class Page {
 
     private final BtreeMap<?, ?> map;
     private long id;
-    private long storedId;
     private long transaction;
     private Object[] keys;
     private Object[] values;
     private long[] children;
+    private int cachedCompare;
 
     private Page(BtreeMap<?, ?> map) {
         this.map = map;
@@ -57,7 +58,7 @@ class Page {
      */
     static Page read(BtreeMap<?, ?> map, long id, ByteBuffer buff) {
         Page p = new Page(map);
-        p.id = p.storedId = id;
+        p.id = id;
         p.read(buff);
         return p;
     }
@@ -72,6 +73,7 @@ class Page {
         map.removePage(id);
         Page p2 = create(map, keys, values, children);
         p2.transaction = t;
+        p2.cachedCompare = cachedCompare;
         return p2;
     }
 
@@ -153,18 +155,39 @@ class Page {
 
     private int findKey(Object key) {
         int low = 0, high = keys.length - 1;
+        int x = cachedCompare - 1;
+        if (x < 0 || x > high) {
+            x = (low + high) >>> 1;
+        }
         while (low <= high) {
-            int x = (low + high) >>> 1;
             int compare = map.compare(key, keys[x]);
             if (compare > 0) {
                 low = x + 1;
             } else if (compare < 0) {
                 high = x - 1;
             } else {
+                cachedCompare = x + 1;
                 return x;
             }
+            x = (low + high) >>> 1;
         }
+        cachedCompare = low;
         return -(low + 1);
+
+        // regular binary search (without caching)
+        // int low = 0, high = keys.length - 1;
+        // while (low <= high) {
+        //     int x = (low + high) >>> 1;
+        //     int compare = map.compare(key, keys[x]);
+        //     if (compare > 0) {
+        //         low = x + 1;
+        //     } else if (compare < 0) {
+        //         high = x - 1;
+        //     } else {
+        //         return x;
+        //     }
+        // }
+        // return -(low + 1);
     }
 
     /**
@@ -176,8 +199,8 @@ class Page {
      */
     static void min(Page p, ArrayList<CursorPos> parents, Object key) {
         while (p != null) {
-            int x = key == null ? 0 : p.findKey(key);
             if (p.children != null) {
+                int x = key == null ? -1 : p.findKey(key);
                 if (x < 0) {
                     x = -x - 1;
                 } else {
@@ -189,6 +212,7 @@ class Page {
                 parents.add(c);
                 p = p.map.readPage(p.children[x]);
             } else {
+                int x = key == null ? 0 : p.findKey(key);
                 if (x < 0) {
                     x = -x - 1;
                 }
@@ -207,7 +231,7 @@ class Page {
      * @param parents the stack of parent page positions
      * @return the next key
      */
-    public static Object nextKey(ArrayList<CursorPos> parents) {
+    static Object nextKey(ArrayList<CursorPos> parents) {
         if (parents.size() == 0) {
             return null;
         }
@@ -224,7 +248,7 @@ class Page {
                     return null;
                 }
                 p = parents.remove(parents.size() - 1);
-                index = p.index++;
+                index = ++p.index;
                 if (index < p.page.children.length) {
                     parents.add(p);
                     Page x = p.page;
@@ -302,7 +326,7 @@ class Page {
                 parent.children[parentIndex] = p.id;
             }
             if (!p.isLeaf()) {
-                if (p.keyCount() >= MAX_SIZE) {
+                if (p.keyCount() >= map.getMaxPageSize()) {
                     // TODO almost duplicate code
                     int pos = p.keyCount() / 2;
                     Object k = p.keys[pos];
@@ -331,7 +355,7 @@ class Page {
                 }
                 index = -index - 1;
                 p.insert(index, key, value, 0);
-                if (p.keyCount() >= MAX_SIZE) {
+                if (p.keyCount() >= map.getMaxPageSize()) {
                     int pos = p.keyCount() / 2;
                     Object k = p.keys[pos];
                     Page split = p.splitLeaf(pos);
@@ -347,6 +371,8 @@ class Page {
             }
             if (index < 0) {
                 index = -index - 1;
+            } else {
+                index++;
             }
             parent = p;
             parentIndex = index;
@@ -354,6 +380,18 @@ class Page {
             p = p.copyOnWrite();
         }
         return top;
+    }
+
+    /**
+     * Remove this page and all child pages.
+     */
+    void removeAllRecursive() {
+        if (children != null) {
+            for (long c : children) {
+                map.readPage(c).removeAllRecursive();
+            }
+        }
+        map.removePage(id);
     }
 
     /**
@@ -368,6 +406,7 @@ class Page {
         if (p.isLeaf()) {
             if (index >= 0) {
                 if (p.keyCount() == 1) {
+                    p.map.removePage(p.id);
                     return null;
                 }
                 p = p.copyOnWrite();
@@ -380,6 +419,8 @@ class Page {
         // node
         if (index < 0) {
             index = -index - 1;
+        } else {
+            index++;
         }
         Page c = p.map.readPage(p.children[index]);
         Page c2 = remove(c, key);
@@ -390,7 +431,8 @@ class Page {
             p = p.copyOnWrite();
             p.remove(index);
             if (p.keyCount() == 0) {
-                p = c2;
+                p.map.removePage(p.id);
+                p = p.map.readPage(p.children[0]);
             }
         } else {
             p = p.copyOnWrite();
@@ -401,18 +443,18 @@ class Page {
 
     private void insert(int index, Object key, Object value, long child) {
         Object[] newKeys = new Object[keys.length + 1];
-        copyWithGap(keys, newKeys, keys.length, index);
+        DataUtils.copyWithGap(keys, newKeys, keys.length, index);
         newKeys[index] = key;
         keys = newKeys;
         if (values != null) {
             Object[] newValues = new Object[values.length + 1];
-            copyWithGap(values, newValues, values.length, index);
+            DataUtils.copyWithGap(values, newValues, values.length, index);
             newValues[index] = value;
             values = newValues;
         }
         if (children != null) {
             long[] newChildren = new long[children.length + 1];
-            copyWithGap(children, newChildren, children.length, index + 1);
+            DataUtils.copyWithGap(children, newChildren, children.length, index + 1);
             newChildren[index + 1] = child;
             children = newChildren;
         }
@@ -420,21 +462,28 @@ class Page {
 
     private void remove(int index) {
         Object[] newKeys = new Object[keys.length - 1];
-        copyExcept(keys, newKeys, keys.length, index);
+        int keyIndex = index >= keys.length ? index - 1 : index;
+        DataUtils.copyExcept(keys, newKeys, keys.length, keyIndex);
         keys = newKeys;
         if (values != null) {
             Object[] newValues = new Object[values.length - 1];
-            copyExcept(values, newValues, values.length, index);
+            DataUtils.copyExcept(values, newValues, values.length, index);
             values = newValues;
         }
         if (children != null) {
             long[] newChildren = new long[children.length - 1];
-            copyExcept(children, newChildren, children.length, index);
+            DataUtils.copyExcept(children, newChildren, children.length, index);
             children = newChildren;
         }
     }
 
     private void read(ByteBuffer buff) {
+        // len
+        buff.getInt();
+        long id = buff.getLong();
+        if (id != map.getId()) {
+            throw new RuntimeException("Page map id missmatch, expected " + map.getId() + " got " + id);
+        }
         boolean node = buff.get() == 1;
         if (node) {
             int len = DataUtils.readVarInt(buff);
@@ -442,9 +491,9 @@ class Page {
             keys = new Object[len - 1];
             for (int i = 0; i < len; i++) {
                 children[i] = buff.getLong();
-                if (i < keys.length) {
-                    keys[i] = map.getKeyType().read(buff);
-                }
+            }
+            for (int i = 0; i < len - 1; i++) {
+                keys[i] = map.getKeyType().read(buff);
             }
         } else {
             int len = DataUtils.readVarInt(buff);
@@ -462,17 +511,19 @@ class Page {
      *
      * @param buff the target buffer
      */
-    void write(ByteBuffer buff) {
+    private void write(ByteBuffer buff) {
+        int pos = buff.position();
+        buff.putInt(0);
+        buff.putLong(map.getId());
         if (children != null) {
             buff.put((byte) 1);
             int len = children.length;
             DataUtils.writeVarInt(buff, len);
             for (int i = 0; i < len; i++) {
-                long c = map.readPage(children[i]).storedId;
-                buff.putLong(c);
-                if (i < keys.length) {
-                    map.getKeyType().write(buff, keys[i]);
-                }
+                buff.putLong(children[i]);
+            }
+            for (int i = 0; i < len - 1; i++) {
+                map.getKeyType().write(buff, keys[i]);
             }
         } else {
             buff.put((byte) 0);
@@ -483,66 +534,62 @@ class Page {
                 map.getValueType().write(buff, values[i]);
             }
         }
+        int len = buff.position() - pos;
+        buff.putInt(pos, len);
     }
 
     /**
-     * Get the length in bytes, including temporary children.
-     *
-     * @return the length
-     */
-    int lengthIncludingTempChildren() {
-        int byteCount = length();
-        if (children != null) {
-            int len = children.length;
-            for (int i = 0; i < len; i++) {
-                long c = children[i];
-                if (c < 0) {
-                    byteCount += map.readPage(c).lengthIncludingTempChildren();
-                }
-            }
-        }
-        return byteCount;
-    }
-
-    /**
-     * Update the page ids recursively.
+     * Get the maximum length in bytes to store temporary records, recursively.
      *
      * @param pageId the new page id
      * @return the next page id
      */
-    long updatePageIds(long pageId) {
-        this.storedId = pageId;
-        pageId += length();
+    int getMaxLengthTempRecursive() {
+        int maxLength = 4 + 8 + 1;
         if (children != null) {
             int len = children.length;
+            maxLength += DataUtils.MAX_VAR_INT_LEN;
+            maxLength += 8 * len;
+            for (int i = 0; i < len - 1; i++) {
+                maxLength += map.getKeyType().getMaxLength(keys[i]);
+            }
             for (int i = 0; i < len; i++) {
                 long c = children[i];
                 if (c < 0) {
-                    pageId = map.readPage(c).updatePageIds(pageId);
+                    maxLength += map.readPage(c).getMaxLengthTempRecursive();
                 }
             }
+        } else {
+            int len = keys.length;
+            maxLength += DataUtils.MAX_VAR_INT_LEN;
+            for (int i = 0; i < len; i++) {
+                maxLength += map.getKeyType().getMaxLength(keys[i]);
+                maxLength += map.getValueType().getMaxLength(values[i]);
+            }
         }
-        return pageId;
+        return maxLength;
     }
 
     /**
-     * Store this page.
+     * Store this page and all children that are changed,
+     * in reverse order, and update the id and child ids.
      *
      * @param buff the target buffer
+     * @param idOffset the offset of the id
      * @return the page id
      */
-    long storeTemp(ByteBuffer buff) {
-        write(buff);
+    long writeTempRecursive(ByteBuffer buff, long idOffset) {
         if (children != null) {
             int len = children.length;
             for (int i = 0; i < len; i++) {
                 long c = children[i];
                 if (c < 0) {
-                    children[i] = map.readPage(c).storeTemp(buff);
+                    children[i] = map.readPage(c).writeTempRecursive(buff, idOffset);
                 }
             }
         }
-        this.id = storedId;
+        this.id = idOffset + buff.position();
+        write(buff);
         return id;
     }
 
@@ -551,63 +598,18 @@ class Page {
      *
      * @return the number of temporary pages
      */
-    int countTemp() {
+    int countTempRecursive() {
         int count = 1;
         if (children != null) {
             int size = children.length;
             for (int i = 0; i < size; i++) {
                 long c = children[i];
                 if (c < 0) {
-                    count += map.readPage(c).countTemp();
+                    count += map.readPage(c).countTempRecursive();
                 }
             }
         }
         return count;
-    }
-
-    /**
-     * Get the length in bytes.
-     *
-     * @return the length
-     */
-    int length() {
-        int byteCount = 1;
-        if (children != null) {
-            int len = children.length;
-            byteCount += DataUtils.getVarIntLen(len);
-            for (int i = 0; i < len; i++) {
-                byteCount += 8;
-                if (i < keys.length) {
-                    byteCount += map.getKeyType().length(keys[i]);
-                }
-            }
-        } else {
-            int len = keys.length;
-            byteCount += DataUtils.getVarIntLen(len);
-            for (int i = 0; i < len; i++) {
-                byteCount += map.getKeyType().length(keys[i]);
-                byteCount += map.getValueType().length(values[i]);
-            }
-        }
-        return byteCount;
-    }
-
-    private static void copyWithGap(Object src, Object dst, int oldSize, int gapIndex) {
-        if (gapIndex > 0) {
-            System.arraycopy(src, 0, dst, 0, gapIndex);
-        }
-        if (gapIndex < oldSize) {
-            System.arraycopy(src, gapIndex, dst, gapIndex + 1, oldSize - gapIndex);
-        }
-    }
-
-    private static void copyExcept(Object src, Object dst, int oldSize, int removeIndex) {
-        if (removeIndex > 0 && oldSize > 0) {
-            System.arraycopy(src, 0, dst, 0, removeIndex);
-        }
-        if (removeIndex < oldSize) {
-            System.arraycopy(src, removeIndex + 1, dst, removeIndex, oldSize - removeIndex - 1);
-        }
     }
 
 }

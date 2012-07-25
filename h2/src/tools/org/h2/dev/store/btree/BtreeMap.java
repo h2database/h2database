@@ -17,13 +17,15 @@ import java.util.Iterator;
 public class BtreeMap<K, V> {
 
     private final BtreeMapStore store;
+    private final long id;
     private final String name;
     private final DataType keyType;
     private final DataType valueType;
     private Page root;
 
-    private BtreeMap(BtreeMapStore store, String name, DataType keyType, DataType valueType) {
+    private BtreeMap(BtreeMapStore store, long id, String name, DataType keyType, DataType valueType) {
         this.store = store;
+        this.id = id;
         this.name = name;
         this.keyType = keyType;
         this.valueType = valueType;
@@ -40,8 +42,8 @@ public class BtreeMap<K, V> {
      * @param valueClass the value class
      * @return the map
      */
-    static <K, V> BtreeMap<K, V> open(BtreeMapStore store, String name, DataType keyType, DataType valueType) {
-        return new BtreeMap<K, V>(store, name, keyType, valueType);
+    static <K, V> BtreeMap<K, V> open(BtreeMapStore store, long id, String name, DataType keyType, DataType valueType) {
+        return new BtreeMap<K, V>(store, id, name, keyType, valueType);
     }
 
     /**
@@ -51,9 +53,7 @@ public class BtreeMap<K, V> {
      * @param data the value
      */
     public void put(K key, V data) {
-        if (!isChanged()) {
-            store.markChanged(name, this);
-        }
+        markChanged();
         root = Page.put(this, root, key, data);
     }
 
@@ -77,11 +77,22 @@ public class BtreeMap<K, V> {
      * @param key the key
      * @return the value, or null if not found
      */
-    public Page getPage(K key) {
+    Page getPage(K key) {
         if (root == null) {
             return null;
         }
         return root.findPage(key);
+    }
+
+    /**
+     * Remove all entries.
+     */
+    public void clear() {
+        if (root != null) {
+            markChanged();
+            root.removeAllRecursive();
+            root = null;
+        }
     }
 
     /**
@@ -90,10 +101,8 @@ public class BtreeMap<K, V> {
      * @param key the key
      */
     public void remove(K key) {
-        if (!isChanged()) {
-            store.markChanged(name, this);
-        }
         if (root != null) {
+            markChanged();
             root = Page.remove(root, key);
         }
     }
@@ -105,6 +114,12 @@ public class BtreeMap<K, V> {
      */
     boolean isChanged() {
         return root != null && root.getId() < 0;
+    }
+
+    private void markChanged() {
+        if (!isChanged()) {
+            store.markChanged(name, this);
+        }
     }
 
     /**
@@ -204,6 +219,14 @@ public class BtreeMap<K, V> {
      */
     String getName() {
         return name;
+    }
+
+    int getMaxPageSize() {
+        return store.getMaxPageSize();
+    }
+
+    long getId() {
+        return id;
     }
 
 }

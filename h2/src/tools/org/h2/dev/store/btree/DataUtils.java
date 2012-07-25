@@ -14,12 +14,17 @@ import java.nio.ByteBuffer;
 public class DataUtils {
 
     /**
+     * The maximum length of a variable size int.
+     */
+    public static final int MAX_VAR_INT_LEN = 5;
+
+    /**
      * Get the length of the variable size int.
      *
      * @param x the value
      * @return the length in bytes
      */
-    static int getVarIntLen(int x) {
+    public static int getVarIntLen(int x) {
         if ((x & (-1 << 7)) == 0) {
             return 1;
         } else if ((x & (-1 << 14)) == 0) {
@@ -55,7 +60,7 @@ public class DataUtils {
      * @param buff the source buffer
      * @return the value
      */
-    static int readVarInt(ByteBuffer buff) {
+    public static int readVarInt(ByteBuffer buff) {
         int b = buff.get();
         if (b >= 0) {
             return b;
@@ -111,7 +116,7 @@ public class DataUtils {
      * @param buff the target buffer
      * @param x the value
      */
-    static void writeVarInt(ByteBuffer buff, int x) {
+    public static void writeVarInt(ByteBuffer buff, int x) {
         while ((x & ~0x7f) != 0) {
             buff.put((byte) (0x80 | (x & 0x7f)));
             x >>>= 7;
@@ -131,6 +136,24 @@ public class DataUtils {
             x >>>= 7;
         }
         buff.put((byte) x);
+    }
+
+    static void copyWithGap(Object src, Object dst, int oldSize, int gapIndex) {
+        if (gapIndex > 0) {
+            System.arraycopy(src, 0, dst, 0, gapIndex);
+        }
+        if (gapIndex < oldSize) {
+            System.arraycopy(src, gapIndex, dst, gapIndex + 1, oldSize - gapIndex);
+        }
+    }
+
+    static void copyExcept(Object src, Object dst, int oldSize, int removeIndex) {
+        if (removeIndex > 0 && oldSize > 0) {
+            System.arraycopy(src, 0, dst, 0, removeIndex);
+        }
+        if (removeIndex < oldSize) {
+            System.arraycopy(src, removeIndex + 1, dst, removeIndex, oldSize - removeIndex - 1);
+        }
     }
 
 }

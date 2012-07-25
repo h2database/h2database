@@ -11,39 +11,67 @@ import java.nio.ByteBuffer;
 /**
  * A string type.
  */
-class StringType implements DataType {
+public class StringType implements DataType {
 
     public int compare(Object a, Object b) {
         return a.toString().compareTo(b.toString());
     }
 
     public int length(Object obj) {
-        try {
-            byte[] bytes = obj.toString().getBytes("UTF-8");
-            return DataUtils.getVarIntLen(bytes.length) + bytes.length;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        int plus = 0;
+        String s = obj.toString();
+        int len = s.length();
+        for (int i = 0; i < len; i++) {
+            char c = s.charAt(i);
+            if (c >= 0x800) {
+                plus += 2;
+            } else if (c >= 0x80) {
+                plus++;
+            }
         }
+        return DataUtils.getVarIntLen(len) + len + plus;
+    }
+
+    public int getMaxLength(Object obj) {
+        return DataUtils.MAX_VAR_INT_LEN + obj.toString().length() * 3;
+    }
+
+    public int getMemory(Object obj) {
+        return obj.toString().length() * 2 + 48;
     }
 
     public String read(ByteBuffer buff) {
         int len = DataUtils.readVarInt(buff);
-        byte[] bytes = new byte[len];
-        buff.get(bytes);
-        try {
-            return new String(bytes, "UTF-8");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        char[] chars = new char[len];
+        for (int i = 0; i < len; i++) {
+            int x = buff.get() & 0xff;
+            if (x < 0x80) {
+                chars[i] = (char) x;
+            } else if (x >= 0xe0) {
+                chars[i] = (char) (((x & 0xf) << 12) + ((buff.get() & 0x3f) << 6) + (buff.get() & 0x3f));
+            } else {
+                chars[i] = (char) (((x & 0x1f) << 6) + (buff.get() & 0x3f));
+            }
         }
+        return new String(chars);
     }
 
-    public void write(ByteBuffer buff, Object x) {
-        try {
-            byte[] bytes = x.toString().getBytes("UTF-8");
-            DataUtils.writeVarInt(buff, bytes.length);
-            buff.put(bytes);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    public void write(ByteBuffer buff, Object obj) {
+        String s = obj.toString();
+        int len = s.length();
+        DataUtils.writeVarInt(buff, len);
+        for (int i = 0; i < len; i++) {
+            int c = s.charAt(i);
+            if (c < 0x80) {
+                buff.put((byte) c);
+            } else if (c >= 0x800) {
+                buff.put((byte) (0xe0 | (c >> 12)));
+                buff.put((byte) (((c >> 6) & 0x3f)));
+                buff.put((byte) (c & 0x3f));
+            } else {
+                buff.put((byte) (0xc0 | (c >> 6)));
+                buff.put((byte) (c & 0x3f));
+            }
         }
     }
 

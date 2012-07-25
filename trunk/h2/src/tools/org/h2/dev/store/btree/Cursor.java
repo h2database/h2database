@@ -11,8 +11,11 @@ import java.util.Iterator;
 
 /**
  * A cursor to iterate over elements in ascending order.
+ *
+ * @param <K> the key type
  */
 class Cursor<K> implements Iterator<K> {
+
     private ArrayList<CursorPos> parents = new ArrayList<CursorPos>();
     private K current;
 

@@ -6,34 +6,18 @@
  */
 package org.h2.dev.store.btree;
 
-import java.io.IOException;
-import java.io.StringReader;
-
 /**
  * A factory for data types.
  */
-public class DataTypeFactory {
+public interface DataTypeFactory {
 
     /**
      * Read the data type.
      *
-     * @param buff the buffer
+     * @param s the string
      * @return the type
      */
-    static DataType fromString(String s) {
-        StringReader r = new StringReader(s);
-        char c;
-        try {
-            c = (char) r.read();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        switch (c) {
-        case 'i':
-            return new IntegerType();
-        }
-        throw new RuntimeException("Unknown data type " + c);
-    }
+    DataType fromString(String s);
 
     /**
      * Get the data type object for the given class.
@@ -41,13 +25,6 @@ public class DataTypeFactory {
      * @param objectClass the class
      * @return the data type object
      */
-    static DataType getDataType(Class<?> objectClass) {
-        if (objectClass == Integer.class) {
-            return new IntegerType();
-        } else if (objectClass == String.class) {
-            return new StringType();
-        }
-        throw new RuntimeException("Unsupported object class " + objectClass.toString());
-    }
+    DataType getDataType(Class<?> objectClass);
 
 }

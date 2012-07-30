@@ -54,7 +54,6 @@ public class CacheLRU implements Cache {
         this.setMaxMemory(maxMemoryKb);
         this.len = MathUtils.nextPowerOf2(maxMemory / 64);
         this.mask = len - 1;
-        MathUtils.checkPowerOf2(len);
         clear();
     }
 
@@ -100,7 +99,7 @@ public class CacheLRU implements Cache {
             int pos = rec.getPos();
             CacheObject old = find(pos);
             if (old != null) {
-                DbException.throwInternalError("try to add a record twice pos:" + pos);
+                DbException.throwInternalError("try to add a record twice at pos " + pos);
             }
         }
         int index = rec.getPos() & mask;

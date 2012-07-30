@@ -222,18 +222,6 @@ public class MathUtils {
     }
 
     /**
-     * Check if a value is a power of two.
-     *
-     * @param len the value to check
-     * @throws RuntimeException if it is not a power of two
-     */
-    public static void checkPowerOf2(int len) {
-        if ((len & (len - 1)) != 0 && len > 0) {
-            DbException.throwInternalError("not a power of 2: " + len);
-        }
-    }
-
-    /**
      * Get the value that is equal or higher than this value, and that is a
      * power of two.
      *

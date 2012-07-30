@@ -24,6 +24,7 @@ public class Profiler implements Runnable {
     public int interval = 2;
     public int depth = 32;
     public boolean paused;
+    public boolean sumClasses;
 
     private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
     private String[] ignorePackages = StringUtils.arraySplit(
@@ -48,7 +49,12 @@ public class Profiler implements Runnable {
             , ',', true);
     private volatile boolean stop;
     private HashMap<String, Integer> counts = new HashMap<String, Integer>();
-    private HashMap<String, Integer> packages = new HashMap<String, Integer>();
+
+    /**
+     * The summary (usually one entry per package, unless sumClasses is enabled,
+     * in which case it's one entry per class).
+     */
+    private HashMap<String, Integer> summary = new HashMap<String, Integer>();
     private int minCount = 1;
     private int total;
     private Thread thread;
@@ -147,15 +153,19 @@ public class Profiler implements Runnable {
                         int index = 0;
                         for (; index < el.length(); index++) {
                             char c = el.charAt(index);
-                            if (Character.isUpperCase(c) || c == '(') {
+                            if (c == '(' || Character.isUpperCase(c)) {
                                 break;
                             }
                         }
                         if (index > 0 && el.charAt(index - 1) == '.') {
                             index--;
                         }
-                        String packageName = el.substring(0, index);
-                        increment(packages, packageName, 0);
+                        if (sumClasses) {
+                            int m = el.indexOf('.', index + 1);
+                            index = m >= 0 ? m : index;
+                        }
+                        String groupName = el.substring(0, index);
+                        increment(summary, groupName, 0);
                     }
                     j++;
                 }
@@ -212,8 +222,8 @@ public class Profiler implements Runnable {
             buff.append("(none)").append(SysProperties.LINE_SEPARATOR);
         }
         appendTop(buff, counts, count, total, false);
-        buff.append("packages:").append(SysProperties.LINE_SEPARATOR);
-        appendTop(buff, packages, count, total, true);
+        buff.append("summary:").append(SysProperties.LINE_SEPARATOR);
+        appendTop(buff, summary, count, total, true);
         buff.append('.');
         return buff.toString();
     }

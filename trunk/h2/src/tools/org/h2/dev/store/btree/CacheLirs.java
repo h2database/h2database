@@ -7,33 +7,82 @@
 package org.h2.dev.store.btree;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * A cache.
+ * A LIRS cache.
  * <p>
- * This implementation is not multi-threading save.
- *
- * It is important to use a good hash function for the key (there is no guard against bad hash functions).
+ * This implementation is not multi-threading save. Null keys or null values are
+ * not allowed. There is no guard against bad hash functions, so it is important
+ * to the hash function of the key is good.
+ * <p>
+ * Each each entry is assigned a distinct memory size, and the cache will try to
+ * use at most the specified amount of memory. The memory unit is not relevant,
+ * however it is suggested to use bytes as the unit.
  * <p>
  * An implementation of the LIRS replacement algorithm from Xiaodong Zhang and
  * Song Jiang as described in
  * http://www.cse.ohio-state.edu/~zhang/lirs-sigmetrics-02.html with a few
  * smaller changes: An additional queue for non-resident entries is used, to
  * prevent unbound memory usage. The maximum size of this queue is at most the
- * size of the rest of the stack. This implementation allows each entry to have
- * a distinct memory size. At most 6.25% of the mapped entries are cold.
+ * size of the rest of the stack. About 5% of the mapped entries are cold.
+ *
+ * @author Thomas Mueller
  *
  * @param <K> the key type
  * @param <V> the value type
  */
-public class CacheLirs<K, V> {
+public class CacheLirs<K, V> implements Map<K, V> {
 
+    /**
+     * The maximum memory this cache should use.
+     */
     private long maxMemory;
-    private long currentMemory;
+
+    /**
+     * The average memory used by one entry.
+     */
     private int averageMemory;
-    private int mapSize, stackSize, queueSize, queue2Size;
+
+    /**
+     * The currently used memory.
+     */
+    private long usedMemory;
+
+    /**
+     * The number of entries in the map. This includes all hot and cold entries.
+     */
+    private int mapSize;
+
+    /**
+     * The LIRS stack size. This includes all hot and some of the cold entries.
+     */
+    private int stackSize;
+
+    /**
+     * The size of the LIRS queue for resident cold entries.
+     */
+    private int queueSize;
+
+    /**
+     * The size of the LIRS queue for non-resident cold entries.
+     */
+    private int queue2Size;
+
+    /**
+     * The map entries. The size is always a power of 2.
+     */
     private Entry<K, V>[] entries;
+
+    /**
+     * The bit mask that is applied to the key hash code to get the map index.
+     * The value is the size of the entries array minus one.
+     */
     private int mask;
 
     /**
@@ -59,43 +108,56 @@ public class CacheLirs<K, V> {
      * @param averageMemory the average memory usage of an object
      */
     private CacheLirs(long maxMemory, int averageMemory) {
-        this.maxMemory = maxMemory;
-        this.averageMemory = averageMemory;
+        setMaxMemory(maxMemory);
+        setAverageMemory(averageMemory);
         clear();
     }
 
     /**
-     * Create a new cache.
+     * Create a new cache with the given size in number of entries.
      *
-     * @param size the maximum number of elements
+     * @param maxMemory the maximum memory to use (1 or larger)
+     * @param averageMemory the average memory (1 or larger)
+     * @return the cache
      */
-    public static <K, V> CacheLirs<K, V> newInstance(int size) {
-        return new CacheLirs<K, V>(size, 1);
+    public static <K, V> CacheLirs<K, V> newInstance(int maxMemory, int averageMemory) {
+        return new CacheLirs<K, V>(maxMemory, averageMemory);
     }
 
     /**
      * Clear the cache.
      */
     public void clear() {
+
+        // calculate the size of the map array
+        // assume a fill factor of at most 75%
         long maxLen = (long) (maxMemory / averageMemory / 0.75);
+        // the size needs to be a power of 2
         long l = 8;
         while (l < maxLen) {
             l += l;
         }
+        // the array size is at most 2^31 elements
         int len = (int) Math.min(1L << 31, l);
+        // the bit mask has all bits set
         mask = len - 1;
+
+        // initialize the stack and queue heads
         stack = new Entry<K, V>();
         stack.stackPrev = stack.stackNext = stack;
         queue = new Entry<K, V>();
         queue.queuePrev = queue.queueNext = queue;
         queue2 = new Entry<K, V>();
         queue2.queuePrev = queue2.queueNext = queue2;
+
         // first set to null - avoiding out of memory
         entries = null;
         @SuppressWarnings("unchecked")
         Entry<K, V>[] e = new Entry[len];
         entries = e;
-        currentMemory = 0;
+
+        mapSize = 0;
+        usedMemory = 0;
         stackSize = queueSize = queue2Size = 0;
     }
 
@@ -110,23 +172,39 @@ public class CacheLirs<K, V> {
         Entry<K, V> e = find(key);
         return e == null ? null : e.value;
     }
+    
+    /**
+     * Get the memory used for the given key.
+     * 
+     * @param key the key
+     * @return the memory, or 0 if there is no resident entry
+     */
+    public int getMemory(K key) {
+        Entry<K, V> e = find(key);
+        return e == null ? null : e.memory;
+    }
 
     /**
      * Get an entry if the entry is cached. This method adjusts the internal
      * state of the cache, to ensure commonly used entries stay in the cache.
      *
-     * @param key the key
+     * @param key the key (may not be null)
      * @return the value, or null if not found
      */
-    public V get(K key) {
+    public V get(Object key) {
         Entry<K, V> e = find(key);
         if (e == null || e.value == null) {
+            // either the entry was not found, or it was a non-resident entry
             return null;
         } else if (e.isHot()) {
             if (e != stack.stackNext) {
+                // move a hot entries to the top of the stack
+                // unless it is already there
                 boolean wasEnd = e == stack.stackPrev;
                 removeFromStack(e);
                 if (wasEnd) {
+                    // if moving the last entry, the last entry
+                    // could not be cold, which is not allowed
                     pruneStack();
                 }
                 addToStack(e);
@@ -134,11 +212,17 @@ public class CacheLirs<K, V> {
         } else {
             removeFromQueue(e);
             if (e.stackNext != null) {
+                // resident cold entries become hot
+                // if they are on the stack
                 removeFromStack(e);
+                // which means a hot entry needs to become cold
                 convertOldestHotToCold();
             } else {
+                // cold entries that are not on the stack
+                // move to the front of the queue
                 addToQueue(queue, e);
             }
+            // in any case, the cold entry is moved to the top of the stack
             addToStack(e);
         }
         return e.value;
@@ -148,11 +232,11 @@ public class CacheLirs<K, V> {
      * Add an entry to the cache. This method is the same as adding an entry
      * with the average memory size.
      *
-     * @param key the key
-     * @param value the value
+     * @param key the key (may not be null)
+     * @param value the value (may not be null)
      */
-    public void put(K key, V value) {
-        put(key, value, averageMemory);
+    public V put(K key, V value) {
+        return put(key, value, averageMemory);
     }
 
     /**
@@ -160,63 +244,77 @@ public class CacheLirs<K, V> {
      * yet. This method will usually mark unknown entries as cold and known
      * entries as hot.
      *
-     * @param key the key
-     * @param value the value
+     * @param key the key (may not be null)
+     * @param value the value (may not be null)
      * @param memory the memory used for the given entry
      */
-    public void put(K key, V value, int memory) {
-        if (find(key) != null) {
+    public V put(K key, V value, int memory) {
+        if (value == null) {
+            throw new NullPointerException();
+        }
+        V old;
+        Entry<K, V> e = find(key);
+        if (e == null) {
+            old = null;
+        } else {
+            old = e.value;
             remove(key);
         }
-        Entry<K, V> e = new Entry<K, V>();
+        e = new Entry<K, V>();
         e.key = key;
         e.value = value;
         e.memory = memory;
         int index = key.hashCode() & mask;
-        e.chained = entries[index];
+        e.mapNext = entries[index];
         entries[index] = e;
-        currentMemory += memory;
-        if (currentMemory > maxMemory && mapSize > 0) {
+        usedMemory += memory;
+        if (usedMemory > maxMemory && mapSize > 0) {
+            // an old entry needs to be removed
             evict(e);
         }
         mapSize++;
+        // added entries are always added to the stack
         addToStack(e);
+        return old;
     }
 
     /**
      * Remove an entry.
      *
-     * @param key the key
+     * @param key the key (may not be null)
      * @return true if the entry was found (resident or non-resident)
      */
-    public boolean remove(K key) {
+    public V remove(Object key) {
         int hash = key.hashCode();
         int index = hash & mask;
         Entry<K, V> e = entries[index];
         if (e == null) {
-            return false;
+            return null;
         }
+        V old;
         if (e.key.equals(key)) {
-            entries[index] = e.chained;
+            old = e.value;
+            entries[index] = e.mapNext;
         } else {
             Entry<K, V> last;
             do {
                 last = e;
-                e = e.chained;
+                e = e.mapNext;
                 if (e == null) {
-                    return false;
+                    return null;
                 }
             } while (!e.key.equals(key));
-            last.chained = e.chained;
+            old = e.value;
+            last.mapNext = e.mapNext;
         }
         mapSize--;
-        currentMemory -= e.memory;
+        usedMemory -= e.memory;
         if (e.stackNext != null) {
             removeFromStack(e);
         }
         if (e.isHot()) {
-            // when removing a hot entry, convert the newest cold entry to hot,
-            // so that we keep the number of hot entries
+            // when removing a hot entry, the newest cold entry gets hot,
+            // so the number of hot entries does not change
             e = queue.queueNext;
             if (e != queue) {
                 removeFromQueue(e);
@@ -228,21 +326,33 @@ public class CacheLirs<K, V> {
             removeFromQueue(e);
         }
         pruneStack();
-        return true;
+        return old;
     }
 
+    /**
+     * Evict cold entries (resident and non-resident) until the memory limit is
+     * reached.
+     *
+     * @param newCold a new cold entry
+     */
     private void evict(Entry<K, V> newCold) {
+        // ensure there are not too many hot entries:
+        // left shift of 5 is multiplication by 32, that means if there are less
+        // than 1/32 (3.125%) cold entries, a new hot entry needs to become cold
         while ((queueSize << 5) < mapSize) {
             convertOldestHotToCold();
         }
+        // the new cold entry is at the top of the queue
         addToQueue(queue, newCold);
-        while (currentMemory > maxMemory) {
+        // the oldest resident cold entries become non-resident
+        while (usedMemory > maxMemory) {
             Entry<K, V> e = queue.queuePrev;
-            currentMemory -= e.memory;
+            usedMemory -= e.memory;
             removeFromQueue(e);
             e.value = null;
             e.memory = 0;
             addToQueue(queue2, e);
+            // the size of the non-resident-cold entries needs to be limited
             while (queue2Size + queue2Size > stackSize) {
                 e = queue2.queuePrev;
                 remove(e.key);
@@ -251,27 +361,41 @@ public class CacheLirs<K, V> {
     }
 
     private void convertOldestHotToCold() {
+        // the last entry of the stack is known to be hot
         Entry<K, V> last = stack.stackPrev;
+        // remove from stack - which is done anyway in the stack pruning, but we
+        // can do it here as well
         removeFromStack(last);
+        // adding an entry to the queue will make it cold
         addToQueue(queue, last);
         pruneStack();
     }
 
+    /**
+     * Ensure the last entry of the stack is cold.
+     */
     private void pruneStack() {
         while (true) {
             Entry<K, V> last = stack.stackPrev;
             if (last == stack || last.isHot()) {
                 break;
             }
+            // the cold entry is still in the queue
             removeFromStack(last);
         }
     }
 
-    private Entry<K, V> find(K key) {
+    /**
+     * Try to find an entry in the map.
+     *
+     * @param key the key
+     * @return the entry (might be a non-resident)
+     */
+    private Entry<K, V> find(Object key) {
         int hash = key.hashCode();
         Entry<K, V> e = entries[hash & mask];
         while (e != null && !e.key.equals(key)) {
-            e = e.chained;
+            e = e.mapNext;
         }
         return e;
     }
@@ -323,39 +447,12 @@ public class CacheLirs<K, V> {
     }
 
     /**
-     * Get the number of mapped entries (resident and non-resident).
+     * Get the list of keys. This method allows to view the internal state of
+     * the cache.
      *
-     * @return the number of entries
-     */
-    public int getSize() {
-        return mapSize;
-    }
-
-    /**
-     * Get the number of hot entries.
-     *
-     * @return the number of entries
-     */
-    public int getHotSize() {
-        return mapSize - queueSize - queue2Size;
-    }
-
-    /**
-     * Get the number of non-resident entries.
-     *
-     * @return the number of entries
-     */
-    public int getNonResidentSize() {
-        return queue2Size;
-    }
-
-    /**
-     * Get the list of keys for this map. This method allows to view the internal
-     * state of the cache.
-     *
-     * @param cold if true only the keys for the cold entries are returned
+     * @param cold if true, the keys for the cold entries are returned
      * @param nonResident true for non-resident entries
-     * @return the key set
+     * @return the key list
      */
     public List<K> keys(boolean cold, boolean nonResident) {
         ArrayList<K> s = new ArrayList<K>();
@@ -373,17 +470,149 @@ public class CacheLirs<K, V> {
     }
 
     /**
+     * Get the number of resident entries.
+     *
+     * @return the number of entries
+     */
+    public int size() {
+        return mapSize - queue2Size;
+    }
+    
+    /**
+     * Check whether there are any resident entries in the map.
+     * 
+     * @return true if there are no keys
+     */
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    /**
+     * Check whether there is a resident entry for the given key.
+     * 
+     * @return true if the key is in the map
+     */
+    public boolean containsKey(Object key) {
+        Entry<K, V> e = find(key);
+        return e != null && e.value != null;
+    }
+
+    /**
+     * Check whether there are any keys for the given value.
+     * 
+     * @return true if there is a key for this value
+     */
+    public boolean containsValue(Object value) {
+        return values().contains(value);
+    }
+
+    public void putAll(Map<? extends K, ? extends V> m) {
+        for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
+            put(e.getKey(), e.getValue());
+        }
+    }
+
+    public Set<K> keySet() {
+        HashSet<K> set = new HashSet<K>();
+        for (Entry<K, V> e = stack.stackNext; e != stack; e = e.stackNext) {
+            set.add(e.key);
+        }
+        for (Entry<K, V> e = queue.queueNext; e != queue; e = e.queueNext) {
+            set.add(e.key);
+        }
+        return set;
+    }
+
+    public Collection<V> values() {
+        ArrayList<V> list = new ArrayList<V>();
+        for (K k : keySet()) {
+            list.add(get(k));
+        }
+        return list;
+    }
+
+    public Set<Map.Entry<K, V>> entrySet() {
+        HashMap<K, V> map = new HashMap<K, V>();
+        for (K k : keySet()) {
+            map.put(k,  find(k).value);
+        }
+        return map.entrySet();
+    }
+
+    /**
+     * Get the number of hot entries in the cache.
+     *
+     * @return the number of entries
+     */
+    public int sizeHot() {
+        return mapSize - queueSize - queue2Size;
+    }
+
+    /**
+     * Get the number of non-resident entries in the cache.
+     *
+     * @return the number of entries
+     */
+    public int sizeNonResident() {
+        return queue2Size;
+    }
+
+    /**
      * Get the currently used memory.
      *
      * @return the used memory
      */
     public long getUsedMemory() {
-        return currentMemory;
+        return usedMemory;
+    }
+
+    /**
+     * Set the maximum memory this cache should use. This will not immediately
+     * cause entries to get removed however; it will only change the limit.
+     *
+     * @param maxMemory the maximum size (1 or larger)
+     */
+    public void setMaxMemory(long maxMemory) {
+        if (maxMemory <= 0) {
+            throw new IllegalArgumentException("Max memory must be larger than 0");
+        }
+        this.maxMemory = maxMemory;
+    }
+
+    /**
+     * Get the maximum memory to use.
+     *
+     * @return the maximum memory
+     */
+    public long getMaxMemory() {
+        return maxMemory;
+    }
+
+    /**
+     * Set the average memory used per entry. It is used to calculate the size
+     * of the map.
+     *
+     * @param averageMemory the average memory used (1 or larger)
+     */
+    public void setAverageMemory(int averageMemory) {
+        if (averageMemory <= 0) {
+            throw new IllegalArgumentException("Average memory must be larger than 0");
+        }
+        this.averageMemory = averageMemory;
+    }
+
+    /**
+     * Get the average memory used per entry.
+     *
+     * @return the average memory
+     */
+    public int getAverageMemory() {
+        return averageMemory;
     }
 
     /**
      * A cache entry. Each entry is either hot (low inter-reference recency;
-     * lir), cold (high inter-reference recency; hir), or non-resident-cold. Hot
+     * LIR), cold (high inter-reference recency; HIR), or non-resident-cold. Hot
      * entries are in the stack only. Cold entries are in the queue, and may be
      * in the stack. Non-resident-cold entries have their value set to null and
      * are in the stack and in the non-resident queue.
@@ -392,13 +621,53 @@ public class CacheLirs<K, V> {
      * @param <V> the value type
      */
     static class Entry<K, V> {
-        K key;
-        V value;
-        int memory;
-        Entry<K, V> stackPrev, stackNext;
-        Entry<K, V> queuePrev, queueNext;
-        Entry<K, V> chained;
 
+        /**
+         * The key.
+         */
+        K key;
+
+        /**
+         * The value. Set to null for non-resident-cold entries.
+         */
+        V value;
+
+        /**
+         * The estimated memory used.
+         */
+        int memory;
+
+        /**
+         * The next entry in the stack.
+         */
+        Entry<K, V> stackNext;
+
+        /**
+         * The previous entry in the stack.
+         */
+        Entry<K, V> stackPrev;
+
+        /**
+         * The next entry in the queue (either the resident queue or the
+         * non-resident queue).
+         */
+        Entry<K, V> queueNext;
+
+        /**
+         * The previous entry in the queue.
+         */
+        Entry<K, V> queuePrev;
+
+        /**
+         * The next entry in the map
+         */
+        Entry<K, V> mapNext;
+
+        /**
+         * Whether this entry is hot. Cold entries are in one of the two queues.
+         *
+         * @return whether the entry is hot
+         */
         boolean isHot() {
             return queueNext == null;
         }

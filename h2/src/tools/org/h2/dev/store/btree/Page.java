@@ -482,7 +482,7 @@ public class Page {
         buff.getInt();
         long id = buff.getLong();
         if (id != map.getId()) {
-            throw new RuntimeException("Page map id missmatch, expected " + map.getId() + " got " + id);
+            throw new RuntimeException("Page map id mismatch, expected " + map.getId() + " got " + id);
         }
         boolean node = buff.get() == 1;
         if (node) {
@@ -541,7 +541,6 @@ public class Page {
     /**
      * Get the maximum length in bytes to store temporary records, recursively.
      *
-     * @param pageId the new page id
      * @return the next page id
      */
     int getMaxLengthTempRecursive() {

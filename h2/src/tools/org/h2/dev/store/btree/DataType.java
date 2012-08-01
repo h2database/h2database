@@ -51,7 +51,7 @@ public interface DataType {
      * Write the object.
      *
      * @param buff the target buffer
-     * @param x the value
+     * @param obj the value
      */
     void write(ByteBuffer buff, Object obj);
 

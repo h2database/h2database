@@ -37,6 +37,7 @@ public class BtreeMap<K, V> {
      * @param <K> the key type
      * @param <V> the value type
      * @param store the tree store
+     * @param id the map id
      * @param name the name of the map
      * @param keyClass the key class
      * @param valueClass the value class

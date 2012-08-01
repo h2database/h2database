@@ -138,6 +138,14 @@ public class DataUtils {
         buff.put((byte) x);
     }
 
+    /**
+     * Copy the elements of an array, with a gap.
+     *
+     * @param src the source array
+     * @param dst the target array
+     * @param oldSize the size of the old array
+     * @param gapIndex the index of the gap
+     */
     static void copyWithGap(Object src, Object dst, int oldSize, int gapIndex) {
         if (gapIndex > 0) {
             System.arraycopy(src, 0, dst, 0, gapIndex);
@@ -147,6 +155,14 @@ public class DataUtils {
         }
     }
 
+    /**
+     * Copy the elements of an array, and remove one element.
+     *
+     * @param src the source array
+     * @param dst the target array
+     * @param oldSize the size of the old array
+     * @param removeIndex the index of the entry to remove
+     */
     static void copyExcept(Object src, Object dst, int oldSize, int removeIndex) {
         if (removeIndex > 0 && oldSize > 0) {
             System.arraycopy(src, 0, dst, 0, removeIndex);

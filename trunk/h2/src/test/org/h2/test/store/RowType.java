@@ -108,6 +108,13 @@ public class RowType implements DataType {
         return buff.toString();
     }
 
+    /**
+     * Convert a row type to a row.
+     *
+     * @param t the type string
+     * @param factory the data type factory
+     * @return the row type
+     */
     static RowType fromString(String t, DataTypeFactory factory) {
         if (!t.startsWith("r(") || !t.endsWith(")")) {
             throw new RuntimeException("Unknown type: " + t);

@@ -663,6 +663,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     private void testUnit() {
         // store
         new TestTreeMapStore().runTest(this);
+        new TestCache().runTest(this);
 
         // unit
         new TestAutoReconnect().runTest(this);

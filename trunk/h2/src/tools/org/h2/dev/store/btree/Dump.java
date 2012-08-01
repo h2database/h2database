@@ -8,6 +8,7 @@ package org.h2.dev.store.btree;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -23,6 +24,16 @@ public class Dump {
 
     private static int blockSize = 4 * 1024;
 
+    /**
+     * Runs this tool.
+     * Options are case sensitive. Supported options are:
+     * <table>
+     * <tr><td>[-file]</td>
+     * <td>The database file name</td></tr>
+     * </table>
+     *
+     * @param args the command line arguments
+     */
     public static void main(String... args) {
         String fileName = "test.h3";
         for (int i = 0; i < args.length; i++) {
@@ -30,12 +41,18 @@ public class Dump {
                 fileName = args[++i];
             }
         }
-        dump(fileName);
+        dump(fileName, new PrintWriter(System.out));
     }
 
-    public static void dump(String fileName) {
+    /**
+     * Dump the contents of the file.
+     *
+     * @param fileName the name of the file
+     * @param writer the print writer
+     */
+    public static void dump(String fileName, PrintWriter writer) {
         if (!FileUtils.exists(fileName)) {
-            System.out.println("File not found: " + fileName);
+            writer.println("File not found: " + fileName);
             return;
         }
         FileChannel file = null;
@@ -48,9 +65,9 @@ public class Dump {
             Properties prop = new Properties();
             prop.load(new ByteArrayInputStream(header));
             prop.load(new StringReader(new String(header, "UTF-8")));
-            System.out.println("file " + fileName);
-            System.out.println("    length " + fileLength);
-            System.out.println("    " + prop);
+            writer.println("file " + fileName);
+            writer.println("    length " + fileLength);
+            writer.println("    " + prop);
             ByteBuffer block = ByteBuffer.wrap(new byte[16]);
             for (long pos = 0; pos < fileLength;) {
                 file.position(pos);
@@ -64,7 +81,7 @@ public class Dump {
                 int length = block.getInt();
                 int chunkId = block.getInt();
                 int metaRootOffset = block.getInt();
-                System.out.println("    chunk " + chunkId + " at " + pos +
+                writer.println("    chunk " + chunkId + " at " + pos +
                         " length " + length + " offset " + metaRootOffset);
                 ByteBuffer chunk = ByteBuffer.allocate(length);
                 file.position(pos);
@@ -83,16 +100,16 @@ public class Dump {
                         for (int i = 0; i < count; i++) {
                             children[i] = chunk.getLong();
                         }
-                        System.out.println("        map " + mapId + " at " + p + " node, " + count + " children: " + Arrays.toString(children));
+                        writer.println("        map " + mapId + " at " + p + " node, " + count + " children: " + Arrays.toString(children));
                     } else {
-                        System.out.println("        map " + mapId + " at " + p + " leaf, " + count + " rows");
+                        writer.println("        map " + mapId + " at " + p + " leaf, " + count + " rows");
                     }
                     p += len;
                     length -= len;
                 }
             }
         } catch (IOException e) {
-            System.out.println("ERROR: " + e);
+            writer.println("ERROR: " + e);
         } finally {
             try {
                 file.close();
@@ -100,7 +117,7 @@ public class Dump {
                 // ignore
             }
         }
-        System.out.println();
+        writer.println();
     }
 
 }

@@ -6,10 +6,13 @@
 package org.h2.test.store;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 import org.h2.dev.store.btree.CacheLirs;
 import org.h2.test.TestBase;
+import org.h2.upgrade.v1_1.util.Profiler;
 import org.h2.util.New;
 
 /**
@@ -27,14 +30,19 @@ public class TestCache extends TestBase {
     }
 
     public void test() throws Exception {
+        Profiler p = new Profiler();
+        p.startCollecting();
         testEdgeCases();
+        testSize();
         testClear();
         testGetPutPeekRemove();
+        testPruneStack();
         testLimitHot();
         testLimitNonResident();
         testBadHashMethod();
         testScanResistance();
         testRandomOperations();
+        System.out.println(p.getTop(5));
     }
 
     private void testEdgeCases() {
@@ -67,6 +75,39 @@ public class TestCache extends TestBase {
         }
     }
 
+    private void testSize() {
+        verifyMapSize(7, 16);
+        verifyMapSize(13, 32);
+        verifyMapSize(25, 64);
+        verifyMapSize(49, 128);
+        verifyMapSize(97, 256);
+        verifyMapSize(193, 512);
+        verifyMapSize(385, 1024);
+        verifyMapSize(769, 2048);
+
+        CacheLirs<Integer, Integer> test;
+        test = CacheLirs.newInstance(1000, 1);
+        for (int j = 0; j < 2000; j++) {
+            test.put(j, j);
+        }
+        // for a cache of size 1000,
+        // there are 62 cold entries (about 6.25%).
+        assertEquals(62, test.size() - test.sizeHot());
+        // at most as many non-resident elements
+        // as there are entries in the stack
+        assertEquals(968, test.sizeNonResident());
+    }
+
+    private void verifyMapSize(int elements, int mapSize) {
+        CacheLirs<Integer, Integer> test;
+        test = CacheLirs.newInstance(elements - 1, 1);
+        assertTrue(mapSize > test.sizeMapArray());
+        test = CacheLirs.newInstance(elements, 1);
+        assertEquals(mapSize, test.sizeMapArray());
+        test = CacheLirs.newInstance(elements * 100, 100);
+        assertEquals(mapSize, test.sizeMapArray());
+    }
+
     private void testGetPutPeekRemove() {
         CacheLirs<Integer, Integer> test = CacheLirs.newInstance(4, 1);
         test.put(1,  10);
@@ -90,6 +131,10 @@ public class TestCache extends TestBase {
         // 5 is cold; will make 4 non-resident
         test.put(5,  50);
         verify(test, "mem: 4 stack: 5 3 1 2 cold: 5 non-resident: 4");
+        assertEquals(1, test.getMemory(1));
+        assertEquals(1, test.getMemory(5));
+        assertEquals(0, test.getMemory(4));
+        assertEquals(0, test.getMemory(100));
         assertNull(test.peek(4));
         assertNull(test.get(4));
         assertEquals(10, test.get(1).intValue());
@@ -178,6 +223,25 @@ public class TestCache extends TestBase {
         // this will prune the stack (remove entry 5 as entry 2 becomes cold)
         test.get(6);
         verify(test, "mem: 4 stack: 6 3 4 cold: 2 non-resident: 5 1");
+    }
+
+    private void testPruneStack() {
+        CacheLirs<Integer, Integer> test = CacheLirs.newInstance(5, 1);
+        for (int i = 0; i < 7; i++) {
+            test.put(i, i * 10);
+        }
+        verify(test, "mem: 5 stack: 6 5 4 3 2 1 cold: 6 non-resident: 5 0");
+        test.get(4);
+        test.get(3);
+        test.get(2);
+        verify(test, "mem: 5 stack: 2 3 4 6 5 1 cold: 6 non-resident: 5 0");
+        // this call needs to prune the stack
+        test.remove(1);
+        verify(test, "mem: 4 stack: 2 3 4 6 cold: non-resident: 5 0");
+        test.put(0,  0);
+        test.put(1,  10);
+        // the the stack was not pruned, the following will fail
+        verify(test, "mem: 5 stack: 1 0 2 3 4 cold: 1 non-resident: 6 5");
     }
 
     private void testClear() {
@@ -319,6 +383,7 @@ public class TestCache extends TestBase {
         for (int i = 0; i < size; i++) {
             test.put(-i, -i * 10);
         }
+        verify(test, null);
         // init with 0..9, ensure those are hot entries
         for (int i = 0; i < size / 2; i++) {
             test.put(i, i * 10);
@@ -327,6 +392,7 @@ public class TestCache extends TestBase {
                 System.out.println("get " + i + " -> " + test);
             }
         }
+        verify(test, null);
         // read 0..9, add 10..19 (cold)
         for (int i = 0; i < size; i++) {
             Integer x = test.get(i);
@@ -346,6 +412,7 @@ public class TestCache extends TestBase {
             if (log) {
                 System.out.println("get " + i + " -> " + test);
             }
+            verify(test, null);
         }
         // ensure 0..9 are hot, 10..18 are not resident, 19 is cold
         for (int i = 0; i < size; i++) {
@@ -356,6 +423,7 @@ public class TestCache extends TestBase {
             } else {
                 assertNull(x);
             }
+            verify(test, null);
         }
     }
 
@@ -401,6 +469,7 @@ public class TestCache extends TestBase {
                     System.out.println(" -> " + toString(test));
                 }
             }
+            verify(test, null);
         }
     }
 
@@ -423,13 +492,28 @@ public class TestCache extends TestBase {
     }
 
     private <K, V> void verify(CacheLirs<K, V> cache, String expected) {
-        String got = toString(cache);
-        assertEquals(expected, got);
+        if (expected != null) {
+            String got = toString(cache);
+            assertEquals(expected, got);
+        }
         int mem = 0;
         for (K k : cache.keySet()) {
             mem += cache.getMemory(k);
         }
         assertEquals(mem, cache.getUsedMemory());
+        List<K> stack = cache.keys(false, false);
+        List<K> cold = cache.keys(true, false);
+        List<K> nonResident = cache.keys(true, true);
+        assertEquals(nonResident.size(), cache.sizeNonResident());
+        HashSet<K> hot = new HashSet<K>(stack);
+        hot.removeAll(cold);
+        hot.removeAll(nonResident);
+        assertEquals(hot.size(), cache.sizeHot());
+        assertEquals(hot.size() + cold.size(), cache.size());
+        if (stack.size() > 0) {
+            K lastStack = stack.get(stack.size() - 1);
+            assertTrue(hot.contains(lastStack));
+        }
     }
 
 }

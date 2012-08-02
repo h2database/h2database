@@ -15,25 +15,25 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A LIRS cache.
+ * A scan resistent cache. It is meant to cache objects that are relatively
+ * costly to acquire, for example file content.
  * <p>
  * This implementation is not multi-threading save. Null keys or null values are
  * not allowed. There is no guard against bad hash functions, so it is important
- * to the hash function of the key is good.
+ * to the hash function of the key is good. The map fill factor is at most 75%.
  * <p>
- * Each each entry is assigned a distinct memory size, and the cache will try to
- * use at most the specified amount of memory. The memory unit is not relevant,
+ * Each entry is assigned a distinct memory size, and the cache will try to use
+ * at most the specified amount of memory. The memory unit is not relevant,
  * however it is suggested to use bytes as the unit.
  * <p>
- * An implementation of the LIRS replacement algorithm from Xiaodong Zhang and
- * Song Jiang as described in
+ * This class implements the LIRS replacement algorithm invented by Xiaodong
+ * Zhang and Song Jiang as described in
  * http://www.cse.ohio-state.edu/~zhang/lirs-sigmetrics-02.html with a few
  * smaller changes: An additional queue for non-resident entries is used, to
  * prevent unbound memory usage. The maximum size of this queue is at most the
- * size of the rest of the stack. About 5% of the mapped entries are cold.
+ * size of the rest of the stack. About 6.25% of the mapped entries are cold.
  *
  * @author Thomas Mueller
- *
  * @param <K> the key type
  * @param <V> the value type
  */
@@ -55,12 +55,12 @@ public class CacheLirs<K, V> implements Map<K, V> {
     private long usedMemory;
 
     /**
-     * The number of entries in the map. This includes all hot and cold entries.
+     * The number of (hot, cold, and non-resident) entries in the map.
      */
     private int mapSize;
 
     /**
-     * The LIRS stack size. This includes all hot and some of the cold entries.
+     * The LIRS stack size.
      */
     private int stackSize;
 
@@ -75,13 +75,13 @@ public class CacheLirs<K, V> implements Map<K, V> {
     private int queue2Size;
 
     /**
-     * The map entries. The size is always a power of 2.
+     * The map array. The size is always a power of 2.
      */
     private Entry<K, V>[] entries;
 
     /**
-     * The bit mask that is applied to the key hash code to get the map index.
-     * The value is the size of the entries array minus one.
+     * The bit mask that is applied to the key hash code to get the index in the
+     * map array. The mask is the length of the array minus one.
      */
     private int mask;
 
@@ -114,7 +114,9 @@ public class CacheLirs<K, V> implements Map<K, V> {
     }
 
     /**
-     * Create a new cache with the given size in number of entries.
+     * Create a new cache with the given memory size. To just limit the number
+     * of entries, use the required number as the maximum memory, and an average
+     * size of 1.
      *
      * @param maxMemory the maximum memory to use (1 or larger)
      * @param averageMemory the average memory (1 or larger)
@@ -125,12 +127,13 @@ public class CacheLirs<K, V> implements Map<K, V> {
     }
 
     /**
-     * Clear the cache.
-     */
+     * Clear the cache. This method will clear all entries (including
+     * non-resident keys) and resize the internal array.
+     **/
     public void clear() {
 
         // calculate the size of the map array
-        // assume a fill factor of at most 75%
+        // assume a fill factor of at most 80%
         long maxLen = (long) (maxMemory / averageMemory / 0.75);
         // the size needs to be a power of 2
         long l = 8;
@@ -162,34 +165,35 @@ public class CacheLirs<K, V> implements Map<K, V> {
     }
 
     /**
-     * Get an entry if the entry is cached. This method does not modify the
-     * internal state.
+     * Get the value for the given key if the entry is cached. This method does
+     * not modify the internal state.
      *
-     * @param key the key
-     * @return the value, or null if not found
+     * @param key the key (may not be null)
+     * @return the value, or null if there is no resident entry
      */
     public V peek(K key) {
         Entry<K, V> e = find(key);
         return e == null ? null : e.value;
     }
-    
+
     /**
      * Get the memory used for the given key.
-     * 
-     * @param key the key
+     *
+     * @param key the key (may not be null)
      * @return the memory, or 0 if there is no resident entry
      */
     public int getMemory(K key) {
         Entry<K, V> e = find(key);
-        return e == null ? null : e.memory;
+        return e == null ? 0 : e.memory;
     }
 
     /**
-     * Get an entry if the entry is cached. This method adjusts the internal
-     * state of the cache, to ensure commonly used entries stay in the cache.
+     * Get the value for the given key if the entry is cached. This method
+     * adjusts the internal state of the cache, to ensure commonly used entries
+     * stay in the cache.
      *
      * @param key the key (may not be null)
-     * @return the value, or null if not found
+     * @return the value, or null if there is no resident entry
      */
     public V get(Object key) {
         Entry<K, V> e = find(key);
@@ -229,8 +233,7 @@ public class CacheLirs<K, V> implements Map<K, V> {
     }
 
     /**
-     * Add an entry to the cache. This method is the same as adding an entry
-     * with the average memory size.
+     * Add an entry to the cache using the average memory size.
      *
      * @param key the key (may not be null)
      * @param value the value (may not be null)
@@ -279,10 +282,10 @@ public class CacheLirs<K, V> implements Map<K, V> {
     }
 
     /**
-     * Remove an entry.
+     * Remove an entry. Both resident and non-resident entries can be removed.
      *
      * @param key the key (may not be null)
-     * @return true if the entry was found (resident or non-resident)
+     * @return the old value, or null if there is no resident entry
      */
     public V remove(Object key) {
         int hash = key.hashCode();
@@ -450,7 +453,7 @@ public class CacheLirs<K, V> implements Map<K, V> {
      * Get the list of keys. This method allows to view the internal state of
      * the cache.
      *
-     * @param cold if true, the keys for the cold entries are returned
+     * @param cold if true, only keys for the cold entries are returned
      * @param nonResident true for non-resident entries
      * @return the key list
      */
@@ -477,10 +480,10 @@ public class CacheLirs<K, V> implements Map<K, V> {
     public int size() {
         return mapSize - queue2Size;
     }
-    
+
     /**
      * Check whether there are any resident entries in the map.
-     * 
+     *
      * @return true if there are no keys
      */
     public boolean isEmpty() {
@@ -489,8 +492,8 @@ public class CacheLirs<K, V> implements Map<K, V> {
 
     /**
      * Check whether there is a resident entry for the given key.
-     * 
-     * @return true if the key is in the map
+     *
+     * @return true if there is a resident entry
      */
     public boolean containsKey(Object key) {
         Entry<K, V> e = find(key);
@@ -499,19 +502,30 @@ public class CacheLirs<K, V> implements Map<K, V> {
 
     /**
      * Check whether there are any keys for the given value.
-     * 
+     *
      * @return true if there is a key for this value
      */
     public boolean containsValue(Object value) {
         return values().contains(value);
     }
 
+    /**
+     * Add all entries of the given map to this map. This method will use the
+     * average memory size.
+     *
+     * @param m the source map
+     */
     public void putAll(Map<? extends K, ? extends V> m) {
         for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
             put(e.getKey(), e.getValue());
         }
     }
 
+    /**
+     * Get the set of keys for resident entries.
+     *
+     * @return the set of keys
+     */
     public Set<K> keySet() {
         HashSet<K> set = new HashSet<K>();
         for (Entry<K, V> e = stack.stackNext; e != stack; e = e.stackNext) {
@@ -523,6 +537,11 @@ public class CacheLirs<K, V> implements Map<K, V> {
         return set;
     }
 
+    /**
+     * Get the collection of values.
+     *
+     * @return the collection of values
+     */
     public Collection<V> values() {
         ArrayList<V> list = new ArrayList<V>();
         for (K k : keySet()) {
@@ -531,6 +550,11 @@ public class CacheLirs<K, V> implements Map<K, V> {
         return list;
     }
 
+    /**
+     * Get the entry set for all resident entries.
+     *
+     * @return the entry set
+     */
     public Set<Map.Entry<K, V>> entrySet() {
         HashMap<K, V> map = new HashMap<K, V>();
         for (K k : keySet()) {
@@ -542,7 +566,7 @@ public class CacheLirs<K, V> implements Map<K, V> {
     /**
      * Get the number of hot entries in the cache.
      *
-     * @return the number of entries
+     * @return the number of hot entries
      */
     public int sizeHot() {
         return mapSize - queueSize - queue2Size;
@@ -551,10 +575,19 @@ public class CacheLirs<K, V> implements Map<K, V> {
     /**
      * Get the number of non-resident entries in the cache.
      *
-     * @return the number of entries
+     * @return the number of non-resident entries
      */
     public int sizeNonResident() {
         return queue2Size;
+    }
+
+    /**
+     * Get the length of the internal map array.
+     *
+     * @return the size of the array
+     */
+    public int sizeMapArray() {
+        return entries.length;
     }
 
     /**
@@ -568,7 +601,8 @@ public class CacheLirs<K, V> implements Map<K, V> {
 
     /**
      * Set the maximum memory this cache should use. This will not immediately
-     * cause entries to get removed however; it will only change the limit.
+     * cause entries to get removed however; it will only change the limit. To
+     * resize the internal array, call the clear method.
      *
      * @param maxMemory the maximum size (1 or larger)
      */
@@ -589,8 +623,8 @@ public class CacheLirs<K, V> implements Map<K, V> {
     }
 
     /**
-     * Set the average memory used per entry. It is used to calculate the size
-     * of the map.
+     * Set the average memory used per entry. It is used to calculate the length
+     * of the internal array.
      *
      * @param averageMemory the average memory used (1 or larger)
      */

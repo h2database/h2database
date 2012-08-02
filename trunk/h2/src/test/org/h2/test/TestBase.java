@@ -848,7 +848,9 @@ public abstract class TestBase {
      * @throws AssertionError if the condition is false
      */
     public void assertNull(Object obj) {
-        assertTrue("Expected: null got: " + obj, obj == null);
+        if (obj != null) {
+            fail("Expected: null got: " + obj);
+        }
     }
 
     /**

@@ -16,12 +16,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import org.h2.dev.store.FilePathCache;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
-import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 
 /*
@@ -45,10 +45,10 @@ data ...
 
 todo:
 
-- garbage collection
 - use page checksums
 - compress chunks
 - possibly encode the length in pos (1=32, 2=128, 3=512,...)
+- rollback feature
 
 - floating header (avoid duplicate header)
     for each chunk, store chunk (a counter)
@@ -67,26 +67,29 @@ public class BtreeMapStore {
     private final String fileName;
     private final DataTypeFactory typeFactory;
 
+    private int readCacheSize = 2 * 1024 * 1024;
+
+    private int maxPageSize = 30;
+
     private FileChannel file;
     private int blockSize = 4 * 1024;
     private long rootChunkPos;
-    private HashMap<Long, Page> cache = SmallLRUCache.newInstance(5000);
+
+    private int tempPageId;
+    private Map<Long, Page> cache = CacheLIRS.newInstance(readCacheSize, 2048);
     private HashMap<Long, Page> temp = New.hashMap();
+
+    private int lastChunkId;
     private HashMap<Integer, Chunk> chunks = New.hashMap();
+
+    // TODO use bit set, and integer instead of long
+    private BtreeMap<String, String> meta;
+    private long lastMapId;
     private HashMap<String, BtreeMap<?, ?>> maps = New.hashMap();
     private HashMap<String, BtreeMap<?, ?>> mapsChanged = New.hashMap();
-    private BtreeMap<String, String> meta;
 
     // TODO use an int instead? (with rollover to 0)
     private long transaction;
-    private long tempPageId;
-
-    private int lastChunkId;
-
-    // TODO use bit set, and integer instead of long
-    private long lastMapId;
-
-    private int maxPageSize = 30;
 
     // TODO support reading metadata to support quota (per map, per storage)
     // TODO support r-tree

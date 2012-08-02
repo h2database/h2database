@@ -30,7 +30,7 @@ public class Page {
     }
 
     /**
-     * Create a new page.
+     * Create a new page. The arrays are not cloned.
      *
      * @param map the map
      * @param keys the keys
@@ -71,10 +71,10 @@ public class Page {
             return this;
         }
         map.removePage(id);
-        Page p2 = create(map, keys, values, children);
-        p2.transaction = t;
-        p2.cachedCompare = cachedCompare;
-        return p2;
+        Page newPage = create(map, keys, values, children);
+        newPage.transaction = t;
+        newPage.cachedCompare = cachedCompare;
+        return newPage;
     }
 
     public String toString() {
@@ -323,7 +323,7 @@ public class Page {
         int parentIndex = 0;
         while (true) {
             if (parent != null) {
-                parent.children[parentIndex] = p.id;
+                parent.setChild(parentIndex, p.id);
             }
             if (!p.isLeaf()) {
                 if (p.keyCount() >= map.getMaxPageSize()) {
@@ -345,12 +345,7 @@ public class Page {
             int index = p.findKey(key);
             if (p.isLeaf()) {
                 if (index >= 0) {
-                    // create a copy
-                    // TODO might not be required, but needs a "modified" flag
-                    Object[] v2 = new Object[p.values.length];
-                    System.arraycopy(p.values, 0, v2, 0, v2.length);
-                    p.values = v2;
-                    p.values[index] = value;
+                    p.setValue(index, value);
                     break;
                 }
                 index = -index - 1;
@@ -380,6 +375,22 @@ public class Page {
             p = p.copyOnWrite();
         }
         return top;
+    }
+
+    private void setChild(int index, long value) {
+        long[] newChildren = new long[children.length];
+        System.arraycopy(children, 0, newChildren, 0, newChildren.length);
+        newChildren[index] = value;
+        children = newChildren;
+    }
+
+    private void setValue(int index, Object value) {
+        // create a copy - not always required, but avoid unnecessary cloning
+        // would require a "modified" flag
+        Object[] newValues = new Object[values.length];
+        System.arraycopy(values, 0, newValues, 0, newValues.length);
+        newValues[index] = value;
+        values = newValues;
     }
 
     /**
@@ -436,7 +447,7 @@ public class Page {
             }
         } else {
             p = p.copyOnWrite();
-            p.children[index] = c2.id;
+            p.setChild(index, c2.id);
         }
         return p;
     }
@@ -485,8 +496,8 @@ public class Page {
             throw new RuntimeException("Page map id mismatch, expected " + map.getId() + " got " + id);
         }
         boolean node = buff.get() == 1;
+        int len = DataUtils.readVarInt(buff);
         if (node) {
-            int len = DataUtils.readVarInt(buff);
             children = new long[len];
             keys = new Object[len - 1];
             for (int i = 0; i < len; i++) {
@@ -496,7 +507,6 @@ public class Page {
                 keys[i] = map.getKeyType().read(buff);
             }
         } else {
-            int len = DataUtils.readVarInt(buff);
             keys = new Object[len];
             values = new Object[len];
             for (int i = 0; i < len; i++) {

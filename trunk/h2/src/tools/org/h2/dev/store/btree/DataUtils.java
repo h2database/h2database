@@ -6,7 +6,9 @@
  */
 package org.h2.dev.store.btree;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
  * Utility methods
@@ -170,6 +172,16 @@ public class DataUtils {
         if (removeIndex < oldSize) {
             System.arraycopy(src, removeIndex + 1, dst, removeIndex, oldSize - removeIndex - 1);
         }
+    }
+
+    static void readFully(FileChannel file, ByteBuffer buff) throws IOException {
+        do {
+            int len = file.read(buff);
+            if (len < 0) {
+                break;
+            }
+        } while (buff.remaining() > 0);
+        buff.rewind();
     }
 
 }

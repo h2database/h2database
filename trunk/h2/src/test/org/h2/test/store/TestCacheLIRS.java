@@ -12,13 +12,12 @@ import java.util.Map.Entry;
 import java.util.Random;
 import org.h2.dev.store.btree.CacheLIRS;
 import org.h2.test.TestBase;
-import org.h2.upgrade.v1_1.util.Profiler;
 import org.h2.util.New;
 
 /**
  * Tests the cache algorithm.
  */
-public class TestCache extends TestBase {
+public class TestCacheLIRS extends TestBase {
 
     /**
      * Run just this test.
@@ -30,8 +29,6 @@ public class TestCache extends TestBase {
     }
 
     public void test() throws Exception {
-        Profiler p = new Profiler();
-        p.startCollecting();
         testEdgeCases();
         testSize();
         testClear();
@@ -42,7 +39,6 @@ public class TestCache extends TestBase {
         testBadHashMethod();
         testScanResistance();
         testRandomOperations();
-        System.out.println(p.getTop(5));
     }
 
     private void testEdgeCases() {

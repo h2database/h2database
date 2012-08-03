@@ -17,13 +17,13 @@ import java.util.Iterator;
 public class BtreeMap<K, V> {
 
     private final BtreeMapStore store;
-    private final long id;
+    private final int id;
     private final String name;
     private final DataType keyType;
     private final DataType valueType;
     private Page root;
 
-    private BtreeMap(BtreeMapStore store, long id, String name, DataType keyType, DataType valueType) {
+    private BtreeMap(BtreeMapStore store, int id, String name, DataType keyType, DataType valueType) {
         this.store = store;
         this.id = id;
         this.name = name;
@@ -43,7 +43,7 @@ public class BtreeMap<K, V> {
      * @param valueClass the value class
      * @return the map
      */
-    static <K, V> BtreeMap<K, V> open(BtreeMapStore store, long id, String name, DataType keyType, DataType valueType) {
+    static <K, V> BtreeMap<K, V> open(BtreeMapStore store, int id, String name, DataType keyType, DataType valueType) {
         return new BtreeMap<K, V>(store, id, name, keyType, valueType);
     }
 
@@ -97,6 +97,14 @@ public class BtreeMap<K, V> {
     }
 
     /**
+     * Remove all entries, and remove the map.
+     */
+    public void remove() {
+        clear();
+        store.removeMap(id);
+    }
+
+    /**
      * Remove a key-value pair.
      *
      * @param key the key
@@ -114,7 +122,7 @@ public class BtreeMap<K, V> {
      * @return true if yes
      */
     boolean isChanged() {
-        return root != null && root.getId() < 0;
+        return root != null && root.getPos() < 0;
     }
 
     private void markChanged() {
@@ -167,22 +175,22 @@ public class BtreeMap<K, V> {
     }
 
     /**
-     * Read a node.
+     * Read a page.
      *
-     * @param id the node id
-     * @return the node
+     * @param pos the position of the page
+     * @return the page
      */
-    Page readPage(long id) {
-        return store.readPage(this, id);
+    Page readPage(long pos) {
+        return store.readPage(this, pos);
     }
 
     /**
-     * Remove a node.
+     * Remove a page.
      *
-     * @param id the node id
+     * @param pos the position of the page
      */
-    void removePage(long id) {
-        store.removePage(id);
+    void removePage(long pos) {
+        store.removePage(pos);
     }
 
     /**
@@ -190,7 +198,7 @@ public class BtreeMap<K, V> {
      *
      * @param rootPos the position
      */
-    void setRoot(long rootPos) {
+    void setRootPos(long rootPos) {
         root = readPage(rootPos);
     }
 
@@ -205,9 +213,9 @@ public class BtreeMap<K, V> {
     }
 
     /**
-     * Get the root node.
+     * Get the root page.
      *
-     * @return the root node
+     * @return the root page
      */
     Page getRoot() {
         return root;
@@ -226,7 +234,7 @@ public class BtreeMap<K, V> {
         return store.getMaxPageSize();
     }
 
-    long getId() {
+    int getId() {
         return id;
     }
 

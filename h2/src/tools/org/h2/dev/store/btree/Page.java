@@ -6,7 +6,9 @@
  */
 package org.h2.dev.store.btree;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 
 /**
@@ -18,7 +20,7 @@ import java.util.ArrayList;
 public class Page {
 
     private final BtreeMap<?, ?> map;
-    private long id;
+    private long pos;
     private long transaction;
     private Object[] keys;
     private Object[] values;
@@ -44,7 +46,7 @@ public class Page {
         p.values = values;
         p.children = children;
         p.transaction = map.getTransaction();
-        p.id = map.registerTempPage(p);
+        p.pos = map.registerTempPage(p);
         return p;
     }
 
@@ -52,25 +54,38 @@ public class Page {
      * Read a page.
      *
      * @param map the map
-     * @param id the page id
+     * @param pos the page position
      * @param buff the source buffer
      * @return the page
      */
-    static Page read(BtreeMap<?, ?> map, long id, ByteBuffer buff) {
+    static Page read(FileChannel file, BtreeMap<?, ?> map, long filePos, long pos) {
+        int maxLength = Page.getMaxLength(pos), length = maxLength;
+        ByteBuffer buff;
+        try {
+            file.position(filePos);
+            if (maxLength == Integer.MAX_VALUE) {
+                buff = ByteBuffer.wrap(new byte[128]);
+                DataUtils.readFully(file, buff);
+                maxLength = buff.getInt();
+                file.position(filePos);
+            }
+            buff = ByteBuffer.wrap(new byte[length]);
+            DataUtils.readFully(file, buff);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         Page p = new Page(map);
-        p.id = id;
-        p.read(buff);
+        p.pos = pos;
+        p.read(buff, maxLength);
         return p;
     }
 
     private Page copyOnWrite() {
-        // TODO avoid creating objects (arrays) that are then not used
-        // possibly add shortcut for copy with add / copy with remove
         long t = map.getTransaction();
         if (transaction == t) {
             return this;
         }
-        map.removePage(id);
+        map.removePage(pos);
         Page newPage = create(map, keys, values, children);
         newPage.transaction = t;
         newPage.cachedCompare = cachedCompare;
@@ -79,7 +94,7 @@ public class Page {
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        buff.append("nodeId: ").append(id).append("\n");
+        buff.append("pos: ").append(pos).append("\n");
         for (int i = 0; i <= keys.length; i++) {
             if (i > 0) {
                 buff.append(" ");
@@ -99,12 +114,12 @@ public class Page {
     }
 
     /**
-     * Get the page id.
+     * Get the position of the page
      *
-     * @return the page id
+     * @return the position
      */
-    long getId() {
-        return id;
+    long getPos() {
+        return pos;
     }
 
     /**
@@ -236,7 +251,7 @@ public class Page {
             return null;
         }
         while (true) {
-            // TODO avoid remove/add pairs if possible
+            // TODO performance: avoid remove/add pairs if possible
             CursorPos p = parents.remove(parents.size() - 1);
             int index = p.index++;
             if (index < p.page.keys.length) {
@@ -323,7 +338,7 @@ public class Page {
         int parentIndex = 0;
         while (true) {
             if (parent != null) {
-                parent.setChild(parentIndex, p.id);
+                parent.setChild(parentIndex, p.pos);
             }
             if (!p.isLeaf()) {
                 if (p.keyCount() >= map.getMaxPageSize()) {
@@ -333,11 +348,11 @@ public class Page {
                     Page split = p.splitNode(pos);
                     if (parent == null) {
                         Object[] keys = { k };
-                        long[] children = { p.getId(), split.getId() };
+                        long[] children = { p.getPos(), split.getPos() };
                         top = create(map, keys, null, children);
                         p = top;
                     } else {
-                        parent.insert(parentIndex, k, null, split.getId());
+                        parent.insert(parentIndex, k, null, split.getPos());
                         p = parent;
                     }
                 }
@@ -356,10 +371,10 @@ public class Page {
                     Page split = p.splitLeaf(pos);
                     if (parent == null) {
                         Object[] keys = { k };
-                        long[] children = { p.getId(), split.getId() };
+                        long[] children = { p.getPos(), split.getPos() };
                         top = create(map, keys, null, children);
                     } else {
-                        parent.insert(parentIndex, k, null, split.getId());
+                        parent.insert(parentIndex, k, null, split.getPos());
                     }
                 }
                 break;
@@ -402,22 +417,22 @@ public class Page {
                 map.readPage(c).removeAllRecursive();
             }
         }
-        map.removePage(id);
+        map.removePage(pos);
     }
 
     /**
      * Remove a key-value pair.
      *
-     * @param p the root node
+     * @param p the root page
      * @param key the key
-     * @return the new root node
+     * @return the new root page
      */
     static Page remove(Page p, Object key) {
         int index = p.findKey(key);
         if (p.isLeaf()) {
             if (index >= 0) {
                 if (p.keyCount() == 1) {
-                    p.map.removePage(p.id);
+                    p.map.removePage(p.pos);
                     return null;
                 }
                 p = p.copyOnWrite();
@@ -442,12 +457,12 @@ public class Page {
             p = p.copyOnWrite();
             p.remove(index);
             if (p.keyCount() == 0) {
-                p.map.removePage(p.id);
+                p.map.removePage(p.pos);
                 p = p.map.readPage(p.children[0]);
             }
         } else {
             p = p.copyOnWrite();
-            p.setChild(index, c2.id);
+            p.setChild(index, c2.pos);
         }
         return p;
     }
@@ -488,15 +503,17 @@ public class Page {
         }
     }
 
-    private void read(ByteBuffer buff) {
-        // len
-        buff.getInt();
-        long id = buff.getLong();
-        if (id != map.getId()) {
-            throw new RuntimeException("Page map id mismatch, expected " + map.getId() + " got " + id);
+    private void read(ByteBuffer buff, int maxLength) {
+        int len = buff.getInt();
+        if (len > maxLength) {
+            throw new RuntimeException("Length too large, expected < " + maxLength + " got " + len);
+        }
+        int mapId = DataUtils.readVarInt(buff);
+        if (mapId != map.getId()) {
+            throw new RuntimeException("Page pos mismatch, expected " + map.getId() + " got " + mapId);
         }
         boolean node = buff.get() == 1;
-        int len = DataUtils.readVarInt(buff);
+        len = DataUtils.readVarInt(buff);
         if (node) {
             children = new long[len];
             keys = new Object[len - 1];
@@ -517,14 +534,15 @@ public class Page {
     }
 
     /**
-     * Store the page.
+     * Store the page and update the position.
      *
      * @param buff the target buffer
+     * @param chunkId the chunk id
      */
-    private void write(ByteBuffer buff) {
-        int pos = buff.position();
+    private void write(ByteBuffer buff, int chunkId) {
+        int offset = buff.position();
         buff.putInt(0);
-        buff.putLong(map.getId());
+        DataUtils.writeVarInt(buff, map.getId());
         if (children != null) {
             buff.put((byte) 1);
             int len = children.length;
@@ -544,8 +562,9 @@ public class Page {
                 map.getValueType().write(buff, values[i]);
             }
         }
-        int len = buff.position() - pos;
-        buff.putInt(pos, len);
+        int len = buff.position() - offset;
+        buff.putInt(offset, len);
+        this.pos = Page.getPos(chunkId, offset, len);
     }
 
     /**
@@ -554,7 +573,7 @@ public class Page {
      * @return the next page id
      */
     int getMaxLengthTempRecursive() {
-        int maxLength = 4 + 8 + 1;
+        int maxLength = 4 + DataUtils.MAX_VAR_INT_LEN + 1;
         if (children != null) {
             int len = children.length;
             maxLength += DataUtils.MAX_VAR_INT_LEN;
@@ -580,26 +599,25 @@ public class Page {
     }
 
     /**
-     * Store this page and all children that are changed,
-     * in reverse order, and update the id and child ids.
+     * Store this page and all children that are changed, in reverse order, and
+     * update the position and the children.
      *
      * @param buff the target buffer
-     * @param idOffset the offset of the id
+     * @param posOffset the offset of the id
      * @return the page id
      */
-    long writeTempRecursive(ByteBuffer buff, long idOffset) {
+    long writeTempRecursive(ByteBuffer buff, int chunkId) {
         if (children != null) {
             int len = children.length;
             for (int i = 0; i < len; i++) {
                 long c = children[i];
                 if (c < 0) {
-                    children[i] = map.readPage(c).writeTempRecursive(buff, idOffset);
+                    children[i] = map.readPage(c).writeTempRecursive(buff, chunkId);
                 }
             }
         }
-        this.id = idOffset + buff.position();
-        write(buff);
-        return id;
+        write(buff, chunkId);
+        return pos;
     }
 
     /**
@@ -619,6 +637,75 @@ public class Page {
             }
         }
         return count;
+    }
+
+    /**
+     * Get the chunk id from the position.
+     *
+     * @param pos the position
+     * @return the chunk id
+     */
+    static int getChunkId(long pos) {
+        return (int) (pos >>> 37);
+    }
+
+    /**
+     * Get the offset from the position.
+     *
+     * @param pos the position
+     * @return the offset
+     */
+    public static long getOffset(long pos) {
+        return (int) (pos >> 5);
+    }
+
+    /**
+     * Get the position of this page. The following information is encoded in
+     * the position: the chunk id, the offset, and the maximum length.
+     *
+     * @param chunkId the chunk id
+     * @param offset the offset
+     * @param length the length
+     * @return the position
+     */
+    static long getPos(int chunkId, int offset, int length) {
+        return ((long) chunkId << 37) | ((long) offset << 5) | encodeLength(length);
+    }
+
+    /**
+     * Convert the length to a length code 0..31. 31 means more than 1 MB.
+     *
+     * @param len the length
+     * @return the length code
+     */
+    public static int encodeLength(int len) {
+        if (len <= 32) {
+            return 0;
+        }
+        int x = len;
+        int shift = 0;
+        while (x > 3) {
+            shift++;
+            x = (x >> 1) + (x & 1);
+        }
+        shift = Math.max(0,  shift - 4);
+        int code = (shift << 1) + (x & 1);
+        return Math.min(31, code);
+    }
+
+    /**
+     * Get the maximum length for the given code.
+     * For the code 31, Integer.MAX_VALUE is returned.
+     *
+     * @param pos the position
+     * @return the maximum length
+     */
+    public static int getMaxLength(long pos) {
+        int code = (int) (pos & 31);
+        if (code == 31) {
+            return Integer.MAX_VALUE;
+        }
+        return (2 + (code & 1)) << ((code >> 1) + 4);
     }
 
 }

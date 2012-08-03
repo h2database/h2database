@@ -40,20 +40,30 @@ chunk:
 1 byte: 'c'
 4 bytes: length
 4 bytes: chunk id (an incrementing number)
-4 bytes: metaRootPos (relative to the chunk start)
+8 bytes: metaRootPos
 data ...
 
-todo:
+Limits: there are at most 67 million chunks (each chunk is at most 2 GB large).
 
-- use page checksums
+TODO:
+
+- use partial page checksums
 - compress chunks
-- possibly encode the length in pos (1=32, 2=128, 3=512,...)
 - rollback feature
+- support range deletes
+- keep page type (leaf/node)  in pos to speed up large deletes
 
 - floating header (avoid duplicate header)
     for each chunk, store chunk (a counter)
     for each page, store chunk id and offset to root
     for each chunk, store position of expected next chunks
+
+- support reading metadata to copy all data,
+- support quota (per map, per storage)
+
+- support r-tree, kd-tree
+
+- map ids should be per chunk, to ensure uniqueness
 
 */
 
@@ -73,7 +83,7 @@ public class BtreeMapStore {
 
     private FileChannel file;
     private int blockSize = 4 * 1024;
-    private long rootChunkPos;
+    private long rootChunkStart;
 
     private int tempPageId;
     private Map<Long, Page> cache = CacheLIRS.newInstance(readCacheSize, 2048);
@@ -84,15 +94,13 @@ public class BtreeMapStore {
 
     // TODO use bit set, and integer instead of long
     private BtreeMap<String, String> meta;
-    private long lastMapId;
     private HashMap<String, BtreeMap<?, ?>> maps = New.hashMap();
     private HashMap<String, BtreeMap<?, ?>> mapsChanged = New.hashMap();
+    private int mapIdMin;
+    private BitSet mapIds = new BitSet();
 
     // TODO use an int instead? (with rollover to 0)
     private long transaction;
-
-    // TODO support reading metadata to support quota (per map, per storage)
-    // TODO support r-tree
 
     private BtreeMapStore(String fileName, DataTypeFactory typeFactory) {
         this.fileName = fileName;
@@ -137,17 +145,17 @@ public class BtreeMapStore {
         BtreeMap<K, V> m = (BtreeMap<K, V>) maps.get(name);
         if (m == null) {
             String identifier = meta.get("map." + name);
-            long id;
+            int id;
             String root;
             if (identifier == null) {
-                id = ++lastMapId;
+                id = nextMapId();
                 String types = id + "/" + keyType.asString() + "/" + valueType.asString();
                 meta.put("map." + name, types);
                 root = null;
             } else {
                 String types = meta.get("map." + name);
                 String[] idTypeList = StringUtils.arraySplit(types, '/', false);
-                id = Long.parseLong(idTypeList[0]);
+                id = Integer.parseInt(idTypeList[0]);
                 keyType = getDataType(idTypeList[1]);
                 valueType = getDataType(idTypeList[2]);
                 root = meta.get("root." + id);
@@ -155,10 +163,24 @@ public class BtreeMapStore {
             m = BtreeMap.open(this, id, name, keyType, valueType);
             maps.put(name, m);
             if (root != null && !"0".equals(root)) {
-                m.setRoot(Long.parseLong(root));
+                m.setRootPos(Long.parseLong(root));
             }
         }
         return m;
+    }
+
+    private int nextMapId() {
+        int result;
+        while (true) {
+            result = mapIds.nextClearBit(mapIdMin);
+            mapIds.set(result);
+            // TODO need to check in oldest
+            if (meta.get("root." + result) == null) {
+                break;
+            }
+        }
+        mapIdMin = result;
+        return result;
     }
 
     /**
@@ -175,6 +197,11 @@ public class BtreeMapStore {
         DataType keyType = getDataType(keyClass);
         DataType valueType = getDataType(valueClass);
         return openMap(name, keyType, valueType);
+    }
+
+    void removeMap(int id) {
+        mapIds.clear(id);
+        mapIdMin = Math.min(id,  mapIdMin);
     }
 
     private DataType getDataType(Class<?> clazz) {
@@ -228,10 +255,10 @@ public class BtreeMapStore {
     }
 
     private void readMeta() {
-        Chunk header = readChunkHeader(rootChunkPos);
+        Chunk header = readChunkHeader(rootChunkStart);
         lastChunkId = header.id;
         chunks.put(header.id, header);
-        meta.setRoot(getId(header.id, header.metaRootOffset));
+        meta.setRootPos(header.metaRootPos);
         Iterator<String> it = meta.keyIterator("chunk.");
         while (it.hasNext()) {
             String s = it.next();
@@ -242,7 +269,7 @@ public class BtreeMapStore {
             if (c.id == header.id) {
                 c.start = header.start;
                 c.length = header.length;
-                c.metaRootOffset = header.metaRootOffset;
+                c.metaRootPos = header.metaRootPos;
             }
             lastChunkId = Math.max(c.id, lastChunkId);
             chunks.put(c.id, c);
@@ -256,8 +283,8 @@ public class BtreeMapStore {
                 "versionRead:1\n" +
                 "versionWrite:1\n" +
                 "blockSize:" + blockSize + "\n" +
-                "rootChunk:" + rootChunkPos + "\n" +
-                "lastMapId:" + lastMapId + "\n" +
+                "rootChunk:" + rootChunkStart + "\n" +
+                "lastMapId:" + mapIdMin + "\n" +
                 "transaction:" + transaction + "\n").getBytes("UTF-8"));
             file.position(0);
             file.write(header);
@@ -276,9 +303,9 @@ public class BtreeMapStore {
             file.read(ByteBuffer.wrap(header));
             Properties prop = new Properties();
             prop.load(new StringReader(new String(header, "UTF-8")));
-            rootChunkPos = Long.parseLong(prop.get("rootChunk").toString());
+            rootChunkStart = Long.parseLong(prop.get("rootChunk").toString());
             transaction = Long.parseLong(prop.get("transaction").toString());
-            lastMapId = Long.parseLong(prop.get("lastMapId").toString());
+            mapIdMin = Integer.parseInt(prop.get("lastMapId").toString());
         } catch (Exception e) {
             throw convert(e);
         }
@@ -303,18 +330,18 @@ public class BtreeMapStore {
         }
     }
 
-    private long getPosition(long posId) {
-        Chunk c = getChunk(posId);
-        if (c == null) {
-            throw new RuntimeException("Chunk " + getChunkId(posId) + " not found");
-        }
-        long pos = c.start;
-        pos += (int) (posId & Integer.MAX_VALUE);
-        return pos;
+    private Chunk getChunk(long pos) {
+        return chunks.get(Page.getChunkId(pos));
     }
 
-    private static long getId(int chunkId, int offset) {
-        return ((long) chunkId << 32) | offset;
+    private long getFilePosition(long pos) {
+        Chunk c = getChunk(pos);
+        if (c == null) {
+            throw new RuntimeException("Chunk " + Page.getChunkId(pos) + " not found");
+        }
+        long filePos = c.start;
+        filePos += Page.getOffset(pos);
+        return filePos;
     }
 
     /**
@@ -351,7 +378,7 @@ public class BtreeMapStore {
             chunks.remove(x);
         }
         int count = 0;
-        int maxLength = 1 + 4 + 4 + 4;
+        int maxLength = 1 + 4 + 4 + 8;
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
             Page p = m.getRoot();
             if (p != null) {
@@ -370,12 +397,11 @@ public class BtreeMapStore {
         buff.put((byte) 'c');
         buff.putInt(0);
         buff.putInt(0);
-        buff.putInt(0);
-        long idOffset = getId(chunkId, 0);
+        buff.putLong(0);
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
             Page p = m.getRoot();
             if (p != null) {
-                long root = p.writeTempRecursive(buff, idOffset);
+                long root = p.writeTempRecursive(buff, chunkId);
                 meta.put("root." + m.getId(), "" + root);
             }
         }
@@ -385,33 +411,32 @@ public class BtreeMapStore {
         c.liveCount = count;
         meta.put("chunk." + c.id, c.toString());
 
-        meta.getRoot().writeTempRecursive(buff, idOffset);
+        meta.getRoot().writeTempRecursive(buff, chunkId);
 
         buff.flip();
         int length = buff.limit();
-        long storePos = allocateChunk(length);
-        int rootOffset = (int) (meta.getRoot().getId() - idOffset);
+        long filePos = allocateChunk(length);
 
         buff.rewind();
         buff.put((byte) 'c');
         buff.putInt(length);
         buff.putInt(chunkId);
-        buff.putInt(rootOffset);
+        buff.putLong(meta.getRoot().getPos());
         buff.rewind();
         try {
-            file.position(storePos);
+            file.position(filePos);
             file.write(buff);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        rootChunkPos = storePos;
+        rootChunkStart = filePos;
         writeHeader();
         mapsChanged.clear();
         temp.clear();
         tempPageId = 0;
 
         // update the start position and length
-        c.start = storePos;
+        c.start = filePos;
         c.length = length;
         meta.put("chunk." + c.id, c.toString());
 
@@ -478,22 +503,22 @@ public class BtreeMapStore {
         return ++transaction;
     }
 
-    private Chunk readChunkHeader(long pos) {
+    private Chunk readChunkHeader(long start) {
         try {
-            file.position(pos);
-            ByteBuffer buff = ByteBuffer.wrap(new byte[16]);
-            file.read(buff);
+            file.position(start);
+            ByteBuffer buff = ByteBuffer.wrap(new byte[32]);
+            DataUtils.readFully(file, buff);
             buff.rewind();
             if (buff.get() != 'c') {
                 throw new RuntimeException("File corrupt");
             }
             int length = buff.getInt();
             int chunkId = buff.getInt();
-            int offset = buff.getInt();
+            long metaRootPos = buff.getLong();
             Chunk c = new Chunk(chunkId);
-            c.start = pos;
+            c.start = start;
             c.length = length;
-            c.metaRootOffset = offset;
+            c.metaRootPos = metaRootPos;
             return c;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -552,9 +577,9 @@ public class BtreeMapStore {
             }
         }
         Chunk header = readChunkHeader(move.start);
-        log("  meta:" + move.id + "/" + header.metaRootOffset + " start: " + move.start);
+        log("  meta:" + move.id + "/" + header.metaRootPos + " start: " + move.start);
         BtreeMap<String, String> oldMeta = BtreeMap.open(this, 0, "old-meta", STRING_TYPE, STRING_TYPE);
-        oldMeta.setRoot(getId(header.id, header.metaRootOffset));
+        oldMeta.setRootPos(header.metaRootPos);
         Iterator<String> it = oldMeta.keyIterator(null);
         ArrayList<Integer> oldChunks = New.arrayList();
         while (it.hasNext()) {
@@ -577,7 +602,7 @@ public class BtreeMapStore {
                 continue;
             }
             String[] idTypesList = StringUtils.arraySplit(s, '/', false);
-            long id = Long.parseLong(idTypesList[0]);
+            int id = Integer.parseInt(idTypesList[0]);
             DataType kt = getDataType(idTypesList[1]);
             DataType vt = getDataType(idTypesList[2]);
             long oldDataRoot = Long.parseLong(oldMeta.get("root." + id));
@@ -585,7 +610,7 @@ public class BtreeMapStore {
             if (oldDataRoot == 0) {
                 // no rows
             } else {
-                oldData.setRoot(oldDataRoot);
+                oldData.setRootPos(oldDataRoot);
                 @SuppressWarnings("unchecked")
                 BtreeMap<Object, Object> data = (BtreeMap<Object, Object>) maps.get(k);
                 Iterator<?> dataIt = oldData.keyIterator(null);
@@ -594,11 +619,11 @@ public class BtreeMapStore {
                     Page p = data.getPage(o);
                     if (p == null) {
                         // was removed later - ignore
-                    } else if (p.getId() < 0) {
+                    } else if (p.getPos() < 0) {
                         // temporarily changed - ok
-                        // TODO move old data if changed temporarily?
+                        // TODO move old data if there is an uncommitted change?
                     } else {
-                        Chunk c = getChunk(p.getId());
+                        Chunk c = getChunk(p.getPos());
                         if (old.contains(c)) {
                             log("       move key:" + o + " chunk:" + c.id);
                             Object value = data.get(o);
@@ -618,32 +643,18 @@ public class BtreeMapStore {
      * Read a page.
      *
      * @param map the map
-     * @param id the page id
+     * @param pos the page position
      * @return the page
      */
-    Page readPage(BtreeMap<?, ?> map, long id) {
-        if (id < 0) {
-            return temp.get(id);
+    Page readPage(BtreeMap<?, ?> map, long pos) {
+        if (pos < 0) {
+            return temp.get(pos);
         }
-        Page p = cache.get(id);
+        Page p = cache.get(pos);
         if (p == null) {
-            try {
-                long pos = getPosition(id);
-                file.position(pos);
-                ByteBuffer buff = ByteBuffer.wrap(new byte[8 * 1024]);
-                // TODO read fully; read only required bytes
-                do {
-                    int len = file.read(buff);
-                    if (len < 0) {
-                        break;
-                    }
-                } while (buff.remaining() > 0);
-                buff.rewind();
-                p = Page.read(map, id, buff);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            cache.put(id, p);
+            long filePos = getFilePosition(pos);
+            p = Page.read(file, map, filePos, pos);
+            cache.put(pos, p);
         }
         return p;
     }
@@ -651,29 +662,21 @@ public class BtreeMapStore {
     /**
      * Remove a page.
      *
-     * @param id the page id
+     * @param pos the position of the page
      */
-    void removePage(long id) {
-        if (id > 0) {
-            cache.remove(id);
-            if (getChunk(id).liveCount == 0) {
-                throw new RuntimeException("Negative live count: " + id);
+    void removePage(long pos) {
+        if (pos > 0) {
+            cache.remove(pos);
+            if (getChunk(pos).liveCount == 0) {
+                throw new RuntimeException("Negative live count: " + pos);
             }
-            getChunk(id).liveCount--;
+            getChunk(pos).liveCount--;
         } else {
-            temp.remove(id);
+            temp.remove(pos);
             if (temp.size() == 0) {
                 tempPageId = 0;
             }
         }
-    }
-
-    private static int getChunkId(long pos) {
-        return (int) (pos >>> 32);
-    }
-
-    private Chunk getChunk(long pos) {
-        return chunks.get(getChunkId(pos));
     }
 
     /**

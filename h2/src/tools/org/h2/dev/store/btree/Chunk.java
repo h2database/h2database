@@ -46,9 +46,9 @@ class Chunk {
     int collectPriority;
 
     /**
-     * The offset of the meta root.
+     * The position of the meta root.
      */
-    int metaRootOffset;
+    long metaRootPos;
 
     Chunk(int id) {
         this.id = id;
@@ -70,7 +70,7 @@ class Chunk {
             c.length = Long.parseLong(prop.get("length").toString());
             c.entryCount = Integer.parseInt(prop.get("entryCount").toString());
             c.liveCount = Integer.parseInt(prop.get("liveCount").toString());
-            c.metaRootOffset = Integer.parseInt(prop.get("metaRoot").toString());
+            c.metaRootPos = Long.parseLong(prop.get("metaRoot").toString());
             return c;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -96,7 +96,7 @@ class Chunk {
             "length:" + length + "\n" +
             "entryCount:" + entryCount + "\n" +
             "liveCount:" + liveCount + "\n" +
-            "metaRoot:" + metaRootOffset + "\n";
+            "metaRoot:" + metaRootPos + "\n";
     }
 
 }

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import org.h2.compress.Compressor;
 
 /**
  * A btree page (a node or a leaf).
@@ -341,7 +342,7 @@ public class Page {
                 parent.setChild(parentIndex, p.pos);
             }
             if (!p.isLeaf()) {
-                if (p.keyCount() >= map.getMaxPageSize()) {
+                if (p.keyCount() >= map.getStore().getMaxPageSize()) {
                     // TODO almost duplicate code
                     int pos = p.keyCount() / 2;
                     Object k = p.keys[pos];
@@ -365,7 +366,7 @@ public class Page {
                 }
                 index = -index - 1;
                 p.insert(index, key, value, 0);
-                if (p.keyCount() >= map.getMaxPageSize()) {
+                if (p.keyCount() >= map.getStore().getMaxPageSize()) {
                     int pos = p.keyCount() / 2;
                     Object k = p.keys[pos];
                     Page split = p.splitLeaf(pos);
@@ -504,6 +505,7 @@ public class Page {
     }
 
     private void read(ByteBuffer buff, int maxLength) {
+        int start = buff.position();
         int len = buff.getInt();
         if (len > maxLength) {
             throw new RuntimeException("Length too large, expected < " + maxLength + " got " + len);
@@ -512,22 +514,32 @@ public class Page {
         if (mapId != map.getId()) {
             throw new RuntimeException("Page pos mismatch, expected " + map.getId() + " got " + mapId);
         }
-        boolean node = buff.get() == 1;
+        int type = buff.get();
+        boolean node = (type & 1) != 0;
+        boolean compressed = (type & 2) != 0;
+        if (compressed) {
+            Compressor compressor = map.getStore().getCompressor();
+            int lenAdd = DataUtils.readVarInt(buff);
+            int compLen = len + start - buff.position();
+            byte[] comp = new byte[compLen];
+            buff.get(comp);
+            byte[] exp = new byte[compLen + lenAdd];
+            compressor.expand(comp, 0, compLen, exp, 0, exp.length);
+            buff = ByteBuffer.wrap(exp);
+        }
         len = DataUtils.readVarInt(buff);
+        keys = new Object[len];
+        for (int i = 0; i < len; i++) {
+            keys[i] = map.getKeyType().read(buff);
+        }
         if (node) {
-            children = new long[len];
-            keys = new Object[len - 1];
-            for (int i = 0; i < len; i++) {
+            children = new long[len + 1];
+            for (int i = 0; i <= len; i++) {
                 children[i] = buff.getLong();
             }
-            for (int i = 0; i < len - 1; i++) {
-                keys[i] = map.getKeyType().read(buff);
-            }
         } else {
-            keys = new Object[len];
             values = new Object[len];
             for (int i = 0; i < len; i++) {
-                keys[i] = map.getKeyType().read(buff);
                 values[i] = map.getValueType().read(buff);
             }
         }
@@ -540,31 +552,44 @@ public class Page {
      * @param chunkId the chunk id
      */
     private void write(ByteBuffer buff, int chunkId) {
-        int offset = buff.position();
+        int start = buff.position();
         buff.putInt(0);
         DataUtils.writeVarInt(buff, map.getId());
-        if (children != null) {
-            buff.put((byte) 1);
-            int len = children.length;
-            DataUtils.writeVarInt(buff, len);
-            for (int i = 0; i < len; i++) {
+        Compressor compressor = map.getStore().getCompressor();
+        int type = children != null ? 1 : 0;
+        buff.put((byte) type);
+        int compressStart = buff.position();
+        int len = keys.length;
+        DataUtils.writeVarInt(buff, len);
+        for (int i = 0; i < len; i++) {
+            map.getKeyType().write(buff, keys[i]);
+        }
+        if (type == 1) {
+            for (int i = 0; i < len + 1; i++) {
                 buff.putLong(children[i]);
             }
-            for (int i = 0; i < len - 1; i++) {
-                map.getKeyType().write(buff, keys[i]);
-            }
         } else {
-            buff.put((byte) 0);
-            int len = keys.length;
-            DataUtils.writeVarInt(buff, len);
             for (int i = 0; i < len; i++) {
-                map.getKeyType().write(buff, keys[i]);
                 map.getValueType().write(buff, values[i]);
             }
         }
-        int len = buff.position() - offset;
-        buff.putInt(offset, len);
-        this.pos = Page.getPos(chunkId, offset, len);
+        if (compressor != null) {
+            len = buff.position() - compressStart;
+            byte[] exp = new byte[len];
+            buff.position(compressStart);
+            buff.get(exp);
+            byte[] comp = new byte[exp.length * 2];
+            int compLen = compressor.compress(exp, exp.length, comp, 0);
+            if (compLen + DataUtils.getVarIntLen(compLen - len) < len) {
+                buff.position(compressStart - 1);
+                buff.put((byte) (type + 2));
+                DataUtils.writeVarInt(buff, len - compLen);
+                buff.put(comp,  0, compLen);
+            }
+        }
+        len = buff.position() - start;
+        buff.putInt(start, len);
+        this.pos = Page.getPos(chunkId, start, len);
     }
 
     /**
@@ -574,24 +599,21 @@ public class Page {
      */
     int getMaxLengthTempRecursive() {
         int maxLength = 4 + DataUtils.MAX_VAR_INT_LEN + 1;
+        int len = keys.length;
+        maxLength += DataUtils.MAX_VAR_INT_LEN;
+        for (int i = 0; i < len; i++) {
+            maxLength += map.getKeyType().getMaxLength(keys[i]);
+        }
         if (children != null) {
-            int len = children.length;
-            maxLength += DataUtils.MAX_VAR_INT_LEN;
             maxLength += 8 * len;
-            for (int i = 0; i < len - 1; i++) {
-                maxLength += map.getKeyType().getMaxLength(keys[i]);
-            }
-            for (int i = 0; i < len; i++) {
+            for (int i = 0; i < len + 1; i++) {
                 long c = children[i];
                 if (c < 0) {
                     maxLength += map.readPage(c).getMaxLengthTempRecursive();
                 }
             }
         } else {
-            int len = keys.length;
-            maxLength += DataUtils.MAX_VAR_INT_LEN;
             for (int i = 0; i < len; i++) {
-                maxLength += map.getKeyType().getMaxLength(keys[i]);
                 maxLength += map.getValueType().getMaxLength(values[i]);
             }
         }

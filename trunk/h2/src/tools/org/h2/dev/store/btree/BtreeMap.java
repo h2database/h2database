@@ -230,8 +230,8 @@ public class BtreeMap<K, V> {
         return name;
     }
 
-    int getMaxPageSize() {
-        return store.getMaxPageSize();
+    BtreeMapStore getStore() {
+        return store;
     }
 
     int getId() {

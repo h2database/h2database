@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import org.h2.compress.CompressLZF;
+import org.h2.compress.Compressor;
 import org.h2.dev.store.FilePathCache;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -48,7 +50,6 @@ Limits: there are at most 67 million chunks (each chunk is at most 2 GB large).
 TODO:
 
 - use partial page checksums
-- compress chunks
 - rollback feature
 - support range deletes
 - keep page type (leaf/node)  in pos to speed up large deletes
@@ -101,6 +102,8 @@ public class BtreeMapStore {
 
     // TODO use an int instead? (with rollover to 0)
     private long transaction;
+
+    private Compressor compressor = new CompressLZF();
 
     private BtreeMapStore(String fileName, DataTypeFactory typeFactory) {
         this.fileName = fileName;
@@ -695,6 +698,14 @@ public class BtreeMapStore {
 
     int getMaxPageSize() {
         return maxPageSize;
+    }
+
+    public Compressor getCompressor() {
+        return compressor;
+    }
+
+    public void setCompressor(Compressor compressor) {
+        this.compressor = compressor;
     }
 
 }

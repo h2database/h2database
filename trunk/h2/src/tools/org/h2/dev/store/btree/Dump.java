@@ -118,6 +118,7 @@ public class Dump {
             }
         }
         writer.println();
+        writer.flush();
     }
 
 }

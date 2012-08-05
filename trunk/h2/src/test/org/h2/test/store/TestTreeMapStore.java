@@ -45,21 +45,22 @@ public class TestTreeMapStore extends TestBase {
         for (int j = 0; j < 5; j++) {
             FileUtils.delete(fileName);
             BtreeMapStore s = openStore(fileName);
+            // s.setCompressor(null);
             s.setMaxPageSize(40);
             RowType rowType = RowType.fromString("r(i,,)", new TestTypeFactory());
             BtreeMap<Integer, Object[]> m = s.openMap("data", new IntegerType(), rowType);
             int i = 0;
             // long t = System.currentTimeMillis();
             for (; i < len;) {
-              Object[] o = new Object[3];
-              o[0] = i;
-              o[1] = "Hello";
-              o[2] = "World";
-              m.put(i, o);
-              i++;
-              if (i % 10000 == 0) {
-                  s.store();
-              }
+                Object[] o = new Object[3];
+                o[0] = i;
+                o[1] = "Hello World";
+                o[2] = "World";
+                m.put(i, o);
+                i++;
+                if (i % 10000 == 0) {
+                    s.store();
+                }
             }
             s.store();
             s.close();

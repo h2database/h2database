@@ -73,6 +73,8 @@ Features
     Multi-Dimensional Indexes</a><br />
 <a href="#user_defined_functions">
     User-Defined Functions and Stored Procedures</a><br />
+<a href="#pluggable_tables">
+    Pluggable or User-Defined Tables</a><br />
 <a href="#triggers">
     Triggers</a><br />
 <a href="#compacting">
@@ -1622,6 +1624,34 @@ CREATE ALIAS MATRIX FOR "org.h2.samples.Function.getMatrix";
 SELECT * FROM MATRIX(4) ORDER BY X, Y;
 </pre>
 
+
+<h2 id="pluggable_tables">Pluggable or User-Defined Tables</h2>
+<p>
+For situations where you need to expose other data-sources to the SQL engine as a table,
+there are "pluggable tables".
+For some examples, have a look at the code in <code>org.h2.test.db.TestTableEngines</code>.
+</p>
+<p>
+In order to create your own TableEngine, you need to implement the <code>org.h2.api.TableEngine</code> interface e.g.
+something like this:
+<pre>
+package acme;
+public static class MyTableEngine implements org.h2.api.TableEngine {
+
+    private static class MyTable extends org.h2.table.TableBase {
+        .. rather a lot of code here...
+    }
+
+    public EndlessTable createTable(CreateTableData data) {
+        return new EndlessTable(data);
+    }
+}
+</pre>
+and then create the table from SQL like this:
+<pre>
+CREATE TABLE mytable(id int, name varchar) ENGINE "acme.MyTableEngine";
+</pre>
+</p>
 
 <h2 id="triggers">Triggers</h2>
 <p>

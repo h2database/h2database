@@ -1,4 +1,20 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create sequence seq start with 65 increment by 1;
+> ok
+
+select char(nextval('seq')) as x;
+> X
+> -
+> A
+
+select char(nextval('seq')) as x;
+> X
+> -
+> B
+
+drop sequence seq;
+> ok
+
 create table test(id int, name varchar);
 > ok
 

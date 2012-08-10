@@ -17,7 +17,7 @@ import org.h2.test.TestBase;
 /**
  * Tests the tree map store.
  */
-public class TestTreeMapStore extends TestBase {
+public class TestBtreeMapStore extends TestBase {
 
     /**
      * Run just this test.
@@ -28,7 +28,10 @@ public class TestTreeMapStore extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws Exception {
+    public void test() {
+        testRollbackInMemory();
+        testRollbackStored();
+        testMeta();
         testLargeImport();
         testBtreeStore();
         testDefragment();
@@ -39,9 +42,150 @@ public class TestTreeMapStore extends TestBase {
         testSimple();
     }
 
-    private void testLargeImport() throws Exception {
+    private void testRollbackStored() {
+        String fileName = getBaseDir() + "/testMeta.h3";
+        FileUtils.delete(fileName);
+        BtreeMap<String, String> meta;
+        BtreeMapStore s = openStore(fileName);
+        assertEquals(-1, s.getRetainChunk());
+        s.setRetainChunk(0);
+        assertEquals(0, s.getRetainChunk());
+        assertEquals(0, s.getCurrentVersion());
+        assertFalse(s.hasUnsavedChanges());
+        BtreeMap<String, String> m = s.openMap("data", String.class, String.class);
+        assertTrue(s.hasUnsavedChanges());
+        BtreeMap<String, String> m0 = s.openMap("data0", String.class, String.class);
+        m.put("1", "Hello");
+        assertEquals(1, s.commit());
+        s.rollbackTo(1);
+        assertEquals("Hello", m.get("1"));
+        long v2 = s.store();
+        assertFalse(s.hasUnsavedChanges());
+        s.close();
+
+        s = openStore(fileName);
+        s.setRetainChunk(0);
+        assertEquals(2, s.getCurrentVersion());
+        meta = s.getMetaMap();
+        m = s.openMap("data", String.class, String.class);
+        m0 = s.openMap("data0", String.class, String.class);
+        BtreeMap<String, String> m1 = s.openMap("data1", String.class, String.class);
+        m.put("1", "Hallo");
+        m0.put("1", "Hallo");
+        m1.put("1", "Hallo");
+        assertEquals("Hallo", m.get("1"));
+        assertEquals("Hallo", m1.get("1"));
+        s.rollbackTo(v2);
+        assertFalse(s.hasUnsavedChanges());
+        assertNull(meta.get("map.data1"));
+        assertNull(m0.get("1"));
+        assertEquals("Hello", m.get("1"));
+        s.store();
+        s.close();
+
+        s = openStore(fileName);
+        s.setRetainChunk(0);
+        assertEquals(2, s.getCurrentVersion());
+        meta = s.getMetaMap();
+        assertTrue(meta.get("map.data") != null);
+        assertTrue(meta.get("map.data0") != null);
+        assertNull(meta.get("map.data1"));
+        m = s.openMap("data", String.class, String.class);
+        m0 = s.openMap("data0", String.class, String.class);
+        assertNull(m0.get("1"));
+        assertEquals("Hello", m.get("1"));
+        assertFalse(m0.isReadOnly());
+        m.put("1",  "Hallo");
+        s.commit();
+        assertEquals(3, s.getCurrentVersion());
+        long v4 = s.store();
+        assertEquals(4, v4);
+        assertEquals(4, s.getCurrentVersion());
+        s.close();
+
+        s = openStore(fileName);
+        s.setRetainChunk(0);
+        m = s.openMap("data", String.class, String.class);
+        m.put("1",  "Hello");
+        s.store();
+        s.close();
+
+        s = openStore(fileName);
+        s.setRetainChunk(0);
+        m = s.openMap("data", String.class, String.class);
+        assertEquals("Hello", m.get("1"));
+        s.rollbackTo(v4);
+        assertEquals("Hallo", m.get("1"));
+        s.close();
+
+        s = openStore(fileName);
+        s.setRetainChunk(0);
+        m = s.openMap("data", String.class, String.class);
+        assertEquals("Hallo", m.get("1"));
+        s.close();
+    }
+
+    private void testRollbackInMemory() {
+        String fileName = getBaseDir() + "/testMeta.h3";
+        FileUtils.delete(fileName);
+        BtreeMapStore s = openStore(fileName);
+        s.setMaxPageSize(5);
+        BtreeMap<String, String> m = s.openMap("data", String.class, String.class);
+        BtreeMap<String, String> m0 = s.openMap("data0", String.class, String.class);
+        BtreeMap<String, String> m2 = s.openMap("data2", String.class, String.class);
+        m.put("1", "Hello");
+        for (int i = 0; i < 10; i++) {
+            m2.put("" + i, "Test");
+        }
+        long v1 = s.commit();
+        assertEquals(1, v1);
+        BtreeMap<String, String> m1 = s.openMap("data1", String.class, String.class);
+        assertEquals("Test", m2.get("1"));
+        m.put("1", "Hallo");
+        m0.put("1", "Hallo");
+        m1.put("1", "Hallo");
+        m2.clear();
+        assertEquals("Hallo", m.get("1"));
+        assertEquals("Hallo", m1.get("1"));
+        s.rollbackTo(v1);
+        for (int i = 0; i < 10; i++) {
+            assertEquals("Test", m2.get("" + i));
+        }
+        assertEquals("Hello", m.get("1"));
+        assertNull(m0.get("1"));
+        assertTrue(m1.isClosed());
+        assertFalse(m0.isReadOnly());
+        assertTrue(m1.isReadOnly());
+        s.close();
+    }
+
+    private void testMeta() {
+        String fileName = getBaseDir() + "/testMeta.h3";
+        FileUtils.delete(fileName);
+        BtreeMapStore s = openStore(fileName);
+        BtreeMap<String, String> m = s.getMetaMap();
+        s.setRetainChunk(0);
+        BtreeMap<String, String> data = s.openMap("data", String.class, String.class);
+        data.put("1", "Hello");
+        data.put("2", "World");
+        s.store();
+        assertEquals("1/0//", m.get("map.data"));
+        assertTrue(m.containsKey("chunk.1"));
+        data.put("1", "Hallo");
+        s.store();
+        assertEquals("1/0//", m.get("map.data"));
+        assertTrue(m.get("root.1").length() > 0);
+        assertTrue(m.containsKey("chunk.1"));
+        assertTrue(m.containsKey("chunk.2"));
+        s.rollbackTo(1);
+        assertTrue(m.containsKey("chunk.1"));
+        assertFalse(m.containsKey("chunk.2"));
+        s.close();
+    }
+
+    private void testLargeImport() {
         String fileName = getBaseDir() + "/testCsv.h3";
-        int len = 10000;
+        int len = 1000;
         for (int j = 0; j < 5; j++) {
             FileUtils.delete(fileName);
             BtreeMapStore s = openStore(fileName);
@@ -188,7 +332,7 @@ public class TestTreeMapStore extends TestBase {
         BtreeMap<Integer, Integer> m = s.openMap("data", Integer.class, Integer.class);
         TreeMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
         Random r = new Random(1);
-        int operationCount = 10000;
+        int operationCount = 1000;
         int maxValue = 30;
         for (int i = 0; i < operationCount; i++) {
             int k = r.nextInt(maxValue);

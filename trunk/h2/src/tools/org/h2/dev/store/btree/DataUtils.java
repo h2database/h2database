@@ -45,7 +45,7 @@ public class DataUtils {
      * @param x the value
      * @return the length in bytes
      */
-    static int getVarLongLen(long x) {
+    public static int getVarLongLen(long x) {
         int i = 1;
         while (true) {
             x >>>= 7;
@@ -97,7 +97,7 @@ public class DataUtils {
      * @param buff the source buffer
      * @return the value
      */
-    static long readVarLong(ByteBuffer buff) {
+    public static long readVarLong(ByteBuffer buff) {
         long x = buff.get();
         if (x >= 0) {
             return x;
@@ -132,7 +132,7 @@ public class DataUtils {
      * @param buff the target buffer
      * @param x the value
      */
-    static void writeVarLong(ByteBuffer buff, long x) {
+    public static void writeVarLong(ByteBuffer buff, long x) {
         while ((x & ~0x7f) != 0) {
             buff.put((byte) (0x80 | (x & 0x7f)));
             x >>>= 7;
@@ -148,7 +148,7 @@ public class DataUtils {
      * @param oldSize the size of the old array
      * @param gapIndex the index of the gap
      */
-    static void copyWithGap(Object src, Object dst, int oldSize, int gapIndex) {
+    public static void copyWithGap(Object src, Object dst, int oldSize, int gapIndex) {
         if (gapIndex > 0) {
             System.arraycopy(src, 0, dst, 0, gapIndex);
         }
@@ -165,7 +165,7 @@ public class DataUtils {
      * @param oldSize the size of the old array
      * @param removeIndex the index of the entry to remove
      */
-    static void copyExcept(Object src, Object dst, int oldSize, int removeIndex) {
+    public static void copyExcept(Object src, Object dst, int oldSize, int removeIndex) {
         if (removeIndex > 0 && oldSize > 0) {
             System.arraycopy(src, 0, dst, 0, removeIndex);
         }
@@ -182,6 +182,87 @@ public class DataUtils {
             }
         } while (buff.remaining() > 0);
         buff.rewind();
+    }
+
+    /**
+     * Convert the length to a length code 0..31. 31 means more than 1 MB.
+     *
+     * @param len the length
+     * @return the length code
+     */
+    public static int encodeLength(int len) {
+        if (len <= 32) {
+            return 0;
+        }
+        int x = len;
+        int shift = 0;
+        while (x > 3) {
+            shift++;
+            x = (x >> 1) + (x & 1);
+        }
+        shift = Math.max(0,  shift - 4);
+        int code = (shift << 1) + (x & 1);
+        return Math.min(31, code);
+    }
+
+    /**
+     * Get the chunk id from the position.
+     *
+     * @param pos the position
+     * @return the chunk id
+     */
+    public static int getChunkId(long pos) {
+        return (int) (pos >>> 37);
+    }
+
+    /**
+     * Get the maximum length for the given code.
+     * For the code 31, Integer.MAX_VALUE is returned.
+     *
+     * @param pos the position
+     * @return the maximum length
+     */
+    public static int getMaxLength(long pos) {
+        int code = (int) (pos & 31);
+        if (code == 31) {
+            return Integer.MAX_VALUE;
+        }
+        return (2 + (code & 1)) << ((code >> 1) + 4);
+    }
+
+    /**
+     * Get the offset from the position.
+     *
+     * @param pos the position
+     * @return the offset
+     */
+    public static int getOffset(long pos) {
+        return (int) (pos >> 5);
+    }
+
+    /**
+     * Get the position of this page. The following information is encoded in
+     * the position: the chunk id, the offset, and the maximum length.
+     *
+     * @param chunkId the chunk id
+     * @param offset the offset
+     * @param length the length
+     * @return the position
+     */
+    public static long getPos(int chunkId, int offset, int length) {
+        return ((long) chunkId << 37) | ((long) offset << 5) | encodeLength(length);
+    }
+
+    /**
+     * Calculate a check value for the given integer. A check value is mean to
+     * verify the data is consistent with a high probability, but not meant to
+     * protect against media failure or deliberate changes.
+     *
+     * @param x the value
+     * @return the check value
+     */
+    public static short getCheckValue(int x) {
+        return (short) ((x >> 16) ^ x);
     }
 
 }

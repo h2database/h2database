@@ -17,37 +17,48 @@ import org.h2.compress.Compressor;
  * <p>
  * For nodes, the key at a given index is larger than the largest key of the
  * child at the same index.
+ * <p>
+ * File format:
+ * page length (including length): int
+ * check value: short
+ * number of keys: varInt
+ * type: byte (0: leaf, 1: node; +2: compressed)
+ * compressed: bytes saved (varInt)
+ * keys
+ * leaf: values (one for each key)
+ * node: children (1 more than keys)
  */
 public class Page {
 
     private final BtreeMap<?, ?> map;
+    private final long version;
     private long pos;
-    private long transaction;
     private Object[] keys;
     private Object[] values;
     private long[] children;
     private int cachedCompare;
 
-    private Page(BtreeMap<?, ?> map) {
+    private Page(BtreeMap<?, ?> map, long version) {
         this.map = map;
+        this.version = version;
     }
 
     /**
      * Create a new page. The arrays are not cloned.
      *
      * @param map the map
+     * @param version the version
      * @param keys the keys
      * @param values the values
      * @param children the children
      * @return the page
      */
-    static Page create(BtreeMap<?, ?> map, Object[] keys, Object[] values, long[] children) {
-        Page p = new Page(map);
+    static Page create(BtreeMap<?, ?> map, long version, Object[] keys, Object[] values, long[] children) {
+        Page p = new Page(map, version);
         p.keys = keys;
         p.values = values;
         p.children = children;
-        p.transaction = map.getTransaction();
-        p.pos = map.registerTempPage(p);
+        p.pos = map.getStore().registerTempPage(p);
         return p;
     }
 
@@ -60,7 +71,7 @@ public class Page {
      * @return the page
      */
     static Page read(FileChannel file, BtreeMap<?, ?> map, long filePos, long pos) {
-        int maxLength = Page.getMaxLength(pos), length = maxLength;
+        int maxLength = DataUtils.getMaxLength(pos), length = maxLength;
         ByteBuffer buff;
         try {
             file.position(filePos);
@@ -75,20 +86,20 @@ public class Page {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Page p = new Page(map);
+        Page p = new Page(map, 0);
         p.pos = pos;
-        p.read(buff, maxLength);
+        int chunkId = DataUtils.getChunkId(pos);
+        int offset = DataUtils.getOffset(pos);
+        p.read(buff, chunkId, offset, maxLength);
         return p;
     }
 
-    private Page copyOnWrite() {
-        long t = map.getTransaction();
-        if (transaction == t) {
+    private Page copyOnWrite(long writeVersion) {
+        if (version == writeVersion) {
             return this;
         }
-        map.removePage(pos);
-        Page newPage = create(map, keys, values, children);
-        newPage.transaction = t;
+        getStore().removePage(pos);
+        Page newPage = create(map, writeVersion, keys, values, children);
         newPage.cachedCompare = cachedCompare;
         return newPage;
     }
@@ -297,7 +308,7 @@ public class Page {
         System.arraycopy(values, 0, aValues, 0, a);
         System.arraycopy(values, a, bValues, 0, b);
         values = aValues;
-        Page newPage = create(map, bKeys, bValues, null);
+        Page newPage = create(map, version, bKeys, bValues, null);
         return newPage;
     }
 
@@ -313,7 +324,7 @@ public class Page {
         System.arraycopy(children, 0, aChildren, 0, a + 1);
         System.arraycopy(children, a + 1, bChildren, 0, b);
         children = aChildren;
-        Page newPage = create(map, bKeys, null, bChildren);
+        Page newPage = create(map, version, bKeys, null, bChildren);
         return newPage;
     }
 
@@ -322,18 +333,19 @@ public class Page {
      *
      * @param map the map
      * @param p the page
+     * @param writeVersion the write version
      * @param key the key
      * @param value the value
      * @return the root page
      */
-    static Page put(BtreeMap<?, ?> map, Page p, Object key, Object value) {
+    static Page put(BtreeMap<?, ?> map, Page p, long writeVersion, Object key, Object value) {
         if (p == null) {
             Object[] keys = { key };
             Object[] values = { value };
-            p = create(map, keys, values, null);
+            p = create(map, writeVersion, keys, values, null);
             return p;
         }
-        p = p.copyOnWrite();
+        p = p.copyOnWrite(writeVersion);
         Page top = p;
         Page parent = null;
         int parentIndex = 0;
@@ -350,7 +362,7 @@ public class Page {
                     if (parent == null) {
                         Object[] keys = { k };
                         long[] children = { p.getPos(), split.getPos() };
-                        top = create(map, keys, null, children);
+                        top = create(map, writeVersion, keys, null, children);
                         p = top;
                     } else {
                         parent.insert(parentIndex, k, null, split.getPos());
@@ -373,7 +385,7 @@ public class Page {
                     if (parent == null) {
                         Object[] keys = { k };
                         long[] children = { p.getPos(), split.getPos() };
-                        top = create(map, keys, null, children);
+                        top = create(map, writeVersion, keys, null, children);
                     } else {
                         parent.insert(parentIndex, k, null, split.getPos());
                     }
@@ -388,7 +400,7 @@ public class Page {
             parent = p;
             parentIndex = index;
             p = map.readPage(p.children[index]);
-            p = p.copyOnWrite();
+            p = p.copyOnWrite(writeVersion);
         }
         return top;
     }
@@ -418,25 +430,26 @@ public class Page {
                 map.readPage(c).removeAllRecursive();
             }
         }
-        map.removePage(pos);
+        getStore().removePage(pos);
     }
 
     /**
      * Remove a key-value pair.
      *
      * @param p the root page
+     * @param writeVersion the write version
      * @param key the key
      * @return the new root page
      */
-    static Page remove(Page p, Object key) {
+    static Page remove(Page p, long writeVersion, Object key) {
         int index = p.findKey(key);
         if (p.isLeaf()) {
             if (index >= 0) {
                 if (p.keyCount() == 1) {
-                    p.map.removePage(p.pos);
+                    p.getStore().removePage(p.pos);
                     return null;
                 }
-                p = p.copyOnWrite();
+                p = p.copyOnWrite(writeVersion);
                 p.remove(index);
             } else {
                 // not found
@@ -450,19 +463,19 @@ public class Page {
             index++;
         }
         Page c = p.map.readPage(p.children[index]);
-        Page c2 = remove(c, key);
+        Page c2 = remove(c, writeVersion, key);
         if (c2 == c) {
             // not found
         } else if (c2 == null) {
             // child was deleted
-            p = p.copyOnWrite();
+            p = p.copyOnWrite(writeVersion);
             p.remove(index);
             if (p.keyCount() == 0) {
-                p.map.removePage(p.pos);
+                p.getStore().removePage(p.pos);
                 p = p.map.readPage(p.children[0]);
             }
         } else {
-            p = p.copyOnWrite();
+            p = p.copyOnWrite(writeVersion);
             p.setChild(index, c2.pos);
         }
         return p;
@@ -504,31 +517,36 @@ public class Page {
         }
     }
 
-    private void read(ByteBuffer buff, int maxLength) {
+    private void read(ByteBuffer buff, int chunkId, int offset, int maxLength) {
         int start = buff.position();
-        int len = buff.getInt();
-        if (len > maxLength) {
-            throw new RuntimeException("Length too large, expected < " + maxLength + " got " + len);
+        int pageLength = buff.getInt();
+        if (pageLength > maxLength) {
+            throw new RuntimeException("Length too large, expected =< " + maxLength + " got " + pageLength);
         }
-        int mapId = DataUtils.readVarInt(buff);
-        if (mapId != map.getId()) {
-            throw new RuntimeException("Page pos mismatch, expected " + map.getId() + " got " + mapId);
+        short check = buff.getShort();
+        int len = DataUtils.readVarInt(buff);
+        int checkTest = DataUtils.getCheckValue(chunkId) ^
+                DataUtils.getCheckValue(map.getId()) ^
+                DataUtils.getCheckValue(offset) ^
+                DataUtils.getCheckValue(pageLength) ^
+                DataUtils.getCheckValue(len);
+        if (check != (short) checkTest) {
+            throw new RuntimeException("Error in check value, expected " + checkTest + " got " + check);
         }
+        keys = new Object[len];
         int type = buff.get();
         boolean node = (type & 1) != 0;
         boolean compressed = (type & 2) != 0;
         if (compressed) {
             Compressor compressor = map.getStore().getCompressor();
             int lenAdd = DataUtils.readVarInt(buff);
-            int compLen = len + start - buff.position();
+            int compLen = pageLength + start - buff.position();
             byte[] comp = new byte[compLen];
             buff.get(comp);
             byte[] exp = new byte[compLen + lenAdd];
             compressor.expand(comp, 0, compLen, exp, 0, exp.length);
             buff = ByteBuffer.wrap(exp);
         }
-        len = DataUtils.readVarInt(buff);
-        keys = new Object[len];
         for (int i = 0; i < len; i++) {
             keys[i] = map.getKeyType().read(buff);
         }
@@ -554,13 +572,13 @@ public class Page {
     private void write(ByteBuffer buff, int chunkId) {
         int start = buff.position();
         buff.putInt(0);
-        DataUtils.writeVarInt(buff, map.getId());
+        buff.putShort((byte) 0);
+        int len = keys.length;
+        DataUtils.writeVarInt(buff, len);
         Compressor compressor = map.getStore().getCompressor();
         int type = children != null ? 1 : 0;
         buff.put((byte) type);
         int compressStart = buff.position();
-        int len = keys.length;
-        DataUtils.writeVarInt(buff, len);
         for (int i = 0; i < len; i++) {
             map.getKeyType().write(buff, keys[i]);
         }
@@ -574,22 +592,29 @@ public class Page {
             }
         }
         if (compressor != null) {
-            len = buff.position() - compressStart;
-            byte[] exp = new byte[len];
+            int expLen = buff.position() - compressStart;
+            byte[] exp = new byte[expLen];
             buff.position(compressStart);
             buff.get(exp);
             byte[] comp = new byte[exp.length * 2];
             int compLen = compressor.compress(exp, exp.length, comp, 0);
-            if (compLen + DataUtils.getVarIntLen(compLen - len) < len) {
+            if (compLen + DataUtils.getVarIntLen(compLen - expLen) < expLen) {
                 buff.position(compressStart - 1);
                 buff.put((byte) (type + 2));
-                DataUtils.writeVarInt(buff, len - compLen);
+                DataUtils.writeVarInt(buff, expLen - compLen);
                 buff.put(comp,  0, compLen);
             }
         }
-        len = buff.position() - start;
-        buff.putInt(start, len);
-        this.pos = Page.getPos(chunkId, start, len);
+        int pageLength = buff.position() - start;
+        buff.putInt(start, pageLength);
+        int check =
+                DataUtils.getCheckValue(chunkId) ^
+                DataUtils.getCheckValue(map.getId()) ^
+                DataUtils.getCheckValue(start) ^
+                DataUtils.getCheckValue(pageLength) ^
+                DataUtils.getCheckValue(len);
+        buff.putShort(start + 4, (short) check);
+        this.pos = DataUtils.getPos(chunkId, start, pageLength);
     }
 
     /**
@@ -598,9 +623,9 @@ public class Page {
      * @return the next page id
      */
     int getMaxLengthTempRecursive() {
-        int maxLength = 4 + DataUtils.MAX_VAR_INT_LEN + 1;
+        // length, check, key length, type
+        int maxLength = 4 + 2 + DataUtils.MAX_VAR_INT_LEN + 1;
         int len = keys.length;
-        maxLength += DataUtils.MAX_VAR_INT_LEN;
         for (int i = 0; i < len; i++) {
             maxLength += map.getKeyType().getMaxLength(keys[i]);
         }
@@ -661,73 +686,12 @@ public class Page {
         return count;
     }
 
-    /**
-     * Get the chunk id from the position.
-     *
-     * @param pos the position
-     * @return the chunk id
-     */
-    static int getChunkId(long pos) {
-        return (int) (pos >>> 37);
+    BtreeMapStore getStore() {
+        return map.getStore();
     }
 
-    /**
-     * Get the offset from the position.
-     *
-     * @param pos the position
-     * @return the offset
-     */
-    public static long getOffset(long pos) {
-        return (int) (pos >> 5);
-    }
-
-    /**
-     * Get the position of this page. The following information is encoded in
-     * the position: the chunk id, the offset, and the maximum length.
-     *
-     * @param chunkId the chunk id
-     * @param offset the offset
-     * @param length the length
-     * @return the position
-     */
-    static long getPos(int chunkId, int offset, int length) {
-        return ((long) chunkId << 37) | ((long) offset << 5) | encodeLength(length);
-    }
-
-    /**
-     * Convert the length to a length code 0..31. 31 means more than 1 MB.
-     *
-     * @param len the length
-     * @return the length code
-     */
-    public static int encodeLength(int len) {
-        if (len <= 32) {
-            return 0;
-        }
-        int x = len;
-        int shift = 0;
-        while (x > 3) {
-            shift++;
-            x = (x >> 1) + (x & 1);
-        }
-        shift = Math.max(0,  shift - 4);
-        int code = (shift << 1) + (x & 1);
-        return Math.min(31, code);
-    }
-
-    /**
-     * Get the maximum length for the given code.
-     * For the code 31, Integer.MAX_VALUE is returned.
-     *
-     * @param pos the position
-     * @return the maximum length
-     */
-    public static int getMaxLength(long pos) {
-        int code = (int) (pos & 31);
-        if (code == 31) {
-            return Integer.MAX_VALUE;
-        }
-        return (2 + (code & 1)) << ((code >> 1) + 4);
+    long getVersion() {
+        return version;
     }
 
 }

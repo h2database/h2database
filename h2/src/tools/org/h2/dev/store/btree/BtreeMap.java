@@ -7,6 +7,7 @@
 package org.h2.dev.store.btree;
 
 import java.util.Iterator;
+import java.util.TreeMap;
 
 /**
  * A stored map.
@@ -16,35 +17,23 @@ import java.util.Iterator;
  */
 public class BtreeMap<K, V> {
 
-    private final BtreeMapStore store;
     private final int id;
     private final String name;
     private final DataType keyType;
     private final DataType valueType;
+    private final long createVersion;
+    private final TreeMap<Long, Page> oldRoots = new TreeMap<Long, Page>();
+    private BtreeMapStore store;
     private Page root;
+    private boolean readOnly;
 
-    private BtreeMap(BtreeMapStore store, int id, String name, DataType keyType, DataType valueType) {
+    BtreeMap(BtreeMapStore store, int id, String name, DataType keyType, DataType valueType, long createVersion) {
         this.store = store;
         this.id = id;
         this.name = name;
         this.keyType = keyType;
         this.valueType = valueType;
-    }
-
-    /**
-     * Open a map.
-     *
-     * @param <K> the key type
-     * @param <V> the value type
-     * @param store the tree store
-     * @param id the map id
-     * @param name the name of the map
-     * @param keyClass the key class
-     * @param valueClass the value class
-     * @return the map
-     */
-    static <K, V> BtreeMap<K, V> open(BtreeMapStore store, int id, String name, DataType keyType, DataType valueType) {
-        return new BtreeMap<K, V>(store, id, name, keyType, valueType);
+        this.createVersion = createVersion;
     }
 
     /**
@@ -54,8 +43,10 @@ public class BtreeMap<K, V> {
      * @param data the value
      */
     public void put(K key, V data) {
-        markChanged();
-        root = Page.put(this, root, key, data);
+        checkWrite();
+        Page oldRoot = root;
+        root = Page.put(this, root, store.getCurrentVersion(), key, data);
+        markChanged(oldRoot);
     }
 
     /**
@@ -66,10 +57,15 @@ public class BtreeMap<K, V> {
      */
     @SuppressWarnings("unchecked")
     public V get(K key) {
+        checkOpen();
         if (root == null) {
             return null;
         }
         return (V) root.find(key);
+    }
+
+    public boolean containsKey(K key) {
+        return get(key) != null;
     }
 
     /**
@@ -89,19 +85,32 @@ public class BtreeMap<K, V> {
      * Remove all entries.
      */
     public void clear() {
+        checkWrite();
         if (root != null) {
-            markChanged();
+            Page oldRoot = root;
             root.removeAllRecursive();
             root = null;
+            markChanged(oldRoot);
         }
     }
 
     /**
-     * Remove all entries, and remove the map.
+     * Remove all entries, and remove the map. The map becomes invalid.
      */
     public void remove() {
-        clear();
+        checkWrite();
+        if (root != null) {
+            root.removeAllRecursive();
+        }
         store.removeMap(id);
+        oldRoots.clear();
+        root = null;
+        store = null;
+        readOnly = true;
+    }
+
+    public boolean isClosed() {
+        return store == null;
     }
 
     /**
@@ -110,25 +119,23 @@ public class BtreeMap<K, V> {
      * @param key the key
      */
     public void remove(K key) {
+        checkWrite();
         if (root != null) {
-            markChanged();
-            root = Page.remove(root, key);
+            Page oldRoot = root;
+            root = Page.remove(root, store.getCurrentVersion(), key);
+            markChanged(oldRoot);
         }
     }
 
-    /**
-     * Was this map changed.
-     *
-     * @return true if yes
-     */
-    boolean isChanged() {
-        return root != null && root.getPos() < 0;
+    private void markChanged(Page oldRoot) {
+        if (oldRoot != root) {
+            oldRoots.put(store.getCurrentVersion(), oldRoot);
+            store.markChanged(this);
+        }
     }
 
-    private void markChanged() {
-        if (!isChanged()) {
-            store.markChanged(name, this);
-        }
+    public boolean hasUnsavedChanges() {
+        return oldRoots.size() > 0;
     }
 
     /**
@@ -160,20 +167,6 @@ public class BtreeMap<K, V> {
         return valueType;
     }
 
-    long getTransaction() {
-        return store.getTransaction();
-    }
-
-    /**
-     * Register a page and get the next temporary page id.
-     *
-     * @param p the new page
-     * @return the page id
-     */
-    long registerTempPage(Page p) {
-        return store.registerTempPage(p);
-    }
-
     /**
      * Read a page.
      *
@@ -185,21 +178,12 @@ public class BtreeMap<K, V> {
     }
 
     /**
-     * Remove a page.
-     *
-     * @param pos the position of the page
-     */
-    void removePage(long pos) {
-        store.removePage(pos);
-    }
-
-    /**
      * Set the position of the root page.
      *
-     * @param rootPos the position
+     * @param rootPos the position, 0 for empty
      */
     void setRootPos(long rootPos) {
-        root = readPage(rootPos);
+        root = rootPos == 0 ? null : readPage(rootPos);
     }
 
     /**
@@ -209,6 +193,7 @@ public class BtreeMap<K, V> {
      * @return the iterator
      */
     public Iterator<K> keyIterator(K from) {
+        checkOpen();
         return new Cursor<K>(root, from);
     }
 
@@ -236,6 +221,80 @@ public class BtreeMap<K, V> {
 
     int getId() {
         return id;
+    }
+
+    void rollbackTo(long version) {
+        checkWrite();
+        if (version <= createVersion) {
+            remove();
+        } else {
+            // iterating in ascending order, and pick the last version -
+            // this is not terribly efficient if there are many versions
+            // but it is a simple algorithm
+            Long newestOldVersion = null;
+            for (Iterator<Long> it = oldRoots.keySet().iterator(); it.hasNext();) {
+                Long x = it.next();
+                if (x >= version) {
+                    if (newestOldVersion == null) {
+                        newestOldVersion = x;
+                        root = oldRoots.get(x);
+                    }
+                    it.remove();
+                }
+            }
+        }
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+    private void checkOpen() {
+        if (store == null) {
+            throw new IllegalStateException("This map is closed");
+        }
+    }
+
+    private void checkWrite() {
+        if (readOnly) {
+            checkOpen();
+            throw new IllegalStateException("This map is read-only");
+        }
+    }
+
+    public String toString() {
+        StringBuilder buff = new StringBuilder();
+        buff.append("map:").append(name);
+        if (readOnly) {
+            buff.append(" readOnly");
+        }
+        if (store == null) {
+            buff.append(" closed");
+        }
+        return buff.toString();
+    }
+
+    public void close() {
+        readOnly = true;
+        store = null;
+        oldRoots.clear();
+        root = null;
+    }
+
+    public int hashCode() {
+        return id;
+    }
+
+    public boolean equals(Object o) {
+        return this == o;
+    }
+
+    long getCreatedVersion() {
+        return createVersion;
     }
 
 }

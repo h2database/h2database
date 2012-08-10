@@ -920,7 +920,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static Value getNullOrValue(Session session, Expression[] args, Value[] values, int i) {
-        if (i < values.length) {
+        if (i >= args.length) {
             return null;
         }
         Value v = values[i];

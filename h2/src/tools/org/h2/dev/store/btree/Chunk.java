@@ -11,7 +11,17 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * A chunk of data, containing one or multiple pages
+ * A chunk of data, containing one or multiple pages.
+ * <p>
+ * Chunks are page aligned (each page is usually 4096 bytes).
+ * There are at most 67 million (2^26) chunks,
+ * each chunk is at most 2 GB large.
+ * File format:
+ * 1 byte: 'c'
+ * 4 bytes: length
+ * 4 bytes: chunk id (an incrementing number)
+ * 8 bytes: metaRootPos
+ * [ Page ] *
  */
 class Chunk {
 
@@ -50,6 +60,11 @@ class Chunk {
      */
     long metaRootPos;
 
+    /**
+     * The version stored in this chunk.
+     */
+    long version;
+
     Chunk(int id) {
         this.id = id;
     }
@@ -61,16 +76,17 @@ class Chunk {
      * @return the block
      */
     static Chunk fromString(String s) {
-        Chunk c = new Chunk(0);
         Properties prop = new Properties();
         try {
             prop.load(new ByteArrayInputStream(s.getBytes("UTF-8")));
-            c.id = Integer.parseInt(prop.get("id").toString());
+            int id = Integer.parseInt(prop.get("id").toString());
+            Chunk c = new Chunk(id);
             c.start = Long.parseLong(prop.get("start").toString());
             c.length = Long.parseLong(prop.get("length").toString());
             c.entryCount = Integer.parseInt(prop.get("entryCount").toString());
             c.liveCount = Integer.parseInt(prop.get("liveCount").toString());
             c.metaRootPos = Long.parseLong(prop.get("metaRoot").toString());
+            c.version = Long.parseLong(prop.get("version").toString());
             return c;
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -96,7 +112,8 @@ class Chunk {
             "length:" + length + "\n" +
             "entryCount:" + entryCount + "\n" +
             "liveCount:" + liveCount + "\n" +
-            "metaRoot:" + metaRootPos + "\n";
+            "metaRoot:" + metaRootPos + "\n" +
+            "version:" + version + "\n";
     }
 
 }

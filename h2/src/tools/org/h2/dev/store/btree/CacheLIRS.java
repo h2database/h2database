@@ -6,8 +6,8 @@
  */
 package org.h2.dev.store.btree;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +37,7 @@ import java.util.Set;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class CacheLIRS<K, V> implements Map<K, V> {
+public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
 
     /**
      * The maximum memory this cache should use.
@@ -482,15 +482,6 @@ public class CacheLIRS<K, V> implements Map<K, V> {
     }
 
     /**
-     * Check whether there are any resident entries in the map.
-     *
-     * @return true if there are no keys
-     */
-    public boolean isEmpty() {
-        return size() == 0;
-    }
-
-    /**
      * Check whether there is a resident entry for the given key.
      *
      * @return true if there is a resident entry
@@ -498,27 +489,6 @@ public class CacheLIRS<K, V> implements Map<K, V> {
     public boolean containsKey(Object key) {
         Entry<K, V> e = find(key);
         return e != null && e.value != null;
-    }
-
-    /**
-     * Check whether there are any keys for the given value.
-     *
-     * @return true if there is a key for this value
-     */
-    public boolean containsValue(Object value) {
-        return values().contains(value);
-    }
-
-    /**
-     * Add all entries of the given map to this map. This method will use the
-     * average memory size.
-     *
-     * @param m the source map
-     */
-    public void putAll(Map<? extends K, ? extends V> m) {
-        for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
-            put(e.getKey(), e.getValue());
-        }
     }
 
     /**
@@ -535,19 +505,6 @@ public class CacheLIRS<K, V> implements Map<K, V> {
             set.add(e.key);
         }
         return set;
-    }
-
-    /**
-     * Get the collection of values.
-     *
-     * @return the collection of values
-     */
-    public Collection<V> values() {
-        ArrayList<V> list = new ArrayList<V>();
-        for (K k : keySet()) {
-            list.add(get(k));
-        }
-        return list;
     }
 
     /**

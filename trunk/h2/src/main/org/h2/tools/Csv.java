@@ -800,7 +800,8 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Set the value that represents NULL.
+     * Set the value that represents NULL. It is only used for non-delimited
+     * values.
      *
      * @param nullString the null
      */

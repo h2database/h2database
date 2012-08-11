@@ -29,6 +29,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     public void test() {
+        testFastDelete();
         testRollbackInMemory();
         testRollbackStored();
         testMeta();
@@ -40,6 +41,31 @@ public class TestBtreeMapStore extends TestBase {
         testKeyValueClasses();
         testIterate();
         testSimple();
+    }
+
+    private void testFastDelete() {
+        String fileName = getBaseDir() + "/testMeta.h3";
+        FileUtils.delete(fileName);
+        BtreeMapStore s;
+        BtreeMap<Integer, String> m;
+        s = openStore(fileName);
+        s.setMaxPageSize(100);
+        m = s.openMap("data", Integer.class, String.class);
+        for (int i = 0; i < 1000; i++) {
+            m.put(i, "Hello World");
+        }
+        s.store();
+        assertEquals(3, s.getWriteCount());
+        s.close();
+
+        s = openStore(fileName);
+        m = s.openMap("data", Integer.class, String.class);
+        m.clear();
+        s.store();
+        // ensure only nodes are read, but not leaves
+        assertEquals(4, s.getReadCount());
+        assertEquals(2, s.getWriteCount());
+        s.close();
     }
 
     private void testRollbackStored() {

@@ -95,7 +95,7 @@ public class BtreeMap<K, V> {
     }
 
     /**
-     * Remove all entries, and remove the map. The map becomes invalid.
+     * Remove all entries, and close the map.
      */
     public void remove() {
         checkWrite();
@@ -103,10 +103,14 @@ public class BtreeMap<K, V> {
             root.removeAllRecursive();
         }
         store.removeMap(id);
+        close();
+    }
+
+    public void close() {
+        readOnly = true;
+        store = null;
         oldRoots.clear();
         root = null;
-        store = null;
-        readOnly = true;
     }
 
     public boolean isClosed() {
@@ -276,13 +280,6 @@ public class BtreeMap<K, V> {
             buff.append(" closed");
         }
         return buff.toString();
-    }
-
-    public void close() {
-        readOnly = true;
-        store = null;
-        oldRoots.clear();
-        root = null;
     }
 
     public int hashCode() {

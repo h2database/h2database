@@ -21,6 +21,7 @@ import org.h2.compress.Compressor;
  * File format:
  * page length (including length): int
  * check value: short
+ * map id: varInt
  * number of keys: varInt
  * type: byte (0: leaf, 1: node; +2: compressed)
  * compressed: bytes saved (varInt)
@@ -71,7 +72,7 @@ public class Page {
      * @return the page
      */
     static Page read(FileChannel file, BtreeMap<?, ?> map, long filePos, long pos) {
-        int maxLength = DataUtils.getMaxLength(pos), length = maxLength;
+        int maxLength = DataUtils.getPageMaxLength(pos), length = maxLength;
         ByteBuffer buff;
         try {
             file.position(filePos);
@@ -88,8 +89,8 @@ public class Page {
         }
         Page p = new Page(map, 0);
         p.pos = pos;
-        int chunkId = DataUtils.getChunkId(pos);
-        int offset = DataUtils.getOffset(pos);
+        int chunkId = DataUtils.getPageChunkId(pos);
+        int offset = DataUtils.getPageOffset(pos);
         p.read(buff, chunkId, offset, maxLength);
         return p;
     }
@@ -427,7 +428,12 @@ public class Page {
     void removeAllRecursive() {
         if (children != null) {
             for (long c : children) {
-                map.readPage(c).removeAllRecursive();
+                int type = DataUtils.getPageType(c);
+                if (type == DataUtils.PAGE_TYPE_LEAF) {
+                    getStore().removePage(c);
+                } else {
+                    map.readPage(c).removeAllRecursive();
+                }
             }
         }
         getStore().removePage(pos);
@@ -524,6 +530,10 @@ public class Page {
             throw new RuntimeException("Length too large, expected =< " + maxLength + " got " + pageLength);
         }
         short check = buff.getShort();
+        int mapId = DataUtils.readVarInt(buff);
+        if (mapId != map.getId()) {
+            throw new RuntimeException("Error reading page, expected map " + map.getId() + " got " + mapId);
+        }
         int len = DataUtils.readVarInt(buff);
         int checkTest = DataUtils.getCheckValue(chunkId) ^
                 DataUtils.getCheckValue(map.getId()) ^
@@ -535,8 +545,8 @@ public class Page {
         }
         keys = new Object[len];
         int type = buff.get();
-        boolean node = (type & 1) != 0;
-        boolean compressed = (type & 2) != 0;
+        boolean node = (type & 1) == DataUtils.PAGE_TYPE_NODE;
+        boolean compressed = (type & DataUtils.PAGE_COMPRESSED) != 0;
         if (compressed) {
             Compressor compressor = map.getStore().getCompressor();
             int lenAdd = DataUtils.readVarInt(buff);
@@ -573,16 +583,17 @@ public class Page {
         int start = buff.position();
         buff.putInt(0);
         buff.putShort((byte) 0);
+        DataUtils.writeVarInt(buff,  map.getId());
         int len = keys.length;
         DataUtils.writeVarInt(buff, len);
         Compressor compressor = map.getStore().getCompressor();
-        int type = children != null ? 1 : 0;
+        int type = children != null ? DataUtils.PAGE_TYPE_NODE : DataUtils.PAGE_TYPE_LEAF;
         buff.put((byte) type);
         int compressStart = buff.position();
         for (int i = 0; i < len; i++) {
             map.getKeyType().write(buff, keys[i]);
         }
-        if (type == 1) {
+        if (type == DataUtils.PAGE_TYPE_NODE) {
             for (int i = 0; i < len + 1; i++) {
                 buff.putLong(children[i]);
             }
@@ -600,7 +611,7 @@ public class Page {
             int compLen = compressor.compress(exp, exp.length, comp, 0);
             if (compLen + DataUtils.getVarIntLen(compLen - expLen) < expLen) {
                 buff.position(compressStart - 1);
-                buff.put((byte) (type + 2));
+                buff.put((byte) (type + DataUtils.PAGE_COMPRESSED));
                 DataUtils.writeVarInt(buff, expLen - compLen);
                 buff.put(comp,  0, compLen);
             }
@@ -614,7 +625,7 @@ public class Page {
                 DataUtils.getCheckValue(pageLength) ^
                 DataUtils.getCheckValue(len);
         buff.putShort(start + 4, (short) check);
-        this.pos = DataUtils.getPos(chunkId, start, pageLength);
+        this.pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
     }
 
     /**
@@ -623,8 +634,8 @@ public class Page {
      * @return the next page id
      */
     int getMaxLengthTempRecursive() {
-        // length, check, key length, type
-        int maxLength = 4 + 2 + DataUtils.MAX_VAR_INT_LEN + 1;
+        // length, check, map id, key length, type
+        int maxLength = 4 + 2 + DataUtils.MAX_VAR_INT_LEN + DataUtils.MAX_VAR_INT_LEN + 1;
         int len = keys.length;
         for (int i = 0; i < len; i++) {
             maxLength += map.getKeyType().getMaxLength(keys[i]);

@@ -16,6 +16,21 @@ import java.nio.channels.FileChannel;
 public class DataUtils {
 
     /**
+     * The type for leaf page.
+     */
+    public static final int PAGE_TYPE_LEAF = 0;
+
+    /**
+     * The type for node page.
+     */
+    public static final int PAGE_TYPE_NODE = 1;
+
+    /**
+     * The bit mask for compressed pages.
+     */
+    public static final int PAGE_COMPRESSED = 2;
+
+    /**
      * The maximum length of a variable size int.
      */
     public static final int MAX_VAR_INT_LEN = 5;
@@ -211,8 +226,8 @@ public class DataUtils {
      * @param pos the position
      * @return the chunk id
      */
-    public static int getChunkId(long pos) {
-        return (int) (pos >>> 37);
+    public static int getPageChunkId(long pos) {
+        return (int) (pos >>> 38);
     }
 
     /**
@@ -222,8 +237,8 @@ public class DataUtils {
      * @param pos the position
      * @return the maximum length
      */
-    public static int getMaxLength(long pos) {
-        int code = (int) (pos & 31);
+    public static int getPageMaxLength(long pos) {
+        int code = (int) ((pos >> 1) & 31);
         if (code == 31) {
             return Integer.MAX_VALUE;
         }
@@ -236,21 +251,37 @@ public class DataUtils {
      * @param pos the position
      * @return the offset
      */
-    public static int getOffset(long pos) {
-        return (int) (pos >> 5);
+    public static int getPageOffset(long pos) {
+        return (int) (pos >> 6);
+    }
+
+    /**
+     * Get the page type from the position.
+     *
+     * @param pos the position
+     * @return the page type (PAGE_TYPE_NODE or PAGE_TYPE_LEAF)
+     */
+    public static int getPageType(long pos) {
+        return ((int) pos) & 1;
     }
 
     /**
      * Get the position of this page. The following information is encoded in
-     * the position: the chunk id, the offset, and the maximum length.
+     * the position: the chunk id, the offset, the maximum length, and the type
+     * (node or leaf).
      *
      * @param chunkId the chunk id
      * @param offset the offset
      * @param length the length
+     * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getPos(int chunkId, int offset, int length) {
-        return ((long) chunkId << 37) | ((long) offset << 5) | encodeLength(length);
+    public static long getPagePos(int chunkId, int offset, int length, int type) {
+        long pos = (long) chunkId << 38;
+        pos |= (long) offset << 6;
+        pos |= encodeLength(length) << 1;
+        pos |= type;
+        return pos;
     }
 
     /**

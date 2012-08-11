@@ -38,7 +38,6 @@ header:
 blockSize=4096
 
 TODO:
-- keep page type (leaf/node) in pos to speed up large deletes
 - support fast range deletes
 - support custom pager for r-tree, kd-tree
 - need an 'end of chunk' marker to verify all data is written
@@ -57,6 +56,7 @@ TODO:
 - file header could be a regular chunk, end of file the second
 - possibly split chunk data into immutable and mutable
 - reduce minimum chunk size, speed up very small transactions
+- defragment: use total max length instead of page count (liveCount)
 
 */
 
@@ -107,6 +107,8 @@ public class BtreeMapStore {
     private Compressor compressor = new CompressLZF();
 
     private long currentVersion;
+    private int readCount;
+    private int writeCount;
 
     private BtreeMapStore(String fileName, DataTypeFactory typeFactory) {
         this.fileName = fileName;
@@ -310,6 +312,7 @@ public class BtreeMapStore {
                 "rootChunk:" + rootChunkStart + "\n" +
                 "lastMapId:" + lastMapId + "\n" +
                 "version:" + currentVersion + "\n").getBytes("UTF-8"));
+            writeCount++;
             file.position(0);
             file.write(header);
             file.position(blockSize);
@@ -321,8 +324,9 @@ public class BtreeMapStore {
 
     private void readHeader() {
         try {
-            file.position(0);
             byte[] header = new byte[blockSize];
+            readCount++;
+            file.position(0);
             // TODO read fully; read both headers
             file.read(ByteBuffer.wrap(header));
             Properties prop = new Properties();
@@ -365,16 +369,16 @@ public class BtreeMapStore {
     }
 
     private Chunk getChunk(long pos) {
-        return chunks.get(DataUtils.getChunkId(pos));
+        return chunks.get(DataUtils.getPageChunkId(pos));
     }
 
     private long getFilePosition(long pos) {
         Chunk c = getChunk(pos);
         if (c == null) {
-            throw new RuntimeException("Chunk " + DataUtils.getChunkId(pos) + " not found");
+            throw new RuntimeException("Chunk " + DataUtils.getPageChunkId(pos) + " not found");
         }
         long filePos = c.start;
-        filePos += DataUtils.getOffset(pos);
+        filePos += DataUtils.getPageOffset(pos);
         return filePos;
     }
 
@@ -467,6 +471,7 @@ public class BtreeMapStore {
         buff.putLong(meta.getRoot().getPos());
         buff.rewind();
         try {
+            writeCount++;
             file.position(filePos);
             file.write(buff);
         } catch (IOException e) {
@@ -575,6 +580,7 @@ public class BtreeMapStore {
 
     private Chunk readChunkHeader(long start) {
         try {
+            readCount++;
             file.position(start);
             ByteBuffer buff = ByteBuffer.wrap(new byte[32]);
             DataUtils.readFully(file, buff);
@@ -724,6 +730,7 @@ public class BtreeMapStore {
         Page p = cache.get(pos);
         if (p == null) {
             long filePos = getFilePosition(pos);
+            readCount++;
             p = Page.read(file, map, filePos, pos);
             cache.put(pos, p);
         }
@@ -775,6 +782,11 @@ public class BtreeMapStore {
         this.maxPageSize = maxPageSize;
     }
 
+    /**
+     * The maximum number of key-value pairs in a page.
+     *
+     * @return the maximum number of entries
+     */
     int getMaxPageSize() {
         return maxPageSize;
     }
@@ -912,6 +924,24 @@ public class BtreeMapStore {
      */
     public long getCurrentVersion() {
         return currentVersion;
+    }
+
+    /**
+     * Get the number of write operations since this store was opened.
+     *
+     * @return the number of write operations
+     */
+    public int getWriteCount() {
+        return writeCount;
+    }
+
+    /**
+     * Get the number of read operations since this store was opened.
+     *
+     * @return the number of read operations
+     */
+    public int getReadCount() {
+        return readCount;
     }
 
 }

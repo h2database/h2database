@@ -12,7 +12,6 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
 import java.util.Properties;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -68,7 +67,7 @@ public class Dump {
             writer.println("file " + fileName);
             writer.println("    length " + fileLength);
             writer.println("    " + prop);
-            ByteBuffer block = ByteBuffer.wrap(new byte[16]);
+            ByteBuffer block = ByteBuffer.wrap(new byte[32]);
             for (long pos = 0; pos < fileLength;) {
                 file.position(pos);
                 block.rewind();
@@ -78,34 +77,33 @@ public class Dump {
                     pos += blockSize;
                     continue;
                 }
-                int length = block.getInt();
+                int chunkLength = block.getInt();
                 int chunkId = block.getInt();
-                int metaRootOffset = block.getInt();
+                long metaRootPos = block.getLong();
                 writer.println("    chunk " + chunkId + " at " + pos +
-                        " length " + length + " offset " + metaRootOffset);
-                ByteBuffer chunk = ByteBuffer.allocate(length);
+                        " length " + chunkLength + " root " + metaRootPos);
+                ByteBuffer chunk = ByteBuffer.allocate(chunkLength);
                 file.position(pos);
                 FileUtils.readFully(file, chunk);
                 int p = block.position();
-                pos = (pos + length + blockSize) / blockSize * blockSize;
-                length -= p;
-                while (length > 0) {
+                pos = (pos + chunkLength + blockSize) / blockSize * blockSize;
+                chunkLength -= p;
+                while (chunkLength > 0) {
                     chunk.position(p);
-                    int len = chunk.getInt();
-                    long mapId = chunk.getLong();
+                    int pageLength = chunk.getInt();
+                    // check value (ignored)
+                    chunk.getShort();
+                    long mapId = DataUtils.readVarInt(chunk);
+                    int len = DataUtils.readVarInt(chunk);
                     int type = chunk.get();
-                    int count = DataUtils.readVarInt(chunk);
-                    if (type == 1) {
-                        long[] children = new long[count];
-                        for (int i = 0; i < count; i++) {
-                            children[i] = chunk.getLong();
-                        }
-                        writer.println("        map " + mapId + " at " + p + " node, " + count + " children: " + Arrays.toString(children));
-                    } else {
-                        writer.println("        map " + mapId + " at " + p + " leaf, " + count + " rows");
-                    }
-                    p += len;
-                    length -= len;
+                    boolean compressed = (type & 2) != 0;
+                    boolean node = (type & 1) != 0;
+                    writer.println("        map " + mapId + " at " + p + " " +
+                            (node ? "node" : "leaf") + " " +
+                            (compressed ? "compressed" : "") + " " +
+                            "len: " + pageLength + " entries: " + len);
+                    p += pageLength;
+                    chunkLength -= pageLength;
                 }
             }
         } catch (IOException e) {

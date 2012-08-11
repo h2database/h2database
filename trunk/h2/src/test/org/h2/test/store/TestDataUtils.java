@@ -44,13 +44,25 @@ public class TestDataUtils extends TestBase {
     }
 
     private void testPagePos() {
-        for (int chunkId = 0; chunkId < 67000000; chunkId += 670000) {
-            for (long offset = 0; offset < Integer.MAX_VALUE; offset += Integer.MAX_VALUE / 100) {
-                for (int length = 0; length < 2000000; length += 200000) {
-                    long pos = DataUtils.getPos(chunkId, (int) offset, length);
-                    assertEquals(chunkId, DataUtils.getChunkId(pos));
-                    assertEquals(offset, DataUtils.getOffset(pos));
-                    assertTrue(DataUtils.getMaxLength(pos) >= length);
+        assertEquals(0, DataUtils.PAGE_TYPE_LEAF);
+        assertEquals(1, DataUtils.PAGE_TYPE_NODE);
+        for (int i = 0; i < 67000000; i++) {
+            long pos = DataUtils.getPagePos(i, 3, 128, 1);
+            assertEquals(i, DataUtils.getPageChunkId(pos));
+            assertEquals(3, DataUtils.getPageOffset(pos));
+            assertEquals(128, DataUtils.getPageMaxLength(pos));
+            assertEquals(1, DataUtils.getPageType(pos));
+        }
+        for (int type = 0; type <= 1; type++) {
+            for (int chunkId = 0; chunkId < 67000000; chunkId += 670000) {
+                for (long offset = 0; offset < Integer.MAX_VALUE; offset += Integer.MAX_VALUE / 100) {
+                    for (int length = 0; length < 2000000; length += 200000) {
+                        long pos = DataUtils.getPagePos(chunkId, (int) offset, length, type);
+                        assertEquals(chunkId, DataUtils.getPageChunkId(pos));
+                        assertEquals(offset, DataUtils.getPageOffset(pos));
+                        assertTrue(DataUtils.getPageMaxLength(pos) >= length);
+                        assertTrue(DataUtils.getPageType(pos) == type);
+                    }
                 }
             }
         }
@@ -75,7 +87,7 @@ public class TestDataUtils extends TestBase {
             if (code > lastCode) {
                 lastCode = code;
             }
-            int max = DataUtils.getMaxLength(code);
+            int max = DataUtils.getPageMaxLength(code << 1);
             assertTrue(max >= i && max >= 32);
         }
     }

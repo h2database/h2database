@@ -6,7 +6,9 @@
  */
 package org.h2.dev.store.btree;
 
+import java.util.AbstractSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -22,6 +24,11 @@ public class BtreeMap<K, V> {
     private final DataType keyType;
     private final DataType valueType;
     private final long createVersion;
+
+    /**
+     * The map of old roots. The key is the new version, the value is the root
+     * before this version.
+     */
     private final TreeMap<Long, Page> oldRoots = new TreeMap<Long, Page>();
     private BtreeMapStore store;
     private Page root;
@@ -45,7 +52,11 @@ public class BtreeMap<K, V> {
     public void put(K key, V data) {
         checkWrite();
         Page oldRoot = root;
-        root = Page.put(this, root, store.getCurrentVersion(), key, data);
+        if (containsKey(key)) {
+            root = Page.set(this, root, store.getCurrentVersion(), key, data);
+        } else {
+            root = Page.add(this, root, store.getCurrentVersion(), key, data);
+        }
         markChanged(oldRoot);
     }
 
@@ -56,7 +67,7 @@ public class BtreeMap<K, V> {
      * @return the value, or null if not found
      */
     @SuppressWarnings("unchecked")
-    public V get(K key) {
+    public V get(Object key) {
         checkOpen();
         if (root == null) {
             return null;
@@ -64,7 +75,7 @@ public class BtreeMap<K, V> {
         return (V) root.find(key);
     }
 
-    public boolean containsKey(K key) {
+    public boolean containsKey(Object key) {
         return get(key) != null;
     }
 
@@ -102,7 +113,7 @@ public class BtreeMap<K, V> {
         if (root != null) {
             root.removeAllRecursive();
         }
-        store.removeMap(id);
+        store.removeMap(name);
         close();
     }
 
@@ -118,22 +129,25 @@ public class BtreeMap<K, V> {
     }
 
     /**
-     * Remove a key-value pair.
+     * Remove a key-value pair, if the key exists.
      *
      * @param key the key
      */
     public void remove(K key) {
         checkWrite();
-        if (root != null) {
+        if (containsKey(key)) {
             Page oldRoot = root;
-            root = Page.remove(root, store.getCurrentVersion(), key);
+            root = Page.removeExisting(root, store.getCurrentVersion(), key);
             markChanged(oldRoot);
         }
     }
 
     private void markChanged(Page oldRoot) {
         if (oldRoot != root) {
-            oldRoots.put(store.getCurrentVersion(), oldRoot);
+            long v = store.getCurrentVersion();
+            if (!oldRoots.containsKey(v)) {
+                oldRoots.put(v, oldRoot);
+            }
             store.markChanged(this);
         }
     }
@@ -201,6 +215,28 @@ public class BtreeMap<K, V> {
         return new Cursor<K>(root, from);
     }
 
+    public Set<K> keySet() {
+        checkOpen();
+        return new AbstractSet<K>() {
+
+            @Override
+            public Iterator<K> iterator() {
+                return new Cursor<K>(getRoot(), null);
+            }
+
+            @Override
+            public int size() {
+                return BtreeMap.this.size();
+            }
+
+            @Override
+            public boolean contains(Object o) {
+                return BtreeMap.this.containsKey(o);
+            }
+
+        };
+    }
+
     /**
      * Get the root page.
      *
@@ -229,7 +265,7 @@ public class BtreeMap<K, V> {
 
     void rollbackTo(long version) {
         checkWrite();
-        if (version <= createVersion) {
+        if (version < createVersion) {
             remove();
         } else {
             // iterating in ascending order, and pick the last version -
@@ -238,7 +274,7 @@ public class BtreeMap<K, V> {
             Long newestOldVersion = null;
             for (Iterator<Long> it = oldRoots.keySet().iterator(); it.hasNext();) {
                 Long x = it.next();
-                if (x >= version) {
+                if (x > version) {
                     if (newestOldVersion == null) {
                         newestOldVersion = x;
                         root = oldRoots.get(x);
@@ -247,6 +283,10 @@ public class BtreeMap<K, V> {
                 }
             }
         }
+    }
+
+    void stored() {
+        oldRoots.clear();
     }
 
     public void setReadOnly(boolean readOnly) {
@@ -284,6 +324,15 @@ public class BtreeMap<K, V> {
 
     public int hashCode() {
         return id;
+    }
+
+    public int size() {
+        long size = getSize();
+        return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
+    }
+
+    public long getSize() {
+        return root == null ? 0 : root.getTotalSize();
     }
 
     public boolean equals(Object o) {

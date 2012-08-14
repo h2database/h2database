@@ -36,6 +36,11 @@ public class DataUtils {
     public static final int MAX_VAR_INT_LEN = 5;
 
     /**
+     * The maximum length of a variable size long.
+     */
+    public static final int MAX_VAR_LONG_LEN = 10;
+
+    /**
      * Get the length of the variable size int.
      *
      * @param x the value

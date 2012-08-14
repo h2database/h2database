@@ -29,6 +29,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     public void test() {
+        testTruncateFile();
         testFastDelete();
         testRollbackInMemory();
         testRollbackStored();
@@ -43,6 +44,29 @@ public class TestBtreeMapStore extends TestBase {
         testSimple();
     }
 
+    private void testTruncateFile() {
+        String fileName = getBaseDir() + "/testMeta.h3";
+        FileUtils.delete(fileName);
+        BtreeMapStore s;
+        BtreeMap<Integer, String> m;
+        s = openStore(fileName);
+        m = s.openMap("data", Integer.class, String.class);
+        for (int i = 0; i < 1000; i++) {
+            m.put(i, "Hello World");
+        }
+        s.store();
+        s.close();
+        long len = FileUtils.size(fileName);
+        s = openStore(fileName);
+        m = s.openMap("data", Integer.class, String.class);
+        m.clear();
+        s.store();
+        s.compact(100);
+        s.close();
+        long len2 = FileUtils.size(fileName);
+        assertTrue(len2 < len);
+    }
+
     private void testFastDelete() {
         String fileName = getBaseDir() + "/testMeta.h3";
         FileUtils.delete(fileName);
@@ -53,7 +77,9 @@ public class TestBtreeMapStore extends TestBase {
         m = s.openMap("data", Integer.class, String.class);
         for (int i = 0; i < 1000; i++) {
             m.put(i, "Hello World");
+            assertEquals(i + 1, m.size());
         }
+        assertEquals(1000, m.size());
         s.store();
         assertEquals(3, s.getWriteCount());
         s.close();
@@ -61,6 +87,7 @@ public class TestBtreeMapStore extends TestBase {
         s = openStore(fileName);
         m = s.openMap("data", Integer.class, String.class);
         m.clear();
+        assertEquals(0, m.size());
         s.store();
         // ensure only nodes are read, but not leaves
         assertEquals(4, s.getReadCount());
@@ -76,7 +103,7 @@ public class TestBtreeMapStore extends TestBase {
         assertEquals(-1, s.getRetainChunk());
         s.setRetainChunk(0);
         assertEquals(0, s.getRetainChunk());
-        assertEquals(0, s.getCurrentVersion());
+        assertEquals(1, s.getCurrentVersion());
         assertFalse(s.hasUnsavedChanges());
         BtreeMap<String, String> m = s.openMap("data", String.class, String.class);
         assertTrue(s.hasUnsavedChanges());
@@ -86,12 +113,14 @@ public class TestBtreeMapStore extends TestBase {
         s.rollbackTo(1);
         assertEquals("Hello", m.get("1"));
         long v2 = s.store();
+        assertEquals(2, v2);
+        assertEquals(3, s.getCurrentVersion());
         assertFalse(s.hasUnsavedChanges());
         s.close();
 
         s = openStore(fileName);
+        assertEquals(3, s.getCurrentVersion());
         s.setRetainChunk(0);
-        assertEquals(2, s.getCurrentVersion());
         meta = s.getMetaMap();
         m = s.openMap("data", String.class, String.class);
         m0 = s.openMap("data0", String.class, String.class);
@@ -101,6 +130,7 @@ public class TestBtreeMapStore extends TestBase {
         m1.put("1", "Hallo");
         assertEquals("Hallo", m.get("1"));
         assertEquals("Hallo", m1.get("1"));
+        assertTrue(s.hasUnsavedChanges());
         s.rollbackTo(v2);
         assertFalse(s.hasUnsavedChanges());
         assertNull(meta.get("map.data1"));
@@ -111,7 +141,7 @@ public class TestBtreeMapStore extends TestBase {
 
         s = openStore(fileName);
         s.setRetainChunk(0);
-        assertEquals(2, s.getCurrentVersion());
+        assertEquals(3, s.getCurrentVersion());
         meta = s.getMetaMap();
         assertTrue(meta.get("map.data") != null);
         assertTrue(meta.get("map.data0") != null);
@@ -123,10 +153,10 @@ public class TestBtreeMapStore extends TestBase {
         assertFalse(m0.isReadOnly());
         m.put("1",  "Hallo");
         s.commit();
-        assertEquals(3, s.getCurrentVersion());
+        assertEquals(4, s.getCurrentVersion());
         long v4 = s.store();
         assertEquals(4, v4);
-        assertEquals(4, s.getCurrentVersion());
+        assertEquals(5, s.getCurrentVersion());
         s.close();
 
         s = openStore(fileName);
@@ -155,8 +185,14 @@ public class TestBtreeMapStore extends TestBase {
         String fileName = getBaseDir() + "/testMeta.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = openStore(fileName);
+        assertEquals(1, s.getCurrentVersion());
         s.setMaxPageSize(5);
         BtreeMap<String, String> m = s.openMap("data", String.class, String.class);
+        s.rollbackTo(0);
+        assertTrue(m.isClosed());
+        assertEquals(1, s.getCurrentVersion());
+        m = s.openMap("data", String.class, String.class);
+
         BtreeMap<String, String> m0 = s.openMap("data0", String.class, String.class);
         BtreeMap<String, String> m2 = s.openMap("data2", String.class, String.class);
         m.put("1", "Hello");
@@ -165,6 +201,7 @@ public class TestBtreeMapStore extends TestBase {
         }
         long v1 = s.commit();
         assertEquals(1, v1);
+        assertEquals(2, s.getCurrentVersion());
         BtreeMap<String, String> m1 = s.openMap("data1", String.class, String.class);
         assertEquals("Test", m2.get("1"));
         m.put("1", "Hallo");
@@ -174,6 +211,7 @@ public class TestBtreeMapStore extends TestBase {
         assertEquals("Hallo", m.get("1"));
         assertEquals("Hallo", m1.get("1"));
         s.rollbackTo(v1);
+        assertEquals(2, s.getCurrentVersion());
         for (int i = 0; i < 10; i++) {
             assertEquals("Test", m2.get("" + i));
         }
@@ -195,11 +233,11 @@ public class TestBtreeMapStore extends TestBase {
         data.put("1", "Hello");
         data.put("2", "World");
         s.store();
-        assertEquals("1/0//", m.get("map.data"));
+        assertEquals("1/1//", m.get("map.data"));
         assertTrue(m.containsKey("chunk.1"));
         data.put("1", "Hallo");
         s.store();
-        assertEquals("1/0//", m.get("map.data"));
+        assertEquals("1/1//", m.get("map.data"));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
         assertTrue(m.containsKey("chunk.2"));
@@ -295,7 +333,7 @@ public class TestBtreeMapStore extends TestBase {
                 m.put(j + i, "Hello " + j);
             }
             s.store();
-            s.compact();
+            s.compact(80);
             s.close();
             long len = FileUtils.size(fileName);
             // System.out.println("   len:" + len);
@@ -313,13 +351,13 @@ public class TestBtreeMapStore extends TestBase {
             m.remove(i);
         }
         s.store();
-        s.compact();
+        s.compact(80);
         s.close();
         // len = FileUtils.size(fileName);
         // System.out.println("len1: " + len);
         s = openStore(fileName);
         m = s.openMap("data", Integer.class, String.class);
-        s.compact();
+        s.compact(80);
         s.close();
         // len = FileUtils.size(fileName);
         // System.out.println("len2: " + len);

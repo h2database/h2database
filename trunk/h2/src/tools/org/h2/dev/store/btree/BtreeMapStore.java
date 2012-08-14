@@ -38,25 +38,23 @@ header:
 blockSize=4096
 
 TODO:
-- support fast range deletes
-- support custom pager for r-tree, kd-tree
-- need an 'end of chunk' marker to verify all data is written
-- truncate the file if it is empty
+- support custom map types (page types); pager for r-tree, kd-tree
 - ability to diff / merge versions
-- check if range reads would be faster
 - map.getVersion and opening old maps read-only
 - limited support for writing to old versions (branches)
 - Serializer instead of DataType, (serialize, deserialize)
-- implement Map interface
+- implement complete java.util.Map interface
 - maybe rename to MVStore, MVMap, TestMVStore
-- implement Map interface
-- atomic operations (test-and-set)
-- support back ground writes (store old version)
+- atomic test-and-set (when supporting concurrent writes)
+- support background writes (store old version)
 - re-use map ids that were not used for a very long time
 - file header could be a regular chunk, end of file the second
 - possibly split chunk data into immutable and mutable
-- reduce minimum chunk size, speed up very small transactions
-- defragment: use total max length instead of page count (liveCount)
+- test with very small chunks, possibly speed up very small transactions
+- compact: use total max length instead of page count (liveCount)
+- check what happens on concurrent reads and 1 write; multiple writes
+- support large binaries
+- support stores that span multiple files (chunks stored in other files)
 
 */
 
@@ -64,6 +62,8 @@ TODO:
  * A persistent storage for tree maps.
  */
 public class BtreeMapStore {
+
+    public static final boolean ASSERT = true;
 
     private static final StringType STRING_TYPE = new StringType();
 
@@ -106,7 +106,7 @@ public class BtreeMapStore {
 
     private Compressor compressor = new CompressLZF();
 
-    private long currentVersion;
+    private long currentVersion = 1;
     private int readCount;
     private int writeCount;
 
@@ -228,8 +228,8 @@ public class BtreeMapStore {
         return openMap(name, keyType, valueType);
     }
 
-    void removeMap(int id) {
-        BtreeMap<?, ?> m = maps.remove(id);
+    void removeMap(String name) {
+        BtreeMap<?, ?> m = maps.remove(name);
         mapsChanged.remove(m);
     }
 
@@ -383,20 +383,37 @@ public class BtreeMapStore {
     }
 
     /**
-     * Commit all changes and persist them to disk. This method does nothing if
-     * there are no unsaved changes.
+     * Commit the changes, incrementing the current version.
      *
-     * @return the new version
+     * @return the version before the commit
+     */
+    public long commit() {
+        return currentVersion++;
+    }
+
+    /**
+     * Commit all changes and persist them to disk. This method does nothing if
+     * there are no unsaved changes, otherwise it stores the data and increments
+     * the current version.
+     *
+     * @return the version before the commit
      */
     public long store() {
         if (!hasUnsavedChanges()) {
             return currentVersion;
         }
-        long newVersion = commit();
+
+        // the last chunk might have been changed in the last save()
+        // this needs to be updated now (it's better not to update right after,
+        // save(), because that would modify the meta map again)
+        Chunk c = chunks.get(lastChunkId);
+        if (c != null) {
+            meta.put("chunk." + c.id, c.toString());
+        }
 
         int chunkId = ++lastChunkId;
 
-        Chunk c = new Chunk(chunkId);
+        c = new Chunk(chunkId);
         c.entryCount = Integer.MAX_VALUE;
         c.liveCount = Integer.MAX_VALUE;
         c.start = Long.MAX_VALUE;
@@ -414,9 +431,6 @@ public class BtreeMapStore {
                 meta.put("chunk." + x.id, x.toString());
             }
             applyFreedChunks();
-        }
-        for (int x : removedChunks) {
-            chunks.remove(x);
         }
         int count = 0;
         int maxLength = 1 + 4 + 4 + 8;
@@ -464,6 +478,14 @@ public class BtreeMapStore {
         int length = buff.limit();
         long filePos = allocateChunk(length);
 
+        // need to keep old chunks
+        // until they are are no longer referenced
+        // by a old version
+        // so empty space is not reused too early
+        for (int x : removedChunks) {
+            chunks.remove(x);
+        }
+
         buff.rewind();
         buff.put((byte) 'c');
         buff.putInt(length);
@@ -478,14 +500,16 @@ public class BtreeMapStore {
             throw new RuntimeException(e);
         }
         rootChunkStart = filePos;
-        writeHeader();
         revertTemp();
         // update the start position and length
         c.start = filePos;
         c.length = length;
-        meta.put("chunk." + c.id, c.toString());
 
-        return newVersion;
+        long version = commit();
+        // write the new version (after the commit)
+        writeHeader();
+        shrinkFileIfPossible();
+        return version;
     }
 
     private void applyFreedChunks() {
@@ -499,17 +523,32 @@ public class BtreeMapStore {
         freedChunks.clear();
     }
 
+    private void shrinkFileIfPossible() {
+        long used = getFileLengthUsed();
+        try {
+            if (used < file.size()) {
+                file.truncate(used);
+            }
+        } catch (Exception e) {
+            throw convert(e);
+        }
+    }
+
+    private long getFileLengthUsed() {
+        int min = 0;
+        for (Chunk c : chunks.values()) {
+            if (c.start == Long.MAX_VALUE) {
+                continue;
+            }
+            int last = (int) ((c.start + c.length) / blockSize);
+            min = Math.max(min,  last + 1);
+        }
+        return min * blockSize;
+    }
+
     private long allocateChunk(long length) {
         if (!reuseSpace) {
-            int min = 0;
-            for (Chunk c : chunks.values()) {
-                if (c.start == Long.MAX_VALUE) {
-                    continue;
-                }
-                int last = (int) ((c.start + c.length) / blockSize);
-                min = Math.max(min,  last + 1);
-            }
-            return min * blockSize;
+            return getFileLengthUsed();
         }
         BitSet set = new BitSet();
         set.set(0);
@@ -526,7 +565,7 @@ public class BtreeMapStore {
         for (int i = 0; i < set.size(); i++) {
             if (!set.get(i)) {
                 boolean ok = true;
-                for (int j = 1; j <= required; j++) {
+                for (int j = 0; j < required; j++) {
                     if (set.get(i + j)) {
                         ok = false;
                         break;
@@ -550,15 +589,6 @@ public class BtreeMapStore {
         long id = --tempPageId;
         temp.put(id, p);
         return id;
-    }
-
-    /**
-     * Commit the changes, incrementing the current version.
-     *
-     * @return the new version
-     */
-    public long commit() {
-        return ++currentVersion;
     }
 
     /**
@@ -603,31 +633,42 @@ public class BtreeMapStore {
 
     /**
      * Try to reduce the file size. Chunks with a low number of live items will
-     * be re-written.
+     * be re-written. If the current fill rate is higher than the target fill
+     * rate, no optimization is done.
+     *
+     * @param fillRate the minimum percentage of live entries
+     * @return if anything was written
      */
-    public void compact() {
-        if (chunks.size() <= 1) {
-            return;
+    public boolean compact(int fillRate) {
+        if (chunks.size() == 0) {
+            // avoid division by 0
+            return false;
         }
         long liveCountTotal = 0, entryCountTotal = 0;
         for (Chunk c : chunks.values()) {
             entryCountTotal += c.entryCount;
             liveCountTotal += c.liveCount;
         }
-        int averageEntryCount = (int) (entryCountTotal / chunks.size());
-        if (entryCountTotal == 0) {
-            return;
+        if (entryCountTotal <= 0) {
+            // avoid division by 0
+            entryCountTotal = 1;
         }
         int percentTotal = (int) (100 * liveCountTotal / entryCountTotal);
-        if (percentTotal > 80) {
-            return;
+        if (percentTotal > fillRate) {
+            return false;
         }
+        // calculate how many entries a chunk has on average
+        // TODO use the max size instead of the count
+        int averageEntryCount = (int) (entryCountTotal / chunks.size());
+
+        // the 'old' list contains the chunks we want to free up
         ArrayList<Chunk> old = New.arrayList();
         for (Chunk c : chunks.values()) {
             int age = lastChunkId - c.id + 1;
             c.collectPriority = c.getFillRate() / age;
             old.add(c);
         }
+        // sort the list, so the first entry should be collected first
         Collections.sort(old, new Comparator<Chunk>() {
             public int compare(Chunk o1, Chunk o2) {
                 return new Integer(o1.collectPriority).compareTo(o2.collectPriority);
@@ -635,6 +676,8 @@ public class BtreeMapStore {
         });
         int moveCount = 0;
         Chunk move = null;
+        // find out up to were we need to move
+        // try to move one (average sized) chunk
         for (Chunk c : old) {
             if (moveCount + c.liveCount > averageEntryCount) {
                 break;
@@ -643,6 +686,8 @@ public class BtreeMapStore {
             moveCount += c.liveCount;
             move = c;
         }
+
+        // remove the chunks we want to keep from this list
         boolean remove = false;
         for (Iterator<Chunk> it = old.iterator(); it.hasNext();) {
             Chunk c = it.next();
@@ -652,25 +697,34 @@ public class BtreeMapStore {
                 it.remove();
             }
         }
-        // TODO not needed - we already have the chunk object
-        Chunk header = readChunkHeader(move.start);
-        log("  meta:" + move.id + "/" + header.metaRootPos + " start: " + move.start);
+        while (!isKnownVersion(move.version)) {
+            int id = move.id;
+            while (true) {
+                Chunk m = chunks.get(++id);
+                if (id > lastChunkId) {
+                    // no known version
+                    return false;
+                }
+                if (m != null) {
+                    move = m;
+                    break;
+                }
+            }
+        }
+        // the metaRootPos might not be set
+        move = readChunkHeader(move.start);
+        log("  meta:" + move.id + "/" + move.metaRootPos + " start: " + move.start);
+        // change at least one entry in the map
+        // to ensure a chunk will be written
+        // (even if there is nothing to move)
+        meta.put("chunk." + move.id, move.toString());
         BtreeMap<String, String> oldMeta = new BtreeMap<String, String>(this, 0, "old-meta", STRING_TYPE, STRING_TYPE, 0);
-        oldMeta.setRootPos(header.metaRootPos);
+        oldMeta.setRootPos(move.metaRootPos);
         Iterator<String> it = oldMeta.keyIterator(null);
-        ArrayList<Integer> oldChunks = New.arrayList();
         while (it.hasNext()) {
             String k = it.next();
             String s = oldMeta.get(k);
             log("    " + k + " " + s.replace('\n', ' '));
-            if (k.startsWith("chunk.")) {
-                Chunk c = Chunk.fromString(s);
-                if (!chunks.containsKey(c.id)) {
-                    oldChunks.add(c.id);
-                    chunks.put(c.id, c);
-                }
-                continue;
-            }
             if (!k.startsWith("map.")) {
                 continue;
             }
@@ -696,6 +750,7 @@ public class BtreeMapStore {
                     Page p = data.getPage(o);
                     if (p == null) {
                         // was removed later - ignore
+                        // or the chunk no longer exists
                     } else if (p.getPos() < 0) {
                         // temporarily changed - ok
                         // TODO move old data if there is an uncommitted change?
@@ -711,9 +766,8 @@ public class BtreeMapStore {
                 }
             }
         }
-        for (int o : oldChunks) {
-            chunks.remove(o);
-        }
+        store();
+        return true;
     }
 
     /**
@@ -829,13 +883,17 @@ public class BtreeMapStore {
         if (version > currentVersion || version < 0) {
             return false;
         }
-        if (chunks.size() == 0) {
+        if (version == currentVersion || chunks.size() == 0) {
+            // no stored data
             return true;
         }
+        // need to check if a chunk for this version exists
         Chunk c = getChunkForVersion(version);
         if (c == null) {
             return false;
         }
+        // also, all check referenced by this version
+        // need to be available in the file
         BtreeMap<String, String> oldMeta = getMetaMap(version);
         if (oldMeta == null) {
             return false;
@@ -857,7 +915,7 @@ public class BtreeMapStore {
      * forgotten. All maps that were created later are closed. A rollback to
      * a version before the last stored version is immediately persisted.
      *
-     * @param version the version to keep
+     * @param version the version to revert to
      */
     public void rollbackTo(long version) {
         if (!isKnownVersion(version)) {
@@ -896,7 +954,7 @@ public class BtreeMapStore {
         for (BtreeMap<?, ?> m : maps.values()) {
             if (m.getCreatedVersion() > version) {
                 m.close();
-                removeMap(m.getId());
+                removeMap(m.getName());
             } else {
                 if (loadFromFile) {
                     String r = meta.get("root." + m.getId());
@@ -905,11 +963,14 @@ public class BtreeMapStore {
                 }
             }
         }
-        this.currentVersion = version;
+        this.currentVersion = version + 1;
     }
 
     private void revertTemp() {
         freedChunks.clear();
+        for (BtreeMap<?, ?> m : mapsChanged.values()) {
+            m.stored();
+        }
         mapsChanged.clear();
         temp.clear();
         tempPageId = 0;
@@ -917,8 +978,7 @@ public class BtreeMapStore {
 
     /**
      * Get the current version of the store. When a new store is created, the
-     * version is 0. For each commit, it is incremented by one if there was a
-     * change.
+     * version is 1. For each commit, it is incremented by one.
      *
      * @return the version
      */

@@ -29,6 +29,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     public void test() {
+        testCustomMapType();
         testTruncateFile();
         testFastDelete();
         testRollbackInMemory();
@@ -42,6 +43,20 @@ public class TestBtreeMapStore extends TestBase {
         testKeyValueClasses();
         testIterate();
         testSimple();
+    }
+
+    private void testCustomMapType() {
+        String fileName = getBaseDir() + "/testMeta.h3";
+        FileUtils.delete(fileName);
+        BtreeMapStore s;
+        s = openStore(fileName);
+        SequenceMap<Integer, String> seq = s.openMap("data", "s", "i", "").cast();
+        StringBuilder buff = new StringBuilder();
+        for (int x : seq.keySet()) {
+            buff.append(x).append(';');
+        }
+        assertEquals("1;2;3;4;5;6;7;8;9;10;", buff.toString());
+        s.close();
     }
 
     private void testTruncateFile() {
@@ -233,11 +248,11 @@ public class TestBtreeMapStore extends TestBase {
         data.put("1", "Hello");
         data.put("2", "World");
         s.store();
-        assertEquals("1/1//", m.get("map.data"));
+        assertEquals("1/1///", m.get("map.data"));
         assertTrue(m.containsKey("chunk.1"));
         data.put("1", "Hallo");
         s.store();
-        assertEquals("1/1//", m.get("map.data"));
+        assertEquals("1/1///", m.get("map.data"));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
         assertTrue(m.containsKey("chunk.2"));
@@ -255,8 +270,7 @@ public class TestBtreeMapStore extends TestBase {
             BtreeMapStore s = openStore(fileName);
             // s.setCompressor(null);
             s.setMaxPageSize(40);
-            RowType rowType = RowType.fromString("r(i,,)", new TestTypeFactory());
-            BtreeMap<Integer, Object[]> m = s.openMap("data", new IntegerType(), rowType);
+            BtreeMap<Integer, Object[]> m = s.openMap("data", "", "i", "r(i,,)");
             int i = 0;
             // long t = System.currentTimeMillis();
             for (; i < len;) {
@@ -540,7 +554,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private static BtreeMapStore openStore(String fileName) {
-        BtreeMapStore store = BtreeMapStore.open(fileName, new TestTypeFactory());
+        BtreeMapStore store = BtreeMapStore.open(fileName, new TestMapFactory());
         store.setMaxPageSize(10);
         return store;
     }

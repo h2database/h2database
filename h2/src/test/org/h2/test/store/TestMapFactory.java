@@ -5,16 +5,29 @@
  */
 package org.h2.test.store;
 
+import org.h2.dev.store.btree.BtreeMap;
+import org.h2.dev.store.btree.BtreeMapStore;
 import org.h2.dev.store.btree.DataType;
-import org.h2.dev.store.btree.DataTypeFactory;
+import org.h2.dev.store.btree.MapFactory;
 import org.h2.dev.store.btree.StringType;
 
 /**
  * A data type factory.
  */
-public class TestTypeFactory implements DataTypeFactory {
+public class TestMapFactory implements MapFactory {
 
-    public DataType fromString(String s) {
+    @Override
+    public <K, V> BtreeMap<K, V> buildMap(String mapType, BtreeMapStore store,
+            int id, String name, DataType keyType, DataType valueType,
+            long createVersion) {
+        if (mapType.equals("s")) {
+            return new SequenceMap<K, V>(store, id, name, keyType, valueType, createVersion);
+        }
+        throw new RuntimeException("Unsupported map type " + mapType);
+    }
+
+    @Override
+    public DataType buildDataType(String s) {
         if (s.length() == 0) {
             return new StringType();
         }
@@ -27,9 +40,10 @@ public class TestTypeFactory implements DataTypeFactory {
         throw new RuntimeException("Unknown data type " + s);
     }
 
-    public DataType getDataType(Class<?> objectClass) {
+    @Override
+    public String getDataType(Class<?> objectClass) {
         if (objectClass == Integer.class) {
-            return new IntegerType();
+            return "i";
         }
         throw new RuntimeException("Unsupported object class " + objectClass.toString());
     }

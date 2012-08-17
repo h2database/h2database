@@ -38,7 +38,7 @@ header:
 blockSize=4096
 
 TODO:
-- support custom map types (page types); pager for r-tree, kd-tree
+- support custom map types: b-tree, r-tree
 - ability to diff / merge versions
 - map.getVersion and opening old maps read-only
 - limited support for writing to old versions (branches)
@@ -55,6 +55,7 @@ TODO:
 - check what happens on concurrent reads and 1 write; multiple writes
 - support large binaries
 - support stores that span multiple files (chunks stored in other files)
+- triggers
 
 */
 
@@ -68,7 +69,7 @@ public class BtreeMapStore {
     private static final StringType STRING_TYPE = new StringType();
 
     private final String fileName;
-    private final DataTypeFactory typeFactory;
+    private final MapFactory mapFactory;
 
     private int readCacheSize = 2 * 1024 * 1024;
 
@@ -110,9 +111,9 @@ public class BtreeMapStore {
     private int readCount;
     private int writeCount;
 
-    private BtreeMapStore(String fileName, DataTypeFactory typeFactory) {
+    private BtreeMapStore(String fileName, MapFactory mapFactory) {
         this.fileName = fileName;
-        this.typeFactory = typeFactory;
+        this.mapFactory = mapFactory;
     }
 
     /**
@@ -129,11 +130,11 @@ public class BtreeMapStore {
      * Open a tree store.
      *
      * @param fileName the file name
-     * @param typeFactory the type factory
+     * @param mapFactory the map factory
      * @return the store
      */
-    public static BtreeMapStore open(String fileName, DataTypeFactory typeFactory) {
-        BtreeMapStore s = new BtreeMapStore(fileName, typeFactory);
+    public static BtreeMapStore open(String fileName, MapFactory mapFactory) {
+        BtreeMapStore s = new BtreeMapStore(fileName, mapFactory);
         s.open();
         return s;
     }
@@ -144,12 +145,13 @@ public class BtreeMapStore {
      * @param <K> the key type
      * @param <V> the value type
      * @param name the name of the map
+     * @param mapType the map type
      * @param keyType the key type
      * @param valueType the value type
      * @return the map
      */
-    public <K, V> BtreeMap<K, V> openMap(String name, DataType keyType, DataType valueType) {
-        @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
+    public <K, V> BtreeMap<K, V> openMap(String name, String mapType, String keyType, String valueType) {
         BtreeMap<K, V> m = (BtreeMap<K, V>) maps.get(name);
         if (m == null) {
             String identifier = meta.get("map." + name);
@@ -158,21 +160,28 @@ public class BtreeMapStore {
             long createVersion;
             if (identifier == null) {
                 id = ++lastMapId;
-                String types = id + "/" + currentVersion + "/" + keyType.asString() + "/" + valueType.asString();
+                createVersion = currentVersion;
+                String types = id + "/" + createVersion + "/" + mapType + "/" + keyType + "/" + valueType;
                 meta.put("map." + name, types);
                 root = 0;
-                createVersion = currentVersion;
             } else {
                 String types = meta.get("map." + name);
                 String[] idTypeList = StringUtils.arraySplit(types, '/', false);
                 id = Integer.parseInt(idTypeList[0]);
                 createVersion = Long.parseLong(idTypeList[1]);
-                keyType = getDataType(idTypeList[2]);
-                valueType = getDataType(idTypeList[3]);
+                mapType = idTypeList[2];
+                keyType = idTypeList[3];
+                valueType = idTypeList[4];
                 String r = meta.get("root." + id);
                 root = r == null ? 0 : Long.parseLong(r);
             }
-            m = new BtreeMap<K, V>(this, id, name, keyType, valueType, createVersion);
+            DataType k = buildDataType(keyType);
+            DataType v = buildDataType(valueType);
+            if (mapType.equals("")) {
+                m = new BtreeMap<K, V>(this, id, name, k, v, createVersion);
+            } else {
+                m = getMapFactory().buildMap(mapType, this, id, name, k, v, createVersion);
+            }
             maps.put(name, m);
             m.setRootPos(root);
         }
@@ -223,9 +232,11 @@ public class BtreeMapStore {
      * @return the map
      */
     public <K, V> BtreeMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
-        DataType keyType = getDataType(keyClass);
-        DataType valueType = getDataType(valueClass);
-        return openMap(name, keyType, valueType);
+        String keyType = getDataType(keyClass);
+        String valueType = getDataType(valueClass);
+        @SuppressWarnings("unchecked")
+        BtreeMap<K, V> m = (BtreeMap<K, V>) openMap(name, "", keyType, valueType);
+        return m;
     }
 
     void removeMap(String name) {
@@ -233,25 +244,25 @@ public class BtreeMapStore {
         mapsChanged.remove(m);
     }
 
-    private DataType getDataType(Class<?> clazz) {
+    private String getDataType(Class<?> clazz) {
         if (clazz == String.class) {
-            return STRING_TYPE;
+            return "";
         }
-        return getTypeFactory().getDataType(clazz);
+        return getMapFactory().getDataType(clazz);
     }
 
-    private DataType getDataType(String s) {
-        if (s.equals("")) {
+    private DataType buildDataType(String dataType) {
+        if (dataType.equals("")) {
             return STRING_TYPE;
         }
-        return getTypeFactory().fromString(s);
+        return getMapFactory().buildDataType(dataType);
     }
 
-    private DataTypeFactory getTypeFactory() {
-        if (typeFactory == null) {
-            throw new RuntimeException("No data type factory set");
+    private MapFactory getMapFactory() {
+        if (mapFactory == null) {
+            throw new RuntimeException("No factory set");
         }
-        return typeFactory;
+        return mapFactory;
     }
 
     /**
@@ -657,6 +668,7 @@ public class BtreeMapStore {
         if (percentTotal > fillRate) {
             return false;
         }
+
         // calculate how many entries a chunk has on average
         // TODO use the max size instead of the count
         int averageEntryCount = (int) (entryCountTotal / chunks.size());
@@ -664,20 +676,27 @@ public class BtreeMapStore {
         // the 'old' list contains the chunks we want to free up
         ArrayList<Chunk> old = New.arrayList();
         for (Chunk c : chunks.values()) {
-            int age = lastChunkId - c.id + 1;
-            c.collectPriority = c.getFillRate() / age;
-            old.add(c);
+            if (retainChunk == -1 || c.id < retainChunk) {
+                int age = lastChunkId - c.id + 1;
+                c.collectPriority = c.getFillRate() / age;
+                old.add(c);
+            }
         }
+        if (old.size() == 0) {
+            return false;
+        }
+
         // sort the list, so the first entry should be collected first
         Collections.sort(old, new Comparator<Chunk>() {
             public int compare(Chunk o1, Chunk o2) {
                 return new Integer(o1.collectPriority).compareTo(o2.collectPriority);
             }
         });
-        int moveCount = 0;
-        Chunk move = null;
+
         // find out up to were we need to move
         // try to move one (average sized) chunk
+        int moveCount = 0;
+        Chunk move = null;
         for (Chunk c : old) {
             if (moveCount + c.liveCount > averageEntryCount) {
                 break;
@@ -711,39 +730,39 @@ public class BtreeMapStore {
                 }
             }
         }
+
         // the metaRootPos might not be set
         move = readChunkHeader(move.start);
         log("  meta:" + move.id + "/" + move.metaRootPos + " start: " + move.start);
+
         // change at least one entry in the map
         // to ensure a chunk will be written
         // (even if there is nothing to move)
         meta.put("chunk." + move.id, move.toString());
         BtreeMap<String, String> oldMeta = new BtreeMap<String, String>(this, 0, "old-meta", STRING_TYPE, STRING_TYPE, 0);
         oldMeta.setRootPos(move.metaRootPos);
-        Iterator<String> it = oldMeta.keyIterator(null);
+        Iterator<String> it = oldMeta.keyIterator("map.");
         while (it.hasNext()) {
             String k = it.next();
-            String s = oldMeta.get(k);
-            log("    " + k + " " + s.replace('\n', ' '));
             if (!k.startsWith("map.")) {
-                continue;
+                break;
             }
+            String s = oldMeta.get(k);
             k = k.substring("map.".length());
-            if (!maps.containsKey(k)) {
+            @SuppressWarnings("unchecked")
+            BtreeMap<Object, Object> data = (BtreeMap<Object, Object>) maps.get(k);
+            if (data == null) {
                 continue;
             }
-            String[] idTypesList = StringUtils.arraySplit(s, '/', false);
-            int id = Integer.parseInt(idTypesList[0]);
-            DataType kt = getDataType(idTypesList[2]);
-            DataType vt = getDataType(idTypesList[3]);
+            log("    " + k + " " + s.replace('\n', ' '));
+            String[] idTypeList = StringUtils.arraySplit(s, '/', false);
+            int id = Integer.parseInt(idTypeList[0]);
+            DataType kt = buildDataType(idTypeList[3]);
+            DataType vt = buildDataType(idTypeList[4]);
             long oldDataRoot = Long.parseLong(oldMeta.get("root." + id));
-            BtreeMap<?, ?> oldData = new BtreeMap<Object, Object>(this, id, "old-" + k, kt, vt, 0);
-            if (oldDataRoot == 0) {
-                // no rows
-            } else {
+            if (oldDataRoot != 0) {
+                BtreeMap<?, ?> oldData = new BtreeMap<Object, Object>(this, id, "old-" + k, kt, vt, 0);
                 oldData.setRootPos(oldDataRoot);
-                @SuppressWarnings("unchecked")
-                BtreeMap<Object, Object> data = (BtreeMap<Object, Object>) maps.get(k);
                 Iterator<?> dataIt = oldData.keyIterator(null);
                 while (dataIt.hasNext()) {
                     Object o = dataIt.next();
@@ -952,7 +971,7 @@ public class BtreeMapStore {
             }
         }
         for (BtreeMap<?, ?> m : maps.values()) {
-            if (m.getCreatedVersion() > version) {
+            if (m.getCreateVersion() > version) {
                 m.close();
                 removeMap(m.getName());
             } else {
@@ -969,7 +988,7 @@ public class BtreeMapStore {
     private void revertTemp() {
         freedChunks.clear();
         for (BtreeMap<?, ?> m : mapsChanged.values()) {
-            m.stored();
+            m.revertTemp();
         }
         mapsChanged.clear();
         temp.clear();

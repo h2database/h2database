@@ -13,14 +13,17 @@ import java.util.Iterator;
  * A cursor to iterate over elements in ascending order.
  *
  * @param <K> the key type
+ * @param <V> the value type
  */
-class Cursor<K> implements Iterator<K> {
+class Cursor<K, V> implements Iterator<K> {
 
-    private ArrayList<CursorPos> parents = new ArrayList<CursorPos>();
+    private final BtreeMap<K, V> map;
+    private final ArrayList<CursorPos> parents = new ArrayList<CursorPos>();
     private K current;
 
-    Cursor(Page root, K from) {
-        Page.min(root, parents, from);
+    Cursor(BtreeMap<K, V> map, Page root, K from) {
+        this.map = map;
+        map.min(root, parents, from);
         fetchNext();
     }
 
@@ -34,7 +37,7 @@ class Cursor<K> implements Iterator<K> {
 
     @SuppressWarnings("unchecked")
     private void fetchNext() {
-        current = (K) Page.nextKey(parents);
+        current = (K) map.nextKey(parents);
     }
 
     public boolean hasNext() {

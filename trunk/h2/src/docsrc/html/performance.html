@@ -39,7 +39,11 @@ Performance
 <p>
 In many cases H2 is faster than other
 (open source and not open source) database engines.
-Please note this is mostly a single connection benchmark run on one computer.
+Please note this is mostly a single connection benchmark run on one computer,
+with many very simple operations running against the database.
+This benchmark does not include very complex queries.
+The embedded mode of H2 is faster than the client-server mode because
+the per-statement overhead is greatly reduced. 
 </p>
 
 <h3>Embedded</h3>

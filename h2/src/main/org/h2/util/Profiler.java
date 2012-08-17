@@ -22,7 +22,7 @@ public class Profiler implements Runnable {
     private static final int MAX_ELEMENTS = 1000;
 
     public int interval = 2;
-    public int depth = 32;
+    public int depth = 48;
     public boolean paused;
     public boolean sumClasses;
 

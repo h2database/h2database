@@ -8,7 +8,7 @@ package org.h2.test.store;
 
 import java.nio.ByteBuffer;
 import org.h2.dev.store.btree.DataType;
-import org.h2.dev.store.btree.DataTypeFactory;
+import org.h2.dev.store.btree.MapFactory;
 import org.h2.dev.store.btree.DataUtils;
 import org.h2.util.StringUtils;
 
@@ -115,7 +115,7 @@ public class RowType implements DataType {
      * @param factory the data type factory
      * @return the row type
      */
-    static RowType fromString(String t, DataTypeFactory factory) {
+    static RowType fromString(String t, MapFactory factory) {
         if (!t.startsWith("r(") || !t.endsWith(")")) {
             throw new RuntimeException("Unknown type: " + t);
         }
@@ -123,7 +123,7 @@ public class RowType implements DataType {
         String[] array = StringUtils.arraySplit(t, ',', false);
         DataType[] types = new DataType[array.length];
         for (int i = 0; i < array.length; i++) {
-            types[i] = factory.fromString(array[i]);
+            types[i] = factory.buildDataType(array[i]);
         }
         return new RowType(types);
     }

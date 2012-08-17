@@ -9,13 +9,12 @@ package org.h2.dev.store.btree;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import org.h2.compress.Compressor;
 
 /**
- * A btree page (a node or a leaf).
+ * A page (a node or a leaf).
  * <p>
- * For nodes, the key at a given index is larger than the largest key of the
+ * For b-tree nodes, the key at a given index is larger than the largest key of the
  * child at the same index.
  * <p>
  * File format: page length (including length): int check value: short map id:
@@ -24,11 +23,6 @@ import org.h2.compress.Compressor;
  * children (1 more than keys)
  */
 public class Page {
-
-    private static final IllegalArgumentException KEY_NOT_FOUND = new IllegalArgumentException(
-            "Key not found");
-    private static final IllegalArgumentException KEY_ALREADY_EXISTS = new IllegalArgumentException(
-            "Key already exists");
 
     private final BtreeMap<?, ?> map;
     private final long version;
@@ -101,15 +95,33 @@ public class Page {
         return p;
     }
 
-    private Page copyOnWrite(long writeVersion) {
-        if (version == writeVersion) {
-            return this;
-        }
-        getStore().removePage(pos);
-        Page newPage = create(map, writeVersion, keys, values, children,
-                childrenSize, totalSize);
-        newPage.cachedCompare = cachedCompare;
-        return newPage;
+    Object getKey(int index) {
+        return keys[index];
+    }
+
+    Page getChildPage(int index) {
+        return map.readPage(children[index]);
+    }
+
+    Object getValue(int x) {
+        return values[x];
+    }
+
+    int getKeyCount() {
+        return keys.length;
+    }
+
+    boolean isLeaf() {
+        return children == null;
+    }
+
+    /**
+     * Get the position of the page
+     *
+     * @return the position
+     */
+    long getPos() {
+        return pos;
     }
 
     public String toString() {
@@ -133,62 +145,28 @@ public class Page {
         return buff.toString();
     }
 
-    /**
-     * Get the position of the page
-     *
-     * @return the position
-     */
-    long getPos() {
-        return pos;
+    Page copyOnWrite(long writeVersion) {
+        if (version == writeVersion) {
+            return this;
+        }
+        map.getStore().removePage(pos);
+        Page newPage = create(map, writeVersion, keys, values, children,
+                childrenSize, totalSize);
+        newPage.cachedCompare = cachedCompare;
+        return newPage;
     }
 
     /**
-     * Get the value for the given key, or null if not found.
+     * Search the key in this page using a binary search. Instead of always
+     * starting the search in the middle, the last found index is cached. If the
+     * key was found, the returned value is the index in the key array. If not
+     * found, the returned value is negative, where -1 means the provided key is
+     * smaller than any keys in this page. See also Arrays.binarySearch.
      *
      * @param key the key
      * @return the value or null
      */
-    Object find(Object key) {
-        int x = findKey(key);
-        if (children != null) {
-            if (x < 0) {
-                x = -x - 1;
-            } else {
-                x++;
-            }
-            Page p = map.readPage(children[x]);
-            return p.find(key);
-        }
-        if (x >= 0) {
-            return values[x];
-        }
-        return null;
-    }
-
-    /**
-     * Get the value for the given key, or null if not found.
-     *
-     * @param key the key
-     * @return the page or null
-     */
-    Page findPage(Object key) {
-        int x = findKey(key);
-        if (children != null) {
-            if (x < 0) {
-                x = -x - 1;
-            } else {
-                x++;
-            }
-            Page p = map.readPage(children[x]);
-            return p.findPage(key);
-        }
-        if (x >= 0) {
-            return this;
-        }
-        return null;
-    }
-
-    private int findKey(Object key) {
+    int binarySearch(Object key) {
         int low = 0, high = keys.length - 1;
         int x = cachedCompare - 1;
         if (x < 0 || x > high) {
@@ -225,85 +203,7 @@ public class Page {
         // return -(low + 1);
     }
 
-    /**
-     * Go to the first element for the given key.
-     *
-     * @param p the current page
-     * @param parents the stack of parent page positions
-     * @param key the key
-     */
-    static void min(Page p, ArrayList<CursorPos> parents, Object key) {
-        while (p != null) {
-            if (p.children != null) {
-                int x = key == null ? -1 : p.findKey(key);
-                if (x < 0) {
-                    x = -x - 1;
-                } else {
-                    x++;
-                }
-                CursorPos c = new CursorPos();
-                c.page = p;
-                c.index = x;
-                parents.add(c);
-                p = p.map.readPage(p.children[x]);
-            } else {
-                int x = key == null ? 0 : p.findKey(key);
-                if (x < 0) {
-                    x = -x - 1;
-                }
-                CursorPos c = new CursorPos();
-                c.page = p;
-                c.index = x;
-                parents.add(c);
-                return;
-            }
-        }
-    }
-
-    /**
-     * Get the next key.
-     *
-     * @param parents the stack of parent page positions
-     * @return the next key
-     */
-    static Object nextKey(ArrayList<CursorPos> parents) {
-        if (parents.size() == 0) {
-            return null;
-        }
-        while (true) {
-            // TODO performance: avoid remove/add pairs if possible
-            CursorPos p = parents.remove(parents.size() - 1);
-            int index = p.index++;
-            if (index < p.page.keys.length) {
-                parents.add(p);
-                return p.page.keys[index];
-            }
-            while (true) {
-                if (parents.size() == 0) {
-                    return null;
-                }
-                p = parents.remove(parents.size() - 1);
-                index = ++p.index;
-                if (index < p.page.children.length) {
-                    parents.add(p);
-                    Page x = p.page;
-                    x = x.map.readPage(x.children[index]);
-                    min(x, parents, null);
-                    break;
-                }
-            }
-        }
-    }
-
-    private int keyCount() {
-        return keys.length;
-    }
-
-    private boolean isLeaf() {
-        return children == null;
-    }
-
-    private Page split(int at) {
+    Page split(int at) {
         return isLeaf() ? splitLeaf(at) : splitNode(at);
     }
 
@@ -357,118 +257,6 @@ public class Page {
         return newPage;
     }
 
-    /**
-     * Update a value for an existing key.
-     *
-     * @param map the map
-     * @param p the page (may not be null)
-     * @param writeVersion the write version
-     * @param key the key
-     * @param value the value
-     * @return the root page
-     * @throws InvalidArgumentException if this key does not exist (without
-     *         stack trace)
-     */
-    static Page set(BtreeMap<?, ?> map, Page p, long writeVersion, Object key,
-            Object value) {
-        if (p == null) {
-            throw KEY_NOT_FOUND;
-        }
-        int index = p.findKey(key);
-        if (p.isLeaf()) {
-            if (index < 0) {
-                throw KEY_NOT_FOUND;
-            }
-            p = p.copyOnWrite(writeVersion);
-            p.setValue(index, value);
-            return p;
-        }
-        // it is a node
-        if (index < 0) {
-            index = -index - 1;
-        } else {
-            index++;
-        }
-        Page c = map.readPage(p.children[index]);
-        Page c2 = set(map, c, writeVersion, key, value);
-        if (c != c2) {
-            p = p.copyOnWrite(writeVersion);
-            p.setChild(index, c2.getPos(), c2.getPos());
-        }
-        return p;
-    }
-
-    /**
-     * Add a new key-value pair.
-     *
-     * @param map the map
-     * @param p the page (may be null)
-     * @param writeVersion the write version
-     * @param key the key
-     * @param value the value
-     * @return the root page
-     * @throws InvalidArgumentException if this key already exists (without
-     *         stack trace)
-     */
-    static Page add(BtreeMap<?, ?> map, Page p, long writeVersion, Object key,
-            Object value) {
-        if (p == null) {
-            Object[] keys = { key };
-            Object[] values = { value };
-            p = create(map, writeVersion, keys, values, null, null, 1);
-            return p;
-        }
-        if (p.keyCount() >= map.getStore().getMaxPageSize()) {
-            // only possible if this is the root,
-            // otherwise we would have split earlier
-            p = p.copyOnWrite(writeVersion);
-            int at = p.keyCount() / 2;
-            long totalSize = p.getTotalSize();
-            Object k = p.keys[at];
-            Page split = p.split(at);
-            Object[] keys = { k };
-            long[] children = { p.getPos(), split.getPos() };
-            long[] childrenSize = { p.getTotalSize(), split.getTotalSize() };
-            p = create(map, writeVersion, keys, null, children, childrenSize,
-                    totalSize);
-            // now p is a node; insert continues
-        } else if (p.isLeaf()) {
-            int index = p.findKey(key);
-            if (index >= 0) {
-                throw KEY_ALREADY_EXISTS;
-            }
-            index = -index - 1;
-            p = p.copyOnWrite(writeVersion);
-            p.insert(index, key, value, 0, 0);
-            return p;
-        }
-        // p is a node
-        int index = p.findKey(key);
-        if (index < 0) {
-            index = -index - 1;
-        } else {
-            index++;
-        }
-        Page c = map.readPage(p.children[index]);
-        if (c.keyCount() >= map.getStore().getMaxPageSize()) {
-            // split on the way down
-            c = c.copyOnWrite(writeVersion);
-            int at = c.keyCount() / 2;
-            Object k = c.keys[at];
-            Page split = c.split(at);
-            p = p.copyOnWrite(writeVersion);
-            p.setChild(index, c.getPos(), c.getTotalSize());
-            p.insert(index, k, null, split.getPos(), split.getTotalSize());
-            // now we are not sure where to add
-            return add(map, p, writeVersion, key, value);
-        }
-        Page c2 = add(map, c, writeVersion, key, value);
-        p = p.copyOnWrite(writeVersion);
-        // the child might be the same, but not the size
-        p.setChild(index, c2.getPos(), c2.getTotalSize());
-        return p;
-    }
-
     long getTotalSize() {
         if (BtreeMapStore.ASSERT) {
             long check = 0;
@@ -487,7 +275,7 @@ public class Page {
         return totalSize;
     }
 
-    private void setChild(int index, long pos, long childSize) {
+    void setChild(int index, long pos, long childSize) {
         if (pos != children[index]) {
             long[] newChildren = new long[children.length];
             System.arraycopy(children, 0, newChildren, 0, newChildren.length);
@@ -504,7 +292,7 @@ public class Page {
         }
     }
 
-    private void setValue(int index, Object value) {
+    void setValue(int index, Object value) {
         // create a copy - not required if already cloned once in this version,
         // but avoid unnecessary cloning would require a "modified" flag
         Object[] newValues = new Object[values.length];
@@ -521,65 +309,16 @@ public class Page {
             for (long c : children) {
                 int type = DataUtils.getPageType(c);
                 if (type == DataUtils.PAGE_TYPE_LEAF) {
-                    getStore().removePage(c);
+                    map.getStore().removePage(c);
                 } else {
                     map.readPage(c).removeAllRecursive();
                 }
             }
         }
-        getStore().removePage(pos);
+        map.getStore().removePage(pos);
     }
 
-    /**
-     * Remove an existing key-value pair.
-     *
-     * @param p the page (may not be null)
-     * @param writeVersion the write version
-     * @param key the key
-     * @return the new root page (null if empty)
-     * @throws InvalidArgumentException if not found (without stack trace)
-     */
-    static Page removeExisting(Page p, long writeVersion, Object key) {
-        if (p == null) {
-            throw KEY_NOT_FOUND;
-        }
-        int index = p.findKey(key);
-        if (p.isLeaf()) {
-            if (index >= 0) {
-                if (p.keyCount() == 1) {
-                    p.getStore().removePage(p.pos);
-                    return null;
-                }
-                p = p.copyOnWrite(writeVersion);
-                p.remove(index);
-            } else {
-                throw KEY_NOT_FOUND;
-            }
-            return p;
-        }
-        // node
-        if (index < 0) {
-            index = -index - 1;
-        } else {
-            index++;
-        }
-        Page c = p.map.readPage(p.children[index]);
-        Page c2 = removeExisting(c, writeVersion, key);
-        p = p.copyOnWrite(writeVersion);
-        if (c2 == null) {
-            // this child was deleted
-            p.remove(index);
-            if (p.keyCount() == 0) {
-                p.getStore().removePage(p.pos);
-                p = p.map.readPage(p.children[0]);
-            }
-        } else {
-            p.setChild(index, c2.getPos(), c2.getTotalSize());
-        }
-        return p;
-    }
-
-    private void insert(int index, Object key, Object value, long child,
+    void insert(int index, Object key, Object value, long child,
             long childSize) {
         Object[] newKeys = new Object[keys.length + 1];
         DataUtils.copyWithGap(keys, newKeys, keys.length, index);
@@ -607,7 +346,7 @@ public class Page {
         }
     }
 
-    private void remove(int index) {
+    void remove(int index) {
         Object[] newKeys = new Object[keys.length - 1];
         int keyIndex = index >= keys.length ? index - 1 : index;
         DataUtils.copyExcept(keys, newKeys, keys.length, keyIndex);
@@ -644,16 +383,14 @@ public class Page {
             throw new RuntimeException("Error reading page, expected map "
                     + map.getId() + " got " + mapId);
         }
-        int len = DataUtils.readVarInt(buff);
         int checkTest = DataUtils.getCheckValue(chunkId)
-                ^ DataUtils.getCheckValue(map.getId())
                 ^ DataUtils.getCheckValue(offset)
-                ^ DataUtils.getCheckValue(pageLength)
-                ^ DataUtils.getCheckValue(len);
+                ^ DataUtils.getCheckValue(pageLength);
         if (check != (short) checkTest) {
             throw new RuntimeException("Error in check value, expected "
                     + checkTest + " got " + check);
         }
+        int len = DataUtils.readVarInt(buff);
         keys = new Object[len];
         int type = buff.get();
         boolean node = (type & 1) == DataUtils.PAGE_TYPE_NODE;
@@ -743,10 +480,8 @@ public class Page {
         int pageLength = buff.position() - start;
         buff.putInt(start, pageLength);
         int check = DataUtils.getCheckValue(chunkId)
-                ^ DataUtils.getCheckValue(map.getId())
                 ^ DataUtils.getCheckValue(start)
-                ^ DataUtils.getCheckValue(pageLength)
-                ^ DataUtils.getCheckValue(len);
+                ^ DataUtils.getCheckValue(pageLength);
         buff.putShort(start + 4, (short) check);
         this.pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
     }
@@ -821,14 +556,6 @@ public class Page {
             }
         }
         return count;
-    }
-
-    BtreeMapStore getStore() {
-        return map.getStore();
-    }
-
-    long getVersion() {
-        return version;
     }
 
 }

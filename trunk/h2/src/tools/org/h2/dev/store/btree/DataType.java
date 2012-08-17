@@ -64,9 +64,10 @@ public interface DataType {
     Object read(ByteBuffer buff);
 
     /**
-     * Get the string representation of this type.
+     * Get the stable string representation that is used to build this data
+     * type.
      *
-     * @return the string
+     * @return the string representation
      */
     String asString();
 

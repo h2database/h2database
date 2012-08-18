@@ -256,11 +256,9 @@ public class JdbcClob extends TraceObject implements Clob
     /**
      * [Not supported] Returns the reader, starting from an offset.
      */
-//## Java 1.6 ##
     public Reader getCharacterStream(long pos, long length) throws SQLException {
         throw unsupported("LOB subset");
     }
-//*/
 
     private void checkClosed() {
         conn.checkClosed();

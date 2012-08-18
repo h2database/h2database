@@ -1304,7 +1304,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-//## Java 1.6 ##
     public void setNString(int parameterIndex, String x) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1316,7 +1315,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-//*/
 
     /**
      * Sets the value of a parameter as a character stream.
@@ -1328,7 +1326,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
-//## Java 1.6 ##
     public void setNCharacterStream(int parameterIndex, Reader x, long length)
             throws SQLException {
         try {
@@ -1347,7 +1344,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-//*/
 
     /**
      * Sets the value of a parameter as a character stream.
@@ -1358,12 +1354,10 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-//## Java 1.6 ##
     public void setNCharacterStream(int parameterIndex, Reader x)
             throws SQLException {
         setNCharacterStream(parameterIndex, x, -1);
     }
-//*/
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1401,7 +1395,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-//## Java 1.6 ##
     public void setNClob(int parameterIndex, Reader x) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1418,7 +1411,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-//*/
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1484,7 +1476,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
-//## Java 1.6 ##
     public void setNClob(int parameterIndex, Reader x, long length)
             throws SQLException {
         try {

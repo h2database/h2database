@@ -84,6 +84,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private Statement executingStatement;
     private CompareMode compareMode = CompareMode.getInstance(null, 0);
     private CloseWatcher watcher;
+    private int queryTimeoutCache = -1;
 
     /**
      * INTERNAL
@@ -702,18 +703,21 @@ public class JdbcConnection extends TraceObject implements Connection {
     public int getQueryTimeout() throws SQLException {
         try {
             debugCodeCall("getQueryTimeout");
-            checkClosed();
-            getQueryTimeout = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", getQueryTimeout);
-            getQueryTimeout.getParameters().get(0).setValue(ValueString.get("QUERY_TIMEOUT"), false);
-            ResultInterface result = getQueryTimeout.executeQuery(0, false);
-            result.next();
-            int queryTimeout = result.currentRow()[0].getInt();
-            result.close();
-            if (queryTimeout == 0) {
-                return 0;
+            if (queryTimeoutCache == -1) {
+                checkClosed();
+                getQueryTimeout = prepareCommand("SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?", getQueryTimeout);
+                getQueryTimeout.getParameters().get(0).setValue(ValueString.get("QUERY_TIMEOUT"), false);
+                ResultInterface result = getQueryTimeout.executeQuery(0, false);
+                result.next();
+                int queryTimeout = result.currentRow()[0].getInt();
+                result.close();
+                if (queryTimeout != 0) {
+                    // round to the next second, otherwise 999 millis would return 0 seconds
+                    queryTimeout = (queryTimeout + 999) / 1000;
+                }
+                queryTimeoutCache = queryTimeout;
             }
-            // round to the next second, otherwise 999 millis would return 0 seconds
-            return (queryTimeout + 999) / 1000;
+            return queryTimeoutCache;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

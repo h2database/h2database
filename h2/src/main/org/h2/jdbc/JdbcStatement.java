@@ -521,6 +521,10 @@ public class JdbcStatement extends TraceObject implements Statement {
      * Gets the current query timeout in seconds.
      * This method will return 0 if no query timeout is set.
      * The result is rounded to the next second.
+     * For performance reasons, only the first call to this method
+     * will query the database. If the query timeout was changed in another
+     * way than calling setQueryTimeout, this method will always return
+     * the last value.
      *
      * @return the timeout in seconds
      * @throws SQLException if this object is closed
@@ -536,14 +540,13 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
-     * Sets the current query timeout in seconds. Calling this method will
-     * commit an open transaction, even if the value is the same as before.
-     * Changing the value will affect all statements of this connection. This
-     * method does not commit a transaction, and rolling back a transaction does
-     * not affect this setting.
+     * Sets the current query timeout in seconds.
+     * Changing the value will affect all statements of this connection.
+     * This method does not commit a transaction,
+     * and rolling back a transaction does not affect this setting.
      *
      * @param seconds the timeout in seconds - 0 means no timeout, values
-     *            smaller 0 will throw an exception
+     *        smaller 0 will throw an exception
      * @throws SQLException if this object is closed
      */
     public void setQueryTimeout(int seconds) throws SQLException {

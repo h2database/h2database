@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 416: PreparedStatement.setNString throws AbstractMethodError.
+<ul><li>Statement.getQueryTimeout(): only the first call to this method will query the database. 
+    If the query timeout was changed in another way than calling setQueryTimeout, 
+    this method will always return the last value. This was changed because Hibernate
+    calls getQueryTimeout() a lot.
+</li><li>Issue 416: PreparedStatement.setNString throws AbstractMethodError.
     All implemented JDBC 4 methods that don't break compatiblity with Java 5 
     are now included in the default jar file.
 </li><li>Issue 414: for some functions, the parameters were evaluated twice

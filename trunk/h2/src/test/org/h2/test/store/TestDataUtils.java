@@ -5,6 +5,7 @@
  */
 package org.h2.test.store;
 
+import java.nio.ByteBuffer;
 import org.h2.dev.store.btree.DataUtils;
 import org.h2.test.TestBase;
 
@@ -23,9 +24,64 @@ public class TestDataUtils extends TestBase {
     }
 
     public void test() throws Exception {
+        testVarIntVarLong();
         testCheckValue();
         testPagePos();
         testEncodeLength();
+    }
+
+    private void testVarIntVarLong() {
+        ByteBuffer buff = ByteBuffer.allocate(100);
+        for (long x = 0; x < 1000; x++) {
+            testVarIntVarLong(buff, x);
+            testVarIntVarLong(buff, -x);
+        }
+        for (long x = Long.MIN_VALUE, i = 0; i < 1000; x++, i++) {
+            testVarIntVarLong(buff, x);
+        }
+        for (long x = Long.MAX_VALUE, i = 0; i < 1000; x--, i++) {
+            testVarIntVarLong(buff, x);
+        }
+        for (int shift = 0; shift < 64; shift++) {
+            for (long x = 250; x < 260; x++) {
+                testVarIntVarLong(buff, x << shift);
+                testVarIntVarLong(buff, -(x << shift));
+            }
+        }
+        // invalid varInt / varLong
+        // should work, but not read far too much
+        for (int i = 0; i < 50; i++) {
+            buff.put((byte) 255);
+        }
+        buff.flip();
+        assertEquals(-1, DataUtils.readVarInt(buff));
+        assertEquals(5, buff.position());
+        buff.rewind();
+        assertEquals(-1, DataUtils.readVarLong(buff));
+        assertEquals(10, buff.position());
+    }
+
+    private void testVarIntVarLong(ByteBuffer buff, long x) {
+        int len;
+
+        DataUtils.writeVarLong(buff, x);
+        len = buff.position();
+        buff.flip();
+        long y = DataUtils.readVarLong(buff);
+        assertEquals(y, x);
+        assertEquals(len, buff.position());
+        assertEquals(len, DataUtils.getVarLongLen(x));
+        buff.clear();
+
+        int intX = (int) x;
+        DataUtils.writeVarInt(buff, intX);
+        len = buff.position();
+        buff.flip();
+        int intY = DataUtils.readVarInt(buff);
+        assertEquals(intY, intX);
+        assertEquals(len, buff.position());
+        assertEquals(len, DataUtils.getVarIntLen(intX));
+        buff.clear();
     }
 
     private void testCheckValue() {

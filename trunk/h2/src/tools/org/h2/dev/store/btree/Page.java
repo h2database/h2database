@@ -30,9 +30,9 @@ public class Page {
     private Object[] keys;
     private Object[] values;
     private long[] children;
-    private long[] childrenSize;
+    private long[] counts;
     private int cachedCompare;
-    private long totalSize;
+    private long totalCount;
 
     private Page(BtreeMap<?, ?> map, long version) {
         this.map = map;
@@ -49,16 +49,16 @@ public class Page {
      * @param children the children
      * @return the page
      */
-    static Page create(BtreeMap<?, ?> map, long version, Object[] keys,
-            Object[] values, long[] children, long[] childrenSize,
-            long totalSize) {
+    public static Page create(BtreeMap<?, ?> map, long version, Object[] keys,
+            Object[] values, long[] children, long[] counts,
+            long totalCount) {
         Page p = new Page(map, version);
         p.pos = map.getStore().registerTempPage(p);
         p.keys = keys;
         p.values = values;
         p.children = children;
-        p.childrenSize = childrenSize;
-        p.totalSize = totalSize;
+        p.counts = counts;
+        p.totalCount = totalCount;
         return p;
     }
 
@@ -95,23 +95,23 @@ public class Page {
         return p;
     }
 
-    Object getKey(int index) {
+    public Object getKey(int index) {
         return keys[index];
     }
 
-    Page getChildPage(int index) {
+    public Page getChildPage(int index) {
         return map.readPage(children[index]);
     }
 
-    Object getValue(int x) {
+    public Object getValue(int x) {
         return values[x];
     }
 
-    int getKeyCount() {
+    public int getKeyCount() {
         return keys.length;
     }
 
-    boolean isLeaf() {
+    public boolean isLeaf() {
         return children == null;
     }
 
@@ -120,7 +120,7 @@ public class Page {
      *
      * @return the position
      */
-    long getPos() {
+    public long getPos() {
         return pos;
     }
 
@@ -145,13 +145,13 @@ public class Page {
         return buff.toString();
     }
 
-    Page copyOnWrite(long writeVersion) {
+    public Page copyOnWrite(long writeVersion) {
         if (version == writeVersion) {
             return this;
         }
         map.getStore().removePage(pos);
         Page newPage = create(map, writeVersion, keys, values, children,
-                childrenSize, totalSize);
+                counts, totalCount);
         newPage.cachedCompare = cachedCompare;
         return newPage;
     }
@@ -166,7 +166,7 @@ public class Page {
      * @param key the key
      * @return the value or null
      */
-    int binarySearch(Object key) {
+    public int binarySearch(Object key) {
         int low = 0, high = keys.length - 1;
         int x = cachedCompare - 1;
         if (x < 0 || x > high) {
@@ -203,7 +203,7 @@ public class Page {
         // return -(low + 1);
     }
 
-    Page split(int at) {
+    public Page split(int at) {
         return isLeaf() ? splitLeaf(at) : splitNode(at);
     }
 
@@ -220,7 +220,7 @@ public class Page {
         System.arraycopy(values, 0, aValues, 0, a);
         System.arraycopy(values, a, bValues, 0, b);
         values = aValues;
-        totalSize = keys.length;
+        totalCount = keys.length;
         Page newPage = create(map, version, bKeys, bValues, null, null,
                 bKeys.length);
         return newPage;
@@ -238,61 +238,70 @@ public class Page {
         System.arraycopy(children, 0, aChildren, 0, a + 1);
         System.arraycopy(children, a + 1, bChildren, 0, b);
         children = aChildren;
-        long[] aChildrenSize = new long[a + 1];
-        long[] bChildrenSize = new long[b];
-        System.arraycopy(childrenSize, 0, aChildrenSize, 0, a + 1);
-        System.arraycopy(childrenSize, a + 1, bChildrenSize, 0, b);
-        childrenSize = aChildrenSize;
+        long[] aCounts = new long[a + 1];
+        long[] bCounts = new long[b];
+        System.arraycopy(counts, 0, aCounts, 0, a + 1);
+        System.arraycopy(counts, a + 1, bCounts, 0, b);
+        counts = aCounts;
         long t = 0;
-        for (long x : aChildrenSize) {
+        for (long x : aCounts) {
             t += x;
         }
-        totalSize = t;
+        totalCount = t;
         t = 0;
-        for (long x : bChildrenSize) {
+        for (long x : bCounts) {
             t += x;
         }
         Page newPage = create(map, version, bKeys, null, bChildren,
-                bChildrenSize, t);
+                bCounts, t);
         return newPage;
     }
 
-    long getTotalSize() {
+    public long getTotalSize() {
         if (BtreeMapStore.ASSERT) {
             long check = 0;
             if (isLeaf()) {
                 check = keys.length;
             } else {
-                for (long x : childrenSize) {
+                for (long x : counts) {
                     check += x;
                 }
             }
-            if (check != totalSize) {
+            if (check != totalCount) {
                 throw new AssertionError("Expected: " + check + " got: "
-                        + totalSize);
+                        + totalCount);
             }
         }
-        return totalSize;
+        return totalCount;
     }
 
-    void setChild(int index, long pos, long childSize) {
-        if (pos != children[index]) {
+    public void setChild(int index, Page c) {
+        if (c.getPos() != children[index]) {
             long[] newChildren = new long[children.length];
             System.arraycopy(children, 0, newChildren, 0, newChildren.length);
-            newChildren[index] = pos;
+            newChildren[index] = c.getPos();
             children = newChildren;
         }
-        if (childSize != childrenSize[index]) {
-            long[] newChildrenSize = new long[childrenSize.length];
-            System.arraycopy(childrenSize, 0, newChildrenSize, 0,
-                    newChildrenSize.length);
-            newChildrenSize[index] = childSize;
-            totalSize += newChildrenSize[index] - childrenSize[index];
-            childrenSize = newChildrenSize;
+        if (c.getTotalSize() != counts[index]) {
+            long[] newCounts = new long[counts.length];
+            System.arraycopy(counts, 0, newCounts, 0,
+                    newCounts.length);
+            newCounts[index] = c.getTotalSize();
+            totalCount += newCounts[index] - counts[index];
+            counts = newCounts;
         }
     }
 
-    void setValue(int index, Object value) {
+    public void setKey(int index, Object key) {
+        // create a copy - not required if already cloned once in this version,
+        // but avoid unnecessary cloning would require a "modified" flag
+        Object[] newKeys = new Object[keys.length];
+        System.arraycopy(keys, 0, newKeys, 0, newKeys.length);
+        newKeys[index] = key;
+        keys = newKeys;
+    }
+
+    public void setValue(int index, Object value) {
         // create a copy - not required if already cloned once in this version,
         // but avoid unnecessary cloning would require a "modified" flag
         Object[] newValues = new Object[values.length];
@@ -318,8 +327,8 @@ public class Page {
         map.getStore().removePage(pos);
     }
 
-    void insert(int index, Object key, Object value, long child,
-            long childSize) {
+    public void insert(int index, Object key, Object value, long child,
+            long count) {
         Object[] newKeys = new Object[keys.length + 1];
         DataUtils.copyWithGap(keys, newKeys, keys.length, index);
         newKeys[index] = key;
@@ -329,24 +338,22 @@ public class Page {
             DataUtils.copyWithGap(values, newValues, values.length, index);
             newValues[index] = value;
             values = newValues;
-            totalSize++;
+            totalCount++;
         }
         if (children != null) {
             long[] newChildren = new long[children.length + 1];
-            DataUtils.copyWithGap(children, newChildren, children.length,
-                    index + 1);
-            newChildren[index + 1] = child;
+            DataUtils.copyWithGap(children, newChildren, children.length, index);
+            newChildren[index] = child;
             children = newChildren;
-            long[] newChildrenSize = new long[childrenSize.length + 1];
-            DataUtils.copyWithGap(childrenSize, newChildrenSize,
-                    childrenSize.length, index + 1);
-            newChildrenSize[index + 1] = childSize;
-            childrenSize = newChildrenSize;
-            totalSize += childSize;
+            long[] newCounts = new long[counts.length + 1];
+            DataUtils.copyWithGap(counts, newCounts, counts.length, index);
+            newCounts[index] = count;
+            counts = newCounts;
+            totalCount += count;
         }
     }
 
-    void remove(int index) {
+    public void remove(int index) {
         Object[] newKeys = new Object[keys.length - 1];
         int keyIndex = index >= keys.length ? index - 1 : index;
         DataUtils.copyExcept(keys, newKeys, keys.length, keyIndex);
@@ -355,18 +362,18 @@ public class Page {
             Object[] newValues = new Object[values.length - 1];
             DataUtils.copyExcept(values, newValues, values.length, index);
             values = newValues;
-            totalSize--;
+            totalCount--;
         }
         if (children != null) {
-            long sizeOffset = childrenSize[index];
+            long countOffset = counts[index];
             long[] newChildren = new long[children.length - 1];
             DataUtils.copyExcept(children, newChildren, children.length, index);
             children = newChildren;
-            long[] newChildrenSize = new long[childrenSize.length - 1];
-            DataUtils.copyExcept(childrenSize, newChildrenSize,
-                    childrenSize.length, index);
-            childrenSize = newChildrenSize;
-            totalSize -= sizeOffset;
+            long[] newCounts = new long[counts.length - 1];
+            DataUtils.copyExcept(counts, newCounts,
+                    counts.length, index);
+            counts = newCounts;
+            totalCount -= countOffset;
         }
     }
 
@@ -413,20 +420,20 @@ public class Page {
             for (int i = 0; i <= len; i++) {
                 children[i] = buff.getLong();
             }
-            childrenSize = new long[len + 1];
+            counts = new long[len + 1];
             long total = 0;
             for (int i = 0; i <= len; i++) {
                 long s = DataUtils.readVarLong(buff);
                 total += s;
-                childrenSize[i] = s;
+                counts[i] = s;
             }
-            totalSize = total;
+            totalCount = total;
         } else {
             values = new Object[len];
             for (int i = 0; i < len; i++) {
                 values[i] = map.getValueType().read(buff);
             }
-            totalSize = len;
+            totalCount = len;
         }
     }
 
@@ -456,7 +463,7 @@ public class Page {
                 buff.putLong(children[i]);
             }
             for (int i = 0; i <= len; i++) {
-                DataUtils.writeVarLong(buff, childrenSize[i]);
+                DataUtils.writeVarLong(buff, counts[i]);
             }
         } else {
             for (int i = 0; i < len; i++) {
@@ -556,6 +563,10 @@ public class Page {
             }
         }
         return count;
+    }
+
+    public long getCounts(int index) {
+        return counts[index];
     }
 
 }

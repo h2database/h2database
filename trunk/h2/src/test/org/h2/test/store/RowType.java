@@ -46,16 +46,6 @@ public class RowType implements DataType {
         return 0;
     }
 
-    public int length(Object obj) {
-        Object[] x = (Object[]) obj;
-        int len = x.length;
-        int result = DataUtils.getVarIntLen(len);
-        for (int i = 0; i < len; i++) {
-            result += types[i].length(x[i]);
-        }
-        return result;
-    }
-
     public int getMaxLength(Object obj) {
         Object[] x = (Object[]) obj;
         int len = x.length;

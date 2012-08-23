@@ -38,7 +38,6 @@ header:
 blockSize=4096
 
 TODO:
-- support custom map types: b-tree, r-tree
 - ability to diff / merge versions
 - map.getVersion and opening old maps read-only
 - limited support for writing to old versions (branches)
@@ -56,6 +55,9 @@ TODO:
 - support large binaries
 - support stores that span multiple files (chunks stored in other files)
 - triggers
+- compare with newest version of IndexedDb
+- support database version / schema version
+- implement more counted b-tree (skip, get positions)
 
 */
 
@@ -142,8 +144,7 @@ public class BtreeMapStore {
     /**
      * Open a map.
      *
-     * @param <K> the key type
-     * @param <V> the value type
+     * @param <T> the map type
      * @param name the name of the map
      * @param mapType the map type
      * @param keyType the key type
@@ -151,8 +152,8 @@ public class BtreeMapStore {
      * @return the map
      */
     @SuppressWarnings("unchecked")
-    public <K, V> BtreeMap<K, V> openMap(String name, String mapType, String keyType, String valueType) {
-        BtreeMap<K, V> m = (BtreeMap<K, V>) maps.get(name);
+    public <T extends BtreeMap<?, ?>> T openMap(String name, String mapType, String keyType, String valueType) {
+        BtreeMap<?, ?> m = maps.get(name);
         if (m == null) {
             String identifier = meta.get("map." + name);
             int id;
@@ -178,14 +179,14 @@ public class BtreeMapStore {
             DataType k = buildDataType(keyType);
             DataType v = buildDataType(valueType);
             if (mapType.equals("")) {
-                m = new BtreeMap<K, V>(this, id, name, k, v, createVersion);
+                m = new BtreeMap<Object, Object>(this, id, name, k, v, createVersion);
             } else {
                 m = getMapFactory().buildMap(mapType, this, id, name, k, v, createVersion);
             }
             maps.put(name, m);
             m.setRootPos(root);
         }
-        return m;
+        return (T) m;
     }
 
     /**
@@ -860,7 +861,7 @@ public class BtreeMapStore {
      *
      * @return the maximum number of entries
      */
-    int getMaxPageSize() {
+    public int getMaxPageSize() {
         return maxPageSize;
     }
 

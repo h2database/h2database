@@ -17,21 +17,6 @@ public class StringType implements DataType {
         return a.toString().compareTo(b.toString());
     }
 
-    public int length(Object obj) {
-        int plus = 0;
-        String s = obj.toString();
-        int len = s.length();
-        for (int i = 0; i < len; i++) {
-            char c = s.charAt(i);
-            if (c >= 0x800) {
-                plus += 2;
-            } else if (c >= 0x80) {
-                plus++;
-            }
-        }
-        return DataUtils.getVarIntLen(len) + len + plus;
-    }
-
     public int getMaxLength(Object obj) {
         return DataUtils.MAX_VAR_INT_LEN + obj.toString().length() * 3;
     }

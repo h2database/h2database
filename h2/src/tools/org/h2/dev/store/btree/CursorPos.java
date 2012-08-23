@@ -9,16 +9,17 @@ package org.h2.dev.store.btree;
 /**
  * A position in a cursor
  */
-class CursorPos {
+public class CursorPos {
 
     /**
      * The current page.
      */
-    Page page;
+    public Page page;
 
     /**
      * The current index.
      */
-    int index;
+    public int index;
+
 }
 

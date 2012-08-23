@@ -22,8 +22,11 @@ public class TestMapFactory implements MapFactory {
             long createVersion) {
         if (mapType.equals("s")) {
             return new SequenceMap<K, V>(store, id, name, keyType, valueType, createVersion);
+        } else if (mapType.equals("r")) {
+            return new RtreeMap<K, V>(store, id, name, keyType, valueType, createVersion);
+        } else {
+            throw new RuntimeException("Unsupported map type " + mapType);
         }
-        throw new RuntimeException("Unsupported map type " + mapType);
     }
 
     @Override
@@ -36,6 +39,8 @@ public class TestMapFactory implements MapFactory {
             return new IntegerType();
         case 'r':
             return RowType.fromString(s, this);
+        case 's':
+            return SpatialType.fromString(s);
         }
         throw new RuntimeException("Unknown data type " + s);
     }

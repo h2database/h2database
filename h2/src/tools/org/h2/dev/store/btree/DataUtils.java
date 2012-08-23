@@ -123,13 +123,14 @@ public class DataUtils {
             return x;
         }
         x &= 0x7f;
-        for (int s = 7;; s += 7) {
+        for (int s = 7; s < 64; s += 7) {
             long b = buff.get();
             x |= (b & 0x7f) << s;
             if (b >= 0) {
-                return x;
+                break;
             }
         }
+        return x;
     }
 
     /**

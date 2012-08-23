@@ -23,14 +23,6 @@ public interface DataType {
     int compare(Object a, Object b);
 
     /**
-     * Get the length in bytes used to store an object.
-     *
-     * @param obj the object
-     * @return the length
-     */
-    int length(Object obj);
-
-    /**
      * Get the maximum length in bytes used to store an object. In many cases,
      * this method can be faster than calculating the exact length.
      *

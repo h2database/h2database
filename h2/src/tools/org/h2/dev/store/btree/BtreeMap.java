@@ -20,10 +20,13 @@ import java.util.TreeMap;
  */
 public class BtreeMap<K, V> {
 
-    static final IllegalArgumentException KEY_NOT_FOUND = new IllegalArgumentException(
+    protected static final IllegalArgumentException KEY_NOT_FOUND = new IllegalArgumentException(
             "Key not found");
-    static final IllegalArgumentException KEY_ALREADY_EXISTS = new IllegalArgumentException(
+    protected static final IllegalArgumentException KEY_ALREADY_EXISTS = new IllegalArgumentException(
             "Key already exists");
+
+    protected Page root;
+    protected BtreeMapStore store;
 
     private final int id;
     private final String name;
@@ -36,8 +39,6 @@ public class BtreeMap<K, V> {
      * before this version.
      */
     private final TreeMap<Long, Page> oldRoots = new TreeMap<Long, Page>();
-    private BtreeMapStore store;
-    private Page root;
     private boolean readOnly;
 
     protected BtreeMap(BtreeMapStore store, int id, String name,
@@ -79,8 +80,7 @@ public class BtreeMap<K, V> {
      * @throws InvalidArgumentException if this key does not exist (without
      *         stack trace)
      */
-    private Page set(Page p, long writeVersion, Object key,
-            Object value) {
+    protected Page set(Page p, long writeVersion, Object key, Object value) {
         if (p == null) {
             throw KEY_NOT_FOUND;
         }
@@ -103,7 +103,7 @@ public class BtreeMap<K, V> {
         Page c2 = set(c, writeVersion, key, value);
         if (c != c2) {
             p = p.copyOnWrite(writeVersion);
-            p.setChild(index, c2.getPos(), c2.getPos());
+            p.setChild(index, c2);
         }
         return p;
     }
@@ -120,8 +120,7 @@ public class BtreeMap<K, V> {
      * @throws InvalidArgumentException if this key already exists (without
      *         stack trace)
      */
-    private Page add(Page p, long writeVersion, Object key,
-            Object value) {
+    protected Page add(Page p, long writeVersion, Object key, Object value) {
         if (p == null) {
             Object[] keys = { key };
             Object[] values = { value };
@@ -167,15 +166,15 @@ public class BtreeMap<K, V> {
             Object k = c.getKey(at);
             Page split = c.split(at);
             p = p.copyOnWrite(writeVersion);
-            p.setChild(index, c.getPos(), c.getTotalSize());
-            p.insert(index, k, null, split.getPos(), split.getTotalSize());
+            p.setChild(index, split);
+            p.insert(index, k, null, c.getPos(), c.getTotalSize());
             // now we are not sure where to add
             return add(p, writeVersion, key, value);
         }
         Page c2 = add(c, writeVersion, key, value);
         p = p.copyOnWrite(writeVersion);
         // the child might be the same, but not the size
-        p.setChild(index, c2.getPos(), c2.getTotalSize());
+        p.setChild(index, c2);
         return p;
     }
 
@@ -201,7 +200,7 @@ public class BtreeMap<K, V> {
      * @param parents the stack of parent page positions
      * @param key the key
      */
-    void min(Page p, ArrayList<CursorPos> parents, Object key) {
+    protected void min(Page p, ArrayList<CursorPos> parents, Object key) {
         while (p != null) {
             if (!p.isLeaf()) {
                 int x = key == null ? -1 : p.binarySearch(key);
@@ -235,7 +234,7 @@ public class BtreeMap<K, V> {
      * @param parents the stack of parent page positions
      * @return the next key
      */
-    Object nextKey(ArrayList<CursorPos> parents) {
+    protected Object nextKey(ArrayList<CursorPos> parents) {
         if (parents.size() == 0) {
             return null;
         }
@@ -270,7 +269,7 @@ public class BtreeMap<K, V> {
      * @param key the key
      * @return the value or null
      */
-    private Object binarySearch(Page p, Object key) {
+    protected Object binarySearch(Page p, Object key) {
         int x = p.binarySearch(key);
         if (!p.isLeaf()) {
             if (x < 0) {
@@ -287,7 +286,6 @@ public class BtreeMap<K, V> {
         return null;
     }
 
-
     public boolean containsKey(Object key) {
         return get(key) != null;
     }
@@ -298,7 +296,7 @@ public class BtreeMap<K, V> {
      * @param key the key
      * @return the value, or null if not found
      */
-    Page getPage(K key) {
+    protected Page getPage(K key) {
         if (root == null) {
             return null;
         }
@@ -312,7 +310,7 @@ public class BtreeMap<K, V> {
      * @param key the key
      * @return the page or null
      */
-    private Page binarySearchPage(Page p, Object key) {
+    protected Page binarySearchPage(Page p, Object key) {
         int x = p.binarySearch(key);
         if (!p.isLeaf()) {
             if (x < 0) {
@@ -379,7 +377,6 @@ public class BtreeMap<K, V> {
         }
     }
 
-
     /**
      * Remove an existing key-value pair.
      *
@@ -389,7 +386,7 @@ public class BtreeMap<K, V> {
      * @return the new root page (null if empty)
      * @throws InvalidArgumentException if not found (without stack trace)
      */
-    private Page removeExisting(Page p, long writeVersion, Object key) {
+    protected Page removeExisting(Page p, long writeVersion, Object key) {
         if (p == null) {
             throw KEY_NOT_FOUND;
         }
@@ -397,7 +394,7 @@ public class BtreeMap<K, V> {
         if (p.isLeaf()) {
             if (index >= 0) {
                 if (p.getKeyCount() == 1) {
-                    store.removePage(p.getPos());
+                    removePage(p);
                     return null;
                 }
                 p = p.copyOnWrite(writeVersion);
@@ -420,16 +417,16 @@ public class BtreeMap<K, V> {
             // this child was deleted
             p.remove(index);
             if (p.getKeyCount() == 0) {
-                store.removePage(p.getPos());
+                removePage(p);
                 p = p.getChildPage(0);
             }
         } else {
-            p.setChild(index, c2.getPos(), c2.getTotalSize());
+            p.setChild(index, c2);
         }
         return p;
     }
 
-    private void markChanged(Page oldRoot) {
+    protected void markChanged(Page oldRoot) {
         if (oldRoot != root) {
             long v = store.getCurrentVersion();
             if (!oldRoots.containsKey(v)) {
@@ -530,7 +527,7 @@ public class BtreeMap<K, V> {
      *
      * @return the root page
      */
-    Page getRoot() {
+    public Page getRoot() {
         return root;
     }
 
@@ -585,13 +582,13 @@ public class BtreeMap<K, V> {
         return readOnly;
     }
 
-    private void checkOpen() {
+    protected void checkOpen() {
         if (store == null) {
             throw new IllegalStateException("This map is closed");
         }
     }
 
-    private void checkWrite() {
+    protected void checkWrite() {
         if (readOnly) {
             checkOpen();
             throw new IllegalStateException("This map is read-only");
@@ -631,9 +628,8 @@ public class BtreeMap<K, V> {
         return createVersion;
     }
 
-    @SuppressWarnings("unchecked")
-    public <M> M cast() {
-        return (M) this;
+    protected void removePage(Page p) {
+        store.removePage(p.getPos());
     }
 
 }

@@ -19,10 +19,6 @@ class IntegerType implements DataType {
         return ((Integer) a).compareTo((Integer) b);
     }
 
-    public int length(Object obj) {
-        return DataUtils.getVarIntLen((Integer) obj);
-    }
-
     public int getMaxLength(Object obj) {
         return DataUtils.MAX_VAR_INT_LEN;
     }

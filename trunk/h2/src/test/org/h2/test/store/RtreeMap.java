@@ -14,7 +14,7 @@ import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.Page;
 
 /**
- * An r-tree implementation.
+ * An r-tree implementation. It uses the quadratic split algorithm.
  *
  * @param <K> the key class
  * @param <V> the value class
@@ -36,10 +36,6 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             return null;
         }
         return (V) getSpatial(root, key);
-    }
-
-    private boolean overlap(Page p, int index, Object key) {
-        return keyType.isOverlap(p.getKey(index), key);
     }
 
     private boolean contains(Page p, int index, Object key) {
@@ -205,6 +201,7 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
                     throw KEY_ALREADY_EXISTS;
                 }
             }
+            p = p.copyOnWrite(writeVersion);
             p.insert(p.getKeyCount(), key, value, 0, 0);
             return p;
         }

@@ -65,19 +65,33 @@ public class TestBtreeMapStore extends TestBase {
         FileUtils.delete(fileName);
         BtreeMapStore s;
         s = openStore(fileName);
-        // s.setMaxPageSize(100);
+        // s.setMaxPageSize(50);
         RtreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
         Random rand = new Random(1);
-        for (int i = 0; i < 1000; i++) {
+        int len = 1000;
+        for (int i = 0; i < len; i++) {
             float x = rand.nextFloat(), y = rand.nextFloat();
             float p = (float) (rand.nextFloat() * 0.01);
             SpatialKey k = SpatialKey.create(i, x - p, x + p, y - p, y + p);
             r.put(k, "" + i);
-            if (i > 0 && i % 10000 == 0) {
+            if (i > 0 && (i % 100) == 0) {
+                s.store();
+            }
+            if (i > 0 && (i % 10000) == 0) {
                 render(r, getBaseDir() + "/test.png");
             }
         }
+        s.store();
         s.close();
+        s = openStore(fileName);
+        r = s.openMap("data", "r", "s2", "");
+        rand = new Random(1);
+        for (int i = 0; i < len; i++) {
+            float x = rand.nextFloat(), y = rand.nextFloat();
+            float p = (float) (rand.nextFloat() * 0.01);
+            SpatialKey k = SpatialKey.create(i, x - p, x + p, y - p, y + p);
+            assertEquals("" + i, r.get(k));
+        }
     }
 
     private void testRtree() {
@@ -422,6 +436,8 @@ public class TestBtreeMapStore extends TestBase {
         String fileName = getBaseDir() + "/testBtreeStore.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = openStore(fileName);
+        s.close();
+        s = openStore(fileName);
         BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
         int count = 2000;
         // Profiler p = new Profiler();

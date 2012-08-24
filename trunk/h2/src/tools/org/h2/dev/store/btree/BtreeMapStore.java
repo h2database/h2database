@@ -41,12 +41,10 @@ TODO:
 - ability to diff / merge versions
 - map.getVersion and opening old maps read-only
 - limited support for writing to old versions (branches)
-- Serializer instead of DataType, (serialize, deserialize)
 - implement complete java.util.Map interface
 - maybe rename to MVStore, MVMap, TestMVStore
 - atomic test-and-set (when supporting concurrent writes)
 - support background writes (store old version)
-- re-use map ids that were not used for a very long time
 - file header could be a regular chunk, end of file the second
 - possibly split chunk data into immutable and mutable
 - test with very small chunks, possibly speed up very small transactions
@@ -285,7 +283,9 @@ public class BtreeMapStore {
                 writeHeader();
             } else {
                 readHeader();
-                readMeta();
+                if (rootChunkStart > 0) {
+                    readMeta();
+                }
             }
         } catch (Exception e) {
             throw convert(e);

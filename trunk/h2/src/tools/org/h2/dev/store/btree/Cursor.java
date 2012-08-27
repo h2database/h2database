@@ -15,16 +15,19 @@ import java.util.Iterator;
  * @param <K> the key type
  * @param <V> the value type
  */
-class Cursor<K, V> implements Iterator<K> {
+public class Cursor<K, V> implements Iterator<K> {
 
     private final BtreeMap<K, V> map;
     private final ArrayList<CursorPos> parents = new ArrayList<CursorPos>();
+    private CursorPos currentPos;
     private K current;
 
     Cursor(BtreeMap<K, V> map, Page root, K from) {
         this.map = map;
-        map.min(root, parents, from);
-        fetchNext();
+        currentPos = map.min(root, this, from);
+        if (currentPos != null) {
+            fetchNext();
+        }
     }
 
     public K next() {
@@ -37,7 +40,7 @@ class Cursor<K, V> implements Iterator<K> {
 
     @SuppressWarnings("unchecked")
     private void fetchNext() {
-        current = (K) map.nextKey(parents);
+        current = (K) map.nextKey(currentPos, this);
     }
 
     public boolean hasNext() {
@@ -46,6 +49,19 @@ class Cursor<K, V> implements Iterator<K> {
 
     public void remove() {
         throw new UnsupportedOperationException();
+    }
+
+    public void setCurrentPos(CursorPos p) {
+        currentPos = p;
+    }
+
+    public void push(CursorPos p) {
+        parents.add(p);
+    }
+
+    public CursorPos pop() {
+        int size = parents.size();
+        return size == 0 ? null : parents.remove(size - 1);
     }
 
 }

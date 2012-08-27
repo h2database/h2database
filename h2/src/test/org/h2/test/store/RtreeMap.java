@@ -9,6 +9,7 @@ package org.h2.test.store;
 import java.util.ArrayList;
 import org.h2.dev.store.btree.BtreeMap;
 import org.h2.dev.store.btree.BtreeMapStore;
+import org.h2.dev.store.btree.Cursor;
 import org.h2.dev.store.btree.CursorPos;
 import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.Page;
@@ -35,7 +36,7 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
         if (root == null) {
             return null;
         }
-        return (V) getSpatial(root, key);
+        return (V) get(root, key);
     }
 
     private boolean contains(Page p, int index, Object key) {
@@ -53,11 +54,11 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
      * @param key the key
      * @return the value, or null if not found
      */
-    protected Object getSpatial(Page p, Object key) {
+    protected Object get(Page p, Object key) {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
-                    Object o = getSpatial(p.getChildPage(i), key);
+                    Object o = get(p.getChildPage(i), key);
                     if (o != null) {
                         return o;
                     }
@@ -77,14 +78,14 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
         if (root == null) {
             return null;
         }
-        return getPageSpatial(root, key);
+        return getPage(root, key);
     }
 
-    protected Page getPageSpatial(Page p, Object key) {
+    protected Page getPage(Page p, Object key) {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
-                    Page x = getPageSpatial(p.getChildPage(i), key);
+                    Page x = getPage(p.getChildPage(i), key);
                     if (x != null) {
                         return x;
                     }
@@ -111,7 +112,7 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
                     Page c2 = set(c, writeVersion, key, value);
                     if (c != c2) {
                         p = p.copyOnWrite(writeVersion);
-                        setChildUpdateBox(p,  i, c2);
+                        setChildUpdateBox(p,  i, c2, key);
                         break;
                     }
                 }
@@ -136,10 +137,18 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
                     Page c = p.getChildPage(i);
+                    long oldSize = c.getTotalSize();
                     Page c2 = removeExisting(c, writeVersion, key);
-                    if (c != c2) {
+                    if (c2 == null) {
+                        // this child was deleted
+                        p.remove(i);
+                        if (p.getKeyCount() == 0) {
+                            removePage(p);
+                            return null;
+                        }
+                    } else if (oldSize != c2.getTotalSize()) {
                         p = p.copyOnWrite(writeVersion);
-                        setChildUpdateBox(p, i, c2);
+                        setChildUpdateBox(p, i, c2, key);
                         break;
                     }
                 }
@@ -147,6 +156,10 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
         } else {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (keyType.equals(p.getKey(i), key)) {
+                    if (p.getKeyCount() == 1) {
+                        removePage(p);
+                        return null;
+                    }
                     p = p.copyOnWrite(writeVersion);
                     p.remove(i);
                     break;
@@ -157,21 +170,26 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
     }
 
     /**
-     * Set the child and update the bounding box.
+     * Set the child and update the bounding box if required. The bounding box
+     * is only updated if the key touches or is outside the old bounding box.
      *
      * @param p the parent (this page is changed)
      * @param index the child index
      * @param c the child page
+     * @param key the new or old key
      */
-    private void setChildUpdateBox(Page p, int index, Page c) {
-        p.setKey(index, getBounds(c));
+    private void setChildUpdateBox(Page p, int index, Page c, Object key) {
+        Object oldBounds = p.getKey(index);
+        if (key == null || !keyType.isInside(key, oldBounds)) {
+            p.setKey(index, getBounds(c));
+        }
         p.setChild(index, c);
     }
 
-    private SpatialKey getBounds(Page x) {
-        SpatialKey bounds = keyType.copy((SpatialKey) x.getKey(0));
+    private Object getBounds(Page x) {
+        Object bounds = keyType.createBoundingBox(x.getKey(0));
         for (int i = 1; i < x.getKeyCount(); i++) {
-            keyType.increase(bounds, (SpatialKey) x.getKey(i));
+            keyType.increaseBounds(bounds, x.getKey(i));
         }
         return bounds;
     }
@@ -221,15 +239,15 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             c = c.copyOnWrite(writeVersion);
             Page split = split(c, writeVersion);
             p = p.copyOnWrite(writeVersion);
-            setChildUpdateBox(p, index, c);
+            setChildUpdateBox(p, index, c, null);
             p.insert(index, getBounds(split), null, split.getPos(), split.getTotalSize());
             // now we are not sure where to add
             return add(p, writeVersion, key, value);
         }
         Page c2 = add(c, writeVersion, key, value);
         p = p.copyOnWrite(writeVersion);
-        // the child might be the same, but not the size
-        setChildUpdateBox(p, index, c2);
+        // the child might be the same, but maybe not the bounding box
+        setChildUpdateBox(p, index, c2, key);
         return p;
     }
 
@@ -266,8 +284,8 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
         while (p.getKeyCount() > 0) {
             float diff = 0, bestA = 0, bestB = 0;
             int best = 0;
-            SpatialKey ba = getBounds(newP);
-            SpatialKey bb = getBounds(split);
+            Object ba = getBounds(newP);
+            Object bb = getBounds(split);
             for (int i = 0; i < p.getKeyCount(); i++) {
                 Object o = p.getKey(i);
                 float a = keyType.getAreaIncrease(ba, o);
@@ -301,10 +319,11 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
         source.remove(sourceIndex);
     }
 
-    public void addNodeKeys(ArrayList<SpatialKey> list, Page p) {
+    @SuppressWarnings("unchecked")
+    public void addNodeKeys(ArrayList<K> list, Page p) {
         if (p != null && !p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
-                list.add((SpatialKey) p.getKey(i));
+                list.add((K) p.getKey(i));
                 addNodeKeys(list, p.getChildPage(i));
             }
         }
@@ -317,16 +336,17 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
      * @param parents the stack of parent page positions
      * @param key the key
      */
-    protected void min(Page p, ArrayList<CursorPos> parents, Object key) {
+    protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
         while (p != null) {
             CursorPos c = new CursorPos();
             c.page = p;
-            parents.add(c);
             if (p.isLeaf()) {
-                return;
+                return c;
             }
+            cursor.push(c);
             p = p.getChildPage(0);
         }
+        return null;
     }
 
     /**
@@ -335,29 +355,25 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
      * @param parents the stack of parent page positions
      * @return the next key
      */
-    protected Object nextKey(ArrayList<CursorPos> parents) {
-        if (parents.size() == 0) {
-            return null;
-        }
+    protected Object nextKey(CursorPos p, Cursor<K, V> cursor) {
         while (true) {
-            // TODO performance: avoid remove/add pairs if possible
-            CursorPos p = parents.remove(parents.size() - 1);
             int index = p.index++;
-            if (index < p.page.getKeyCount()) {
-                parents.add(p);
-                return p.page.getKey(index);
+            Page x = p.page;
+            if (index < x.getKeyCount()) {
+                return x.getKey(index);
             }
             while (true) {
-                if (parents.size() == 0) {
+                p = cursor.pop();
+                if (p == null) {
                     return null;
                 }
-                p = parents.remove(parents.size() - 1);
                 index = ++p.index;
-                if (index < p.page.getKeyCount()) {
-                    parents.add(p);
-                    Page x = p.page;
-                     x = x.getChildPage(index);
-                    min(x, parents, null);
+                x = p.page;
+                if (index < x.getKeyCount()) {
+                    cursor.push(p);
+                    x = x.getChildPage(index);
+                    p = min(x, cursor, null);
+                    cursor.setCurrentPos(p);
                     break;
                 }
             }

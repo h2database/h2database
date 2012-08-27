@@ -7,7 +7,6 @@
 package org.h2.dev.store.btree;
 
 import java.util.AbstractSet;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeMap;
@@ -200,7 +199,7 @@ public class BtreeMap<K, V> {
      * @param parents the stack of parent page positions
      * @param key the key
      */
-    protected void min(Page p, ArrayList<CursorPos> parents, Object key) {
+    protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
         while (p != null) {
             if (!p.isLeaf()) {
                 int x = key == null ? -1 : p.binarySearch(key);
@@ -212,7 +211,7 @@ public class BtreeMap<K, V> {
                 CursorPos c = new CursorPos();
                 c.page = p;
                 c.index = x;
-                parents.add(c);
+                cursor.push(c);
                 p = p.getChildPage(x);
             } else {
                 int x = key == null ? 0 : p.binarySearch(key);
@@ -222,10 +221,10 @@ public class BtreeMap<K, V> {
                 CursorPos c = new CursorPos();
                 c.page = p;
                 c.index = x;
-                parents.add(c);
-                return;
+                return c;
             }
         }
+        return null;
     }
 
     /**
@@ -234,29 +233,24 @@ public class BtreeMap<K, V> {
      * @param parents the stack of parent page positions
      * @return the next key
      */
-    protected Object nextKey(ArrayList<CursorPos> parents) {
-        if (parents.size() == 0) {
-            return null;
-        }
+    protected Object nextKey(CursorPos p, Cursor<K, V> cursor) {
         while (true) {
-            // TODO performance: avoid remove/add pairs if possible
-            CursorPos p = parents.remove(parents.size() - 1);
             int index = p.index++;
             if (index < p.page.getKeyCount()) {
-                parents.add(p);
                 return p.page.getKey(index);
             }
             while (true) {
-                if (parents.size() == 0) {
+                p = cursor.pop();
+                if (p == null) {
                     return null;
                 }
-                p = parents.remove(parents.size() - 1);
                 index = ++p.index;
                 if (index <= p.page.getKeyCount()) {
-                    parents.add(p);
+                    cursor.push(p);
                     Page x = p.page;
-                     x = x.getChildPage(index);
-                    min(x, parents, null);
+                    x = x.getChildPage(index);
+                    p = min(x, cursor, null);
+                    cursor.setCurrentPos(p);
                     break;
                 }
             }

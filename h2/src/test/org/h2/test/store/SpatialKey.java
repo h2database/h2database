@@ -6,38 +6,66 @@
  */
 package org.h2.test.store;
 
+import java.util.Arrays;
+
+
 /**
  * A unique spatial key.
  */
 public class SpatialKey {
 
-    public float[] min;
-    public float[] max;
     public long id;
+    private float[] minMax;
 
-    public static SpatialKey create(long id, float... minMax) {
-        SpatialKey k = new SpatialKey();
-        k.id = id;
-        int dimensions = minMax.length / 2;
-        k.min = new float[dimensions];
-        k.max = new float[dimensions];
-        for (int i = 0; i < dimensions; i++) {
-            k.min[i] = minMax[i + i];
-            k.max[i] = minMax[i + i + 1];
-        }
-        return k;
+    /**
+     * Create a new key.
+     *
+     * @param id the id
+     * @param minMax min x, max x, min y, max y, and so on
+     */
+    public SpatialKey(long id, float... minMax) {
+        this.id = id;
+        this.minMax = minMax;
+    }
+
+    public float min(int dim) {
+        return minMax[dim + dim];
+    }
+
+    public void setMin(int dim, float x) {
+        minMax[dim + dim] = x;
+    }
+
+    public float max(int dim) {
+        return minMax[dim + dim + 1];
+    }
+
+    public void setMax(int dim, float x) {
+        minMax[dim + dim + 1] = x;
     }
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append(id).append(": (");
-        for (int i = 0; i < min.length; i++) {
+        for (int i = 0; i < minMax.length; i += 2) {
             if (i > 0) {
                 buff.append(", ");
             }
-            buff.append(min[i]).append('/').append(max[i]);
+            buff.append(minMax[i]).append('/').append(minMax[i + 1]);
         }
         return buff.append(")").toString();
+    }
+
+    public int hashCode() {
+        return (int) ((id >>> 32) ^ id);
+    }
+
+    public boolean equals(Object other) {
+        if (!(other instanceof SpatialKey)) {
+            return false;
+        }
+        SpatialKey o = (SpatialKey) other;
+        return Arrays.equals(minMax, o.minMax);
     }
 
 }

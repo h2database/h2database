@@ -58,15 +58,15 @@ public class SpatialType implements DataType {
         SpatialKey k = (SpatialKey) obj;
         int flags = 0;
         for (int i = 0; i < dimensions; i++) {
-            if (k.min[i] == k.max[i]) {
+            if (k.min(i) == k.max(i)) {
                 flags |= 1 << i;
             }
         }
         DataUtils.writeVarInt(buff, flags);
         for (int i = 0; i < dimensions; i++) {
-            buff.putFloat(k.min[i]);
+            buff.putFloat(k.min(i));
             if ((flags & (1 << i)) == 0) {
-                buff.putFloat(k.max[i]);
+                buff.putFloat(k.max(i));
             }
         }
         DataUtils.writeVarLong(buff, k.id);
@@ -74,20 +74,21 @@ public class SpatialType implements DataType {
 
     @Override
     public Object read(ByteBuffer buff) {
-        SpatialKey k = new SpatialKey();
         int flags = DataUtils.readVarInt(buff);
-        k.min = new float[dimensions];
-        k.max = new float[dimensions];
+        float[] minMax = new float[dimensions * 2];
         for (int i = 0; i < dimensions; i++) {
-            k.min[i] = buff.getFloat();
+            float min = buff.getFloat();
+            float max;
             if ((flags & (1 << i)) != 0) {
-                k.max[i] = k.min[i];
+                max = min;
             } else {
-                k.max[i] = buff.getFloat();
+                max = buff.getFloat();
             }
+            minMax[i + i] = min;
+            minMax[i + i + 1] = max;
         }
-        k.id = DataUtils.readVarLong(buff);
-        return k;
+        long id = DataUtils.readVarLong(buff);
+        return new SpatialKey(id, minMax);
     }
 
     @Override
@@ -99,26 +100,19 @@ public class SpatialType implements DataType {
         SpatialKey a = (SpatialKey) objA;
         SpatialKey b = (SpatialKey) objB;
         for (int i = 0; i < dimensions; i++) {
-            if (a.max[i] < b.min[i] || a.min[i] > b.max[i]) {
+            if (a.max(i) < b.min(i) || a.min(i) > b.max(i)) {
                 return false;
             }
         }
         return true;
     }
 
-    public SpatialKey copy(SpatialKey old) {
-        SpatialKey k = new SpatialKey();
-        k.min = new float[dimensions];
-        k.max = new float[dimensions];
-        System.arraycopy(old.min, 0, k.min, 0, dimensions);
-        System.arraycopy(old.max, 0, k.max, 0, dimensions);
-        return k;
-    }
-
-    public void increase(SpatialKey bounds, SpatialKey add) {
+    public void increaseBounds(Object bounds, Object add) {
+        SpatialKey b = (SpatialKey) bounds;
+        SpatialKey a = (SpatialKey) add;
         for (int i = 0; i < dimensions; i++) {
-            bounds.min[i] = Math.min(bounds.min[i], add.min[i]);
-            bounds.max[i] = Math.max(bounds.max[i], add.max[i]);
+            b.setMin(i, Math.min(b.min(i), a.min(i)));
+            b.setMax(i, Math.max(b.max(i), a.max(i)));
         }
     }
 
@@ -134,11 +128,11 @@ public class SpatialType implements DataType {
         SpatialKey b = (SpatialKey) objB;
         float areaOld = 1, areaNew = 1;
         for (int i = 0; i < dimensions; i++) {
-            float min = a.min[i];
-            float max = a.max[i];
+            float min = a.min(i);
+            float max = a.max(i);
             areaOld *= max - min;
-            min = Math.min(min,  b.min[i]);
-            max = Math.max(max,  b.max[i]);
+            min = Math.min(min,  b.min(i));
+            max = Math.max(max,  b.max(i));
             areaNew *= max - min;
         }
         return areaNew - areaOld;
@@ -149,8 +143,8 @@ public class SpatialType implements DataType {
         SpatialKey b = (SpatialKey) objB;
         float area = 1;
         for (int i = 0; i < dimensions; i++) {
-            float min = Math.min(a.min[i],  b.min[i]);
-            float max = Math.max(a.max[i],  b.max[i]);
+            float min = Math.min(a.min(i),  b.min(i));
+            float max = Math.max(a.max(i),  b.max(i));
             area *= max - min;
         }
         return area;
@@ -167,11 +161,40 @@ public class SpatialType implements DataType {
         SpatialKey a = (SpatialKey) objA;
         SpatialKey b = (SpatialKey) objB;
         for (int i = 0; i < dimensions; i++) {
-            if (a.min[i] > b.min[i] || a.max[i] < b.max[i]) {
+            if (a.min(i) > b.min(i) || a.max(i) < b.max(i)) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Check whether a given object is completely inside and does not touch the
+     * given bound.
+     *
+     * @param objA the object to check
+     * @param objB the bounds
+     * @return true if a is completely inside b
+     */
+    public boolean isInside(Object objA, Object objB) {
+        SpatialKey a = (SpatialKey) objA;
+        SpatialKey b = (SpatialKey) objB;
+        for (int i = 0; i < dimensions; i++) {
+            if (a.min(i) <= b.min(i) || a.max(i) >= b.max(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Object createBoundingBox(Object objA) {
+        float[] minMax = new float[dimensions * 2];
+        SpatialKey a = (SpatialKey) objA;
+        for (int i = 0; i < dimensions; i++) {
+            minMax[i + i] = a.min(i);
+            minMax[i + i + 1] = a.max(i);
+        }
+        return new SpatialKey(0, minMax);
     }
 
 }

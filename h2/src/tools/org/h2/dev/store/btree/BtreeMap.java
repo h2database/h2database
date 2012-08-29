@@ -19,11 +19,6 @@ import java.util.TreeMap;
  */
 public class BtreeMap<K, V> {
 
-    protected static final IllegalArgumentException KEY_NOT_FOUND = new IllegalArgumentException(
-            "Key not found");
-    protected static final IllegalArgumentException KEY_ALREADY_EXISTS = new IllegalArgumentException(
-            "Key already exists");
-
     protected Page root;
     protected BtreeMapStore store;
 
@@ -59,76 +54,32 @@ public class BtreeMap<K, V> {
     public void put(K key, V data) {
         checkWrite();
         Page oldRoot = root;
-        if (containsKey(key)) {
-            root = set(root, store.getCurrentVersion(), key, data);
-        } else {
-            root = add(root, store.getCurrentVersion(), key, data);
-        }
+        root = put(oldRoot, store.getCurrentVersion(), key, data, store.getMaxPageSize());
         markChanged(oldRoot);
     }
 
     /**
-     * Update a value for an existing key.
-     *
-     * @param map the map
-     * @param p the page (may not be null)
-     * @param writeVersion the write version
-     * @param key the key
-     * @param value the value
-     * @return the root page
-     * @throws InvalidArgumentException if this key does not exist (without
-     *         stack trace)
-     */
-    protected Page set(Page p, long writeVersion, Object key, Object value) {
-        if (p == null) {
-            throw KEY_NOT_FOUND;
-        }
-        int index = p.binarySearch(key);
-        if (p.isLeaf()) {
-            if (index < 0) {
-                throw KEY_NOT_FOUND;
-            }
-            p = p.copyOnWrite(writeVersion);
-            p.setValue(index, value);
-            return p;
-        }
-        // it is a node
-        if (index < 0) {
-            index = -index - 1;
-        } else {
-            index++;
-        }
-        Page c = p.getChildPage(index);
-        Page c2 = set(c, writeVersion, key, value);
-        if (c != c2) {
-            p = p.copyOnWrite(writeVersion);
-            p.setChild(index, c2);
-        }
-        return p;
-    }
-
-    /**
-     * Add a new key-value pair.
+     * Add or update a key-value pair.
      *
      * @param map the map
      * @param p the page (may be null)
      * @param writeVersion the write version
      * @param key the key
-     * @param value the value
+     * @param value the value (may not be null)
+     * @param maxPageSize the maximum page size
      * @return the root page
-     * @throws InvalidArgumentException if this key already exists (without
-     *         stack trace)
      */
-    protected Page add(Page p, long writeVersion, Object key, Object value) {
+    protected Page put(Page p, long writeVersion, Object key, Object value, int maxPageSize) {
         if (p == null) {
             Object[] keys = { key };
             Object[] values = { value };
-            p = Page.create(this, writeVersion, keys, values, null, null, 1);
+            p = Page.create(this, writeVersion, 1,
+                    keys, values, null, null, 1, 0);
             return p;
         }
-        if (p.getKeyCount() >= store.getMaxPageSize()) {
-            // only possible if this is the root,
-            // otherwise we would have split earlier
+        if (p.getKeyCount() > maxPageSize) {
+            // only possible if this is the root, else we would have split earlier
+            // (this requires maxPageSize is fixed)
             p = p.copyOnWrite(writeVersion);
             int at = p.getKeyCount() / 2;
             long totalSize = p.getTotalSize();
@@ -137,17 +88,18 @@ public class BtreeMap<K, V> {
             Object[] keys = { k };
             long[] children = { p.getPos(), split.getPos() };
             long[] childrenSize = { p.getTotalSize(), split.getTotalSize() };
-            p = Page.create(this, writeVersion, keys, null, children, childrenSize,
-                    totalSize);
+            p = Page.create(this, writeVersion, 1,
+                    keys, null, children, childrenSize, totalSize, 0);
             // now p is a node; insert continues
         } else if (p.isLeaf()) {
             int index = p.binarySearch(key);
-            if (index >= 0) {
-                throw KEY_ALREADY_EXISTS;
-            }
-            index = -index - 1;
             p = p.copyOnWrite(writeVersion);
-            p.insert(index, key, value, 0, 0);
+            if (index < 0) {
+                index = -index - 1;
+                p.insertLeaf(index, key, value);
+            } else {
+                p.setValue(index, value);
+            }
             return p;
         }
         // p is a node
@@ -158,7 +110,7 @@ public class BtreeMap<K, V> {
             index++;
         }
         Page c = p.getChildPage(index);
-        if (c.getKeyCount() >= store.getMaxPageSize()) {
+        if (c.getKeyCount() >= maxPageSize) {
             // split on the way down
             c = c.copyOnWrite(writeVersion);
             int at = c.getKeyCount() / 2;
@@ -166,14 +118,16 @@ public class BtreeMap<K, V> {
             Page split = c.split(at);
             p = p.copyOnWrite(writeVersion);
             p.setChild(index, split);
-            p.insert(index, k, null, c.getPos(), c.getTotalSize());
+            p.insertNode(index, k, c.getPos(), c.getTotalSize());
             // now we are not sure where to add
-            return add(p, writeVersion, key, value);
+            return put(p, writeVersion, key, value, maxPageSize);
         }
-        Page c2 = add(c, writeVersion, key, value);
-        p = p.copyOnWrite(writeVersion);
-        // the child might be the same, but not the size
-        p.setChild(index, c2);
+        long oldSize = c.getTotalSize();
+        Page c2 = put(c, writeVersion, key, value, maxPageSize);
+        if (c != c2 || oldSize != c2.getTotalSize()) {
+            p = p.copyOnWrite(writeVersion);
+            p.setChild(index, c2);
+        }
         return p;
     }
 
@@ -364,26 +318,22 @@ public class BtreeMap<K, V> {
      */
     public void remove(K key) {
         checkWrite();
-        if (containsKey(key)) {
-            Page oldRoot = root;
-            root = removeExisting(root, store.getCurrentVersion(), key);
+        Page oldRoot = root;
+        if (oldRoot != null) {
+            root = remove(oldRoot, store.getCurrentVersion(), key);
             markChanged(oldRoot);
         }
     }
 
     /**
-     * Remove an existing key-value pair.
+     * Remove a key-value pair.
      *
      * @param p the page (may not be null)
      * @param writeVersion the write version
      * @param key the key
      * @return the new root page (null if empty)
-     * @throws InvalidArgumentException if not found (without stack trace)
      */
-    protected Page removeExisting(Page p, long writeVersion, Object key) {
-        if (p == null) {
-            throw KEY_NOT_FOUND;
-        }
+    protected Page remove(Page p, long writeVersion, Object key) {
         int index = p.binarySearch(key);
         if (p.isLeaf()) {
             if (index >= 0) {
@@ -393,8 +343,6 @@ public class BtreeMap<K, V> {
                 }
                 p = p.copyOnWrite(writeVersion);
                 p.remove(index);
-            } else {
-                throw KEY_NOT_FOUND;
             }
             return p;
         }
@@ -405,16 +353,18 @@ public class BtreeMap<K, V> {
             index++;
         }
         Page c = p.getChildPage(index);
-        Page c2 = removeExisting(c, writeVersion, key);
-        p = p.copyOnWrite(writeVersion);
+        long oldSize = c.getTotalSize();
+        Page c2 = remove(c, writeVersion, key);
         if (c2 == null) {
             // this child was deleted
+            p = p.copyOnWrite(writeVersion);
             p.remove(index);
             if (p.getKeyCount() == 0) {
                 removePage(p);
                 p = p.getChildPage(0);
             }
-        } else {
+        } else if (oldSize != c2.getTotalSize()) {
+            p = p.copyOnWrite(writeVersion);
             p.setChild(index, c2);
         }
         return p;

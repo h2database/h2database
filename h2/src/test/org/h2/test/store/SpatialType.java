@@ -7,6 +7,7 @@
 package org.h2.test.store;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.DataUtils;
 
@@ -126,10 +127,15 @@ public class SpatialType implements DataType {
     public float getAreaIncrease(Object objA, Object objB) {
         SpatialKey a = (SpatialKey) objA;
         SpatialKey b = (SpatialKey) objB;
-        float areaOld = 1, areaNew = 1;
-        for (int i = 0; i < dimensions; i++) {
-            float min = a.min(i);
-            float max = a.max(i);
+        float min = a.min(0);
+        float max = a.max(0);
+        float areaOld = max - min;
+        min = Math.min(min,  b.min(0));
+        max = Math.max(max,  b.max(0));
+        float areaNew = max - min;
+        for (int i = 1; i < dimensions; i++) {
+            min = a.min(i);
+            max = a.max(i);
             areaOld *= max - min;
             min = Math.min(min,  b.min(i));
             max = Math.max(max,  b.max(i));
@@ -195,6 +201,67 @@ public class SpatialType implements DataType {
             minMax[i + i + 1] = a.max(i);
         }
         return new SpatialKey(0, minMax);
+    }
+
+    /**
+     * Get the most extreme pair (elements that are as far apart as possible).
+     * This method is used to split a page (linear split). If no extreme objects
+     * could be found, this method returns null.
+     *
+     * @param list the objects
+     * @return the indexes of the extremes
+     */
+    public int[] getExtremes(ArrayList<Object> list) {
+        SpatialKey bounds = (SpatialKey) createBoundingBox(list.get(0));
+        SpatialKey boundsInner = (SpatialKey) createBoundingBox(bounds);
+        for (int i = 0; i < dimensions; i++) {
+            float t = boundsInner.min(i);
+            boundsInner.setMin(i, boundsInner.max(i));
+            boundsInner.setMax(i, t);
+        }
+        for (int i = 0; i < list.size(); i++) {
+            Object o = list.get(i);
+            increaseBounds(bounds, o);
+            increaseMaxInnerBounds(boundsInner, o);
+        }
+        double best = 0;
+        int bestDim = 0;
+        for (int i = 0; i < dimensions; i++) {
+            float inner = boundsInner.max(i) - boundsInner.min(i);
+            if (inner < 0) {
+                continue;
+            }
+            float outer = bounds.max(i) - bounds.min(i);
+            float d = inner / outer;
+            if (d > best) {
+                best = d;
+                bestDim = i;
+            }
+        }
+        if (best <= 0) {
+            return null;
+        }
+        float min = boundsInner.min(bestDim);
+        float max = boundsInner.max(bestDim);
+        int firstIndex = -1, lastIndex = -1;
+        for (int i = 0; i < list.size() && (firstIndex < 0 || lastIndex < 0); i++) {
+            SpatialKey o = (SpatialKey) list.get(i);
+            if (firstIndex < 0 && o.max(bestDim) == min) {
+                firstIndex = i;
+            } else if (lastIndex < 0 && o.min(bestDim) == max) {
+                lastIndex = i;
+            }
+        }
+        return new int[] { firstIndex, lastIndex };
+    }
+
+    private void increaseMaxInnerBounds(Object bounds, Object add) {
+        SpatialKey b = (SpatialKey) bounds;
+        SpatialKey a = (SpatialKey) add;
+        for (int i = 0; i < dimensions; i++) {
+            b.setMin(i, Math.min(b.min(i), a.max(i)));
+            b.setMax(i, Math.max(b.max(i), a.min(i)));
+        }
     }
 
 }

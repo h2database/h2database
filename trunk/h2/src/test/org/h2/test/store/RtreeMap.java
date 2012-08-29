@@ -13,6 +13,7 @@ import org.h2.dev.store.btree.Cursor;
 import org.h2.dev.store.btree.CursorPos;
 import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.Page;
+import org.h2.util.New;
 
 /**
  * An r-tree implementation. It uses the quadratic split algorithm.
@@ -23,6 +24,7 @@ import org.h2.dev.store.btree.Page;
 public class RtreeMap<K, V> extends BtreeMap<K, V> {
 
     private final SpatialType keyType;
+    private boolean quadraticSplit;
 
     RtreeMap(BtreeMapStore store, int id, String name, DataType keyType,
             DataType valueType, long createVersion) {
@@ -41,10 +43,6 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
 
     private boolean contains(Page p, int index, Object key) {
         return keyType.contains(p.getKey(index), key);
-    }
-
-    private float getAreaIncrease(Page p, int index, Object key) {
-        return keyType.getAreaIncrease(p.getKey(index), key);
     }
 
     /**
@@ -101,44 +99,13 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
         return null;
     }
 
-    protected Page set(Page p, long writeVersion, Object key, Object value) {
-        if (p == null) {
-            throw KEY_NOT_FOUND;
-        }
-        if (!p.isLeaf()) {
-            for (int i = 0; i < p.getKeyCount(); i++) {
-                if (contains(p, i, key)) {
-                    Page c = p.getChildPage(i);
-                    Page c2 = set(c, writeVersion, key, value);
-                    if (c != c2) {
-                        p = p.copyOnWrite(writeVersion);
-                        setChildUpdateBox(p,  i, c2, key);
-                        break;
-                    }
-                }
-            }
-        } else {
-            for (int i = 0; i < p.getKeyCount(); i++) {
-                if (keyType.equals(p.getKey(i), key)) {
-                    p = p.copyOnWrite(writeVersion);
-                    p.setValue(i, value);
-                    break;
-                }
-            }
-        }
-        return p;
-    }
-
-    protected Page removeExisting(Page p, long writeVersion, Object key) {
-        if (p == null) {
-            throw KEY_NOT_FOUND;
-        }
+    protected Page remove(Page p, long writeVersion, Object key) {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
                     Page c = p.getChildPage(i);
                     long oldSize = c.getTotalSize();
-                    Page c2 = removeExisting(c, writeVersion, key);
+                    Page c2 = remove(c, writeVersion, key);
                     if (c2 == null) {
                         // this child was deleted
                         p.remove(i);
@@ -148,7 +115,11 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
                         }
                     } else if (oldSize != c2.getTotalSize()) {
                         p = p.copyOnWrite(writeVersion);
-                        setChildUpdateBox(p, i, c2, key);
+                        Object oldBounds = p.getKey(i);
+                        if (!keyType.isInside(key, oldBounds)) {
+                            p.setKey(i, getBounds(c));
+                        }
+                        p.setChild(i, c2);
                         break;
                     }
                 }
@@ -169,23 +140,6 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
         return p;
     }
 
-    /**
-     * Set the child and update the bounding box if required. The bounding box
-     * is only updated if the key touches or is outside the old bounding box.
-     *
-     * @param p the parent (this page is changed)
-     * @param index the child index
-     * @param c the child page
-     * @param key the new or old key
-     */
-    private void setChildUpdateBox(Page p, int index, Page c, Object key) {
-        Object oldBounds = p.getKey(index);
-        if (key == null || !keyType.isInside(key, oldBounds)) {
-            p.setKey(index, getBounds(c));
-        }
-        p.setChild(index, c);
-    }
-
     private Object getBounds(Page x) {
         Object bounds = keyType.createBoundingBox(x.getKey(0));
         for (int i = 1; i < x.getKeyCount(); i++) {
@@ -194,128 +148,238 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
         return bounds;
     }
 
-    protected Page add(Page p, long writeVersion, Object key, Object value) {
+    public void put(K key, V data) {
+        checkWrite();
+        Page oldRoot = root;
+        if (get(key) != null) {
+            root = set(root, store.getCurrentVersion(), key, data);
+        } else {
+            root = add(root, store.getCurrentVersion(), key, data, store.getMaxPageSize());
+        }
+        markChanged(oldRoot);
+    }
+
+    protected Page set(Page p, long writeVersion, Object key, Object value) {
+        if (!p.isLeaf()) {
+            for (int i = 0; i < p.getKeyCount(); i++) {
+                if (contains(p, i, key)) {
+                    Page c = p.getChildPage(i);
+                    Page c2 = set(c, writeVersion, key, value);
+                    if (c != c2) {
+                        p = p.copyOnWrite(writeVersion);
+                        p.setChild(i, c2);
+                        break;
+                    }
+                }
+            }
+        } else {
+            for (int i = 0; i < p.getKeyCount(); i++) {
+                if (keyType.equals(p.getKey(i), key)) {
+                    p = p.copyOnWrite(writeVersion);
+                    p.setValue(i, value);
+                    break;
+                }
+            }
+        }
+        return p;
+    }
+
+    public void add(K key, V data) {
+        checkWrite();
+        Page oldRoot = root;
+        root = add(root, store.getCurrentVersion(), key, data, store.getMaxPageSize());
+        markChanged(oldRoot);
+    }
+
+    protected Page add(Page p, long writeVersion, Object key, Object value, int maxPageSize) {
         if (p == null) {
             Object[] keys = { key };
             Object[] values = { value };
-            p = Page.create(this, writeVersion, keys, values, null, null, 1);
+            p = Page.create(this, writeVersion, 1,
+                    keys, values, null, null, 1, 0);
             return p;
         }
-        if (p.getKeyCount() >= store.getMaxPageSize()) {
-            // only possible if this is the root,
-            // otherwise we would have split earlier
+        if (p.getKeyCount() > maxPageSize) {
+            // only possible if this is the root, else we would have split earlier
+            // (this requires maxPageSize is fixed)
             p = p.copyOnWrite(writeVersion);
             long totalSize = p.getTotalSize();
             Page split = split(p, writeVersion);
             Object[] keys = { getBounds(p), getBounds(split) };
             long[] children = { p.getPos(), split.getPos(), 0 };
             long[] childrenSize = { p.getTotalSize(), split.getTotalSize(), 0 };
-            p = Page.create(this, writeVersion, keys, null, children, childrenSize,
-                    totalSize);
-            // now p is a node; insert continues
+            p = Page.create(this, writeVersion, 2,
+                    keys, null, children, childrenSize,
+                    totalSize, 0);
+            // now p is a node; continues
         } else if (p.isLeaf()) {
-            for (int i = 0; i < p.getKeyCount(); i++) {
-                if (keyType.equals(p.getKey(i), key)) {
-                    throw KEY_ALREADY_EXISTS;
-                }
-            }
             p = p.copyOnWrite(writeVersion);
-            p.insert(p.getKeyCount(), key, value, 0, 0);
+            p.insertLeaf(p.getKeyCount(), key, value);
             return p;
         }
         // p is a node
-        float min = Float.MAX_VALUE;
-        int index = 0;
+        int index = -1;
         for (int i = 0; i < p.getKeyCount(); i++) {
-            float areaIncrease = getAreaIncrease(p, i, key);
-            if (areaIncrease < min) {
+            if (contains(p, i, key)) {
                 index = i;
-                min = areaIncrease;
+                break;
+            }
+        }
+        if (index < 0) {
+            // a new entry, we don't know where to add yet
+            float min = Float.MAX_VALUE;
+            for (int i = 0; i < p.getKeyCount(); i++) {
+                Object k = p.getKey(i);
+                float areaIncrease = keyType.getAreaIncrease(k, key);
+                if (areaIncrease < min) {
+                    index = i;
+                    min = areaIncrease;
+                }
             }
         }
         Page c = p.getChildPage(index);
-        if (c.getKeyCount() >= store.getMaxPageSize()) {
+        if (c.getKeyCount() >= maxPageSize) {
             // split on the way down
             c = c.copyOnWrite(writeVersion);
             Page split = split(c, writeVersion);
             p = p.copyOnWrite(writeVersion);
-            setChildUpdateBox(p, index, c, null);
-            p.insert(index, getBounds(split), null, split.getPos(), split.getTotalSize());
+            p.setKey(index, getBounds(c));
+            p.setChild(index, c);
+            p.insertNode(index, getBounds(split), split.getPos(), split.getTotalSize());
             // now we are not sure where to add
-            return add(p, writeVersion, key, value);
+            return add(p, writeVersion, key, value, maxPageSize);
         }
-        Page c2 = add(c, writeVersion, key, value);
+        Page c2 = add(c, writeVersion, key, value, maxPageSize);
         p = p.copyOnWrite(writeVersion);
-        // the child might be the same, but maybe not the bounding box
-        setChildUpdateBox(p, index, c2, key);
+        Object bounds = p.getKey(index);
+        keyType.increaseBounds(bounds, key);
+        p.setKey(index, bounds);
+        p.setChild(index, c2);
         return p;
     }
 
     private Page split(Page p, long writeVersion) {
-        // quadratic algorithm
-        Object[] values = p.isLeaf() ? new Object[0] : null;
-        long[] c = p.isLeaf() ? null : new long[1];
-        Page split = Page.create(this, writeVersion, new Object[0],
-                values, c, c, 0);
-        Page newP = Page.create(this, writeVersion, new Object[0],
-                values, c, c, 0);
-        float largest = Float.MIN_VALUE;
-        int iBest = 0, jBest = 0;
+//        if (p.getTotalSize() > 10000) {
+//            return
+//        }
+        return quadraticSplit | p.getTotalSize() > 10000 ?
+                splitQuadratic(p, writeVersion) :
+                splitLinear(p, writeVersion);
+    }
+
+public static int splitLin, splitQuad;
+
+    private Page splitLinear(Page p, long writeVersion) {
+        ArrayList<Object> keys = New.arrayList();
         for (int i = 0; i < p.getKeyCount(); i++) {
-            Object oi = p.getKey(i);
-            for (int j = 0; j < p.getKeyCount(); j++) {
-                if (i == j) {
+            keys.add(p.getKey(i));
+        }
+        int[] extremes = keyType.getExtremes(keys);
+        if (extremes == null) {
+            splitQuad++;
+            return splitQuadratic(p, writeVersion);
+        }
+        splitLin++;
+        Page splitA = newPage(p.isLeaf(), writeVersion);
+        Page splitB = newPage(p.isLeaf(), writeVersion);
+        move(p, splitA, extremes[0]);
+        if (extremes[1] > extremes[0]) {
+            extremes[1]--;
+        }
+        move(p, splitB, extremes[1]);
+        Object boundsA = keyType.createBoundingBox(splitA.getKey(0));
+        Object boundsB = keyType.createBoundingBox(splitB.getKey(0));
+        while (p.getKeyCount() > 0) {
+            Object o = p.getKey(0);
+            float a = keyType.getAreaIncrease(boundsA, o);
+            float b = keyType.getAreaIncrease(boundsB, o);
+            if (a < b) {
+                keyType.increaseBounds(boundsA, o);
+                move(p, splitA, 0);
+            } else {
+                keyType.increaseBounds(boundsB, o);
+                move(p, splitB, 0);
+            }
+        }
+        while (splitB.getKeyCount() > 0) {
+            move(splitB, p, 0);
+        }
+        return splitA;
+    }
+
+    private Page splitQuadratic(Page p, long writeVersion) {
+        Page splitA = newPage(p.isLeaf(), writeVersion);
+        Page splitB = newPage(p.isLeaf(), writeVersion);
+        float largest = Float.MIN_VALUE;
+        int ia = 0, ib = 0;
+        for (int a = 0; a < p.getKeyCount(); a++) {
+            Object objA = p.getKey(a);
+            for (int b = 0; b < p.getKeyCount(); b++) {
+                if (a == b) {
                     continue;
                 }
-                Object oj = p.getKey(j);
-                float area = keyType.getCombinedArea(oi, oj);
+                Object objB = p.getKey(b);
+                float area = keyType.getCombinedArea(objA, objB);
                 if (area > largest) {
                     largest = area;
-                    iBest = i;
-                    jBest = j;
+                    ia = a;
+                    ib = b;
                 }
             }
         }
-        move(p, newP, iBest);
-        if (iBest < jBest) {
-            jBest--;
+        move(p, splitA, ia);
+        if (ia < ib) {
+            ib--;
         }
-        move(p, split, jBest);
+        move(p, splitB, ib);
+        Object boundsA = keyType.createBoundingBox(splitA.getKey(0));
+        Object boundsB = keyType.createBoundingBox(splitB.getKey(0));
         while (p.getKeyCount() > 0) {
             float diff = 0, bestA = 0, bestB = 0;
             int best = 0;
-            Object ba = getBounds(newP);
-            Object bb = getBounds(split);
             for (int i = 0; i < p.getKeyCount(); i++) {
                 Object o = p.getKey(i);
-                float a = keyType.getAreaIncrease(ba, o);
-                float b = keyType.getAreaIncrease(bb, o);
-                float d = Math.abs(a - b);
+                float incA = keyType.getAreaIncrease(boundsA, o);
+                float incB = keyType.getAreaIncrease(boundsB, o);
+                float d = Math.abs(incA - incB);
                 if (d > diff) {
                     diff = d;
-                    bestA = a;
-                    bestB = b;
+                    bestA = incA;
+                    bestB = incB;
                     best = i;
                 }
             }
             if (bestA < bestB) {
-                move(p, newP, best);
+                keyType.increaseBounds(boundsA, p.getKey(best));
+                move(p, splitA, best);
             } else {
-                move(p, split, best);
+                keyType.increaseBounds(boundsB, p.getKey(best));
+                move(p, splitB, best);
             }
         }
-        while (newP.getKeyCount() > 0) {
-            move(newP, p, 0);
+        while (splitB.getKeyCount() > 0) {
+            move(splitB, p, 0);
         }
-        return split;
+        return splitA;
+    }
+
+    private Page newPage(boolean leaf, long writeVersion) {
+        Object[] values = leaf ? new Object[4] : null;
+        long[] c = leaf ? null : new long[1];
+        return Page.create(this, writeVersion, 0,
+                new Object[4], values, c, c, 0, 0);
     }
 
     private static void move(Page source, Page target, int sourceIndex) {
         Object k = source.getKey(sourceIndex);
-        Object v = source.isLeaf() ? source.getValue(sourceIndex) : null;
-        long c = source.isLeaf() ? 0 : source.getChildPage(sourceIndex).getPos();
-        long count = source.isLeaf() ? 0 : source.getCounts(sourceIndex);
-        target.insert(0, k, v, c, count);
+        if (source.isLeaf()) {
+            Object v = source.getValue(sourceIndex);
+            target.insertLeaf(0, k, v);
+        } else {
+            long c = source.getChildPage(sourceIndex).getPos();
+            long count = source.getCounts(sourceIndex);
+            target.insertNode(0, k, c, count);
+        }
         source.remove(sourceIndex);
     }
 
@@ -337,7 +401,10 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
      * @param key the key
      */
     protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
-        while (p != null) {
+        if (p == null) {
+            return null;
+        }
+        while (true) {
             CursorPos c = new CursorPos();
             c.page = p;
             if (p.isLeaf()) {
@@ -346,7 +413,6 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             cursor.push(c);
             p = p.getChildPage(0);
         }
-        return null;
     }
 
     /**
@@ -378,6 +444,14 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
                 }
             }
         }
+    }
+
+    public boolean isQuadraticSplit() {
+        return quadraticSplit;
+    }
+
+    public void setQuadraticSplit(boolean quadraticSplit) {
+        this.quadraticSplit = quadraticSplit;
     }
 
 }

@@ -9,6 +9,7 @@ package org.h2.dev.store.btree;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import org.h2.compress.Compressor;
 
 /**
@@ -24,15 +25,28 @@ import org.h2.compress.Compressor;
  */
 public class Page {
 
+    private static final int SHARED_KEYS = 1, SHARED_VALUES = 2, SHARED_CHILDREN = 4, SHARED_COUNTS = 8;
+
     private final BtreeMap<?, ?> map;
     private final long version;
     private long pos;
+    private long totalCount;
+    private int keyCount;
+
+    /**
+     * The last result of a find operation is cached.
+     */
+    private int cachedCompare;
+
+    /**
+     * Which arrays are shared with another version of this page.
+     */
+    private int sharedFlags;
+
     private Object[] keys;
     private Object[] values;
     private long[] children;
     private long[] counts;
-    private int cachedCompare;
-    private long totalCount;
 
     private Page(BtreeMap<?, ?> map, long version) {
         this.map = map;
@@ -49,16 +63,19 @@ public class Page {
      * @param children the children
      * @return the page
      */
-    public static Page create(BtreeMap<?, ?> map, long version, Object[] keys,
+    public static Page create(BtreeMap<?, ?> map, long version,
+            int keyCount, Object[] keys,
             Object[] values, long[] children, long[] counts,
-            long totalCount) {
+            long totalCount, int sharedFlags) {
         Page p = new Page(map, version);
         p.pos = map.getStore().registerTempPage(p);
         p.keys = keys;
+        p.keyCount = keyCount;
         p.values = values;
         p.children = children;
         p.counts = counts;
         p.totalCount = totalCount;
+        p.sharedFlags = sharedFlags;
         return p;
     }
 
@@ -70,8 +87,8 @@ public class Page {
      * @param buff the source buffer
      * @return the page
      */
-    static Page read(FileChannel file, BtreeMap<?, ?> map, long filePos,
-            long pos) {
+    static Page read(FileChannel file, BtreeMap<?, ?> map,
+            long filePos, long pos) {
         int maxLength = DataUtils.getPageMaxLength(pos), length = maxLength;
         ByteBuffer buff;
         try {
@@ -108,7 +125,7 @@ public class Page {
     }
 
     public int getKeyCount() {
-        return keys.length;
+        return keyCount;
     }
 
     public boolean isLeaf() {
@@ -127,14 +144,14 @@ public class Page {
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append("pos: ").append(pos).append("\n");
-        for (int i = 0; i <= keys.length; i++) {
+        for (int i = 0; i <= keyCount; i++) {
             if (i > 0) {
                 buff.append(" ");
             }
             if (children != null) {
                 buff.append("[" + children[i] + "] ");
             }
-            if (i < keys.length) {
+            if (i < keyCount) {
                 buff.append(keys[i]);
                 if (values != null) {
                     buff.append(':');
@@ -150,8 +167,10 @@ public class Page {
             return this;
         }
         map.getStore().removePage(pos);
-        Page newPage = create(map, writeVersion, keys, values, children,
-                counts, totalCount);
+        Page newPage = create(map, writeVersion,
+                keyCount, keys, values, children,
+                counts, totalCount,
+                SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS);
         newPage.cachedCompare = cachedCompare;
         return newPage;
     }
@@ -167,7 +186,7 @@ public class Page {
      * @return the value or null
      */
     public int binarySearch(Object key) {
-        int low = 0, high = keys.length - 1;
+        int low = 0, high = keyCount - 1;
         int x = cachedCompare - 1;
         if (x < 0 || x > high) {
             x = (low + high) >>> 1;
@@ -188,7 +207,7 @@ public class Page {
         return -(low + 1);
 
         // regular binary search (without caching)
-        // int low = 0, high = keys.length - 1;
+        // int low = 0, high = keyCount - 1;
         // while (low <= high) {
         //     int x = (low + high) >>> 1;
         //     int compare = map.compare(key, keys[x]);
@@ -208,31 +227,35 @@ public class Page {
     }
 
     private Page splitLeaf(int at) {
-        int a = at, b = keys.length - a;
+        int a = at, b = keyCount - a;
         Object[] aKeys = new Object[a];
         Object[] bKeys = new Object[b];
         System.arraycopy(keys, 0, aKeys, 0, a);
         System.arraycopy(keys, a, bKeys, 0, b);
         keys = aKeys;
+        keyCount = a;
         Object[] aValues = new Object[a];
         Object[] bValues = new Object[b];
         bValues = new Object[b];
         System.arraycopy(values, 0, aValues, 0, a);
         System.arraycopy(values, a, bValues, 0, b);
         values = aValues;
-        totalCount = keys.length;
-        Page newPage = create(map, version, bKeys, bValues, null, null,
-                bKeys.length);
+        sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
+        totalCount = a;
+        Page newPage = create(map, version, b,
+                bKeys, bValues, null, null,
+                bKeys.length, 0);
         return newPage;
     }
 
     private Page splitNode(int at) {
-        int a = at, b = keys.length - a;
+        int a = at, b = keyCount - a;
         Object[] aKeys = new Object[a];
         Object[] bKeys = new Object[b - 1];
         System.arraycopy(keys, 0, aKeys, 0, a);
         System.arraycopy(keys, a + 1, bKeys, 0, b - 1);
         keys = aKeys;
+        keyCount = a;
         long[] aChildren = new long[a + 1];
         long[] bChildren = new long[b];
         System.arraycopy(children, 0, aChildren, 0, a + 1);
@@ -243,6 +266,7 @@ public class Page {
         System.arraycopy(counts, 0, aCounts, 0, a + 1);
         System.arraycopy(counts, a + 1, bCounts, 0, b);
         counts = aCounts;
+        sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         long t = 0;
         for (long x : aCounts) {
             t += x;
@@ -252,8 +276,9 @@ public class Page {
         for (long x : bCounts) {
             t += x;
         }
-        Page newPage = create(map, version, bKeys, null, bChildren,
-                bCounts, t);
+        Page newPage = create(map, version, b - 1,
+                bKeys, null, bChildren,
+                bCounts, t, 0);
         return newPage;
     }
 
@@ -261,7 +286,7 @@ public class Page {
         if (BtreeMapStore.ASSERT) {
             long check = 0;
             if (isLeaf()) {
-                check = keys.length;
+                check = keyCount;
             } else {
                 for (long x : counts) {
                     check += x;
@@ -277,37 +302,37 @@ public class Page {
 
     public void setChild(int index, Page c) {
         if (c.getPos() != children[index]) {
-            long[] newChildren = new long[children.length];
-            System.arraycopy(children, 0, newChildren, 0, newChildren.length);
-            newChildren[index] = c.getPos();
-            children = newChildren;
+            if ((sharedFlags & SHARED_CHILDREN) != 0) {
+                children = Arrays.copyOf(children, children.length);
+                sharedFlags &= ~SHARED_CHILDREN;
+            }
+            children[index] = c.getPos();
         }
         if (c.getTotalSize() != counts[index]) {
-            long[] newCounts = new long[counts.length];
-            System.arraycopy(counts, 0, newCounts, 0,
-                    newCounts.length);
-            newCounts[index] = c.getTotalSize();
-            totalCount += newCounts[index] - counts[index];
-            counts = newCounts;
+            if ((sharedFlags & SHARED_COUNTS) != 0) {
+                counts = Arrays.copyOf(counts, counts.length);
+                sharedFlags &= ~SHARED_COUNTS;
+            }
+            long oldCount = counts[index];
+            counts[index] = c.getTotalSize();
+            totalCount += counts[index] - oldCount;
         }
     }
 
     public void setKey(int index, Object key) {
-        // create a copy - not required if already cloned once in this version,
-        // but avoid unnecessary cloning would require a "modified" flag
-        Object[] newKeys = new Object[keys.length];
-        System.arraycopy(keys, 0, newKeys, 0, newKeys.length);
-        newKeys[index] = key;
-        keys = newKeys;
+        if ((sharedFlags & SHARED_KEYS) != 0) {
+            keys = Arrays.copyOf(keys, keys.length);
+            sharedFlags &= ~SHARED_KEYS;
+        }
+        keys[index] = key;
     }
 
     public void setValue(int index, Object value) {
-        // create a copy - not required if already cloned once in this version,
-        // but avoid unnecessary cloning would require a "modified" flag
-        Object[] newValues = new Object[values.length];
-        System.arraycopy(values, 0, newValues, 0, newValues.length);
-        newValues[index] = value;
-        values = newValues;
+        if ((sharedFlags & SHARED_VALUES) != 0) {
+            values = Arrays.copyOf(values, values.length);
+            sharedFlags &= ~SHARED_VALUES;
+        }
+        values[index] = value;
     }
 
     /**
@@ -327,43 +352,60 @@ public class Page {
         map.getStore().removePage(pos);
     }
 
-    public void insert(int index, Object key, Object value, long child,
-            long count) {
-        Object[] newKeys = new Object[keys.length + 1];
-        DataUtils.copyWithGap(keys, newKeys, keys.length, index);
+    public void insertLeaf(int index, Object key, Object value) {
+        if (((sharedFlags & SHARED_KEYS) == 0) && keys.length > keyCount + 1) {
+            if (index < keyCount) {
+                System.arraycopy(keys, index, keys, index + 1, keyCount - index);
+                System.arraycopy(values, index, values, index + 1, keyCount - index);
+            }
+        } else {
+            int len = keyCount + 6;
+            Object[] newKeys = new Object[len];
+            DataUtils.copyWithGap(keys, newKeys, keyCount, index);
+            keys = newKeys;
+            Object[] newValues = new Object[len];
+            DataUtils.copyWithGap(values, newValues, keyCount, index);
+            values = newValues;
+        }
+        keys[index] = key;
+        values[index] = value;
+        keyCount++;
+        sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
+        totalCount++;
+    }
+
+    public void insertNode(int index, Object key, long child, long count) {
+        Object[] newKeys = new Object[keyCount + 1];
+        DataUtils.copyWithGap(keys, newKeys, keyCount, index);
         newKeys[index] = key;
         keys = newKeys;
-        if (values != null) {
-            Object[] newValues = new Object[values.length + 1];
-            DataUtils.copyWithGap(values, newValues, values.length, index);
-            newValues[index] = value;
-            values = newValues;
-            totalCount++;
-        }
-        if (children != null) {
-            long[] newChildren = new long[children.length + 1];
-            DataUtils.copyWithGap(children, newChildren, children.length, index);
-            newChildren[index] = child;
-            children = newChildren;
-            long[] newCounts = new long[counts.length + 1];
-            DataUtils.copyWithGap(counts, newCounts, counts.length, index);
-            newCounts[index] = count;
-            counts = newCounts;
-            totalCount += count;
-        }
+        keyCount++;
+        long[] newChildren = new long[children.length + 1];
+        DataUtils.copyWithGap(children, newChildren, children.length, index);
+        newChildren[index] = child;
+        children = newChildren;
+        long[] newCounts = new long[counts.length + 1];
+        DataUtils.copyWithGap(counts, newCounts, counts.length, index);
+        newCounts[index] = count;
+        counts = newCounts;
+        sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
+        totalCount += count;
     }
 
     public void remove(int index) {
-        Object[] newKeys = new Object[keys.length - 1];
-        int keyIndex = index >= keys.length ? index - 1 : index;
-        DataUtils.copyExcept(keys, newKeys, keys.length, keyIndex);
+        Object[] newKeys = new Object[keyCount - 1];
+        int keyIndex = index >= keyCount ? index - 1 : index;
+        DataUtils.copyExcept(keys, newKeys, keyCount, keyIndex);
         keys = newKeys;
+        sharedFlags &= ~SHARED_KEYS;
         if (values != null) {
-            Object[] newValues = new Object[values.length - 1];
-            DataUtils.copyExcept(values, newValues, values.length, index);
+            Object[] newValues = new Object[keyCount - 1];
+            DataUtils.copyExcept(values, newValues, keyCount, index);
             values = newValues;
+            sharedFlags &= ~SHARED_VALUES;
             totalCount--;
         }
+        keyCount--;
         if (children != null) {
             long countOffset = counts[index];
             long[] newChildren = new long[children.length - 1];
@@ -373,6 +415,7 @@ public class Page {
             DataUtils.copyExcept(counts, newCounts,
                     counts.length, index);
             counts = newCounts;
+            sharedFlags &= ~(SHARED_CHILDREN | SHARED_COUNTS);
             totalCount -= countOffset;
         }
     }
@@ -399,6 +442,7 @@ public class Page {
         }
         int len = DataUtils.readVarInt(buff);
         keys = new Object[len];
+        keyCount = len;
         int type = buff.get();
         boolean node = (type & 1) == DataUtils.PAGE_TYPE_NODE;
         boolean compressed = (type & DataUtils.PAGE_COMPRESSED) != 0;
@@ -448,7 +492,7 @@ public class Page {
         buff.putInt(0);
         buff.putShort((byte) 0);
         DataUtils.writeVarInt(buff, map.getId());
-        int len = keys.length;
+        int len = keyCount;
         DataUtils.writeVarInt(buff, len);
         Compressor compressor = map.getStore().getCompressor();
         int type = children != null ? DataUtils.PAGE_TYPE_NODE
@@ -502,7 +546,7 @@ public class Page {
         // length, check, map id, key length, type
         int maxLength = 4 + 2 + DataUtils.MAX_VAR_INT_LEN
                 + DataUtils.MAX_VAR_INT_LEN + 1;
-        int len = keys.length;
+        int len = keyCount;
         for (int i = 0; i < len; i++) {
             maxLength += map.getKeyType().getMaxLength(keys[i]);
         }

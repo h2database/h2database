@@ -11,6 +11,7 @@ import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
@@ -56,6 +57,7 @@ TODO:
 - compare with newest version of IndexedDb
 - support database version / schema version
 - implement more counted b-tree (skip, get positions)
+- merge pages if small
 
 */
 
@@ -64,7 +66,7 @@ TODO:
  */
 public class BtreeMapStore {
 
-    public static final boolean ASSERT = true;
+    public static final boolean ASSERT = false;
 
     private static final StringType STRING_TYPE = new StringType();
 
@@ -82,6 +84,7 @@ public class BtreeMapStore {
     private int tempPageId;
     private Map<Long, Page> cache = CacheLIRS.newInstance(readCacheSize, 2048);
     private HashMap<Long, Page> temp = New.hashMap();
+    private Page[] tempCache = new Page[64];
 
     private int lastChunkId;
     private HashMap<Integer, Chunk> chunks = New.hashMap();
@@ -367,6 +370,7 @@ public class BtreeMapStore {
                     m.close();
                 }
                 temp.clear();
+                Arrays.fill(tempCache, null);
                 meta = null;
                 compressor = null;
                 chunks.clear();
@@ -598,9 +602,11 @@ public class BtreeMapStore {
      * @return the page id
      */
     long registerTempPage(Page p) {
-        long id = --tempPageId;
-        temp.put(id, p);
-        return id;
+        long pos = --tempPageId;
+        temp.put(pos, p);
+        int index = (int) pos & (tempCache.length - 1);
+        tempCache[index] = p;
+        return pos;
     }
 
     /**
@@ -799,7 +805,13 @@ public class BtreeMapStore {
      */
     Page readPage(BtreeMap<?, ?> map, long pos) {
         if (pos < 0) {
-            return temp.get(pos);
+            int index = (int) pos & (tempCache.length - 1);
+            Page p = tempCache[index];
+            if (p == null || p.getPos() != pos) {
+                p = temp.get(pos);
+                tempCache[index] = p;
+            }
+            return p;
         }
         Page p = cache.get(pos);
         if (p == null) {
@@ -993,6 +1005,7 @@ public class BtreeMapStore {
         }
         mapsChanged.clear();
         temp.clear();
+        Arrays.fill(tempCache, null);
         tempPageId = 0;
     }
 

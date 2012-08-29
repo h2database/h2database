@@ -27,7 +27,6 @@ import org.h2.jaqu.bytecode.Null;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
-import org.h2.util.Profiler;
 
 /**
  * Tests the tree map store.
@@ -44,14 +43,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     public void test() {
-//        testRtreeMany();
-//        System.out.println("lin: " + RtreeMap.splitLin + " quad:" + RtreeMap.splitQuad);
-//        testRtreeMany();
-//        System.out.println("lin: " + RtreeMap.splitLin + " quad:" + RtreeMap.splitQuad);
-//        testRtreeMany();
-//        System.out.println("lin: " + RtreeMap.splitLin + " quad:" + RtreeMap.splitQuad);
-//        if(true) return;
-//
+        testRtreeMany();
         testRtree();
         testRandomRtree();
         testCustomMapType();
@@ -71,78 +63,37 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testRtreeMany() {
-
-        // quadratic:
-//        add: 796
-//        query: 161
-//        remove: 194
-
-        // linear: 50
-//        add: 345
-//        query: 244
-//        remove: 259
-
-
-
-        // MyTest
-//        add:197
-//        query:236
-//        delete:669
-
-
         String fileName = getBaseDir() + "/testMeta.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s;
         s = openStore(fileName);
-s.setMaxPageSize(50);
+        // s.setMaxPageSize(50);
         RtreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
-//        r.setQuadraticSplit(true);
+        // r.setQuadraticSplit(true);
         Random rand = new Random(1);
-        int len = 1000000;
-
-long t = System.currentTimeMillis();
-
-Profiler prof = new Profiler();
-//prof.startCollecting();
+        int len = 1000;
+        // long t = System.currentTimeMillis();
+        // Profiler prof = new Profiler();
+        // prof.startCollecting();
         for (int i = 0; i < len; i++) {
             float x = rand.nextFloat(), y = rand.nextFloat();
             float p = (float) (rand.nextFloat() * 0.000001);
             SpatialKey k = new SpatialKey(i, x - p, x + p, y - p, y + p);
             r.add(k, "" + i);
-            if (i > 0 && (i % 10000) == 0) {
+            if (i > 0 && (i % len / 10) == 0) {
                 s.store();
-                System.out.println("store " + i);
             }
-//            if (i > 0 && (i % 10000) == 0) {
-//                render(r, getBaseDir() + "/test.png");
-//            }
+            if (i > 0 && (i % 10000) == 0) {
+                render(r, getBaseDir() + "/test.png");
+            }
         }
-//System.out.println(prof.getTop(5));
-
-        // quadratic
-//        add: 77967
-//        query: 39521
-//        remove: 22292
-
-        // linear
-//        add: 46136
-//        query: 65454
-//        remove: 35514
-
-        // > 10000 quadratic
-//        add: 54660
-//        query: 62946
-
-
-System.out.println("add: " + (System.currentTimeMillis() - t));
-
-
+        // System.out.println(prof.getTop(5));
+        // System.out.println("add: " + (System.currentTimeMillis() - t));
         s.store();
         s.close();
         s = openStore(fileName);
         r = s.openMap("data", "r", "s2", "");
-
-t = System.currentTimeMillis();
+        // t = System.currentTimeMillis();
         rand = new Random(1);
         for (int i = 0; i < len; i++) {
             float x = rand.nextFloat(), y = rand.nextFloat();
@@ -150,9 +101,7 @@ t = System.currentTimeMillis();
             SpatialKey k = new SpatialKey(i, x - p, x + p, y - p, y + p);
             assertEquals("" + i, r.get(k));
         }
-System.out.println("query: " + (System.currentTimeMillis() - t));
-
-
+        // System.out.println("query: " + (System.currentTimeMillis() - t));
         assertEquals(len, r.size());
         int count = 0;
         for (SpatialKey k : r.keySet()) {
@@ -160,11 +109,9 @@ System.out.println("query: " + (System.currentTimeMillis() - t));
             count++;
         }
         assertEquals(len, count);
-
-t = System.currentTimeMillis();
-
-//Profiler prof = new Profiler();
-//prof.startCollecting();
+        // t = System.currentTimeMillis();
+        // Profiler prof = new Profiler();
+        // prof.startCollecting();
         rand = new Random(1);
         for (int i = 0; i < len; i++) {
             float x = rand.nextFloat(), y = rand.nextFloat();
@@ -173,11 +120,9 @@ t = System.currentTimeMillis();
             r.remove(k);
         }
         assertEquals(0, r.size());
-
-//        System.out.println(prof.getTop(5));
-System.out.println("remove: " + (System.currentTimeMillis() - t));
-
-
+        s.close();
+        // System.out.println(prof.getTop(5));
+        // System.out.println("remove: " + (System.currentTimeMillis() - t));
     }
 
     private void testRtree() {
@@ -264,6 +209,7 @@ System.out.println("remove: " + (System.currentTimeMillis() - t));
 
     private static int[] scale(SpatialKey b, SpatialKey x, int width, int height) {
         int[] rect = {
+                (int) ((x.min(0) - b.min(0)) * (width * 0.9) / (b.max(0) - b.min(0)) + width * 0.05),
                 (int) ((x.min(1) - b.min(1)) * (height * 0.9) / (b.max(1) - b.min(1)) + height * 0.05),
                 (int) ((x.max(0) - b.min(0)) * (width * 0.9) / (b.max(0) - b.min(0)) + width * 0.05),
                 (int) ((x.max(1) - b.min(1)) * (height * 0.9) / (b.max(1) - b.min(1)) + height * 0.05),

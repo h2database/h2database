@@ -108,11 +108,12 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
                     Page c2 = remove(c, writeVersion, key);
                     if (c2 == null) {
                         // this child was deleted
-                        p.remove(i);
-                        if (p.getKeyCount() == 0) {
+                        if (p.getKeyCount() == 1) {
                             removePage(p);
                             return null;
                         }
+                        p = p.copyOnWrite(writeVersion);
+                        p.remove(i);
                     } else if (oldSize != c2.getTotalSize()) {
                         p = p.copyOnWrite(writeVersion);
                         Object oldBounds = p.getKey(i);
@@ -259,15 +260,10 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
     }
 
     private Page split(Page p, long writeVersion) {
-//        if (p.getTotalSize() > 10000) {
-//            return
-//        }
-        return quadraticSplit | p.getTotalSize() > 10000 ?
+        return quadraticSplit ?
                 splitQuadratic(p, writeVersion) :
                 splitLinear(p, writeVersion);
     }
-
-public static int splitLin, splitQuad;
 
     private Page splitLinear(Page p, long writeVersion) {
         ArrayList<Object> keys = New.arrayList();
@@ -276,10 +272,8 @@ public static int splitLin, splitQuad;
         }
         int[] extremes = keyType.getExtremes(keys);
         if (extremes == null) {
-            splitQuad++;
             return splitQuadratic(p, writeVersion);
         }
-        splitLin++;
         Page splitA = newPage(p.isLeaf(), writeVersion);
         Page splitB = newPage(p.isLeaf(), writeVersion);
         move(p, splitA, extremes[0]);

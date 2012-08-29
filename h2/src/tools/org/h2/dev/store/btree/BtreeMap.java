@@ -357,12 +357,12 @@ public class BtreeMap<K, V> {
         Page c2 = remove(c, writeVersion, key);
         if (c2 == null) {
             // this child was deleted
-            p = p.copyOnWrite(writeVersion);
-            p.remove(index);
-            if (p.getKeyCount() == 0) {
+            if (p.getKeyCount() == 1) {
                 removePage(p);
                 p = p.getChildPage(0);
             }
+            p = p.copyOnWrite(writeVersion);
+            p.remove(index);
         } else if (oldSize != c2.getTotalSize()) {
             p = p.copyOnWrite(writeVersion);
             p.setChild(index, c2);

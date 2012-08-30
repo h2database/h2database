@@ -40,7 +40,6 @@ blockSize=4096
 
 TODO:
 - ability to diff / merge versions
-- map.getVersion and opening old maps read-only
 - limited support for writing to old versions (branches)
 - implement complete java.util.Map interface
 - maybe rename to MVStore, MVMap, TestMVStore
@@ -58,6 +57,9 @@ TODO:
 - support database version / schema version
 - implement more counted b-tree (skip, get positions)
 - merge pages if small
+- r-tree: add missing features (NN search for example)
+- compression: maybe hash table reset speeds up compression
+- avoid using java.util.Properties (it allocates quite a lot of memory)
 
 */
 
@@ -142,6 +144,24 @@ public class BtreeMapStore {
         return s;
     }
 
+    @SuppressWarnings("unchecked")
+    <T extends BtreeMap<?, ?>> T  openMapVersion(long version, String name) {
+        // TODO reduce copy & pasted source code
+        BtreeMap<String, String> oldMeta = getMetaMap(version);
+        String types = oldMeta.get("map." + name);
+        String[] idTypeList = StringUtils.arraySplit(types, '/', false);
+        int id = Integer.parseInt(idTypeList[0]);
+        long createVersion = Long.parseLong(idTypeList[1]);
+        String mapType = idTypeList[2];
+        String keyType = idTypeList[3];
+        String valueType = idTypeList[4];
+        String r = oldMeta.get("root." + id);
+        long root = r == null ? 0 : Long.parseLong(r);
+        BtreeMap<?, ?> m = buildMap(mapType, id, name, keyType, valueType, createVersion);
+        m.setRootPos(root);
+        return (T) m;
+    }
+
     /**
      * Open a map.
      *
@@ -177,17 +197,20 @@ public class BtreeMapStore {
                 String r = meta.get("root." + id);
                 root = r == null ? 0 : Long.parseLong(r);
             }
-            DataType k = buildDataType(keyType);
-            DataType v = buildDataType(valueType);
-            if (mapType.equals("")) {
-                m = new BtreeMap<Object, Object>(this, id, name, k, v, createVersion);
-            } else {
-                m = getMapFactory().buildMap(mapType, this, id, name, k, v, createVersion);
-            }
+            m = buildMap(mapType, id, name, keyType, valueType, createVersion);
             maps.put(name, m);
             m.setRootPos(root);
         }
         return (T) m;
+    }
+
+    private BtreeMap<?, ?> buildMap(String mapType, int id, String name, String keyType, String valueType, long createVersion) {
+        DataType k = buildDataType(keyType);
+        DataType v = buildDataType(valueType);
+        if (mapType.equals("")) {
+            return new BtreeMap<Object, Object>(this, id, name, k, v, createVersion);
+        }
+        return getMapFactory().buildMap(mapType, this, id, name, k, v, createVersion);
     }
 
     /**
@@ -207,6 +230,11 @@ public class BtreeMapStore {
 
     private BtreeMap<String, String> getMetaMap(long version) {
         Chunk c = getChunkForVersion(version);
+        if (c == null) {
+            throw new IllegalArgumentException("Unknown version: " + version);
+        }
+        // TODO avoid duplicate code
+        c = readChunkHeader(c.start);
         BtreeMap<String, String> oldMeta = new BtreeMap<String, String>(this, 0, "old-meta", STRING_TYPE, STRING_TYPE, 0);
         oldMeta.setRootPos(c.metaRootPos);
         return oldMeta;
@@ -603,7 +631,8 @@ public class BtreeMapStore {
      */
     long registerTempPage(Page p) {
         long pos = --tempPageId;
-        temp.put(pos, p);
+        // use -pos so the Long cache can be used
+        temp.put(-pos, p);
         int index = (int) pos & (tempCache.length - 1);
         tempCache[index] = p;
         return pos;
@@ -808,7 +837,7 @@ public class BtreeMapStore {
             int index = (int) pos & (tempCache.length - 1);
             Page p = tempCache[index];
             if (p == null || p.getPos() != pos) {
-                p = temp.get(pos);
+                p = temp.get(-pos);
                 tempCache[index] = p;
             }
             return p;

@@ -19,20 +19,21 @@ import java.util.TreeMap;
  */
 public class BtreeMap<K, V> {
 
+    protected final BtreeMapStore store;
     protected Page root;
-    protected BtreeMapStore store;
 
     private final int id;
     private final String name;
     private final DataType keyType;
     private final DataType valueType;
     private final long createVersion;
-
     /**
      * The map of old roots. The key is the new version, the value is the root
      * before this version.
      */
     private final TreeMap<Long, Page> oldRoots = new TreeMap<Long, Page>();
+
+    private boolean closed;
     private boolean readOnly;
 
     protected BtreeMap(BtreeMapStore store, int id, String name,
@@ -301,14 +302,14 @@ public class BtreeMap<K, V> {
     }
 
     public void close() {
+        closed = true;
         readOnly = true;
-        store = null;
         oldRoots.clear();
         root = null;
     }
 
     public boolean isClosed() {
-        return store == null;
+        return closed;
     }
 
     /**
@@ -357,12 +358,12 @@ public class BtreeMap<K, V> {
         Page c2 = remove(c, writeVersion, key);
         if (c2 == null) {
             // this child was deleted
-            if (p.getKeyCount() == 1) {
+            p = p.copyOnWrite(writeVersion);
+            p.remove(index);
+            if (p.getKeyCount() == 0) {
                 removePage(p);
                 p = p.getChildPage(0);
             }
-            p = p.copyOnWrite(writeVersion);
-            p.remove(index);
         } else if (oldSize != c2.getTotalSize()) {
             p = p.copyOnWrite(writeVersion);
             p.setChild(index, c2);
@@ -527,7 +528,7 @@ public class BtreeMap<K, V> {
     }
 
     protected void checkOpen() {
-        if (store == null) {
+        if (closed) {
             throw new IllegalStateException("This map is closed");
         }
     }
@@ -545,7 +546,7 @@ public class BtreeMap<K, V> {
         if (readOnly) {
             buff.append(" readOnly");
         }
-        if (store == null) {
+        if (closed) {
             buff.append(" closed");
         }
         return buff.toString();
@@ -574,6 +575,20 @@ public class BtreeMap<K, V> {
 
     protected void removePage(Page p) {
         store.removePage(p.getPos());
+    }
+
+    public BtreeMap<K, V> openVersion(long version) {
+        if (version < createVersion) {
+            throw new IllegalArgumentException("Unknown version");
+        }
+        if (!oldRoots.containsKey(version)) {
+            return store.openMapVersion(version, name);
+        }
+        Page root = oldRoots.get(version);
+        BtreeMap<K, V> m = new BtreeMap<K, V>(store, id, name, keyType, valueType, createVersion);
+        m.readOnly = true;
+        m.root = root;
+        return m;
     }
 
 }

@@ -43,6 +43,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     public void test() {
+        testVersion();
         testRtreeMany();
         testRtree();
         testRandomRtree();
@@ -62,8 +63,59 @@ public class TestBtreeMapStore extends TestBase {
         testSimple();
     }
 
+    private void testVersion() {
+        String fileName = getBaseDir() + "/testVersion.h3";
+        FileUtils.delete(fileName);
+        BtreeMapStore s;
+        s = openStore(fileName);
+        BtreeMap<String, String> m;
+        s = openStore(fileName);
+        m = s.openMap("data", String.class, String.class);
+        long first = s.getCurrentVersion();
+        m.put("1", "Hello");
+        m.put("2", "World");
+        for (int i = 10; i < 20; i++) {
+            m.put("" + i, "data");
+        }
+        s.commit();
+        long old = s.getCurrentVersion();
+        m.put("1", "Hallo");
+        m.put("2", "Welt");
+        BtreeMap<String, String> mFirst;
+        mFirst = m.openVersion(first);
+        assertEquals(0, mFirst.size());
+        BtreeMap<String, String> mOld;
+        assertEquals("Hallo", m.get("1"));
+        assertEquals("Welt", m.get("2"));
+        mOld = m.openVersion(old);
+        assertEquals("Hello", mOld.get("1"));
+        assertEquals("World", mOld.get("2"));
+        assertTrue(mOld.isReadOnly());
+        s.getCurrentVersion();
+        s.setRetainChunk(0);
+        long old2 = s.store();
+
+        // TODO keep old version after storing
+        // assertEquals("Hello", mOld.get("1"));
+        // assertEquals("World", mOld.get("2"));
+
+        m.put("1",  "Hi");
+        m.remove("2");
+        s.store();
+        s.close();
+
+        s = openStore(fileName);
+        m = s.openMap("data", String.class, String.class);
+        assertEquals("Hi", m.get("1"));
+        assertEquals(null, m.get("2"));
+        mOld = m.openVersion(old2);
+        assertEquals("Hallo", mOld.get("1"));
+        assertEquals("Welt", mOld.get("2"));
+        s.close();
+    }
+
     private void testRtreeMany() {
-        String fileName = getBaseDir() + "/testMeta.h3";
+        String fileName = getBaseDir() + "/testRtree.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s;
         s = openStore(fileName);
@@ -126,7 +178,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testRtree() {
-        String fileName = getBaseDir() + "/testMeta.h3";
+        String fileName = getBaseDir() + "/testRtree.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s;
         s = openStore(fileName);
@@ -218,7 +270,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testRandomRtree() {
-        String fileName = getBaseDir() + "/testRandom.h3";
+        String fileName = getBaseDir() + "/testRtreeRandom.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = openStore(fileName);
         RtreeMap<SpatialKey, String> m = s.openMap("data", "r", "s2", "");
@@ -260,7 +312,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testCustomMapType() {
-        String fileName = getBaseDir() + "/testMeta.h3";
+        String fileName = getBaseDir() + "/testMapType.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s;
         s = openStore(fileName);
@@ -274,7 +326,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testTruncateFile() {
-        String fileName = getBaseDir() + "/testMeta.h3";
+        String fileName = getBaseDir() + "/testTruncate.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s;
         BtreeMap<Integer, String> m;
@@ -297,7 +349,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testFastDelete() {
-        String fileName = getBaseDir() + "/testMeta.h3";
+        String fileName = getBaseDir() + "/testFastDelete.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s;
         BtreeMap<Integer, String> m;
@@ -325,7 +377,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testRollbackStored() {
-        String fileName = getBaseDir() + "/testMeta.h3";
+        String fileName = getBaseDir() + "/testRollback.h3";
         FileUtils.delete(fileName);
         BtreeMap<String, String> meta;
         BtreeMapStore s = openStore(fileName);
@@ -411,7 +463,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testRollbackInMemory() {
-        String fileName = getBaseDir() + "/testMeta.h3";
+        String fileName = getBaseDir() + "/testRollback.h3";
         FileUtils.delete(fileName);
         BtreeMapStore s = openStore(fileName);
         assertEquals(1, s.getCurrentVersion());
@@ -477,7 +529,7 @@ public class TestBtreeMapStore extends TestBase {
     }
 
     private void testLargeImport() {
-        String fileName = getBaseDir() + "/testCsv.h3";
+        String fileName = getBaseDir() + "/testImport.h3";
         int len = 1000;
         for (int j = 0; j < 5; j++) {
             FileUtils.delete(fileName);

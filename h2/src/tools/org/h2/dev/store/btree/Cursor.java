@@ -17,14 +17,17 @@ import java.util.Iterator;
  */
 public class Cursor<K, V> implements Iterator<K> {
 
-    private final BtreeMap<K, V> map;
-    private final ArrayList<CursorPos> parents = new ArrayList<CursorPos>();
-    private CursorPos currentPos;
-    private K current;
+    protected final BtreeMap<K, V> map;
+    protected final ArrayList<CursorPos> parents = new ArrayList<CursorPos>();
+    protected CursorPos currentPos;
+    protected K current;
 
-    Cursor(BtreeMap<K, V> map, Page root, K from) {
+    Cursor(BtreeMap<K, V> map) {
         this.map = map;
-        currentPos = map.min(root, this, from);
+    }
+
+    void start(Page root, K from) {
+        currentPos = min(root, from);
         if (currentPos != null) {
             fetchNext();
         }
@@ -39,7 +42,7 @@ public class Cursor<K, V> implements Iterator<K> {
     }
 
     @SuppressWarnings("unchecked")
-    private void fetchNext() {
+    protected void fetchNext() {
         current = (K) map.nextKey(currentPos, this);
     }
 
@@ -51,10 +54,6 @@ public class Cursor<K, V> implements Iterator<K> {
         throw new UnsupportedOperationException();
     }
 
-    public void setCurrentPos(CursorPos p) {
-        currentPos = p;
-    }
-
     public void push(CursorPos p) {
         parents.add(p);
     }
@@ -62,6 +61,16 @@ public class Cursor<K, V> implements Iterator<K> {
     public CursorPos pop() {
         int size = parents.size();
         return size == 0 ? null : parents.remove(size - 1);
+    }
+
+    public CursorPos min(Page p, K from) {
+        return map.min(p, this, from);
+    }
+
+    public CursorPos visitChild(Page p, int childIndex) {
+        p = p.getChildPage(childIndex);
+        currentPos = min(p, null);
+        return currentPos;
     }
 
 }

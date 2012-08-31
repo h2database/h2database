@@ -152,24 +152,12 @@ public class BtreeMap<K, V> {
      * Go to the first element for the given key.
      *
      * @param p the current page
-     * @param parents the stack of parent page positions
+     * @param cursor the cursor
      * @param key the key
      */
     protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
         while (p != null) {
-            if (!p.isLeaf()) {
-                int x = key == null ? -1 : p.binarySearch(key);
-                if (x < 0) {
-                    x = -x - 1;
-                } else {
-                    x++;
-                }
-                CursorPos c = new CursorPos();
-                c.page = p;
-                c.index = x;
-                cursor.push(c);
-                p = p.getChildPage(x);
-            } else {
+            if (p.isLeaf()) {
                 int x = key == null ? 0 : p.binarySearch(key);
                 if (x < 0) {
                     x = -x - 1;
@@ -179,6 +167,17 @@ public class BtreeMap<K, V> {
                 c.index = x;
                 return c;
             }
+            int x = key == null ? -1 : p.binarySearch(key);
+            if (x < 0) {
+                x = -x - 1;
+            } else {
+                x++;
+            }
+            CursorPos c = new CursorPos();
+            c.page = p;
+            c.index = x;
+            cursor.push(c);
+            p = p.getChildPage(x);
         }
         return null;
     }
@@ -186,31 +185,34 @@ public class BtreeMap<K, V> {
     /**
      * Get the next key.
      *
-     * @param parents the stack of parent page positions
+     * @param p the cursor position
+     * @param cursor the cursor
      * @return the next key
      */
     protected Object nextKey(CursorPos p, Cursor<K, V> cursor) {
-        while (true) {
+        while (p != null) {
             int index = p.index++;
-            if (index < p.page.getKeyCount()) {
-                return p.page.getKey(index);
+            Page x = p.page;
+            if (index < x.getKeyCount()) {
+                return x.getKey(index);
             }
             while (true) {
                 p = cursor.pop();
                 if (p == null) {
-                    return null;
+                    break;
                 }
                 index = ++p.index;
-                if (index <= p.page.getKeyCount()) {
+                x = p.page;
+                if (index <= x.getKeyCount()) {
                     cursor.push(p);
-                    Page x = p.page;
-                    x = x.getChildPage(index);
-                    p = min(x, cursor, null);
-                    cursor.setCurrentPos(p);
-                    break;
+                    p = cursor.visitChild(x, index);
+                    if (p != null) {
+                        break;
+                    }
                 }
             }
         }
+        return null;
     }
 
     /**
@@ -442,7 +444,22 @@ public class BtreeMap<K, V> {
      */
     public Iterator<K> keyIterator(K from) {
         checkOpen();
-        return new Cursor<K, V>(this, root, from);
+        Cursor<K, V> c = new Cursor<K, V>(this);
+        c.start(root, from);
+        return c;
+    }
+
+    /**
+     * Iterate over all keys in changed pages.
+     *
+     * @param minVersion the minimum version
+     * @return the iterator
+     */
+    public Iterator<K> changeIterator(long minVersion) {
+        checkOpen();
+        Cursor<K, V> c = new ChangeCursor<K, V>(this, minVersion);
+        c.start(root, null);
+        return c;
     }
 
     public Set<K> keySet() {
@@ -452,7 +469,9 @@ public class BtreeMap<K, V> {
 
             @Override
             public Iterator<K> iterator() {
-                return new Cursor<K, V>(BtreeMap.this, root, null);
+                Cursor<K, V> c = new Cursor<K, V>(BtreeMap.this);
+                c.start(root, null);
+                return c;
             }
 
             @Override

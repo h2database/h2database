@@ -106,6 +106,7 @@ import org.h2.test.server.TestInit;
 import org.h2.test.store.TestCacheLIRS;
 import org.h2.test.store.TestDataUtils;
 import org.h2.test.store.TestBtreeMapStore;
+import org.h2.test.store.TestRtree;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
 import org.h2.test.synth.TestDiskFull;
@@ -667,6 +668,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestBtreeMapStore().runTest(this);
         new TestCacheLIRS().runTest(this);
         new TestDataUtils().runTest(this);
+        new TestRtree().runTest(this);
 
         // unit
         new TestAutoReconnect().runTest(this);

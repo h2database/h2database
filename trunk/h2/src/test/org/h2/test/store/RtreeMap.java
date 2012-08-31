@@ -392,7 +392,7 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
      * Go to the first element for the given key.
      *
      * @param p the current page
-     * @param parents the stack of parent page positions
+     * @param cursor the cursor
      * @param key the key
      */
     protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
@@ -413,11 +413,12 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
     /**
      * Get the next key.
      *
-     * @param parents the stack of parent page positions
+     * @param p the cursor position
+     * @param cursor the cursor
      * @return the next key
      */
     protected Object nextKey(CursorPos p, Cursor<K, V> cursor) {
-        while (true) {
+        while (p != null) {
             int index = p.index++;
             Page x = p.page;
             if (index < x.getKeyCount()) {
@@ -426,19 +427,22 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             while (true) {
                 p = cursor.pop();
                 if (p == null) {
-                    return null;
+                    break;
                 }
                 index = ++p.index;
                 x = p.page;
+                // this is different from a b-tree:
+                // we have one less child
                 if (index < x.getKeyCount()) {
                     cursor.push(p);
-                    x = x.getChildPage(index);
-                    p = min(x, cursor, null);
-                    cursor.setCurrentPos(p);
-                    break;
+                    p = cursor.visitChild(x, index);
+                    if (p != null) {
+                        break;
+                    }
                 }
             }
         }
+        return null;
     }
 
     public boolean isQuadraticSplit() {

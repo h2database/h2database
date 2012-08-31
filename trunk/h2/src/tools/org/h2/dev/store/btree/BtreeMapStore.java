@@ -38,10 +38,9 @@ header:
 blockSize=4096
 
 TODO:
-- ability to diff / merge versions
-- limited support for writing to old versions (branches)
 - implement complete java.util.Map interface
 - maybe rename to MVStore, MVMap, TestMVStore
+- limited support for writing to old versions (branches)
 - atomic test-and-set (when supporting concurrent writes)
 - support background writes (store old version)
 - file header could be a regular chunk, end of file the second
@@ -408,7 +407,7 @@ public class BtreeMapStore {
         }
     }
 
-    private Chunk getChunk(long pos) {
+    Chunk getChunk(long pos) {
         return chunks.get(DataUtils.getPageChunkId(pos));
     }
 

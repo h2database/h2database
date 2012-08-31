@@ -123,6 +123,10 @@ public class Page {
         return p != null ? p : map.readPage(children[index]);
     }
 
+    long getChildPagePos(int index) {
+        return children[index];
+    }
+
     public Object getValue(int x) {
         return values[x];
     }
@@ -314,7 +318,7 @@ public class Page {
     }
 
     public void setChild(int index, Page c) {
-        if (c.getPos() != children[index]) {
+        if (c != childrenPages[index] || c.getPos() != children[index]) {
             if ((sharedFlags & SHARED_CHILDREN) != 0) {
                 children = Arrays.copyOf(children, children.length);
                 childrenPages = Arrays.copyOf(childrenPages, childrenPages.length);
@@ -697,6 +701,14 @@ public class Page {
 
     public long getCounts(int index) {
         return counts[index];
+    }
+
+    long getVersion() {
+        return version;
+    }
+
+    int getChildPageCount() {
+        return children.length;
     }
 
 }

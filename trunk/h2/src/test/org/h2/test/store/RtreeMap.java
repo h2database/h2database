@@ -7,8 +7,8 @@
 package org.h2.test.store;
 
 import java.util.ArrayList;
-import org.h2.dev.store.btree.BtreeMap;
-import org.h2.dev.store.btree.BtreeMapStore;
+import org.h2.dev.store.btree.MVMap;
+import org.h2.dev.store.btree.MVStore;
 import org.h2.dev.store.btree.Cursor;
 import org.h2.dev.store.btree.CursorPos;
 import org.h2.dev.store.btree.DataType;
@@ -21,12 +21,12 @@ import org.h2.util.New;
  * @param <K> the key class
  * @param <V> the value class
  */
-public class RtreeMap<K, V> extends BtreeMap<K, V> {
+public class RtreeMap<K, V> extends MVMap<K, V> {
 
     private final SpatialType keyType;
     private boolean quadraticSplit;
 
-    RtreeMap(BtreeMapStore store, int id, String name, DataType keyType,
+    RtreeMap(MVStore store, int id, String name, DataType keyType,
             DataType valueType, long createVersion) {
         super(store, id, name, keyType, valueType, createVersion);
         this.keyType = (SpatialType) keyType;

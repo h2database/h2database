@@ -39,7 +39,6 @@ blockSize=4096
 
 TODO:
 - implement complete java.util.Map interface
-- maybe rename to MVStore, MVMap, TestMVStore
 - limited support for writing to old versions (branches)
 - atomic test-and-set (when supporting concurrent writes)
 - support background writes (store old version)
@@ -63,7 +62,7 @@ TODO:
 /**
  * A persistent storage for tree maps.
  */
-public class BtreeMapStore {
+public class MVStore {
 
     public static final boolean ASSERT = false;
 
@@ -92,13 +91,13 @@ public class BtreeMapStore {
      */
     private HashMap<Long, HashMap<Integer, Chunk>> freedChunks = New.hashMap();
 
-    private BtreeMap<String, String> meta;
-    private HashMap<String, BtreeMap<?, ?>> maps = New.hashMap();
+    private MVMap<String, String> meta;
+    private HashMap<String, MVMap<?, ?>> maps = New.hashMap();
 
     /**
      * The set of maps with potentially unsaved changes.
      */
-    private HashMap<Integer, BtreeMap<?, ?>> mapsChanged = New.hashMap();
+    private HashMap<Integer, MVMap<?, ?>> mapsChanged = New.hashMap();
     private int lastMapId;
 
     private boolean reuseSpace = true;
@@ -110,7 +109,7 @@ public class BtreeMapStore {
     private int readCount;
     private int writeCount;
 
-    private BtreeMapStore(String fileName, MapFactory mapFactory) {
+    private MVStore(String fileName, MapFactory mapFactory) {
         this.fileName = fileName;
         this.mapFactory = mapFactory;
     }
@@ -121,7 +120,7 @@ public class BtreeMapStore {
      * @param fileName the file name
      * @return the store
      */
-    public static BtreeMapStore open(String fileName) {
+    public static MVStore open(String fileName) {
         return open(fileName, null);
     }
 
@@ -132,16 +131,16 @@ public class BtreeMapStore {
      * @param mapFactory the map factory
      * @return the store
      */
-    public static BtreeMapStore open(String fileName, MapFactory mapFactory) {
-        BtreeMapStore s = new BtreeMapStore(fileName, mapFactory);
+    public static MVStore open(String fileName, MapFactory mapFactory) {
+        MVStore s = new MVStore(fileName, mapFactory);
         s.open();
         return s;
     }
 
     @SuppressWarnings("unchecked")
-    <T extends BtreeMap<?, ?>> T  openMapVersion(long version, String name) {
+    <T extends MVMap<?, ?>> T  openMapVersion(long version, String name) {
         // TODO reduce copy & pasted source code
-        BtreeMap<String, String> oldMeta = getMetaMap(version);
+        MVMap<String, String> oldMeta = getMetaMap(version);
         String types = oldMeta.get("map." + name);
         String[] idTypeList = StringUtils.arraySplit(types, '/', false);
         int id = Integer.parseInt(idTypeList[0]);
@@ -151,7 +150,7 @@ public class BtreeMapStore {
         String valueType = idTypeList[4];
         String r = oldMeta.get("root." + id);
         long root = r == null ? 0 : Long.parseLong(r);
-        BtreeMap<?, ?> m = buildMap(mapType, id, name, keyType, valueType, createVersion);
+        MVMap<?, ?> m = buildMap(mapType, id, name, keyType, valueType, createVersion);
         m.setRootPos(root);
         return (T) m;
     }
@@ -167,8 +166,8 @@ public class BtreeMapStore {
      * @return the map
      */
     @SuppressWarnings("unchecked")
-    public <T extends BtreeMap<?, ?>> T openMap(String name, String mapType, String keyType, String valueType) {
-        BtreeMap<?, ?> m = maps.get(name);
+    public <T extends MVMap<?, ?>> T openMap(String name, String mapType, String keyType, String valueType) {
+        MVMap<?, ?> m = maps.get(name);
         if (m == null) {
             String identifier = meta.get("map." + name);
             int id;
@@ -198,11 +197,11 @@ public class BtreeMapStore {
         return (T) m;
     }
 
-    private BtreeMap<?, ?> buildMap(String mapType, int id, String name, String keyType, String valueType, long createVersion) {
+    private MVMap<?, ?> buildMap(String mapType, int id, String name, String keyType, String valueType, long createVersion) {
         DataType k = buildDataType(keyType);
         DataType v = buildDataType(valueType);
         if (mapType.equals("")) {
-            return new BtreeMap<Object, Object>(this, id, name, k, v, createVersion);
+            return new MVMap<Object, Object>(this, id, name, k, v, createVersion);
         }
         return getMapFactory().buildMap(mapType, this, id, name, k, v, createVersion);
     }
@@ -218,18 +217,18 @@ public class BtreeMapStore {
      *
      * @return the metadata map
      */
-    public BtreeMap<String, String> getMetaMap() {
+    public MVMap<String, String> getMetaMap() {
         return meta;
     }
 
-    private BtreeMap<String, String> getMetaMap(long version) {
+    private MVMap<String, String> getMetaMap(long version) {
         Chunk c = getChunkForVersion(version);
         if (c == null) {
             throw new IllegalArgumentException("Unknown version: " + version);
         }
         // TODO avoid duplicate code
         c = readChunkHeader(c.start);
-        BtreeMap<String, String> oldMeta = new BtreeMap<String, String>(this, 0, "old-meta", STRING_TYPE, STRING_TYPE, 0);
+        MVMap<String, String> oldMeta = new MVMap<String, String>(this, 0, "old-meta", STRING_TYPE, STRING_TYPE, 0);
         oldMeta.setRootPos(c.metaRootPos);
         return oldMeta;
     }
@@ -255,16 +254,16 @@ public class BtreeMapStore {
      * @param valueClass the value class
      * @return the map
      */
-    public <K, V> BtreeMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
+    public <K, V> MVMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
         String keyType = getDataType(keyClass);
         String valueType = getDataType(valueClass);
         @SuppressWarnings("unchecked")
-        BtreeMap<K, V> m = (BtreeMap<K, V>) openMap(name, "", keyType, valueType);
+        MVMap<K, V> m = (MVMap<K, V>) openMap(name, "", keyType, valueType);
         return m;
     }
 
     void removeMap(String name) {
-        BtreeMap<?, ?> m = maps.remove(name);
+        MVMap<?, ?> m = maps.remove(name);
         mapsChanged.remove(m);
     }
 
@@ -294,12 +293,12 @@ public class BtreeMapStore {
      *
      * @param map the map
      */
-    void markChanged(BtreeMap<?, ?> map) {
+    void markChanged(MVMap<?, ?> map) {
         mapsChanged.put(map.getId(), map);
     }
 
     private void open() {
-        meta = new BtreeMap<String, String>(this, 0, "meta", STRING_TYPE, STRING_TYPE, 0);
+        meta = new MVMap<String, String>(this, 0, "meta", STRING_TYPE, STRING_TYPE, 0);
         if (fileName == null) {
             return;
         }
@@ -391,7 +390,7 @@ public class BtreeMapStore {
             try {
                 log("file close");
                 file.close();
-                for (BtreeMap<?, ?> m : New.arrayList(maps.values())) {
+                for (MVMap<?, ?> m : New.arrayList(maps.values())) {
                     m.close();
                 }
                 meta = null;
@@ -473,7 +472,7 @@ public class BtreeMapStore {
         }
         int count = 0;
         int maxLength = 1 + 4 + 4 + 8;
-        for (BtreeMap<?, ?> m : mapsChanged.values()) {
+        for (MVMap<?, ?> m : mapsChanged.values()) {
             if (m == meta || !m.hasUnsavedChanges()) {
                 continue;
             }
@@ -495,7 +494,7 @@ public class BtreeMapStore {
         buff.putInt(0);
         buff.putInt(0);
         buff.putLong(0);
-        for (BtreeMap<?, ?> m : mapsChanged.values()) {
+        for (MVMap<?, ?> m : mapsChanged.values()) {
             if (m == meta || !m.hasUnsavedChanges()) {
                 continue;
             }
@@ -627,7 +626,7 @@ public class BtreeMapStore {
         if (mapsChanged.size() == 0) {
             return false;
         }
-        for (BtreeMap<?, ?> m : mapsChanged.values()) {
+        for (MVMap<?, ?> m : mapsChanged.values()) {
             if (m.hasUnsavedChanges()) {
                 return true;
             }
@@ -755,7 +754,7 @@ public class BtreeMapStore {
         // to ensure a chunk will be written
         // (even if there is nothing to move)
         meta.put("chunk." + move.id, move.toString());
-        BtreeMap<String, String> oldMeta = new BtreeMap<String, String>(this, 0, "old-meta", STRING_TYPE, STRING_TYPE, 0);
+        MVMap<String, String> oldMeta = new MVMap<String, String>(this, 0, "old-meta", STRING_TYPE, STRING_TYPE, 0);
         oldMeta.setRootPos(move.metaRootPos);
         Iterator<String> it = oldMeta.keyIterator("map.");
         while (it.hasNext()) {
@@ -766,7 +765,7 @@ public class BtreeMapStore {
             String s = oldMeta.get(k);
             k = k.substring("map.".length());
             @SuppressWarnings("unchecked")
-            BtreeMap<Object, Object> data = (BtreeMap<Object, Object>) maps.get(k);
+            MVMap<Object, Object> data = (MVMap<Object, Object>) maps.get(k);
             if (data == null) {
                 continue;
             }
@@ -777,7 +776,7 @@ public class BtreeMapStore {
             DataType vt = buildDataType(idTypeList[4]);
             long oldDataRoot = Long.parseLong(oldMeta.get("root." + id));
             if (oldDataRoot != 0) {
-                BtreeMap<?, ?> oldData = new BtreeMap<Object, Object>(this, id, "old-" + k, kt, vt, 0);
+                MVMap<?, ?> oldData = new MVMap<Object, Object>(this, id, "old-" + k, kt, vt, 0);
                 oldData.setRootPos(oldDataRoot);
                 Iterator<?> dataIt = oldData.keyIterator(null);
                 while (dataIt.hasNext()) {
@@ -812,7 +811,7 @@ public class BtreeMapStore {
      * @param pos the page position
      * @return the page
      */
-    Page readPage(BtreeMap<?, ?> map, long pos) {
+    Page readPage(MVMap<?, ?> map, long pos) {
         Page p = cache.get(pos);
         if (p == null) {
             long filePos = getFilePosition(pos);
@@ -926,7 +925,7 @@ public class BtreeMapStore {
         }
         // also, all check referenced by this version
         // need to be available in the file
-        BtreeMap<String, String> oldMeta = getMetaMap(version);
+        MVMap<String, String> oldMeta = getMetaMap(version);
         if (oldMeta == null) {
             return false;
         }
@@ -954,7 +953,7 @@ public class BtreeMapStore {
             throw new IllegalArgumentException("Unknown version: " + version);
         }
         // TODO could remove newer temporary pages on rollback
-        for (BtreeMap<?, ?> m : mapsChanged.values()) {
+        for (MVMap<?, ?> m : mapsChanged.values()) {
             m.rollbackTo(version);
         }
         for (long v = currentVersion; v >= version; v--) {
@@ -983,7 +982,7 @@ public class BtreeMapStore {
                 readMeta();
             }
         }
-        for (BtreeMap<?, ?> m : maps.values()) {
+        for (MVMap<?, ?> m : maps.values()) {
             if (m.getCreateVersion() > version) {
                 m.close();
                 removeMap(m.getName());
@@ -1000,7 +999,7 @@ public class BtreeMapStore {
 
     private void revertTemp() {
         freedChunks.clear();
-        for (BtreeMap<?, ?> m : mapsChanged.values()) {
+        for (MVMap<?, ?> m : mapsChanged.values()) {
             m.revertTemp();
         }
         mapsChanged.clear();

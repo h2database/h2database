@@ -17,9 +17,9 @@ import java.util.TreeMap;
  * @param <K> the key class
  * @param <V> the value class
  */
-public class BtreeMap<K, V> {
+public class MVMap<K, V> {
 
-    protected final BtreeMapStore store;
+    protected final MVStore store;
     protected Page root;
 
     private final int id;
@@ -36,7 +36,7 @@ public class BtreeMap<K, V> {
     private boolean closed;
     private boolean readOnly;
 
-    protected BtreeMap(BtreeMapStore store, int id, String name,
+    protected MVMap(MVStore store, int id, String name,
             DataType keyType, DataType valueType, long createVersion) {
         this.store = store;
         this.id = id;
@@ -469,19 +469,19 @@ public class BtreeMap<K, V> {
 
             @Override
             public Iterator<K> iterator() {
-                Cursor<K, V> c = new Cursor<K, V>(BtreeMap.this);
+                Cursor<K, V> c = new Cursor<K, V>(MVMap.this);
                 c.start(root, null);
                 return c;
             }
 
             @Override
             public int size() {
-                return BtreeMap.this.size();
+                return MVMap.this.size();
             }
 
             @Override
             public boolean contains(Object o) {
-                return BtreeMap.this.containsKey(o);
+                return MVMap.this.containsKey(o);
             }
 
         };
@@ -505,7 +505,7 @@ public class BtreeMap<K, V> {
         return name;
     }
 
-    BtreeMapStore getStore() {
+    MVStore getStore() {
         return store;
     }
 
@@ -597,7 +597,7 @@ public class BtreeMap<K, V> {
         store.removePage(p.getPos());
     }
 
-    public BtreeMap<K, V> openVersion(long version) {
+    public MVMap<K, V> openVersion(long version) {
         if (version < createVersion) {
             throw new IllegalArgumentException("Unknown version");
         }
@@ -605,7 +605,7 @@ public class BtreeMap<K, V> {
             return store.openMapVersion(version, name);
         }
         Page root = oldRoots.get(version);
-        BtreeMap<K, V> m = new BtreeMap<K, V>(store, id, name, keyType, valueType, createVersion);
+        MVMap<K, V> m = new MVMap<K, V>(store, id, name, keyType, valueType, createVersion);
         m.readOnly = true;
         m.root = root;
         return m;

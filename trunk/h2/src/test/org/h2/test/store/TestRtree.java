@@ -14,7 +14,7 @@ import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
-import org.h2.dev.store.btree.BtreeMapStore;
+import org.h2.dev.store.btree.MVStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -22,7 +22,7 @@ import org.h2.util.New;
 /**
  * Tests the r-tree.
  */
-public class TestRtree extends TestBtreeMapStore {
+public class TestRtree extends TestMVStore {
 
     /**
      * Run just this test.
@@ -43,7 +43,7 @@ public class TestRtree extends TestBtreeMapStore {
     private void testRtreeMany() {
         String fileName = getBaseDir() + "/testRtree.h3";
         FileUtils.delete(fileName);
-        BtreeMapStore s;
+        MVStore s;
         s = openStore(fileName);
         // s.setMaxPageSize(50);
         RtreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
@@ -106,7 +106,7 @@ public class TestRtree extends TestBtreeMapStore {
     private void testRtree() {
         String fileName = getBaseDir() + "/testRtree.h3";
         FileUtils.delete(fileName);
-        BtreeMapStore s;
+        MVStore s;
         s = openStore(fileName);
         RtreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
         add(r, "Bern", 46.57, 7.27, 124381);
@@ -198,7 +198,7 @@ public class TestRtree extends TestBtreeMapStore {
     private void testRandomRtree() {
         String fileName = getBaseDir() + "/testRtreeRandom.h3";
         FileUtils.delete(fileName);
-        BtreeMapStore s = openStore(fileName);
+        MVStore s = openStore(fileName);
         RtreeMap<SpatialKey, String> m = s.openMap("data", "r", "s2", "");
         HashMap<SpatialKey, String> map = new HashMap<SpatialKey, String>();
         Random rand = new Random(1);
@@ -240,7 +240,7 @@ public class TestRtree extends TestBtreeMapStore {
     private void testCustomMapType() {
         String fileName = getBaseDir() + "/testMapType.h3";
         FileUtils.delete(fileName);
-        BtreeMapStore s;
+        MVStore s;
         s = openStore(fileName);
         SequenceMap<Integer, String> seq = s.openMap("data", "s", "i", "");
         StringBuilder buff = new StringBuilder();

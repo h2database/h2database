@@ -27,7 +27,7 @@ public class Page {
 
     private static final int SHARED_KEYS = 1, SHARED_VALUES = 2, SHARED_CHILDREN = 4, SHARED_COUNTS = 8;
 
-    private final BtreeMap<?, ?> map;
+    private final MVMap<?, ?> map;
     private final long version;
     private long pos;
     private long totalCount;
@@ -49,7 +49,7 @@ public class Page {
     private Page[] childrenPages;
     private long[] counts;
 
-    private Page(BtreeMap<?, ?> map, long version) {
+    private Page(MVMap<?, ?> map, long version) {
         this.map = map;
         this.version = version;
     }
@@ -64,7 +64,7 @@ public class Page {
      * @param children the children
      * @return the page
      */
-    public static Page create(BtreeMap<?, ?> map, long version,
+    public static Page create(MVMap<?, ?> map, long version,
             int keyCount, Object[] keys,
             Object[] values, long[] children, Page[] childrenPages, long[] counts,
             long totalCount, int sharedFlags) {
@@ -89,7 +89,7 @@ public class Page {
      * @param buff the source buffer
      * @return the page
      */
-    static Page read(FileChannel file, BtreeMap<?, ?> map,
+    static Page read(FileChannel file, MVMap<?, ?> map,
             long filePos, long pos) {
         int maxLength = DataUtils.getPageMaxLength(pos), length = maxLength;
         ByteBuffer buff;
@@ -300,7 +300,7 @@ public class Page {
     }
 
     public long getTotalCount() {
-        if (BtreeMapStore.ASSERT) {
+        if (MVStore.ASSERT) {
             long check = 0;
             if (isLeaf()) {
                 check = keyCount;

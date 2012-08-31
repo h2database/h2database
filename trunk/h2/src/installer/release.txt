@@ -1,3 +1,5 @@
+Switch to Java 6!
+
 Check dictionary.txt
 ./build.sh spellcheck
 ./build.sh javadocImpl

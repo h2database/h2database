@@ -4596,7 +4596,7 @@ public class Parser {
             readIfEqualOrTo();
             read();
             return new NoOperation(session);
-        } else if(readIf("NAMES")) {
+        } else if (readIf("NAMES")) {
             // Quercus PHP MySQL driver compatibility
             readIfEqualOrTo();
             read();

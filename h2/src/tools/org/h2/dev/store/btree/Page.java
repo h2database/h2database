@@ -46,6 +46,7 @@ public class Page {
     private Object[] keys;
     private Object[] values;
     private long[] children;
+    private Page[] childrenPages;
     private long[] counts;
 
     private Page(BtreeMap<?, ?> map, long version) {
@@ -65,14 +66,15 @@ public class Page {
      */
     public static Page create(BtreeMap<?, ?> map, long version,
             int keyCount, Object[] keys,
-            Object[] values, long[] children, long[] counts,
+            Object[] values, long[] children, Page[] childrenPages, long[] counts,
             long totalCount, int sharedFlags) {
         Page p = new Page(map, version);
-        p.pos = map.getStore().registerTempPage(p);
+        // the position is 0
         p.keys = keys;
         p.keyCount = keyCount;
         p.values = values;
         p.children = children;
+        p.childrenPages = childrenPages;
         p.counts = counts;
         p.totalCount = totalCount;
         p.sharedFlags = sharedFlags;
@@ -117,7 +119,8 @@ public class Page {
     }
 
     public Page getChildPage(int index) {
-        return map.readPage(children[index]);
+        Page p = childrenPages[index];
+        return p != null ? p : map.readPage(children[index]);
     }
 
     public Object getValue(int x) {
@@ -168,7 +171,7 @@ public class Page {
         }
         map.getStore().removePage(pos);
         Page newPage = create(map, writeVersion,
-                keyCount, keys, values, children,
+                keyCount, keys, values, children, childrenPages,
                 counts, totalCount,
                 SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS);
         newPage.cachedCompare = cachedCompare;
@@ -243,29 +246,39 @@ public class Page {
         sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
         totalCount = a;
         Page newPage = create(map, version, b,
-                bKeys, bValues, null, null,
+                bKeys, bValues, null, null, null,
                 bKeys.length, 0);
         return newPage;
     }
 
     private Page splitNode(int at) {
         int a = at, b = keyCount - a;
+
         Object[] aKeys = new Object[a];
         Object[] bKeys = new Object[b - 1];
         System.arraycopy(keys, 0, aKeys, 0, a);
         System.arraycopy(keys, a + 1, bKeys, 0, b - 1);
         keys = aKeys;
         keyCount = a;
+
         long[] aChildren = new long[a + 1];
         long[] bChildren = new long[b];
         System.arraycopy(children, 0, aChildren, 0, a + 1);
         System.arraycopy(children, a + 1, bChildren, 0, b);
         children = aChildren;
+
+        Page[] aChildrenPages = new Page[a + 1];
+        Page[] bChildrenPages = new Page[b];
+        System.arraycopy(childrenPages, 0, aChildrenPages, 0, a + 1);
+        System.arraycopy(childrenPages, a + 1, bChildrenPages, 0, b);
+        childrenPages = aChildrenPages;
+
         long[] aCounts = new long[a + 1];
         long[] bCounts = new long[b];
         System.arraycopy(counts, 0, aCounts, 0, a + 1);
         System.arraycopy(counts, a + 1, bCounts, 0, b);
         counts = aCounts;
+
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         long t = 0;
         for (long x : aCounts) {
@@ -277,12 +290,12 @@ public class Page {
             t += x;
         }
         Page newPage = create(map, version, b - 1,
-                bKeys, null, bChildren,
+                bKeys, null, bChildren, bChildrenPages,
                 bCounts, t, 0);
         return newPage;
     }
 
-    public long getTotalSize() {
+    public long getTotalCount() {
         if (BtreeMapStore.ASSERT) {
             long check = 0;
             if (isLeaf()) {
@@ -304,17 +317,19 @@ public class Page {
         if (c.getPos() != children[index]) {
             if ((sharedFlags & SHARED_CHILDREN) != 0) {
                 children = Arrays.copyOf(children, children.length);
+                childrenPages = Arrays.copyOf(childrenPages, childrenPages.length);
                 sharedFlags &= ~SHARED_CHILDREN;
             }
             children[index] = c.getPos();
+            childrenPages[index] = c;
         }
-        if (c.getTotalSize() != counts[index]) {
+        if (c.getTotalCount() != counts[index]) {
             if ((sharedFlags & SHARED_COUNTS) != 0) {
                 counts = Arrays.copyOf(counts, counts.length);
                 sharedFlags &= ~SHARED_COUNTS;
             }
             long oldCount = counts[index];
-            counts[index] = c.getTotalSize();
+            counts[index] = c.getTotalCount();
             totalCount += counts[index] - oldCount;
         }
     }
@@ -340,12 +355,18 @@ public class Page {
      */
     void removeAllRecursive() {
         if (children != null) {
-            for (long c : children) {
-                int type = DataUtils.getPageType(c);
-                if (type == DataUtils.PAGE_TYPE_LEAF) {
-                    map.getStore().removePage(c);
+            for (int i = 0, size = children.length; i < size; i++) {
+                Page p = childrenPages[i];
+                if (p != null) {
+                    p.removeAllRecursive();
                 } else {
-                    map.readPage(c).removeAllRecursive();
+                    long c = children[i];
+                    int type = DataUtils.getPageType(c);
+                    if (type == DataUtils.PAGE_TYPE_LEAF) {
+                        map.getStore().removePage(c);
+                    } else {
+                        map.readPage(c).removeAllRecursive();
+                    }
                 }
             }
         }
@@ -374,51 +395,117 @@ public class Page {
         totalCount++;
     }
 
-    public void insertNode(int index, Object key, long child, long count) {
+    public void insertNode(int index, Object key, Page childPage) {
+
         Object[] newKeys = new Object[keyCount + 1];
         DataUtils.copyWithGap(keys, newKeys, keyCount, index);
         newKeys[index] = key;
         keys = newKeys;
         keyCount++;
+
         long[] newChildren = new long[children.length + 1];
         DataUtils.copyWithGap(children, newChildren, children.length, index);
-        newChildren[index] = child;
+        newChildren[index] = childPage.getPos();
         children = newChildren;
+
+        Page[] newChildrenPages = new Page[childrenPages.length + 1];
+        DataUtils.copyWithGap(childrenPages, newChildrenPages, childrenPages.length, index);
+        newChildrenPages[index] = childPage;
+        childrenPages = newChildrenPages;
+
         long[] newCounts = new long[counts.length + 1];
         DataUtils.copyWithGap(counts, newCounts, counts.length, index);
-        newCounts[index] = count;
+        newCounts[index] = childPage.getTotalCount();
         counts = newCounts;
+
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
-        totalCount += count;
+        totalCount += childPage.getTotalCount();
     }
 
     public void remove(int index) {
-        Object[] newKeys = new Object[keyCount - 1];
         int keyIndex = index >= keyCount ? index - 1 : index;
-        DataUtils.copyExcept(keys, newKeys, keyCount, keyIndex);
-        keys = newKeys;
-        sharedFlags &= ~SHARED_KEYS;
+        if ((sharedFlags & SHARED_KEYS) == 0 && keys.length > keyCount - 4) {
+            if (keyIndex < keyCount - 1) {
+                System.arraycopy(keys, keyIndex + 1, keys, keyIndex, keyCount - keyIndex - 1);
+            }
+            keys[keyCount - 1] = null;
+        } else {
+            Object[] newKeys = new Object[keyCount - 1];
+            DataUtils.copyExcept(keys, newKeys, keyCount, keyIndex);
+            keys = newKeys;
+            sharedFlags &= ~SHARED_KEYS;
+        }
+
         if (values != null) {
-            Object[] newValues = new Object[keyCount - 1];
-            DataUtils.copyExcept(values, newValues, keyCount, index);
-            values = newValues;
-            sharedFlags &= ~SHARED_VALUES;
+            if ((sharedFlags & SHARED_VALUES) == 0 && values.length > keyCount - 4) {
+                if (index < keyCount - 1) {
+                    System.arraycopy(values, index + 1, values, index, keyCount - index - 1);
+                }
+                values[keyCount - 1] = null;
+            } else {
+                Object[] newValues = new Object[keyCount - 1];
+                DataUtils.copyExcept(values, newValues, keyCount, index);
+                values = newValues;
+                sharedFlags &= ~SHARED_VALUES;
+            }
             totalCount--;
         }
         keyCount--;
         if (children != null) {
             long countOffset = counts[index];
+
             long[] newChildren = new long[children.length - 1];
             DataUtils.copyExcept(children, newChildren, children.length, index);
             children = newChildren;
+
+            Page[] newChildrenPages = new Page[childrenPages.length - 1];
+            DataUtils.copyExcept(childrenPages, newChildrenPages,
+                    childrenPages.length, index);
+            childrenPages = newChildrenPages;
+
             long[] newCounts = new long[counts.length - 1];
-            DataUtils.copyExcept(counts, newCounts,
-                    counts.length, index);
+            DataUtils.copyExcept(counts, newCounts, counts.length, index);
             counts = newCounts;
+
             sharedFlags &= ~(SHARED_CHILDREN | SHARED_COUNTS);
             totalCount -= countOffset;
         }
     }
+
+//    public void remove(int index) {
+//        Object[] newKeys = new Object[keyCount - 1];
+//        int keyIndex = index >= keyCount ? index - 1 : index;
+//        DataUtils.copyExcept(keys, newKeys, keyCount, keyIndex);
+//        keys = newKeys;
+//        sharedFlags &= ~SHARED_KEYS;
+//        if (values != null) {
+//            Object[] newValues = new Object[keyCount - 1];
+//            DataUtils.copyExcept(values, newValues, keyCount, index);
+//            values = newValues;
+//            sharedFlags &= ~SHARED_VALUES;
+//            totalCount--;
+//        }
+//        keyCount--;
+//        if (children != null) {
+//            long countOffset = counts[index];
+//
+//            long[] newChildren = new long[children.length - 1];
+//            DataUtils.copyExcept(children, newChildren, children.length, index);
+//            children = newChildren;
+//
+//            Page[] newChildrenPages = new Page[childrenPages.length - 1];
+//            DataUtils.copyExcept(childrenPages, newChildrenPages, childrenPages.length, index);
+//            childrenPages = newChildrenPages;
+//
+//            long[] newCounts = new long[counts.length - 1];
+//            DataUtils.copyExcept(counts, newCounts,
+//                    counts.length, index);
+//            counts = newCounts;
+//
+//            sharedFlags &= ~(SHARED_CHILDREN | SHARED_COUNTS);
+//            totalCount -= countOffset;
+//        }
+//    }
 
     private void read(ByteBuffer buff, int chunkId, int offset, int maxLength) {
         int start = buff.position();
@@ -464,6 +551,7 @@ public class Page {
             for (int i = 0; i <= len; i++) {
                 children[i] = buff.getLong();
             }
+            childrenPages = new Page[len + 1];
             counts = new long[len + 1];
             long total = 0;
             for (int i = 0; i <= len; i++) {
@@ -550,18 +638,18 @@ public class Page {
         for (int i = 0; i < len; i++) {
             maxLength += map.getKeyType().getMaxLength(keys[i]);
         }
-        if (children != null) {
+        if (isLeaf()) {
+            for (int i = 0; i < len; i++) {
+                maxLength += map.getValueType().getMaxLength(values[i]);
+            }
+        } else {
             maxLength += 8 * len;
             maxLength += DataUtils.MAX_VAR_LONG_LEN * len;
             for (int i = 0; i <= len; i++) {
-                long c = children[i];
-                if (c < 0) {
-                    maxLength += map.readPage(c).getMaxLengthTempRecursive();
+                Page p = childrenPages[i];
+                if (p != null) {
+                    maxLength += p.getMaxLengthTempRecursive();
                 }
-            }
-        } else {
-            for (int i = 0; i < len; i++) {
-                maxLength += map.getValueType().getMaxLength(values[i]);
             }
         }
         return maxLength;
@@ -576,13 +664,13 @@ public class Page {
      * @return the page id
      */
     long writeTempRecursive(ByteBuffer buff, int chunkId) {
-        if (children != null) {
+        if (!isLeaf()) {
             int len = children.length;
             for (int i = 0; i < len; i++) {
-                long c = children[i];
-                if (c < 0) {
-                    children[i] = map.readPage(c).writeTempRecursive(buff,
-                            chunkId);
+                Page p = childrenPages[i];
+                if (p != null) {
+                    children[i] = p.writeTempRecursive(buff, chunkId);
+                    childrenPages[i] = null;
                 }
             }
         }
@@ -597,12 +685,10 @@ public class Page {
      */
     int countTempRecursive() {
         int count = 1;
-        if (children != null) {
-            int size = children.length;
-            for (int i = 0; i < size; i++) {
-                long c = children[i];
-                if (c < 0) {
-                    count += map.readPage(c).countTempRecursive();
+        if (!isLeaf()) {
+            for (Page p : childrenPages) {
+                if (p != null) {
+                    count += p.countTempRecursive();
                 }
             }
         }

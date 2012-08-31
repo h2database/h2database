@@ -104,7 +104,7 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
                     Page c = p.getChildPage(i);
-                    long oldSize = c.getTotalSize();
+                    long oldSize = c.getTotalCount();
                     Page c2 = remove(c, writeVersion, key);
                     if (c2 == null) {
                         // this child was deleted
@@ -114,7 +114,7 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
                         }
                         p = p.copyOnWrite(writeVersion);
                         p.remove(i);
-                    } else if (oldSize != c2.getTotalSize()) {
+                    } else if (oldSize != c2.getTotalCount()) {
                         p = p.copyOnWrite(writeVersion);
                         Object oldBounds = p.getKey(i);
                         if (!keyType.isInside(key, oldBounds)) {
@@ -197,21 +197,22 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             Object[] keys = { key };
             Object[] values = { value };
             p = Page.create(this, writeVersion, 1,
-                    keys, values, null, null, 1, 0);
+                    keys, values, null, null, null, 1, 0);
             return p;
         }
         if (p.getKeyCount() > maxPageSize) {
             // only possible if this is the root, else we would have split earlier
             // (this requires maxPageSize is fixed)
             p = p.copyOnWrite(writeVersion);
-            long totalSize = p.getTotalSize();
+            long totalCount = p.getTotalCount();
             Page split = split(p, writeVersion);
             Object[] keys = { getBounds(p), getBounds(split) };
             long[] children = { p.getPos(), split.getPos(), 0 };
-            long[] childrenSize = { p.getTotalSize(), split.getTotalSize(), 0 };
+            Page[] childrenPages = { p, split, null };
+            long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
             p = Page.create(this, writeVersion, 2,
-                    keys, null, children, childrenSize,
-                    totalSize, 0);
+                    keys, null, children, childrenPages, counts,
+                    totalCount, 0);
             // now p is a node; continues
         } else if (p.isLeaf()) {
             p = p.copyOnWrite(writeVersion);
@@ -246,7 +247,7 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             p = p.copyOnWrite(writeVersion);
             p.setKey(index, getBounds(c));
             p.setChild(index, c);
-            p.insertNode(index, getBounds(split), split.getPos(), split.getTotalSize());
+            p.insertNode(index, getBounds(split), split);
             // now we are not sure where to add
             return add(p, writeVersion, key, value, maxPageSize);
         }
@@ -360,8 +361,9 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
     private Page newPage(boolean leaf, long writeVersion) {
         Object[] values = leaf ? new Object[4] : null;
         long[] c = leaf ? null : new long[1];
+        Page[] cp = leaf ? null : new Page[1];
         return Page.create(this, writeVersion, 0,
-                new Object[4], values, c, c, 0, 0);
+                new Object[4], values, c, cp, c, 0, 0);
     }
 
     private static void move(Page source, Page target, int sourceIndex) {
@@ -370,9 +372,8 @@ public class RtreeMap<K, V> extends BtreeMap<K, V> {
             Object v = source.getValue(sourceIndex);
             target.insertLeaf(0, k, v);
         } else {
-            long c = source.getChildPage(sourceIndex).getPos();
-            long count = source.getCounts(sourceIndex);
-            target.insertNode(0, k, c, count);
+            Page c = source.getChildPage(sourceIndex);
+            target.insertNode(0, k, c);
         }
         source.remove(sourceIndex);
     }

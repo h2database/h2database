@@ -573,7 +573,7 @@ public class Data {
                     writeByte((byte) DOUBLE_0_1);
                 } else {
                     writeByte((byte) type);
-                    writeVarLong(MathUtils.reverseLong(d));
+                    writeVarLong(Long.reverse(d));
                 }
             }
             break;
@@ -588,7 +588,7 @@ public class Data {
                     writeByte((byte) FLOAT_0_1);
                 } else {
                     writeByte((byte) type);
-                    writeVarInt(MathUtils.reverseInt(f));
+                    writeVarInt(Integer.reverse(f));
                 }
             }
             break;
@@ -778,9 +778,9 @@ public class Data {
         case DOUBLE_0_1 + 1:
             return ValueDouble.get(1);
         case Value.DOUBLE:
-            return ValueDouble.get(Double.longBitsToDouble(MathUtils.reverseLong(readVarLong())));
+            return ValueDouble.get(Double.longBitsToDouble(Long.reverse(readVarLong())));
         case Value.FLOAT:
-            return ValueFloat.get(Float.intBitsToFloat(MathUtils.reverseInt(readVarInt())));
+            return ValueFloat.get(Float.intBitsToFloat(Integer.reverse(readVarInt())));
         case Value.BLOB:
         case Value.CLOB: {
             int smallLen = readVarInt();
@@ -913,7 +913,7 @@ public class Data {
             if (d == ValueDouble.ZERO_BITS) {
                 return 1;
             }
-            return 1 + getVarLongLen(MathUtils.reverseLong(d));
+            return 1 + getVarLongLen(Long.reverse(d));
         }
         case Value.FLOAT: {
             float x = v.getFloat();
@@ -924,7 +924,7 @@ public class Data {
             if (f == ValueFloat.ZERO_BITS) {
                 return 1;
             }
-            return 1 + getVarIntLen(MathUtils.reverseInt(f));
+            return 1 + getVarIntLen(Integer.reverse(f));
         }
         case Value.STRING: {
             String s = v.getString();

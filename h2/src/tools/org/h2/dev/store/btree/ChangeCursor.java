@@ -16,7 +16,7 @@ public class ChangeCursor<K, V> extends Cursor<K, V> {
 
     private final long minVersion;
 
-    ChangeCursor(BtreeMap<K, V> map, long minVersion) {
+    ChangeCursor(MVMap<K, V> map, long minVersion) {
         super(map);
         this.minVersion = minVersion;
     }

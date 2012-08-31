@@ -23,8 +23,8 @@ public interface MapFactory {
      * @param createVersion when the map was created
      * @return the map
      */
-     <K, V> BtreeMap<K, V> buildMap(
-             String mapType, BtreeMapStore store, int id, String name,
+     <K, V> MVMap<K, V> buildMap(
+             String mapType, MVStore store, int id, String name,
              DataType keyType, DataType valueType, long createVersion);
 
     /**

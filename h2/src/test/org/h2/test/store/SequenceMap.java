@@ -9,8 +9,8 @@ package org.h2.test.store;
 import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Set;
-import org.h2.dev.store.btree.BtreeMap;
-import org.h2.dev.store.btree.BtreeMapStore;
+import org.h2.dev.store.btree.MVMap;
+import org.h2.dev.store.btree.MVStore;
 import org.h2.dev.store.btree.DataType;
 
 /**
@@ -19,11 +19,11 @@ import org.h2.dev.store.btree.DataType;
  * @param <K> the key type
  * @param <V> the key type
  */
-public class SequenceMap<K, V> extends BtreeMap<K, V> {
+public class SequenceMap<K, V> extends MVMap<K, V> {
 
     int min = 1, max = 10;
 
-    SequenceMap(BtreeMapStore store, int id, String name, DataType keyType,
+    SequenceMap(MVStore store, int id, String name, DataType keyType,
             DataType valueType, long createVersion) {
         super(store, id, name, keyType, valueType, createVersion);
         setReadOnly(true);

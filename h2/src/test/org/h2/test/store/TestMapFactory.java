@@ -5,8 +5,8 @@
  */
 package org.h2.test.store;
 
-import org.h2.dev.store.btree.BtreeMap;
-import org.h2.dev.store.btree.BtreeMapStore;
+import org.h2.dev.store.btree.MVMap;
+import org.h2.dev.store.btree.MVStore;
 import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.MapFactory;
 import org.h2.dev.store.btree.StringType;
@@ -17,7 +17,7 @@ import org.h2.dev.store.btree.StringType;
 public class TestMapFactory implements MapFactory {
 
     @Override
-    public <K, V> BtreeMap<K, V> buildMap(String mapType, BtreeMapStore store,
+    public <K, V> MVMap<K, V> buildMap(String mapType, MVStore store,
             int id, String name, DataType keyType, DataType valueType,
             long createVersion) {
         if (mapType.equals("s")) {

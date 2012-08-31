@@ -17,12 +17,12 @@ import java.util.Iterator;
  */
 public class Cursor<K, V> implements Iterator<K> {
 
-    protected final BtreeMap<K, V> map;
+    protected final MVMap<K, V> map;
     protected final ArrayList<CursorPos> parents = new ArrayList<CursorPos>();
     protected CursorPos currentPos;
     protected K current;
 
-    Cursor(BtreeMap<K, V> map) {
+    Cursor(MVMap<K, V> map) {
         this.map = map;
     }
 

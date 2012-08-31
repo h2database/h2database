@@ -53,6 +53,7 @@ public class TestBtreeMapStore extends TestBase {
         testRollbackInMemory();
         testRollbackStored();
         testMeta();
+        testInMemory();
         testLargeImport();
         testBtreeStore();
         testDefragment();
@@ -95,9 +96,9 @@ public class TestBtreeMapStore extends TestBase {
         s.setRetainChunk(0);
         long old2 = s.store();
 
-        // TODO keep old version after storing
-        // assertEquals("Hello", mOld.get("1"));
-        // assertEquals("World", mOld.get("2"));
+        // the old version is still available
+        assertEquals("Hello", mOld.get("1"));
+        assertEquals("World", mOld.get("2"));
 
         m.put("1",  "Hi");
         m.remove("2");
@@ -526,6 +527,36 @@ public class TestBtreeMapStore extends TestBase {
         assertTrue(m.containsKey("chunk.1"));
         assertFalse(m.containsKey("chunk.2"));
         s.close();
+    }
+
+    private void testInMemory() {
+        for (int j = 0; j < 1; j++) {
+            BtreeMapStore s = openStore(null);
+            // s.setMaxPageSize(10);
+            // long t;
+            int len = 100;
+            // TreeMap<Integer, String> m = new TreeMap<Integer, String>();
+            // HashMap<Integer, String> m = New.hashMap();
+            BtreeMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
+            // t = System.currentTimeMillis();
+            for (int i = 0; i < len; i++) {
+                m.put(i, "Hello World");
+            }
+            // System.out.println("put: " + (System.currentTimeMillis() - t));
+            // t = System.currentTimeMillis();
+            for (int i = 0; i < len; i++) {
+                assertEquals("Hello World", m.get(i));
+            }
+            // System.out.println("get: " + (System.currentTimeMillis() - t));
+            // t = System.currentTimeMillis();
+            for (int i = 0; i < len; i++) {
+                m.remove(i);
+            }
+            // System.out.println("remove: " + (System.currentTimeMillis() - t));
+            // System.out.println();
+            assertEquals(0, m.size());
+            s.close();
+        }
     }
 
     private void testLargeImport() {

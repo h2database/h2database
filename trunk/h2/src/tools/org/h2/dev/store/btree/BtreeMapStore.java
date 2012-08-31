@@ -11,7 +11,6 @@ import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
@@ -53,7 +52,6 @@ TODO:
 - support large binaries
 - support stores that span multiple files (chunks stored in other files)
 - triggers
-- compare with newest version of IndexedDb
 - support database version / schema version
 - implement more counted b-tree (skip, get positions)
 - merge pages if small
@@ -83,10 +81,7 @@ public class BtreeMapStore {
     private int blockSize = 4 * 1024;
     private long rootChunkStart;
 
-    private int tempPageId;
     private Map<Long, Page> cache = CacheLIRS.newInstance(readCacheSize, 2048);
-    private HashMap<Long, Page> temp = New.hashMap();
-    private Page[] tempCache = new Page[64];
 
     private int lastChunkId;
     private HashMap<Integer, Chunk> chunks = New.hashMap();
@@ -134,7 +129,7 @@ public class BtreeMapStore {
     /**
      * Open a tree store.
      *
-     * @param fileName the file name
+     * @param fileName the file name (null for in-memory)
      * @param mapFactory the map factory
      * @return the store
      */
@@ -306,6 +301,9 @@ public class BtreeMapStore {
 
     private void open() {
         meta = new BtreeMap<String, String>(this, 0, "meta", STRING_TYPE, STRING_TYPE, 0);
+        if (fileName == null) {
+            return;
+        }
         FileUtils.createDirectories(FileUtils.getParent(fileName));
         try {
             log("file open");
@@ -397,8 +395,6 @@ public class BtreeMapStore {
                 for (BtreeMap<?, ?> m : New.arrayList(maps.values())) {
                     m.close();
                 }
-                temp.clear();
-                Arrays.fill(tempCache, null);
                 meta = null;
                 compressor = null;
                 chunks.clear();
@@ -624,21 +620,6 @@ public class BtreeMapStore {
     }
 
     /**
-     * Register a page and get the next temporary page id.
-     *
-     * @param p the new page
-     * @return the page id
-     */
-    long registerTempPage(Page p) {
-        long pos = --tempPageId;
-        // use -pos so the Long cache can be used
-        temp.put(-pos, p);
-        int index = (int) pos & (tempCache.length - 1);
-        tempCache[index] = p;
-        return pos;
-    }
-
-    /**
      * Check whether there are any unsaved changes.
      *
      * @return if there are any changes
@@ -833,15 +814,6 @@ public class BtreeMapStore {
      * @return the page
      */
     Page readPage(BtreeMap<?, ?> map, long pos) {
-        if (pos < 0) {
-            int index = (int) pos & (tempCache.length - 1);
-            Page p = tempCache[index];
-            if (p == null || p.getPos() != pos) {
-                p = temp.get(-pos);
-                tempCache[index] = p;
-            }
-            return p;
-        }
         Page p = cache.get(pos);
         if (p == null) {
             long filePos = getFilePosition(pos);
@@ -1033,9 +1005,6 @@ public class BtreeMapStore {
             m.revertTemp();
         }
         mapsChanged.clear();
-        temp.clear();
-        Arrays.fill(tempCache, null);
-        tempPageId = 0;
     }
 
     /**

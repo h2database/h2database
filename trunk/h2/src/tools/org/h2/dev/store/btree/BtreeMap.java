@@ -75,7 +75,7 @@ public class BtreeMap<K, V> {
             Object[] keys = { key };
             Object[] values = { value };
             p = Page.create(this, writeVersion, 1,
-                    keys, values, null, null, 1, 0);
+                    keys, values, null, null, null, 1, 0);
             return p;
         }
         if (p.getKeyCount() > maxPageSize) {
@@ -83,14 +83,15 @@ public class BtreeMap<K, V> {
             // (this requires maxPageSize is fixed)
             p = p.copyOnWrite(writeVersion);
             int at = p.getKeyCount() / 2;
-            long totalSize = p.getTotalSize();
+            long totalCount = p.getTotalCount();
             Object k = p.getKey(at);
             Page split = p.split(at);
             Object[] keys = { k };
             long[] children = { p.getPos(), split.getPos() };
-            long[] childrenSize = { p.getTotalSize(), split.getTotalSize() };
+            Page[] childrenPages = { p, split };
+            long[] counts = { p.getTotalCount(), split.getTotalCount() };
             p = Page.create(this, writeVersion, 1,
-                    keys, null, children, childrenSize, totalSize, 0);
+                    keys, null, children, childrenPages, counts, totalCount, 0);
             // now p is a node; insert continues
         } else if (p.isLeaf()) {
             int index = p.binarySearch(key);
@@ -119,13 +120,13 @@ public class BtreeMap<K, V> {
             Page split = c.split(at);
             p = p.copyOnWrite(writeVersion);
             p.setChild(index, split);
-            p.insertNode(index, k, c.getPos(), c.getTotalSize());
+            p.insertNode(index, k, c);
             // now we are not sure where to add
             return put(p, writeVersion, key, value, maxPageSize);
         }
-        long oldSize = c.getTotalSize();
+        long oldSize = c.getTotalCount();
         Page c2 = put(c, writeVersion, key, value, maxPageSize);
-        if (c != c2 || oldSize != c2.getTotalSize()) {
+        if (c != c2 || oldSize != c2.getTotalCount()) {
             p = p.copyOnWrite(writeVersion);
             p.setChild(index, c2);
         }
@@ -354,7 +355,7 @@ public class BtreeMap<K, V> {
             index++;
         }
         Page c = p.getChildPage(index);
-        long oldSize = c.getTotalSize();
+        long oldCount = c.getTotalCount();
         Page c2 = remove(c, writeVersion, key);
         if (c2 == null) {
             // this child was deleted
@@ -364,7 +365,7 @@ public class BtreeMap<K, V> {
                 removePage(p);
                 p = p.getChildPage(0);
             }
-        } else if (oldSize != c2.getTotalSize()) {
+        } else if (oldCount != c2.getTotalCount()) {
             p = p.copyOnWrite(writeVersion);
             p.setChild(index, c2);
         }
@@ -562,7 +563,7 @@ public class BtreeMap<K, V> {
     }
 
     public long getSize() {
-        return root == null ? 0 : root.getTotalSize();
+        return root == null ? 0 : root.getTotalCount();
     }
 
     public boolean equals(Object o) {

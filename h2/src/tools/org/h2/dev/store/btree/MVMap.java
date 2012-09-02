@@ -6,8 +6,11 @@
  */
 package org.h2.dev.store.btree;
 
+import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -17,7 +20,7 @@ import java.util.TreeMap;
  * @param <K> the key class
  * @param <V> the value class
  */
-public class MVMap<K, V> {
+public class MVMap<K, V> extends AbstractMap<K, V> {
 
     protected final MVStore store;
     protected Page root;
@@ -51,16 +54,20 @@ public class MVMap<K, V> {
      *
      * @param key the key
      * @param value the value
+     * @return the old value if the key existed, or null otherwise
      */
-    public void put(K key, V value) {
+    @SuppressWarnings("unchecked")
+    public V put(K key, V value) {
         checkWrite();
         long writeVersion = store.getCurrentVersion();
         Page p = root;
+        Object result;
         if (p == null) {
             Object[] keys = { key };
             Object[] values = { value };
             p = Page.create(this, writeVersion, 1,
                     keys, values, null, null, null, 1, 0);
+            result = null;
         } else {
             p = p.copyOnWrite(writeVersion);
             if (p.getKeyCount() > store.getMaxPageSize()) {
@@ -76,9 +83,10 @@ public class MVMap<K, V> {
                         keys, null, children, childrenPages, counts, totalCount, 0);
                 // now p is a node; insert continues
             }
-            put(p, writeVersion, key, value);
+            result = put(p, writeVersion, key, value);
         }
         setRoot(p);
+        return (V) result;
     }
 
     /**
@@ -90,16 +98,15 @@ public class MVMap<K, V> {
      * @param key the key
      * @param value the value (may not be null)
      */
-    protected void put(Page p, long writeVersion, Object key, Object value) {
+    protected Object put(Page p, long writeVersion, Object key, Object value) {
         if (p.isLeaf()) {
             int index = p.binarySearch(key);
             if (index < 0) {
                 index = -index - 1;
                 p.insertLeaf(index, key, value);
-            } else {
-                p.setValue(index, value);
+                return null;
             }
-            return;
+            return p.setValue(index, value);
         }
         // p is a node
         int index = p.binarySearch(key);
@@ -108,8 +115,7 @@ public class MVMap<K, V> {
         } else {
             index++;
         }
-        Page cOld = p.getChildPage(index);
-        Page c = cOld.copyOnWrite(writeVersion);
+        Page c = p.getChildPage(index).copyOnWrite(writeVersion);
         if (c.getKeyCount() >= store.getMaxPageSize()) {
             // split on the way down
             int at = c.getKeyCount() / 2;
@@ -118,14 +124,11 @@ public class MVMap<K, V> {
             p.setChild(index, split);
             p.insertNode(index, k, c);
             // now we are not sure where to add
-            put(p, writeVersion, key, value);
-            return;
+            return put(p, writeVersion, key, value);
         }
-        long oldSize = c.getTotalCount();
-        put(c, writeVersion, key, value);
-        if (cOld != c || oldSize != c.getTotalCount()) {
-            p.setChild(index, c);
-        }
+        Object result = put(c, writeVersion, key, value);
+        p.setChild(index, c);
+        return result;
     }
 
     /**
@@ -312,9 +315,9 @@ public class MVMap<K, V> {
      * Remove a key-value pair, if the key exists.
      *
      * @param key the key
-     * @return the old value if the key existed
+     * @return the old value if the key existed, or null otherwise
      */
-    public V remove(K key) {
+    public V remove(Object key) {
         checkWrite();
         Page p = root;
         if (p == null) {
@@ -468,6 +471,14 @@ public class MVMap<K, V> {
         return c;
     }
 
+    public Set<Map.Entry<K, V>> entrySet() {
+        HashMap<K, V> map = new HashMap<K, V>();
+        for (K k : keySet()) {
+            map.put(k,  get(k));
+        }
+        return map.entrySet();
+    }
+
     public Set<K> keySet() {
         checkOpen();
         final Page root = this.root;
@@ -582,6 +593,10 @@ public class MVMap<K, V> {
         return id;
     }
 
+    public boolean equals(Object o) {
+        return this == o;
+    }
+
     public int size() {
         long size = getSize();
         return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
@@ -589,10 +604,6 @@ public class MVMap<K, V> {
 
     public long getSize() {
         return root == null ? 0 : root.getTotalCount();
-    }
-
-    public boolean equals(Object o) {
-        return this == o;
     }
 
     long getCreateVersion() {

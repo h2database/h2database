@@ -346,12 +346,14 @@ public class Page {
         keys[index] = key;
     }
 
-    public void setValue(int index, Object value) {
+    public Object setValue(int index, Object value) {
+        Object old = values[index];
         if ((sharedFlags & SHARED_VALUES) != 0) {
             values = Arrays.copyOf(values, values.length);
             sharedFlags &= ~SHARED_VALUES;
         }
         values[index] = value;
+        return old;
     }
 
     /**

@@ -150,23 +150,26 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         return bounds;
     }
 
-    public void put(K key, V value) {
-        putOrAdd(key, value, false);
+    @SuppressWarnings("unchecked")
+    public V put(K key, V value) {
+        return (V) putOrAdd(key, value, false);
     }
 
     public void add(K key, V value) {
         putOrAdd(key, value, true);
     }
 
-    public void putOrAdd(K key, V value, boolean alwaysAdd) {
+    public Object putOrAdd(K key, V value, boolean alwaysAdd) {
         checkWrite();
         long writeVersion = store.getCurrentVersion();
         Page p = root;
+        Object result;
         if (p == null) {
             Object[] keys = { key };
             Object[] values = { value };
             p = Page.create(this, writeVersion, 1,
                     keys, values, null, null, null, 1, 0);
+            result = null;
         } else if (alwaysAdd || get(key) == null) {
             if (p.getKeyCount() > store.getMaxPageSize()) {
                 // only possible if this is the root, else we would have split earlier
@@ -183,43 +186,41 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
                         totalCount, 0);
                 // now p is a node; continues
             }
-            p = add(p, writeVersion, key, value);
+            add(p, writeVersion, key, value);
+            result = null;
         } else {
-            p = set(p, writeVersion, key, value);
+            result = set(p, writeVersion, key, value);
         }
         setRoot(p);
+        return result;
     }
 
-    protected Page set(Page p, long writeVersion, Object key, Object value) {
+    protected Object set(Page p, long writeVersion, Object key, Object value) {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
-                    Page c = p.getChildPage(i);
-                    Page c2 = set(c, writeVersion, key, value);
-                    if (c != c2) {
-                        p = p.copyOnWrite(writeVersion);
-                        p.setChild(i, c2);
-                        break;
+                    Page c = p.getChildPage(i).copyOnWrite(writeVersion);
+                    Object result = set(c, writeVersion, key, value);
+                    if (result != null) {
+                        p.setChild(i, c);
+                        return result;
                     }
                 }
             }
         } else {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (keyType.equals(p.getKey(i), key)) {
-                    p = p.copyOnWrite(writeVersion);
-                    p.setValue(i, value);
-                    break;
+                    return p.setValue(i, value);
                 }
             }
         }
-        return p;
+        return null;
     }
 
-    protected Page add(Page p, long writeVersion, Object key, Object value) {
+    protected void add(Page p, long writeVersion, Object key, Object value) {
         if (p.isLeaf()) {
-            p = p.copyOnWrite(writeVersion);
             p.insertLeaf(p.getKeyCount(), key, value);
-            return p;
+            return;
         }
         // p is a node
         int index = -1;
@@ -241,25 +242,23 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
                 }
             }
         }
-        Page c = p.getChildPage(index);
+        Page c = p.getChildPage(index).copyOnWrite(writeVersion);
         if (c.getKeyCount() >= store.getMaxPageSize()) {
             // split on the way down
-            c = c.copyOnWrite(writeVersion);
             Page split = split(c, writeVersion);
             p = p.copyOnWrite(writeVersion);
             p.setKey(index, getBounds(c));
             p.setChild(index, c);
             p.insertNode(index, getBounds(split), split);
             // now we are not sure where to add
-            return add(p, writeVersion, key, value);
+            add(p, writeVersion, key, value);
+            return;
         }
-        Page c2 = add(c, writeVersion, key, value);
-        p = p.copyOnWrite(writeVersion);
+        add(c, writeVersion, key, value);
         Object bounds = p.getKey(index);
         keyType.increaseBounds(bounds, key);
         p.setKey(index, bounds);
-        p.setChild(index, c2);
-        return p;
+        p.setChild(index, c);
     }
 
     private Page split(Page p, long writeVersion) {

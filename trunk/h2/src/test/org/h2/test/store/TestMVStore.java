@@ -56,12 +56,12 @@ public class TestMVStore extends TestBase {
         s.setMaxPageSize(6);
         MVMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
         for (int i = 0; i < 60; i++) {
-            m.put(i, "Hello");
+            m.put(i, "Hi");
         }
         s.commit();
         s.store();
         for (int i = 20; i < 40; i++) {
-            m.put(i, "Hello");
+            assertEquals("Hi", m.put(i, "Hello"));
         }
         s.commit();
         for (int i = 10; i < 15; i++) {
@@ -318,7 +318,7 @@ public class TestMVStore extends TestBase {
         s.store();
         assertEquals("1/1///", m.get("map.data"));
         assertTrue(m.containsKey("chunk.1"));
-        data.put("1", "Hallo");
+        assertEquals("Hello", data.put("1", "Hallo"));
         s.store();
         assertEquals("1/1///", m.get("map.data"));
         assertTrue(m.get("root.1").length() > 0);
@@ -341,7 +341,7 @@ public class TestMVStore extends TestBase {
             MVMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
             // t = System.currentTimeMillis();
             for (int i = 0; i < len; i++) {
-                m.put(i, "Hello World");
+                assertNull(m.put(i, "Hello World"));
             }
             // System.out.println("put: " + (System.currentTimeMillis() - t));
             // t = System.currentTimeMillis();
@@ -404,7 +404,7 @@ public class TestMVStore extends TestBase {
         // p.startCollecting();
         // long t = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
-            m.put(i, "hello " + i);
+            assertNull(m.put(i, "hello " + i));
             assertEquals("hello " + i, m.get(i));
         }
         // System.out.println("put: " + (System.currentTimeMillis() - t));
@@ -515,6 +515,7 @@ public class TestMVStore extends TestBase {
         Random r = new Random(1);
         int operationCount = 1000;
         int maxValue = 30;
+        Integer expected, got;
         for (int i = 0; i < operationCount; i++) {
             int k = r.nextInt(maxValue);
             int v = r.nextInt();
@@ -522,14 +523,19 @@ public class TestMVStore extends TestBase {
             switch (r.nextInt(3)) {
             case 0:
                 log(i + ": put " + k + " = " + v);
-                m.put(k, v);
-                map.put(k, v);
+                expected = map.put(k, v);
+                got = m.put(k, v);
+                if (expected == null) {
+                    assertNull(got);
+                } else {
+                    assertEquals(expected, got);
+                }
                 compareAll = true;
                 break;
             case 1:
                 log(i + ": remove " + k);
-                Integer expected = map.remove(k);
-                Integer got = m.remove(k);
+                expected = map.remove(k);
+                got = m.remove(k);
                 if (expected == null) {
                     assertNull(got);
                 } else {
@@ -553,8 +559,8 @@ public class TestMVStore extends TestBase {
                 Iterator<Integer> itExpected = map.keySet().iterator();
                 while (itExpected.hasNext()) {
                     assertTrue(it.hasNext());
-                    Integer expected = itExpected.next();
-                    Integer got = it.next();
+                    expected = itExpected.next();
+                    got = it.next();
                     assertEquals(expected, got);
                 }
                 assertFalse(it.hasNext());

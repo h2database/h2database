@@ -50,13 +50,35 @@ public class MVMap<K, V> {
      * Store a key-value pair.
      *
      * @param key the key
-     * @param data the value
+     * @param value the value
      */
-    public void put(K key, V data) {
+    public void put(K key, V value) {
         checkWrite();
-        Page oldRoot = root;
-        root = put(oldRoot, store.getCurrentVersion(), key, data, store.getMaxPageSize());
-        markChanged(oldRoot);
+        long writeVersion = store.getCurrentVersion();
+        Page p = root;
+        if (p == null) {
+            Object[] keys = { key };
+            Object[] values = { value };
+            p = Page.create(this, writeVersion, 1,
+                    keys, values, null, null, null, 1, 0);
+        } else {
+            p = p.copyOnWrite(writeVersion);
+            if (p.getKeyCount() > store.getMaxPageSize()) {
+                int at = p.getKeyCount() / 2;
+                long totalCount = p.getTotalCount();
+                Object k = p.getKey(at);
+                Page split = p.split(at);
+                Object[] keys = { k };
+                long[] children = { p.getPos(), split.getPos() };
+                Page[] childrenPages = { p, split };
+                long[] counts = { p.getTotalCount(), split.getTotalCount() };
+                p = Page.create(this, writeVersion, 1,
+                        keys, null, children, childrenPages, counts, totalCount, 0);
+                // now p is a node; insert continues
+            }
+            put(p, writeVersion, key, value);
+        }
+        setRoot(p);
     }
 
     /**
@@ -67,42 +89,17 @@ public class MVMap<K, V> {
      * @param writeVersion the write version
      * @param key the key
      * @param value the value (may not be null)
-     * @param maxPageSize the maximum page size
-     * @return the root page
      */
-    protected Page put(Page p, long writeVersion, Object key, Object value, int maxPageSize) {
-        if (p == null) {
-            Object[] keys = { key };
-            Object[] values = { value };
-            p = Page.create(this, writeVersion, 1,
-                    keys, values, null, null, null, 1, 0);
-            return p;
-        }
-        if (p.getKeyCount() > maxPageSize) {
-            // only possible if this is the root, else we would have split earlier
-            // (this requires maxPageSize is fixed)
-            p = p.copyOnWrite(writeVersion);
-            int at = p.getKeyCount() / 2;
-            long totalCount = p.getTotalCount();
-            Object k = p.getKey(at);
-            Page split = p.split(at);
-            Object[] keys = { k };
-            long[] children = { p.getPos(), split.getPos() };
-            Page[] childrenPages = { p, split };
-            long[] counts = { p.getTotalCount(), split.getTotalCount() };
-            p = Page.create(this, writeVersion, 1,
-                    keys, null, children, childrenPages, counts, totalCount, 0);
-            // now p is a node; insert continues
-        } else if (p.isLeaf()) {
+    protected void put(Page p, long writeVersion, Object key, Object value) {
+        if (p.isLeaf()) {
             int index = p.binarySearch(key);
-            p = p.copyOnWrite(writeVersion);
             if (index < 0) {
                 index = -index - 1;
                 p.insertLeaf(index, key, value);
             } else {
                 p.setValue(index, value);
             }
-            return p;
+            return;
         }
         // p is a node
         int index = p.binarySearch(key);
@@ -111,26 +108,24 @@ public class MVMap<K, V> {
         } else {
             index++;
         }
-        Page c = p.getChildPage(index);
-        if (c.getKeyCount() >= maxPageSize) {
+        Page cOld = p.getChildPage(index);
+        Page c = cOld.copyOnWrite(writeVersion);
+        if (c.getKeyCount() >= store.getMaxPageSize()) {
             // split on the way down
-            c = c.copyOnWrite(writeVersion);
             int at = c.getKeyCount() / 2;
             Object k = c.getKey(at);
             Page split = c.split(at);
-            p = p.copyOnWrite(writeVersion);
             p.setChild(index, split);
             p.insertNode(index, k, c);
             // now we are not sure where to add
-            return put(p, writeVersion, key, value, maxPageSize);
+            put(p, writeVersion, key, value);
+            return;
         }
         long oldSize = c.getTotalCount();
-        Page c2 = put(c, writeVersion, key, value, maxPageSize);
-        if (c != c2 || oldSize != c2.getTotalCount()) {
-            p = p.copyOnWrite(writeVersion);
-            p.setChild(index, c2);
+        put(c, writeVersion, key, value);
+        if (cOld != c || oldSize != c.getTotalCount()) {
+            p.setChild(index, c);
         }
-        return p;
     }
 
     /**
@@ -285,17 +280,15 @@ public class MVMap<K, V> {
     public void clear() {
         checkWrite();
         if (root != null) {
-            Page oldRoot = root;
             root.removeAllRecursive();
-            root = null;
-            markChanged(oldRoot);
+            setRoot(null);
         }
     }
 
     /**
      * Remove all entries, and close the map.
      */
-    public void remove() {
+    public void removeMap() {
         checkWrite();
         if (root != null) {
             root.removeAllRecursive();
@@ -319,14 +312,23 @@ public class MVMap<K, V> {
      * Remove a key-value pair, if the key exists.
      *
      * @param key the key
+     * @return the old value if the key existed
      */
-    public void remove(K key) {
+    public V remove(K key) {
         checkWrite();
-        Page oldRoot = root;
-        if (oldRoot != null) {
-            root = remove(oldRoot, store.getCurrentVersion(), key);
-            markChanged(oldRoot);
+        Page p = root;
+        if (p == null) {
+            return null;
         }
+        long writeVersion = store.getCurrentVersion();
+        p = p.copyOnWrite(writeVersion);
+        @SuppressWarnings("unchecked")
+        V result = (V) remove(p, writeVersion, key);
+        if (p.getTotalCount() == 0) {
+            p = null;
+        }
+        setRoot(p);
+        return result;
     }
 
     /**
@@ -335,20 +337,19 @@ public class MVMap<K, V> {
      * @param p the page (may not be null)
      * @param writeVersion the write version
      * @param key the key
-     * @return the new root page (null if empty)
      */
-    protected Page remove(Page p, long writeVersion, Object key) {
+    protected Object remove(Page p, long writeVersion, Object key) {
         int index = p.binarySearch(key);
+        Object result = null;
         if (p.isLeaf()) {
             if (index >= 0) {
-                if (p.getKeyCount() == 1) {
-                    removePage(p);
-                    return null;
-                }
-                p = p.copyOnWrite(writeVersion);
+                result = p.getValue(index);
                 p.remove(index);
+                if (p.getKeyCount() == 0) {
+                    removePage(p);
+                }
             }
-            return p;
+            return result;
         }
         // node
         if (index < 0) {
@@ -356,30 +357,35 @@ public class MVMap<K, V> {
         } else {
             index++;
         }
-        Page c = p.getChildPage(index);
+        Page cOld = p.getChildPage(index);
+        Page c = cOld.copyOnWrite(writeVersion);
         long oldCount = c.getTotalCount();
-        Page c2 = remove(c, writeVersion, key);
-        if (c2 == null) {
-            // this child was deleted
-            p = p.copyOnWrite(writeVersion);
-            p.remove(index);
-            if (p.getKeyCount() == 0) {
-                removePage(p);
-                p = p.getChildPage(0);
-            }
-        } else if (oldCount != c2.getTotalCount()) {
-            p = p.copyOnWrite(writeVersion);
-            p.setChild(index, c2);
+        result = remove(c, writeVersion, key);
+        if (oldCount == c.getTotalCount()) {
+            return null;
         }
-        return p;
+        // TODO merge if the c key count is below the threshold
+        if (c.getTotalCount() == 0) {
+            // this child was deleted
+            if (p.getKeyCount() == 0) {
+                p.setChild(index, c);
+                removePage(p);
+            } else {
+                p.remove(index);
+            }
+        } else {
+            p.setChild(index, c);
+        }
+        return result;
     }
 
-    protected void markChanged(Page oldRoot) {
-        if (oldRoot != root) {
+    protected void setRoot(Page newRoot) {
+        if (root != newRoot) {
             long v = store.getCurrentVersion();
             if (!oldRoots.containsKey(v)) {
-                oldRoots.put(v, oldRoot);
+                oldRoots.put(v, root);
             }
+            root = newRoot;
             store.markChanged(this);
         }
     }
@@ -516,7 +522,7 @@ public class MVMap<K, V> {
     void rollbackTo(long version) {
         checkWrite();
         if (version < createVersion) {
-            remove();
+            removeMap();
         } else {
             // iterating in ascending order, and pick the last version -
             // this is not terribly efficient if there are many versions

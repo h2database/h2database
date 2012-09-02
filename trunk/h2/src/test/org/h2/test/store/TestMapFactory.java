@@ -23,7 +23,7 @@ public class TestMapFactory implements MapFactory {
         if (mapType.equals("s")) {
             return new SequenceMap<K, V>(store, id, name, keyType, valueType, createVersion);
         } else if (mapType.equals("r")) {
-            return new RtreeMap<K, V>(store, id, name, keyType, valueType, createVersion);
+            return new MVRTreeMap<K, V>(store, id, name, keyType, valueType, createVersion);
         } else {
             throw new RuntimeException("Unsupported map type " + mapType);
         }

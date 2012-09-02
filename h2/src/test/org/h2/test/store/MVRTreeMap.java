@@ -21,12 +21,12 @@ import org.h2.util.New;
  * @param <K> the key class
  * @param <V> the value class
  */
-public class RtreeMap<K, V> extends MVMap<K, V> {
+public class MVRTreeMap<K, V> extends MVMap<K, V> {
 
     private final SpatialType keyType;
     private boolean quadraticSplit;
 
-    RtreeMap(MVStore store, int id, String name, DataType keyType,
+    MVRTreeMap(MVStore store, int id, String name, DataType keyType,
             DataType valueType, long createVersion) {
         super(store, id, name, keyType, valueType, createVersion);
         this.keyType = (SpatialType) keyType;
@@ -99,46 +99,47 @@ public class RtreeMap<K, V> extends MVMap<K, V> {
         return null;
     }
 
-    protected Page remove(Page p, long writeVersion, Object key) {
-        if (!p.isLeaf()) {
-            for (int i = 0; i < p.getKeyCount(); i++) {
-                if (contains(p, i, key)) {
-                    Page c = p.getChildPage(i);
-                    long oldSize = c.getTotalCount();
-                    Page c2 = remove(c, writeVersion, key);
-                    if (c2 == null) {
-                        // this child was deleted
-                        if (p.getKeyCount() == 1) {
-                            removePage(p);
-                            return null;
-                        }
-                        p = p.copyOnWrite(writeVersion);
-                        p.remove(i);
-                    } else if (oldSize != c2.getTotalCount()) {
-                        p = p.copyOnWrite(writeVersion);
-                        Object oldBounds = p.getKey(i);
-                        if (!keyType.isInside(key, oldBounds)) {
-                            p.setKey(i, getBounds(c));
-                        }
-                        p.setChild(i, c2);
-                        break;
-                    }
-                }
-            }
-        } else {
+    protected Object remove(Page p, long writeVersion, Object key) {
+        Object result = null;
+        if (p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (keyType.equals(p.getKey(i), key)) {
-                    if (p.getKeyCount() == 1) {
-                        removePage(p);
-                        return null;
-                    }
-                    p = p.copyOnWrite(writeVersion);
+                    result = p.getValue(i);
                     p.remove(i);
+                    if (p.getKeyCount() == 0) {
+                        removePage(p);
+                    }
                     break;
                 }
             }
+            return result;
         }
-        return p;
+        for (int i = 0; i < p.getKeyCount(); i++) {
+            if (contains(p, i, key)) {
+                Page cOld = p.getChildPage(i);
+                Page c = cOld.copyOnWrite(writeVersion);
+                long oldSize = c.getTotalCount();
+                result = remove(c, writeVersion, key);
+                if (oldSize == c.getTotalCount()) {
+                    continue;
+                }
+                if (c.getTotalCount() == 0) {
+                    // this child was deleted
+                    p.remove(i);
+                    if (p.getKeyCount() == 0) {
+                        removePage(p);
+                    }
+                    break;
+                }
+                Object oldBounds = p.getKey(i);
+                if (!keyType.isInside(key, oldBounds)) {
+                    p.setKey(i, getBounds(c));
+                }
+                p.setChild(i, c);
+                break;
+            }
+        }
+        return result;
     }
 
     private Object getBounds(Page x) {
@@ -149,15 +150,44 @@ public class RtreeMap<K, V> extends MVMap<K, V> {
         return bounds;
     }
 
-    public void put(K key, V data) {
+    public void put(K key, V value) {
+        putOrAdd(key, value, false);
+    }
+
+    public void add(K key, V value) {
+        putOrAdd(key, value, true);
+    }
+
+    public void putOrAdd(K key, V value, boolean alwaysAdd) {
         checkWrite();
-        Page oldRoot = root;
-        if (get(key) != null) {
-            root = set(root, store.getCurrentVersion(), key, data);
+        long writeVersion = store.getCurrentVersion();
+        Page p = root;
+        if (p == null) {
+            Object[] keys = { key };
+            Object[] values = { value };
+            p = Page.create(this, writeVersion, 1,
+                    keys, values, null, null, null, 1, 0);
+        } else if (alwaysAdd || get(key) == null) {
+            if (p.getKeyCount() > store.getMaxPageSize()) {
+                // only possible if this is the root, else we would have split earlier
+                // (this requires maxPageSize is fixed)
+                p = p.copyOnWrite(writeVersion);
+                long totalCount = p.getTotalCount();
+                Page split = split(p, writeVersion);
+                Object[] keys = { getBounds(p), getBounds(split) };
+                long[] children = { p.getPos(), split.getPos(), 0 };
+                Page[] childrenPages = { p, split, null };
+                long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
+                p = Page.create(this, writeVersion, 2,
+                        keys, null, children, childrenPages, counts,
+                        totalCount, 0);
+                // now p is a node; continues
+            }
+            p = add(p, writeVersion, key, value);
         } else {
-            root = add(root, store.getCurrentVersion(), key, data, store.getMaxPageSize());
+            p = set(p, writeVersion, key, value);
         }
-        markChanged(oldRoot);
+        setRoot(p);
     }
 
     protected Page set(Page p, long writeVersion, Object key, Object value) {
@@ -185,36 +215,8 @@ public class RtreeMap<K, V> extends MVMap<K, V> {
         return p;
     }
 
-    public void add(K key, V data) {
-        checkWrite();
-        Page oldRoot = root;
-        root = add(root, store.getCurrentVersion(), key, data, store.getMaxPageSize());
-        markChanged(oldRoot);
-    }
-
-    protected Page add(Page p, long writeVersion, Object key, Object value, int maxPageSize) {
-        if (p == null) {
-            Object[] keys = { key };
-            Object[] values = { value };
-            p = Page.create(this, writeVersion, 1,
-                    keys, values, null, null, null, 1, 0);
-            return p;
-        }
-        if (p.getKeyCount() > maxPageSize) {
-            // only possible if this is the root, else we would have split earlier
-            // (this requires maxPageSize is fixed)
-            p = p.copyOnWrite(writeVersion);
-            long totalCount = p.getTotalCount();
-            Page split = split(p, writeVersion);
-            Object[] keys = { getBounds(p), getBounds(split) };
-            long[] children = { p.getPos(), split.getPos(), 0 };
-            Page[] childrenPages = { p, split, null };
-            long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
-            p = Page.create(this, writeVersion, 2,
-                    keys, null, children, childrenPages, counts,
-                    totalCount, 0);
-            // now p is a node; continues
-        } else if (p.isLeaf()) {
+    protected Page add(Page p, long writeVersion, Object key, Object value) {
+        if (p.isLeaf()) {
             p = p.copyOnWrite(writeVersion);
             p.insertLeaf(p.getKeyCount(), key, value);
             return p;
@@ -240,7 +242,7 @@ public class RtreeMap<K, V> extends MVMap<K, V> {
             }
         }
         Page c = p.getChildPage(index);
-        if (c.getKeyCount() >= maxPageSize) {
+        if (c.getKeyCount() >= store.getMaxPageSize()) {
             // split on the way down
             c = c.copyOnWrite(writeVersion);
             Page split = split(c, writeVersion);
@@ -249,9 +251,9 @@ public class RtreeMap<K, V> extends MVMap<K, V> {
             p.setChild(index, c);
             p.insertNode(index, getBounds(split), split);
             // now we are not sure where to add
-            return add(p, writeVersion, key, value, maxPageSize);
+            return add(p, writeVersion, key, value);
         }
-        Page c2 = add(c, writeVersion, key, value, maxPageSize);
+        Page c2 = add(c, writeVersion, key, value);
         p = p.copyOnWrite(writeVersion);
         Object bounds = p.getKey(index);
         keyType.increaseBounds(bounds, key);

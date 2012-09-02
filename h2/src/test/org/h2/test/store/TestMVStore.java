@@ -113,7 +113,7 @@ public class TestMVStore extends TestBase {
         assertEquals("World", mOld.get("2"));
 
         m.put("1",  "Hi");
-        m.remove("2");
+        assertEquals("Welt", m.remove("2"));
         s.store();
         s.close();
 
@@ -351,10 +351,11 @@ public class TestMVStore extends TestBase {
             // System.out.println("get: " + (System.currentTimeMillis() - t));
             // t = System.currentTimeMillis();
             for (int i = 0; i < len; i++) {
-                m.remove(i);
+                assertEquals("Hello World", m.remove(i));
             }
             // System.out.println("remove: " + (System.currentTimeMillis() - t));
             // System.out.println();
+            assertEquals(null, m.get(0));
             assertEquals(0, m.size());
             s.close();
         }
@@ -414,7 +415,7 @@ public class TestMVStore extends TestBase {
         s.store();
         // System.out.println("store: " + (System.currentTimeMillis() - t));
         // System.out.println(p.getTop(5));
-        m.remove(0);
+        assertEquals("hello 0", m.remove(0));
         assertNull(m.get(0));
         for (int i = 1; i < count; i++) {
             assertEquals("hello " + i, m.get(i));
@@ -492,7 +493,7 @@ public class TestMVStore extends TestBase {
             s.store();
             for (int i = 0; i < 10; i++) {
                 assertEquals("Hello", m.get(i));
-                m.remove(i);
+                assertEquals("Hello", m.remove(i));
             }
             s.store();
             s.close();
@@ -527,8 +528,13 @@ public class TestMVStore extends TestBase {
                 break;
             case 1:
                 log(i + ": remove " + k);
-                m.remove(k);
-                map.remove(k);
+                Integer expected = map.remove(k);
+                Integer got = m.remove(k);
+                if (expected == null) {
+                    assertNull(got);
+                } else {
+                    assertEquals(expected, got);
+                }
                 compareAll = true;
                 break;
             default:
@@ -637,7 +643,7 @@ public class TestMVStore extends TestBase {
             m.put(i, "hello " + i);
         }
         s.store();
-        m.remove(0);
+        assertEquals("hello 0", m.remove(0));
 
         assertNull(m.get(0));
         for (int i = 1; i < 3; i++) {

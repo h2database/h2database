@@ -22,7 +22,7 @@ import org.h2.util.New;
 /**
  * Tests the r-tree.
  */
-public class TestRtree extends TestMVStore {
+public class TestMVRTree extends TestMVStore {
 
     /**
      * Run just this test.
@@ -46,7 +46,7 @@ public class TestRtree extends TestMVStore {
         MVStore s;
         s = openStore(fileName);
         // s.setMaxPageSize(50);
-        RtreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
+        MVRTreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
         // r.setQuadraticSplit(true);
         Random rand = new Random(1);
         int len = 1000;
@@ -108,7 +108,7 @@ public class TestRtree extends TestMVStore {
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
-        RtreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
+        MVRTreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
         add(r, "Bern", 46.57, 7.27, 124381);
         add(r, "Basel", 47.34, 7.36, 170903);
         add(r, "Zurich", 47.22, 8.33, 376008);
@@ -134,7 +134,7 @@ public class TestRtree extends TestMVStore {
         s.close();
     }
 
-    private static void add(RtreeMap<SpatialKey, String> r, String name, double y, double x, int population) {
+    private static void add(MVRTreeMap<SpatialKey, String> r, String name, double y, double x, int population) {
         int id = r.size();
         float a = (float) ((int) x + (x - (int) x) * 5 / 3);
         float b = 50 - (float) ((int) y + (y - (int) y) * 5 / 3);
@@ -143,7 +143,7 @@ public class TestRtree extends TestMVStore {
         r.put(k, name);
     }
 
-    private static void render(RtreeMap<SpatialKey, String> r, String fileName) {
+    private static void render(MVRTreeMap<SpatialKey, String> r, String fileName) {
         int width = 1000, height = 500;
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = (Graphics2D) img.getGraphics();
@@ -199,7 +199,7 @@ public class TestRtree extends TestMVStore {
         String fileName = getBaseDir() + "/testRtreeRandom.h3";
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
-        RtreeMap<SpatialKey, String> m = s.openMap("data", "r", "s2", "");
+        MVRTreeMap<SpatialKey, String> m = s.openMap("data", "r", "s2", "");
         HashMap<SpatialKey, String> map = new HashMap<SpatialKey, String>();
         Random rand = new Random(1);
         int operationCount = 1000;

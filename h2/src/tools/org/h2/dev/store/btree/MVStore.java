@@ -38,6 +38,7 @@ header:
 blockSize=4096
 
 TODO:
+- rename commit to incrementVersion
 - implement complete java.util.Map interface
 - limited support for writing to old versions (branches)
 - atomic test-and-set (when supporting concurrent writes)
@@ -47,6 +48,7 @@ TODO:
 - test with very small chunks, possibly speed up very small transactions
 - compact: use total max length instead of page count (liveCount)
 - check what happens on concurrent reads and 1 write; multiple writes
+- concurrent iterator (when to call commit)
 - support large binaries
 - support stores that span multiple files (chunks stored in other files)
 - triggers
@@ -56,6 +58,7 @@ TODO:
 - r-tree: add missing features (NN search for example)
 - compression: maybe hash table reset speeds up compression
 - avoid using java.util.Properties (it allocates quite a lot of memory)
+- support all objects (using serialization)
 
 */
 

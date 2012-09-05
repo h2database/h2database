@@ -69,9 +69,11 @@ public abstract class FileBase extends FileChannel {
     }
 
     public int write(ByteBuffer src, long position) throws IOException {
-        throw new UnsupportedOperationException();    }
+        throw new UnsupportedOperationException();
+    }
 
     public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
-        throw new UnsupportedOperationException();    }
+        throw new UnsupportedOperationException();
+    }
 
 }

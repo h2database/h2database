@@ -8,11 +8,11 @@ package org.h2.dev.store.btree;
 
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  * A stored map.
@@ -22,7 +22,14 @@ import java.util.TreeMap;
  */
 public class MVMap<K, V> extends AbstractMap<K, V> {
 
+    /**
+     * The store.
+     */
     protected final MVStore store;
+
+    /**
+     * The root page (may not be null).
+     */
     protected Page root;
 
     private final int id;
@@ -30,11 +37,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     private final DataType keyType;
     private final DataType valueType;
     private final long createVersion;
-    /**
-     * The map of old roots. The key is the new version, the value is the root
-     * before this version.
-     */
-    private final TreeMap<Long, Page> oldRoots = new TreeMap<Long, Page>();
+    private ArrayList<Page> oldRoots = new ArrayList<Page>();
 
     private boolean closed;
     private boolean readOnly;
@@ -47,44 +50,35 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         this.keyType = keyType;
         this.valueType = valueType;
         this.createVersion = createVersion;
+        this.root = Page.createEmpty(this,  createVersion);
     }
 
     /**
-     * Store a key-value pair.
+     * Add or replace a key-value pair.
      *
-     * @param key the key
-     * @param value the value
+     * @param key the key (may not be null)
+     * @param value the value (may not be null)
      * @return the old value if the key existed, or null otherwise
      */
     @SuppressWarnings("unchecked")
     public V put(K key, V value) {
         checkWrite();
         long writeVersion = store.getCurrentVersion();
-        Page p = root;
-        Object result;
-        if (p == null) {
-            Object[] keys = { key };
-            Object[] values = { value };
+        Page p = root.copyOnWrite(writeVersion);
+        if (p.getKeyCount() > store.getMaxPageSize()) {
+            int at = p.getKeyCount() / 2;
+            long totalCount = p.getTotalCount();
+            Object k = p.getKey(at);
+            Page split = p.split(at);
+            Object[] keys = { k };
+            long[] children = { p.getPos(), split.getPos() };
+            Page[] childrenPages = { p, split };
+            long[] counts = { p.getTotalCount(), split.getTotalCount() };
             p = Page.create(this, writeVersion, 1,
-                    keys, values, null, null, null, 1, 0);
-            result = null;
-        } else {
-            p = p.copyOnWrite(writeVersion);
-            if (p.getKeyCount() > store.getMaxPageSize()) {
-                int at = p.getKeyCount() / 2;
-                long totalCount = p.getTotalCount();
-                Object k = p.getKey(at);
-                Page split = p.split(at);
-                Object[] keys = { k };
-                long[] children = { p.getPos(), split.getPos() };
-                Page[] childrenPages = { p, split };
-                long[] counts = { p.getTotalCount(), split.getTotalCount() };
-                p = Page.create(this, writeVersion, 1,
-                        keys, null, children, childrenPages, counts, totalCount, 0);
-                // now p is a node; insert continues
-            }
-            result = put(p, writeVersion, key, value);
+                    keys, null, children, childrenPages, counts, totalCount, 0);
+            // now p is a node; insert continues
         }
+        Object result = put(p, writeVersion, key, value);
         setRoot(p);
         return (V) result;
     }
@@ -92,11 +86,11 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     /**
      * Add or update a key-value pair.
      *
-     * @param map the map
-     * @param p the page (may be null)
+     * @param p the page
      * @param writeVersion the write version
-     * @param key the key
+     * @param key the key (may not be null)
      * @param value the value (may not be null)
+     * @return the old value, or null
      */
     protected Object put(Page p, long writeVersion, Object key, Object value) {
         if (p.isLeaf()) {
@@ -140,9 +134,6 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     @SuppressWarnings("unchecked")
     public V get(Object key) {
         checkOpen();
-        if (root == null) {
-            return null;
-        }
         return (V) binarySearch(root, key);
     }
 
@@ -152,9 +143,10 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      * @param p the current page
      * @param cursor the cursor
      * @param key the key
+     * @return the cursor position
      */
     protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
-        while (p != null) {
+        while (true) {
             if (p.isLeaf()) {
                 int x = key == null ? 0 : p.binarySearch(key);
                 if (x < 0) {
@@ -177,7 +169,6 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
             cursor.push(c);
             p = p.getChildPage(x);
         }
-        return null;
     }
 
     /**
@@ -216,6 +207,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     /**
      * Get the value for the given key, or null if not found.
      *
+     * @param p the page
      * @param key the key
      * @return the value or null
      */
@@ -247,9 +239,6 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      * @return the value, or null if not found
      */
     protected Page getPage(K key) {
-        if (root == null) {
-            return null;
-        }
         return binarySearchPage(root, key);
     }
 
@@ -282,10 +271,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      */
     public void clear() {
         checkWrite();
-        if (root != null) {
-            root.removeAllRecursive();
-            setRoot(null);
-        }
+        root.removeAllRecursive();
+        setRoot(Page.createEmpty(this, store.getCurrentVersion()));
     }
 
     /**
@@ -293,17 +280,18 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      */
     public void removeMap() {
         checkWrite();
-        if (root != null) {
-            root.removeAllRecursive();
-        }
+        root.removeAllRecursive();
         store.removeMap(name);
         close();
     }
 
+    /**
+     * Close the map, making it read only and release the memory.
+     */
     public void close() {
         closed = true;
         readOnly = true;
-        oldRoots.clear();
+        clearOldVersions();
         root = null;
     }
 
@@ -314,22 +302,15 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     /**
      * Remove a key-value pair, if the key exists.
      *
-     * @param key the key
+     * @param key the key (may not be null)
      * @return the old value if the key existed, or null otherwise
      */
     public V remove(Object key) {
         checkWrite();
-        Page p = root;
-        if (p == null) {
-            return null;
-        }
         long writeVersion = store.getCurrentVersion();
-        p = p.copyOnWrite(writeVersion);
+        Page p = root.copyOnWrite(writeVersion);
         @SuppressWarnings("unchecked")
         V result = (V) remove(p, writeVersion, key);
-        if (p.getTotalCount() == 0) {
-            p = null;
-        }
         setRoot(p);
         return result;
     }
@@ -340,6 +321,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      * @param p the page (may not be null)
      * @param writeVersion the write version
      * @param key the key
+     * @return the old value, or null if the key did not exist
      */
     protected Object remove(Page p, long writeVersion, Object key) {
         int index = p.binarySearch(key);
@@ -384,17 +366,29 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
 
     protected void setRoot(Page newRoot) {
         if (root != newRoot) {
-            long v = store.getCurrentVersion();
-            if (!oldRoots.containsKey(v)) {
-                oldRoots.put(v, root);
+            if (root.getVersion() != newRoot.getVersion()) {
+                ArrayList<Page> list = oldRoots;
+                if (list.size() > 0) {
+                    Page last = list.get(list.size() - 1);
+                    if (last.getVersion() != root.getVersion()) {
+                        list.add(root);
+                    }
+                } else {
+                    list.add(root);
+                }
+                store.markChanged(this);
             }
             root = newRoot;
-            store.markChanged(this);
         }
     }
 
+    /**
+     * Check whether this map has any unsaved changes.
+     *
+     * @return true if there are unsaved changes.
+     */
     public boolean hasUnsavedChanges() {
-        return oldRoots.size() > 0;
+        return !oldRoots.isEmpty();
     }
 
     /**
@@ -442,7 +436,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      * @param rootPos the position, 0 for empty
      */
     void setRootPos(long rootPos) {
-        root = rootPos == 0 ? null : readPage(rootPos);
+        root = rootPos == 0 ? Page.createEmpty(this, 0) : readPage(rootPos);
     }
 
     /**
@@ -460,6 +454,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
 
     /**
      * Iterate over all keys in changed pages.
+     * This does not include deleted deleted pages.
      *
      * @param minVersion the minimum version
      * @return the iterator
@@ -530,30 +525,38 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         return id;
     }
 
+    /**
+     * Rollback to the given version.
+     *
+     * @param version the version
+     */
     void rollbackTo(long version) {
         checkWrite();
         if (version < createVersion) {
             removeMap();
-        } else {
-            // iterating in ascending order, and pick the last version -
+        } else if (root.getVersion() != version) {
+            // iterating in descending order -
             // this is not terribly efficient if there are many versions
-            // but it is a simple algorithm
-            Long newestOldVersion = null;
-            for (Iterator<Long> it = oldRoots.keySet().iterator(); it.hasNext();) {
-                Long x = it.next();
-                if (x > version) {
-                    if (newestOldVersion == null) {
-                        newestOldVersion = x;
-                        root = oldRoots.get(x);
-                    }
-                    it.remove();
+            ArrayList<Page> list = oldRoots;
+            while (list.size() > 0) {
+                int i = list.size() - 1;
+                Page p = list.get(i);
+                root = p;
+                list.remove(i);
+                if (p.getVersion() <= version) {
+                    break;
                 }
             }
         }
     }
 
-    void revertTemp() {
-        oldRoots.clear();
+    /**
+     * Forget all old versions.
+     */
+    void clearOldVersions() {
+        // create a new instance
+        // because another thread might iterate over it
+        oldRoots = new ArrayList<Page>();
     }
 
     public void setReadOnly(boolean readOnly) {
@@ -564,12 +567,22 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         return readOnly;
     }
 
+    /**
+     * Check whether the map is open.
+     *
+     * @throws IllegalStateException if the map is closed
+     */
     protected void checkOpen() {
         if (closed) {
             throw new IllegalStateException("This map is closed");
         }
     }
 
+    /**
+     * Check whether writing is allowed.
+     *
+     * @throws IllegalStateException if the map is read-only
+     */
     protected void checkWrite() {
         if (readOnly) {
             checkOpen();
@@ -603,28 +616,58 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     }
 
     public long getSize() {
-        return root == null ? 0 : root.getTotalCount();
+        return root.getTotalCount();
     }
 
     long getCreateVersion() {
         return createVersion;
     }
 
+    /**
+     * Remove the given page (make the space available).
+     *
+     * @param p the page
+     */
     protected void removePage(Page p) {
         store.removePage(p.getPos());
     }
 
+    /**
+     * Open an old version for the given map.
+     *
+     * @param version the version
+     * @return the map
+     */
     public MVMap<K, V> openVersion(long version) {
+        if (readOnly) {
+            throw new IllegalArgumentException("This map is read-only - need to call the method on the writable map");
+        }
         if (version < createVersion) {
             throw new IllegalArgumentException("Unknown version");
         }
-        if (!oldRoots.containsKey(version)) {
+        Page newest = null;
+        // need to copy because it can change
+        Page r = root;
+        if (r.getVersion() == version) {
+            newest = r;
+        } else {
+            // TODO could do a binary search
+            ArrayList<Page> list = oldRoots;
+            for (int i = 0; i < list.size(); i++) {
+                Page p = list.get(i);
+                if (p.getVersion() <= version) {
+                    newest = p;
+                } else {
+                    break;
+                }
+            }
+        }
+        if (newest == null) {
             return store.openMapVersion(version, name);
         }
-        Page root = oldRoots.get(version);
         MVMap<K, V> m = new MVMap<K, V>(store, id, name, keyType, valueType, createVersion);
         m.readOnly = true;
-        m.root = root;
+        m.root = newest;
         return m;
     }
 

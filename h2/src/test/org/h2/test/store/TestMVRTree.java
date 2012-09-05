@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+ */
 package org.h2.test.store;
 
 import java.awt.AlphaComposite;
@@ -34,14 +39,14 @@ public class TestMVRTree extends TestMVStore {
     }
 
     public void test() {
-        testRtreeMany();
-        testRtree();
-        testRandomRtree();
+        testMany();
+        testTree();
+        testRandom();
         testCustomMapType();
     }
 
-    private void testRtreeMany() {
-        String fileName = getBaseDir() + "/testRtree.h3";
+    private void testMany() {
+        String fileName = getBaseDir() + "/testMany.h3";
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
@@ -103,8 +108,8 @@ public class TestMVRTree extends TestMVStore {
         // System.out.println("remove: " + (System.currentTimeMillis() - t));
     }
 
-    private void testRtree() {
-        String fileName = getBaseDir() + "/testRtree.h3";
+    private void testTree() {
+        String fileName = getBaseDir() + "/testTree.h3";
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
@@ -195,8 +200,8 @@ public class TestMVRTree extends TestMVStore {
         return rect;
     }
 
-    private void testRandomRtree() {
-        String fileName = getBaseDir() + "/testRtreeRandom.h3";
+    private void testRandom() {
+        String fileName = getBaseDir() + "/testRandom.h3";
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVRTreeMap<SpatialKey, String> m = s.openMap("data", "r", "s2", "");

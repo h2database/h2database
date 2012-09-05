@@ -6,9 +6,7 @@
  */
 package org.h2.dev.store.btree;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.Properties;
+import java.util.HashMap;
 
 /**
  * A chunk of data, containing one or multiple pages.
@@ -23,7 +21,7 @@ import java.util.Properties;
  * 8 bytes: metaRootPos
  * [ Page ] *
  */
-class Chunk {
+public class Chunk {
 
     /**
      * The chunk id.
@@ -65,7 +63,7 @@ class Chunk {
      */
     long version;
 
-    Chunk(int id) {
+    public Chunk(int id) {
         this.id = id;
     }
 
@@ -75,22 +73,17 @@ class Chunk {
      * @param s the string
      * @return the block
      */
-    static Chunk fromString(String s) {
-        Properties prop = new Properties();
-        try {
-            prop.load(new ByteArrayInputStream(s.getBytes("UTF-8")));
-            int id = Integer.parseInt(prop.get("id").toString());
-            Chunk c = new Chunk(id);
-            c.start = Long.parseLong(prop.get("start").toString());
-            c.length = Long.parseLong(prop.get("length").toString());
-            c.entryCount = Integer.parseInt(prop.get("entryCount").toString());
-            c.liveCount = Integer.parseInt(prop.get("liveCount").toString());
-            c.metaRootPos = Long.parseLong(prop.get("metaRoot").toString());
-            c.version = Long.parseLong(prop.get("version").toString());
-            return c;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public static Chunk fromString(String s) {
+        HashMap<String, String> map = DataUtils.parseMap(s);
+        int id = Integer.parseInt(map.get("id"));
+        Chunk c = new Chunk(id);
+        c.start = Long.parseLong(map.get("start"));
+        c.length = Long.parseLong(map.get("length"));
+        c.entryCount = Integer.parseInt(map.get("entryCount"));
+        c.liveCount = Integer.parseInt(map.get("liveCount"));
+        c.metaRootPos = Long.parseLong(map.get("metaRoot"));
+        c.version = Long.parseLong(map.get("version"));
+        return c;
     }
 
     public int getFillRate() {
@@ -107,13 +100,13 @@ class Chunk {
 
     public String toString() {
         return
-            "id:" + id + "\n" +
-            "start:" + start + "\n" +
-            "length:" + length + "\n" +
-            "entryCount:" + entryCount + "\n" +
-            "liveCount:" + liveCount + "\n" +
-            "metaRoot:" + metaRootPos + "\n" +
-            "version:" + version + "\n";
+                "id:" + id + "," +
+                "start:" + start + "," +
+                "length:" + length + "," +
+                "entryCount:" + entryCount + "," +
+                "liveCount:" + liveCount + "," +
+                "metaRoot:" + metaRootPos + "," +
+                "version:" + version;
     }
 
 }

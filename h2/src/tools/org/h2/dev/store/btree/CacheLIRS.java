@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A scan resistent cache. It is meant to cache objects that are relatively
+ * A scan resistant cache. It is meant to cache objects that are relatively
  * costly to acquire, for example file content.
  * <p>
  * This implementation is not multi-threading save. Null keys or null values are
@@ -237,6 +237,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
      *
      * @param key the key (may not be null)
      * @param value the value (may not be null)
+     * @return the old value, or null if there is no resident entry
      */
     public V put(K key, V value) {
         return put(key, value, averageMemory);
@@ -250,6 +251,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
      * @param key the key (may not be null)
      * @param value the value (may not be null)
      * @param memory the memory used for the given entry
+     * @return the old value, or null if there is no resident entry
      */
     public V put(K key, V value, int memory) {
         if (value == null) {
@@ -484,6 +486,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     /**
      * Check whether there is a resident entry for the given key.
      *
+     * @param key the key (may not be null)
      * @return true if there is a resident entry
      */
     public boolean containsKey(Object key) {

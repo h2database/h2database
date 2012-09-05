@@ -104,6 +104,7 @@ import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestWeb;
 import org.h2.test.server.TestInit;
 import org.h2.test.store.TestCacheLIRS;
+import org.h2.test.store.TestConcurrent;
 import org.h2.test.store.TestDataUtils;
 import org.h2.test.store.TestMVStore;
 import org.h2.test.store.TestMVRTree;
@@ -664,11 +665,12 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void testUnit() {
-        // store
-        new TestMVStore().runTest(this);
+        // mv store
         new TestCacheLIRS().runTest(this);
+        new TestConcurrent().runTest(this);
         new TestDataUtils().runTest(this);
         new TestMVRTree().runTest(this);
+        new TestMVStore().runTest(this);
 
         // unit
         new TestAutoReconnect().runTest(this);

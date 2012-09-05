@@ -21,7 +21,15 @@ import org.h2.dev.store.btree.DataType;
  */
 public class SequenceMap<K, V> extends MVMap<K, V> {
 
-    int min = 1, max = 10;
+    /**
+     * The minimum value.
+     */
+    int min = 1;
+
+    /**
+     * The maximum value.
+     */
+    int max = 10;
 
     SequenceMap(MVStore store, int id, String name, DataType keyType,
             DataType valueType, long createVersion) {

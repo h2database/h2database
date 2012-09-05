@@ -35,9 +35,6 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
     @SuppressWarnings("unchecked")
     public V get(Object key) {
         checkOpen();
-        if (root == null) {
-            return null;
-        }
         return (V) get(root, key);
     }
 
@@ -73,13 +70,10 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
     }
 
     protected Page getPage(K key) {
-        if (root == null) {
-            return null;
-        }
         return getPage(root, key);
     }
 
-    protected Page getPage(Page p, Object key) {
+    private Page getPage(Page p, Object key) {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
@@ -155,26 +149,26 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         return (V) putOrAdd(key, value, false);
     }
 
+    /**
+     * Add a given key-value pair. The key should not exist (if it exists, the
+     * result is undefined).
+     *
+     * @param key the key
+     * @param value the value
+     */
     public void add(K key, V value) {
         putOrAdd(key, value, true);
     }
 
-    public Object putOrAdd(K key, V value, boolean alwaysAdd) {
+    private Object putOrAdd(K key, V value, boolean alwaysAdd) {
         checkWrite();
         long writeVersion = store.getCurrentVersion();
-        Page p = root;
+        Page p = root.copyOnWrite(writeVersion);
         Object result;
-        if (p == null) {
-            Object[] keys = { key };
-            Object[] values = { value };
-            p = Page.create(this, writeVersion, 1,
-                    keys, values, null, null, null, 1, 0);
-            result = null;
-        } else if (alwaysAdd || get(key) == null) {
+        if (alwaysAdd || get(key) == null) {
             if (p.getKeyCount() > store.getMaxPageSize()) {
                 // only possible if this is the root, else we would have split earlier
                 // (this requires maxPageSize is fixed)
-                p = p.copyOnWrite(writeVersion);
                 long totalCount = p.getTotalCount();
                 Page split = split(p, writeVersion);
                 Object[] keys = { getBounds(p), getBounds(split) };
@@ -195,7 +189,16 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         return result;
     }
 
-    protected Object set(Page p, long writeVersion, Object key, Object value) {
+    /**
+     * Update the value for the given key. The key must exist.
+     *
+     * @param p the page
+     * @param writeVersion the write version
+     * @param key the key
+     * @param value the value
+     * @return the old value
+     */
+    private Object set(Page p, long writeVersion, Object key, Object value) {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
@@ -217,7 +220,7 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         return null;
     }
 
-    protected void add(Page p, long writeVersion, Object key, Object value) {
+    private void add(Page p, long writeVersion, Object key, Object value) {
         if (p.isLeaf()) {
             p.insertLeaf(p.getKeyCount(), key, value);
             return;
@@ -379,6 +382,13 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         source.remove(sourceIndex);
     }
 
+    /**
+     * Add all node keys (including internal bounds) to the given list.
+     * This is mainly used to visualize the internal splits.
+     *
+     * @param list the list
+     * @param p the root page
+     */
     @SuppressWarnings("unchecked")
     public void addNodeKeys(ArrayList<K> list, Page p) {
         if (p != null && !p.isLeaf()) {
@@ -395,6 +405,7 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
      * @param p the current page
      * @param cursor the cursor
      * @param key the key
+     * @return the cursor position
      */
     protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
         if (p == null) {

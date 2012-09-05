@@ -14,8 +14,8 @@ import java.util.Arrays;
  */
 public class SpatialKey {
 
-    public long id;
-    private float[] minMax;
+    private final long id;
+    private final float[] minMax;
 
     /**
      * Create a new key.
@@ -28,20 +28,48 @@ public class SpatialKey {
         this.minMax = minMax;
     }
 
+    /**
+     * Get the minimum value for the given dimension.
+     *
+     * @param dim the dimension
+     * @return the value
+     */
     public float min(int dim) {
         return minMax[dim + dim];
     }
 
+    /**
+     * Set the minimum value for the given dimension.
+     *
+     * @param dim the dimension
+     * @param x the value
+     */
     public void setMin(int dim, float x) {
         minMax[dim + dim] = x;
     }
 
+    /**
+     * Get the maximum value for the given dimension.
+     *
+     * @param dim the dimension
+     * @return the value
+     */
     public float max(int dim) {
         return minMax[dim + dim + 1];
     }
 
+    /**
+     * Set the maximum value for the given dimension.
+     *
+     * @param dim the dimension
+     * @param x the value
+     */
     public void setMax(int dim, float x) {
         minMax[dim + dim + 1] = x;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public String toString() {

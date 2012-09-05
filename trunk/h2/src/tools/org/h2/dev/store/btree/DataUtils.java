@@ -9,6 +9,8 @@ package org.h2.dev.store.btree;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import org.h2.util.New;
 
 /**
  * Utility methods
@@ -195,7 +197,14 @@ public class DataUtils {
         }
     }
 
-    static void readFully(FileChannel file, ByteBuffer buff) throws IOException {
+    /**
+     * Read from a file channel until the target buffer is full, or end-of-file
+     * has been reached.
+     *
+     * @param file the file channel
+     * @param buff the target buffer
+     */
+    public static void readFully(FileChannel file, ByteBuffer buff) throws IOException {
         do {
             int len = file.read(buff);
             if (len < 0) {
@@ -300,6 +309,72 @@ public class DataUtils {
      */
     public static short getCheckValue(int x) {
         return (short) ((x >> 16) ^ x);
+    }
+
+    /**
+     * Append a key-value pair to the string buffer. Keys may not contain a
+     * colon. Values that contain a comma or a double quote are enclosed in
+     * double quotes, with special characters escaped using a backslash.
+     *
+     * @param buff the target buffer
+     * @param key the key
+     * @param value the value
+     */
+    public static void appendMap(StringBuilder buff, String key, Object value) {
+        if (buff.length() > 0) {
+            buff.append(',');
+        }
+        buff.append(key).append(':');
+        String v = value.toString();
+        if (v.indexOf(',') < 0 && v.indexOf('\"') < 0) {
+            buff.append(value);
+        } else {
+            buff.append('\"');
+            for (int i = 0, size = v.length(); i < size; i++) {
+                char c = v.charAt(i);
+                if (c == '\"') {
+                    buff.append('\\');
+                }
+                buff.append(c);
+            }
+            buff.append('\"');
+        }
+    }
+
+    /**
+     * Parse a key-value pair list.
+     *
+     * @param s the list
+     * @return the map
+     */
+    public static HashMap<String, String> parseMap(String s) {
+        HashMap<String, String> map = New.hashMap();
+        for (int i = 0, size = s.length(); i < size;) {
+            int startKey = i;
+            i = s.indexOf(':', i);
+            String key = s.substring(startKey, i++);
+            StringBuilder buff = new StringBuilder();
+            while (i < size) {
+                char c = s.charAt(i++);
+                if (c == ',') {
+                    break;
+                } else if (c == '\"') {
+                    while (i < size) {
+                        c = s.charAt(i++);
+                        if (c == '\\') {
+                            i++;
+                        } else if (c == '\"') {
+                            break;
+                        }
+                        buff.append(c);
+                    }
+                } else {
+                    buff.append(c);
+                }
+            }
+            map.put(key, buff.toString());
+        }
+        return map;
     }
 
 }

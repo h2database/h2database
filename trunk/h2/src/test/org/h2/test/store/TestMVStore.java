@@ -7,6 +7,7 @@ package org.h2.test.store;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 import org.h2.dev.store.btree.MVMap;
@@ -30,8 +31,10 @@ public class TestMVStore extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() {
+    public void test() throws InterruptedException {
+        testExample();
         testIterateOverChanges();
+        testOpenStoreCloseLoop();
         testVersion();
         testTruncateFile();
         testFastDelete();
@@ -49,31 +52,105 @@ public class TestMVStore extends TestBase {
         testSimple();
     }
 
+    private void testExample() {
+        String fileName = getBaseDir() + "/testOpenClose.h3";
+        FileUtils.delete(fileName);
+
+        // open the store (in-memory if fileName is null)
+        MVStore s = MVStore.open(fileName);
+
+        // create/get the map "data"
+        // the String.class, String.class will be optional later
+        MVMap<String, String> map = s.openMap("data",
+                String.class, String.class);
+
+        // add some data
+        map.put("1", "Hello");
+        map.put("2", "World");
+
+        // get the current version, for later use
+        long oldVersion = s.getCurrentVersion();
+
+        // from now on, the old version is read-only
+        s.incrementVersion();
+
+        // more changes, in the new version
+        // changes can be rolled back if required
+        // changes always go into 'head' (the newest version)
+        map.put("1", "Hi");
+        map.remove("2");
+
+        // access the old data (before incrementVersion)
+        MVMap<String, String> oldMap =
+                map.openVersion(oldVersion);
+
+        // store the newest data to disk
+        s.store();
+
+        // print the old version (can be done
+        // concurrently with further modifications)
+        // this will print Hello World
+        // System.out.println(oldMap.get("1"));
+        // System.out.println(oldMap.get("2"));
+        oldMap.close();
+
+        // print the newest version ("Hi")
+        // System.out.println(map.get("1"));
+
+        // close the store - this doesn't write to disk
+        s.close();
+    }
+
+    private void testOpenStoreCloseLoop() {
+        String fileName = getBaseDir() + "/testOpenClose.h3";
+        FileUtils.delete(fileName);
+        for (int k = 0; k < 1; k++) {
+            // long t = System.currentTimeMillis();
+            for (int j = 0; j < 3; j++) {
+                MVStore s = openStore(fileName);
+                Map<String, Integer> m = s.openMap("data", String.class,
+                        Integer.class);
+                for (int i = 0; i < 3; i++) {
+                    Integer x = m.get("value");
+                    m.put("value", x == null ? 0 : x + 1);
+                    s.store();
+                }
+                s.close();
+            }
+            // System.out.println("open/close: " + (System.currentTimeMillis() - t));
+            // System.out.println("size: " + FileUtils.size(fileName));
+        }
+    }
+
     private void testIterateOverChanges() {
-        String fileName = getBaseDir() + "/testVersion.h3";
+        String fileName = getBaseDir() + "/testIterate.h3";
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         s.setMaxPageSize(6);
         MVMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
-        for (int i = 0; i < 60; i++) {
+        for (int i = 0; i < 100; i++) {
             m.put(i, "Hi");
         }
-        s.commit();
+        s.incrementVersion();
         s.store();
         for (int i = 20; i < 40; i++) {
             assertEquals("Hi", m.put(i, "Hello"));
         }
-        s.commit();
+        s.incrementVersion();
         for (int i = 10; i < 15; i++) {
             m.put(i, "Hallo");
         }
         m.put(50, "Hallo");
+        for (int i = 90; i < 100; i++) {
+            assertEquals("Hi", m.remove(i));
+        }
+        assertEquals(null, m.put(100, "Hallo"));
         Iterator<Integer> it = m.changeIterator(s.getCurrentVersion());
         ArrayList<Integer> list = New.arrayList();
         while (it.hasNext()) {
             list.add(it.next());
         }
-        assertEquals("[9, 10, 11, 12, 13, 14, 48, 49, 50]", list.toString());
+        assertEquals("[9, 10, 11, 12, 13, 14, 48, 49, 50, 87, 88, 89, 100]", list.toString());
     }
 
     private void testVersion() {
@@ -85,13 +162,14 @@ public class TestMVStore extends TestBase {
         s = openStore(fileName);
         m = s.openMap("data", String.class, String.class);
         long first = s.getCurrentVersion();
+        s.incrementVersion();
         m.put("1", "Hello");
         m.put("2", "World");
         for (int i = 10; i < 20; i++) {
             m.put("" + i, "data");
         }
-        s.commit();
         long old = s.getCurrentVersion();
+        s.incrementVersion();
         m.put("1", "Hallo");
         m.put("2", "Welt");
         MVMap<String, String> mFirst;
@@ -192,7 +270,7 @@ public class TestMVStore extends TestBase {
         assertTrue(s.hasUnsavedChanges());
         MVMap<String, String> m0 = s.openMap("data0", String.class, String.class);
         m.put("1", "Hello");
-        assertEquals(1, s.commit());
+        assertEquals(1, s.incrementVersion());
         s.rollbackTo(1);
         assertEquals("Hello", m.get("1"));
         long v2 = s.store();
@@ -235,7 +313,7 @@ public class TestMVStore extends TestBase {
         assertEquals("Hello", m.get("1"));
         assertFalse(m0.isReadOnly());
         m.put("1",  "Hallo");
-        s.commit();
+        s.incrementVersion();
         assertEquals(4, s.getCurrentVersion());
         long v4 = s.store();
         assertEquals(4, v4);
@@ -282,7 +360,7 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 10; i++) {
             m2.put("" + i, "Test");
         }
-        long v1 = s.commit();
+        long v1 = s.incrementVersion();
         assertEquals(1, v1);
         assertEquals(2, s.getCurrentVersion());
         MVMap<String, String> m1 = s.openMap("data1", String.class, String.class);
@@ -667,6 +745,12 @@ public class TestMVStore extends TestBase {
         s.close();
     }
 
+    /**
+     * Open a store for the given file name, using a small page size.
+     *
+     * @param fileName the file name (null for in-memory)
+     * @return the store
+     */
     protected static MVStore openStore(String fileName) {
         MVStore store = MVStore.open(fileName, new TestMapFactory());
         store.setMaxPageSize(10);

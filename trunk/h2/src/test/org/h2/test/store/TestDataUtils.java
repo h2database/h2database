@@ -6,6 +6,7 @@
 package org.h2.test.store;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import org.h2.dev.store.btree.DataUtils;
 import org.h2.test.TestBase;
 
@@ -24,10 +25,29 @@ public class TestDataUtils extends TestBase {
     }
 
     public void test() throws Exception {
+        testMap();
         testVarIntVarLong();
         testCheckValue();
         testPagePos();
         testEncodeLength();
+    }
+
+    private void testMap() {
+        StringBuilder buff = new StringBuilder();
+        DataUtils.appendMap(buff,  "", "");
+        DataUtils.appendMap(buff,  "a", "1");
+        DataUtils.appendMap(buff,  "b", ",");
+        DataUtils.appendMap(buff,  "c", "1,2");
+        DataUtils.appendMap(buff,  "d", "\"test\"");
+        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\"", buff.toString());
+
+        HashMap<String, String> m = DataUtils.parseMap(buff.toString());
+        assertEquals(5, m.size());
+        assertEquals("", m.get(""));
+        assertEquals("1", m.get("a"));
+        assertEquals(",", m.get("b"));
+        assertEquals("1,2", m.get("c"));
+        assertEquals("\"test\"", m.get("d"));
     }
 
     private void testVarIntVarLong() {

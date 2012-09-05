@@ -7,7 +7,6 @@
 package org.h2.dev.store.btree;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -17,7 +16,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.dev.store.FilePathCache;
@@ -29,27 +27,23 @@ import org.h2.util.StringUtils;
 /*
 
 File format:
-header: 4096 bytes
-header: 4096 bytes
+header: (blockSize) bytes
+header: (blockSize) bytes
 [ chunk ] *
 (there are two headers for security)
 header:
-# H3 store #
-blockSize=4096
+H:3,blockSize=4096,...
 
 TODO:
-- test with very small chunks, possibly speed up very small transactions
-- check what happens on concurrent reads and 1 write; multiple writes
 - support all objects (using serialization)
-- concurrent iterator (when to call commit; read on first hasNext())
+- concurrent iterator (when to increment version; read on first hasNext())
+- how to iterate (just) over deleted pages / entries
 - compact: use total max length instead of page count (liveCount)
 - support background writes (store old version)
-- avoid using java.util.Properties (it allocates quite a lot of memory)
 - support large binaries
-- support database version / schema version
+- support database version / app version
 - limited support for writing to old versions (branches)
 - atomic test-and-set (when supporting concurrent writes)
-- file header could be a regular chunk, end of file the second
 - possibly split chunk data into immutable and mutable
 - support stores that span multiple files (chunks stored in other files)
 - triggers
@@ -57,15 +51,27 @@ TODO:
 - merge pages if small
 - r-tree: add missing features (NN search for example)
 - compression: maybe hash table reset speeds up compression
+- use file level locking to ensure there is only one writer
+- pluggable cache (specially for in-memory file systems)
+- store the factory class in the file header
+- support custom fields in the header
+- auto-server: store port in the header
+- recovery: keep a list of old chunks
+- recovery: ensure data is not overwritten for 1 minute
+- pluggable caching (specially for in-memory file systems)
+- file locking
 
 */
 
 /**
- * A persistent storage for tree maps.
+ * A persistent storage for maps.
  */
 public class MVStore {
 
-    public static final boolean ASSERT = false;
+    /**
+     * Whether assertions are enabled.
+     */
+    public static final boolean ASSERT = true;
 
     private static final StringType STRING_TYPE = new StringType();
 
@@ -138,6 +144,13 @@ public class MVStore {
         return s;
     }
 
+    /**
+     * Open an old, stored version of a map.
+     *
+     * @param version the version
+     * @param name the map name
+     * @return the read-only map
+     */
     @SuppressWarnings("unchecked")
     <T extends MVMap<?, ?>> T  openMapVersion(long version, String name) {
         // TODO reduce copy & pasted source code
@@ -198,7 +211,8 @@ public class MVStore {
         return (T) m;
     }
 
-    private MVMap<?, ?> buildMap(String mapType, int id, String name, String keyType, String valueType, long createVersion) {
+    private MVMap<?, ?> buildMap(String mapType, int id, String name,
+            String keyType, String valueType, long createVersion) {
         DataType k = buildDataType(keyType);
         DataType v = buildDataType(valueType);
         if (mapType.equals("")) {
@@ -263,6 +277,11 @@ public class MVStore {
         return m;
     }
 
+    /**
+     * Remove a map.
+     *
+     * @param name the map name
+     */
     void removeMap(String name) {
         MVMap<?, ?> m = maps.remove(name);
         mapsChanged.remove(m);
@@ -344,14 +363,16 @@ public class MVStore {
 
     private void writeHeader() {
         try {
-            ByteBuffer header = ByteBuffer.wrap((
-                "# H2 1.5\n" +
-                "versionRead:1\n" +
-                "versionWrite:1\n" +
-                "blockSize:" + blockSize + "\n" +
-                "rootChunk:" + rootChunkStart + "\n" +
-                "lastMapId:" + lastMapId + "\n" +
-                "version:" + currentVersion + "\n").getBytes("UTF-8"));
+            ByteBuffer header = ByteBuffer.allocate(blockSize);
+            String h = "H:3," +
+                    "versionRead:1," +
+                    "versionWrite:1," +
+                    "blockSize:" + blockSize + "," +
+                    "rootChunk:" + rootChunkStart + "," +
+                    "lastMapId:" + lastMapId + "," +
+                    "version:" + currentVersion;
+            header.put(h.getBytes("UTF-8"));
+            header.rewind();
             writeCount++;
             file.position(0);
             file.write(header);
@@ -364,16 +385,15 @@ public class MVStore {
 
     private void readHeader() {
         try {
-            byte[] header = new byte[blockSize];
+            byte[] headers = new byte[blockSize * 2];
             readCount++;
             file.position(0);
-            // TODO read fully; read both headers
-            file.read(ByteBuffer.wrap(header));
-            Properties prop = new Properties();
-            prop.load(new StringReader(new String(header, "UTF-8")));
-            rootChunkStart = Long.parseLong(prop.get("rootChunk").toString());
-            currentVersion = Long.parseLong(prop.get("version").toString());
-            lastMapId = Integer.parseInt(prop.get("lastMapId").toString());
+            file.read(ByteBuffer.wrap(headers));
+            String s = new String(headers, 0, blockSize, "UTF-8").trim();
+            HashMap<String, String> map = DataUtils.parseMap(s);
+            rootChunkStart = Long.parseLong(map.get("rootChunk"));
+            currentVersion = Long.parseLong(map.get("version"));
+            lastMapId = Integer.parseInt(map.get("lastMapId"));
         } catch (Exception e) {
             throw convert(e);
         }
@@ -389,6 +409,7 @@ public class MVStore {
     public void close() {
         if (file != null) {
             try {
+                shrinkFileIfPossible(0);
                 log("file close");
                 file.close();
                 for (MVMap<?, ?> m : New.arrayList(maps.values())) {
@@ -407,6 +428,12 @@ public class MVStore {
         }
     }
 
+    /**
+     * Get the chunk for the given position.
+     *
+     * @param pos the position
+     * @return the chunk
+     */
     Chunk getChunk(long pos) {
         return chunks.get(DataUtils.getPageChunkId(pos));
     }
@@ -422,11 +449,11 @@ public class MVStore {
     }
 
     /**
-     * Commit the changes, incrementing the current version.
+     * Increment the current version.
      *
-     * @return the version before the commit
+     * @return the old version
      */
-    public long commit() {
+    public long incrementVersion() {
         return currentVersion++;
     }
 
@@ -478,12 +505,12 @@ public class MVStore {
                 continue;
             }
             Page p = m.getRoot();
-            if (p != null) {
+            if (p.getTotalCount() == 0) {
+                meta.put("root." + m.getId(), "0");
+            } else {
                 maxLength += p.getMaxLengthTempRecursive();
                 count += p.countTempRecursive();
                 meta.put("root." + m.getId(), String.valueOf(Long.MAX_VALUE));
-            } else {
-                meta.put("root." + m.getId(), "0");
             }
         }
         maxLength += meta.getRoot().getMaxLengthTempRecursive();
@@ -500,7 +527,7 @@ public class MVStore {
                 continue;
             }
             Page p = m.getRoot();
-            if (p != null) {
+            if (p.getTotalCount() > 0) {
                 long root = p.writeTempRecursive(buff, chunkId);
                 meta.put("root." + m.getId(), "" + root);
             }
@@ -544,10 +571,10 @@ public class MVStore {
         c.start = filePos;
         c.length = length;
 
-        long version = commit();
+        long version = incrementVersion();
         // write the new version (after the commit)
         writeHeader();
-        shrinkFileIfPossible();
+        shrinkFileIfPossible(1);
         return version;
     }
 
@@ -562,12 +589,27 @@ public class MVStore {
         freedChunks.clear();
     }
 
-    private void shrinkFileIfPossible() {
+    /**
+     * Shrink the file if possible, and if at least a given percentage can be
+     * saved.
+     *
+     * @param minPercent the minimum percentage to save
+     */
+    private void shrinkFileIfPossible(int minPercent) {
         long used = getFileLengthUsed();
         try {
-            if (used < file.size()) {
-                file.truncate(used);
+            long size = file.size();
+            if (used >= size) {
+                return;
             }
+            if (minPercent > 0 && size - used < blockSize) {
+                return;
+            }
+            int savedPercent = (int) (100 - (used * 100 / size));
+            if (savedPercent < minPercent) {
+                return;
+            }
+            file.truncate(used);
         } catch (Exception e) {
             throw convert(e);
         }
@@ -911,7 +953,7 @@ public class MVStore {
         this.retainChunk = retainChunk;
     }
 
-    public boolean isKnownVersion(long version) {
+    private boolean isKnownVersion(long version) {
         if (version > currentVersion || version < 0) {
             return false;
         }
@@ -946,6 +988,7 @@ public class MVStore {
      * Revert to the given version. All later changes (stored or not) are
      * forgotten. All maps that were created later are closed. A rollback to
      * a version before the last stored version is immediately persisted.
+     * Before this method returns, the current version is incremented.
      *
      * @param version the version to revert to
      */
@@ -1001,7 +1044,7 @@ public class MVStore {
     private void revertTemp() {
         freedChunks.clear();
         for (MVMap<?, ?> m : mapsChanged.values()) {
-            m.revertTemp();
+            m.clearOldVersions();
         }
         mapsChanged.clear();
     }

@@ -26,6 +26,12 @@ public class Cursor<K, V> implements Iterator<K> {
         this.map = map;
     }
 
+    /**
+     * Fetch the first key.
+     *
+     * @param root the root page
+     * @param from the key, or null
+     */
     void start(Page root, K from) {
         currentPos = min(root, from);
         if (currentPos != null) {
@@ -41,6 +47,9 @@ public class Cursor<K, V> implements Iterator<K> {
         return c == null ? null : c;
     }
 
+    /**
+     * Fetch the next key.
+     */
     @SuppressWarnings("unchecked")
     protected void fetchNext() {
         current = (K) map.nextKey(currentPos, this);
@@ -54,19 +63,43 @@ public class Cursor<K, V> implements Iterator<K> {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Add a cursor position to the stack.
+     *
+     * @param p the cursor position
+     */
     public void push(CursorPos p) {
         parents.add(p);
     }
 
+    /**
+     * Remove the latest cursor position from the stack and return it.
+     *
+     * @return the cursor position, or null if none
+     */
     public CursorPos pop() {
         int size = parents.size();
         return size == 0 ? null : parents.remove(size - 1);
     }
 
+    /**
+     * Visit  the first key that is greater or equal the given key.
+     *
+     * @param p the page
+     * @param from the key, or null
+     * @return the cursor position
+     */
     public CursorPos min(Page p, K from) {
         return map.min(p, this, from);
     }
 
+    /**
+     * Visit the first key within this child page.
+     *
+     * @param p the page
+     * @param childIndex the child index
+     * @return the cursor position
+     */
     public CursorPos visitChild(Page p, int childIndex) {
         p = p.getChildPage(childIndex);
         currentPos = min(p, null);

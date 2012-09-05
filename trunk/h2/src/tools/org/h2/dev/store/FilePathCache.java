@@ -47,6 +47,10 @@ public class FilePathCache extends FilePathWrapper {
             this.size = base.size();
         }
 
+        protected void implCloseChannel() throws IOException {
+            base.close();
+        }
+
         public FileChannel position(long newPosition) throws IOException {
             this.pos = newPosition;
             return this;

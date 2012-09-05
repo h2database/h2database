@@ -27,20 +27,33 @@ public class SpatialType implements DataType {
         this.dimensions = dimensions;
     }
 
+    /**
+     * Read a value from a string.
+     *
+     * @param s the string
+     * @return the value
+     */
     public static SpatialType fromString(String s) {
         return new SpatialType(Integer.parseInt(s.substring(1)));
     }
 
     @Override
     public int compare(Object a, Object b) {
-        long la = ((SpatialKey) a).id;
-        long lb = ((SpatialKey) b).id;
+        long la = ((SpatialKey) a).getId();
+        long lb = ((SpatialKey) b).getId();
         return la < lb ? -1 : la > lb ? 1 : 0;
     }
 
+    /**
+     * Check whether two spatial values are equal.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return true if they are equal
+     */
     public boolean equals(Object a, Object b) {
-        long la = ((SpatialKey) a).id;
-        long lb = ((SpatialKey) b).id;
+        long la = ((SpatialKey) a).getId();
+        long lb = ((SpatialKey) b).getId();
         return la == lb;
     }
 
@@ -70,7 +83,7 @@ public class SpatialType implements DataType {
                 buff.putFloat(k.max(i));
             }
         }
-        DataUtils.writeVarLong(buff, k.id);
+        DataUtils.writeVarLong(buff, k.getId());
     }
 
     @Override
@@ -97,6 +110,13 @@ public class SpatialType implements DataType {
         return "s" + dimensions;
     }
 
+    /**
+     * Check whether the two objects overlap.
+     *
+     * @param objA the first object
+     * @param objB the second object
+     * @return true if they overlap
+     */
     public boolean isOverlap(Object objA, Object objB) {
         SpatialKey a = (SpatialKey) objA;
         SpatialKey b = (SpatialKey) objB;
@@ -108,6 +128,12 @@ public class SpatialType implements DataType {
         return true;
     }
 
+    /**
+     * Increase the bounds in the given spatial object.
+     *
+     * @param bounds the bounds (may be modified)
+     * @param add the value
+     */
     public void increaseBounds(Object bounds, Object add) {
         SpatialKey b = (SpatialKey) bounds;
         SpatialKey a = (SpatialKey) add;
@@ -144,7 +170,14 @@ public class SpatialType implements DataType {
         return areaNew - areaOld;
     }
 
-    public float getCombinedArea(Object objA, Object objB) {
+    /**
+     * Get the combined area of both objects.
+     *
+     * @param objA the first object
+     * @param objB the second object
+     * @return the area
+     */
+    float getCombinedArea(Object objA, Object objB) {
         SpatialKey a = (SpatialKey) objA;
         SpatialKey b = (SpatialKey) objB;
         float area = 1;
@@ -193,7 +226,13 @@ public class SpatialType implements DataType {
         return true;
     }
 
-    public Object createBoundingBox(Object objA) {
+    /**
+     * Create a bounding box starting with the given object.
+     *
+     * @param objA the object
+     * @return the bounding box
+     */
+    Object createBoundingBox(Object objA) {
         float[] minMax = new float[dimensions * 2];
         SpatialKey a = (SpatialKey) objA;
         for (int i = 0; i < dimensions; i++) {

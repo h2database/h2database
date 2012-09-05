@@ -15,17 +15,25 @@ import org.h2.compress.Compressor;
 /**
  * A page (a node or a leaf).
  * <p>
- * For b-tree nodes, the key at a given index is larger than the largest key of the
- * child at the same index.
+ * For b-tree nodes, the key at a given index is larger than the largest key of
+ * the child at the same index.
  * <p>
- * File format: page length (including length): int check value: short map id:
- * varInt number of keys: varInt type: byte (0: leaf, 1: node; +2: compressed)
- * compressed: bytes saved (varInt) keys leaf: values (one for each key) node:
- * children (1 more than keys)
+ * File format:
+ * page length (including length): int
+ * check value: short
+ * map id: varInt
+ * number of keys: varInt
+ * type: byte (0: leaf, 1: node; +2: compressed)
+ * compressed: bytes saved (varInt)
+ * keys
+ * leaf: values (one for each key)
+ * node: children (1 more than keys)
  */
 public class Page {
 
     private static final int SHARED_KEYS = 1, SHARED_VALUES = 2, SHARED_CHILDREN = 4, SHARED_COUNTS = 8;
+
+    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     private final MVMap<?, ?> map;
     private final long version;
@@ -55,13 +63,31 @@ public class Page {
     }
 
     /**
+     * Create a new, empty page.
+     *
+     * @param map the map
+     * @param version the version
+     * @return the new page
+     */
+    public static Page createEmpty(MVMap<?, ?> map, long version) {
+        return create(map, version, 0,
+                EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY,
+                null, null, null, 0, 0);
+    }
+
+    /**
      * Create a new page. The arrays are not cloned.
      *
      * @param map the map
      * @param version the version
+     * @param keyCount the number of keys
      * @param keys the keys
      * @param values the values
      * @param children the children
+     * @param childrenPages the children pages
+     * @param counts the children counts
+     * @param totalCount the total number of keys
+     * @param sharedFlags which arrays are shared
      * @return the page
      */
     public static Page create(MVMap<?, ?> map, long version,
@@ -84,9 +110,10 @@ public class Page {
     /**
      * Read a page.
      *
+     * @param file the file
      * @param map the map
+     * @param filePos the position in the file
      * @param pos the page position
-     * @param buff the source buffer
      * @return the page
      */
     static Page read(FileChannel file, MVMap<?, ?> map,
@@ -114,27 +141,61 @@ public class Page {
         return p;
     }
 
+    /**
+     * Get the key at the given index.
+     *
+     * @param index the index
+     * @return the key
+     */
     public Object getKey(int index) {
         return keys[index];
     }
 
+    /**
+     * Get the child page at the given index.
+     *
+     * @param index the index
+     * @return the child page
+     */
     public Page getChildPage(int index) {
         Page p = childrenPages[index];
         return p != null ? p : map.readPage(children[index]);
     }
 
+    /**
+     * Get the position of the child page at the given index.
+     *
+     * @param index the index
+     * @return the position
+     */
     long getChildPagePos(int index) {
         return children[index];
     }
 
-    public Object getValue(int x) {
-        return values[x];
+    /**
+     * Get the value at the given index.
+     *
+     * @param index the index
+     * @return the value
+     */
+    public Object getValue(int index) {
+        return values[index];
     }
 
+    /**
+     * Get the number of keys in this page.
+     *
+     * @return the number of keys
+     */
     public int getKeyCount() {
         return keyCount;
     }
 
+    /**
+     * Check whether this is a leaf page.
+     *
+     * @return true if it is a leaf
+     */
     public boolean isLeaf() {
         return children == null;
     }
@@ -169,6 +230,13 @@ public class Page {
         return buff.toString();
     }
 
+    /**
+     * Create a copy of this page, if the write version is higher than the
+     * current version.
+     *
+     * @param writeVersion the write version
+     * @return a page with the given write version
+     */
     public Page copyOnWrite(long writeVersion) {
         if (version == writeVersion) {
             return this;
@@ -198,8 +266,9 @@ public class Page {
         if (x < 0 || x > high) {
             x = (low + high) >>> 1;
         }
+        Object[] k = keys;
         while (low <= high) {
-            int compare = map.compare(key, keys[x]);
+            int compare = map.compare(key, k[x]);
             if (compare > 0) {
                 low = x + 1;
             } else if (compare < 0) {
@@ -229,7 +298,13 @@ public class Page {
         // return -(low + 1);
     }
 
-    public Page split(int at) {
+    /**
+     * Split the page. This modifies the current page.
+     *
+     * @param at the split index
+     * @return the page with the entries after the split index
+     */
+    Page split(int at) {
         return isLeaf() ? splitLeaf(at) : splitNode(at);
     }
 
@@ -299,6 +374,11 @@ public class Page {
         return newPage;
     }
 
+    /**
+     * Get the total number of key-value pairs, including child pages.
+     *
+     * @return the number of key-value pairs
+     */
     public long getTotalCount() {
         if (MVStore.ASSERT) {
             long check = 0;
@@ -317,6 +397,12 @@ public class Page {
         return totalCount;
     }
 
+    /**
+     * Replace the child page.
+     *
+     * @param index the index
+     * @param c the new child page
+     */
     public void setChild(int index, Page c) {
         if (c != childrenPages[index] || c.getPos() != children[index]) {
             if ((sharedFlags & SHARED_CHILDREN) != 0) {
@@ -338,6 +424,12 @@ public class Page {
         }
     }
 
+    /**
+     * Replace the key.
+     *
+     * @param index the index
+     * @param key the new key
+     */
     public void setKey(int index, Object key) {
         if ((sharedFlags & SHARED_KEYS) != 0) {
             keys = Arrays.copyOf(keys, keys.length);
@@ -346,6 +438,13 @@ public class Page {
         keys[index] = key;
     }
 
+    /**
+     * Replace the value.
+     *
+     * @param index the index
+     * @param value the new value
+     * @return the old value
+     */
     public Object setValue(int index, Object value) {
         Object old = values[index];
         if ((sharedFlags & SHARED_VALUES) != 0) {
@@ -379,6 +478,13 @@ public class Page {
         map.getStore().removePage(pos);
     }
 
+    /**
+     * Insert a key-value pair into this leaf.
+     *
+     * @param index the index
+     * @param key the key
+     * @param value the value
+     */
     public void insertLeaf(int index, Object key, Object value) {
         if (((sharedFlags & SHARED_KEYS) == 0) && keys.length > keyCount + 1) {
             if (index < keyCount) {
@@ -401,6 +507,13 @@ public class Page {
         totalCount++;
     }
 
+    /**
+     * Insert a child into this node.
+     *
+     * @param index the index
+     * @param key the key
+     * @param childPage the child page
+     */
     public void insertNode(int index, Object key, Page childPage) {
 
         Object[] newKeys = new Object[keyCount + 1];
@@ -428,6 +541,11 @@ public class Page {
         totalCount += childPage.getTotalCount();
     }
 
+    /**
+     * Remove the key and value (or child) at the given index.
+     *
+     * @param index the index
+     */
     public void remove(int index) {
         int keyIndex = index >= keyCount ? index - 1 : index;
         if ((sharedFlags & SHARED_KEYS) == 0 && keys.length > keyCount - 4) {
@@ -477,41 +595,6 @@ public class Page {
             totalCount -= countOffset;
         }
     }
-
-//    public void remove(int index) {
-//        Object[] newKeys = new Object[keyCount - 1];
-//        int keyIndex = index >= keyCount ? index - 1 : index;
-//        DataUtils.copyExcept(keys, newKeys, keyCount, keyIndex);
-//        keys = newKeys;
-//        sharedFlags &= ~SHARED_KEYS;
-//        if (values != null) {
-//            Object[] newValues = new Object[keyCount - 1];
-//            DataUtils.copyExcept(values, newValues, keyCount, index);
-//            values = newValues;
-//            sharedFlags &= ~SHARED_VALUES;
-//            totalCount--;
-//        }
-//        keyCount--;
-//        if (children != null) {
-//            long countOffset = counts[index];
-//
-//            long[] newChildren = new long[children.length - 1];
-//            DataUtils.copyExcept(children, newChildren, children.length, index);
-//            children = newChildren;
-//
-//            Page[] newChildrenPages = new Page[childrenPages.length - 1];
-//            DataUtils.copyExcept(childrenPages, newChildrenPages, childrenPages.length, index);
-//            childrenPages = newChildrenPages;
-//
-//            long[] newCounts = new long[counts.length - 1];
-//            DataUtils.copyExcept(counts, newCounts,
-//                    counts.length, index);
-//            counts = newCounts;
-//
-//            sharedFlags &= ~(SHARED_CHILDREN | SHARED_COUNTS);
-//            totalCount -= countOffset;
-//        }
-//    }
 
     private void read(ByteBuffer buff, int chunkId, int offset, int maxLength) {
         int start = buff.position();
@@ -699,10 +782,6 @@ public class Page {
             }
         }
         return count;
-    }
-
-    public long getCounts(int index) {
-        return counts[index];
     }
 
     long getVersion() {

@@ -23,9 +23,9 @@ public interface MapFactory {
      * @param createVersion when the map was created
      * @return the map
      */
-     <K, V> MVMap<K, V> buildMap(
-             String mapType, MVStore store, int id, String name,
-             DataType keyType, DataType valueType, long createVersion);
+    <K, V> MVMap<K, V> buildMap(
+            String mapType, MVStore store, int id, String name,
+            DataType keyType, DataType valueType, long createVersion);
 
     /**
      * Parse the data type.

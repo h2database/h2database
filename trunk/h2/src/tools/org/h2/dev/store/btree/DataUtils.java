@@ -362,7 +362,7 @@ public class DataUtils {
                     while (i < size) {
                         c = s.charAt(i++);
                         if (c == '\\') {
-                            i++;
+                            c = s.charAt(i++);
                         } else if (c == '\"') {
                             break;
                         }

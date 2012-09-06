@@ -71,7 +71,7 @@ public class MVStore {
     /**
      * Whether assertions are enabled.
      */
-    public static final boolean ASSERT = true;
+    public static final boolean ASSERT = false;
 
     private static final StringType STRING_TYPE = new StringType();
 

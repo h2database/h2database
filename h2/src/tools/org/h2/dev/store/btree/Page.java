@@ -304,7 +304,7 @@ public class Page {
      * @param at the split index
      * @return the page with the entries after the split index
      */
-    Page split(int at) {
+    public Page split(int at) {
         return isLeaf() ? splitLeaf(at) : splitNode(at);
     }
 

@@ -692,6 +692,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             setQueryTimeout = prepareCommand("SET QUERY_TIMEOUT ?", setQueryTimeout);
             setQueryTimeout.getParameters().get(0).setValue(ValueInt.get(seconds * 1000), false);
             setQueryTimeout.executeUpdate();
+            queryTimeoutCache = seconds;
         } catch (Exception e) {
             throw logAndConvert(e);
         }

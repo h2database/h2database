@@ -119,7 +119,8 @@ public class TestCancel extends TestBase {
                 executeQuery("SELECT MAX(RAND()) FROM SYSTEM_RANGE(1, 100000000)");
         stat.setQueryTimeout(0);
         stat.execute("SET QUERY_TIMEOUT 1100");
-        assertEquals(2, stat.getQueryTimeout());
+        // explicit changes are not detected except, as documented
+        assertEquals(0, stat.getQueryTimeout());
         conn.close();
     }
 

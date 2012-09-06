@@ -36,11 +36,49 @@ public class TestCluster extends TestBase {
     }
 
     public void test() throws Exception {
+        testClob();
         testRecover();
         testRollback();
         testCase();
         testCreateClusterAtRuntime();
         testStartStopCluster();
+    }
+
+    private void testClob() throws SQLException {
+        if (config.memory || config.networked || config.cipher != null) {
+            return;
+        }
+        int port1 = 9191, port2 = 9192;
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
+        deleteFiles();
+
+        org.h2.Driver.load();
+        String user = getUser(), password = getPassword();
+        Connection conn;
+        Statement stat;
+
+        String url1 = "jdbc:h2:tcp://localhost:" + port1 + "/test";
+        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
+
+        conn = DriverManager.getConnection(url1, user, password);
+        stat = conn.createStatement();
+        stat.execute("create table t1(id int, name clob)");
+        stat.execute("insert into t1 values(1, repeat('Hello', 50))");
+        conn.close();
+
+        String url2 = "jdbc:h2:tcp://localhost:" + port2 + "/test";
+        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
+
+        String urlCluster = "jdbc:h2:tcp://" + serverList + "/test";
+        CreateCluster.main("-urlSource", url1, "-urlTarget", url2, "-user", user, "-password", password, "-serverList",
+                serverList);
+
+        conn = DriverManager.getConnection(urlCluster, user, password);
+        conn.close();
+
+        n1.stop();
+        n2.stop();
+        deleteFiles();
     }
 
     private void testRecover() throws SQLException {

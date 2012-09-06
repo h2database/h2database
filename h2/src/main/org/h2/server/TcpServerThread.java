@@ -303,7 +303,10 @@ public class TcpServerThread implements Runnable {
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
             int old = session.getModificationId();
-            ResultInterface result = command.executeQuery(maxRows, false);
+            ResultInterface result;
+            synchronized (session) {
+                result = command.executeQuery(maxRows, false);
+            }
             cache.addObject(objectId, result);
             int columnCount = result.getVisibleColumnCount();
             int state = getState(old);
@@ -325,7 +328,10 @@ public class TcpServerThread implements Runnable {
             Command command = (Command) cache.getObject(id, false);
             setParameters(command);
             int old = session.getModificationId();
-            int updateCount = command.executeUpdate();
+            int updateCount;
+            synchronized (session) {
+                updateCount = command.executeUpdate();
+            }
             int status;
             if (session.isClosed()) {
                 status = SessionRemote.STATUS_CLOSED;

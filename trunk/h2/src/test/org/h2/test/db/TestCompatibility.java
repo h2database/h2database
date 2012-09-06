@@ -133,7 +133,7 @@ public class TestCompatibility extends TestBase {
             String tableName = meta.getTableName(1);
             if ("ID".equals(columnName) && "TEST".equals(tableName)) {
                 assertTrue(mode + " mode should not support columnAlias", columnAlias.indexOf(mode) >= 0);
-            } else if ("I".equals(columnName) && tableName == null) {
+            } else if ("I".equals(columnName) && tableName.equals("")) {
                 assertTrue(mode + " mode should support columnAlias", columnAlias.indexOf(mode) < 0);
             } else {
                 fail();

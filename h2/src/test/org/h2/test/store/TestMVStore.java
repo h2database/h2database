@@ -151,6 +151,7 @@ public class TestMVStore extends TestBase {
             list.add(it.next());
         }
         assertEquals("[9, 10, 11, 12, 13, 14, 48, 49, 50, 87, 88, 89, 100]", list.toString());
+        s.close();
     }
 
     private void testVersion() {

@@ -175,11 +175,11 @@ function resortTable(link) {
     newRows.sort(sortCallback);
     var arrow;
     if (span.getAttribute("sortDir") == 'down') {
-        arrow = '&nbsp;<img src="sort_up.gif" with=7 height=10 border=0/>';
+        arrow = '&nbsp;<span style="color:gray">&#x25b2;</span>';
         newRows.reverse();
         span.setAttribute('sortDir','up');
     } else {
-        arrow = '&nbsp;<img src="sort_down.gif" with=7 height=10 border=0/>';
+        arrow = '&nbsp;<span style="color:gray">&#x25bc;</span>';
         span.setAttribute('sortDir','down');
     }
 

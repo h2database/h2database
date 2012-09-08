@@ -121,8 +121,8 @@ MERGE INTO TEST KEY(ID) VALUES(2, 'World')
 "
 
 "Commands (DML)","RUNSCRIPT","
-RUNSCRIPT FROM fileNameString [ scriptCompression ]
-[ CIPHER cipher PASSWORD string ] [ CHARSET charsetString ]
+RUNSCRIPT FROM fileNameString scriptCompressionEncryption
+[ CHARSET charsetString ]
 ","
 Runs a SQL script from a file. The script is a text file containing SQL
 statements; each statement must end with ';'. This command can be used to
@@ -132,8 +132,7 @@ case sensitive and can contain spaces.
 Instead of a file name, an URL may be used.
 To read a stream from the classpath, use the prefix 'classpath:'.
 
-The compression algorithm must match the one used when creating the script. When
-using encryption, only DEFLATE and LZF are supported (LZF is faster but uses more space).
+The compression algorithm must match the one used when creating the script.
 Instead of a file, an URL may be used.
 
 Admin rights are required to execute this command.
@@ -144,8 +143,7 @@ RUNSCRIPT FROM 'backup.sql'
 "Commands (DML)","SCRIPT","
 SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 [ DROP ] [ BLOCKSIZE blockSizeInt ]
-[ TO fileNameString [ scriptCompression ]
-    [ CIPHER cipher PASSWORD string ]
+[ TO fileNameString scriptCompressionEncryption
     [ CHARSET charsetString ] ]
 [ TABLE tableName [, ...] ]
 [ SCHEMA schemaName [, ...] ]
@@ -165,8 +163,7 @@ database files.
 
 If a file name is specified, then the whole
 script (including insert statements) is written to this file, and a result set
-without the insert statements is returned. When using encryption, only DEFLATE
-and LZF are supported (LZF is faster but uses more space).
+without the insert statements is returned.
 
 The password must be in single quotes; it is case sensitive and can contain spaces.
 
@@ -479,7 +476,8 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
 
 "Commands (DDL)","CREATE INDEX","
-CREATE { [ UNIQUE ] [ HASH ] INDEX [ [ IF NOT EXISTS ] newIndexName ]
+CREATE
+{ [ UNIQUE ] [ HASH ] INDEX [ [ IF NOT EXISTS ] newIndexName ]
     | PRIMARY KEY [ HASH ] }
 ON tableName ( indexColumn [,...] )
 ","
@@ -1928,10 +1926,11 @@ The action SET DEFAULT will set the column in the referencing (child) table to t
 FOREIGN KEY(ID) REFERENCES TEST(ID) ON UPDATE CASCADE
 "
 
-"Other Grammar","Script Compression","
-COMPRESSION { DEFLATE | LZF | ZIP | GZIP }
+"Other Grammar","Script Compression Encryption","
+[ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ] [ CIPHER cipher PASSWORD string ]
 ","
-The compression algorithm to use for script files.
+The compression and encryption algorithm to use for script files.
+When using encryption, only DEFLATE and LZF are supported.
 LZF is faster but uses more space.
 ","
 COMPRESSION LZF

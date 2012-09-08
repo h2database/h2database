@@ -48,15 +48,14 @@ MERGE INTO tableName [ ( columnName [,...] ) ]
 ","
 Updates existing rows, and insert rows that don't exist."
 "Commands (DML)","RUNSCRIPT","
-RUNSCRIPT FROM fileNameString [ scriptCompression ]
-[ CIPHER cipher PASSWORD string ] [ CHARSET charsetString ]
+RUNSCRIPT FROM fileNameString scriptCompressionEncryption
+[ CHARSET charsetString ]
 ","
 Runs a SQL script from a file."
 "Commands (DML)","SCRIPT","
 SCRIPT [ SIMPLE ] [ NODATA ] [ NOPASSWORDS ] [ NOSETTINGS ]
 [ DROP ] [ BLOCKSIZE blockSizeInt ]
-[ TO fileNameString [ scriptCompression ]
-    [ CIPHER cipher PASSWORD string ]
+[ TO fileNameString scriptCompressionEncryption
     [ CHARSET charsetString ] ]
 [ TABLE tableName [, ...] ]
 [ SCHEMA schemaName [, ...] ]
@@ -644,10 +643,10 @@ Defines a referential constraint."
 CASCADE | RESTRICT | NO ACTION | SET { DEFAULT | NULL }
 ","
 The action CASCADE will cause conflicting rows in the referencing (child) table to be deleted or updated."
-"Other Grammar","Script Compression","
-COMPRESSION { DEFLATE | LZF | ZIP | GZIP }
+"Other Grammar","Script Compression Encryption","
+[ COMPRESSION { DEFLATE | LZF | ZIP | GZIP } ] [ CIPHER cipher PASSWORD string ]
 ","
-The compression algorithm to use for script files."
+The compression and encryption algorithm to use for script files."
 "Other Grammar","Select Expression","
 * | expression [ [ AS ] columnAlias ] | tableAlias.*
 ","

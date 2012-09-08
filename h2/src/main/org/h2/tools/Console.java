@@ -392,12 +392,15 @@ ShutdownHandler {
 
             // Dimension d = tray.getTrayIconSize();
             Dimension d = (Dimension) Utils.callMethod(tray, "getTrayIconSize");
-
             String iconFile;
             if (d.width >= 24 && d.height >= 24) {
                 iconFile = "/org/h2/res/h2-24.png";
             } else if (d.width >= 22 && d.height >= 22) {
-                iconFile = "/org/h2/res/h2-22-t.png";
+                // for Mac OS X 10.8.1 with retina display:
+                // the reported resolution is 22 x 22, but the image
+                // is scaled and the real resolution is 44 x 44
+                iconFile = "/org/h2/res/h2-64-t.png";
+                // iconFile = "/org/h2/res/h2-22-t.png";
             } else {
                 iconFile = "/org/h2/res/h2.png";
             }

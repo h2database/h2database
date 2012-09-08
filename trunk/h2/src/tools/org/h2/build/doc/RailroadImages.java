@@ -20,10 +20,10 @@ import javax.imageio.ImageIO;
  */
 public class RailroadImages {
 
-    private static final int SIZE = 128;
+    private static final int SIZE = 64;
     private static final int LINE_REPEAT = 32;
-    private static final int DIV = 8;
-    private static final int STROKE = 16;
+    private static final int DIV = 2;
+    private static final int STROKE = 6;
 
     private String outDir;
 
@@ -47,14 +47,17 @@ public class RailroadImages {
         new File(out).mkdirs();
         BufferedImage img;
         Graphics2D g;
-        img = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_ARGB);
+
+        img = new BufferedImage(SIZE * 64, SIZE * LINE_REPEAT, BufferedImage.TYPE_INT_ARGB);
         g = img.createGraphics();
         for (int i = 0; i < 2; i++) {
             setStroke(g, i);
-            g.drawLine(0, SIZE / 2, SIZE, SIZE / 2);
+            g.drawLine(0, SIZE / 2, SIZE * 64, SIZE / 2);
         }
         g.dispose();
         savePng(img, "div-d.png");
+        img = null;
+
         img = new BufferedImage(SIZE, SIZE * LINE_REPEAT, BufferedImage.TYPE_INT_ARGB);
         g = img.createGraphics();
         for (int i = 0; i < 2; i++) {
@@ -67,6 +70,8 @@ public class RailroadImages {
         g.dispose();
         savePng(img, "div-ts.png");
         savePng(flipHorizontal(img), "div-te.png");
+        img = null;
+
         img = new BufferedImage(SIZE, SIZE * LINE_REPEAT, BufferedImage.TYPE_INT_ARGB);
         g = img.createGraphics();
         for (int i = 0; i < 2; i++) {
@@ -84,12 +89,13 @@ public class RailroadImages {
         g.dispose();
         savePng(img, "div-ks.png");
         savePng(flipHorizontal(img), "div-ke.png");
+        img = null;
     }
 
     private static void setStroke(Graphics2D g, int i) {
         if (i == 0) {
             g.setColor(Color.WHITE);
-            g.setStroke(new BasicStroke(STROKE * 2));
+            g.setStroke(new BasicStroke(STROKE * 3));
         } else {
             g.setColor(Color.BLACK);
             g.setStroke(new BasicStroke(STROKE));

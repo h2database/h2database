@@ -165,7 +165,8 @@ CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
 ","
 Creates a new data type (domain)."
 "Commands (DDL)","CREATE INDEX","
-CREATE { [ UNIQUE ] [ HASH ] INDEX [ [ IF NOT EXISTS ] newIndexName ]
+CREATE
+{ [ UNIQUE ] [ HASH ] INDEX [ [ IF NOT EXISTS ] newIndexName ]
     | PRIMARY KEY [ HASH ] }
 ON tableName ( indexColumn [,...] )
 ","

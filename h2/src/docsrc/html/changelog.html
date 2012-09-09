@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.169 (2012-09-09)</h2>
 <ul><li>The default jar file is now compiled for Java 6.
 </li><li>The new jar file will probably not end up in the central Maven repository
     in the next few weeks because Sonatype has disabled automatic synchronization
@@ -305,79 +309,6 @@ Change Log
 </li><li>The SQL statement "shutdown defrag" could corrupt the database if the process was killed
     while the shutdown was in progress. The same problem could occur when the database
     setting "defrag_always" was used.
-</li></ul>
-
-<h2>Version 1.3.158 (2011-07-17)</h2>
-<ul><li>Fulltext search (native): after re-opening the connection once the fulltext index was created,
-    a transaction rollback did not roll back the modifications in the index.
-</li><li>Support for ROW_NUMBER() OVER() as an alias for ROWNUM()
-    for compatibility with PostgreSQL and Apache Derby.
-</li><li>Issue 325: a deadlock in the fulltext search could occur if the connection that was
-    used while initializing the fulltext search was later used to query the database.
-    This was actually not only a problem for fulltext search, but also for other triggers
-    that used the initializing connection later on.
-</li><li>DATABASE_TO_UPPER: when set to false, all identifier names (table names, column names)
-    are case sensitive (except aggregate, built-in functions, data types, and keywords).
-    This is for improved compatibility with MySQL and PostgreSQL.
-</li><li>When upgrading from an older 1.3.x version to version 1.3.157, when using BLOB or CLOB data,
-    the database could only be opened once.
-</li><li>SUM on a boolean expression will now count the number of 'true' rows.
-</li><li>Simplified test cases using assertThrows(...).
-</li><li>A Java function that returns a result set that was generated using the provided connection
-    could cause an internal error in some cases. Now such result sets are copied early on.
-</li><li>Data type RESULT_SET: information_schema.function_aliases returned type 0; now type -10 is returned (the same as Oracle: OracleTypes.CURSOR = -10).
-</li><li>Data type RESULT_SET: tables with columns of type RESULT_SET could be created, but no data could be persisted in this column.
-</li><li>H2 Console: improved system tray icon for Mac OS X (transparent background).
-</li><li>String.toUpperCase() was used a few places, which is problematic when using the Turkish locale.
-    The method has been replaced with toUpperCase(Locale.ENGLISH) to solve such problems.
-</li><li>Shell tool: the built-in command "distinct" has been removed
-    (use the SQL statements "show tables" / "show columns from tableName" instead).
-    The result set formatting has been improved.
-</li><li>MERGE: if a unique key was violated (but not the primary key or the key columns of the merge itself),
-    the wrong exception was thrown.
-</li><li>IBM DB2 and Apache Derby compatibility: support the pseudo-table SYSIBM.SYSDUMMY1.
-</li><li>ROWNUM() did not work in combination with IN(..). The following query did not work as expected:
-    select * from (select rownum r from test) where r in (1, 2).
-</li><li>H2 Console autocomplete: the autocomplete feature didn't support quoted names.
-</li><li>It is now longer allowed to create an index on a CLOB or BLOB column
-    (except for in-memory databases or indexes), because recovery doesn't work
-    on such columns. Fulltext indexes on such column are still supported of course.
-</li><li>The PUBLIC schema could be renamed, which could result in a database that
-    can't be opened normally. Now it can no longer be renamed.
-    The schema INFORMATION_SCHEMA can also no longer be renamed.
-</li><li>Server mode: the problem with server and client using different
-    timezones with different daylight saving rules has been solved
-    (this only applies when both the client and the server use this or a newer version).
-</li><li>There is a new system property "h2.storeLocalTime" to avoid
-    problems opening a database file in a timezone that has different
-    daylight saving rules (see also below).
-</li><li>Date, time, and timestamp data type processing has been re-implemented.
-    Time now supports nanoseconds resolution and now now supports a wider range
-    (negative and large values), similar to PostgreSQL.
-</li><li>SQL statements with a non-breaking space were considered invalid.
-</li></ul>
-
-<h2>Version 1.3.157 (2011-06-25)</h2>
-<ul><li>The syntax for CREATE TABLE ... AS SELECT ... has been changed:
-    options such as NOT PERSISTENT are now before the query (AS SELECT), because otherwise
-    they might be interpreted as a part of the query.
-</li><li>With version 1.3.156, the DB2 mode could not be used with CLOB and BLOB data.
-</li><li>When upgrading from an older 1.3.x version to version 1.3.156,
-    CLOB and BLOB data was lost in many cases.
-</li><li>The optimization for COUNT(..) on columns that are not nullable
-    was also used for COUNT(DISTINCT ..), which is incorrect.
-</li><li>PgServer: non-admin users could not open a database.
-</li><li>Non-admin users could not open a database using a mode (MODE=xxx)
-    if the database was already open, even if the mode matched.
-</li><li>The SQL state of the following exceptions has been changed:
-    From 90009, 90010, 90011 to 22007: "Cannot parse DATE/TIME/TIMESTAMP constant ...".
-</li><li>There is a problem when opening a database file in a timezone that has different
-    daylight saving rules: the time part of dates where the daylight saving doesn't match
-    will differ. This is not a problem within regions that use the same rules (such as, within
-    USA, or within Europe), even if the timezone itself is different. As a workaround, export the
-    database to a SQL script using the old timezone, and create a new database in the new
-    timezone. The same problem occurs when accessing a database over TCP/IP if the client and server
-    timezones use different rules, if an old server or client is used.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

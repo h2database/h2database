@@ -41,6 +41,8 @@ public class TestMapFactory implements MapFactory {
             return RowType.fromString(s, this);
         case 's':
             return SpatialType.fromString(s);
+        case 'o':
+            return new ObjectType();
         }
         throw new RuntimeException("Unknown data type " + s);
     }
@@ -49,6 +51,8 @@ public class TestMapFactory implements MapFactory {
     public String getDataType(Class<?> objectClass) {
         if (objectClass == Integer.class) {
             return "i";
+        } else if (Object.class == Object.class) {
+            return "o";
         }
         throw new RuntimeException("Unsupported object class " + objectClass.toString());
     }

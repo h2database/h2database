@@ -398,7 +398,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      *
      * <pre>
      * Server server = Server.createWebServer(
-     *     new String[] { &quot;-trace&quot; }).start();
+     *     new String[] { "-trace" }).start();
      * </pre>
      *
      * @param args the argument list
@@ -416,7 +416,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      *
      * <pre>
      * Server server = Server.createTcpServer(
-     *     new String[] { &quot;-tcpAllowOthers&quot; }).start();
+     *     new String[] { "-tcpPort", "9123", "-tcpAllowOthers" }).start();
      * </pre>
      *
      * @param args the argument list

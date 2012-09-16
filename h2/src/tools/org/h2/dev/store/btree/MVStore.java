@@ -35,7 +35,6 @@ header:
 H:3,blockSize=4096,...
 
 TODO:
-- support all objects (using serialization)
 - concurrent iterator (when to increment version; read on first hasNext())
 - how to iterate (just) over deleted pages / entries
 - compact: use total max length instead of page count (liveCount)
@@ -60,6 +59,9 @@ TODO:
 - recovery: ensure data is not overwritten for 1 minute
 - pluggable caching (specially for in-memory file systems)
 - file locking
+- allocate memory Utils.newBytes
+- unified exception handling
+- check if locale specific string comparison can make data disappear
 
 */
 
@@ -73,7 +75,10 @@ public class MVStore {
      */
     public static final boolean ASSERT = false;
 
-    private static final StringType STRING_TYPE = new StringType();
+    /**
+     * A string data type.
+     */
+    public static final StringType STRING_TYPE = new StringType();
 
     private final String fileName;
     private final MapFactory mapFactory;
@@ -170,6 +175,41 @@ public class MVStore {
     }
 
     /**
+     * Open a map with the previous key and value type (if the map already
+     * exists), or Object if not.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param name the name of the map
+     * @return the map
+     */
+    public <K, V> MVMap<K, V> openMap(String name) {
+        String keyType = getDataType(Object.class);
+        String valueType = getDataType(Object.class);
+        @SuppressWarnings("unchecked")
+        MVMap<K, V> m = (MVMap<K, V>) openMap(name, "", keyType, valueType);
+        return m;
+    }
+
+    /**
+     * Open a map.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param name the name of the map
+     * @param keyClass the key class
+     * @param valueClass the value class
+     * @return the map
+     */
+    public <K, V> MVMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
+        String keyType = getDataType(keyClass);
+        String valueType = getDataType(valueClass);
+        @SuppressWarnings("unchecked")
+        MVMap<K, V> m = (MVMap<K, V>) openMap(name, "", keyType, valueType);
+        return m;
+    }
+
+    /**
      * Open a map.
      *
      * @param <T> the map type
@@ -187,6 +227,7 @@ public class MVStore {
             int id;
             long root;
             long createVersion;
+            // TODO use the json formatting for map metadata
             if (identifier == null) {
                 id = ++lastMapId;
                 createVersion = currentVersion;
@@ -257,24 +298,6 @@ public class MVStore {
                 return x;
             }
         }
-    }
-
-    /**
-     * Open a map.
-     *
-     * @param <K> the key type
-     * @param <V> the value type
-     * @param name the name of the map
-     * @param keyClass the key class
-     * @param valueClass the value class
-     * @return the map
-     */
-    public <K, V> MVMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
-        String keyType = getDataType(keyClass);
-        String valueType = getDataType(valueClass);
-        @SuppressWarnings("unchecked")
-        MVMap<K, V> m = (MVMap<K, V>) openMap(name, "", keyType, valueType);
-        return m;
     }
 
     /**

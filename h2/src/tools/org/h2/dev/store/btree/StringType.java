@@ -18,46 +18,23 @@ public class StringType implements DataType {
     }
 
     public int getMaxLength(Object obj) {
-        return DataUtils.MAX_VAR_INT_LEN + obj.toString().length() * 3;
+        return DataUtils.MAX_VAR_INT_LEN + 3 * obj.toString().length();
     }
 
     public int getMemory(Object obj) {
-        return obj.toString().length() * 2 + 48;
+        return 24 + 2 * obj.toString().length();
     }
 
     public String read(ByteBuffer buff) {
         int len = DataUtils.readVarInt(buff);
-        char[] chars = new char[len];
-        for (int i = 0; i < len; i++) {
-            int x = buff.get() & 0xff;
-            if (x < 0x80) {
-                chars[i] = (char) x;
-            } else if (x >= 0xe0) {
-                chars[i] = (char) (((x & 0xf) << 12) + ((buff.get() & 0x3f) << 6) + (buff.get() & 0x3f));
-            } else {
-                chars[i] = (char) (((x & 0x1f) << 6) + (buff.get() & 0x3f));
-            }
-        }
-        return new String(chars);
+        return DataUtils.readString(buff, len);
     }
 
     public void write(ByteBuffer buff, Object obj) {
         String s = obj.toString();
         int len = s.length();
         DataUtils.writeVarInt(buff, len);
-        for (int i = 0; i < len; i++) {
-            int c = s.charAt(i);
-            if (c < 0x80) {
-                buff.put((byte) c);
-            } else if (c >= 0x800) {
-                buff.put((byte) (0xe0 | (c >> 12)));
-                buff.put((byte) (((c >> 6) & 0x3f)));
-                buff.put((byte) (c & 0x3f));
-            } else {
-                buff.put((byte) (0xc0 | (c >> 6)));
-                buff.put((byte) (c & 0x3f));
-            }
-        }
+        DataUtils.writeStringData(buff, s, len);
     }
 
     public String asString() {

@@ -26,6 +26,7 @@ public class TestDataUtils extends TestBase {
 
     public void test() throws Exception {
         testMap();
+        testMaxShortVarIntVarLong();
         testVarIntVarLong();
         testCheckValue();
         testPagePos();
@@ -48,6 +49,22 @@ public class TestDataUtils extends TestBase {
         assertEquals(",", m.get("b"));
         assertEquals("1,2", m.get("c"));
         assertEquals("\"test\"", m.get("d"));
+    }
+
+    private void testMaxShortVarIntVarLong() {
+        ByteBuffer buff = ByteBuffer.allocate(100);
+        DataUtils.writeVarInt(buff, DataUtils.COMPRESSED_VAR_INT_MAX);
+        assertEquals(3, buff.position());
+        buff.rewind();
+        DataUtils.writeVarInt(buff, DataUtils.COMPRESSED_VAR_INT_MAX + 1);
+        assertEquals(4, buff.position());
+        buff.rewind();
+        DataUtils.writeVarLong(buff, DataUtils.COMPRESSED_VAR_LONG_MAX);
+        assertEquals(7, buff.position());
+        buff.rewind();
+        DataUtils.writeVarLong(buff, DataUtils.COMPRESSED_VAR_LONG_MAX + 1);
+        assertEquals(8, buff.position());
+        buff.rewind();
     }
 
     private void testVarIntVarLong() {

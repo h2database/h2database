@@ -43,6 +43,18 @@ public class DataUtils {
     public static final int MAX_VAR_LONG_LEN = 10;
 
     /**
+     * The maximum integer that needs less space when using variable size
+     * encoding (only 3 bytes instead of 4).
+     */
+    public static final int COMPRESSED_VAR_INT_MAX = 0x1fffff;
+
+    /**
+     * The maximum long that needs less space when using variable size
+     * encoding (only 7 bytes instead of 8).
+     */
+    public static final long COMPRESSED_VAR_LONG_MAX = 0x1ffffffffffffL;
+
+    /**
      * Get the length of the variable size int.
      *
      * @param x the value
@@ -147,6 +159,51 @@ public class DataUtils {
             x >>>= 7;
         }
         buff.put((byte) x);
+    }
+
+    /**
+     * Write characters from a string (without the length).
+     *
+     * @param buff the target buffer
+     * @param s the string
+     * @param len the number of characters
+     */
+    public static void writeStringData(ByteBuffer buff, String s, int len) {
+        for (int i = 0; i < len; i++) {
+            int c = s.charAt(i);
+            if (c < 0x80) {
+                buff.put((byte) c);
+            } else if (c >= 0x800) {
+                buff.put((byte) (0xe0 | (c >> 12)));
+                buff.put((byte) (((c >> 6) & 0x3f)));
+                buff.put((byte) (c & 0x3f));
+            } else {
+                buff.put((byte) (0xc0 | (c >> 6)));
+                buff.put((byte) (c & 0x3f));
+            }
+        }
+    }
+
+    /**
+     * Read a string.
+     *
+     * @param buff the source buffer
+     * @param len the number of characters
+     * @return the value
+     */
+    public static String readString(ByteBuffer buff, int len) {
+        char[] chars = new char[len];
+        for (int i = 0; i < len; i++) {
+            int x = buff.get() & 0xff;
+            if (x < 0x80) {
+                chars[i] = (char) x;
+            } else if (x >= 0xe0) {
+                chars[i] = (char) (((x & 0xf) << 12) + ((buff.get() & 0x3f) << 6) + (buff.get() & 0x3f));
+            } else {
+                chars[i] = (char) (((x & 0x1f) << 6) + (buff.get() & 0x3f));
+            }
+        }
+        return new String(chars);
     }
 
     /**

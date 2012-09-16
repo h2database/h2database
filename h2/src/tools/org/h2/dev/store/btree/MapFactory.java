@@ -7,7 +7,7 @@
 package org.h2.dev.store.btree;
 
 /**
- * A factory for data types.
+ * A factory for maps and data types.
  */
 public interface MapFactory {
 

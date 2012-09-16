@@ -12,7 +12,6 @@ import java.util.Random;
 import java.util.TreeMap;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.MVStore;
-import org.h2.jaqu.bytecode.Null;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -32,6 +31,7 @@ public class TestMVStore extends TestBase {
     }
 
     public void test() throws InterruptedException {
+        testObjects();
         testExample();
         testIterateOverChanges();
         testOpenStoreCloseLoop();
@@ -52,8 +52,31 @@ public class TestMVStore extends TestBase {
         testSimple();
     }
 
+    private void testObjects() {
+        String fileName = getBaseDir() + "/testObjects.h3";
+        FileUtils.delete(fileName);
+        MVStore s;
+        Map<Object, Object> map;
+        s = MVStore.open(fileName, new TestMapFactory());
+        map = s.openMap("test");
+        map.put(1,  "Hello");
+        map.put("2", 200);
+        map.put(new Object[1], new Object[]{1, "2"});
+        s.store();
+        s.close();
+        s = MVStore.open(fileName, new TestMapFactory());
+        map = s.openMap("test");
+        assertEquals("Hello", map.get(1).toString());
+        assertEquals(200, ((Integer) map.get("2")).intValue());
+        Object[] x = (Object[]) map.get(new Object[1]);
+        assertEquals(2, x.length);
+        assertEquals(1, ((Integer) x[0]).intValue());
+        assertEquals("2", (String) x[1]);
+        s.close();
+    }
+
     private void testExample() {
-        String fileName = getBaseDir() + "/testOpenClose.h3";
+        String fileName = getBaseDir() + "/testExample.h3";
         FileUtils.delete(fileName);
 
         // open the store (in-memory if fileName is null)
@@ -649,9 +672,26 @@ public class TestMVStore extends TestBase {
     }
 
     private void testKeyValueClasses() {
+        MVStore s;
+        s = MVStore.open(null);
+        s.openMap("test", String.class, String.class);
+        try {
+            s.openMap("unsupportedKey", ArrayList.class, String.class);
+            fail();
+        } catch (RuntimeException e) {
+            // expected
+        }
+        try {
+            s.openMap("unsupportedValue", String.class, ArrayList.class);
+            fail();
+        } catch (RuntimeException e) {
+            // expected
+        }
+        s.close();
+
         String fileName = getBaseDir() + "/testKeyValueClasses.h3";
         FileUtils.delete(fileName);
-        MVStore s = openStore(fileName);
+        s = openStore(fileName);
         MVMap<Integer, String> is = s.openMap("intString", Integer.class, String.class);
         is.put(1, "Hello");
         MVMap<Integer, Integer> ii = s.openMap("intInt", Integer.class, Integer.class);
@@ -660,18 +700,6 @@ public class TestMVStore extends TestBase {
         si.put("Test", 10);
         MVMap<String, String> ss = s.openMap("stringString", String.class, String.class);
         ss.put("Hello", "World");
-        try {
-            s.openMap("invalid", Null.class, Integer.class);
-            fail();
-        } catch (RuntimeException e) {
-            // expected
-        }
-        try {
-            s.openMap("invalid", Integer.class, Null.class);
-            fail();
-        } catch (RuntimeException e) {
-            // expected
-        }
         s.store();
         s.close();
         s = openStore(fileName);

@@ -16,8 +16,8 @@ public class ChangeCursor<K, V> extends Cursor<K, V> {
 
     private final long minVersion;
 
-    ChangeCursor(MVMap<K, V> map, long minVersion) {
-        super(map);
+    ChangeCursor(MVMap<K, V> map, Page root, K from, long minVersion) {
+        super(map, root, from);
         this.minVersion = minVersion;
     }
 

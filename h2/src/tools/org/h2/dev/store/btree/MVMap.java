@@ -28,9 +28,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     protected final MVStore store;
 
     /**
-     * The root page (may not be null).
+     * The current root page (may not be null).
      */
-    protected Page root;
+    protected volatile Page root;
 
     private final int id;
     private final String name;
@@ -291,7 +291,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     public void close() {
         closed = true;
         readOnly = true;
-        clearOldVersions();
+        removeAllOldVersions();
         root = null;
     }
 
@@ -366,6 +366,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
 
     protected void setRoot(Page newRoot) {
         if (root != newRoot) {
+            removeUnusedOldVersions();
             if (root.getVersion() != newRoot.getVersion()) {
                 ArrayList<Page> list = oldRoots;
                 if (list.size() > 0) {
@@ -447,9 +448,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      */
     public Iterator<K> keyIterator(K from) {
         checkOpen();
-        Cursor<K, V> c = new Cursor<K, V>(this);
-        c.start(root, from);
-        return c;
+        return new Cursor<K, V>(this, root, from);
     }
 
     /**
@@ -461,9 +460,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      */
     public Iterator<K> changeIterator(long minVersion) {
         checkOpen();
-        Cursor<K, V> c = new ChangeCursor<K, V>(this, minVersion);
-        c.start(root, null);
-        return c;
+        return new ChangeCursor<K, V>(this, root, null, minVersion);
     }
 
     public Set<Map.Entry<K, V>> entrySet() {
@@ -481,9 +478,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
 
             @Override
             public Iterator<K> iterator() {
-                Cursor<K, V> c = new Cursor<K, V>(MVMap.this);
-                c.start(root, null);
-                return c;
+                return new Cursor<K, V>(MVMap.this, root, null);
             }
 
             @Override
@@ -532,6 +527,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      */
     void rollbackTo(long version) {
         checkWrite();
+        removeUnusedOldVersions();
         if (version < createVersion) {
             removeMap();
         } else if (root.getVersion() != version) {
@@ -553,10 +549,37 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     /**
      * Forget all old versions.
      */
-    void clearOldVersions() {
+    void removeAllOldVersions() {
         // create a new instance
         // because another thread might iterate over it
         oldRoots = new ArrayList<Page>();
+    }
+
+    /**
+     * Forget those old versions that are no longer needed.
+     */
+    void removeUnusedOldVersions() {
+        long oldest = store.getRetainVersion();
+        if (oldest == -1) {
+            return;
+        }
+        ArrayList<Page> list = oldRoots;
+        int i = 0;
+        // TODO iterate over the list is inefficient
+        for (; i < list.size(); i++) {
+            Page p = list.get(i);
+            if (p.getVersion() > oldest) {
+                break;
+            }
+        }
+        if (i == 0) {
+            return;
+        }
+        // create a new instance
+        // because another thread might iterate over it
+        list = new ArrayList<Page>();
+        list.addAll(oldRoots.subList(i, oldRoots.size()));
+        oldRoots = list;
     }
 
     public void setReadOnly(boolean readOnly) {
@@ -669,6 +692,10 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         m.readOnly = true;
         m.root = newest;
         return m;
+    }
+
+    public long getVersion() {
+        return root.getVersion();
     }
 
 }

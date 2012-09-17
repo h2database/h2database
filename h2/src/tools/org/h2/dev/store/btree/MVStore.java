@@ -35,7 +35,6 @@ header:
 H:3,blockSize=4096,...
 
 TODO:
-- concurrent iterator (when to increment version; read on first hasNext())
 - how to iterate (just) over deleted pages / entries
 - compact: use total max length instead of page count (liveCount)
 - support background writes (store old version)
@@ -62,6 +61,7 @@ TODO:
 - allocate memory Utils.newBytes
 - unified exception handling
 - check if locale specific string comparison can make data disappear
+- concurrent map; avoid locking during IO (pre-load pages)
 
 */
 
@@ -113,6 +113,7 @@ public class MVStore {
     private int lastMapId;
 
     private boolean reuseSpace = true;
+    private long retainVersion = -1;
     private int retainChunk = -1;
 
     private Compressor compressor = new CompressLZF();
@@ -976,6 +977,19 @@ public class MVStore {
         this.retainChunk = retainChunk;
     }
 
+    /**
+     * Which version to retain. If not set, all versions up to the last stored version are retained.
+     *
+     * @param retainVersion the oldest version to retain
+     */
+    public void setRetainVersion(long retainVersion) {
+        this.retainVersion = retainVersion;
+    }
+
+    public long getRetainVersion() {
+        return retainVersion;
+    }
+
     private boolean isKnownVersion(long version) {
         if (version > currentVersion || version < 0) {
             return false;
@@ -1067,7 +1081,7 @@ public class MVStore {
     private void revertTemp() {
         freedChunks.clear();
         for (MVMap<?, ?> m : mapsChanged.values()) {
-            m.clearOldVersions();
+            m.removeAllOldVersions();
         }
         mapsChanged.clear();
     }

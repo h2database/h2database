@@ -5,6 +5,7 @@
  */
 package org.h2.test.store;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import org.h2.dev.store.btree.MVMap;
@@ -27,9 +28,46 @@ public class TestConcurrent extends TestMVStore {
     }
 
     public void test() throws InterruptedException {
+        testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
     }
+
+    private void testConcurrentIterate() {
+        MVStore s = MVStore.open(null, new TestMapFactory());
+        s.setMaxPageSize(3);
+        final MVMap<Integer, Integer> map = s.openMap("test");
+        final int len = 10;
+        final Random r = new Random();
+        Task t = new Task() {
+            @Override
+            public void call() throws Exception {
+                while (!stop) {
+                    int x = r.nextInt(len);
+                    if (r.nextBoolean()) {
+                        map.remove(x);
+                    } else {
+                        map.put(x, r.nextInt(100));
+                    }
+                }
+            }
+        };
+        t.execute();
+        for (int k = 0; k < 10000; k++) {
+            Iterator<Integer> it = map.keyIterator(r.nextInt(len));
+            long old = s.incrementVersion();
+            s.setRetainVersion(old - 100);
+            while (map.getVersion() == old) {
+                Thread.yield();
+            }
+            while (it.hasNext()) {
+                it.next();
+            }
+        }
+        t.get();
+        s.close();
+    }
+
 
     /**
      * Test what happens on concurrent write. Concurrent write may corrupt the

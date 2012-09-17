@@ -31,6 +31,7 @@ public class TestMVStore extends TestBase {
     }
 
     public void test() throws InterruptedException {
+        testIterateOldVersion();
         testObjects();
         testExample();
         testIterateOverChanges();
@@ -50,6 +51,29 @@ public class TestMVStore extends TestBase {
         testKeyValueClasses();
         testIterate();
         testSimple();
+    }
+
+    private void testIterateOldVersion() {
+        MVStore s;
+        Map<Integer, Integer> map;
+        s = MVStore.open(null, new TestMapFactory());
+        map = s.openMap("test");
+        int len = 100;
+        for (int i = 0; i < len; i++) {
+            map.put(i, 10 * i);
+        }
+        Iterator<Integer> it = map.keySet().iterator();
+        s.incrementVersion();
+        for (int i = 0; i < len; i += 2) {
+            map.remove(i);
+        }
+        int count = 0;
+        while (it.hasNext()) {
+            it.next();
+            count++;
+        }
+        assertEquals(len, count);
+        s.close();
     }
 
     private void testObjects() {

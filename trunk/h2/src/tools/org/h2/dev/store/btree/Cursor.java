@@ -18,28 +18,22 @@ import java.util.Iterator;
 public class Cursor<K, V> implements Iterator<K> {
 
     protected final MVMap<K, V> map;
-    protected final ArrayList<CursorPos> parents = new ArrayList<CursorPos>();
+    protected final Page root;
+    protected final K from;
+    protected ArrayList<CursorPos> parents;
     protected CursorPos currentPos;
     protected K current;
 
-    Cursor(MVMap<K, V> map) {
+    Cursor(MVMap<K, V> map, Page root, K from) {
         this.map = map;
-    }
-
-    /**
-     * Fetch the first key.
-     *
-     * @param root the root page
-     * @param from the key, or null
-     */
-    void start(Page root, K from) {
-        currentPos = min(root, from);
-        if (currentPos != null) {
-            fetchNext();
-        }
+        this.root = root;
+        this.from = from;
     }
 
     public K next() {
+        if (!hasNext()) {
+            return null;
+        }
         K c = current;
         if (c != null) {
             fetchNext();
@@ -56,6 +50,14 @@ public class Cursor<K, V> implements Iterator<K> {
     }
 
     public boolean hasNext() {
+        if (parents == null) {
+            // not initialized yet: fetch the first key
+            parents = new ArrayList<CursorPos>();
+            currentPos = min(root, from);
+            if (currentPos != null) {
+                fetchNext();
+            }
+        }
         return current != null;
     }
 

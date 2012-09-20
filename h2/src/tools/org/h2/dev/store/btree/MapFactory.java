@@ -6,6 +6,8 @@
  */
 package org.h2.dev.store.btree;
 
+import org.h2.compress.Compressor;
+
 /**
  * A factory for maps and data types.
  */
@@ -34,6 +36,13 @@ public interface MapFactory {
      * @return the type
      */
     DataType buildDataType(String dataType);
+
+    /**
+     * Create a new compressor.
+     *
+     * @return the compressor
+     */
+    Compressor buildCompressor();
 
     /**
      * Get the data type object for the given class.

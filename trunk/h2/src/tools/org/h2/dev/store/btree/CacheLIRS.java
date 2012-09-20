@@ -19,8 +19,7 @@ import java.util.Set;
  * costly to acquire, for example file content.
  * <p>
  * This implementation is not multi-threading save. Null keys or null values are
- * not allowed. There is no guard against bad hash functions, so it is important
- * to the hash function of the key is good. The map fill factor is at most 75%.
+ * not allowed. The map fill factor is at most 75%.
  * <p>
  * Each entry is assigned a distinct memory size, and the cache will try to use
  * at most the specified amount of memory. The memory unit is not relevant,
@@ -269,7 +268,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
         e.key = key;
         e.value = value;
         e.memory = memory;
-        int index = key.hashCode() & mask;
+        int index = getIndex(key);
         e.mapNext = entries[index];
         entries[index] = e;
         usedMemory += memory;
@@ -283,6 +282,15 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
         return old;
     }
 
+    private int getIndex(Object key) {
+        int hash = key.hashCode();
+        // Doug Lea's supplemental secondaryHash function (inlined)
+        // to protect against hash codes that don't differ in low order bits
+        hash ^= (hash >>> 20) ^ (hash >>> 12);
+        hash ^= (hash >>> 7) ^ (hash >>> 4);
+        return hash & mask;
+    }
+
     /**
      * Remove an entry. Both resident and non-resident entries can be removed.
      *
@@ -290,8 +298,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
      * @return the old value, or null if there is no resident entry
      */
     public V remove(Object key) {
-        int hash = key.hashCode();
-        int index = hash & mask;
+        int index = getIndex(key);
         Entry<K, V> e = entries[index];
         if (e == null) {
             return null;
@@ -397,8 +404,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
      * @return the entry (might be a non-resident)
      */
     private Entry<K, V> find(Object key) {
-        int hash = key.hashCode();
-        Entry<K, V> e = entries[hash & mask];
+        int index = getIndex(key);
+        Entry<K, V> e = entries[index];
         while (e != null && !e.key.equals(key)) {
             e = e.mapNext;
         }
@@ -484,7 +491,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     }
 
     /**
-     * Check whether there is a resident entry for the given key.
+     * Check whether there is a resident entry for the given key. This method
+     * does not adjusts the internal state of the cache.
      *
      * @param key the key (may not be null)
      * @return true if there is a resident entry

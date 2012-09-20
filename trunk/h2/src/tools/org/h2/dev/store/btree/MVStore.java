@@ -16,7 +16,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.dev.store.FilePathCache;
 import org.h2.store.fs.FilePath;
@@ -116,7 +115,7 @@ public class MVStore {
     private long retainVersion = -1;
     private int retainChunk = -1;
 
-    private Compressor compressor = new CompressLZF();
+    private Compressor compressor;
 
     private long currentVersion = 1;
     private int readCount;
@@ -125,6 +124,7 @@ public class MVStore {
     private MVStore(String fileName, MapFactory mapFactory) {
         this.fileName = fileName;
         this.mapFactory = mapFactory;
+        this.compressor = mapFactory.buildCompressor();
     }
 
     /**
@@ -943,12 +943,8 @@ public class MVStore {
         return maxPageSize;
     }
 
-    public Compressor getCompressor() {
+    Compressor getCompressor() {
         return compressor;
-    }
-
-    public void setCompressor(Compressor compressor) {
-        this.compressor = compressor;
     }
 
     public boolean getReuseSpace() {

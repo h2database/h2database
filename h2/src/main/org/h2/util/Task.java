@@ -47,7 +47,17 @@ public abstract class Task implements Runnable {
      * @return this
      */
     public Task execute() {
-        thread = new Thread(this, getClass().getName());
+        return execute(getClass().getName());
+    }
+
+    /**
+     * Start the thread.
+     *
+     * @param threadName the name of the thread
+     * @return this
+     */
+    public Task execute(String threadName) {
+        thread = new Thread(this, threadName);
         thread.setDaemon(true);
         thread.start();
         return this;

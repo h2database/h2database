@@ -3267,7 +3267,7 @@ DAY_OF_YEAR(CREATED)
 "
 
 "Functions (Time and Date)","EXTRACT","
-EXTRACT ( { YEAR | YY | MONTH | MM | DAY | DD | DAY_OF_YEAR
+EXTRACT ( { YEAR | YY | MONTH | MM | WEEK | DAY | DD | DAY_OF_YEAR
     | DOY | HOUR | HH | MINUTE | MI | SECOND | SS | MILLISECOND | MS }
     FROM timestamp )
 ","

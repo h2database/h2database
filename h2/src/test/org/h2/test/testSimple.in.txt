@@ -361,6 +361,8 @@ select extract(hour from '2001-02-03 14:15:16');
 > 14;
 select hour('2001-02-03 14:15:16');
 > 14;
+select extract(week from timestamp '2001-02-03 14:15:16');
+> 5;
 
 CREATE TABLE TEST(A int NOT NULL, B int NOT NULL, C int) ;
 ALTER TABLE TEST ADD CONSTRAINT CON UNIQUE(A,B);

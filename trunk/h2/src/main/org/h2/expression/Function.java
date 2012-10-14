@@ -129,6 +129,7 @@ public class Function extends Expression implements FunctionCall {
         DATE_PART.put("SQL_TSI_WEEK", Calendar.WEEK_OF_YEAR);
         DATE_PART.put("WW", Calendar.WEEK_OF_YEAR);
         DATE_PART.put("WK", Calendar.WEEK_OF_YEAR);
+        DATE_PART.put("WEEK", Calendar.WEEK_OF_YEAR);
         DATE_PART.put("DAY", Calendar.DAY_OF_MONTH);
         DATE_PART.put("DD", Calendar.DAY_OF_MONTH);
         DATE_PART.put("D", Calendar.DAY_OF_MONTH);

@@ -18,7 +18,7 @@ import java.util.Set;
  * A scan resistant cache. It is meant to cache objects that are relatively
  * costly to acquire, for example file content.
  * <p>
- * This implementation is multi-threading save and supports concurrent access.
+ * This implementation is multi-threading safe and supports concurrent access.
  * Null keys or null values are not allowed. The map fill factor is at most 75%.
  * <p>
  * Each entry is assigned a distinct memory size, and the cache will try to use
@@ -84,7 +84,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Map<
 
     /**
      * Check whether there is a resident entry for the given key. This method
-     * does not adjusts the internal state of the cache.
+     * does not adjust the internal state of the cache.
      *
      * @param key the key (may not be null)
      * @return true if there is a resident entry
@@ -321,7 +321,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Map<
     }
 
     /**
-     * Get the list of keys. This method allows to view the internal state of
+     * Get the list of keys. This method allows a view of the internal state of
      * the cache.
      *
      * @param cold if true, only keys for the cold entries are returned
@@ -477,7 +477,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Map<
         V get(Object key, int hash) {
             Entry<K, V> e = find(key, hash);
             if (e == null) {
-                // either the entry was not found
+                // the entry was not found
                 return null;
             }
             V value = e.value;
@@ -511,7 +511,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Map<
             if (e.isHot()) {
                 if (e != stack.stackNext) {
                     if (stackMoveDistance == 0 || stackMoveCounter - e.topMove > stackMoveDistance) {
-                        // move a hot entries to the top of the stack
+                        // move a hot entry to the top of the stack
                         // unless it is already there
                         boolean wasEnd = e == stack.stackPrev;
                         removeFromStack(e);

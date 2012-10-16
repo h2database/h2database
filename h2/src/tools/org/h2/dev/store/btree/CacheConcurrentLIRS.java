@@ -1,8 +1,18 @@
 /*
- * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2012 H2 Group (http://h2database.com).
+ * All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.h2.dev.store.btree;
 
@@ -37,8 +47,8 @@ import java.util.concurrent.ConcurrentMap;
  * an individual LIRS cache.
  * <p>
  * Accessed entries are only moved to the top of the stack if at least a number
- * of other entries have been moved to the front. Write access and moving
- * entries to the top of the stack is synchronized per segment.
+ * of other entries have been moved to the front (1% by default). Write access
+ * and moving entries to the top of the stack is synchronized per segment.
  *
  * @author Thomas Mueller
  * @param <K> the key type
@@ -126,7 +136,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      */
     public V put(K key, V value, int memory) {
         int hash = getHash(key);
-        return getSegment(hash).put(key, value, hash, memory);
+        return getSegment(hash).put(key, hash, value, memory);
     }
 
     /**
@@ -141,50 +151,23 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
     }
 
     public V putIfAbsent(K key, V value) {
-        int todo;
-        if (containsKey(key)) {
-            return get(key);
-        }
-        return put(key, value);
+        int hash = getHash(key);
+        return getSegment(hash).putIfAbsent(key, hash, value);
     }
 
     public boolean remove(Object key, Object value) {
-        int todo;
-        Entry<K, V> e = find(key);
-        if (e != null) {
-            V x = e.value;
-            if (x != null && x.equals(value)) {
-                remove(key);
-                return true;
-            }
-        }
-        return false;
+        int hash = getHash(key);
+        return getSegment(hash).remove(key, hash, value);
     }
 
     public boolean replace(K key, V oldValue, V newValue) {
-        int todo;
-        Entry<K, V> e = find(key);
-        if (e != null) {
-            V x = e.value;
-            if (x != null && x.equals(oldValue)) {
-                put(key, newValue);
-                return true;
-            }
-        }
-        return false;
+        int hash = getHash(key);
+        return getSegment(hash).replace(key, hash, oldValue, newValue);
     }
 
     public V replace(K key, V value) {
-        int todo;
-        Entry<K, V> e = find(key);
-        if (e != null) {
-            V x = e.value;
-            if (x != null) {
-                put(key, value);
-                return x;
-            }
-        }
-        return null;
+        int hash = getHash(key);
+        return getSegment(hash).replace(key, hash, value);
     }
 
     /**
@@ -305,9 +288,19 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
     }
 
     /**
-     * Create a new cache with the given memory size. To just limit the number
-     * of entries, use the required number as the maximum memory, and an average
-     * size of 1.
+     * Create a new cache with the given number of entries, and the default
+     * settings (an average size of 1 per entry, 16 segments, and stack move
+     * distance equals to the max entry size divided by 100).
+     *
+     * @param maxEntries the maximum number of entries
+     * @return the cache
+     */
+    public static <K, V> CacheConcurrentLIRS<K, V> newInstance(int maxEntries) {
+        return new CacheConcurrentLIRS<K, V>(maxEntries, 1, 16, maxEntries / 100);
+    }
+
+    /**
+     * Create a new cache with the given memory size.
      *
      * @param maxMemory the maximum memory to use (1 or larger)
      * @param averageMemory the average memory (1 or larger)
@@ -622,11 +615,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             }
         }
 
-        V put(K key, V value, int hash) {
-            return put(key, value, hash, averageMemory);
-        }
-
-        synchronized V put(K key, V value, int hash, int memory) {
+        synchronized V put(K key, int hash, V value, int memory) {
             if (value == null) {
                 throw new NullPointerException();
             }
@@ -654,6 +643,50 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             // added entries are always added to the stack
             addToStack(e);
             return old;
+        }
+
+        synchronized V putIfAbsent(K key, int hash, V value) {
+            Entry<K, V> e = find(key, hash);
+            if (e != null && e.value != null) {
+                return e.value;
+            }
+            return put(key, hash, value, averageMemory);
+        }
+
+        synchronized boolean remove(Object key, int hash, Object value) {
+            Entry<K, V> e = find(key, hash);
+            if (e != null) {
+                V x = e.value;
+                if (x != null && x.equals(value)) {
+                    remove(key, hash);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        synchronized boolean replace(K key, int hash, V oldValue, V newValue) {
+            Entry<K, V> e = find(key, hash);
+            if (e != null) {
+                V x = e.value;
+                if (x != null && x.equals(oldValue)) {
+                    put(key, hash, newValue, averageMemory);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        synchronized V replace(K key, int hash, V value) {
+            Entry<K, V> e = find(key, hash);
+            if (e != null) {
+                V x = e.value;
+                if (x != null) {
+                    put(key, hash, value, averageMemory);
+                    return x;
+                }
+            }
+            return null;
         }
 
         synchronized V remove(Object key, int hash) {

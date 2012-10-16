@@ -31,7 +31,7 @@ public class TestCacheConcurrentLIRS extends TestBase {
     }
 
     private static void testConcurrent() {
-        final CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(100, 1);
+        final CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(100);
         int threadCount = 8;
         final CountDownLatch wait = new CountDownLatch(1);
         final AtomicBoolean stopped = new AtomicBoolean();

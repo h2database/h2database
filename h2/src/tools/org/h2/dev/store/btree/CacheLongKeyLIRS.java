@@ -53,25 +53,29 @@ public class CacheLongKeyLIRS<V> {
 
     private Segment<V>[] segments;
 
+    private int segmentCount;
     private int segmentShift;
     private int segmentMask;
+    private final int stackMoveDistance;
 
-    private CacheLongKeyLIRS(long maxMemory, int averageMemory) {
-        this.maxMemory = maxMemory;
-        this.averageMemory = averageMemory;
+    private CacheLongKeyLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
+        setMaxMemory(maxMemory);
+        setAverageMemory(averageMemory);
+        if (Integer.bitCount(segmentCount) != 1) {
+            throw new IllegalArgumentException("The segment count must be a power of 2, is " + segmentCount);
+        }
+        this.segmentCount = segmentCount;
+        this.stackMoveDistance = stackMoveDistance;
         clear();
     }
 
     @SuppressWarnings("unchecked")
     public void clear() {
-        // must be a power of 2
-        int count = 16;
-        segmentMask = count - 1;
-        segments = new Segment[count];
-        long max = 1 + maxMemory / segments.length;
-        for (int i = 0; i < count; i++) {
+        segmentMask = segmentCount - 1;
+        segments = new Segment[segmentCount];
+        for (int i = 0; i < segmentCount; i++) {
             segments[i] = new Segment<V>(
-                    max, averageMemory);
+                    1 + maxMemory / segmentCount, averageMemory, stackMoveDistance);
         }
         segmentShift = Integer.numberOfTrailingZeros(segments[0].sizeMapArray());
     }
@@ -117,7 +121,7 @@ public class CacheLongKeyLIRS<V> {
      */
     public V put(long key, V value, int memory) {
         int hash = getHash(key);
-        return getSegment(hash).put(key, value, hash, memory);
+        return getSegment(hash).put(key, hash, value, memory);
     }
 
     /**
@@ -205,9 +209,11 @@ public class CacheLongKeyLIRS<V> {
             throw new IllegalArgumentException("Max memory must be larger than 0");
         }
         this.maxMemory = maxMemory;
-        long max = 1 + maxMemory / segments.length;
-        for (Segment<V> s : segments) {
-            s.setMaxMemory(max);
+        if (segments != null) {
+            long max = 1 + maxMemory / segments.length;
+            for (Segment<V> s : segments) {
+                s.setMaxMemory(max);
+            }
         }
     }
 
@@ -222,8 +228,10 @@ public class CacheLongKeyLIRS<V> {
             throw new IllegalArgumentException("Average memory must be larger than 0");
         }
         this.averageMemory = averageMemory;
-        for (Segment<V> s : segments) {
-            s.setAverageMemory(averageMemory);
+        if (segments != null) {
+            for (Segment<V> s : segments) {
+                s.setAverageMemory(averageMemory);
+            }
         }
     }
 
@@ -246,6 +254,18 @@ public class CacheLongKeyLIRS<V> {
     }
 
     /**
+     * Create a new cache with the given number of entries, and the default
+     * settings (an average size of 1 per entry, 16 segments, and stack move
+     * distance equals to the max entry size divided by 100).
+     *
+     * @param maxEntries the maximum number of entries
+     * @return the cache
+     */
+    public static <K, V> CacheLongKeyLIRS<V> newInstance(int maxEntries) {
+        return new CacheLongKeyLIRS<V>(maxEntries, 1, 16, maxEntries / 100);
+    }
+
+    /**
      * Create a new cache with the given memory size. To just limit the number
      * of entries, use the required number as the maximum memory, and an average
      * size of 1.
@@ -254,8 +274,9 @@ public class CacheLongKeyLIRS<V> {
      * @param averageMemory the average memory (1 or larger)
      * @return the cache
      */
-    public static <V> CacheLongKeyLIRS<V> newInstance(int maxMemory, int averageMemory) {
-        return new CacheLongKeyLIRS<V>(maxMemory, averageMemory);
+    public static <V> CacheLongKeyLIRS<V> newInstance(int maxMemory, int averageMemory,
+            int segmentCount, int stackMoveDistance) {
+        return new CacheLongKeyLIRS<V>(maxMemory, averageMemory, segmentCount, stackMoveDistance);
     }
 
     /**
@@ -397,12 +418,11 @@ public class CacheLongKeyLIRS<V> {
      */
     static class Segment<V> {
 
-
         /**
          * How many other item are to be moved to the top of the stack before
          * the current item is moved.
          */
-        private int stackMoveDistance = 20;
+        private final int stackMoveDistance;
 
         /**
          * The maximum memory this cache should use.
@@ -476,10 +496,13 @@ public class CacheLongKeyLIRS<V> {
          *
          * @param maxMemory the maximum memory to use
          * @param averageMemory the average memory usage of an object
+         * @param stackMoveDistance the number of other entries to be moved to
+         *        the top of the stack before moving an entry to the top
          */
-        Segment(long maxMemory, int averageMemory) {
+        Segment(long maxMemory, int averageMemory, int stackMoveDistance) {
             setMaxMemory(maxMemory);
             setAverageMemory(averageMemory);
+            this.stackMoveDistance = stackMoveDistance;
             clear();
         }
 
@@ -594,11 +617,7 @@ public class CacheLongKeyLIRS<V> {
             }
         }
 
-        V put(long key, V value, int hash) {
-            return put(key, value, hash, averageMemory);
-        }
-
-        synchronized V put(long key, V value, int hash, int memory) {
+        synchronized V put(long key, int hash, V value, int memory) {
             if (value == null) {
                 throw new NullPointerException();
             }

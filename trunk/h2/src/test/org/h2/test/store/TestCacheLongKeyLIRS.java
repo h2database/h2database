@@ -41,7 +41,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testEdgeCases() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(1, 1);
+        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(1);
         test.put(1, 10, 100);
         assertEquals(10, test.get(1).intValue());
         try {
@@ -90,16 +90,16 @@ public class TestCacheLongKeyLIRS extends TestBase {
 
     private void verifyMapSize(int elements, int mapSize) {
         CacheLongKeyLIRS<Integer> test;
-        test = CacheLongKeyLIRS.newInstance(elements - 1, 1);
+        test = CacheLongKeyLIRS.newInstance(elements - 1);
         assertTrue(mapSize > test.sizeMapArray());
-        test = CacheLongKeyLIRS.newInstance(elements, 1);
+        test = CacheLongKeyLIRS.newInstance(elements);
         assertEquals(mapSize, test.sizeMapArray());
-        test = CacheLongKeyLIRS.newInstance(elements * 100, 100);
+        test = CacheLongKeyLIRS.newInstance(elements * 100, 100, 16, 10);
         assertEquals(mapSize, test.sizeMapArray());
     }
 
     private void testGetPutPeekRemove() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(4, 1);
+        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(4);
         test.put(1,  10);
         test.put(2,  20);
         test.put(3,  30);
@@ -216,7 +216,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testPruneStack() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(5, 1);
+        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(5);
         for (int i = 0; i < 7; i++) {
             test.put(i, i * 10);
         }
@@ -235,7 +235,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testClear() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(40, 10);
+        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(40, 10, 16, 1);
         for (int i = 0; i < 5; i++) {
             test.put(i, 10 * i, 9);
         }
@@ -284,7 +284,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testLimitHot() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(100, 1);
+        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(100);
         for (int i = 0; i < 300; i++) {
             test.put(i, 10 * i);
         }
@@ -294,7 +294,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testLimitNonResident() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(4, 1);
+        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(4);
         for (int i = 0; i < 20; i++) {
             test.put(i, 10 * i);
         }
@@ -305,7 +305,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         boolean log = false;
         int size = 20;
         // cache size 11 (10 hot, 1 cold)
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(size / 2 + 1, 1);
+        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(size / 2 + 1);
         // init the cache with some dummy entries
         for (int i = 0; i < size; i++) {
             test.put(-i, -i * 10);
@@ -359,7 +359,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         int size = 10;
         Random r = new Random(1);
         for (int j = 0; j < 100; j++) {
-            CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(size / 2, 1);
+            CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(size / 2);
             HashMap<Integer, Integer> good = New.hashMap();
             for (int i = 0; i < 10000; i++) {
                 int key = r.nextInt(size);

@@ -6,19 +6,28 @@
  */
 package org.h2.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.LineNumberReader;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.util.ArrayList;
 import java.lang.instrument.Instrumentation;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 
 /**
- * A simple CPU profiling tool similar to java -Xrunhprof.
+ * A simple CPU profiling tool similar to java -Xrunhprof. It can be used
+ * in-process (to profile the current application) or as a standalone program
+ * (to profile a different process).
  */
 public class Profiler implements Runnable {
 
     private static Instrumentation instrumentation;
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator", "\n");
     private static final int MAX_ELEMENTS = 1000;
 
     public int interval = 2;
@@ -26,13 +35,15 @@ public class Profiler implements Runnable {
     public boolean paused;
     public boolean sumClasses;
 
-    private String[] ignoreLines = StringUtils.arraySplit("", ',', true);
-    private String[] ignorePackages = StringUtils.arraySplit(
+    private int pid;
+
+    private String[] ignoreLines = {};
+    private String[] ignorePackages = (
             "java," +
             "sun," +
-            "com.sun.,"
-            , ',', true);
-    private String[] ignoreThreads = StringUtils.arraySplit(
+            "com.sun."
+            ).split(",");
+    private String[] ignoreThreads = (
             "java.lang.Object.wait," +
             "java.lang.Thread.dumpThreads," +
             "java.lang.Thread.getThreads," +
@@ -46,7 +57,8 @@ public class Profiler implements Runnable {
             "sun.misc.Unsafe.park," +
             "dalvik.system.VMStack.getThreadStackTrace," +
             "dalvik.system.NativeStart.run"
-            , ',', true);
+            ).split(",");
+
     private volatile boolean stop;
     private HashMap<String, Integer> counts = new HashMap<String, Integer>();
 
@@ -58,6 +70,7 @@ public class Profiler implements Runnable {
     private int minCount = 1;
     private int total;
     private Thread thread;
+    private long start;
     private long time;
 
     /**
@@ -77,6 +90,144 @@ public class Profiler implements Runnable {
      */
     public static Instrumentation getInstrumentation() {
         return instrumentation;
+    }
+
+    /**
+     * Run the command line version of the profiler. The JDK (jps and jstack)
+     * need to be in the path.
+     *
+     * @param args the process id of the process - if not set the java processes
+     *        are listed
+     */
+    public static void main(String... args) {
+        new Profiler().run(args);
+    }
+
+    void run(String... args) {
+        if (args.length == 0) {
+            System.out.println("Show profiling data");
+            System.out.println("Usage: " + getClass().getName() + " <pid>");
+            System.out.println("Processes:");
+            String processes = exec("jps", "-l");
+            System.out.println(processes);
+            return;
+        }
+        pid = Integer.parseInt(args[0]);
+        start = System.currentTimeMillis();
+        long last = 0;
+        while (true) {
+            tick();
+            long t = System.currentTimeMillis();
+            if (t - last > 5000) {
+                time = System.currentTimeMillis() - start;
+                System.out.println(getTopTraces(3));
+                last = t;
+            }
+        }
+    }
+
+    private static List<Object[]> getRunnableStackTraces() {
+        ArrayList<Object[]> list = new ArrayList<Object[]>();
+        Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
+        for (Map.Entry<Thread, StackTraceElement[]> entry : map.entrySet()) {
+            Thread t = entry.getKey();
+            if (t.getState() != Thread.State.RUNNABLE) {
+                continue;
+            }
+            StackTraceElement[] dump = entry.getValue();
+            if (dump == null || dump.length == 0) {
+                continue;
+            }
+            list.add(dump);
+        }
+        return list;
+    }
+
+    private static List<Object[]> readRunnableStackTraces(int pid) {
+        ArrayList<Object[]> list = new ArrayList<Object[]>();
+        try {
+            String jstack = exec("jstack", "" + pid);
+            LineNumberReader r = new LineNumberReader(new StringReader(jstack));
+            while (true) {
+                String line = r.readLine();
+                if (line == null) {
+                    break;
+                }
+                if (!line.startsWith("\"")) {
+                    // not a thread
+                    continue;
+                }
+                line = r.readLine();
+                if (line == null) {
+                    break;
+                }
+                line = line.trim();
+                if (!line.startsWith("java.lang.Thread.State: RUNNABLE")) {
+                    continue;
+                }
+                ArrayList<String> stack = new ArrayList<String>();
+                while (true) {
+                    line = r.readLine();
+                    if (line == null) {
+                        break;
+                    }
+                    line = line.trim();
+                    if (line.startsWith("- ")) {
+                        continue;
+                    }
+                    if (!line.startsWith("at ")) {
+                        break;
+                    }
+                    line = line.substring(3).trim();
+                    stack.add(line);
+                }
+                if (stack.size() > 0) {
+                    String[] s = stack.toArray(new String[stack.size()]);
+                    list.add(s);
+                }
+            }
+            return list;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String exec(String... args) {
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            Process p = Runtime.getRuntime().exec(args);
+            copyInThread(p.getInputStream(), out);
+            copyInThread(p.getErrorStream(), err);
+            p.waitFor();
+            String e = new String(err.toByteArray(), "UTF-8");
+            if (e.length() > 0) {
+                throw new RuntimeException(e);
+            }
+            String output = new String(out.toByteArray(), "UTF-8");
+            return output;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void copyInThread(final InputStream in, final OutputStream out) {
+        new Thread("Profiler stream copy") {
+            public void run() {
+                byte[] buffer = new byte[4096];
+                try {
+                    while (true) {
+                        int len = in.read(buffer, 0, buffer.length);
+                        if (len < 0) {
+                            break;
+                        }
+                        out.write(buffer, 0, len);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }.run();
     }
 
     /**
@@ -104,7 +255,7 @@ public class Profiler implements Runnable {
     }
 
     public void run() {
-        time = System.currentTimeMillis();
+        start = System.currentTimeMillis();
         while (!stop) {
             try {
                 tick();
@@ -112,7 +263,7 @@ public class Profiler implements Runnable {
                 break;
             }
         }
-        time = System.currentTimeMillis() - time;
+        time = System.currentTimeMillis() - start;
     }
 
     private void tick() {
@@ -126,16 +277,14 @@ public class Profiler implements Runnable {
                 // ignore
             }
         }
-        Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
-        for (Map.Entry<Thread, StackTraceElement[]> entry : map.entrySet()) {
-            Thread t = entry.getKey();
-            if (t.getState() != Thread.State.RUNNABLE) {
-                continue;
-            }
-            StackTraceElement[] dump = entry.getValue();
-            if (dump == null || dump.length == 0) {
-                continue;
-            }
+
+        List<Object[]> list;
+        if (pid != 0) {
+            list = readRunnableStackTraces(pid);
+        } else {
+            list = getRunnableStackTraces();
+        }
+        for (Object[] dump : list) {
             if (startsWithAny(dump[0].toString(), ignoreThreads)) {
                 continue;
             }
@@ -147,7 +296,7 @@ public class Profiler implements Runnable {
                 String el = dump[i].toString();
                 if (!el.equals(last) && !startsWithAny(el, ignoreLines)) {
                     last = el;
-                    buff.append("at ").append(el).append(SysProperties.LINE_SEPARATOR);
+                    buff.append("at ").append(el).append(LINE_SEPARATOR);
                     if (!packageCounts && !startsWithAny(el, ignorePackages)) {
                         packageCounts = true;
                         int index = 0;
@@ -215,15 +364,21 @@ public class Profiler implements Runnable {
      */
     public String getTop(int count) {
         stopCollecting();
+        return getTopTraces(count);
+    }
+
+    public String getTopTraces(int count) {
         StringBuilder buff = new StringBuilder();
         buff.append("Profiler: top ").append(count).append(" stack trace(s) of ").append(time).
-            append(" ms [build-").append(Constants.BUILD_ID).append("]:").append(SysProperties.LINE_SEPARATOR);
+            append(" ms:").append(LINE_SEPARATOR);
         if (counts.size() == 0) {
-            buff.append("(none)").append(SysProperties.LINE_SEPARATOR);
+            buff.append("(none)").append(LINE_SEPARATOR);
         }
-        appendTop(buff, counts, count, total, false);
-        buff.append("summary:").append(SysProperties.LINE_SEPARATOR);
-        appendTop(buff, summary, count, total, true);
+        HashMap<String, Integer> copy = new HashMap<String, Integer>(counts);
+        appendTop(buff, copy, count, total, false);
+        buff.append("summary:").append(LINE_SEPARATOR);
+        copy = new HashMap<String, Integer>(summary);
+        appendTop(buff, copy, count, total, true);
         buff.append('.');
         return buff.toString();
     }
@@ -254,14 +409,14 @@ public class Profiler implements Runnable {
                 if (percent > 1) {
                     buff.append(percent).
                         append("%: ").append(best.getKey()).
-                        append(SysProperties.LINE_SEPARATOR);
+                        append(LINE_SEPARATOR);
                 }
             } else {
                 buff.append(c).append('/').append(total).append(" (").
                     append(percent).
-                    append("%):").append(SysProperties.LINE_SEPARATOR).
+                    append("%):").append(LINE_SEPARATOR).
                     append(best.getKey()).
-                    append(SysProperties.LINE_SEPARATOR);
+                    append(LINE_SEPARATOR);
             }
         }
     }

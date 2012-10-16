@@ -18,7 +18,7 @@ import java.util.Set;
  * A scan resistant cache. It is meant to cache objects that are relatively
  * costly to acquire, for example file content.
  * <p>
- * This implementation is not multi-threading save. Null keys or null values are
+ * This implementation is not multi-threading safe. Null keys or null values are
  * not allowed. The map fill factor is at most 75%.
  * <p>
  * Each entry is assigned a distinct memory size, and the cache will try to use
@@ -201,7 +201,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             return null;
         } else if (e.isHot()) {
             if (e != stack.stackNext) {
-                // move a hot entries to the top of the stack
+                // move a hot entry to the top of the stack
                 // unless it is already there
                 boolean wasEnd = e == stack.stackPrev;
                 removeFromStack(e);
@@ -343,21 +343,25 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
 
     /**
      * Evict cold entries (resident and non-resident) until the memory limit is
-     * reached.
+     * reached. The new entry is added as a cold entry, except if it is the only
+     * entry.
      *
-     * @param newCold a new cold entry
+     * @param newEntry a new entry
      */
-    private void evict(Entry<K, V> newCold) {
+    private void evict(Entry<K, V> newEntry) {
         // ensure there are not too many hot entries:
         // left shift of 5 is multiplication by 32, that means if there are less
         // than 1/32 (3.125%) cold entries, a new hot entry needs to become cold
         while ((queueSize << 5) < mapSize) {
             convertOldestHotToCold();
         }
-        // the new cold entry is at the top of the queue
-        addToQueue(queue, newCold);
+        if (stackSize > 0) {
+            // the new cold entry is at the top of the queue
+            addToQueue(queue, newEntry);
+        }
         // the oldest resident cold entries become non-resident
-        while (usedMemory > maxMemory) {
+        // but at least one cold entry (the new one) must stay
+        while (usedMemory > maxMemory && queueSize > 1) {
             Entry<K, V> e = queue.queuePrev;
             usedMemory -= e.memory;
             removeFromQueue(e);
@@ -459,7 +463,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     }
 
     /**
-     * Get the list of keys. This method allows to view the internal state of
+     * Get the list of keys. This method allows to read the internal state of
      * the cache.
      *
      * @param cold if true, only keys for the cold entries are returned
@@ -492,7 +496,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
 
     /**
      * Check whether there is a resident entry for the given key. This method
-     * does not adjusts the internal state of the cache.
+     * does not adjust the internal state of the cache.
      *
      * @param key the key (may not be null)
      * @return true if there is a resident entry

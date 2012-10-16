@@ -8,7 +8,7 @@ package org.h2.test.store;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.h2.dev.store.btree.CacheConcurrentLIRS;
+import org.h2.dev.store.btree.CacheLongKeyLIRS;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -31,12 +31,25 @@ public class TestCacheConcurrentLIRS extends TestBase {
     }
 
     private static void testConcurrent() {
-        final CacheConcurrentLIRS<Integer, Integer> test = CacheConcurrentLIRS.newInstance(100, 1);
+        final CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(100, 1);
         int threadCount = 8;
         final CountDownLatch wait = new CountDownLatch(1);
         final AtomicBoolean stopped = new AtomicBoolean();
         Task[] tasks = new Task[threadCount];
         final int[] getCounts = new int[threadCount];
+        final int offset = 1000000;
+        for (int i = 0; i < 100; i++) {
+            test.put(offset + i, i);
+        }
+        final int[] keys = new int[1000];
+        Random random = new Random(1);
+        for (int i = 0; i < keys.length; i++) {
+            int key;
+            do {
+                key = (int) Math.abs(random.nextGaussian() * 50);
+            } while (key > 100);
+            keys[i] = key;
+        }
         for (int i = 0; i < threadCount; i++) {
             final int x = i;
             Task t = new Task() {
@@ -46,13 +59,10 @@ public class TestCacheConcurrentLIRS extends TestBase {
                     wait.await();
                     int i = 0;
                     for (; !stopped.get(); i++) {
-                        int key;
-                        do {
-                            key = (int) Math.abs(random.nextGaussian() * 50);
-                        } while (key > 100);
-                        test.get(key);
+                        int key = keys[random.nextInt(keys.length)];
+                        test.get(offset + key);
                         if ((i & 127) == 0) {
-                            test.put(random.nextInt(100), random.nextInt());
+                            test.put(offset + random.nextInt(100), random.nextInt());
                         }
                     }
                     getCounts[x] = i;

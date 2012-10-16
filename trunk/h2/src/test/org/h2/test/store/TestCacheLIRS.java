@@ -82,6 +82,18 @@ public class TestCacheLIRS extends TestBase {
         verifyMapSize(769, 2048);
 
         CacheLIRS<Integer, Integer> test;
+        test = CacheLIRS.newInstance(3, 10);
+        test.put(0, 0, 9);
+        test.put(1, 10, 9);
+        test.put(2, 20, 9);
+        test.put(3, 30, 9);
+        test.put(4, 40, 9);
+
+        test = CacheLIRS.newInstance(1, 1);
+        test.put(1, 10);
+        test.put(0, 0);
+        test.get(0);
+
         test = CacheLIRS.newInstance(1000, 1);
         for (int j = 0; j < 2000; j++) {
             test.put(j, j);

@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-import org.h2.dev.store.btree.CacheLIRS;
+import org.h2.dev.store.cache.CacheLIRS;
 import org.h2.test.TestBase;
 import org.h2.util.New;
 
@@ -29,6 +29,10 @@ public class TestCacheLIRS extends TestBase {
     }
 
     public void test() throws Exception {
+        testCache();
+    }
+
+    private void testCache() {
         testEdgeCases();
         testSize();
         testClear();
@@ -42,7 +46,7 @@ public class TestCacheLIRS extends TestBase {
     }
 
     private void testEdgeCases() {
-        CacheLIRS<Integer, Integer> test = CacheLIRS.newInstance(1, 1);
+        CacheLIRS<Integer, Integer> test = createCache(1);
         test.put(1, 10, 100);
         assertEquals(10, test.get(1).intValue());
         try {
@@ -82,19 +86,19 @@ public class TestCacheLIRS extends TestBase {
         verifyMapSize(769, 2048);
 
         CacheLIRS<Integer, Integer> test;
-        test = CacheLIRS.newInstance(3, 10);
+        test = createCache(3, 10);
         test.put(0, 0, 9);
         test.put(1, 10, 9);
         test.put(2, 20, 9);
         test.put(3, 30, 9);
         test.put(4, 40, 9);
 
-        test = CacheLIRS.newInstance(1, 1);
+        test = createCache(1, 1);
         test.put(1, 10);
         test.put(0, 0);
         test.get(0);
 
-        test = CacheLIRS.newInstance(1000, 1);
+        test = createCache(1000);
         for (int j = 0; j < 2000; j++) {
             test.put(j, j);
         }
@@ -106,18 +110,18 @@ public class TestCacheLIRS extends TestBase {
         assertEquals(968, test.sizeNonResident());
     }
 
-    private void verifyMapSize(int elements, int mapSize) {
+    private void verifyMapSize(int elements, int expectedMapSize) {
         CacheLIRS<Integer, Integer> test;
-        test = CacheLIRS.newInstance(elements - 1, 1);
-        assertTrue(mapSize > test.sizeMapArray());
-        test = CacheLIRS.newInstance(elements, 1);
-        assertEquals(mapSize, test.sizeMapArray());
-        test = CacheLIRS.newInstance(elements * 100, 100);
-        assertEquals(mapSize, test.sizeMapArray());
+        test = createCache(elements - 1);
+        assertTrue(test.sizeMapArray() < expectedMapSize);
+        test = createCache(elements);
+        assertEquals(expectedMapSize, test.sizeMapArray());
+        test = createCache(elements * 100, 100);
+        assertEquals(expectedMapSize, test.sizeMapArray());
     }
 
     private void testGetPutPeekRemove() {
-        CacheLIRS<Integer, Integer> test = CacheLIRS.newInstance(4, 1);
+        CacheLIRS<Integer, Integer> test = createCache(4);
         test.put(1,  10);
         test.put(2,  20);
         test.put(3,  30);
@@ -234,7 +238,7 @@ public class TestCacheLIRS extends TestBase {
     }
 
     private void testPruneStack() {
-        CacheLIRS<Integer, Integer> test = CacheLIRS.newInstance(5, 1);
+        CacheLIRS<Integer, Integer> test = createCache(5);
         for (int i = 0; i < 7; i++) {
             test.put(i, i * 10);
         }
@@ -253,7 +257,7 @@ public class TestCacheLIRS extends TestBase {
     }
 
     private void testClear() {
-        CacheLIRS<Integer, Integer> test = CacheLIRS.newInstance(40, 10);
+        CacheLIRS<Integer, Integer> test = createCache(40, 10);
         for (int i = 0; i < 5; i++) {
             test.put(i, 10 * i, 9);
         }
@@ -302,7 +306,7 @@ public class TestCacheLIRS extends TestBase {
     }
 
     private void testLimitHot() {
-        CacheLIRS<Integer, Integer> test = CacheLIRS.newInstance(100, 1);
+        CacheLIRS<Integer, Integer> test = createCache(100);
         for (int i = 0; i < 300; i++) {
             test.put(i, 10 * i);
         }
@@ -312,7 +316,7 @@ public class TestCacheLIRS extends TestBase {
     }
 
     private void testLimitNonResident() {
-        CacheLIRS<Integer, Integer> test = CacheLIRS.newInstance(4, 1);
+        CacheLIRS<Integer, Integer> test = createCache(4);
         for (int i = 0; i < 20; i++) {
             test.put(i, 10 * i);
         }
@@ -347,7 +351,7 @@ public class TestCacheLIRS extends TestBase {
 
         }
 
-        CacheLIRS<BadHash, Integer> test = CacheLIRS.newInstance(size * 2, 1);
+        CacheLIRS<BadHash, Integer> test = createCache(size * 2);
         for (int i = 0; i < size; i++) {
             test.put(new BadHash(i), i);
         }
@@ -386,7 +390,7 @@ public class TestCacheLIRS extends TestBase {
         boolean log = false;
         int size = 20;
         // cache size 11 (10 hot, 1 cold)
-        CacheLIRS<Integer, Integer> test = CacheLIRS.newInstance(size / 2 + 1, 1);
+        CacheLIRS<Integer, Integer> test = createCache(size / 2 + 1);
         // init the cache with some dummy entries
         for (int i = 0; i < size; i++) {
             test.put(-i, -i * 10);
@@ -440,7 +444,7 @@ public class TestCacheLIRS extends TestBase {
         int size = 10;
         Random r = new Random(1);
         for (int j = 0; j < 100; j++) {
-            CacheLIRS<Integer, Integer> test = CacheLIRS.newInstance(size / 2, 1);
+            CacheLIRS<Integer, Integer> test = createCache(size / 2);
             HashMap<Integer, Integer> good = New.hashMap();
             for (int i = 0; i < 10000; i++) {
                 int key = r.nextInt(size);
@@ -522,6 +526,14 @@ public class TestCacheLIRS extends TestBase {
             K lastStack = stack.get(stack.size() - 1);
             assertTrue(hot.contains(lastStack));
         }
+    }
+
+    private static <K, V> CacheLIRS<K, V> createCache(int maxElements) {
+        return createCache(maxElements, 1);
+    }
+
+    private static <K, V> CacheLIRS<K, V> createCache(int maxSize, int averageSize) {
+        return CacheLIRS.newInstance(maxSize, averageSize, 1, 0);
     }
 
 }

@@ -1,33 +1,21 @@
 /*
- * Copyright 2012 H2 Group (http://h2database.com).
- * All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2004-2012 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
-package org.h2.dev.store.btree;
+package org.h2.dev.store.cache;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
 /**
- * A scan resistant cache. It is meant to cache objects that are relatively
- * costly to acquire, for example file content.
+ * A scan resistant cache that uses keys of type long. It is meant to cache
+ * objects that are relatively costly to acquire, for example file content.
  * <p>
  * This implementation is multi-threading safe and supports concurrent access.
  * Null keys or null values are not allowed. The map fill factor is at most 75%.
@@ -51,10 +39,9 @@ import java.util.concurrent.ConcurrentMap;
  * and moving entries to the top of the stack is synchronized per segment.
  *
  * @author Thomas Mueller
- * @param <K> the key type
  * @param <V> the value type
  */
-public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> {
+public class CacheLongKeyLIRS<V> {
 
     /**
      * The maximum memory this cache should use.
@@ -66,14 +53,14 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      */
     private int averageMemory;
 
-    private Segment<K, V>[] segments;
+    private Segment<V>[] segments;
 
     private int segmentCount;
     private int segmentShift;
     private int segmentMask;
     private final int stackMoveDistance;
 
-    private CacheConcurrentLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
+    private CacheLongKeyLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
         setMaxMemory(maxMemory);
         setAverageMemory(averageMemory);
         if (Integer.bitCount(segmentCount) != 1) {
@@ -89,13 +76,14 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
         segmentMask = segmentCount - 1;
         segments = new Segment[segmentCount];
         for (int i = 0; i < segmentCount; i++) {
-            segments[i] = new Segment<K, V>(
-                    1 + maxMemory / segmentCount, averageMemory, stackMoveDistance);
+            long max = Math.max(1, maxMemory / segmentCount);
+            segments[i] = new Segment<V>(
+                    max, averageMemory, stackMoveDistance);
         }
         segmentShift = Integer.numberOfTrailingZeros(segments[0].sizeMapArray());
     }
 
-    private Entry<K, V> find(Object key) {
+    private Entry<V> find(long key) {
         int hash = getHash(key);
         return getSegment(hash).find(key, hash);
     }
@@ -107,7 +95,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param key the key (may not be null)
      * @return true if there is a resident entry
      */
-    public boolean containsKey(Object key) {
+    public boolean containsKey(long key) {
         int hash = getHash(key);
         return getSegment(hash).containsKey(key, hash);
     }
@@ -119,8 +107,8 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param key the key (may not be null)
      * @return the value, or null if there is no resident entry
      */
-    public V peek(K key) {
-        Entry<K, V> e = find(key);
+    public V peek(long key) {
+        Entry<V> e = find(key);
         return e == null ? null : e.value;
     }
 
@@ -134,7 +122,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param memory the memory used for the given entry
      * @return the old value, or null if there is no resident entry
      */
-    public V put(K key, V value, int memory) {
+    public V put(long key, V value, int memory) {
         int hash = getHash(key);
         return getSegment(hash).put(key, hash, value, memory);
     }
@@ -146,28 +134,8 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param value the value (may not be null)
      * @return the old value, or null if there is no resident entry
      */
-    public V put(K key, V value) {
+    public V put(long key, V value) {
         return put(key, value, averageMemory);
-    }
-
-    public V putIfAbsent(K key, V value) {
-        int hash = getHash(key);
-        return getSegment(hash).putIfAbsent(key, hash, value);
-    }
-
-    public boolean remove(Object key, Object value) {
-        int hash = getHash(key);
-        return getSegment(hash).remove(key, hash, value);
-    }
-
-    public boolean replace(K key, V oldValue, V newValue) {
-        int hash = getHash(key);
-        return getSegment(hash).replace(key, hash, oldValue, newValue);
-    }
-
-    public V replace(K key, V value) {
-        int hash = getHash(key);
-        return getSegment(hash).replace(key, hash, value);
     }
 
     /**
@@ -176,7 +144,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param key the key (may not be null)
      * @return the old value, or null if there is no resident entry
      */
-    public synchronized V remove(Object key) {
+    public synchronized V remove(long key) {
         int hash = getHash(key);
         return getSegment(hash).remove(key, hash);
     }
@@ -187,7 +155,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param key the key (may not be null)
      * @return the memory, or 0 if there is no resident entry
      */
-    public int getMemory(K key) {
+    public int getMemory(long key) {
         int hash = getHash(key);
         return getSegment(hash).getMemory(key, hash);
     }
@@ -200,18 +168,18 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param key the key (may not be null)
      * @return the value, or null if there is no resident entry
      */
-    public V get(Object key) {
+    public V get(long key) {
         int hash = getHash(key);
         return getSegment(hash).get(key, hash);
     }
 
-    private Segment<K, V> getSegment(int hash) {
+    private Segment<V> getSegment(int hash) {
         int segmentIndex = (hash >>> segmentShift) & segmentMask;
         return segments[segmentIndex];
     }
 
-    static int getHash(Object key) {
-        int hash = key.hashCode();
+    static int getHash(long key) {
+        int hash = (int) ((key >>> 32) ^ key);
         // Doug Lea's supplemental secondaryHash function (inlined)
         // to protect against hash codes that don't differ in low order bits
         hash ^= (hash >>> 20) ^ (hash >>> 12);
@@ -226,28 +194,10 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      */
     public long getUsedMemory() {
         long x = 0;
-        for (Segment<K, V> s : segments) {
+        for (Segment<V> s : segments) {
             x += s.getUsedMemory();
         }
         return x;
-    }
-
-    /**
-     * Set the average memory used per entry. It is used to calculate the length
-     * of the internal array.
-     *
-     * @param averageMemory the average memory used (1 or larger)
-     */
-    public void setAverageMemory(int averageMemory) {
-        if (averageMemory <= 0) {
-            throw new IllegalArgumentException("Average memory must be larger than 0");
-        }
-        this.averageMemory = averageMemory;
-        if (segments != null) {
-            for (Segment<K, V> s : segments) {
-                s.setAverageMemory(averageMemory);
-            }
-        }
     }
 
     /**
@@ -263,8 +213,27 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
         }
         this.maxMemory = maxMemory;
         if (segments != null) {
-            for (Segment<K, V> s : segments) {
-                s.setMaxMemory(1 + maxMemory / segments.length);
+            long max = 1 + maxMemory / segments.length;
+            for (Segment<V> s : segments) {
+                s.setMaxMemory(max);
+            }
+        }
+    }
+
+    /**
+     * Set the average memory used per entry. It is used to calculate the length
+     * of the internal array.
+     *
+     * @param averageMemory the average memory used (1 or larger)
+     */
+    public void setAverageMemory(int averageMemory) {
+        if (averageMemory <= 0) {
+            throw new IllegalArgumentException("Average memory must be larger than 0");
+        }
+        this.averageMemory = averageMemory;
+        if (segments != null) {
+            for (Segment<V> s : segments) {
+                s.setAverageMemory(averageMemory);
             }
         }
     }
@@ -295,8 +264,8 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param maxEntries the maximum number of entries
      * @return the cache
      */
-    public static <K, V> CacheConcurrentLIRS<K, V> newInstance(int maxEntries) {
-        return new CacheConcurrentLIRS<K, V>(maxEntries, 1, 16, maxEntries / 100);
+    public static <K, V> CacheLongKeyLIRS<V> newInstance(int maxEntries) {
+        return new CacheLongKeyLIRS<V>(maxEntries, 1, 16, maxEntries / 100);
     }
 
     /**
@@ -309,9 +278,9 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      *        of the stack before the current item is moved
      * @return the cache
      */
-    public static <K, V> CacheConcurrentLIRS<K, V> newInstance(int maxMemory,
-            int averageMemory, int segmentCount, int stackMoveDistance) {
-        return new CacheConcurrentLIRS<K, V>(maxMemory, averageMemory, segmentCount, stackMoveDistance);
+    public static <V> CacheLongKeyLIRS<V> newInstance(int maxMemory, int averageMemory,
+            int segmentCount, int stackMoveDistance) {
+        return new CacheLongKeyLIRS<V>(maxMemory, averageMemory, segmentCount, stackMoveDistance);
     }
 
     /**
@@ -319,9 +288,9 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      *
      * @return the entry set
      */
-    public synchronized Set<Map.Entry<K, V>> entrySet() {
-        HashMap<K, V> map = new HashMap<K, V>();
-        for (K k : keySet()) {
+    public synchronized Set<Map.Entry<Long, V>> entrySet() {
+        HashMap<Long, V> map = new HashMap<Long, V>();
+        for (long k : keySet()) {
             map.put(k,  find(k).value);
         }
         return map.entrySet();
@@ -332,9 +301,9 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      *
      * @return the set of keys
      */
-    public synchronized Set<K> keySet() {
-        HashSet<K> set = new HashSet<K>();
-        for (Segment<K, V> s : segments) {
+    public synchronized Set<Long> keySet() {
+        HashSet<Long> set = new HashSet<Long>();
+        for (Segment<V> s : segments) {
             set.addAll(s.keySet());
         }
         return set;
@@ -347,7 +316,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      */
     public int sizeNonResident() {
         int x = 0;
-        for (Segment<K, V> s : segments) {
+        for (Segment<V> s : segments) {
             x += s.sizeNonResident();
         }
         return x;
@@ -360,7 +329,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      */
     public int sizeMapArray() {
         int x = 0;
-        for (Segment<K, V> s : segments) {
+        for (Segment<V> s : segments) {
             x += s.sizeMapArray();
         }
         return x;
@@ -373,7 +342,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      */
     public int sizeHot() {
         int x = 0;
-        for (Segment<K, V> s : segments) {
+        for (Segment<V> s : segments) {
             x += s.sizeHot();
         }
         return x;
@@ -386,7 +355,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      */
     public int size() {
         int x = 0;
-        for (Segment<K, V> s : segments) {
+        for (Segment<V> s : segments) {
             x += s.size();
         }
         return x;
@@ -400,21 +369,62 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param nonResident true for non-resident entries
      * @return the key list
      */
-    public synchronized List<K> keys(boolean cold, boolean nonResident) {
-        ArrayList<K> keys = new ArrayList<K>();
-        for (Segment<K, V> s : segments) {
+    public synchronized List<Long> keys(boolean cold, boolean nonResident) {
+        ArrayList<Long> keys = new ArrayList<Long>();
+        for (Segment<V> s : segments) {
             keys.addAll(s.keys(cold, nonResident));
         }
         return keys;
     }
 
     /**
+     * Get the values for all resident entries.
+     *
+     * @return the entry set
+     */
+    public List<V> values() {
+        ArrayList<V> list = new ArrayList<V>();
+        for (long k : keySet()) {
+            V value = find(k).value;
+            if (value != null) {
+                list.add(value);
+            }
+        }
+        return list;
+    }
+
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    public boolean containsValue(Object value) {
+        return getMap().containsValue(value);
+    }
+
+    public Map<Long, V> getMap() {
+        HashMap<Long, V> map = new HashMap<Long, V>();
+        for (long k : keySet()) {
+            V x = find(k).value;
+            if (x != null) {
+                map.put(k, x);
+            }
+        }
+        return map;
+    }
+
+    public void putAll(Map<Long, ? extends V> m) {
+        for (Map.Entry<Long, ? extends V> e : m.entrySet()) {
+            // copy only non-null entries
+            put(e.getKey(), e.getValue());
+        }
+    }
+
+    /**
      * A cache segment
      *
-     * @param <K> the key type
      * @param <V> the value type
      */
-    static class Segment<K, V> {
+    static class Segment<V> {
 
         /**
          * How many other item are to be moved to the top of the stack before
@@ -466,23 +476,23 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
         /**
          * The map array. The size is always a power of 2.
          */
-        private Entry<K, V>[] entries;
+        private Entry<V>[] entries;
 
         /**
          * The stack of recently referenced elements. This includes all hot entries,
          * the recently referenced cold entries, and all non-resident cold entries.
          */
-        private Entry<K, V> stack;
+        private Entry<V> stack;
 
         /**
          * The queue of resident cold entries.
          */
-        private Entry<K, V> queue;
+        private Entry<V> queue;
 
         /**
          * The queue of non-resident cold entries.
          */
-        private Entry<K, V> queue2;
+        private Entry<V> queue2;
 
         /**
          * The number of times any item was moved to the top of the stack.
@@ -520,17 +530,17 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             mask = len - 1;
 
             // initialize the stack and queue heads
-            stack = new Entry<K, V>();
+            stack = new Entry<V>();
             stack.stackPrev = stack.stackNext = stack;
-            queue = new Entry<K, V>();
+            queue = new Entry<V>();
             queue.queuePrev = queue.queueNext = queue;
-            queue2 = new Entry<K, V>();
+            queue2 = new Entry<V>();
             queue2.queuePrev = queue2.queueNext = queue2;
 
             // first set to null - avoiding out of memory
             entries = null;
             @SuppressWarnings("unchecked")
-            Entry<K, V>[] e = new Entry[len];
+            Entry<V>[] e = new Entry[len];
             entries = e;
 
             mapSize = 0;
@@ -538,18 +548,18 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             stackSize = queueSize = queue2Size = 0;
         }
 
-        V peek(K key, int hash) {
-            Entry<K, V> e = find(key, hash);
+        V peek(long key, int hash) {
+            Entry<V> e = find(key, hash);
             return e == null ? null : e.value;
         }
 
-        int getMemory(K key, int hash) {
-            Entry<K, V> e = find(key, hash);
+        int getMemory(long key, int hash) {
+            Entry<V> e = find(key, hash);
             return e == null ? 0 : e.memory;
         }
 
-        V get(Object key, int hash) {
-            Entry<K, V> e = find(key, hash);
+        V get(long key, int hash) {
+            Entry<V> e = find(key, hash);
             if (e == null) {
                 // the entry was not found
                 return null;
@@ -577,8 +587,8 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
          *
          * @param key the key
          */
-        private synchronized void access(Object key, int hash) {
-            Entry<K, V> e = find(key, hash);
+        private synchronized void access(long key, int hash) {
+            Entry<V> e = find(key, hash);
             if (e == null || e.value == null) {
                 return;
             }
@@ -615,19 +625,19 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             }
         }
 
-        synchronized V put(K key, int hash, V value, int memory) {
+        synchronized V put(long key, int hash, V value, int memory) {
             if (value == null) {
                 throw new NullPointerException();
             }
             V old;
-            Entry<K, V> e = find(key, hash);
+            Entry<V> e = find(key, hash);
             if (e == null) {
                 old = null;
             } else {
                 old = e.value;
                 remove(key, hash);
             }
-            e = new Entry<K, V>();
+            e = new Entry<V>();
             e.key = key;
             e.value = value;
             e.memory = memory;
@@ -645,69 +655,25 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             return old;
         }
 
-        synchronized V putIfAbsent(K key, int hash, V value) {
-            Entry<K, V> e = find(key, hash);
-            if (e != null && e.value != null) {
-                return e.value;
-            }
-            return put(key, hash, value, averageMemory);
-        }
-
-        synchronized boolean remove(Object key, int hash, Object value) {
-            Entry<K, V> e = find(key, hash);
-            if (e != null) {
-                V x = e.value;
-                if (x != null && x.equals(value)) {
-                    remove(key, hash);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        synchronized boolean replace(K key, int hash, V oldValue, V newValue) {
-            Entry<K, V> e = find(key, hash);
-            if (e != null) {
-                V x = e.value;
-                if (x != null && x.equals(oldValue)) {
-                    put(key, hash, newValue, averageMemory);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        synchronized V replace(K key, int hash, V value) {
-            Entry<K, V> e = find(key, hash);
-            if (e != null) {
-                V x = e.value;
-                if (x != null) {
-                    put(key, hash, value, averageMemory);
-                    return x;
-                }
-            }
-            return null;
-        }
-
-        synchronized V remove(Object key, int hash) {
+        synchronized V remove(long key, int hash) {
             int index = hash & mask;
-            Entry<K, V> e = entries[index];
+            Entry<V> e = entries[index];
             if (e == null) {
                 return null;
             }
             V old;
-            if (e.key.equals(key)) {
+            if (e.key == key) {
                 old = e.value;
                 entries[index] = e.mapNext;
             } else {
-                Entry<K, V> last;
+                Entry<V> last;
                 do {
                     last = e;
                     e = e.mapNext;
                     if (e == null) {
                         return null;
                     }
-                } while (!e.key.equals(key));
+                } while (e.key != key);
                 old = e.value;
                 last.mapNext = e.mapNext;
             }
@@ -740,7 +706,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
          *
          * @param newCold a new cold entry
          */
-        private void evict(Entry<K, V> newCold) {
+        private void evict(Entry<V> newCold) {
             // ensure there are not too many hot entries:
             // left shift of 5 is multiplication by 32, that means if there are less
             // than 1/32 (3.125%) cold entries, a new hot entry needs to become cold
@@ -754,7 +720,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             // the oldest resident cold entries become non-resident
             // but at least one cold entry (the new one) must stay
             while (usedMemory > maxMemory && queueSize > 1) {
-                Entry<K, V> e = queue.queuePrev;
+                Entry<V> e = queue.queuePrev;
                 usedMemory -= e.memory;
                 removeFromQueue(e);
                 e.value = null;
@@ -771,7 +737,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
 
         private void convertOldestHotToCold() {
             // the last entry of the stack is known to be hot
-            Entry<K, V> last = stack.stackPrev;
+            Entry<V> last = stack.stackPrev;
             // remove from stack - which is done anyway in the stack pruning, but we
             // can do it here as well
             removeFromStack(last);
@@ -785,7 +751,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
          */
         private void pruneStack() {
             while (true) {
-                Entry<K, V> last = stack.stackPrev;
+                Entry<V> last = stack.stackPrev;
                 if (last == stack || last.isHot()) {
                     break;
                 }
@@ -800,16 +766,16 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
          * @param key the key
          * @return the entry (might be a non-resident)
          */
-        Entry<K, V> find(Object key, int hash) {
+        Entry<V> find(long key, int hash) {
             int index = hash & mask;
-            Entry<K, V> e = entries[index];
-            while (e != null && !e.key.equals(key)) {
+            Entry<V> e = entries[index];
+            while (e != null && e.key != key) {
                 e = e.mapNext;
             }
             return e;
         }
 
-        private void addToStack(Entry<K, V> e) {
+        private void addToStack(Entry<V> e) {
             e.stackPrev = stack;
             e.stackNext = stack.stackNext;
             e.stackNext.stackPrev = e;
@@ -818,7 +784,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             e.topMove = stackMoveCounter++;
         }
 
-        private void addToStackBottom(Entry<K, V> e) {
+        private void addToStackBottom(Entry<V> e) {
             e.stackNext = stack;
             e.stackPrev = stack.stackPrev;
             e.stackPrev.stackNext = e;
@@ -826,14 +792,14 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             stackSize++;
         }
 
-        private void removeFromStack(Entry<K, V> e) {
+        private void removeFromStack(Entry<V> e) {
             e.stackPrev.stackNext = e.stackNext;
             e.stackNext.stackPrev = e.stackPrev;
             e.stackPrev = e.stackNext = null;
             stackSize--;
         }
 
-        private void addToQueue(Entry<K, V> q, Entry<K, V> e) {
+        private void addToQueue(Entry<V> q, Entry<V> e) {
             e.queuePrev = q;
             e.queueNext = q.queueNext;
             e.queueNext.queuePrev = e;
@@ -845,7 +811,7 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             }
         }
 
-        private void removeFromQueue(Entry<K, V> e) {
+        private void removeFromQueue(Entry<V> e) {
             e.queuePrev.queueNext = e.queueNext;
             e.queueNext.queuePrev = e.queuePrev;
             e.queuePrev = e.queueNext = null;
@@ -856,15 +822,15 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             }
         }
 
-        synchronized List<K> keys(boolean cold, boolean nonResident) {
-            ArrayList<K> keys = new ArrayList<K>();
+        synchronized List<Long> keys(boolean cold, boolean nonResident) {
+            ArrayList<Long> keys = new ArrayList<Long>();
             if (cold) {
-                Entry<K, V> start = nonResident ? queue2 : queue;
-                for (Entry<K, V> e = start.queueNext; e != start; e = e.queueNext) {
+                Entry<V> start = nonResident ? queue2 : queue;
+                for (Entry<V> e = start.queueNext; e != start; e = e.queueNext) {
                     keys.add(e.key);
                 }
             } else {
-                for (Entry<K, V> e = stack.stackNext; e != stack; e = e.stackNext) {
+                for (Entry<V> e = stack.stackNext; e != stack; e = e.stackNext) {
                     keys.add(e.key);
                 }
             }
@@ -875,29 +841,20 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             return mapSize - queue2Size;
         }
 
-        boolean containsKey(Object key, int hash) {
-            Entry<K, V> e = find(key, hash);
+        boolean containsKey(long key, int hash) {
+            Entry<V> e = find(key, hash);
             return e != null && e.value != null;
         }
 
-        synchronized Set<K> keySet() {
-            HashSet<K> set = new HashSet<K>();
-            for (Entry<K, V> e = stack.stackNext; e != stack; e = e.stackNext) {
+        synchronized Set<Long> keySet() {
+            HashSet<Long> set = new HashSet<Long>();
+            for (Entry<V> e = stack.stackNext; e != stack; e = e.stackNext) {
                 set.add(e.key);
             }
-            for (Entry<K, V> e = queue.queueNext; e != queue; e = e.queueNext) {
+            for (Entry<V> e = queue.queueNext; e != queue; e = e.queueNext) {
                 set.add(e.key);
             }
             return set;
-        }
-
-        synchronized Set<Map.Entry<K, V>> entrySet() {
-            HashMap<K, V> map = new HashMap<K, V>();
-            for (K k : keySet()) {
-                int hash = getHash(k);
-                map.put(k,  find(k, hash).value);
-            }
-            return map.entrySet();
         }
 
         int sizeHot() {
@@ -923,10 +880,6 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
             this.maxMemory = maxMemory;
         }
 
-        long getMaxMemory() {
-            return maxMemory;
-        }
-
         void setAverageMemory(int averageMemory) {
             if (averageMemory <= 0) {
                 throw new IllegalArgumentException("Average memory must be larger than 0");
@@ -946,12 +899,12 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
      * @param <K> the key type
      * @param <V> the value type
      */
-    static class Entry<K, V> {
+    static class Entry<V> {
 
         /**
          * The key.
          */
-        K key;
+        long key;
 
         /**
          * The value. Set to null for non-resident-cold entries.
@@ -971,28 +924,28 @@ public class CacheConcurrentLIRS<K, V> extends AbstractMap<K, V> implements Conc
         /**
          * The next entry in the stack.
          */
-        Entry<K, V> stackNext;
+        Entry<V> stackNext;
 
         /**
          * The previous entry in the stack.
          */
-        Entry<K, V> stackPrev;
+        Entry<V> stackPrev;
 
         /**
          * The next entry in the queue (either the resident queue or the
          * non-resident queue).
          */
-        Entry<K, V> queueNext;
+        Entry<V> queueNext;
 
         /**
          * The previous entry in the queue.
          */
-        Entry<K, V> queuePrev;
+        Entry<V> queuePrev;
 
         /**
          * The next entry in the map
          */
-        Entry<K, V> mapNext;
+        Entry<V> mapNext;
 
         /**
          * Whether this entry is hot. Cold entries are in one of the two queues.

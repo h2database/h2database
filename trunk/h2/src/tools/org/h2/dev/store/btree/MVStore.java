@@ -15,9 +15,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
+import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.dev.store.FilePathCache;
+import org.h2.dev.store.cache.CacheLongKeyLIRS;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
@@ -90,7 +91,8 @@ public class MVStore {
     private int blockSize = 4 * 1024;
     private long rootChunkStart;
 
-    private Map<Long, Page> cache = CacheLIRS.newInstance(readCacheSize, 2048);
+    private CacheLongKeyLIRS<Page> cache = CacheLongKeyLIRS.newInstance(
+            readCacheSize, 2048, 16, readCacheSize / 100);
 
     private int lastChunkId;
     private HashMap<Integer, Chunk> chunks = New.hashMap();
@@ -124,7 +126,9 @@ public class MVStore {
     private MVStore(String fileName, MapFactory mapFactory) {
         this.fileName = fileName;
         this.mapFactory = mapFactory;
-        this.compressor = mapFactory.buildCompressor();
+        this.compressor = mapFactory == null ?
+                new CompressLZF() :
+                mapFactory.buildCompressor();
     }
 
     /**

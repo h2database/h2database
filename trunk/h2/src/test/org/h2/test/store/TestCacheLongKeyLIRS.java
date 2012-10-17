@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-import org.h2.dev.store.btree.CacheLongKeyLIRS;
+import org.h2.dev.store.cache.CacheLongKeyLIRS;
 import org.h2.test.TestBase;
 import org.h2.util.New;
 
@@ -29,19 +29,23 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     public void test() throws Exception {
+        testCache();
+    }
+
+    private void testCache() {
         testEdgeCases();
         testSize();
         testClear();
-//        testGetPutPeekRemove();
+        testGetPutPeekRemove();
         testPruneStack();
         testLimitHot();
         testLimitNonResident();
-//        testScanResistance();
+        testScanResistance();
         testRandomOperations();
     }
 
     private void testEdgeCases() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(1);
+        CacheLongKeyLIRS<Integer> test = createCache(1);
         test.put(1, 10, 100);
         assertEquals(10, test.get(1).intValue());
         try {
@@ -65,41 +69,52 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testSize() {
-        int todo;
-//        verifyMapSize(7, 16);
-//        verifyMapSize(13, 32);
-//        verifyMapSize(25, 64);
-//        verifyMapSize(49, 128);
-//        verifyMapSize(97, 256);
-//        verifyMapSize(193, 512);
-//        verifyMapSize(385, 1024);
-//        verifyMapSize(769, 2048);
-//
-//        CacheConcurrentLongKeyLIRS<Integer> test;
-//        test = CacheConcurrentLongKeyLIRS.newInstance(1000, 1);
-//        for (int j = 0; j < 2000; j++) {
-//            test.put(j, j);
-//        }
-//        // for a cache of size 1000,
-//        // there are 62 cold entries (about 6.25%).
-//        assertEquals(62, test.size() - test.sizeHot());
-//        // at most as many non-resident elements
-//        // as there are entries in the stack
-//        assertEquals(968, test.sizeNonResident());
+        verifyMapSize(7, 16);
+        verifyMapSize(13, 32);
+        verifyMapSize(25, 64);
+        verifyMapSize(49, 128);
+        verifyMapSize(97, 256);
+        verifyMapSize(193, 512);
+        verifyMapSize(385, 1024);
+        verifyMapSize(769, 2048);
+
+        CacheLongKeyLIRS<Integer> test;
+        test = createCache(3, 10);
+        test.put(0, 0, 9);
+        test.put(1, 10, 9);
+        test.put(2, 20, 9);
+        test.put(3, 30, 9);
+        test.put(4, 40, 9);
+
+        test = createCache(1, 1);
+        test.put(1, 10);
+        test.put(0, 0);
+        test.get(0);
+
+        test = createCache(1000);
+        for (int j = 0; j < 2000; j++) {
+            test.put(j, j);
+        }
+        // for a cache of size 1000,
+        // there are 62 cold entries (about 6.25%).
+        assertEquals(62, test.size() - test.sizeHot());
+        // at most as many non-resident elements
+        // as there are entries in the stack
+        assertEquals(968, test.sizeNonResident());
     }
 
-    private void verifyMapSize(int elements, int mapSize) {
+    private void verifyMapSize(int elements, int expectedMapSize) {
         CacheLongKeyLIRS<Integer> test;
-        test = CacheLongKeyLIRS.newInstance(elements - 1);
-        assertTrue(mapSize > test.sizeMapArray());
-        test = CacheLongKeyLIRS.newInstance(elements);
-        assertEquals(mapSize, test.sizeMapArray());
-        test = CacheLongKeyLIRS.newInstance(elements * 100, 100, 16, 10);
-        assertEquals(mapSize, test.sizeMapArray());
+        test = createCache(elements - 1);
+        assertTrue(test.sizeMapArray() < expectedMapSize);
+        test = createCache(elements);
+        assertEquals(expectedMapSize, test.sizeMapArray());
+        test = createCache(elements * 100, 100);
+        assertEquals(expectedMapSize, test.sizeMapArray());
     }
 
     private void testGetPutPeekRemove() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(4);
+        CacheLongKeyLIRS<Integer> test = createCache(4);
         test.put(1,  10);
         test.put(2,  20);
         test.put(3,  30);
@@ -216,7 +231,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testPruneStack() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(5);
+        CacheLongKeyLIRS<Integer> test = createCache(5);
         for (int i = 0; i < 7; i++) {
             test.put(i, i * 10);
         }
@@ -235,7 +250,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testClear() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(40, 10, 16, 1);
+        CacheLongKeyLIRS<Integer> test = createCache(40, 10);
         for (int i = 0; i < 5; i++) {
             test.put(i, 10 * i, 9);
         }
@@ -252,10 +267,10 @@ public class TestCacheLongKeyLIRS extends TestBase {
         }
         assertEquals(40,  test.getMaxMemory());
         assertEquals(10, test.getAverageMemory());
-//        assertEquals(36,  test.getUsedMemory());
-//        assertEquals(4, test.size());
-//        assertEquals(3,  test.sizeHot());
-//        assertEquals(1,  test.sizeNonResident());
+        assertEquals(36,  test.getUsedMemory());
+        assertEquals(4, test.size());
+        assertEquals(3,  test.sizeHot());
+        assertEquals(1,  test.sizeNonResident());
         assertFalse(test.isEmpty());
 
         // changing the limit is not supposed to modify the map
@@ -284,17 +299,17 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private void testLimitHot() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(100);
+        CacheLongKeyLIRS<Integer> test = createCache(100);
         for (int i = 0; i < 300; i++) {
             test.put(i, 10 * i);
         }
-//        assertEquals(100, test.size());
-//        assertEquals(99, test.sizeNonResident());
-//        assertEquals(93, test.sizeHot());
+        assertEquals(100, test.size());
+        assertEquals(99, test.sizeNonResident());
+        assertEquals(93, test.sizeHot());
     }
 
     private void testLimitNonResident() {
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(4);
+        CacheLongKeyLIRS<Integer> test = createCache(4);
         for (int i = 0; i < 20; i++) {
             test.put(i, 10 * i);
         }
@@ -305,7 +320,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         boolean log = false;
         int size = 20;
         // cache size 11 (10 hot, 1 cold)
-        CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(size / 2 + 1);
+        CacheLongKeyLIRS<Integer> test = createCache(size / 2 + 1);
         // init the cache with some dummy entries
         for (int i = 0; i < size; i++) {
             test.put(-i, -i * 10);
@@ -359,7 +374,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         int size = 10;
         Random r = new Random(1);
         for (int j = 0; j < 100; j++) {
-            CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(size / 2);
+            CacheLongKeyLIRS<Integer> test = createCache(size / 2);
             HashMap<Integer, Integer> good = New.hashMap();
             for (int i = 0; i < 10000; i++) {
                 int key = r.nextInt(size);
@@ -400,7 +415,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         }
     }
 
-    private static <V> String toString(CacheLongKeyLIRS<V> cache) {
+    private static <K, V> String toString(CacheLongKeyLIRS<V> cache) {
         StringBuilder buff = new StringBuilder();
         buff.append("mem: " + cache.getUsedMemory());
         buff.append(" stack:");
@@ -418,10 +433,10 @@ public class TestCacheLongKeyLIRS extends TestBase {
         return buff.toString();
     }
 
-    private <V> void verify(CacheLongKeyLIRS<V> cache, String expected) {
+    private <K, V> void verify(CacheLongKeyLIRS<V> cache, String expected) {
         if (expected != null) {
             String got = toString(cache);
-            // assertEquals(expected, got);
+            assertEquals(expected, got);
         }
         int mem = 0;
         for (long k : cache.keySet()) {
@@ -437,10 +452,18 @@ public class TestCacheLongKeyLIRS extends TestBase {
         hot.removeAll(nonResident);
         assertEquals(hot.size(), cache.sizeHot());
         assertEquals(hot.size() + cold.size(), cache.size());
-//        if (stack.size() > 0) {
-//            long lastStack = stack.get(stack.size() - 1);
-//            assertTrue(hot.contains(lastStack));
-//        }
+        if (stack.size() > 0) {
+            long lastStack = stack.get(stack.size() - 1);
+            assertTrue(hot.contains(lastStack));
+        }
+    }
+
+    private static <V> CacheLongKeyLIRS<V> createCache(int maxElements) {
+        return createCache(maxElements, 1);
+    }
+
+    private static <V> CacheLongKeyLIRS<V> createCache(int maxSize, int averageSize) {
+        return CacheLongKeyLIRS.newInstance(maxSize, averageSize, 1, 0);
     }
 
 }

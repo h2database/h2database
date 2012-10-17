@@ -8,8 +8,8 @@ package org.h2.test.store;
 
 import java.nio.ByteBuffer;
 import org.h2.dev.store.btree.DataType;
-import org.h2.dev.store.btree.MapFactory;
 import org.h2.dev.store.btree.DataUtils;
+import org.h2.dev.store.btree.MapFactory;
 import org.h2.util.StringUtils;
 
 /**

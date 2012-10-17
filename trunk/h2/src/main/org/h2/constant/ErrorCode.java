@@ -1874,6 +1874,7 @@ public class ErrorCode {
         case TABLE_OR_VIEW_ALREADY_EXISTS_1:
         case TABLE_OR_VIEW_NOT_FOUND_1:
         case VALUE_TOO_LONG_2:
+        case FUNCTION_ALIAS_ALREADY_EXISTS_1:
             return true;
         }
         return false;

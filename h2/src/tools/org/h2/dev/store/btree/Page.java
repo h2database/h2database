@@ -749,7 +749,7 @@ public class Page {
      * update the position and the children.
      *
      * @param buff the target buffer
-     * @param posOffset the offset of the id
+     * @param chunkId the chunk id
      * @return the page id
      */
     long writeTempRecursive(ByteBuffer buff, int chunkId) {

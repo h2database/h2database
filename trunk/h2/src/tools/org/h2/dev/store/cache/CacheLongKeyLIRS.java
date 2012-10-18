@@ -896,7 +896,6 @@ public class CacheLongKeyLIRS<V> {
      * in the stack. Non-resident-cold entries have their value set to null and
      * are in the stack and in the non-resident queue.
      *
-     * @param <K> the key type
      * @param <V> the value type
      */
     static class Entry<V> {

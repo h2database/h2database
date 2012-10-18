@@ -207,7 +207,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 refIndex = null;
             }
             if (refIndex == null) {
-                refIndex = getUniqueIndex(refTable, refIndexColumns);
+                refIndex = getIndex(refTable, refIndexColumns);
                 if (refIndex == null) {
                     refIndex = createIndex(refTable, refIndexColumns, true);
                     isRefOwner = true;

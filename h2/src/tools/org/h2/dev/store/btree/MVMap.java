@@ -9,6 +9,8 @@ package org.h2.dev.store.btree;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -564,15 +566,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
             return;
         }
         ArrayList<Page> list = oldRoots;
-        int i = 0;
-        // TODO iterate over the list is inefficient
-        for (; i < list.size(); i++) {
-            Page p = list.get(i);
-            if (p.getVersion() > oldest) {
-                break;
-            }
-        }
-        if (i == 0) {
+        int i = Collections.binarySearch(list, oldest, PAGE_VERSION_COMPARATOR);
+        if (i < 0) {
             return;
         }
         // create a new instance
@@ -581,6 +576,21 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         list.addAll(oldRoots.subList(i, oldRoots.size()));
         oldRoots = list;
     }
+    
+    private static final Comparator<Object> PAGE_VERSION_COMPARATOR = new Comparator<Object>() {
+        @Override
+        public int compare(Object o1, Object o2) {
+            Page p = (Page) o1;
+            Long key = (Long) o2;
+            if (p.getVersion() == key)
+                return 0;
+            else if (p.getVersion() < key)
+                return -1;
+            else
+                return 1;
+        }
+    };
+    
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
@@ -674,14 +684,15 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         if (r.getVersion() == version) {
             newest = r;
         } else {
-            // TODO could do a binary search
             ArrayList<Page> list = oldRoots;
-            for (int i = 0; i < list.size(); i++) {
-                Page p = list.get(i);
-                if (p.getVersion() <= version) {
-                    newest = p;
-                } else {
-                    break;
+            // find the newest page that has a getVersion() <= version
+            int i = Collections.binarySearch(list, version, PAGE_VERSION_COMPARATOR);
+            if (i > 0) {
+                newest = list.get(i);
+            } else {
+                i = -(i+1); // calculate insertion point
+                if (i > 0) {
+                    newest = list.get(i - 1);
                 }
             }
         }

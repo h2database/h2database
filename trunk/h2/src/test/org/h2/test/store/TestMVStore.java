@@ -50,6 +50,7 @@ public class TestMVStore extends TestBase {
         testRandom();
         testKeyValueClasses();
         testIterate();
+        testCloseTwice();
         testSimple();
     }
 
@@ -771,6 +772,20 @@ public class TestMVStore extends TestBase {
         s.close();
     }
 
+    private void testCloseTwice() {
+        String fileName = getBaseDir() + "/testCloseTwice.h3";
+        FileUtils.delete(fileName);
+        MVStore s = openStore(fileName);
+        MVMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
+        for (int i = 0; i < 3; i++) {
+            m.put(i, "hello " + i);
+        }
+        s.store();
+        // closing twice should be fine
+        s.close();
+        s.close();
+    }
+    
     private void testSimple() {
         String fileName = getBaseDir() + "/testSimple.h3";
         FileUtils.delete(fileName);

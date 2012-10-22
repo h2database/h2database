@@ -83,34 +83,34 @@ public class MVStore {
     private final String fileName;
     private final MapFactory mapFactory;
 
-    private int readCacheSize = 2 * 1024 * 1024;
+    private final int readCacheSize = 2 * 1024 * 1024;
 
     private int maxPageSize = 30;
 
     private FileChannel file;
-    private int blockSize = 4 * 1024;
+    private final int blockSize = 4 * 1024;
     private long rootChunkStart;
 
-    private CacheLongKeyLIRS<Page> cache = CacheLongKeyLIRS.newInstance(
+    private final CacheLongKeyLIRS<Page> cache = CacheLongKeyLIRS.newInstance(
             readCacheSize, 2048, 16, readCacheSize / 100);
 
     private int lastChunkId;
-    private HashMap<Integer, Chunk> chunks = New.hashMap();
+    private final HashMap<Integer, Chunk> chunks = New.hashMap();
 
     /**
      * The map of temporarily freed entries in the chunks. The key is the
      * unsaved version, the value is the map of chunks. The maps of chunks
      * contains the number of freed entries per chunk.
      */
-    private HashMap<Long, HashMap<Integer, Chunk>> freedChunks = New.hashMap();
+    private final HashMap<Long, HashMap<Integer, Chunk>> freedChunks = New.hashMap();
 
     private MVMap<String, String> meta;
-    private HashMap<String, MVMap<?, ?>> maps = New.hashMap();
+    private final HashMap<String, MVMap<?, ?>> maps = New.hashMap();
 
     /**
      * The set of maps with potentially unsaved changes.
      */
-    private HashMap<Integer, MVMap<?, ?>> mapsChanged = New.hashMap();
+    private final HashMap<Integer, MVMap<?, ?>> mapsChanged = New.hashMap();
     private int lastMapId;
 
     private boolean reuseSpace = true;

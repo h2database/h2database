@@ -450,8 +450,9 @@ public class MVStore {
                 maps.clear();
                 mapsChanged.clear();
             } catch (Exception e) {
-                file = null;
                 throw convert(e);
+            } finally {
+                file = null;
             }
         }
     }

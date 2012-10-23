@@ -368,23 +368,23 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     /**
-     * Regression test: we had a bug where the AlterTableAddConstraint class used to sometimes pick the wrong
-     * unique index for a foreign key.
+     * Regression test: we had a bug where the AlterTableAddConstraint class
+     * used to sometimes pick the wrong unique index for a foreign key.
      */
     private void testMultiPartForeignKeys() throws SQLException {
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST1");
         stat.execute("DROP TABLE IF EXISTS TEST2");
-        
+
         stat.execute("create table test1(id int primary key, col1 int)");
-        stat.execute("alter table test1 add constraint unq_test1 " +
+        stat.execute("alter table test1 add constraint unique_test1 " +
                 "unique (id,col1)");
-        
+
         stat.execute("create table test2(id int primary key, col1 int)");
         stat.execute("alter table test2 add constraint fk_test2 " +
                 "foreign key(id,col1) references test1 (id,col1)");
-        
+
         stat.execute("insert into test1 values (1,1)");
         stat.execute("insert into test1 values (2,2)");
         stat.execute("insert into test1 values (3,3)");
@@ -392,12 +392,12 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         assertThrows(23506, stat).execute("insert into test2 values (2,1)");
         assertSingleValue(stat, "select count(*) from test1", 3);
         assertSingleValue(stat, "select count(*) from test2", 1);
-        
+
         stat.execute("drop table test1");
         stat.execute("drop table test2");
         conn.close();
     }
-    
+
     private void testTriggers() throws SQLException {
         mustNotCallTrigger = false;
         Connection conn = getConnection("trigger");

@@ -29,10 +29,6 @@ public class AES implements BlockCipher {
     private int[] encKey = new int[44];
     private int[] decKey = new int[44];
 
-    AES() {
-        // do nothing
-    }
-
     private static int rot8(int x) {
         return (x >>> 8) | (x << 24);
     }

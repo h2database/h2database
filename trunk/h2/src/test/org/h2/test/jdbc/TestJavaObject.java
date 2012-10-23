@@ -47,14 +47,20 @@ public class TestJavaObject extends TestBase {
         try {
             trace("Test Java Object");
             doTest(new MyObj(1), new MyObj(2), false);
-            doTest(Arrays.asList(UUID.randomUUID(), null), Arrays.asList(UUID.randomUUID(), UUID.randomUUID()), true);
-            // doTest(new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis() + 10000), false);
+            doTest(Arrays.asList(UUID.randomUUID(), null),
+                    Arrays.asList(UUID.randomUUID(), UUID.randomUUID()), true);
+            // doTest(new Timestamp(System.currentTimeMillis()),
+            //         new Timestamp(System.currentTimeMillis() + 10000), false);
             doTest(200, 100, false);
             doTest(200, 100L, true);
-            // doTest(new Date(System.currentTimeMillis() + 1000), new Date(System.currentTimeMillis()), false);
-            // doTest(new java.util.Date(System.currentTimeMillis() + 1000), new java.util.Date(System.currentTimeMillis()), false);
-            // doTest(new Time(System.currentTimeMillis() + 1000), new Date(System.currentTimeMillis()), false);
-            // doTest(new Time(System.currentTimeMillis() + 1000), new Timestamp(System.currentTimeMillis()), false);
+            // doTest(new Date(System.currentTimeMillis() + 1000),
+            //         new Date(System.currentTimeMillis()), false);
+            // doTest(new java.util.Date(System.currentTimeMillis() + 1000),
+            //         new java.util.Date(System.currentTimeMillis()), false);
+            // doTest(new Time(System.currentTimeMillis() + 1000),
+            //         new Date(System.currentTimeMillis()), false);
+            // doTest(new Time(System.currentTimeMillis() + 1000),
+            //         new Timestamp(System.currentTimeMillis()), false);
         } finally {
             SysProperties.serializeJavaObject = true;
         }

@@ -243,6 +243,12 @@ public class ObjectType implements DataType {
         return TYPE_SERIALIZED_OBJECT;
     }
 
+    /**
+     * Switch the last remembered type to match the type of the given object.
+     *
+     * @param obj the object
+     * @return the auto-detected type used
+     */
     AutoDetectDataType switchType(Object obj) {
         int typeId = getTypeId(obj);
         AutoDetectDataType l = last;
@@ -362,10 +368,23 @@ public class ObjectType implements DataType {
             throw new RuntimeException();
         }
 
+        /**
+         * Get the type for the given object.
+         *
+         * @param o the object
+         * @return the type
+         */
         AutoDetectDataType getType(Object o) {
             return base.switchType(o);
         }
 
+        /**
+         * Read an object from the buffer.
+         *
+         * @param buff the buffer
+         * @param tag the first byte of the object (usually the type)
+         * @return the read object
+         */
         abstract Object read(ByteBuffer buff, int tag);
 
         @Override

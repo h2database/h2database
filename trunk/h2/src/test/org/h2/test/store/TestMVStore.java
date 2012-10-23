@@ -785,7 +785,7 @@ public class TestMVStore extends TestBase {
         s.close();
         s.close();
     }
-    
+
     private void testSimple() {
         String fileName = getBaseDir() + "/testSimple.h3";
         FileUtils.delete(fileName);

@@ -103,7 +103,7 @@ public class Profiler implements Runnable {
         new Profiler().run(args);
     }
 
-    void run(String... args) {
+    private void run(String... args) {
         if (args.length == 0) {
             System.out.println("Show profiling data");
             System.out.println("Usage: " + getClass().getName() + " <pid>");
@@ -367,7 +367,7 @@ public class Profiler implements Runnable {
         return getTopTraces(count);
     }
 
-    public String getTopTraces(int count) {
+    private String getTopTraces(int count) {
         StringBuilder buff = new StringBuilder();
         buff.append("Profiler: top ").append(count).append(" stack trace(s) of ").append(time).
             append(" ms:").append(LINE_SEPARATOR);

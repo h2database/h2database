@@ -979,7 +979,8 @@ public class MVStore {
     }
 
     /**
-     * Which version to retain. If not set, all versions up to the last stored version are retained.
+     * Which version to retain. If not set, all versions up to the last stored
+     * version are retained.
      *
      * @param retainVersion the oldest version to retain
      */

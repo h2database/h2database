@@ -9,8 +9,6 @@ package org.h2.dev.store.btree;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -565,32 +563,16 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         if (oldest == -1) {
             return;
         }
-        ArrayList<Page> list = oldRoots;
-        int i = Collections.binarySearch(list, oldest, PAGE_VERSION_COMPARATOR);
+        int i = searchRoot(oldest);
         if (i < 0) {
             return;
         }
         // create a new instance
         // because another thread might iterate over it
-        list = new ArrayList<Page>();
+        ArrayList<Page> list = new ArrayList<Page>();
         list.addAll(oldRoots.subList(i, oldRoots.size()));
         oldRoots = list;
     }
-    
-    private static final Comparator<Object> PAGE_VERSION_COMPARATOR = new Comparator<Object>() {
-        @Override
-        public int compare(Object o1, Object o2) {
-            Page p = (Page) o1;
-            Long key = (Long) o2;
-            if (p.getVersion() == key)
-                return 0;
-            else if (p.getVersion() < key)
-                return -1;
-            else
-                return 1;
-        }
-    };
-    
 
     public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
@@ -684,25 +666,38 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         if (r.getVersion() == version) {
             newest = r;
         } else {
-            ArrayList<Page> list = oldRoots;
             // find the newest page that has a getVersion() <= version
-            int i = Collections.binarySearch(list, version, PAGE_VERSION_COMPARATOR);
-            if (i > 0) {
-                newest = list.get(i);
-            } else {
-                i = -(i+1); // calculate insertion point
-                if (i > 0) {
-                    newest = list.get(i - 1);
+            int i = searchRoot(version);
+            if (i < 0) {
+                // not found
+                if (i == -1) {
+                    // smaller than all in-memory versions
+                    return store.openMapVersion(version, name);
                 }
+                i = -i - 2;
             }
-        }
-        if (newest == null) {
-            return store.openMapVersion(version, name);
+            newest = oldRoots.get(i);
         }
         MVMap<K, V> m = new MVMap<K, V>(store, id, name, keyType, valueType, createVersion);
         m.readOnly = true;
         m.root = newest;
         return m;
+    }
+
+    private int searchRoot(long version) {
+        int low = 0, high = oldRoots.size() - 1;
+        while (low <= high) {
+            int x = (low + high) >>> 1;
+            long v = oldRoots.get(x).getVersion();
+            if (v < version) {
+                low = x + 1;
+            } else if (version < v) {
+                high = x - 1;
+            } else {
+                return x;
+            }
+        }
+        return -(low + 1);
     }
 
     public long getVersion() {

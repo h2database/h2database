@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2012 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -55,13 +55,14 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
      */
     private int averageMemory;
 
-    private Segment<K, V>[] segments;
+    private final Segment<K, V>[] segments;
 
-    private int segmentCount;
-    private int segmentShift;
-    private int segmentMask;
+    private final int segmentCount;
+    private final int segmentShift;
+    private final int segmentMask;
     private final int stackMoveDistance;
 
+    @SuppressWarnings("unchecked")
     private CacheLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
         setMaxMemory(maxMemory);
         setAverageMemory(averageMemory);
@@ -69,20 +70,22 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             throw new IllegalArgumentException("The segment count must be a power of 2, is " + segmentCount);
         }
         this.segmentCount = segmentCount;
+        this.segmentMask = segmentCount - 1;
         this.stackMoveDistance = stackMoveDistance;
+        segments = new Segment[segmentCount];
         clear();
+        this.segmentShift = Integer.numberOfTrailingZeros(segments[0].entries.length);
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * Remove all entries.
+     */
     public void clear() {
-        segmentMask = segmentCount - 1;
-        segments = new Segment[segmentCount];
+        long max = Math.max(1, maxMemory / segmentCount);
         for (int i = 0; i < segmentCount; i++) {
-            long max = Math.max(1, maxMemory / segmentCount);
             segments[i] = new Segment<K, V>(
                     max, averageMemory, stackMoveDistance);
         }
-        segmentShift = Integer.numberOfTrailingZeros(segments[0].sizeMapArray());
     }
 
     private Entry<K, V> find(Object key) {
@@ -91,8 +94,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     }
 
     /**
-     * Check whether there is a resident entry for the given key. This method
-     * does not adjust the internal state of the cache.
+     * Check whether there is a resident entry for the given key. This
+     * method does not adjust the internal state of the cache.
      *
      * @param key the key (may not be null)
      * @return true if there is a resident entry
@@ -115,14 +118,14 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     }
 
     /**
-     * Add an entry to the cache. The entry may or may not exist in the cache
-     * yet. This method will usually mark unknown entries as cold and known
-     * entries as hot.
+     * Add an entry to the cache. The entry may or may not exist in the
+     * cache yet. This method will usually mark unknown entries as cold and
+     * known entries as hot.
      *
      * @param key the key (may not be null)
      * @param value the value (may not be null)
      * @param memory the memory used for the given entry
-     * @return the old value, or null if there is no resident entry
+     * @return the old value, or null if there was no resident entry
      */
     public V put(K key, V value, int memory) {
         int hash = getHash(key);
@@ -134,17 +137,18 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
      *
      * @param key the key (may not be null)
      * @param value the value (may not be null)
-     * @return the old value, or null if there is no resident entry
+     * @return the old value, or null if there was no resident entry
      */
     public V put(K key, V value) {
         return put(key, value, averageMemory);
     }
 
     /**
-     * Remove an entry. Both resident and non-resident entries can be removed.
+     * Remove an entry. Both resident and non-resident entries can be
+     * removed.
      *
      * @param key the key (may not be null)
-     * @return the old value, or null if there is no resident entry
+     * @return the old value, or null if there was no resident entry
      */
     public synchronized V remove(Object key) {
         int hash = getHash(key);
@@ -164,8 +168,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
 
     /**
      * Get the value for the given key if the entry is cached. This method
-     * adjusts the internal state of the cache, to ensure commonly used entries
-     * stay in the cache.
+     * adjusts the internal state of the cache sometimes, to ensure commonly
+     * used entries stay in the cache.
      *
      * @param key the key (may not be null)
      * @return the value, or null if there is no resident entry
@@ -180,12 +184,20 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
         return segments[segmentIndex];
     }
 
+    /**
+     * Get the hash code for the given key. The hash code is
+     * further enhanced to spread the values more evenly.
+     *
+     * @param key the key
+     * @return the hash code
+     */
     static int getHash(Object key) {
         int hash = key.hashCode();
-        // Doug Lea's supplemental secondaryHash function (inlined)
-        // to protect against hash codes that don't differ in low order bits
-        hash ^= (hash >>> 20) ^ (hash >>> 12);
-        hash ^= (hash >>> 7) ^ (hash >>> 4);
+        // a supplemental secondary hash function
+        // to protect against hash codes that don't differ much
+        hash = ((hash >>> 16) ^ hash) * 0x45d9f3b;
+        hash = ((hash >>> 16) ^ hash) * 0x45d9f3b;
+        hash = (hash >>> 16) ^ hash;
         return hash;
     }
 
@@ -197,15 +209,15 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     public long getUsedMemory() {
         long x = 0;
         for (Segment<K, V> s : segments) {
-            x += s.getUsedMemory();
+            x += s.usedMemory;
         }
         return x;
     }
 
     /**
-     * Set the maximum memory this cache should use. This will not immediately
-     * cause entries to get removed however; it will only change the limit. To
-     * resize the internal array, call the clear method.
+     * Set the maximum memory this cache should use. This will not
+     * immediately cause entries to get removed however; it will only change
+     * the limit. To resize the internal array, call the clear method.
      *
      * @param maxMemory the maximum size (1 or larger)
      */
@@ -223,8 +235,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     }
 
     /**
-     * Set the average memory used per entry. It is used to calculate the length
-     * of the internal array.
+     * Set the average memory used per entry. It is used to calculate the
+     * length of the internal array.
      *
      * @param averageMemory the average memory used (1 or larger)
      */
@@ -261,7 +273,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     /**
      * Create a new cache with the given number of entries, and the default
      * settings (an average size of 1 per entry, 16 segments, and stack move
-     * distance equals to the max entry size divided by 100).
+     * distance equals to the maximum number of entries divided by 100).
      *
      * @param maxEntries the maximum number of entries
      * @return the cache
@@ -319,7 +331,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     public int sizeNonResident() {
         int x = 0;
         for (Segment<K, V> s : segments) {
-            x += s.sizeNonResident();
+            x += s.queue2Size;
         }
         return x;
     }
@@ -332,7 +344,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     public int sizeMapArray() {
         int x = 0;
         for (Segment<K, V> s : segments) {
-            x += s.sizeMapArray();
+            x += s.entries.length;
         }
         return x;
     }
@@ -345,7 +357,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     public int sizeHot() {
         int x = 0;
         for (Segment<K, V> s : segments) {
-            x += s.sizeHot();
+            x += s.mapSize - s.queueSize - s.queue2Size;
         }
         return x;
     }
@@ -358,7 +370,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     public int size() {
         int x = 0;
         for (Segment<K, V> s : segments) {
-            x += s.size();
+            x += s.mapSize - s.queue2Size;
         }
         return x;
     }
@@ -388,6 +400,31 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     static class Segment<K, V> {
 
         /**
+         * The number of (hot, cold, and non-resident) entries in the map.
+         */
+        int mapSize;
+
+        /**
+         * The size of the LIRS queue for resident cold entries.
+         */
+        int queueSize;
+
+        /**
+         * The size of the LIRS queue for non-resident cold entries.
+         */
+        int queue2Size;
+
+        /**
+         * The map array. The size is always a power of 2.
+         */
+        Entry<K, V>[] entries;
+
+        /**
+         * The currently used memory.
+         */
+        long usedMemory;
+
+        /**
          * How many other item are to be moved to the top of the stack before
          * the current item is moved.
          */
@@ -404,16 +441,6 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
         private int averageMemory;
 
         /**
-         * The currently used memory.
-         */
-        private long usedMemory;
-
-        /**
-         * The number of (hot, cold, and non-resident) entries in the map.
-         */
-        private int mapSize;
-
-        /**
          * The bit mask that is applied to the key hash code to get the index in the
          * map array. The mask is the length of the array minus one.
          */
@@ -423,21 +450,6 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
          * The LIRS stack size.
          */
         private int stackSize;
-
-        /**
-         * The size of the LIRS queue for resident cold entries.
-         */
-        private int queueSize;
-
-        /**
-         * The size of the LIRS queue for non-resident cold entries.
-         */
-        private int queue2Size;
-
-        /**
-         * The map array. The size is always a power of 2.
-         */
-        private Entry<K, V>[] entries;
 
         /**
          * The stack of recently referenced elements. This includes all hot entries,
@@ -475,7 +487,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             clear();
         }
 
-        synchronized void clear() {
+        private void clear() {
 
             // calculate the size of the map array
             // assume a fill factor of at most 80%
@@ -509,16 +521,27 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             stackSize = queueSize = queue2Size = 0;
         }
 
-        V peek(K key, int hash) {
-            Entry<K, V> e = find(key, hash);
-            return e == null ? null : e.value;
-        }
-
+        /**
+         * Get the memory used for the given key.
+         *
+         * @param key the key (may not be null)
+         * @param hash the hash
+         * @return the memory, or 0 if there is no resident entry
+         */
         int getMemory(K key, int hash) {
             Entry<K, V> e = find(key, hash);
             return e == null ? 0 : e.memory;
         }
 
+        /**
+         * Get the value for the given key if the entry is cached. This method
+         * adjusts the internal state of the cache sometimes, to ensure commonly
+         * used entries stay in the cache.
+         *
+         * @param key the key (may not be null)
+         * @param hash the hash
+         * @return the value, or null if there is no resident entry
+         */
         V get(Object key, int hash) {
             Entry<K, V> e = find(key, hash);
             if (e == null) {
@@ -586,6 +609,17 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             }
         }
 
+        /**
+         * Add an entry to the cache. The entry may or may not exist in the
+         * cache yet. This method will usually mark unknown entries as cold and
+         * known entries as hot.
+         *
+         * @param key the key (may not be null)
+         * @param hash the hash
+         * @param value the value (may not be null)
+         * @param memory the memory used for the given entry
+         * @return the old value, or null if there was no resident entry
+         */
         synchronized V put(K key, int hash, V value, int memory) {
             if (value == null) {
                 throw new NullPointerException();
@@ -616,6 +650,14 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             return old;
         }
 
+        /**
+         * Remove an entry. Both resident and non-resident entries can be
+         * removed.
+         *
+         * @param key the key (may not be null)
+         * @param hash the hash
+         * @return the old value, or null if there was no resident entry
+         */
         synchronized V remove(Object key, int hash) {
             int index = hash & mask;
             Entry<K, V> e = entries[index];
@@ -725,6 +767,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
          * Try to find an entry in the map.
          *
          * @param key the key
+         * @param hash the hash
          * @return the entry (might be a non-resident)
          */
         Entry<K, V> find(Object key, int hash) {
@@ -783,6 +826,14 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             }
         }
 
+        /**
+         * Get the list of keys. This method allows to read the internal state of
+         * the cache.
+         *
+         * @param cold if true, only keys for the cold entries are returned
+         * @param nonResident true for non-resident entries
+         * @return the key list
+         */
         synchronized List<K> keys(boolean cold, boolean nonResident) {
             ArrayList<K> keys = new ArrayList<K>();
             if (cold) {
@@ -798,15 +849,24 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             return keys;
         }
 
-        int size() {
-            return mapSize - queue2Size;
-        }
-
+        /**
+         * Check whether there is a resident entry for the given key. This
+         * method does not adjust the internal state of the cache.
+         *
+         * @param key the key (may not be null)
+         * @param hash the hash
+         * @return true if there is a resident entry
+         */
         boolean containsKey(Object key, int hash) {
             Entry<K, V> e = find(key, hash);
             return e != null && e.value != null;
         }
 
+        /**
+         * Get the set of keys for resident entries.
+         *
+         * @return the set of keys
+         */
         synchronized Set<K> keySet() {
             HashSet<K> set = new HashSet<K>();
             for (Entry<K, V> e = stack.stackNext; e != stack; e = e.stackNext) {
@@ -818,22 +878,13 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             return set;
         }
 
-        int sizeHot() {
-            return mapSize - queueSize - queue2Size;
-        }
-
-        int sizeNonResident() {
-            return queue2Size;
-        }
-
-        int sizeMapArray() {
-            return entries.length;
-        }
-
-        long getUsedMemory() {
-            return usedMemory;
-        }
-
+        /**
+         * Set the maximum memory this cache should use. This will not
+         * immediately cause entries to get removed however; it will only change
+         * the limit. To resize the internal array, call the clear method.
+         *
+         * @param maxMemory the maximum size (1 or larger)
+         */
         void setMaxMemory(long maxMemory) {
             if (maxMemory <= 0) {
                 throw new IllegalArgumentException("Max memory must be larger than 0");
@@ -841,6 +892,12 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
             this.maxMemory = maxMemory;
         }
 
+        /**
+         * Set the average memory used per entry. It is used to calculate the
+         * length of the internal array.
+         *
+         * @param averageMemory the average memory used (1 or larger)
+         */
         void setAverageMemory(int averageMemory) {
             if (averageMemory <= 0) {
                 throw new IllegalArgumentException("Average memory must be larger than 0");

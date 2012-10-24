@@ -412,8 +412,7 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
             return null;
         }
         while (true) {
-            CursorPos c = new CursorPos();
-            c.page = p;
+            CursorPos c = new CursorPos(p, 0, null);
             if (p.isLeaf()) {
                 return c;
             }

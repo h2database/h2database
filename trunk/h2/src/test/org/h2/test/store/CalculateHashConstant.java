@@ -268,7 +268,8 @@ public class CalculateHashConstant implements Runnable {
 
     private void addCandidates(int currentHigh) {
         for (int low = 0; low <= 0xffff; low++) {
-            // the lower 16 bits have to be a prime number
+            // the lower 16 bits don't have to be a prime number
+            // but it seems that's a good restriction
             if (!primeNumbers.get(low)) {
                 continue;
             }

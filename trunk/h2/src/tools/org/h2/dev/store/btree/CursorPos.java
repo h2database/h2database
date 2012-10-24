@@ -21,5 +21,16 @@ public class CursorPos {
      */
     public int index;
 
+    /**
+     * The position in the parent page, if any.
+     */
+    public CursorPos parent;
+
+    public CursorPos(Page page, int index, CursorPos parent) {
+        this.page = page;
+        this.index = index;
+        this.parent = parent;
+    }
+
 }
 

@@ -24,18 +24,13 @@ public class ChangeCursor<K, V> extends Cursor<K, V> {
     public CursorPos min(Page p, K from) {
         while (p != null && p.getVersion() >= minVersion) {
             if (p.isLeaf()) {
-                CursorPos c = new CursorPos();
-                c.page = p;
-                c.index = 0;
-                return c;
+                return new CursorPos(p, 0, null);
             }
             for (int i = 0; i < p.getChildPageCount(); i++) {
                 if (isChildOld(p, i)) {
                     continue;
                 }
-                CursorPos c = new CursorPos();
-                c.page = p;
-                c.index = i;
+                CursorPos c = new CursorPos(p, i, null);
                 push(c);
                 p = p.getChildPage(i);
                 break;

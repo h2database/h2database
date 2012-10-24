@@ -30,7 +30,7 @@ public class TestCacheConcurrentLIRS extends TestBase {
         testConcurrent();
     }
 
-    private static void testConcurrent() {
+    private void testConcurrent() {
         final CacheLongKeyLIRS<Integer> test = CacheLongKeyLIRS.newInstance(100);
         int threadCount = 8;
         final CountDownLatch wait = new CountDownLatch(1);
@@ -85,7 +85,7 @@ public class TestCacheConcurrentLIRS extends TestBase {
         for (int x : getCounts) {
             totalCount += x;
         }
-        System.out.println("requests: " + totalCount);
+        trace("requests: " + totalCount);
     }
 
 }

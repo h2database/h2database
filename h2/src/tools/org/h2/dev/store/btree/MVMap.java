@@ -152,10 +152,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
                 if (x < 0) {
                     x = -x - 1;
                 }
-                CursorPos c = new CursorPos();
-                c.page = p;
-                c.index = x;
-                return c;
+                return new CursorPos(p, x, null);
             }
             int x = key == null ? -1 : p.binarySearch(key);
             if (x < 0) {
@@ -163,9 +160,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
             } else {
                 x++;
             }
-            CursorPos c = new CursorPos();
-            c.page = p;
-            c.index = x;
+            CursorPos c = new CursorPos(p, x, null);
             cursor.push(c);
             p = p.getChildPage(x);
         }
@@ -448,7 +443,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      */
     public Iterator<K> keyIterator(K from) {
         checkOpen();
-        return new Cursor<K, V>(this, root, from);
+        return new RangeCursor<K, V>(root, from);
+//        return new Cursor<K, V>(this, root, from);
     }
 
     /**
@@ -478,7 +474,8 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
 
             @Override
             public Iterator<K> iterator() {
-                return new Cursor<K, V>(MVMap.this, root, null);
+                return new RangeCursor<K, V>(root, null);
+//                return new Cursor<K, V>(MVMap.this, root, null);
             }
 
             @Override

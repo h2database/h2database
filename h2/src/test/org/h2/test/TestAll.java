@@ -103,6 +103,7 @@ import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestWeb;
 import org.h2.test.server.TestInit;
+import org.h2.test.store.TestCacheConcurrentLIRS;
 import org.h2.test.store.TestCacheLIRS;
 import org.h2.test.store.TestCacheLongKeyLIRS;
 import org.h2.test.store.TestConcurrent;
@@ -668,6 +669,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void testUnit() {
         // mv store
+        new TestCacheConcurrentLIRS().runTest(this);
         new TestCacheLIRS().runTest(this);
         new TestCacheLongKeyLIRS().runTest(this);
         new TestConcurrent().runTest(this);

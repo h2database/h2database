@@ -217,7 +217,6 @@ public class Parser {
             Prepared p = parse(sql);
             p.prepare();
             Command c = new CommandContainer(this, sql, p);
-            p.setCommand(c);
             if (isToken(";")) {
                 String remaining = originalSQL.substring(parseIndex);
                 if (remaining.trim().length() != 0) {

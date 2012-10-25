@@ -6,9 +6,9 @@
  */
 package org.h2.command.dml;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Constants;
@@ -23,6 +23,9 @@ import org.h2.util.ScriptReader;
  */
 public class RunScriptCommand extends ScriptBase {
 
+    /** FEFF because this is the Unicode char represented by the UTF-8 byte order mark (EF BB BF). */
+    public static final char UTF8_BOM = '\uFEFF';
+    
     private String charset = Constants.UTF8;
 
     public RunScriptCommand(Session session) {
@@ -34,7 +37,12 @@ public class RunScriptCommand extends ScriptBase {
         int count = 0;
         try {
             openInput();
-            Reader reader = new InputStreamReader(in, charset);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, charset));
+            // if necessary, strip the BOM from the front of the file
+            reader.mark(1);
+            if (reader.read() != UTF8_BOM) {
+                reader.reset();
+            }
             ScriptReader r = new ScriptReader(reader);
             while (true) {
                 String sql = r.readStatement();

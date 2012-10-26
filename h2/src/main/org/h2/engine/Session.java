@@ -707,8 +707,8 @@ public class Session extends SessionWithState {
     }
 
     public void setLastIdentity(Value last) {
-        this.lastScopeIdentity = last;
         this.lastIdentity = last;
+        this.lastScopeIdentity = last;
     }
 
     public Value getLastIdentity() {

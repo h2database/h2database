@@ -715,6 +715,14 @@ public class Session extends SessionWithState {
         return lastIdentity;
     }
 
+    public void setScopeIdentity(Value scopeIdentity) {
+        this.scopeIdentity = scopeIdentity;
+    }
+
+    public Value getScopeIdentity() {
+        return scopeIdentity;
+    }
+
     /**
      * Called when a log entry for this session is added. The session keeps
      * track of the first entry in the transaction log that is not yet committed.
@@ -1218,14 +1226,6 @@ public class Session extends SessionWithState {
      */
     public int nextObjectId() {
         return objectId++;
-    }
-
-    public void setScopeIdentity(Value scopeIdentity) {
-        this.scopeIdentity = scopeIdentity;
-    }
-
-    public Value getScopeIdentity() {
-        return scopeIdentity;
     }
 
     public boolean isRedoLogBinaryEnabled() {

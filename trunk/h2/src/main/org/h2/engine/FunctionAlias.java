@@ -391,7 +391,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 }
             }
             boolean old = session.getAutoCommit();
-            Value identity = session.getScopeIdentity();
+            Value identity = session.getLastScopeIdentity();
             boolean defaultConnection = session.getDatabase().getSettings().defaultConnection;
             try {
                 session.setAutoCommit(false);
@@ -422,7 +422,7 @@ public class FunctionAlias extends SchemaObjectBase {
                 Value ret = DataType.convertToValue(session, returnValue, dataType);
                 return ret.convertTo(dataType);
             } finally {
-                session.setScopeIdentity(identity);
+                session.setLastScopeIdentity(identity);
                 session.setAutoCommit(old);
                 if (defaultConnection) {
                     Driver.setDefaultConnection(null);

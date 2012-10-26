@@ -115,14 +115,14 @@ public class TriggerObject extends SchemaObjectBase {
         if (type != Trigger.SELECT) {
             old = session.setCommitOrRollbackDisabled(true);
         }
-        Value identity = session.getScopeIdentity();
+        Value identity = session.getLastScopeIdentity();
         try {
             triggerCallback.fire(c2, null, null);
         } catch (Throwable e) {
             throw DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
                             triggerClassName, e.toString());
         } finally {
-            session.setScopeIdentity(identity);
+            session.setLastScopeIdentity(identity);
             if (type != Trigger.SELECT) {
                 session.setCommitOrRollbackDisabled(old);
             }
@@ -196,7 +196,7 @@ public class TriggerObject extends SchemaObjectBase {
         Connection c2 = session.createConnection(false);
         boolean old = session.getAutoCommit();
         boolean oldDisabled = session.setCommitOrRollbackDisabled(true);
-        Value identity = session.getScopeIdentity();
+        Value identity = session.getLastScopeIdentity();
         try {
             session.setAutoCommit(false);
             triggerCallback.fire(c2, oldList, newList);
@@ -216,7 +216,7 @@ public class TriggerObject extends SchemaObjectBase {
                 throw DbException.convert(e);
             }
         } finally {
-            session.setScopeIdentity(identity);
+            session.setLastScopeIdentity(identity);
             session.setCommitOrRollbackDisabled(oldDisabled);
             session.setAutoCommit(old);
         }

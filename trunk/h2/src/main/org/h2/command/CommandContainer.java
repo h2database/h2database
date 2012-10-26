@@ -70,7 +70,7 @@ class CommandContainer extends Command {
         recompileIfRequired();
         setProgress(DatabaseEventListener.STATE_STATEMENT_START);
         start();
-        session.setLastIdentity(ValueNull.INSTANCE);
+        session.setLastScopeIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
         int updateCount = prepared.update();
         prepared.trace(startTime, updateCount);

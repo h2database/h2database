@@ -67,7 +67,7 @@ public class Session extends SessionWithState {
     private Random random;
     private int lockTimeout;
     private Value lastIdentity = ValueLong.get(0);
-    private Value scopeIdentity = ValueLong.get(0);
+    private Value lastScopeIdentity = ValueLong.get(0);
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Integer> savepoints;
@@ -707,7 +707,7 @@ public class Session extends SessionWithState {
     }
 
     public void setLastIdentity(Value last) {
-        this.scopeIdentity = last;
+        this.lastScopeIdentity = last;
         this.lastIdentity = last;
     }
 
@@ -715,12 +715,12 @@ public class Session extends SessionWithState {
         return lastIdentity;
     }
 
-    public void setScopeIdentity(Value scopeIdentity) {
-        this.scopeIdentity = scopeIdentity;
+    public void setLastScopeIdentity(Value last) {
+        this.lastScopeIdentity = last;
     }
 
-    public Value getScopeIdentity() {
-        return scopeIdentity;
+    public Value getLastScopeIdentity() {
+        return lastScopeIdentity;
     }
 
     /**

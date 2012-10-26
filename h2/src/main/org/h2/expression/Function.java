@@ -722,7 +722,7 @@ public class Function extends Expression implements FunctionCall {
             result = session.getLastIdentity();
             break;
         case SCOPE_IDENTITY:
-            result = session.getScopeIdentity();
+            result = session.getLastScopeIdentity();
             break;
         case AUTOCOMMIT:
             result = ValueBoolean.get(session.getAutoCommit());

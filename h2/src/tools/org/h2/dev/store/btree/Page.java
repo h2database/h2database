@@ -788,8 +788,25 @@ public class Page {
         return version;
     }
 
-    int getChildPageCount() {
+    public int getChildPageCount() {
         return children.length;
+    }
+
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (other instanceof Page) {
+            if (pos != 0 && ((Page) other).pos == pos) {
+                return true;
+            }
+            return this == other;
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        return pos != 0 ? (int) (pos | (pos >>> 32)) : super.hashCode();
     }
 
 }

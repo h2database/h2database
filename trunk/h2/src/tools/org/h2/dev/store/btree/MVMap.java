@@ -138,68 +138,6 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     }
 
     /**
-     * Go to the first element for the given key.
-     *
-     * @param p the current page
-     * @param cursor the cursor
-     * @param key the key
-     * @return the cursor position
-     */
-    protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
-        while (true) {
-            if (p.isLeaf()) {
-                int x = key == null ? 0 : p.binarySearch(key);
-                if (x < 0) {
-                    x = -x - 1;
-                }
-                return new CursorPos(p, x, null);
-            }
-            int x = key == null ? -1 : p.binarySearch(key);
-            if (x < 0) {
-                x = -x - 1;
-            } else {
-                x++;
-            }
-            CursorPos c = new CursorPos(p, x, null);
-            cursor.push(c);
-            p = p.getChildPage(x);
-        }
-    }
-
-    /**
-     * Get the next key.
-     *
-     * @param p the cursor position
-     * @param cursor the cursor
-     * @return the next key
-     */
-    protected Object nextKey(CursorPos p, Cursor<K, V> cursor) {
-        while (p != null) {
-            int index = p.index++;
-            Page x = p.page;
-            if (index < x.getKeyCount()) {
-                return x.getKey(index);
-            }
-            while (true) {
-                p = cursor.pop();
-                if (p == null) {
-                    break;
-                }
-                index = ++p.index;
-                x = p.page;
-                if (index <= x.getKeyCount()) {
-                    cursor.push(p);
-                    p = cursor.visitChild(x, index);
-                    if (p != null) {
-                        break;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
      * Get the value for the given key, or null if not found.
      *
      * @param p the page
@@ -443,20 +381,20 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      */
     public Iterator<K> keyIterator(K from) {
         checkOpen();
-        return new RangeCursor<K, V>(root, from);
+        return new Cursor<K, V>(this, root, from);
 //        return new Cursor<K, V>(this, root, from);
     }
 
     /**
      * Iterate over all keys in changed pages.
-     * This does not include deleted deleted pages.
      *
-     * @param minVersion the minimum version
+     * @param version the old version
      * @return the iterator
      */
-    public Iterator<K> changeIterator(long minVersion) {
+    public Iterator<K> changeIterator(long version) {
         checkOpen();
-        return new ChangeCursor<K, V>(this, root, null, minVersion);
+        MVMap<K, V> old = openVersion(version);
+        return new ChangeCursor<K, V>(this, root, old.root);
     }
 
     public Set<Map.Entry<K, V>> entrySet() {
@@ -469,13 +407,13 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
 
     public Set<K> keySet() {
         checkOpen();
+        final MVMap<K, V> map = this;
         final Page root = this.root;
         return new AbstractSet<K>() {
 
             @Override
             public Iterator<K> iterator() {
-                return new RangeCursor<K, V>(root, null);
-//                return new Cursor<K, V>(MVMap.this, root, null);
+                return new Cursor<K, V>(map, root, null);
             }
 
             @Override
@@ -699,6 +637,10 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
 
     public long getVersion() {
         return root.getVersion();
+    }
+
+    protected int getChildPageCount(Page p) {
+        return p.getChildPageCount();
     }
 
 }

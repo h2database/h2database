@@ -7,11 +7,9 @@
 package org.h2.test.store;
 
 import java.util.ArrayList;
+import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.MVStore;
-import org.h2.dev.store.btree.Cursor;
-import org.h2.dev.store.btree.CursorPos;
-import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.Page;
 import org.h2.util.New;
 
@@ -399,69 +397,16 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         }
     }
 
-    /**
-     * Go to the first element for the given key.
-     *
-     * @param p the current page
-     * @param cursor the cursor
-     * @param key the key
-     * @return the cursor position
-     */
-    protected CursorPos min(Page p, Cursor<K, V> cursor, Object key) {
-        if (p == null) {
-            return null;
-        }
-        while (true) {
-            CursorPos c = new CursorPos(p, 0, null);
-            if (p.isLeaf()) {
-                return c;
-            }
-            cursor.push(c);
-            p = p.getChildPage(0);
-        }
-    }
-
-    /**
-     * Get the next key.
-     *
-     * @param p the cursor position
-     * @param cursor the cursor
-     * @return the next key
-     */
-    protected Object nextKey(CursorPos p, Cursor<K, V> cursor) {
-        while (p != null) {
-            int index = p.index++;
-            Page x = p.page;
-            if (index < x.getKeyCount()) {
-                return x.getKey(index);
-            }
-            while (true) {
-                p = cursor.pop();
-                if (p == null) {
-                    break;
-                }
-                index = ++p.index;
-                x = p.page;
-                // this is different from a b-tree:
-                // we have one less child
-                if (index < x.getKeyCount()) {
-                    cursor.push(p);
-                    p = cursor.visitChild(x, index);
-                    if (p != null) {
-                        break;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
     public boolean isQuadraticSplit() {
         return quadraticSplit;
     }
 
     public void setQuadraticSplit(boolean quadraticSplit) {
         this.quadraticSplit = quadraticSplit;
+    }
+
+    protected int getChildPageCount(Page p) {
+        return p.getChildPageCount() - 1;
     }
 
 }

@@ -184,21 +184,21 @@ public class TestMVStore extends TestBase {
         for (int i = 20; i < 40; i++) {
             assertEquals("Hi", m.put(i, "Hello"));
         }
-        s.incrementVersion();
+        long old = s.incrementVersion();
         for (int i = 10; i < 15; i++) {
             m.put(i, "Hallo");
         }
         m.put(50, "Hallo");
-        for (int i = 90; i < 100; i++) {
+        for (int i = 90; i < 93; i++) {
             assertEquals("Hi", m.remove(i));
         }
         assertEquals(null, m.put(100, "Hallo"));
-        Iterator<Integer> it = m.changeIterator(s.getCurrentVersion());
+        Iterator<Integer> it = m.changeIterator(old);
         ArrayList<Integer> list = New.arrayList();
         while (it.hasNext()) {
             list.add(it.next());
         }
-        assertEquals("[9, 10, 11, 12, 13, 14, 48, 49, 50, 87, 88, 89, 100]", list.toString());
+        assertEquals("[10, 11, 12, 13, 14, 50, 100, 90, 91, 92]", list.toString());
         s.close();
     }
 

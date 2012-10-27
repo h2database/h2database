@@ -6,7 +6,6 @@
  */
 package org.h2.dev.store.btree;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -17,12 +16,11 @@ import java.util.Iterator;
  */
 public class Cursor<K, V> implements Iterator<K> {
 
-    protected final MVMap<K, V> map;
-    protected final Page root;
-    protected final K from;
-    protected ArrayList<CursorPos> parents;
-    protected CursorPos currentPos;
-    protected K current;
+    private final MVMap<K, V> map;
+    private final K from;
+    private Page root;
+    private CursorPos pos;
+    private K current;
 
     Cursor(MVMap<K, V> map, Page root, K from) {
         this.map = map;
@@ -31,32 +29,17 @@ public class Cursor<K, V> implements Iterator<K> {
     }
 
     public K next() {
-        if (!hasNext()) {
-            return null;
-        }
         K c = current;
-        if (c != null) {
-            fetchNext();
-        }
-        return c == null ? null : c;
-    }
-
-    /**
-     * Fetch the next key.
-     */
-    @SuppressWarnings("unchecked")
-    protected void fetchNext() {
-        current = (K) map.nextKey(currentPos, this);
+        fetchNext();
+        return c;
     }
 
     public boolean hasNext() {
-        if (parents == null) {
-            // not initialized yet: fetch the first key
-            parents = new ArrayList<CursorPos>();
-            currentPos = min(root, from);
-            if (currentPos != null) {
-                fetchNext();
-            }
+        if (root != null) {
+            // initialize
+            min(root, from);
+            root = null;
+            fetchNext();
         }
         return current != null;
     }
@@ -65,48 +48,43 @@ public class Cursor<K, V> implements Iterator<K> {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Add a cursor position to the stack.
-     *
-     * @param p the cursor position
-     */
-    public void push(CursorPos p) {
-        parents.add(p);
+    private void min(Page p, K from) {
+        while (true) {
+            if (p.isLeaf()) {
+                int x = from == null ? 0 : p.binarySearch(from);
+                if (x < 0) {
+                    x = -x - 1;
+                }
+                pos = new CursorPos(p, x, pos);
+                break;
+            }
+            int x = from == null ? -1 : p.binarySearch(from);
+            if (x < 0) {
+                x = -x - 1;
+            } else {
+                x++;
+            }
+            pos = new CursorPos(p, x + 1, pos);
+            p = p.getChildPage(x);
+        }
     }
 
-    /**
-     * Remove the latest cursor position from the stack and return it.
-     *
-     * @return the cursor position, or null if none
-     */
-    public CursorPos pop() {
-        int size = parents.size();
-        return size == 0 ? null : parents.remove(size - 1);
-    }
-
-    /**
-     * Visit  the first key that is greater or equal the given key.
-     *
-     * @param p the page
-     * @param from the key, or null
-     * @return the cursor position
-     */
-    public CursorPos min(Page p, K from) {
-        return map.min(p, this, from);
-    }
-
-    /**
-     * Visit the first key within this child page.
-     *
-     * @param p the page
-     * @param childIndex the child index
-     * @return the cursor position
-     */
-    public CursorPos visitChild(Page p, int childIndex) {
-        p = p.getChildPage(childIndex);
-        currentPos = min(p, null);
-        return currentPos;
+    @SuppressWarnings("unchecked")
+    private void fetchNext() {
+        while (pos != null) {
+            if (pos.index < pos.page.getKeyCount()) {
+                current = (K) pos.page.getKey(pos.index++);
+                return;
+            }
+            pos = pos.parent;
+            if (pos == null) {
+                break;
+            }
+            if (pos.index < map.getChildPageCount(pos.page)) {
+                min(pos.page.getChildPage(pos.index++), null);
+            }
+        }
+        current = null;
     }
 
 }
-

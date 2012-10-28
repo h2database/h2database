@@ -1614,6 +1614,8 @@ primary key column of this table (unlike auto-increment columns).
 
 Check constraints can reference columns of the table,
 and they can reference objects that exist while the statement is executed.
+Conditions are only checked when a row is added or modified
+in the table where the constraint exists.
 ","
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
 CREATE TABLE TEST(ID BIGINT IDENTITY);

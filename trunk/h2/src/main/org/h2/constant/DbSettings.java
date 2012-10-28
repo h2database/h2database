@@ -265,11 +265,12 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>QUERY_CACHE_SIZE</code> (default: 8).<br />
-     * The size of the query cache. Each session has it's own cache with the
-     * given size. The cache is only used if the SQL statement and all
-     * parameters match. Only the last returned result per query is cached. Only
-     * SELECT statements are cached (excluding UNION and FOR UPDATE statements).
-     * This works for both statements and prepared statement.
+     * The size of the query cache, in number of cached statements. Each session
+     * has it's own cache with the given size. The cache is only used if the SQL
+     * statement and all parameters match. Only the last returned result per
+     * query is cached. Only SELECT statements are cached (excluding UNION and
+     * FOR UPDATE statements). This works for both statements and prepared
+     * statement.
      */
     public final int queryCacheSize = get("QUERY_CACHE_SIZE", 8);
 

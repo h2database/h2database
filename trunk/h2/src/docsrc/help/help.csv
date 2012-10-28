@@ -2885,6 +2885,15 @@ This method returns a string.
 CONCAT(NAME, '!')
 "
 
+"Functions (String)","CONCAT_WS","
+CONCAT_WS(separatorString, string, string [,...])
+","
+Combines strings with separator.
+This method returns a string.
+","
+CONCAT_WS(',', NAME, '!')
+"
+
 "Functions (String)","DIFFERENCE","
 DIFFERENCE(string, string)
 ","

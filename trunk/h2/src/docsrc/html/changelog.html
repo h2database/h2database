@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>PostgreSQL compatibility: support for EXTRACT(WEEK FROM dateColumn).
+<ul><li>MySQL compatibility: support for CONCAT_WS.
+    Thanks a lot to litailang for the patch!
+</li><li>PostgreSQL compatibility: support for EXTRACT(WEEK FROM dateColumn).
     Thanks to Prashant Bhat for the patch!
 </li><li>Fix for a bug where we would sometimes use the wrong unique constraint to validate foreign key constraints.
 </li><li>Support BOM at the beginning of files for the RUNSCRIPT command

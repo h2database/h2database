@@ -74,6 +74,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testFileRead();
         testValue();
         testNvl2();
+        testConcatWs();
         deleteDb("functions");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
@@ -145,6 +146,45 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("test", actual);
         assertEquals(rs.getMetaData().getColumnType(2), rs.getMetaData().getColumnType(1));
 
+        conn.close();
+    }
+
+    private void testConcatWs() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+
+        String createSQL = "CREATE TABLE testConcat(id BIGINT, txt1 varchar, txt2 varchar, txt3 varchar);";
+        stat.execute(createSQL);
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) values(1, 'test1', 'test2', 'test3')");
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) values(2, 'test1', 'test2', null)");
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) values(3, 'test1', null, null)");
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) values(4, null, 'test2', null)");
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) values(5, null, null, null)");
+
+        String query = "SELECT concat_ws('_',txt1, txt2, txt3), txt1 FROM testConcat order by id asc";
+        ResultSet rs = stat.executeQuery(query);
+        rs.next();
+        String actual = rs.getString(1);
+        assertEquals("test1_test2_test3", actual);
+        rs.next();
+        actual = rs.getString(1);
+        assertEquals("test1_test2", actual);
+        rs.next();
+        actual = rs.getString(1);
+        assertEquals("test1", actual);
+        rs.next();
+        actual = rs.getString(1);
+        assertEquals("test2", actual);
+        rs.next();
+        actual = rs.getString(1);
+        assertEquals("", actual);
+        rs.close();
+
+        rs = stat.executeQuery("select concat_ws(null,null,null)");
+        rs.next();
+        assertNull(rs.getObject(1));
+
+        stat.execute("drop table testConcat");
         conn.close();
     }
 

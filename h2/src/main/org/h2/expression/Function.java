@@ -81,7 +81,8 @@ public class Function extends Expression implements FunctionCall {
             OCTET_LENGTH = 64, RAWTOHEX = 65, REPEAT = 66, REPLACE = 67, RIGHT = 68, RTRIM = 69, SOUNDEX = 70,
             SPACE = 71, SUBSTR = 72, SUBSTRING = 73, UCASE = 74, LOWER = 75, UPPER = 76, POSITION = 77, TRIM = 78,
             STRINGENCODE = 79, STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82, XMLATTR = 83, XMLNODE = 84,
-            XMLCOMMENT = 85, XMLCDATA = 86, XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90, LPAD = 91;
+            XMLCOMMENT = 85, XMLCDATA = 86, XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90, LPAD = 91,
+            CONCAT_WS = 92;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102, DATE_DIFF = 103, DAY_NAME = 104,
             DAY_OF_MONTH = 105, DAY_OF_WEEK = 106, DAY_OF_YEAR = 107, HOUR = 108, MINUTE = 109, MONTH = 110, MONTH_NAME = 111,
@@ -222,6 +223,7 @@ public class Function extends Expression implements FunctionCall {
         // same as CHAR_LENGTH
         addFunction("CHARACTER_LENGTH", CHAR_LENGTH, 1, Value.INT);
         addFunctionWithNull("CONCAT", CONCAT, VAR_ARGS, Value.STRING);
+        addFunctionWithNull("CONCAT_WS", CONCAT_WS, VAR_ARGS, Value.STRING);
         addFunction("DIFFERENCE", DIFFERENCE, 2, Value.INT);
         addFunction("HEXTORAW", HEXTORAW, 1, Value.STRING);
         addFunctionWithNull("INSERT", INSERT, 4, Value.STRING);
@@ -571,9 +573,16 @@ public class Function extends Expression implements FunctionCall {
         case OCTET_LENGTH:
             result = ValueLong.get(2 * length(v0));
             break;
+        case CONCAT_WS:
         case CONCAT: {
             result = ValueNull.INSTANCE;
-            for (int i = 0; i < args.length; i++) {
+            int start = 0;
+            String separator = "";
+            if (info.type == CONCAT_WS) {
+                start = 1;
+                separator = getNullOrValue(session, args, values, 0).getString();
+            }
+            for (int i = start; i < args.length; i++) {
                 Value v = getNullOrValue(session, args, values, i);
                 if (v == ValueNull.INSTANCE) {
                     continue;
@@ -581,7 +590,17 @@ public class Function extends Expression implements FunctionCall {
                 if (result == ValueNull.INSTANCE) {
                     result = v;
                 } else {
-                    result = ValueString.get(result.getString().concat(v.getString()));
+                    String tmp = v.getString();
+                    if (!StringUtils.isNullOrEmpty(separator)
+                            && !StringUtils.isNullOrEmpty(tmp)) {
+                        tmp = separator.concat(tmp);
+                    }
+                    result = ValueString.get(result.getString().concat(tmp));
+                }
+            }
+            if (info.type == CONCAT_WS) {
+                if (separator != null && result == ValueNull.INSTANCE) {
+                    result = ValueString.get("");
                 }
             }
             break;
@@ -1683,6 +1702,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case CASE:
         case CONCAT:
+        case CONCAT_WS:
         case CSVWRITE:
             min = 2;
             break;

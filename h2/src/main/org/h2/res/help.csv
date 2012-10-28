@@ -1015,6 +1015,10 @@ Returns the character that represents the ASCII value."
 CONCAT(string, string [,...])
 ","
 Combines strings."
+"Functions (String)","CONCAT_WS","
+CONCAT_WS(string, string, string [,...])
+","
+Combines strings with separator."
 "Functions (String)","DIFFERENCE","
 DIFFERENCE(string, string)
 ","

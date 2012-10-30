@@ -18,8 +18,8 @@ import java.util.ArrayList;
  */
 public class SwitchSource {
 
-    private ArrayList<String> enable = new ArrayList<String>();
-    private ArrayList<String> disable = new ArrayList<String>();
+    private final ArrayList<String> enable = new ArrayList<String>();
+    private final ArrayList<String> disable = new ArrayList<String>();
 
     /**
      * This method is called when executing this application from the command

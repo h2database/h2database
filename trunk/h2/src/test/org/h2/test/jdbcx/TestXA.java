@@ -119,8 +119,8 @@ public class TestXA extends TestBase {
      * A simple Xid implementation.
      */
     public static class MyXid implements Xid {
-        private byte[] branchQualifier = { 0 };
-        private byte[] globalTransactionId = { 0 };
+        private final byte[] branchQualifier = { 0 };
+        private final byte[] globalTransactionId = { 0 };
         public byte[] getBranchQualifier() {
             return branchQualifier;
         }

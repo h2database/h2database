@@ -31,8 +31,8 @@ public class PageBtreeIndex extends PageIndex {
 
     private static int memoryChangeRequired;
 
-    private PageStore store;
-    private RegularTable tableData;
+    private final PageStore store;
+    private final RegularTable tableData;
     private boolean needRebuild;
     private long rowCount;
     private int memoryPerPage;

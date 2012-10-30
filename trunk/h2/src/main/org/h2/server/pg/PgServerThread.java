@@ -46,7 +46,7 @@ import org.h2.value.CaseInsensitiveMap;
  * One server thread is opened for each client.
  */
 public class PgServerThread implements Runnable {
-    private PgServer server;
+    private final PgServer server;
     private Socket socket;
     private Connection conn;
     private boolean stop;
@@ -63,8 +63,8 @@ public class PgServerThread implements Runnable {
     private int processId;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO";
-    private HashMap<String, Prepared> prepared = new CaseInsensitiveMap<Prepared>();
-    private HashMap<String, Portal> portals = new CaseInsensitiveMap<Portal>();
+    private final HashMap<String, Prepared> prepared = new CaseInsensitiveMap<Prepared>();
+    private final HashMap<String, Portal> portals = new CaseInsensitiveMap<Portal>();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;

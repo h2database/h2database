@@ -18,10 +18,10 @@ import org.h2.util.BitField;
  */
 public class PageInputStream extends InputStream {
 
-    private PageStore store;
+    private final PageStore store;
     private final Trace trace;
-    private int firstTrunkPage;
-    private PageStreamTrunk.Iterator trunkIterator;
+    private final int firstTrunkPage;
+    private final PageStreamTrunk.Iterator trunkIterator;
     private int dataPage;
     private PageStreamTrunk trunk;
     private int trunkIndex;
@@ -29,7 +29,7 @@ public class PageInputStream extends InputStream {
     private int dataPos;
     private boolean endOfFile;
     private int remaining;
-    private byte[] buffer = { 0 };
+    private final byte[] buffer = { 0 };
     private int logKey;
 
     PageInputStream(PageStore store, int logKey, int firstTrunkPage, int dataPage) {

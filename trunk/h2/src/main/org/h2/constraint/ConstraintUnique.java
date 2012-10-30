@@ -27,7 +27,7 @@ public class ConstraintUnique extends Constraint {
     private Index index;
     private boolean indexOwner;
     private IndexColumn[] columns;
-    private boolean primaryKey;
+    private final boolean primaryKey;
 
     public ConstraintUnique(Schema schema, int id, String name, Table table, boolean primaryKey) {
         super(schema, id, name, table);

@@ -210,7 +210,7 @@ public class PageStreamTrunk extends Page {
      */
     static class Iterator {
 
-        private PageStore store;
+        private final PageStore store;
         private int first;
         private int next;
         private int previous;

@@ -24,7 +24,7 @@ import org.h2.util.StringUtils;
  */
 public class DbInspector {
 
-    private Db db;
+    private final Db db;
     private DatabaseMetaData metaData;
     private Class<? extends java.util.Date> dateTimeClass = java.util.Date.class;
 

@@ -15,8 +15,8 @@ import org.h2.util.New;
  */
 class RuleList implements Rule {
 
-    private boolean or;
-    private ArrayList<Rule> list;
+    private final boolean or;
+    private final ArrayList<Rule> list;
     private boolean mapSet;
 
     RuleList(Rule first, Rule next, boolean or) {

@@ -48,7 +48,8 @@ public class TableLink extends Table {
 
     private static final long ROW_COUNT_APPROXIMATION = 100000;
 
-    private String driver, url, user, password, originalSchema, originalTable, qualifiedTableName;
+    private final String originalSchema;
+    private String driver, url, user, password, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
     private HashMap<String, PreparedStatement> preparedMap = New.hashMap();
     private final ArrayList<Index> indexes = New.arrayList();

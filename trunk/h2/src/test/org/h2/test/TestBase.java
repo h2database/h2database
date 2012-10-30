@@ -77,7 +77,7 @@ public abstract class TestBase {
      */
     protected long start;
 
-    private LinkedList<byte[]> memory = new LinkedList<byte[]>();
+    private final LinkedList<byte[]> memory = new LinkedList<byte[]>();
 
     /**
      * Get the test directory for this test.

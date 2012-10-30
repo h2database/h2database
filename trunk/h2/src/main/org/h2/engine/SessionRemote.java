@@ -75,7 +75,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private String databaseName;
     private String cipher;
     private byte[] fileEncryptionKey;
-    private Object lobSyncObject = new Object();
+    private final Object lobSyncObject = new Object();
     private String sessionId;
     private int clientVersion;
     private boolean autoReconnect;

@@ -20,8 +20,8 @@ import org.h2.table.MetaTable;
  */
 public class MetaIndex extends BaseIndex {
 
-    private MetaTable meta;
-    private boolean scan;
+    private final MetaTable meta;
+    private final boolean scan;
 
     public MetaIndex(MetaTable meta, IndexColumn[] columns, boolean scan) {
         initBaseIndex(meta, 0, null, columns, IndexType.createNonUnique(true));

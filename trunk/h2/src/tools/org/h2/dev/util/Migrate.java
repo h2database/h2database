@@ -36,7 +36,7 @@ public class Migrate {
     private static final String DOWNLOAD_URL = "http://repo2.maven.org/maven2/com/h2database/h2/1.2.127/h2-1.2.127.jar";
     private static final String CHECKSUM = "056e784c7cf009483366ab9cd8d21d02fe47031a";
     private static final String TEMP_SCRIPT = "backup.sql";
-    private PrintStream sysOut = System.out;
+    private final PrintStream sysOut = System.out;
     private boolean quiet;
 
     /**

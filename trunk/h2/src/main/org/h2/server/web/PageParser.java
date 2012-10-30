@@ -17,10 +17,10 @@ import org.h2.util.New;
  * This class is used by the H2 Console.
  */
 public class PageParser {
-    private String page;
+    private final String page;
     private int pos;
-    private Map<String, Object> settings;
-    private int len;
+    private final Map<String, Object> settings;
+    private final int len;
     private StringBuilder result;
 
     private PageParser(String page, Map<String, Object> settings, int pos) {

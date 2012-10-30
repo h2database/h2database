@@ -90,7 +90,7 @@ public abstract class TestHalt extends TestBase {
      */
     protected Random random = new Random();
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
     private int errorId;
     private int sequenceId;
 

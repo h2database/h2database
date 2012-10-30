@@ -19,7 +19,7 @@ import org.h2.table.RangeTable;
  */
 public class RangeIndex extends BaseIndex {
 
-    private RangeTable rangeTable;
+    private final RangeTable rangeTable;
 
     public RangeIndex(RangeTable table, IndexColumn[] columns) {
         initBaseIndex(table, 0, "RANGE_INDEX", columns, IndexType.createNonUnique(true));

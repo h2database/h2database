@@ -33,7 +33,7 @@ import org.h2.util.Task;
 public class TestCompress extends TestBase {
 
     private boolean testPerformance;
-    private byte[] buff = new byte[10];
+    private final byte[] buff = new byte[10];
 
     /**
      * Run just this test.

@@ -17,7 +17,7 @@ public class SimpleRowValue implements SearchRow {
     private long key;
     private int version;
     private int index;
-    private int virtualColumnCount;
+    private final int virtualColumnCount;
     private Value data;
 
     public SimpleRowValue(int columnCount) {

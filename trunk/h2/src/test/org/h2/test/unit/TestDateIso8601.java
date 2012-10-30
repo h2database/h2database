@@ -19,7 +19,7 @@ import org.h2.util.DateTimeUtils;
  */
 public class TestDateIso8601 extends TestBase {
 
-    private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
     /**
      * Run just this test.

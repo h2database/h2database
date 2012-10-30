@@ -23,7 +23,7 @@ public class AlterTableSet extends SchemaCommand {
     private String tableName;
     private final int type;
 
-    private boolean value;
+    private final boolean value;
     private boolean checkExisting;
 
     public AlterTableSet(Session session, Schema schema, int type, boolean value) {

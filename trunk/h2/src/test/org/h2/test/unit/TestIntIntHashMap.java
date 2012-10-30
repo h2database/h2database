@@ -16,7 +16,7 @@ import org.h2.util.IntIntHashMap;
  */
 public class TestIntIntHashMap extends TestBase {
 
-    private Random rand = new Random();
+    private final Random rand = new Random();
 
     /**
      * Run just this test.

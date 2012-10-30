@@ -18,7 +18,7 @@ import org.h2.result.SearchRow;
 public class MetaCursor implements Cursor {
 
     private Row current;
-    private ArrayList<Row> rows;
+    private final ArrayList<Row> rows;
     private int index;
 
     MetaCursor(ArrayList<Row> rows) {

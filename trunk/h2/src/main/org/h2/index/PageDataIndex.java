@@ -36,8 +36,8 @@ import org.h2.value.ValueNull;
  */
 public class PageDataIndex extends PageIndex {
 
-    private PageStore store;
-    private RegularTable tableData;
+    private final PageStore store;
+    private final RegularTable tableData;
     private long lastKey;
     private long rowCount;
     private HashSet<Row> delta;
@@ -53,7 +53,7 @@ public class PageDataIndex extends PageIndex {
     private int memoryPerPage;
     private int memoryCount;
 
-    private boolean multiVersion;
+    private final boolean multiVersion;
 
     public PageDataIndex(RegularTable table, int id, IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {

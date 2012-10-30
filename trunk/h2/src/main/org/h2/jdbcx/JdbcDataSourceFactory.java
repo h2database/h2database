@@ -25,7 +25,7 @@ import org.h2.message.TraceSystem;
 public class JdbcDataSourceFactory implements ObjectFactory {
 
     private static TraceSystem cachedTraceSystem;
-    private Trace trace;
+    private final Trace trace;
 
     static {
         org.h2.Driver.load();

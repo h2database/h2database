@@ -34,7 +34,7 @@ public class TestSort extends TestBase {
         }
     };
 
-    private Long[] array = new Long[100000];
+    private final Long[] array = new Long[100000];
     private Class<?> clazz;
 
     /**

@@ -16,7 +16,7 @@ public class DbState implements DbInterface {
 
     private boolean connected;
     private boolean autoCommit;
-    private TestSynth config;
+    private final TestSynth config;
     private ArrayList<Table> tables = New.arrayList();
     private ArrayList<Index> indexes = New.arrayList();
 

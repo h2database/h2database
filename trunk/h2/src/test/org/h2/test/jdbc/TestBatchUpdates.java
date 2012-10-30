@@ -37,8 +37,8 @@ public class TestBatchUpdates extends TestBase {
     private static final String COFFEE_UPDATE_SET = "UPDATE TEST SET KEY_ID=?, C_NAME=? WHERE C_NAME=?";
     private static final String COFFEE_SELECT_CONTINUED = "SELECT COUNT(*) FROM TEST WHERE C_NAME='Continue-1'";
 
-    private int coffeeSize = 10;
-    private int coffeeType = 11;
+    private final int coffeeSize = 10;
+    private final int coffeeType = 11;
     private Connection conn;
     private Statement stat;
     private PreparedStatement prep;

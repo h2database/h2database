@@ -30,11 +30,11 @@ public class CheckTextFiles {
     private static final String[] SUFFIX_CRLF = { "bat" };
 
     private boolean failOnError;
-    private boolean allowTab, allowCR = true, allowTrailingSpaces;
-    private int spacesPerTab = 4;
-    private boolean autoFix = true;
+    private final boolean allowTab = false, allowCR = true, allowTrailingSpaces = false;
+    private final int spacesPerTab = 4;
+    private final boolean autoFix = true;
     private boolean useCRLF;
-    private String[] suffixIgnoreLicense = {
+    private final String[] suffixIgnoreLicense = {
             "bat", "nsi", "txt", "properties", "xml",
             "java.sql.Driver", "task", "sh", "prefs" };
     private boolean hasError;

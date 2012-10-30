@@ -16,8 +16,8 @@ import java.nio.channels.FileChannel;
  */
 public class FileChannelOutputStream extends OutputStream {
 
-    private FileChannel channel;
-    private byte[] buffer = { 0 };
+    private final FileChannel channel;
+    private final byte[] buffer = { 0 };
 
     /**
      * Create a new file object output stream from the file channel.

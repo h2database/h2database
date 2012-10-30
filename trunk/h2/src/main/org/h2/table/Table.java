@@ -96,8 +96,8 @@ public abstract class Table extends SchemaObjectBase {
     protected boolean isHidden;
 
     private final HashMap<String, Column> columnMap;
-    private boolean persistIndexes;
-    private boolean persistData;
+    private final boolean persistIndexes;
+    private final boolean persistData;
     private ArrayList<TriggerObject> triggers;
     private ArrayList<Constraint> constraints;
     private ArrayList<Sequence> sequences;

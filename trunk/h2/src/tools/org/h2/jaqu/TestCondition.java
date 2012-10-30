@@ -15,7 +15,7 @@ import org.h2.jaqu.util.ClassUtils;
  */
 public class TestCondition<A> {
 
-    private A x;
+    private final A x;
 
     public TestCondition(A x) {
         this.x = x;

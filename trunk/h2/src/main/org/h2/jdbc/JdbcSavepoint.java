@@ -24,8 +24,8 @@ public class JdbcSavepoint extends TraceObject implements Savepoint {
 
     private static final String SYSTEM_SAVEPOINT_PREFIX = "SYSTEM_SAVEPOINT_";
 
-    private int savepointId;
-    private String name;
+    private final int savepointId;
+    private final String name;
     private JdbcConnection conn;
 
     JdbcSavepoint(JdbcConnection conn, int savepointId, String name, Trace trace, int id) {

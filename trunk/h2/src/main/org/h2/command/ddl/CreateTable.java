@@ -29,8 +29,8 @@ import org.h2.value.DataType;
  */
 public class CreateTable extends SchemaCommand {
 
-    private CreateTableData data = new CreateTableData();
-    private ArrayList<DefineCommand> constraintCommands = New.arrayList();
+    private final CreateTableData data = new CreateTableData();
+    private final ArrayList<DefineCommand> constraintCommands = New.arrayList();
     private IndexColumn[] pkColumns;
     private boolean ifNotExists;
     private boolean onCommitDrop;

@@ -47,10 +47,10 @@ public class TestSynth extends TestBase {
      */
     static final int POSTGRESQL = 4;
 
-    private DbState dbState = new DbState(this);
+    private final DbState dbState = new DbState(this);
     private ArrayList<DbInterface> databases;
     private ArrayList<Command> commands;
-    private RandomGen random = new RandomGen();
+    private final RandomGen random = new RandomGen();
     private boolean showError, showLog;
     private boolean stopImmediately;
     private int mode;

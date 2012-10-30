@@ -20,7 +20,7 @@ class RangeCursor implements Cursor {
     private boolean beforeFirst;
     private long current;
     private Row currentRow;
-    private long min, max;
+    private final long min, max;
 
     RangeCursor(long min, long max) {
         this.min = min;

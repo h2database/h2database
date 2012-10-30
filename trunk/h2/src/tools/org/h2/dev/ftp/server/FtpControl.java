@@ -25,8 +25,8 @@ public class FtpControl extends Thread {
 
     private static final String SERVER_NAME = "Small FTP Server";
 
-    private FtpServer server;
-    private Socket control;
+    private final FtpServer server;
+    private final Socket control;
     private FtpData data;
     private PrintWriter output;
     private String userName;

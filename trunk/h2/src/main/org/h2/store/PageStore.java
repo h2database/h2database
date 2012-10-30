@@ -129,16 +129,16 @@ public class PageStore implements CacheWriter {
     private static final int META_TYPE_BTREE_INDEX = 1;
     private static final int META_TABLE_ID = -1;
     private static final int COMPACT_BLOCK_SIZE = 1536;
-    private Database database;
+    private final Database database;
     private final Trace trace;
-    private String fileName;
+    private final String fileName;
     private FileStore file;
     private String accessMode;
     private int pageSize = Constants.DEFAULT_PAGE_SIZE;
     private int pageSizeShift;
     private long writeCountBase, writeCount, readCount;
     private int logKey, logFirstTrunkPage, logFirstDataPage;
-    private Cache cache;
+    private final Cache cache;
     private int freeListPagesPerList;
     private boolean recoveryRunning;
     private boolean ignoreBigLog;
@@ -162,8 +162,8 @@ public class PageStore implements CacheWriter {
     private Schema metaSchema;
     private RegularTable metaTable;
     private PageDataIndex metaIndex;
-    private IntIntHashMap metaRootPageId = new IntIntHashMap();
-    private HashMap<Integer, PageIndex> metaObjects = New.hashMap();
+    private final IntIntHashMap metaRootPageId = new IntIntHashMap();
+    private final HashMap<Integer, PageIndex> metaObjects = New.hashMap();
     private HashMap<Integer, PageIndex> tempObjects;
 
     /**
@@ -174,13 +174,13 @@ public class PageStore implements CacheWriter {
     private HashMap<Integer, Integer> reservedPages;
     private boolean isNew;
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
-    private Session systemSession;
+    private final Session systemSession;
 
     /**
      * Each free page is marked with a set bit.
      */
-    private BitField freed = new BitField();
-    private ArrayList<PageFreeList> freeLists = New.arrayList();
+    private final BitField freed = new BitField();
+    private final ArrayList<PageFreeList> freeLists = New.arrayList();
 
     private boolean recordPageReads;
     private ArrayList<Integer> recordedPagesList;

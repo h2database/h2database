@@ -40,7 +40,7 @@ public class SourceCompiler {
      */
     HashMap<String, Class<?>> compiled = New.hashMap();
 
-    private String compileDir = Utils.getProperty("java.io.tmpdir", ".");
+    private final String compileDir = Utils.getProperty("java.io.tmpdir", ".");
 
     static {
         Class<?> clazz;

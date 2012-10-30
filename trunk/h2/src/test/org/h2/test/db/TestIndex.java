@@ -25,7 +25,7 @@ public class TestIndex extends TestBase {
 
     private Connection conn;
     private Statement stat;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     /**
      * Run just this test.

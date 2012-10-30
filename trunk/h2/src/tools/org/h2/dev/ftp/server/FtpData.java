@@ -20,8 +20,8 @@ import org.h2.util.IOUtils;
  */
 public class FtpData extends Thread {
 
-    private FtpServer server;
-    private InetAddress address;
+    private final FtpServer server;
+    private final InetAddress address;
     private ServerSocket serverSocket;
     private volatile Socket socket;
     private boolean active;

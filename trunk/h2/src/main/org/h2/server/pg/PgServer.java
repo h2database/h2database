@@ -70,14 +70,14 @@ public class PgServer implements Service {
     private static final int PG_TYPE_TIMESTAMP_NO_TMZONE = 1114;
     private static final int PG_TYPE_NUMERIC = 1700;
 
-    private HashSet<Integer> typeSet = New.hashSet();
+    private final HashSet<Integer> typeSet = New.hashSet();
 
     private int port = PgServer.DEFAULT_PORT;
     private boolean portIsSet;
     private boolean stop;
     private boolean trace;
     private ServerSocket serverSocket;
-    private Set<PgServerThread> running = Collections.synchronizedSet(new HashSet<PgServerThread>());
+    private final Set<PgServerThread> running = Collections.synchronizedSet(new HashSet<PgServerThread>());
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;

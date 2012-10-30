@@ -33,9 +33,9 @@ public class SpellChecker {
     private static final String PREFIX_IGNORE = "abc";
     private static final String[] IGNORE_FILES = {"mainWeb.html", "pg_catalog.sql"};
 
-    private HashSet<String> dictionary = new HashSet<String>();
-    private HashSet<String> used = new HashSet<String>();
-    private HashMap<String, Integer> unknown = new HashMap<String, Integer>();
+    private final HashSet<String> dictionary = new HashSet<String>();
+    private final HashSet<String> used = new HashSet<String>();
+    private final HashMap<String, Integer> unknown = new HashMap<String, Integer>();
     private boolean debug;
     private boolean printDictionary;
     private boolean addToDictionary;

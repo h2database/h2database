@@ -35,7 +35,7 @@ public class CommandRemote implements CommandInterface {
     private int id;
     private boolean isQuery;
     private boolean readonly;
-    private int created;
+    private final int created;
 
     public CommandRemote(SessionRemote session, ArrayList<Transfer> transferList, String sql, int fetchSize) {
         this.transferList = transferList;

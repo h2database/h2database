@@ -52,8 +52,8 @@ import org.h2.value.ValueUuid;
  */
 public class TestValueMemory extends TestBase implements DataHandler {
 
-    private Random random = new Random(1);
-    private SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache.newInstance(128);
+    private final Random random = new Random(1);
+    private final SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache.newInstance(128);
     private LobStorage lobStorage;
 
     /**

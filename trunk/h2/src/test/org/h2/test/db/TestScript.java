@@ -39,11 +39,11 @@ public class TestScript extends TestBase {
     private LineNumberReader in;
     private int line;
     private PrintStream out;
-    private ArrayList<String[]> result = New.arrayList();
+    private final ArrayList<String[]> result = New.arrayList();
     private String putBack;
     private StringBuilder errors;
     private ArrayList<String> statements;
-    private String fileName = "org/h2/test/test-" +
+    private final String fileName = "org/h2/test/test-" +
         Constants.VERSION_MAJOR + "." + Constants.VERSION_MINOR + ".txt";
 
     /**

@@ -60,7 +60,7 @@ public class PageDataOverflow extends Page {
      */
     private int nextPage;
 
-    private Data data;
+    private final Data data;
 
     private int start;
     private int size;

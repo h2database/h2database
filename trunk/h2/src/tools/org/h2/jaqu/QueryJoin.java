@@ -11,8 +11,8 @@ package org.h2.jaqu;
  */
 public class QueryJoin {
 
-    private Query<?> query;
-    private SelectTable<?> join;
+    private final Query<?> query;
+    private final SelectTable<?> join;
 
     QueryJoin(Query<?> query, SelectTable<?> join) {
         this.query = query;

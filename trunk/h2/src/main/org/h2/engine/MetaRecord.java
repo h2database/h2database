@@ -21,9 +21,9 @@ import org.h2.value.ValueString;
  */
 public class MetaRecord implements Comparable<MetaRecord> {
 
-    private int id;
-    private int objectType;
-    private String sql;
+    private final int id;
+    private final int objectType;
+    private final String sql;
 
     public MetaRecord(SearchRow r) {
         id = r.getValue(0).getInt();

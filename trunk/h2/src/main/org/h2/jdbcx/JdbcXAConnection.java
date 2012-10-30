@@ -36,14 +36,14 @@ import javax.sql.StatementEventListener;
  */
 public class JdbcXAConnection extends TraceObject implements XAConnection, XAResource {
 
-    private JdbcDataSourceFactory factory;
+    private final JdbcDataSourceFactory factory;
 
     // this connection is kept open as long as the XAConnection is alive
     private JdbcConnection physicalConn;
 
     // this connection is replaced whenever getConnection is called
     private volatile Connection handleConn;
-    private ArrayList<ConnectionEventListener> listeners = New.arrayList();
+    private final ArrayList<ConnectionEventListener> listeners = New.arrayList();
     private Xid currentTransaction;
     private boolean prepared;
 

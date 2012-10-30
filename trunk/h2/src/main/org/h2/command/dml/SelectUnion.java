@@ -58,7 +58,8 @@ public class SelectUnion extends Query {
     public static final int INTERSECT = 3;
 
     private int unionType;
-    private Query left, right;
+    private final Query left;
+    private Query right;
     private ArrayList<Expression> expressions;
     private Expression[] expressionArray;
     private ArrayList<SelectOrderBy> orderList;

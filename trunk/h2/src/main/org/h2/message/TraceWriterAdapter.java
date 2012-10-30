@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 public class TraceWriterAdapter implements TraceWriter {
 
     private String name;
-    private Logger logger = LoggerFactory.getLogger("h2database");
+    private final Logger logger = LoggerFactory.getLogger("h2database");
 
     public void setName(String name) {
         this.name = name;

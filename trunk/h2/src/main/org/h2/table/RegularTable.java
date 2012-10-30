@@ -54,7 +54,7 @@ public class RegularTable extends TableBase {
     private long rowCount;
     private volatile Session lockExclusive;
     private HashSet<Session> lockShared = New.hashSet();
-    private Trace traceLock;
+    private final Trace traceLock;
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private boolean containsLargeObject;

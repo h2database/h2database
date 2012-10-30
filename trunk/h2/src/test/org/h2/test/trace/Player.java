@@ -51,7 +51,7 @@ public class Player {
 
     private static final String[] IMPORTED_PACKAGES = { "", "java.lang.", "java.sql.", "javax.sql." };
     private boolean trace;
-    private HashMap<String, Object> objects = New.hashMap();
+    private final HashMap<String, Object> objects = New.hashMap();
 
     /**
      * Execute a trace file using the command line. The log file name to execute

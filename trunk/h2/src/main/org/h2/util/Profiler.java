@@ -37,13 +37,13 @@ public class Profiler implements Runnable {
 
     private int pid;
 
-    private String[] ignoreLines = {};
-    private String[] ignorePackages = (
+    private final String[] ignoreLines = {};
+    private final String[] ignorePackages = (
             "java," +
             "sun," +
             "com.sun."
             ).split(",");
-    private String[] ignoreThreads = (
+    private final String[] ignoreThreads = (
             "java.lang.Object.wait," +
             "java.lang.Thread.dumpThreads," +
             "java.lang.Thread.getThreads," +
@@ -60,13 +60,13 @@ public class Profiler implements Runnable {
             ).split(",");
 
     private volatile boolean stop;
-    private HashMap<String, Integer> counts = new HashMap<String, Integer>();
+    private final HashMap<String, Integer> counts = new HashMap<String, Integer>();
 
     /**
      * The summary (usually one entry per package, unless sumClasses is enabled,
      * in which case it's one entry per class).
      */
-    private HashMap<String, Integer> summary = new HashMap<String, Integer>();
+    private final HashMap<String, Integer> summary = new HashMap<String, Integer>();
     private int minCount = 1;
     private int total;
     private Thread thread;

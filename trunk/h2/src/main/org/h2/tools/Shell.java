@@ -47,8 +47,8 @@ public class Shell extends Tool implements Runnable {
     private boolean listMode;
     private int maxColumnSize = 100;
     // Windows: '\u00b3';
-    private char boxVertical = '|';
-    private ArrayList<String> history = New.arrayList();
+    private final char boxVertical = '|';
+    private final ArrayList<String> history = New.arrayList();
     private boolean stopHide;
     private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
 

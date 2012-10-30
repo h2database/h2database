@@ -14,8 +14,8 @@ package org.h2.jaqu;
  */
 public class UpdateColumnSet<T, A> implements UpdateColumn {
 
-    private Query<T> query;
-    private A x;
+    private final Query<T> query;
+    private final A x;
     private A y;
 
     UpdateColumnSet(Query<T> query, A x) {

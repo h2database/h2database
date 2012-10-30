@@ -33,7 +33,7 @@ import org.h2.util.New;
 public class ScanIndex extends BaseIndex {
     private long firstFree = -1;
     private ArrayList<Row> rows = New.arrayList();
-    private RegularTable tableData;
+    private final RegularTable tableData;
     private int rowCountDiff;
     private HashMap<Integer, Integer> sessionRowCount;
     private HashSet<Row> delta;

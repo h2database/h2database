@@ -36,7 +36,7 @@ public class Merge extends Prepared {
     private Table table;
     private Column[] columns;
     private Column[] keys;
-    private ArrayList<Expression[]> list = New.arrayList();
+    private final ArrayList<Expression[]> list = New.arrayList();
     private Query query;
     private Prepared update;
 

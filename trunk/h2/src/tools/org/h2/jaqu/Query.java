@@ -28,13 +28,13 @@ import org.h2.util.New;
  */
 public class Query<T> {
 
-    private Db db;
+    private final Db db;
     private SelectTable<T> from;
-    private ArrayList<Token> conditions = New.arrayList();
-    private ArrayList<UpdateColumn> updateColumnDeclarations = New.arrayList();
-    private ArrayList<SelectTable<?>> joins = New.arrayList();
+    private final ArrayList<Token> conditions = New.arrayList();
+    private final ArrayList<UpdateColumn> updateColumnDeclarations = New.arrayList();
+    private final ArrayList<SelectTable<?>> joins = New.arrayList();
     private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = ClassUtils.newIdentityHashMap();
-    private ArrayList<OrderExpression<T>> orderByList = New.arrayList();
+    private final ArrayList<OrderExpression<T>> orderByList = New.arrayList();
     private Object[] groupByExpressions;
     private long limit;
     private long offset;

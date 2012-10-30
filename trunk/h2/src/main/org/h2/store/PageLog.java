@@ -114,19 +114,19 @@ public class PageLog {
     private static final boolean COMPRESS_UNDO = true;
 
     private final PageStore store;
-    private Trace trace;
+    private final Trace trace;
 
     private Data writeBuffer;
     private PageOutputStream pageOut;
     private int firstTrunkPage;
     private int firstDataPage;
-    private Data dataBuffer;
+    private final Data dataBuffer;
     private int logKey;
     private int logSectionId, logPos;
     private int firstSectionId;
 
-    private CompressLZF compress;
-    private byte[] compressBuffer;
+    private final CompressLZF compress;
+    private final byte[] compressBuffer;
 
     /**
      * If the bit is set, the given page was written to the current log section.
@@ -138,12 +138,12 @@ public class PageLog {
      * The undo entry of those pages was written in any log section.
      * These pages may not be used in the transaction log.
      */
-    private BitField undoAll = new BitField();
+    private final BitField undoAll = new BitField();
 
     /**
      * The map of section ids (key) and data page where the section starts (value).
      */
-    private IntIntHashMap logSectionPageMap = new IntIntHashMap();
+    private final IntIntHashMap logSectionPageMap = new IntIntHashMap();
 
     /**
      * The session state map.

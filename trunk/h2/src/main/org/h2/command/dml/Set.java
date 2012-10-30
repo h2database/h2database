@@ -33,7 +33,7 @@ import org.h2.value.ValueInt;
  */
 public class Set extends Prepared {
 
-    private int type;
+    private final int type;
     private Expression expression;
     private String stringValue;
     private String[] stringValueList;

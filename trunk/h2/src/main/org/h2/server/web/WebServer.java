@@ -128,13 +128,13 @@ public class WebServer implements Service {
     private int port;
     private boolean allowOthers;
     private boolean isDaemon;
-    private Set<WebThread> running = Collections.synchronizedSet(new HashSet<WebThread>());
+    private final Set<WebThread> running = Collections.synchronizedSet(new HashSet<WebThread>());
     private boolean ssl;
-    private HashMap<String, ConnectionInfo> connInfoMap = New.hashMap();
+    private final HashMap<String, ConnectionInfo> connInfoMap = New.hashMap();
 
     private long lastTimeoutCheck;
-    private HashMap<String, WebSession> sessions = New.hashMap();
-    private HashSet<String> languages = New.hashSet();
+    private final HashMap<String, WebSession> sessions = New.hashMap();
+    private final HashSet<String> languages = New.hashSet();
     private String startDateTime;
     private ServerSocket serverSocket;
     private String url;

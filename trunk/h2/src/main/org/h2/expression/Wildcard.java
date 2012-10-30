@@ -20,8 +20,8 @@ import org.h2.value.Value;
  * replaced by column expressions.
  */
 public class Wildcard extends Expression {
-    private String schema;
-    private String table;
+    private final String schema;
+    private final String table;
 
     public Wildcard(String schema, String table) {
         this.schema = schema;

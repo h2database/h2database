@@ -60,7 +60,7 @@ public class TcpServer implements Service {
     private boolean stop;
     private ShutdownHandler shutdownHandler;
     private ServerSocket serverSocket;
-    private Set<TcpServerThread> running = Collections.synchronizedSet(new HashSet<TcpServerThread>());
+    private final Set<TcpServerThread> running = Collections.synchronizedSet(new HashSet<TcpServerThread>());
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;

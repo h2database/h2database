@@ -27,7 +27,7 @@ class Command {
     String[] selectList;
 
     private TestSynth config;
-    private int type;
+    private final int type;
     private Table table;
     private HashMap<String, Table> tables;
     private Index index;
@@ -36,10 +36,10 @@ class Command {
     private String condition;
     // private int nextAlias;
     private String order;
-    private String join = "";
+    private final String join = "";
     private Result result;
 
-        private Command(TestSynth config, int type) {
+    private Command(TestSynth config, int type) {
         this.config = config;
         this.type = type;
     }

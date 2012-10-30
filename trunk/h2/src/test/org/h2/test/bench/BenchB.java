@@ -23,11 +23,11 @@ public class BenchB implements Bench, Runnable {
 
     // master data
     private Database database;
-    private int scale = 1;
-    private int branches = 1;
-    private int tellers = 10;
-    private int accounts = 100000;
-    private int clients = 10;
+    private final int scale = 1;
+    private final int branches = 1;
+    private final int tellers = 10;
+    private final int accounts = 100000;
+    private final int clients = 10;
     private int transactionPerClient;
 
     // client data

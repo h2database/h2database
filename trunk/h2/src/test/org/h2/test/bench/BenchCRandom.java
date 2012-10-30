@@ -15,7 +15,7 @@ import java.util.Random;
  */
 public class BenchCRandom {
 
-    private Random random = new Random(10);
+    private final Random random = new Random(10);
 
     /**
      * Get a non-uniform random integer value between min and max.

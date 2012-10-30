@@ -17,11 +17,11 @@ import org.h2.message.DbException;
  */
 public class SmallMap {
 
-    private HashMap<Integer, Object> map = New.hashMap();
+    private final HashMap<Integer, Object> map = New.hashMap();
     private Object cache;
     private int cacheId;
     private int lastId;
-    private int maxElements;
+    private final int maxElements;
 
     /**
      * Create a map with the given maximum number of entries.

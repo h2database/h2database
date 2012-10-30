@@ -36,13 +36,13 @@ public class Indexer {
         "also;back;after;use;two;how;our;work;first;well;way;even;new;want;" +
         "because;any;these;give;most;us;";
 
-    private ArrayList<Page> pages = new ArrayList<Page>();
+    private final ArrayList<Page> pages = new ArrayList<Page>();
 
     /**
      * Lower case word to Word map.
      */
-    private HashMap<String, Word> words = new HashMap<String, Word>();
-    private HashSet<String> noIndex = new HashSet<String>();
+    private final HashMap<String, Word> words = new HashMap<String, Word>();
+    private final HashSet<String> noIndex = new HashSet<String>();
     private ArrayList <Word>wordList;
     private PrintWriter output;
     private Page page;

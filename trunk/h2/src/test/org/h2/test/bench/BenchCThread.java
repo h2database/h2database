@@ -23,12 +23,12 @@ public class BenchCThread {
             OP_STOCK_LEVEL = 4;
     private static final BigDecimal ONE = new BigDecimal("1");
 
-    private Database db;
-    private int warehouseId;
-    private int terminalId;
-    private HashMap<String, PreparedStatement> prepared = new HashMap<String, PreparedStatement>();
-    private BenchCRandom random;
-    private BenchC bench;
+    private final Database db;
+    private final int warehouseId;
+    private final int terminalId;
+    private final HashMap<String, PreparedStatement> prepared = new HashMap<String, PreparedStatement>();
+    private final BenchCRandom random;
+    private final BenchC bench;
 
     BenchCThread(Database db, BenchC bench, BenchCRandom random, int terminal)
             throws SQLException {

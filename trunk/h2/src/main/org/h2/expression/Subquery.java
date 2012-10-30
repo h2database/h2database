@@ -24,7 +24,7 @@ import org.h2.value.ValueNull;
  */
 public class Subquery extends Expression {
 
-    private Query query;
+    private final Query query;
     private Expression expression;
 
     public Subquery(Query query) {

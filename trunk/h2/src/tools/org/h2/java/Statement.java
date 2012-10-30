@@ -401,8 +401,8 @@ class VarDecStatement extends StatementBase {
      */
     Type type;
 
-    private ArrayList<String> variables = new ArrayList<String>();
-    private ArrayList<Expr> values = new ArrayList<Expr>();
+    private final ArrayList<String> variables = new ArrayList<String>();
+    private final ArrayList<Expr> values = new ArrayList<Expr>();
 
     public void setMethod(MethodObj method) {
         // ignore

@@ -13,9 +13,9 @@ package org.h2.jaqu;
  */
 public class QueryJoinCondition<A> {
 
-    private Query<?> query;
-    private SelectTable<?> join;
-    private A x;
+    private final Query<?> query;
+    private final SelectTable<?> join;
+    private final A x;
 
     QueryJoinCondition(Query<?> query, SelectTable<?> join, A x) {
         this.query = query;

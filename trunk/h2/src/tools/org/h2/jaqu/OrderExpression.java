@@ -12,11 +12,11 @@ package org.h2.jaqu;
  * @param <T> the query data type
  */
 class OrderExpression<T> {
-    private Query<T> query;
-    private Object expression;
-    private boolean desc;
-    private boolean nullsFirst;
-    private boolean nullsLast;
+    private final Query<T> query;
+    private final Object expression;
+    private final boolean desc;
+    private final boolean nullsFirst;
+    private final boolean nullsLast;
 
     OrderExpression(Query<T> query, Object expression, boolean desc,
             boolean nullsFirst, boolean nullsLast) {

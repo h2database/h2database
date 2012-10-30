@@ -16,8 +16,8 @@ import org.h2.util.New;
 public class Expression {
 
     private String sql;
-    private TestSynth config;
-    private Command command;
+    private final TestSynth config;
+    private final Command command;
 
     private Expression(TestSynth config, Command command) {
         this.config = config;

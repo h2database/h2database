@@ -27,8 +27,8 @@ public class LinkChecker {
         "SysProperties", "ErrorCode"
     };
 
-    private HashMap<String, String> targets = new HashMap<String, String>();
-    private HashMap<String, String> links = new HashMap<String, String>();
+    private final HashMap<String, String> targets = new HashMap<String, String>();
+    private final HashMap<String, String> links = new HashMap<String, String>();
 
     /**
      * This method is called when executing this application from the command

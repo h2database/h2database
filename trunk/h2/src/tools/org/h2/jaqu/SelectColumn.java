@@ -14,8 +14,8 @@ import org.h2.jaqu.TableDefinition.FieldDefinition;
  * @param <T> the table data type
  */
 class SelectColumn<T> {
-    private SelectTable<T> selectTable;
-    private FieldDefinition fieldDef;
+    private final SelectTable<T> selectTable;
+    private final FieldDefinition fieldDef;
 
     SelectColumn(SelectTable<T> table, FieldDefinition fieldDef) {
         this.selectTable = table;

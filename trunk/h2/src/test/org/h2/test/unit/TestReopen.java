@@ -34,10 +34,10 @@ public class TestReopen extends TestBase implements Recorder {
 
     private String testDatabase = "memFS:" + TestBase.BASE_TEST_DIR + "/reopen";
     private int writeCount = Utils.getProperty("h2.reopenOffset", 0);
-    private int testEvery = 1 << Utils.getProperty("h2.reopenShift", 6);
-    private long maxFileSize = Utils.getProperty("h2.reopenMaxFileSize", Integer.MAX_VALUE) * 1024L * 1024;
+    private final int testEvery = 1 << Utils.getProperty("h2.reopenShift", 6);
+    private final long maxFileSize = Utils.getProperty("h2.reopenMaxFileSize", Integer.MAX_VALUE) * 1024L * 1024;
     private int verifyCount;
-    private HashSet<String> knownErrors = New.hashSet();
+    private final HashSet<String> knownErrors = New.hashSet();
     private volatile boolean testing;
 
     /**

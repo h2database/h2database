@@ -20,8 +20,8 @@ public class TestStringCache extends TestBase {
      * Flag to indicate the test should stop.
      */
     volatile boolean stop;
-    private Random random = new Random(1);
-    private String[] some = { null, "", "ABC", "this is a medium sized string", "1", "2" };
+    private final Random random = new Random(1);
+    private final String[] some = { null, "", "ABC", "this is a medium sized string", "1", "2" };
     private boolean returnNew;
     private boolean useIntern;
 

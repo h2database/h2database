@@ -45,17 +45,17 @@ import org.h2.value.ValueLobDb;
 public class TcpServerThread implements Runnable {
 
     protected Transfer transfer;
-    private TcpServer server;
+    private final TcpServer server;
     private Session session;
     private boolean stop;
     private Thread thread;
     private Command commit;
-    private SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
-    private SmallLRUCache<Long, CachedInputStream> lobs =
+    private final SmallMap cache = new SmallMap(SysProperties.SERVER_CACHED_OBJECTS);
+    private final SmallLRUCache<Long, CachedInputStream> lobs =
         SmallLRUCache.newInstance(Math.max(
                 SysProperties.SERVER_CACHED_OBJECTS,
                 SysProperties.SERVER_RESULT_SET_FETCH_SIZE * 5));
-    private int threadId;
+    private final int threadId;
     private int clientVersion;
     private String sessionId;
 

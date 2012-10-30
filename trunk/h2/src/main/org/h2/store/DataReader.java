@@ -18,7 +18,7 @@ import org.h2.util.IOUtils;
  */
 public class DataReader extends Reader {
 
-    private InputStream in;
+    private final InputStream in;
 
     /**
      * Create a new data reader.

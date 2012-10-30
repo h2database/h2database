@@ -27,7 +27,7 @@ import org.h2.util.ScriptReader;
  */
 public class TestNestedJoins extends TestBase {
 
-    private ArrayList<Statement> dbs = New.arrayList();
+    private final ArrayList<Statement> dbs = New.arrayList();
 
     /**
      * Run just this test.

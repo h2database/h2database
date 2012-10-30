@@ -19,11 +19,11 @@ import org.h2.util.Utils;
 public class FileStoreInputStream extends InputStream {
 
     private FileStore store;
-    private Data page;
+    private final Data page;
     private int remainingInBuffer;
     private CompressTool compress;
     private boolean endOfFile;
-    private boolean alwaysClose;
+    private final boolean alwaysClose;
 
     public FileStoreInputStream(FileStore store, DataHandler handler, boolean compression, boolean alwaysClose) {
         this.store = store;

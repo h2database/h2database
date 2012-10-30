@@ -19,7 +19,7 @@ import org.h2.value.Value;
 public class ParameterRemote implements ParameterInterface {
 
     private Value value;
-    private int index;
+    private final int index;
     private int dataType = Value.UNKNOWN;
     private long precision;
     private int scale;

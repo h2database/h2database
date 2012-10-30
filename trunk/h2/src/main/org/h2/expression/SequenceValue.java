@@ -20,7 +20,7 @@ import org.h2.value.ValueLong;
  */
 public class SequenceValue extends Expression {
 
-    private Sequence sequence;
+    private final Sequence sequence;
 
     public SequenceValue(Sequence sequence) {
         this.sequence = sequence;

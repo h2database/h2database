@@ -18,7 +18,7 @@ import org.h2.result.ResultInterface;
  */
 public class TransactionCommand extends Prepared {
 
-    private int type;
+    private final int type;
     private String savepointName;
     private String transactionName;
 

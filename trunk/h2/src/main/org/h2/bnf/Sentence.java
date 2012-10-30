@@ -41,7 +41,7 @@ public class Sentence {
     /**
      * The map of next tokens in the form type#tokenName token.
      */
-    private HashMap<String, String> next = New.hashMap();
+    private final HashMap<String, String> next = New.hashMap();
 
     /**
      * The complete query string.

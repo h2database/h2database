@@ -906,7 +906,7 @@ public class TestPreparedStatement extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         PreparedStatement prep = conn
                 .prepareStatement("SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? FROM TEST");
-        prep.setObject(1, new Boolean(true));
+        prep.setObject(1, Boolean.TRUE);
         prep.setObject(2, "Abc");
         prep.setObject(3, new BigDecimal("10.2"));
         prep.setObject(4, new Byte((byte) 0xff));
@@ -929,7 +929,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(20, new java.math.BigInteger("12345"), Types.OTHER);
         rs = prep.executeQuery();
         rs.next();
-        assertTrue(rs.getObject(1).equals(new Boolean(true)));
+        assertTrue(rs.getObject(1).equals(Boolean.TRUE));
         assertTrue(rs.getObject(2).equals("Abc"));
         assertTrue(rs.getObject(3).equals(new BigDecimal("10.2")));
         assertTrue(rs.getObject(4).equals((byte) 0xff));

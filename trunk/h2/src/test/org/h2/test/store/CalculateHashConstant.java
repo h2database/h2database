@@ -350,7 +350,7 @@ public class CalculateHashConstant implements Runnable {
      * Calculate how much the bit changes (output bits that change if an input
      * bit is changed) are independent of each other.
      *
-     * @param the hash object
+     * @param h      the hash object
      * @param values the values to test with
      * @return the minimum and maximum number of output bits that are changed in
      *         combination with another output bit
@@ -395,7 +395,7 @@ public class CalculateHashConstant implements Runnable {
      * Calculate the number of bits that change if a single bit is changed
      * multiplied by 1000 (expected: 16000 +/- 5%).
      *
-     * @param the hash object
+     * @param h     the hash object
      * @param value the base value
      * @return the number of bit changes multiplied by 1000
      */
@@ -418,7 +418,7 @@ public class CalculateHashConstant implements Runnable {
      * probability that an output bit changes if an input bit is changed. The
      * lower the value, the better.
      *
-     * @param the hash object
+     * @param h      the hash object
      * @param values the values to test with
      * @return sum(distance^2)
      */

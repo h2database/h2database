@@ -75,7 +75,7 @@ public class SupportedTypes {
     static SupportedTypes randomValue() {
         Random rand = new Random();
         SupportedTypes s = new SupportedTypes();
-        s.myBool = new Boolean(rand.nextBoolean());
+        s.myBool = Boolean.valueOf(rand.nextBoolean());
         s.myByte = new Byte((byte) rand.nextInt(Byte.MAX_VALUE));
         s.myShort = new Short((short) rand.nextInt(Short.MAX_VALUE));
         s.myInteger = new Integer(rand.nextInt());

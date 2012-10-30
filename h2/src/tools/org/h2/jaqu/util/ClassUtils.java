@@ -48,7 +48,7 @@ public class ClassUtils {
         } else if (clazz == Double.class) {
             return (T) new Double(COUNTER.getAndIncrement());
         } else if (clazz == Boolean.class) {
-            return (T) new Boolean(false);
+            return (T) Boolean.FALSE;
         } else if (clazz == BigDecimal.class) {
             return (T) new BigDecimal(COUNTER.getAndIncrement());
         } else if (clazz == BigInteger.class) {

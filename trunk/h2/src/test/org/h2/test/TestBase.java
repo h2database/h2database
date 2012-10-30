@@ -1371,7 +1371,7 @@ public abstract class TestBase {
         Class<?> c = obj.getClass();
         InvocationHandler ih = new InvocationHandler() {
             private Exception called = new Exception("No method called");
-            public void finalize() {
+            protected void finalize() {
                 if (called != null) {
                     called.printStackTrace(System.err);
                 }

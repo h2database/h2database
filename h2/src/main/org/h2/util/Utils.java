@@ -770,7 +770,7 @@ public class Utils {
         String s = getProperty(key, null);
         if (s != null) {
             try {
-                return Boolean.valueOf(s).booleanValue();
+                return Boolean.parseBoolean(s);
             } catch (NumberFormatException e) {
                 // ignore
             }

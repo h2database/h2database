@@ -60,12 +60,6 @@ class WebSession {
     private Connection conn;
     private DatabaseMetaData meta;
     private DbContents contents = new DbContents();
-    private DbContextRule columnRule;
-    private DbContextRule newAliasRule;
-    private DbContextRule schemaRule;
-    private DbContextRule tableRule;
-    private DbContextRule aliasRule;
-    private DbContextRule columnAliasRule;
     private Bnf bnf;
     private boolean shutdownServerOnDisconnect;
 
@@ -120,12 +114,12 @@ class WebSession {
     void loadBnf() {
         try {
             Bnf newBnf = Bnf.getInstance(null);
-            columnRule = new DbContextRule(contents, DbContextRule.COLUMN);
-            newAliasRule = new DbContextRule(contents, DbContextRule.NEW_TABLE_ALIAS);
-            aliasRule = new DbContextRule(contents, DbContextRule.TABLE_ALIAS);
-            tableRule = new DbContextRule(contents, DbContextRule.TABLE);
-            schemaRule = new DbContextRule(contents, DbContextRule.SCHEMA);
-            columnAliasRule = new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
+            DbContextRule columnRule = new DbContextRule(contents, DbContextRule.COLUMN);
+            DbContextRule newAliasRule = new DbContextRule(contents, DbContextRule.NEW_TABLE_ALIAS);
+            DbContextRule aliasRule = new DbContextRule(contents, DbContextRule.TABLE_ALIAS);
+            DbContextRule tableRule = new DbContextRule(contents, DbContextRule.TABLE);
+            DbContextRule schemaRule = new DbContextRule(contents, DbContextRule.SCHEMA);
+            DbContextRule columnAliasRule = new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
             newBnf.updateTopic("column_name", columnRule);
             newBnf.updateTopic("new_table_alias", newAliasRule);
             newBnf.updateTopic("table_alias", aliasRule);

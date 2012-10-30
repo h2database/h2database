@@ -20,7 +20,7 @@ import org.h2.util.StringUtils;
  */
 public class MergeDocs {
 
-    private final String baseDir = "docs/html";
+    private static final String baseDir = "docs/html";
 
     /**
      * This method is called when executing this application from the command

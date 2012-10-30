@@ -34,8 +34,8 @@ public class WebSite {
     private static final String TRANSLATE_START = "<!-- translate";
     private static final String TRANSLATE_END = "translate -->";
 
-    private final String sourceDir = "docs";
-    private final String webDir = "../h2web";
+    private static final String sourceDir = "docs";
+    private static final String webDir = "../h2web";
     private final HashMap<String, String> fragments = new HashMap<String, String>();
 
     /**

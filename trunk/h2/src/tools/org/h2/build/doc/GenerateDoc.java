@@ -33,7 +33,7 @@ import org.h2.util.StringUtils;
 public class GenerateDoc {
 
     private String inDir = "src/docsrc/html";
-    private final String inHelp = "src/docsrc/help/help.csv";
+    private static final String inHelp = "src/docsrc/help/help.csv";
     private String outDir = "docs/html";
     private Connection conn;
     private final HashMap<String, Object> session = new HashMap<String, Object>();

@@ -30,9 +30,9 @@ public class CheckTextFiles {
     private static final String[] SUFFIX_CRLF = { "bat" };
 
     private boolean failOnError;
-    private final boolean allowTab = false, allowCR = true, allowTrailingSpaces = false;
-    private final int spacesPerTab = 4;
-    private final boolean autoFix = true;
+    private static final boolean allowTab = false, allowCR = true, allowTrailingSpaces = false;
+    private static final int spacesPerTab = 4;
+    private static final boolean autoFix = true;
     private boolean useCRLF;
     private final String[] suffixIgnoreLicense = {
             "bat", "nsi", "txt", "properties", "xml",

@@ -32,7 +32,8 @@ public class ClassUtils {
 
     @SuppressWarnings("unchecked")
     public static <T> T newObject(Class<T> clazz) {
-        // must create new instances
+        // must create new instances, cannot use methods like Boolean.FALSE, since the caller relies
+        // on this creating unique objects
         if (clazz == Integer.class) {
             return (T) new Integer((int) COUNTER.getAndIncrement());
         } else if (clazz == String.class) {
@@ -48,7 +49,7 @@ public class ClassUtils {
         } else if (clazz == Double.class) {
             return (T) new Double(COUNTER.getAndIncrement());
         } else if (clazz == Boolean.class) {
-            return (T) Boolean.FALSE;
+            return (T) new Boolean(false);
         } else if (clazz == BigDecimal.class) {
             return (T) new BigDecimal(COUNTER.getAndIncrement());
         } else if (clazz == BigInteger.class) {

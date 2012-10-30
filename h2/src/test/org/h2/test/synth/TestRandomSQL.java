@@ -23,7 +23,6 @@ public class TestRandomSQL extends TestBase {
 
     private int seed;
     private boolean exitOnError = true;
-    private BnfRandom bnfRandom;
     private int success, total;
 
     /**
@@ -78,7 +77,7 @@ public class TestRandomSQL extends TestBase {
         }
         Statement stat = conn.createStatement();
 
-        bnfRandom = new BnfRandom();
+        BnfRandom bnfRandom = new BnfRandom();
         bnfRandom.setSeed(seed);
         for (int i = 0; i < bnfRandom.getStatementCount(); i++) {
             String sql = bnfRandom.getRandomSQL();

@@ -30,7 +30,6 @@ public class JavaAggregate extends Expression {
 
     private final UserAggregate userAggregate;
     private final Select select;
-    private AggregateFunction aggregate;
     private Expression[] args;
     private int[] argTypes;
     private int dataType;
@@ -117,7 +116,7 @@ public class JavaAggregate extends Expression {
             argSqlTypes[i] = DataType.convertTypeToSQLType(type);
         }
         try {
-            aggregate = getInstance();
+            AggregateFunction aggregate = getInstance();
             dataType = DataType.convertSQLTypeToValueType(aggregate.getType(argSqlTypes));
         } catch (SQLException e) {
             throw DbException.convert(e);

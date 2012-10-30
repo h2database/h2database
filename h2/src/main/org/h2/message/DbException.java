@@ -307,7 +307,7 @@ public class DbException extends RuntimeException {
     public static DbException convertIOException(IOException e, String message) {
         if (message == null) {
             Throwable t = e.getCause();
-            if (t != null && t instanceof DbException) {
+            if (t instanceof DbException) {
                 return (DbException) t;
             }
             return get(ErrorCode.IO_EXCEPTION_1, e, e.toString());

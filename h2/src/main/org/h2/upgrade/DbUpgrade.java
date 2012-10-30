@@ -52,7 +52,7 @@ public class DbUpgrade {
         i2.putAll(info);
         // clone so that the password (if set as a char array) is not cleared
         Object o = info.get("password");
-        if (o != null && o instanceof char[]) {
+        if (o instanceof char[]) {
             i2.put("password", StringUtils.cloneCharArray((char[]) o));
         }
         info = i2;

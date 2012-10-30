@@ -27,8 +27,8 @@ public class TestPowerOffFs2 extends TestBase {
     private FilePathDebug fs;
 
     private String url;
-    private final String user = "sa";
-    private final String password = "sa";
+    private static final String user = "sa";
+    private static final String password = "sa";
     private final ArrayList<Connection> connections = New.arrayList();
     private final ArrayList<String> tables = New.arrayList();
 

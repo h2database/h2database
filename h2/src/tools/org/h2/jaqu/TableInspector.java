@@ -49,7 +49,7 @@ public class TableInspector {
     private final List<String> primaryKeys = New.arrayList();
     private Map<String, IndexInspector> indexes;
     private Map<String, ColumnInspector> columns;
-    private final String eol = "\n";
+    private static final String eol = "\n";
 
     TableInspector(String schema, String table, boolean forceUpperCase,
             Class<? extends java.util.Date> dateTimeClass) {

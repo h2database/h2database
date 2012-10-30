@@ -176,7 +176,7 @@ public class BenchC implements Bench {
     private BenchCRandom random;
     private String action;
 
-    private final int commitEvery = 1000;
+    private static final int commitEvery = 1000;
 
 
     public void init(Database db, int size) throws SQLException {

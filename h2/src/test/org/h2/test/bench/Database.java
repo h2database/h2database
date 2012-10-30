@@ -38,7 +38,7 @@ class Database {
     private long startTime;
     private Connection conn;
     private Statement stat;
-    private final boolean trace = true;
+    private static final boolean trace = true;
     private long lastTrace;
     private final Random random = new Random(1);
     private final ArrayList<Object[]> results = new ArrayList<Object[]>();

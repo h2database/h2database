@@ -68,7 +68,7 @@ public class FtpServer extends Tool implements Service {
     private ServerSocket serverSocket;
     private int port = DEFAULT_PORT;
     private int openConnectionCount;
-    private final int maxConnectionCount = 100;
+    private static final int maxConnectionCount = 100;
 
     private final SimpleDateFormat dateFormatNew = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
     private final SimpleDateFormat dateFormatOld = new SimpleDateFormat("MMM dd  yyyy", Locale.ENGLISH);

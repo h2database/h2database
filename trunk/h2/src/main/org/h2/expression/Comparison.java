@@ -400,7 +400,6 @@ public class Comparison extends Condition {
                 filter.addIndexCondition(IndexCondition.get(compareRev, r, left));
             }
         }
-        return;
     }
 
     public void setEvaluatable(TableFilter tableFilter, boolean b) {

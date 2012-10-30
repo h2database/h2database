@@ -1623,7 +1623,7 @@ public class Function extends Expression implements FunctionCall {
             s.append('9');
             s.append('9');
         }
-        return Double.valueOf(s.toString()).doubleValue();
+        return Double.parseDouble(s.toString());
     }
 
     private static String getSoundex(String s) {

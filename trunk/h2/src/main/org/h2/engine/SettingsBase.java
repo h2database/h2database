@@ -32,7 +32,7 @@ public class SettingsBase {
     protected boolean get(String key, boolean defaultValue) {
         String s = get(key, "" + defaultValue);
         try {
-            return Boolean.valueOf(s).booleanValue();
+            return Boolean.parseBoolean(s);
         } catch (NumberFormatException e) {
             throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, e, "key:" + key + " value:" + s);
         }

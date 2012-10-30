@@ -54,7 +54,7 @@ public class SortedProperties extends Properties {
     public static boolean getBooleanProperty(Properties prop, String key, boolean def) {
         String value = prop.getProperty(key, "" + def);
         try {
-            return Boolean.valueOf(value).booleanValue();
+            return Boolean.parseBoolean(value);
         } catch (Exception e) {
             TraceSystem.traceThrowable(e);
             return def;

@@ -289,7 +289,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         }
         // create the session using reflection,
         // so that the JDBC layer can be compiled without it
-        boolean autoServerMode = Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
+        boolean autoServerMode = Boolean.parseBoolean(ci.getProperty("AUTO_SERVER", "false"));
         ConnectionInfo backup = null;
         try {
             if (autoServerMode) {
@@ -360,9 +360,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             serverList = StringUtils.quoteStringSQL(server);
             ci.setProperty("CLUSTER", Constants.CLUSTERING_ENABLED);
         }
-        autoReconnect = Boolean.valueOf(ci.getProperty("AUTO_RECONNECT", "false")).booleanValue();
+        autoReconnect = Boolean.parseBoolean(ci.getProperty("AUTO_RECONNECT", "false"));
         // AUTO_SERVER implies AUTO_RECONNECT
-        boolean autoServer = Boolean.valueOf(ci.getProperty("AUTO_SERVER", "false")).booleanValue();
+        boolean autoServer = Boolean.parseBoolean(ci.getProperty("AUTO_SERVER", "false"));
         if (autoServer && serverList != null) {
             throw DbException.getUnsupportedException("autoServer && serverList != null");
         }

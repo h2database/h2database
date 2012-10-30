@@ -331,7 +331,7 @@ public class ConnectionInfo implements Cloneable {
         if (x.length() == 1 && Character.isDigit(x.charAt(0))) {
             return Integer.parseInt(x) != 0;
         }
-        return Boolean.valueOf(x).booleanValue();
+        return Boolean.parseBoolean(x);
     }
 
     /**
@@ -343,7 +343,7 @@ public class ConnectionInfo implements Cloneable {
      */
     public boolean removeProperty(String key, boolean defaultValue) {
         String x = removeProperty(key, null);
-        return x == null ? defaultValue : Boolean.valueOf(x).booleanValue();
+        return x == null ? defaultValue : Boolean.parseBoolean(x);
     }
 
     /**

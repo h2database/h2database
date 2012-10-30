@@ -33,8 +33,6 @@ public class TestShell extends TestBase {
      */
     InputStream toolIn;
 
-    private PrintStream testOut;
-    private PipedInputStream testIn;
     private LineNumberReader lineReader;
 
     /**
@@ -69,11 +67,11 @@ public class TestShell extends TestBase {
     }
 
     private void test(final boolean commandLineArgs) throws IOException {
-        testIn = new PipedInputStream();
+        PipedInputStream testIn = new PipedInputStream();
         PipedOutputStream out = new PipedOutputStream(testIn);
         toolOut = new PrintStream(out, true);
         out = new PipedOutputStream();
-        testOut = new PrintStream(out, true);
+        PrintStream testOut = new PrintStream(out, true);
         toolIn = new PipedInputStream(out);
         Task task = new Task() {
             public void call() throws Exception {

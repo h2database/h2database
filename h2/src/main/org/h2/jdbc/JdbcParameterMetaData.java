@@ -23,9 +23,9 @@ import org.h2.value.Value;
  */
 public class JdbcParameterMetaData extends TraceObject implements ParameterMetaData {
 
-    private JdbcPreparedStatement prep;
-    private int paramCount;
-    private ArrayList<? extends ParameterInterface> parameters;
+    private final JdbcPreparedStatement prep;
+    private final int paramCount;
+    private final ArrayList<? extends ParameterInterface> parameters;
 
     JdbcParameterMetaData(Trace trace, JdbcPreparedStatement prep, CommandInterface command, int id) {
         setTrace(trace, TraceObject.PARAMETER_META_DATA, id);

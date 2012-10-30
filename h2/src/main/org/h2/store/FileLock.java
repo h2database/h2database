@@ -82,12 +82,12 @@ public class FileLock implements Runnable {
     /**
      * The number of milliseconds to sleep after checking a file.
      */
-    private int sleep;
+    private final int sleep;
 
     /**
      * The trace object.
      */
-    private Trace trace;
+    private final Trace trace;
 
     /**
      * The last time the lock file was written.

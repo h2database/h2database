@@ -18,7 +18,7 @@ import org.h2.message.DbException;
  * in comments and quotes.
  */
 public class ScriptReader {
-    private Reader reader;
+    private final Reader reader;
     private char[] buffer;
     private int bufferPos;
     private int bufferStart = -1;

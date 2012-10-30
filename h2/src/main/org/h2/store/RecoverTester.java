@@ -37,9 +37,9 @@ public class RecoverTester implements Recorder {
     private String testDatabase = "memFS:reopen";
     private int writeCount = Utils.getProperty("h2.recoverTestOffset", 0);
     private int testEvery = Utils.getProperty("h2.recoverTest", 64);
-    private long maxFileSize = Utils.getProperty("h2.recoverTestMaxFileSize", Integer.MAX_VALUE) * 1024L * 1024;
+    private final long maxFileSize = Utils.getProperty("h2.recoverTestMaxFileSize", Integer.MAX_VALUE) * 1024L * 1024;
     private int verifyCount;
-    private HashSet<String> knownErrors = New.hashSet();
+    private final HashSet<String> knownErrors = New.hashSet();
     private volatile boolean testing;
 
     /**

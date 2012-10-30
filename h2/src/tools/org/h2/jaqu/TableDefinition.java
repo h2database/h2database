@@ -96,13 +96,13 @@ class TableDefinition<T> {
     String tableName;
     int tableVersion;
     private boolean createTableIfRequired = true;
-    private Class<T> clazz;
-    private ArrayList<FieldDefinition> fields = New.arrayList();
-    private IdentityHashMap<Object, FieldDefinition> fieldMap =
+    private final Class<T> clazz;
+    private final ArrayList<FieldDefinition> fields = New.arrayList();
+    private final IdentityHashMap<Object, FieldDefinition> fieldMap =
             ClassUtils.newIdentityHashMap();
 
     private List<String> primaryKeyColumnNames;
-    private ArrayList<IndexDefinition> indexes = New.arrayList();
+    private final ArrayList<IndexDefinition> indexes = New.arrayList();
     private boolean memoryTable;
 
     TableDefinition(Class<T> clazz) {

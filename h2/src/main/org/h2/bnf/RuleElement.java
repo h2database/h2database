@@ -16,9 +16,9 @@ import org.h2.util.StringUtils;
 class RuleElement implements Rule {
 
     private boolean keyword;
-    private String name;
+    private final String name;
     private Rule link;
-    private int type;
+    private final int type;
 
     RuleElement(String name, String topic) {
         this.name = name;

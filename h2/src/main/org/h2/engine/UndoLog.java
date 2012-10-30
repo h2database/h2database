@@ -20,15 +20,15 @@ import org.h2.util.New;
  */
 public class UndoLog {
 
-    private Database database;
-    private ArrayList<Long> storedEntriesPos = New.arrayList();
-    private ArrayList<UndoLogRecord> records = New.arrayList();
+    private final Database database;
+    private final ArrayList<Long> storedEntriesPos = New.arrayList();
+    private final ArrayList<UndoLogRecord> records = New.arrayList();
     private FileStore file;
     private Data rowBuff;
     private int memoryUndo;
     private int storedEntries;
     private HashMap<Integer, Table> tables;
-    private boolean largeTransactions;
+    private final boolean largeTransactions;
 
     /**
      * Create a new undo log for the given session.

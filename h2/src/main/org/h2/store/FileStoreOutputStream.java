@@ -15,7 +15,7 @@ import org.h2.tools.CompressTool;
  */
 public class FileStoreOutputStream extends OutputStream {
     private FileStore store;
-    private Data page;
+    private final Data page;
     private String compressionAlgorithm;
     private CompressTool compress;
     private byte[] buffer = { 0 };

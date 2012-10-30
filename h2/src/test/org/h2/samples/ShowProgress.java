@@ -22,7 +22,8 @@ import org.h2.jdbc.JdbcConnection;
  */
 public class ShowProgress implements DatabaseEventListener {
 
-    private long last, start;
+    private final long start;
+    private long last;
 
     /**
      * Create a new instance of this class, and start the timer.

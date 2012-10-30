@@ -19,7 +19,7 @@ import org.h2.value.ValueInt;
  */
 public class Rownum extends Expression {
 
-    private Prepared prepared;
+    private final Prepared prepared;
 
     public Rownum(Prepared prepared) {
         this.prepared = prepared;

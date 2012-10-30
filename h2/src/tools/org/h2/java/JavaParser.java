@@ -55,15 +55,15 @@ public class JavaParser {
     private int nextClassId;
     private MethodObj method;
     private FieldObj thisPointer;
-    private HashMap<String, String> importMap = New.hashMap();
-    private HashMap<String, ClassObj> classes = New.hashMap();
-    private LinkedHashMap<String, FieldObj> localVars = new LinkedHashMap<String, FieldObj>();
-    private HashMap<String, MethodObj> allMethodsMap = New.hashMap();
+    private final HashMap<String, String> importMap = New.hashMap();
+    private final HashMap<String, ClassObj> classes = New.hashMap();
+    private final LinkedHashMap<String, FieldObj> localVars = new LinkedHashMap<String, FieldObj>();
+    private final HashMap<String, MethodObj> allMethodsMap = New.hashMap();
 
-    private ArrayList<Statement> nativeHeaders = New.arrayList();
+    private final ArrayList<Statement> nativeHeaders = New.arrayList();
 
-    private HashMap<String, String> stringToStringConstantMap = New.hashMap();
-    private HashMap<String, String> stringConstantToStringMap = New.hashMap();
+    private final HashMap<String, String> stringToStringConstantMap = New.hashMap();
+    private final HashMap<String, String> stringConstantToStringMap = New.hashMap();
 
     public JavaParser() {
         addBuiltInTypes();

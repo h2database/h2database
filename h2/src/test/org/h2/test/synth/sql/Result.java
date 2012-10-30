@@ -25,7 +25,7 @@ class Result implements Comparable<Result> {
 
     String sql;
 
-    private int type;
+    private final int type;
     private boolean bool;
     private int intValue;
     private SQLException exception;

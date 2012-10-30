@@ -19,12 +19,12 @@ import org.h2.util.MathUtils;
 public class SecureFileStore extends FileStore {
 
     private byte[] key;
-    private BlockCipher cipher;
-    private BlockCipher cipherForInitVector;
+    private final BlockCipher cipher;
+    private final BlockCipher cipherForInitVector;
     private byte[] buffer = new byte[4];
     private long pos;
-    private byte[] bufferForInitVector;
-    private int keyIterations;
+    private final byte[] bufferForInitVector;
+    private final int keyIterations;
 
     public SecureFileStore(DataHandler handler, String name, String mode, String cipher, byte[] key, int keyIterations) {
         super(handler, name, mode);

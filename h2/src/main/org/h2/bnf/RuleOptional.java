@@ -12,7 +12,7 @@ import java.util.HashMap;
  * Represents an optional BNF rule.
  */
 class RuleOptional implements Rule {
-    private Rule rule;
+    private final Rule rule;
     private boolean mapSet;
 
     RuleOptional(Rule rule) {

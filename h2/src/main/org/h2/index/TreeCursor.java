@@ -13,10 +13,10 @@ import org.h2.result.SearchRow;
  * The cursor implementation for a tree index.
  */
 public class TreeCursor implements Cursor {
-    private TreeIndex tree;
+    private final TreeIndex tree;
     private TreeNode node;
     private boolean beforeFirst;
-    private SearchRow first, last;
+    private final SearchRow first, last;
 
     TreeCursor(TreeIndex tree, TreeNode node, SearchRow first, SearchRow last) {
         this.tree = tree;

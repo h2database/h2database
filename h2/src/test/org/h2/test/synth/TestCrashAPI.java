@@ -59,10 +59,10 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
     private static final String DIR = "synth";
 
-    private ArrayList<Object> objects = New.arrayList();
-    private HashMap<Class <?>, ArrayList<Method>> classMethods = New.hashMap();
+    private final ArrayList<Object> objects = New.arrayList();
+    private final HashMap<Class <?>, ArrayList<Method>> classMethods = New.hashMap();
     private RandomGen random = new RandomGen();
-    private ArrayList<String> statements = New.arrayList();
+    private final ArrayList<String> statements = New.arrayList();
     private int openCount;
     private long callCount;
     private volatile long maxWait = 60;

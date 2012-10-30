@@ -119,7 +119,7 @@ public class Mode {
      */
     public boolean logIsLogBase10;
 
-    private String name;
+    private final String name;
 
     static {
         Mode mode = new Mode(REGULAR);

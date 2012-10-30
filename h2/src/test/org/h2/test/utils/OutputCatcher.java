@@ -26,8 +26,8 @@ public class OutputCatcher {
      */
     public static final String START_ERROR = "<span style=\"color:red;\">";
 
-    private ByteArrayOutputStream buff = new ByteArrayOutputStream();
-    private DualOutputStream out, err;
+    private final ByteArrayOutputStream buff = new ByteArrayOutputStream();
+    private final DualOutputStream out, err;
     private String output;
 
     private OutputCatcher() {

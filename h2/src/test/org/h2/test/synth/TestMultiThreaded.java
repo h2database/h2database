@@ -32,9 +32,9 @@ public class TestMultiThreaded extends TestBase {
      * Processes random operations.
      */
     private class Processor extends Thread {
-        private int id;
-        private Statement stat;
-        private Random random;
+        private final int id;
+        private final Statement stat;
+        private final Random random;
         private volatile Throwable exception;
         private boolean stop;
 

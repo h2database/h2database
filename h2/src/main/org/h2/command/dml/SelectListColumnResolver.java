@@ -26,9 +26,9 @@ import org.h2.value.Value;
  */
 public class SelectListColumnResolver implements ColumnResolver {
 
-    private Select select;
-    private Expression[] expressions;
-    private Column[] columns;
+    private final Select select;
+    private final Expression[] expressions;
+    private final Column[] columns;
 
     SelectListColumnResolver(Select select) {
         this.select = select;

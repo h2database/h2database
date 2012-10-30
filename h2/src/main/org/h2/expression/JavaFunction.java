@@ -24,8 +24,8 @@ import org.h2.value.ValueResultSet;
  */
 public class JavaFunction extends Expression implements FunctionCall {
 
-    private FunctionAlias functionAlias;
-    private FunctionAlias.JavaMethod javaMethod;
+    private final FunctionAlias functionAlias;
+    private final FunctionAlias.JavaMethod javaMethod;
     private Expression[] args;
 
     public JavaFunction(FunctionAlias functionAlias, Expression[] args) {

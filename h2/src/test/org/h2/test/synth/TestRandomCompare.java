@@ -22,7 +22,7 @@ import org.h2.util.New;
  */
 public class TestRandomCompare extends TestBase {
 
-    private ArrayList<Statement> dbs = New.arrayList();
+    private final ArrayList<Statement> dbs = New.arrayList();
     private int aliasId;
 
     /**

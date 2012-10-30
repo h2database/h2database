@@ -22,7 +22,7 @@ public class CachedPreparedStatements {
 
     private Connection conn;
     private Statement stat;
-    private Map<String, PreparedStatement> prepared =
+    private final Map<String, PreparedStatement> prepared =
         Collections.synchronizedMap(
                 new HashMap<String, PreparedStatement>());
 

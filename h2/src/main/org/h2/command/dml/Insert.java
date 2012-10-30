@@ -36,7 +36,7 @@ public class Insert extends Prepared implements ResultTarget {
 
     private Table table;
     private Column[] columns;
-    private ArrayList<Expression[]> list = New.arrayList();
+    private final ArrayList<Expression[]> list = New.arrayList();
     private Query query;
     private boolean sortedInsertMode;
     private int rowNumber;

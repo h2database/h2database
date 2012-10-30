@@ -16,7 +16,7 @@ import org.h2.result.SearchRow;
  * The cursor implementation for the scan index.
  */
 public class ScanCursor implements Cursor {
-    private ScanIndex scan;
+    private final ScanIndex scan;
     private Row row;
     private final Session session;
     private final boolean multiVersion;

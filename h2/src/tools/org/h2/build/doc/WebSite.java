@@ -34,9 +34,9 @@ public class WebSite {
     private static final String TRANSLATE_START = "<!-- translate";
     private static final String TRANSLATE_END = "translate -->";
 
-    private String sourceDir = "docs";
-    private String webDir = "../h2web";
-    private HashMap<String, String> fragments = new HashMap<String, String>();
+    private final String sourceDir = "docs";
+    private final String webDir = "../h2web";
+    private final HashMap<String, String> fragments = new HashMap<String, String>();
 
     /**
      * This method is called when executing this application from the command

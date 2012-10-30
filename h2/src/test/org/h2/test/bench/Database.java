@@ -33,15 +33,15 @@ class Database {
     private TestPerformance test;
     private int id;
     private String name, url, user, password;
-    private ArrayList<String[]> replace = new ArrayList<String[]>();
+    private final ArrayList<String[]> replace = new ArrayList<String[]>();
     private String currentAction;
     private long startTime;
     private Connection conn;
     private Statement stat;
-    private boolean trace = true;
+    private final boolean trace = true;
     private long lastTrace;
-    private Random random = new Random(1);
-    private ArrayList<Object[]> results = new ArrayList<Object[]>();
+    private final Random random = new Random(1);
+    private final ArrayList<Object[]> results = new ArrayList<Object[]>();
     private int totalTime;
     private int executedStatements;
 

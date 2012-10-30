@@ -25,7 +25,7 @@ public class ResourceDoclet {
 
     private String destFile = System.getProperty("h2.javadocResourceFile", "src/main/org/h2/res/javadoc.properties");
 
-    private SortedProperties resources = new SortedProperties();
+    private final SortedProperties resources = new SortedProperties();
 
     /**
      * This method is called by the javadoc framework and is required for all

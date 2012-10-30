@@ -34,7 +34,7 @@ public class Db {
 
     private Connection conn;
     private Statement stat;
-    private HashMap<String, PreparedStatement> prepared = new HashMap<String, PreparedStatement>();
+    private final HashMap<String, PreparedStatement> prepared = new HashMap<String, PreparedStatement>();
 
     /**
      * Create a database object using the given connection.
@@ -149,7 +149,7 @@ public class Db {
      * This class represents a prepared statement.
      */
     public static class Prepared {
-        private PreparedStatement prep;
+        private final PreparedStatement prep;
         private int index;
 
         Prepared(PreparedStatement prep) {

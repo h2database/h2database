@@ -32,7 +32,7 @@ import org.h2.util.StringUtils;
 public class Railroads {
 
     private Bnf bnf;
-    private HashMap<String, Object> session = new HashMap<String, Object>();
+    private final HashMap<String, Object> session = new HashMap<String, Object>();
 
     /**
      * This method is called when executing this application from the command

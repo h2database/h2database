@@ -26,7 +26,7 @@ public class TestMetaData extends TestBase {
     private Connection conn;
     private DatabaseMetaData meta;
     private Statement stat;
-    private String catalog = "METADATA";
+    private final String catalog = "METADATA";
 
     /**
      * Run just this test.

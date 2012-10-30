@@ -57,12 +57,12 @@ public class Session extends SessionWithState {
     private static int nextSerialId;
 
     private final int serialId = nextSerialId++;
-    private Database database;
+    private final Database database;
     private ConnectionInfo connectionInfo;
-    private User user;
-    private int id;
-    private ArrayList<Table> locks = New.arrayList();
-    private UndoLog undoLog;
+    private final User user;
+    private final int id;
+    private final ArrayList<Table> locks = New.arrayList();
+    private final UndoLog undoLog;
     private boolean autoCommit = true;
     private Random random;
     private int lockTimeout;
@@ -90,7 +90,7 @@ public class Session extends SessionWithState {
     private String currentTransactionName;
     private volatile long cancelAt;
     private boolean closed;
-    private long sessionStart = System.currentTimeMillis();
+    private final long sessionStart = System.currentTimeMillis();
     private long transactionStart;
     private long currentCommandStart;
     private HashMap<String, Value> variables;

@@ -67,9 +67,9 @@ public class LobStorage {
      */
     private static final int HASH_CACHE_SIZE = 4 * 1024;
     private Connection conn;
-    private HashMap<String, PreparedStatement> prepared = New.hashMap();
+    private final HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
-    private CompressTool compress = CompressTool.getInstance();
+    private final CompressTool compress = CompressTool.getInstance();
     private long[] hashBlocks;
 
     private final DataHandler handler;
@@ -343,7 +343,7 @@ public class LobStorage {
         /**
          * The size of the lob.
          */
-        private long length;
+        private final long length;
 
         /**
          * The remaining bytes in the lob.
@@ -363,7 +363,7 @@ public class LobStorage {
         /**
          * The lob id.
          */
-        private long lob;
+        private final long lob;
 
         /**
          * The lob sequence id.
@@ -787,7 +787,7 @@ public class LobStorage {
         private long length;
         private long remaining;
         private int pos;
-        private char[] charBuffer = new char[Constants.IO_BUFFER_SIZE];
+        private final char[] charBuffer = new char[Constants.IO_BUFFER_SIZE];
         private byte[] buffer;
 
         CountingReaderInputStream(Reader reader, long maxLength) {

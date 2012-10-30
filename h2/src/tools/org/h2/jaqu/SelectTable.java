@@ -18,14 +18,14 @@ import org.h2.util.New;
 class SelectTable <T> {
 
     private static int asCounter;
-    private Query<T> query;
-    private Class<T> clazz;
+    private final Query<T> query;
+    private final Class<T> clazz;
     private T current;
-    private String as;
-    private TableDefinition<T> aliasDef;
-    private boolean outerJoin;
-    private ArrayList<Token> joinConditions = New.arrayList();
-    private T alias;
+    private final String as;
+    private final TableDefinition<T> aliasDef;
+    private final boolean outerJoin;
+    private final ArrayList<Token> joinConditions = New.arrayList();
+    private final T alias;
 
     @SuppressWarnings("unchecked")
     SelectTable(Db db, Query<T> query, T alias, boolean outerJoin) {

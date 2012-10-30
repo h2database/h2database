@@ -53,9 +53,9 @@ class WebSession {
      */
     ResultSet result;
 
-    private WebServer server;
+    private final WebServer server;
 
-    private ArrayList<String> commandHistory = New.arrayList();
+    private final ArrayList<String> commandHistory = New.arrayList();
 
     private Connection conn;
     private DatabaseMetaData meta;

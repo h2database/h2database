@@ -39,9 +39,9 @@ class Optimizer {
     //  9 filters 362880 plans
     // 10 filters 3628800 filters
 
-    private TableFilter[] filters;
-    private Expression condition;
-    private Session session;
+    private final TableFilter[] filters;
+    private final Expression condition;
+    private final Session session;
 
     private Plan bestPlan;
     private TableFilter topFilter;

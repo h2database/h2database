@@ -26,8 +26,8 @@ public class TestKill extends TestBase {
     private static final String DIR = TestBase.getTestDir("kill");
 
     private Connection conn;
-    private int accounts = 10;
-    private Random random = new Random(1);
+    private final int accounts = 10;
+    private final Random random = new Random(1);
 
     /**
      * Run just this test.

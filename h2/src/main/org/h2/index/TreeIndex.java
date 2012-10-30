@@ -23,7 +23,7 @@ import org.h2.value.ValueNull;
 public class TreeIndex extends BaseIndex {
 
     private TreeNode root;
-    private RegularTable tableData;
+    private final RegularTable tableData;
     private long rowCount;
     private boolean closed;
 

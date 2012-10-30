@@ -32,7 +32,7 @@ public class FileContentHash {
     private static final boolean WRITE_HASH_INDEX = true;
     private static final String HASH_INDEX = ".hash.prop";
     private static final int MIN_SIZE = 0;
-    private HashMap<String, String> hashes = New.hashMap();
+    private final HashMap<String, String> hashes = New.hashMap();
     private long nextLog;
 
     /**

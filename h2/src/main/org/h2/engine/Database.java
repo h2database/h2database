@@ -118,7 +118,7 @@ public class Database implements DataHandler {
     private boolean starting;
     private TraceSystem traceSystem;
     private Trace trace;
-    private int fileLockMethod;
+    private final int fileLockMethod;
     private Role publicRole;
     private long modificationDataId;
     private long modificationMetaId;
@@ -142,8 +142,8 @@ public class Database implements DataHandler {
     private boolean deleteFilesOnDisconnect;
     private String lobCompressionAlgorithm;
     private boolean optimizeReuseResults = true;
-    private String cacheType;
-    private String accessModeData;
+    private final String cacheType;
+    private final String accessModeData;
     private boolean referentialIntegrity = true;
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
@@ -151,11 +151,11 @@ public class Database implements DataHandler {
     private boolean multiThreaded;
     private int maxOperationMemory = Constants.DEFAULT_MAX_OPERATION_MEMORY;
     private SmallLRUCache<String, String[]> lobFileListCache;
-    private boolean autoServerMode;
-    private int autoServerPort;
+    private final boolean autoServerMode;
+    private final int autoServerPort;
     private Server server;
     private HashMap<TableLinkConnection, TableLinkConnection> linkConnections;
-    private TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
+    private final TempFileDeleter tempFileDeleter = TempFileDeleter.getInstance();
     private PageStore pageStore;
     private Properties reconnectLastLock;
     private volatile long reconnectCheckNext;
@@ -169,7 +169,7 @@ public class Database implements DataHandler {
     private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
     private LobStorage lobStorage;
-    private int pageSize = Constants.DEFAULT_PAGE_SIZE;
+    private final int pageSize;
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
     private final int reconnectCheckDelay;

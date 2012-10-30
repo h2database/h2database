@@ -27,7 +27,7 @@ import org.h2.util.StringUtils;
  */
 public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaData {
 
-    private JdbcConnection conn;
+    private final JdbcConnection conn;
 
     JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);

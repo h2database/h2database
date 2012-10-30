@@ -134,7 +134,7 @@ class FileCrypt extends FileBase {
     private final FileChannel file;
     private final BlockCipher cipher, cipherForInitVector;
 
-    private byte[] bufferForInitVector;
+    private final byte[] bufferForInitVector;
 
     public FileCrypt(String name, String algorithm, String password, FileChannel file) throws IOException {
         this.name = name;

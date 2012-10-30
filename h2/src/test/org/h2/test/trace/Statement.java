@@ -29,7 +29,7 @@ import java.util.ArrayList;
  * A statement in a Java-style log file.
  */
 class Statement {
-    private Player player;
+    private final Player player;
     private boolean assignment;
     private boolean staticCall;
     private String assignClass;

@@ -48,8 +48,8 @@ public class TestServlet extends TestBase {
      */
     static class TestServletContext implements ServletContext {
 
-        private Properties initParams = new Properties();
-        private HashMap<String, Object> attributes = New.hashMap();
+        private final Properties initParams = new Properties();
+        private final HashMap<String, Object> attributes = New.hashMap();
 
         public void setAttribute(String key, Object value) {
             attributes.put(key, value);

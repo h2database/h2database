@@ -15,7 +15,7 @@ import java.util.Random;
  * A random data generator class.
  */
 public class RandomGen {
-    private Random random = new Random();
+    private final Random random = new Random();
 
     /**
      * Create a new random instance with a fixed seed value.

@@ -38,7 +38,7 @@ public class JdbcClob extends TraceObject implements Clob
 {
 
     Value value;
-    private JdbcConnection conn;
+    private final JdbcConnection conn;
 
     /**
      * INTERNAL

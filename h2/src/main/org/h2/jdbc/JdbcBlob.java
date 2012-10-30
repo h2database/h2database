@@ -31,7 +31,7 @@ import org.h2.value.Value;
 public class JdbcBlob extends TraceObject implements Blob {
 
     Value value;
-    private JdbcConnection conn;
+    private final JdbcConnection conn;
 
     /**
      * INTERNAL

@@ -52,7 +52,7 @@ public class FileStore {
     private long fileLength;
     private Reference<?> autoDeleteReference;
     private boolean checkedWriting = true;
-    private String mode;
+    private final String mode;
     private TempFileDeleter tempFileDeleter;
     private boolean textMode;
     private java.nio.channels.FileLock lock;
@@ -67,7 +67,6 @@ public class FileStore {
     protected FileStore(DataHandler handler, String name, String mode) {
         this.handler = handler;
         this.name = name;
-        this.mode = mode;
         if (handler != null) {
             tempFileDeleter = handler.getTempFileDeleter();
         }
@@ -75,7 +74,6 @@ public class FileStore {
             boolean exists = FileUtils.exists(name);
             if (exists && !FileUtils.canWrite(name)) {
                 mode = "r";
-                this.mode = mode;
             } else {
                 FileUtils.createDirectories(FileUtils.getParent(name));
             }
@@ -86,6 +84,7 @@ public class FileStore {
         } catch (IOException e) {
             throw DbException.convertIOException(e, "name: " + name + " mode: " + mode);
         }
+        this.mode = mode;
     }
 
     /**

@@ -22,7 +22,7 @@ import org.h2.util.New;
  */
 public class ExecuteProcedure extends Prepared {
 
-    private ArrayList<Expression> expressions = New.arrayList();
+    private final ArrayList<Expression> expressions = New.arrayList();
     private Procedure procedure;
 
     public ExecuteProcedure(Session session) {

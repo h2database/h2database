@@ -23,7 +23,7 @@ public class Parameter extends Expression implements ParameterInterface {
 
     private Value value;
     private Column column;
-    private int index;
+    private final int index;
 
     public Parameter(int index) {
         this.index = index;

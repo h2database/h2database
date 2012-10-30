@@ -19,7 +19,7 @@ public class Alias extends Expression {
 
     private final String alias;
     private Expression expr;
-    private boolean aliasColumnName;
+    private final boolean aliasColumnName;
 
     public Alias(Expression expression, String alias, boolean aliasColumnName) {
         this.expr = expression;

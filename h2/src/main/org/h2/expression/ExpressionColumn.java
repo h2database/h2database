@@ -29,7 +29,7 @@ import org.h2.value.ValueBoolean;
  */
 public class ExpressionColumn extends Expression {
 
-    private Database database;
+    private final Database database;
     private String schemaName;
     private String tableAlias;
     private String columnName;

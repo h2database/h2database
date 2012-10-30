@@ -13,7 +13,7 @@ import java.sql.SQLException;
  * Represents a row.
  */
 class Row implements Comparable<Row> {
-    private Value[] data;
+    private final Value[] data;
 
     public Row(TestSynth config, ResultSet rs, int len) throws SQLException {
         data = new Value[len];

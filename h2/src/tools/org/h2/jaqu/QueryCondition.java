@@ -14,8 +14,8 @@ package org.h2.jaqu;
  */
 public class QueryCondition<T, A> {
 
-    private Query<T> query;
-    private A x;
+    private final Query<T> query;
+    private final A x;
 
     QueryCondition(Query<T> query, A x) {
         this.query = query;

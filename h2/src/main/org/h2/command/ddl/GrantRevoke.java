@@ -30,7 +30,7 @@ public class GrantRevoke extends DefineCommand {
     private ArrayList<String> roleNames;
     private int operationType;
     private int rightMask;
-    private ArrayList<Table> tables = New.arrayList();
+    private final ArrayList<Table> tables = New.arrayList();
     private RightOwner grantee;
 
     public GrantRevoke(Session session) {

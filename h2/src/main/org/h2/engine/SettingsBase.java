@@ -16,7 +16,7 @@ import org.h2.util.Utils;
  */
 public class SettingsBase {
 
-    private HashMap<String, String> settings;
+    private final HashMap<String, String> settings;
 
     protected SettingsBase(HashMap<String, String> s) {
         this.settings = s;

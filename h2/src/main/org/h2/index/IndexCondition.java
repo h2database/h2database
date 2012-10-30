@@ -57,10 +57,10 @@ public class IndexCondition {
      */
     public static final int ALWAYS_FALSE = 8;
 
-    private Column column;
-    private int compareType;
+    private final Column column;
+    private final int compareType;
 
-    private Expression expression;
+    private final Expression expression;
     private List<Expression> expressionList;
     private Query expressionQuery;
 

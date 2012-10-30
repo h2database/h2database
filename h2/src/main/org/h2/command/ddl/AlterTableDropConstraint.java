@@ -21,7 +21,7 @@ import org.h2.schema.Schema;
 public class AlterTableDropConstraint extends SchemaCommand {
 
     private String constraintName;
-    private boolean ifExists;
+    private final boolean ifExists;
 
     public AlterTableDropConstraint(Session session, Schema schema, boolean ifExists) {
         super(session, schema);

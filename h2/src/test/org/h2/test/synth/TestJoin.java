@@ -27,7 +27,7 @@ import org.h2.util.StringUtils;
  */
 public class TestJoin extends TestBase {
 
-    private ArrayList<Connection> connections = New.arrayList();
+    private final ArrayList<Connection> connections = New.arrayList();
     private Random random;
     private int paramCount;
     private StringBuilder buff;

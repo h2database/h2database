@@ -25,7 +25,7 @@ import org.h2.value.Value;
 public class NonUniqueHashIndex extends HashIndex {
 
     private ValueHashMap<ArrayList<Long>> rows;
-    private RegularTable tableData;
+    private final RegularTable tableData;
     private long rowCount;
 
     public NonUniqueHashIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {

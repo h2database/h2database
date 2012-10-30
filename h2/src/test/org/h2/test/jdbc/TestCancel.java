@@ -35,8 +35,8 @@ public class TestCancel extends TestBase {
      * This thread cancels a statement after some time.
      */
     static class CancelThread extends Thread {
-        private Statement cancel;
-        private int wait;
+        private final Statement cancel;
+        private final int wait;
         private volatile boolean stop;
 
         CancelThread(Statement cancel, int wait) {

@@ -16,10 +16,10 @@ import org.h2.util.JdbcUtils;
  * This class represents a parameterized SQL statement.
  */
 public class SQLStatement {
-    private Db db;
+    private final Db db;
     private StringBuilder buff = new StringBuilder();
     private String sql;
-    private ArrayList<Object> params = new ArrayList<Object>();
+    private final ArrayList<Object> params = new ArrayList<Object>();
 
     SQLStatement(Db db) {
         this.db = db;

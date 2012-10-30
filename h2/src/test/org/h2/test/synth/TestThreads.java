@@ -31,7 +31,7 @@ public class TestThreads extends TestBase implements Runnable {
     private TestThreads master;
     private int type;
     private String table;
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public TestThreads() {
         // nothing to do

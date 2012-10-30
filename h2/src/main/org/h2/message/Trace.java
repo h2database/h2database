@@ -94,9 +94,9 @@ public class Trace {
      */
     public static final String PAGE_STORE = "pageStore";
 
-    private TraceWriter traceWriter;
-    private String module;
-    private String lineSeparator;
+    private final TraceWriter traceWriter;
+    private final String module;
+    private final String lineSeparator;
     private int traceLevel = TraceSystem.PARENT;
 
     Trace(TraceWriter traceWriter, String module) {

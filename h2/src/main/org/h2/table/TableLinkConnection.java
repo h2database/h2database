@@ -23,7 +23,7 @@ public class TableLinkConnection {
     /**
      * The map where the link is kept.
      */
-    private HashMap<TableLinkConnection, TableLinkConnection> map;
+    private final HashMap<TableLinkConnection, TableLinkConnection> map;
 
     /**
      * The connection information.

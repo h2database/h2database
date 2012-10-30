@@ -25,11 +25,11 @@ import org.h2.value.ValueNull;
  */
 public class ConditionInSelect extends Condition {
 
-    private Database database;
+    private final Database database;
     private Expression left;
-    private Query query;
-    private boolean all;
-    private int compareType;
+    private final Query query;
+    private final boolean all;
+    private final int compareType;
     private int queryLevel;
 
     public ConditionInSelect(Database database, Expression left, Query query, boolean all, int compareType) {

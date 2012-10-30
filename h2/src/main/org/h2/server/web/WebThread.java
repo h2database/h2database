@@ -36,7 +36,7 @@ class WebThread extends WebApp implements Runnable {
 
     protected OutputStream output;
     protected Socket socket;
-    private Thread thread;
+    private final Thread thread;
     private InputStream input;
     private int headerBytes;
     private String ifModifiedSince;

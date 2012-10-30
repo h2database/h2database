@@ -39,7 +39,7 @@ public class Doclet {
     private static final boolean INTERFACES_ONLY = Boolean.getBoolean("h2.interfacesOnly");
     private String destDir = System.getProperty("h2.javadocDestDir", "docs/javadoc");
     private int errorCount;
-    private HashSet<String> errors = new HashSet<String>();
+    private final HashSet<String> errors = new HashSet<String>();
 
     /**
      * This method is called by the javadoc framework and is required for all

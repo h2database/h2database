@@ -19,9 +19,9 @@ import java.sql.Types;
  * Represents a simple value.
  */
 public class Value {
-    private int type;
-    private Object data;
-    private TestSynth config;
+    private final int type;
+    private final Object data;
+    private final TestSynth config;
 
     private Value(TestSynth config, int type, Object data) {
         this.config = config;

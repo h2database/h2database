@@ -30,7 +30,7 @@ import org.h2.util.Tool;
  */
 public class ConvertTraceFile extends Tool {
 
-    private HashMap<String, Stat> stats = New.hashMap();
+    private final HashMap<String, Stat> stats = New.hashMap();
     private long timeTotal;
 
     /**

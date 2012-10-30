@@ -763,7 +763,7 @@ public class Recover extends Tool implements DataHandler {
         private long trunkPage;
         private long nextTrunkPage;
         private long dataPage;
-        private IntArray dataPages = new IntArray();
+        private final IntArray dataPages = new IntArray();
         private boolean endOfFile;
         private int remaining;
         private int logKey;

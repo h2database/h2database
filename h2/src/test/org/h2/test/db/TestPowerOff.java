@@ -24,7 +24,7 @@ import org.h2.util.JdbcUtils;
  */
 public class TestPowerOff extends TestBase {
 
-    private String dbName = "powerOff";
+    private final String dbName = "powerOff";
     private String dir, url;
 
     private int maxPowerOffCount;

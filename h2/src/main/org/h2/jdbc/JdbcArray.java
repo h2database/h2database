@@ -23,7 +23,7 @@ import org.h2.value.Value;
 public class JdbcArray extends TraceObject implements Array {
 
     private Value value;
-    private JdbcConnection conn;
+    private final JdbcConnection conn;
 
     /**
      * INTERNAL

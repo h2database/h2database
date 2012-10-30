@@ -24,11 +24,11 @@ public class ValidationRemark {
         CONSIDER, WARN, ERROR;
     }
 
-    private Level level;
-    private String table;
-    private String fieldType;
-    private String fieldName;
-    private String message;
+    private final Level level;
+    private final String table;
+    private final String fieldType;
+    private final String fieldName;
+    private final String message;
 
     private ValidationRemark(Level level, String table, String type, String message) {
         this.level = level;

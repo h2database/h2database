@@ -27,9 +27,10 @@ public class ResultRemote implements ResultInterface {
     private SessionRemote session;
     private Transfer transfer;
     private int id;
-    private ResultColumn[] columns;
+    private final ResultColumn[] columns;
     private Value[] currentRow;
-    private int rowId, rowCount, rowOffset;
+    private final int rowCount;
+    private int rowId, rowOffset;
     private ArrayList<Value[]> result;
     private final Trace trace;
 

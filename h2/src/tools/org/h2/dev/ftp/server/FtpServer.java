@@ -68,16 +68,16 @@ public class FtpServer extends Tool implements Service {
     private ServerSocket serverSocket;
     private int port = DEFAULT_PORT;
     private int openConnectionCount;
-    private int maxConnectionCount = 100;
+    private final int maxConnectionCount = 100;
 
-    private SimpleDateFormat dateFormatNew = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
-    private SimpleDateFormat dateFormatOld = new SimpleDateFormat("MMM dd  yyyy", Locale.ENGLISH);
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+    private final SimpleDateFormat dateFormatNew = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
+    private final SimpleDateFormat dateFormatOld = new SimpleDateFormat("MMM dd  yyyy", Locale.ENGLISH);
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
     private String root = DEFAULT_ROOT;
     private String writeUserName = DEFAULT_WRITE, writePassword = DEFAULT_WRITE_PASSWORD;
     private String readUserName = DEFAULT_READ;
-    private HashMap<String, Process> tasks = new HashMap<String, Process>();
+    private final HashMap<String, Process> tasks = new HashMap<String, Process>();
 
     private boolean trace;
     private boolean allowTask;
@@ -452,10 +452,10 @@ public class FtpServer extends Tool implements Service {
      * This class re-directs an input stream to a file.
      */
     private static class StreamRedirect extends Thread {
-        private InputStream in;
+        private final InputStream in;
         private OutputStream out;
         private String outFile;
-        private String processFile;
+        private final String processFile;
 
         StreamRedirect(String processFile, InputStream in, String outFile) {
             this.processFile = processFile;

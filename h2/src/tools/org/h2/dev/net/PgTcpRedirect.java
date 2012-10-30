@@ -70,9 +70,9 @@ public class PgTcpRedirect {
     private class TcpRedirectThread implements Runnable {
 
         private static final int STATE_INIT_CLIENT = 0, STATE_REGULAR = 1;
-        private Socket read, write;
+        private final Socket read, write;
         private int state;
-        private boolean client;
+        private final boolean client;
 
         TcpRedirectThread(Socket read, Socket write, boolean client) {
             this.read = read;

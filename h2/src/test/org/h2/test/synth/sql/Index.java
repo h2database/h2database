@@ -10,10 +10,10 @@ package org.h2.test.synth.sql;
  * Represents an index.
  */
 public class Index {
-    private Table table;
-    private String name;
-    private Column[] columns;
-    private boolean unique;
+    private final Table table;
+    private final String name;
+    private final Column[] columns;
+    private final boolean unique;
 
     Index(Table table, String name, Column[] columns, boolean unique) {
         this.table = table;

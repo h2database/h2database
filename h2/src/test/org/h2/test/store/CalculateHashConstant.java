@@ -32,11 +32,11 @@ public class CalculateHashConstant implements Runnable {
     private int constant;
     private int[] fromTo = new int[32 * 32];
 
-    private AES aes = new AES();
+    private final AES aes = new AES();
     {
         aes.setKey("Hello Welt Hallo Welt".getBytes());
     }
-    private byte[] data = new byte[16];
+    private final byte[] data = new byte[16];
 
     /**
      * Run just this test.

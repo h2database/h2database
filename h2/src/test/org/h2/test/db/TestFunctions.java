@@ -503,7 +503,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      */
     public static class MedianString implements AggregateFunction {
 
-        private ArrayList<String> list = New.arrayList();
+        private final ArrayList<String> list = New.arrayList();
 
         public void add(Object value) {
             list.add(value.toString());

@@ -49,7 +49,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private String comment;
     private boolean checkExisting;
     private boolean primaryKeyHash;
-    private boolean ifNotExists;
+    private final boolean ifNotExists;
 
     public AlterTableAddConstraint(Session session, Schema schema, boolean ifNotExists) {
         super(session, schema);

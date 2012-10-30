@@ -233,12 +233,12 @@ class FileZip extends FileBase {
 
     private static final byte[] SKIP_BUFFER = new byte[1024];
 
-    private ZipFile file;
-    private ZipEntry entry;
+    private final ZipFile file;
+    private final ZipEntry entry;
     private long pos;
     private InputStream in;
     private long inPos;
-    private long length;
+    private final long length;
     private boolean skipUsingRead;
 
     FileZip(ZipFile file, ZipEntry entry) {

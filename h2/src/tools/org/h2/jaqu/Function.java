@@ -17,7 +17,7 @@ public class Function implements Token {
     private static final Long COUNT_STAR = Long.valueOf(0);
 
     protected Object[] x;
-    private String name;
+    private final String name;
 
     protected Function(String name, Object... x) {
         this.name = name;

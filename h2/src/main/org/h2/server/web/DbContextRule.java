@@ -26,8 +26,8 @@ public class DbContextRule implements Rule {
     static final int NEW_TABLE_ALIAS = 3;
     static final int COLUMN_ALIAS = 4, SCHEMA = 5;
 
-    private DbContents contents;
-    private int type;
+    private final DbContents contents;
+    private final int type;
 
     DbContextRule(DbContents contents, int type) {
         this.contents = contents;

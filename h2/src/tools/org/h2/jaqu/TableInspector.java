@@ -42,11 +42,11 @@ public class TableInspector {
 
     private final static int todoReviewClass = 0;
 
-    private String schema;
-    private String table;
-    private boolean forceUpperCase;
-    private Class<? extends java.util.Date> dateTimeClass;
-    private List<String> primaryKeys = New.arrayList();
+    private final String schema;
+    private final String table;
+    private final boolean forceUpperCase;
+    private final Class<? extends java.util.Date> dateTimeClass;
+    private final List<String> primaryKeys = New.arrayList();
     private Map<String, IndexInspector> indexes;
     private Map<String, ColumnInspector> columns;
     private final String eol = "\n";
@@ -548,7 +548,7 @@ public class TableInspector {
 
         String name;
         IndexType type;
-        private List<String> columns = new ArrayList<String>();
+        private final List<String> columns = new ArrayList<String>();
 
         public IndexInspector(ResultSet rs) throws SQLException {
             name = rs.getString("INDEX_NAME");

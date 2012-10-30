@@ -28,8 +28,8 @@ import org.h2.value.ValueNull;
  */
 public class LinkedIndex extends BaseIndex {
 
-    private TableLink link;
-    private String targetTableName;
+    private final TableLink link;
+    private final String targetTableName;
     private long rowCount;
 
     public LinkedIndex(TableLink table, int id, IndexColumn[] columns, IndexType indexType) {

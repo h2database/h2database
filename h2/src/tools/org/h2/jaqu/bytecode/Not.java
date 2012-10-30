@@ -15,7 +15,7 @@ import org.h2.jaqu.Token;
  */
 public class Not implements Token {
 
-    private Token expr;
+    private final Token expr;
 
     private Not(Token expr) {
         this.expr = expr;

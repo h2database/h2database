@@ -13,13 +13,13 @@ import org.h2.util.New;
  * Represents a table.
  */
 class Table {
-    private TestSynth config;
+    private final TestSynth config;
     private String name;
     private boolean temporary;
     private boolean globalTemporary;
     private Column[] columns;
     private Column[] primaryKeys;
-    private ArrayList<Index> indexes = New.arrayList();
+    private final ArrayList<Index> indexes = New.arrayList();
 
     Table(TestSynth config) {
         this.config = config;

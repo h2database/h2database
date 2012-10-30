@@ -62,8 +62,8 @@ import org.h2.value.ValueNull;
  */
 public class Select extends Query {
     private TableFilter topTableFilter;
-    private ArrayList<TableFilter> filters = New.arrayList();
-    private ArrayList<TableFilter> topFilters = New.arrayList();
+    private final ArrayList<TableFilter> filters = New.arrayList();
+    private final ArrayList<TableFilter> topFilters = New.arrayList();
     private ArrayList<Expression> expressions;
     private Expression[] expressionArray;
     private Expression having;

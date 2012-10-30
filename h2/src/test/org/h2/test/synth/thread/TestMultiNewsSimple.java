@@ -19,7 +19,7 @@ public class TestMultiNewsSimple extends TestMultiThread {
 
     private static int newsCount = 10000;
 
-    private Connection conn;
+    private final Connection conn;
 
     TestMultiNewsSimple(TestMulti base) throws SQLException {
         super(base);

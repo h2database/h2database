@@ -16,8 +16,8 @@ import org.h2.util.IOUtils;
  * Catches the output of another process.
  */
 public class OutputCatcher extends Thread {
-    private InputStream in;
-    private LinkedList<String> list = new LinkedList<String>();
+    private final InputStream in;
+    private final LinkedList<String> list = new LinkedList<String>();
 
     public OutputCatcher(InputStream in) {
         this.in = in;

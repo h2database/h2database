@@ -19,15 +19,15 @@ import org.h2.util.New;
  * Represents a connection to a real database.
  */
 class DbConnection implements DbInterface {
-    private TestSynth config;
-    private int id;
-    private String driver;
-    private String url;
-    private String user;
-    private String password;
+    private final TestSynth config;
+    private final int id;
+    private final String driver;
+    private final String url;
+    private final String user;
+    private final String password;
     private Connection conn;
     private Connection sentinel;
-    private boolean useSentinel;
+    private final boolean useSentinel;
 
     DbConnection(TestSynth config, String driver, String url, String user, String password, int id, boolean useSentinel) {
         this.config = config;

@@ -32,9 +32,9 @@ import org.h2.util.StringUtils;
  */
 class Parser {
     private static final int STRING = 0, NAME = 1, NUMBER = 2, SPECIAL = 3;
-    private Player player;
+    private final Player player;
     private Statement stat;
-    private String line;
+    private final String line;
     private String token;
     private int tokenType;
     private int pos;

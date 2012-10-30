@@ -328,7 +328,7 @@ class FileMemData {
     static class Cache<K, V> extends LinkedHashMap<K, V> {
 
         private static final long serialVersionUID = 1L;
-        private int size;
+        private final int size;
 
         Cache(int size) {
             super(size, (float) 0.75, true);

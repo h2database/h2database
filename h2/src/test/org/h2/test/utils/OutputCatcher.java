@@ -27,12 +27,11 @@ public class OutputCatcher {
     public static final String START_ERROR = "<span style=\"color:red;\">";
 
     private ByteArrayOutputStream buff = new ByteArrayOutputStream();
-    private HtmlOutputStream html;
     private DualOutputStream out, err;
     private String output;
 
     private OutputCatcher() {
-        html = new HtmlOutputStream(buff);
+        HtmlOutputStream html = new HtmlOutputStream(buff);
         out = new DualOutputStream(html, System.out, false);
         err = new DualOutputStream(html, System.err, true);
         System.setOut(new PrintStream(out, true));

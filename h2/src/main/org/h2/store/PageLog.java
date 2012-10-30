@@ -117,7 +117,6 @@ public class PageLog {
     private Trace trace;
 
     private Data writeBuffer;
-    private PageInputStream pageIn;
     private PageOutputStream pageOut;
     private int firstTrunkPage;
     private int firstDataPage;
@@ -261,7 +260,7 @@ public class PageLog {
             in.close();
             return true;
         }
-        pageIn = new PageInputStream(store, logKey, firstTrunkPage, firstDataPage);
+        PageInputStream pageIn = new PageInputStream(store, logKey, firstTrunkPage, firstDataPage);
         DataReader in = new DataReader(pageIn);
         int logId = 0;
         Data data = store.createData();

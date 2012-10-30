@@ -29,7 +29,6 @@ import org.h2.value.ValueNull;
 public class UpdatableRow {
 
     private final JdbcConnection conn;
-    private final DatabaseMetaData meta;
     private final ResultInterface result;
     private final int columnCount;
     private String schemaName;
@@ -46,7 +45,6 @@ public class UpdatableRow {
      */
     public UpdatableRow(JdbcConnection conn, ResultInterface result) throws SQLException {
         this.conn = conn;
-        this.meta = conn.getMetaData();
         this.result = result;
         columnCount = result.getVisibleColumnCount();
         for (int i = 0; i < columnCount; i++) {
@@ -66,6 +64,7 @@ public class UpdatableRow {
                 return;
             }
         }
+        final DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getTables(null,
                 JdbcUtils.escapeMetaDataPattern(schemaName),
                 JdbcUtils.escapeMetaDataPattern(tableName),

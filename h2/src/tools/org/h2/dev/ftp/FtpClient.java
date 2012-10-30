@@ -34,7 +34,6 @@ public class FtpClient {
     private PrintWriter writer;
     private int code;
     private String message;
-    private Socket socketData;
     private InputStream inData;
     private OutputStream outData;
 
@@ -237,7 +236,7 @@ public class FtpClient {
         String ip = buff.toString();
         InetAddress addr = InetAddress.getByName(ip);
         int port = (Integer.parseInt(address[4]) << 8) | Integer.parseInt(address[5]);
-        socketData = NetUtils.createSocket(addr, port, false);
+        Socket socketData = NetUtils.createSocket(addr, port, false);
         inData = socketData.getInputStream();
         outData = socketData.getOutputStream();
     }

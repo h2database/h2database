@@ -35,7 +35,6 @@ public class CommandRemote implements CommandInterface {
     private int id;
     private boolean isQuery;
     private boolean readonly;
-    private int paramCount;
     private int created;
 
     public CommandRemote(SessionRemote session, ArrayList<Transfer> transferList, String sql, int fetchSize) {
@@ -53,7 +52,6 @@ public class CommandRemote implements CommandInterface {
 
     private void prepare(SessionRemote s, boolean createParams) {
         id = s.getNextId();
-        paramCount = 0;
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = transferList.get(i);
@@ -67,7 +65,7 @@ public class CommandRemote implements CommandInterface {
                 s.done(transfer);
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
-                paramCount = transfer.readInt();
+                int paramCount = transfer.readInt();
                 if (createParams) {
                     parameters.clear();
                     for (int j = 0; j < paramCount; j++) {

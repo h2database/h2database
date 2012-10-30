@@ -22,7 +22,6 @@ public class BnfRandom implements BnfVisitor {
 
     private static final boolean SHOW_SYNTAX = false;
 
-    private final Bnf config;
     private final Random random = new Random();
     private final ArrayList<RuleHead> statements = New.arrayList();
 
@@ -30,7 +29,7 @@ public class BnfRandom implements BnfVisitor {
     private String sql;
 
     BnfRandom() throws Exception {
-        config = Bnf.getInstance(null);
+        Bnf config = Bnf.getInstance(null);
         config.linkStatements();
 
         ArrayList<RuleHead> all = config.getStatements();

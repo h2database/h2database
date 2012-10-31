@@ -120,11 +120,11 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn = getConnection("trigger");
         stat = conn.createStatement();
         stat.execute("drop table if exists test");
-        stat.execute("create table test(id int)");
+        stat.execute("create table test(id int, c clob, b blob)");
         stat.execute("create table message(name varchar)");
         stat.execute("create trigger test_insert before insert, update, delete on test " +
                 "for each row call \"" + TestTriggerAdapter.class.getName() + "\"");
-        stat.execute("insert into test values(1)");
+        stat.execute("insert into test values(1, 'hello', 'abcd')");
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
@@ -211,6 +211,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                         throw new RuntimeException("Expected: 2 got: " + newRow.getString(1));
                     }
                 }
+                newRow.getCharacterStream(2);
+                newRow.getBinaryStream(3);
                 newRow.updateInt(1, newRow.getInt(1) * 10);
             }
             conn.createStatement().execute("insert into message values('" + buff.toString() + "')");

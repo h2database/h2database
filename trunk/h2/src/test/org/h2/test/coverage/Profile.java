@@ -7,11 +7,11 @@
 package org.h2.test.coverage;
 
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.io.Reader;
 import java.io.Writer;
 
 /**
@@ -31,10 +31,9 @@ public class Profile extends Thread {
     private BufferedWriter trace;
 
     private Profile() {
-        FileReader reader = null;
+        LineNumberReader r = null;
         try {
-            reader = new FileReader("profile.txt");
-            LineNumberReader r = new LineNumberReader(reader);
+            r = new LineNumberReader(new FileReader("profile.txt"));
             while (r.readLine() != null) {
                 // nothing - just count lines
             }
@@ -47,7 +46,7 @@ public class Profile extends Thread {
             e.printStackTrace();
             System.exit(1);
         } finally {
-            closeSilently(reader);
+            closeSilently(r);
         }
     }
 
@@ -108,20 +107,10 @@ public class Profile extends Thread {
         }
     }
 
-    private static void closeSilently(Reader reader) {
-        if (reader != null) {
+    private static void closeSilently(Closeable closeable) {
+        if (closeable != null) {
             try {
-                reader.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
-    }
-
-    private static void closeSilently(Writer writer) {
-        if (writer != null) {
-            try {
-                writer.close();
+                closeable.close();
             } catch (IOException e) {
                 // ignore
             }

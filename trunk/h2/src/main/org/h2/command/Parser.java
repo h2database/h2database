@@ -3561,7 +3561,7 @@ public class Parser {
         } else {
             readIf("NULL");
         }
-        if (readIf("AUTO_INCREMENT")) {
+        if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
             parseAutoIncrement(column);
             if (readIf("NOT")) {
                 read("NULL");

@@ -127,7 +127,6 @@ public abstract class RightOwner extends DbObjectBase {
      * Remove the right for the given role.
      *
      * @param role the role to revoke
-     * @throws SQLException if the right has not been granted
      */
     void revokeRole(Role role) {
         if (grantedRoles == null) {

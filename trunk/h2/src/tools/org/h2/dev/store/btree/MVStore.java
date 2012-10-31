@@ -311,8 +311,8 @@ public class MVStore {
      * @param name the map name
      */
     void removeMap(String name) {
-        MVMap<?, ?> m = maps.remove(name);
-        mapsChanged.remove(m);
+        MVMap<?, ?> map = maps.remove(name);
+        mapsChanged.remove(map.getId());
     }
 
     private String getDataType(Class<?> clazz) {

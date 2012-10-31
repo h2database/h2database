@@ -13,7 +13,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A phantom reference to watch for unclosed objects.
@@ -23,13 +25,13 @@ public class CloseWatcher extends PhantomReference<Object> {
     /**
      * The queue (might be set to null at any time).
      */
-    public static ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
+    private static ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
 
     /**
      * The reference set. Must keep it, otherwise the references are garbage
      * collected first and thus never enqueued.
      */
-    public static HashSet<CloseWatcher> refs = New.hashSet();
+    private static Set<CloseWatcher> refs = createSet();
 
     /**
      * The stack trace of when the object was created. It is converted to a
@@ -46,6 +48,10 @@ public class CloseWatcher extends PhantomReference<Object> {
     public CloseWatcher(Object referent, ReferenceQueue<Object> q, Closeable closeable) {
         super(referent, q);
         this.closeable = closeable;
+    }
+
+    private static Set<CloseWatcher> createSet() {
+        return Collections.synchronizedSet(new HashSet<CloseWatcher>());
     }
 
     /**
@@ -96,7 +102,7 @@ public class CloseWatcher extends PhantomReference<Object> {
             cw.openStackTrace = s.toString();
         }
         if (refs == null) {
-            refs = New.hashSet();
+            refs = createSet();
         }
         refs.add(cw);
         return cw;

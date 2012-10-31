@@ -109,10 +109,12 @@ public class Dump {
         } catch (IOException e) {
             writer.println("ERROR: " + e);
         } finally {
-            try {
-                file.close();
-            } catch (IOException e) {
-                // ignore
+            if (file != null) {
+                try {
+                    file.close();
+                } catch (IOException e) {
+                    // ignore
+                }
             }
         }
         writer.println();

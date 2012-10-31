@@ -104,7 +104,7 @@ public class ChangeCursor<K, V> implements Iterator<K> {
                         break;
                     }
                     pos2 = pos2.parent;
-                    if (pos2 == null || !pos1.page.equals(pos2.page.getPos())) {
+                    if (pos2 == null || !pos1.page.equals(pos2.page)) {
                         if (pos1.index + 1 < map.getChildPageCount(pos1.page)) {
                             pos1 = new CursorPos(pos1.page.getChildPage(++pos1.index), 0, pos1);
                             pos1 = min(pos1);
@@ -147,7 +147,7 @@ public class ChangeCursor<K, V> implements Iterator<K> {
                             break;
                         }
                         pos1 = pos1.parent;
-                        if (pos1 == null || !pos2.page.equals(pos1.page.getPos())) {
+                        if (pos1 == null || !pos2.page.equals(pos1.page)) {
                             if (pos2.index + 1 < map.getChildPageCount(pos2.page)) {
                                 pos2 = new CursorPos(pos2.page.getChildPage(++pos2.index), 0, pos2);
                                 pos2 = min(pos2);

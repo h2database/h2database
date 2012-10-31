@@ -76,7 +76,7 @@ public class TestDateStorage extends TestBase {
             printTime("inserted");
             for (TimeZone target : distinct) {
                 println("select from " + target.getID());
-                if ("Pacific/Kiritimati".equals(target)) {
+                if ("Pacific/Kiritimati".equals(target.getID())) {
                     // there is a problem with this time zone, but it seems
                     // unrelated to this database (possibly wrong timezone
                     // information?)

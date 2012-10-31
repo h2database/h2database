@@ -417,7 +417,7 @@ public class TestDate extends TestBase {
                 d.writeValue(ValueNull.INSTANCE);
                 d.reset();
                 for (TimeZone target : distinct) {
-                    if ("Pacific/Kiritimati".equals(target)) {
+                    if ("Pacific/Kiritimati".equals(target.getID())) {
                         // there is a problem with this time zone, but it seems
                         // unrelated to this database (possibly wrong timezone
                         // information?)

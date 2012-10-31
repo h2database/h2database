@@ -215,8 +215,7 @@ public class WebServer implements Service {
         if (lastTimeoutCheck + SESSION_TIMEOUT < now) {
             for (String id : New.arrayList(sessions.keySet())) {
                 WebSession session = sessions.get(id);
-                Long last = (Long) session.get("lastAccess");
-                if (last != null && last.longValue() + SESSION_TIMEOUT < now) {
+                if (session.lastAccess + SESSION_TIMEOUT < now) {
                     trace("timeout for " + id);
                     sessions.remove(id);
                 }

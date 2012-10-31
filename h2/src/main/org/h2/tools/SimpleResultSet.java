@@ -478,21 +478,25 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     /**
      * Returns the value as a java.io.InputStream.
-     * This is only supported if the
-     * result set was created using a Blob object.
      *
      * @param columnIndex (1,2,...)
      * @return the value
      */
     public InputStream getBinaryStream(int columnIndex) throws SQLException {
-        Blob b = (Blob) get(columnIndex);
-        return b == null ? null : b.getBinaryStream();
+        return asInputStream(get(columnIndex));
+    }
+
+    private static InputStream asInputStream(Object o) throws SQLException {
+        if (o == null) {
+            return null;
+        } else if (o instanceof Blob) {
+            return ((Blob) o).getBinaryStream();
+        }
+        return (InputStream) o;
     }
 
     /**
      * Returns the value as a java.io.InputStream.
-     * This is only supported if the
-     * result set was created using a Blob object.
      *
      * @param columnLabel the column label
      * @return the value
@@ -510,8 +514,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @return the value
      */
     public Blob getBlob(int columnIndex) throws SQLException {
-        Blob b = (Blob) get(columnIndex);
-        return b == null ? null : b;
+        return (Blob) get(columnIndex);
     }
 
     /**
@@ -596,20 +599,29 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     /**
      * Returns the value as a java.io.Reader.
-     * This is only supported for CLOB data.
+     * This is only supported if the
+     * result set was created using a Clob or Reader object.
      *
      * @param columnIndex (1,2,...)
      * @return the value
      */
     public Reader getCharacterStream(int columnIndex) throws SQLException {
-        Clob c = (Clob) get(columnIndex);
-        return c == null ? null : c.getCharacterStream();
+        return asReader(get(columnIndex));
+    }
+
+    private static Reader asReader(Object o) throws SQLException {
+        if (o == null) {
+            return null;
+        } else if (o instanceof Clob) {
+            return ((Clob) o).getCharacterStream();
+        }
+        return (Reader) o;
     }
 
     /**
      * Returns the value as a java.io.Reader.
      * This is only supported if the
-     * result set was created using a Clob object.
+     * result set was created using a Clob or Reader object.
      *
      * @param columnLabel the column label
      * @return the value

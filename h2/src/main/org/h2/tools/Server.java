@@ -323,6 +323,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 if (result != null) {
                     throw result;
                 }
+            } else if (browserStart) {
+                out.println("The browser can only start if a web server is started (-web)");
             }
             if (tcpStart) {
                 tcp = createTcpServer(args);

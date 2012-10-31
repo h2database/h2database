@@ -31,9 +31,10 @@ public class Profile extends Thread {
     private BufferedWriter trace;
 
     private Profile() {
-        LineNumberReader r = null;
+        FileReader reader = null;
         try {
-            r = new LineNumberReader(new FileReader("profile.txt"));
+            reader = new FileReader("profile.txt");
+            LineNumberReader r = new LineNumberReader(reader);
             while (r.readLine() != null) {
                 // nothing - just count lines
             }
@@ -46,7 +47,7 @@ public class Profile extends Thread {
             e.printStackTrace();
             System.exit(1);
         } finally {
-            closeSilently(r);
+            closeSilently(reader);
         }
     }
 

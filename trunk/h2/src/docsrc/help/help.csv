@@ -1612,6 +1612,8 @@ Identity and auto-increment columns are columns with a sequence as the
 default. The column declared as the identity columns is implicitly the
 primary key column of this table (unlike auto-increment columns).
 
+The options PRIMARY KEY, UNIQUE, and CHECK are not supported for ALTER statements.
+
 Check constraints can reference columns of the table,
 and they can reference objects that exist while the statement is executed.
 Conditions are only checked when a row is added or modified

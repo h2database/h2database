@@ -18,7 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MySQL compatibility: support for CONCAT_WS.
+<ul><li>Issue 407: The TriggerAdapter didn't work with CLOB and BLOB columns.
+</li><li>PostgreSQL compatibility: support for data types BIGSERIAL and SERIAL
+    as an alias for AUTO_INCREMENT.
+</li><li>Issue 417: H2 Console: the web session timeout didn't work, resulting in a memory leak.
+    This was only a problem if the H2 Console was run for a long time and many sessions were opened.
+</li><li>Issue 412: Running the Server tool with just the option "-browser" will now log a warning.
+</li><li>Issue 411: CloseWatcher registration was not concurency-safe.
+</li><li>MySQL compatibility: support for CONCAT_WS.
     Thanks a lot to litailang for the patch!
 </li><li>PostgreSQL compatibility: support for EXTRACT(WEEK FROM dateColumn).
     Thanks to Prashant Bhat for the patch!

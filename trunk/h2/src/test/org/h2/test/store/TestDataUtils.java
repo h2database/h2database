@@ -5,6 +5,8 @@
  */
 package org.h2.test.store;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import org.h2.dev.store.btree.DataUtils;
@@ -96,13 +98,31 @@ public class TestDataUtils extends TestBase {
         buff.rewind();
         assertEquals(-1, DataUtils.readVarLong(buff));
         assertEquals(10, buff.position());
+
+        buff.clear();
+        testVarIntVarLong(buff, DataUtils.COMPRESSED_VAR_INT_MAX);
+        testVarIntVarLong(buff, DataUtils.COMPRESSED_VAR_INT_MAX + 1);
+        testVarIntVarLong(buff, DataUtils.COMPRESSED_VAR_LONG_MAX);
+        testVarIntVarLong(buff, DataUtils.COMPRESSED_VAR_LONG_MAX + 1);
     }
 
     private void testVarIntVarLong(ByteBuffer buff, long x) {
         int len;
-
+        byte[] data;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            DataUtils.writeVarLong(out, x);
+            data = out.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         DataUtils.writeVarLong(buff, x);
         len = buff.position();
+        assertEquals(data.length, len);
+        byte[] data2 = new byte[len];
+        buff.position(0);
+        buff.get(data2);
+        assertEquals(data2, data);
         buff.flip();
         long y = DataUtils.readVarLong(buff);
         assertEquals(y, x);
@@ -111,8 +131,20 @@ public class TestDataUtils extends TestBase {
         buff.clear();
 
         int intX = (int) x;
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            DataUtils.writeVarInt(out, intX);
+            data = out.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         DataUtils.writeVarInt(buff, intX);
         len = buff.position();
+        assertEquals(data.length, len);
+        data2 = new byte[len];
+        buff.position(0);
+        buff.get(data2);
+        assertEquals(data2, data);
         buff.flip();
         int intY = DataUtils.readVarInt(buff);
         assertEquals(intY, intX);

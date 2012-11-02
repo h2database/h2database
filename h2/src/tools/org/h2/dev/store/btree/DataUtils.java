@@ -7,6 +7,7 @@
 package org.h2.dev.store.btree;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
@@ -150,7 +151,21 @@ public class DataUtils {
     /**
      * Write a variable size int.
      *
-     * @param buff the target buffer
+     * @param out the output stream
+     * @param x the value
+     */
+    public static void writeVarInt(OutputStream out, int x) throws IOException {
+        while ((x & ~0x7f) != 0) {
+            out.write((byte) (0x80 | (x & 0x7f)));
+            x >>>= 7;
+        }
+        out.write((byte) x);
+    }
+
+    /**
+     * Write a variable size int.
+     *
+     * @param buff the source buffer
      * @param x the value
      */
     public static void writeVarInt(ByteBuffer buff, int x) {
@@ -207,7 +222,7 @@ public class DataUtils {
     }
 
     /**
-     * Write a variable size int.
+     * Write a variable size long.
      *
      * @param buff the target buffer
      * @param x the value
@@ -218,6 +233,20 @@ public class DataUtils {
             x >>>= 7;
         }
         buff.put((byte) x);
+    }
+
+    /**
+     * Write a variable size long.
+     *
+     * @param out the output stream
+     * @param x the value
+     */
+    public static void writeVarLong(OutputStream out, long x) throws IOException {
+        while ((x & ~0x7f) != 0) {
+            out.write((byte) (0x80 | (x & 0x7f)));
+            x >>>= 7;
+        }
+        out.write((byte) x);
     }
 
     /**

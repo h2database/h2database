@@ -35,10 +35,8 @@ header:
 H:3,blockSize=4096,...
 
 TODO:
-- how to iterate (just) over deleted pages / entries
 - compact: use total max length instead of page count (liveCount)
 - support background writes (store old version)
-- support large binaries
 - support database version / app version
 - limited support for writing to old versions (branches)
 - atomic test-and-set (when supporting concurrent writes)
@@ -62,6 +60,9 @@ TODO:
 - unified exception handling
 - check if locale specific string comparison can make data disappear
 - concurrent map; avoid locking during IO (pre-load pages)
+- maybe split database into multiple files, to speed up compact operation
+- automated 'kill process' and 'power failure' test
+- implement table engine for H2
 
 */
 

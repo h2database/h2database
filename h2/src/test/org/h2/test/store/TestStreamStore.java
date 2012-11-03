@@ -6,16 +6,22 @@
  */
 package org.h2.test.store;
 
+// import static org.junit.Assert.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.dev.store.btree.StreamStore;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
+import org.junit.Test;
 
 /**
  * Test the stream store.
@@ -33,12 +39,54 @@ public class TestStreamStore extends TestBase {
 
     @Override
     public void test() throws IOException {
+        testFormat();
         testWithExistingData();
-        testSmall();
+        testWithFullMap();
+        testLoop();
     }
 
-    private void testWithExistingData() throws IOException {
+    @Test
+    public void testFormat() throws IOException {
         Map<Long, byte[]> map = New.hashMap();
+        StreamStore store = new StreamStore(map);
+        store.setMinBlockSize(10);
+        store.setMaxBlockSize(20);
+        store.setNextKey(123);
+        byte[] id = store.put(new ByteArrayInputStream(new byte[0]));
+        assertEquals("", StringUtils.convertBytesToHex(id));
+        id = store.put(new ByteArrayInputStream(new byte[1]));
+        assertEquals("0100", StringUtils.convertBytesToHex(id));
+        id = store.put(new ByteArrayInputStream(new byte[3]));
+        assertEquals("03000000", StringUtils.convertBytesToHex(id));
+        id = store.put(new ByteArrayInputStream(new byte[10]));
+        assertEquals("000a017b", StringUtils.convertBytesToHex(id));
+        id = store.put(new ByteArrayInputStream(new byte[100]));
+
+        int todoInefficient;
+        assertEquals("ffffffff0f500281010014028001", StringUtils.convertBytesToHex(id));
+
+        byte[] combined = StringUtils.convertHexToBytes("010a020b0c");
+        assertEquals(3, store.length(combined));
+        InputStream in = store.get(combined);
+        assertEquals(1, in.skip(1));
+        assertEquals(0x0b, in.read());
+        assertEquals(1, in.skip(1));
+    }
+
+    @Test
+    public void testWithExistingData() throws IOException {
+
+        final AtomicInteger tests = new AtomicInteger();
+        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+
+            private static final long serialVersionUID = 1L;
+
+            public boolean containsKey(Object k) {
+                tests.incrementAndGet();
+                return super.containsKey(k);
+            }
+
+        };
         StreamStore store = new StreamStore(map);
         store.setMinBlockSize(10);
         store.setMaxBlockSize(20);
@@ -47,28 +95,62 @@ public class TestStreamStore extends TestBase {
             store.put(new ByteArrayInputStream(new byte[20]));
         }
         assertEquals(10, map.size());
+        assertEquals(10, tests.get());
         for (int i = 0; i < 10; i++) {
             map.containsKey(i);
         }
+        assertEquals(20, tests.get());
         store = new StreamStore(map);
         store.setMinBlockSize(10);
         store.setMaxBlockSize(20);
         store.setNextKey(0);
-        for (int i = 0; i < 10; i++) {
+        assertEquals(0, store.getNextKey());
+        for (int i = 0; i < 5; i++) {
             store.put(new ByteArrayInputStream(new byte[20]));
         }
-        assertEquals(20, map.size());
-        for (int i = 0; i < 20; i++) {
+        assertEquals(88, tests.get());
+        assertEquals(15, store.getNextKey());
+        assertEquals(15, map.size());
+        for (int i = 0; i < 15; i++) {
             map.containsKey(i);
         }
     }
 
-    private void testSmall() throws IOException {
+    @Test
+    public void testWithFullMap() throws IOException {
+        final AtomicInteger tests = new AtomicInteger();
+        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+
+            private static final long serialVersionUID = 1L;
+
+            public boolean containsKey(Object k) {
+                tests.incrementAndGet();
+                if (((Long) k) < Long.MAX_VALUE / 2) {
+                    // simulate a *very* full map
+                    return true;
+                }
+                return super.containsKey(k);
+            }
+
+        };
+        StreamStore store = new StreamStore(map);
+        store.setMinBlockSize(10);
+        store.setMaxBlockSize(20);
+        store.setNextKey(0);
+        store.put(new ByteArrayInputStream(new byte[20]));
+        assertEquals(1, map.size());
+        assertEquals(64, tests.get());
+        assertEquals(Long.MAX_VALUE / 2 + 1, store.getNextKey());
+    }
+
+    @Test
+    public void testLoop() throws IOException {
         Map<Long, byte[]> map = New.hashMap();
         StreamStore store = new StreamStore(map);
         assertEquals(256 * 1024, store.getMaxBlockSize());
         assertEquals(256, store.getMinBlockSize());
         store.setNextKey(0);
+        assertEquals(0, store.getNextKey());
         for (int i = 0; i < 20; i++) {
             test(store, 0, 128, i);
             test(store, 10, 128, i);
@@ -110,7 +192,11 @@ public class TestStreamStore extends TestBase {
         InputStream in = store.get(id);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         IOUtils.copy(in, out);
-        assertEquals(data, out.toByteArray());
+        assertTrue(Arrays.equals(data, out.toByteArray()));
+
+        in = store.get(id);
+        in.close();
+        assertEquals(-1, in.read());
 
         in = store.get(id);
         assertEquals(0, in.skip(0));
@@ -137,6 +223,16 @@ public class TestStreamStore extends TestBase {
             in = store.get(id);
             assertEquals(12, in.skip(12));
             assertEquals(data[12] & 255, in.read());
+            long skipped = 0;
+            while (true) {
+                long s = in.skip(Integer.MAX_VALUE);
+                if (s == 0) {
+                    break;
+                }
+                skipped += s;
+            }
+            assertEquals(length - 13, skipped);
+            assertEquals(-1, in.read());
         }
 
         store.remove(id);

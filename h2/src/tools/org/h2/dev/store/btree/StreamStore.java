@@ -20,11 +20,9 @@ import org.h2.util.IOUtils;
  * are stored in a map. Very small streams are inlined in the stream id.
  * <p>
  * The key of the map is a long (incremented for each stored block). The default
- * initial value is the current time (milliseconds since 1970 UTC) at the time
- * the stream store is created. The next key can also be set explicitly. Before
- * storing blocks into the map, the stream store checks if there is already a
- * block with the next key, and the key is incremented as necessary (this is a
- * log(n) operation similar to binary search).
+ * initial value is 0. Before storing blocks into the map, the stream store
+ * checks if there is already a block with the next key, and if necessary
+ * searches the next free entry using a binary search (0 to Long.MAX_VALUE).
  * <p>
  * The format of the binary id is: An empty id represents 0 bytes of data.
  * In-place data is encoded as the size (a variable size int), then the data. A
@@ -40,7 +38,7 @@ public class StreamStore {
     private final Map<Long, byte[]> map;
     private int minBlockSize = 256;
     private int maxBlockSize = 256 * 1024;
-    private final AtomicLong nextKey = new AtomicLong(System.currentTimeMillis());
+    private final AtomicLong nextKey = new AtomicLong();
 
     /**
      * Create a stream store instance.
@@ -141,28 +139,18 @@ public class StreamStore {
         if (!map.containsKey(key)) {
             return key;
         }
-        // search the next free id
+        // search the next free id using binary search
         synchronized (this) {
-            key = nextKey.getAndIncrement();
-            // skip 1 at the beginning
-            long increment = 1;
-            while (true) {
-                if (map.containsKey(key + increment)) {
-                    // skip double as many numbers
-                    key += increment + 1;
-                    if (increment < Integer.MAX_VALUE) {
-                        increment += increment;
-                    }
+            long low = key, high = Long.MAX_VALUE;
+            while (low < high) {
+                long x = (low + high) >>> 1;
+                if (map.containsKey(x)) {
+                    low = x + 1;
                 } else {
-                    // already past the end:
-                    // skip half as many numbers
-                    if (increment == 1) {
-                        key++;
-                        break;
-                    }
-                    increment /= 2;
+                    high = x;
                 }
             }
+            key = low;
             nextKey.set(key + 1);
             return key;
         }
@@ -246,15 +234,12 @@ public class StreamStore {
         return true;
     }
 
-    boolean isInPlace(ByteBuffer idBuffer) {
+    private static boolean isInPlace(ByteBuffer idBuffer) {
         int lenInPlace = DataUtils.readVarInt(idBuffer);
         if (lenInPlace > 0) {
             idBuffer.position(idBuffer.position() + lenInPlace);
             return true;
         }
-        DataUtils.readVarLong(idBuffer);
-        int lenId = DataUtils.readVarInt(idBuffer);
-        idBuffer.position(idBuffer.position() + lenId);
         return false;
     }
 
@@ -285,7 +270,6 @@ public class StreamStore {
 
         private StreamStore store;
         private byte[] oneByteBuffer;
-        private final byte[] id;
         private ByteBuffer idBuffer;
         private ByteArrayInputStream buffer;
         private long skip;
@@ -294,51 +278,52 @@ public class StreamStore {
 
         Stream(StreamStore store, byte[] id) {
             this.store = store;
-            this.id = id;
             this.length = store.length(id);
-            reset();
-        }
-
-        @Override
-        public void reset() {
             this.idBuffer = ByteBuffer.wrap(id);
         }
 
         @Override
-        public int read() throws IOException {
+        public int read() {
             byte[] buffer = oneByteBuffer;
             if (buffer == null) {
                 buffer = oneByteBuffer = new byte[1];
             }
             int len = read(buffer, 0, 1);
-            return len < 0 ? len : (buffer[0] & 255);
+            return len == -1 ? -1 : (buffer[0] & 255);
         }
 
         @Override
         public long skip(long n) {
             n = Math.min(length - pos, n);
-            skip += n;
-            pos += n;
-            if (buffer != null) {
-                return buffer.skip(n);
+            if (n == 0) {
+                return 0;
             }
+            if (buffer != null) {
+                long s = buffer.skip(n);
+                if (s > 0) {
+                    n = s;
+                } else {
+                    buffer = null;
+                    skip += n;
+                }
+            } else {
+                skip += n;
+            }
+            pos += n;
             return n;
         }
 
         @Override
         public void close() {
             buffer = null;
-            idBuffer = null;
-            store = null;
+            idBuffer.position(idBuffer.limit());
+            pos = length;
         }
 
         @Override
         public int read(byte[] b, int off, int len) {
             while (true) {
                 if (buffer == null) {
-                    if (store == null) {
-                        return -1;
-                    }
                     buffer = nextBuffer();
                     if (buffer == null) {
                         return -1;
@@ -347,9 +332,6 @@ public class StreamStore {
                 int result = buffer.read(b, off, len);
                 if (result > 0) {
                     pos += result;
-                    if (pos >= length) {
-                        close();
-                    }
                     return result;
                 }
                 buffer = null;
@@ -393,7 +375,6 @@ public class StreamStore {
                 skip = 0;
                 return new ByteArrayInputStream(data, s, data.length - s);
             }
-            close();
             return null;
         }
 

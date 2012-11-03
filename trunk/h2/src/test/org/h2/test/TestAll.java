@@ -194,8 +194,13 @@ public class TestAll {
 
 /*
 
-Random test:
+PIT test:
+java org.pitest.mutationtest.MutationCoverageReport
+--reportDir data --targetClasses org.h2.dev.store.btree.StreamStore*
+--targetTests org.h2.test.store.TestStreamStore
+--sourceDirs src/test,src/tools
 
+Random test:
 java15
 cd h2database/h2/bin
 del *.db

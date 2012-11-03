@@ -65,10 +65,11 @@ public class FtpServer extends Tool implements Service {
 
     static final String TASK_SUFFIX = ".task";
 
+    private static final int MAX_CONNECTION_COUNT = 100;
+
     private ServerSocket serverSocket;
     private int port = DEFAULT_PORT;
     private int openConnectionCount;
-    private static final int maxConnectionCount = 100;
 
     private final SimpleDateFormat dateFormatNew = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
     private final SimpleDateFormat dateFormatOld = new SimpleDateFormat("MMM dd  yyyy", Locale.ENGLISH);
@@ -190,7 +191,7 @@ public class FtpServer extends Tool implements Service {
                 boolean stop;
                 synchronized (this) {
                     openConnectionCount++;
-                    stop = openConnectionCount > maxConnectionCount;
+                    stop = openConnectionCount > MAX_CONNECTION_COUNT;
                 }
                 FtpControl c = new FtpControl(s, this, stop);
                 c.start();

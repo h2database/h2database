@@ -34,8 +34,8 @@ public class WebSite {
     private static final String TRANSLATE_START = "<!-- translate";
     private static final String TRANSLATE_END = "translate -->";
 
-    private static final String sourceDir = "docs";
-    private static final String webDir = "../h2web";
+    private static final String SOURCE_DIR = "docs";
+    private static final String WEB_DIR = "../h2web";
     private final HashMap<String, String> fragments = new HashMap<String, String>();
 
     /**
@@ -50,17 +50,17 @@ public class WebSite {
 
     private void run() throws Exception {
         // create the web site
-        deleteRecursive(new File(webDir));
+        deleteRecursive(new File(WEB_DIR));
         loadFragments();
-        copy(new File(sourceDir), new File(webDir), true, true);
-        Newsfeed.main(webDir + "/html");
+        copy(new File(SOURCE_DIR), new File(WEB_DIR), true, true);
+        Newsfeed.main(WEB_DIR + "/html");
 
         // create the internal documentation
-        copy(new File(sourceDir), new File(sourceDir), true, false);
+        copy(new File(SOURCE_DIR), new File(SOURCE_DIR), true, false);
     }
 
     private void loadFragments() throws IOException {
-        File dir = new File(sourceDir, "html");
+        File dir = new File(SOURCE_DIR, "html");
         for (File f : dir.listFiles()) {
             if (f.getName().startsWith("fragments")) {
                 FileInputStream in = new FileInputStream(f);

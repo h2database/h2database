@@ -20,7 +20,7 @@ import org.h2.util.StringUtils;
  */
 public class MergeDocs {
 
-    private static final String baseDir = "docs/html";
+    private static final String BASE_DIR = "docs/html";
 
     /**
      * This method is called when executing this application from the command
@@ -29,10 +29,6 @@ public class MergeDocs {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        new MergeDocs().run();
-    }
-
-    private void run() throws Exception {
         // the order of pages is important here
         String[] pages = { "quickstart.html", "installation.html", "tutorial.html", "features.html",
                 "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",
@@ -48,7 +44,7 @@ public class MergeDocs {
             buff.append(text);
         }
         String finalText = buff.toString();
-        File output = new File(baseDir, "onePage.html");
+        File output = new File(BASE_DIR, "onePage.html");
         PrintWriter writer = new PrintWriter(new FileWriter(output));
         writer.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" /><title>");
         writer.println("H2 Documentation");
@@ -85,8 +81,8 @@ public class MergeDocs {
         return text;
     }
 
-    private String getContent(String fileName) throws Exception {
-        File file = new File(baseDir, fileName);
+    private static String getContent(String fileName) throws Exception {
+        File file = new File(BASE_DIR, fileName);
         int length = (int) file.length();
         char[] data = new char[length];
         FileReader reader = new FileReader(file);

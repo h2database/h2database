@@ -32,8 +32,8 @@ import org.h2.util.StringUtils;
  */
 public class GenerateDoc {
 
+    private static final String IN_HELP = "src/docsrc/help/help.csv";
     private String inDir = "src/docsrc/html";
-    private static final String inHelp = "src/docsrc/help/help.csv";
     private String outDir = "docs/html";
     private Connection conn;
     private final HashMap<String, Object> session = new HashMap<String, Object>();
@@ -68,7 +68,7 @@ public class GenerateDoc {
         session.put("stableVersion", Constants.getVersionStable());
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
-        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + inHelp + "', NULL, 'lineComment=#') WHERE SECTION ";
+        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
         map("commands", help + "LIKE 'Commands%' ORDER BY ID", true);
         map("commandsDML", help + "= 'Commands (DML)' ORDER BY ID", false);
         map("commandsDDL", help + "= 'Commands (DDL)' ORDER BY ID", false);

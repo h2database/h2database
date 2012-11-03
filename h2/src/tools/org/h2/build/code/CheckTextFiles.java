@@ -29,10 +29,13 @@ public class CheckTextFiles {
             "layout", "res", "win", "jar", "task", "svg", "MF", "mf", "sh", "DS_Store", "prop" };
     private static final String[] SUFFIX_CRLF = { "bat" };
 
+    private static final boolean ALLOW_TAB = false;
+    private static final boolean ALLOW_CR = true;
+    private static final boolean ALLOW_TRAILING_SPACES = false;
+    private static final int SPACES_PER_TAB = 4;
+    private static final boolean AUTO_FIX = true;
+
     private boolean failOnError;
-    private static final boolean allowTab = false, allowCR = true, allowTrailingSpaces = false;
-    private static final int spacesPerTab = 4;
-    private static final boolean autoFix = true;
     private boolean useCRLF;
     private final String[] suffixIgnoreLicense = {
             "bat", "nsi", "txt", "properties", "xml",
@@ -111,7 +114,7 @@ public class CheckTextFiles {
                 }
             }
             if (check) {
-                checkOrFixFile(file, autoFix, checkLicense);
+                checkOrFixFile(file, AUTO_FIX, checkLicense);
             }
         }
     }
@@ -163,7 +166,7 @@ public class CheckTextFiles {
                 return;
             } else if (ch < 32) {
                 if (ch == '\n') {
-                    if (lastWasWhitespace && !allowTrailingSpaces) {
+                    if (lastWasWhitespace && !ALLOW_TRAILING_SPACES) {
                         fail(file, "contains trailing white space", line);
                         return;
                     }
@@ -176,11 +179,11 @@ public class CheckTextFiles {
                     lastWasWhitespace = false;
                     line++;
                 } else if (ch == '\r') {
-                    if (!allowCR) {
+                    if (!ALLOW_CR) {
                         fail(file, "contains CR", line);
                         return;
                     }
-                    if (lastWasWhitespace && !allowTrailingSpaces) {
+                    if (lastWasWhitespace && !ALLOW_TRAILING_SPACES) {
                         fail(file, "contains trailing white space", line);
                         return;
                     }
@@ -188,11 +191,11 @@ public class CheckTextFiles {
                     // ok
                 } else if (ch == '\t') {
                     if (fix) {
-                        for (int j = 0; j < spacesPerTab; j++) {
+                        for (int j = 0; j < SPACES_PER_TAB; j++) {
                             out.write(' ');
                         }
                     } else {
-                        if (!allowTab) {
+                        if (!ALLOW_TAB) {
                             fail(file, "contains TAB", line);
                             return;
                         }
@@ -230,7 +233,7 @@ public class CheckTextFiles {
                 lastWasWhitespace = false;
             }
         }
-        if (lastWasWhitespace && !allowTrailingSpaces) {
+        if (lastWasWhitespace && !ALLOW_TRAILING_SPACES) {
             fail(file, "contains trailing white space at the very end", line);
             return;
         }

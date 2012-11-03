@@ -241,6 +241,7 @@ public class WebServer implements Service {
             newId = generateSessionId();
         } while(sessions.get(newId) != null);
         WebSession session = new WebSession(this);
+        session.lastAccess = System.currentTimeMillis();
         session.put("sessionId", newId);
         session.put("ip", hostAddr);
         session.put("language", DEFAULT_LANGUAGE);

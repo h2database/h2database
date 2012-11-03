@@ -38,6 +38,8 @@ public class Shell extends Tool implements Runnable {
 
     private static final int MAX_ROW_BUFFER = 5000;
     private static final int HISTORY_COUNT = 20;
+    // Windows: '\u00b3';
+    private static final char BOX_VERTICAL = '|';
 
     private PrintStream err = System.err;
     private InputStream in = System.in;
@@ -46,8 +48,6 @@ public class Shell extends Tool implements Runnable {
     private Statement stat;
     private boolean listMode;
     private int maxColumnSize = 100;
-    // Windows: '\u00b3';
-    private static final char boxVertical = '|';
     private final ArrayList<String> history = New.arrayList();
     private boolean stopHide;
     private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
@@ -519,7 +519,7 @@ public class Shell extends Tool implements Runnable {
             StringBuilder buff = new StringBuilder();
             for (int i = 0; i < len; i++) {
                 if (i > 0) {
-                    buff.append(' ').append(boxVertical).append(' ');
+                    buff.append(' ').append(BOX_VERTICAL).append(' ');
                 }
                 String s = row[i];
                 buff.append(s);

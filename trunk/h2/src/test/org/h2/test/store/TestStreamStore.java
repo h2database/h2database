@@ -21,7 +21,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 // import org.junit.Test;
-//import static org.junit.Assert.*;
+// import static org.junit.Assert.*;
 
 /**
  * Test the stream store.
@@ -39,10 +39,60 @@ public class TestStreamStore extends TestBase {
 
     @Override
     public void test() throws IOException {
+        testDetectIllegalId();
+        testTreeStructure();
         testFormat();
         testWithExistingData();
         testWithFullMap();
         testLoop();
+    }
+
+    public void testDetectIllegalId() throws IOException {
+        Map<Long, byte[]> map = New.hashMap();
+        StreamStore store = new StreamStore(map);
+        try {
+            store.length(new byte[]{3, 0, 0});
+            fail();
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
+        try {
+            store.remove(new byte[]{3, 0, 0});
+            fail();
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
+        map.put(0L, new byte[]{3, 0, 0});
+        InputStream in = store.get(new byte[]{2, 1, 0});
+        try {
+            in.read();
+            fail();
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
+    }
+
+    public void testTreeStructure() throws IOException {
+
+        final AtomicInteger reads = new AtomicInteger();
+        Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
+
+            private static final long serialVersionUID = 1L;
+
+            public byte[] get(Object k) {
+                reads.incrementAndGet();
+                return super.get(k);
+            }
+
+        };
+
+        StreamStore store = new StreamStore(map);
+        store.setMinBlockSize(10);
+        store.setMaxBlockSize(100);
+        byte[] id = store.put(new ByteArrayInputStream(new byte[10000]));
+        InputStream in = store.get(id);
+        assertEquals(0, in.read());
+        assertEquals(3, reads.get());
     }
 
     public void testFormat() throws IOException {
@@ -55,26 +105,26 @@ public class TestStreamStore extends TestBase {
         byte[] id;
 
         id = store.put(new ByteArrayInputStream(new byte[200]));
-        int todoInefficient;
-        assertEquals("ffffffff0fb4010287010014028601", StringUtils.convertBytesToHex(id));
+        assertEquals(200, store.length(id));
+        assertEquals("02c8018801", StringUtils.convertBytesToHex(id));
 
         id = store.put(new ByteArrayInputStream(new byte[0]));
         assertEquals("", StringUtils.convertBytesToHex(id));
 
         id = store.put(new ByteArrayInputStream(new byte[1]));
-        assertEquals("0100", StringUtils.convertBytesToHex(id));
+        assertEquals("000100", StringUtils.convertBytesToHex(id));
 
         id = store.put(new ByteArrayInputStream(new byte[3]));
-        assertEquals("03000000", StringUtils.convertBytesToHex(id));
+        assertEquals("0003000000", StringUtils.convertBytesToHex(id));
 
         id = store.put(new ByteArrayInputStream(new byte[10]));
-        assertEquals("000a028801", StringUtils.convertBytesToHex(id));
+        assertEquals("010a8901", StringUtils.convertBytesToHex(id));
 
-        byte[] combined = StringUtils.convertHexToBytes("010a020b0c");
+        byte[] combined = StringUtils.convertHexToBytes("0001aa0002bbcc");
         assertEquals(3, store.length(combined));
         InputStream in = store.get(combined);
         assertEquals(1, in.skip(1));
-        assertEquals(0x0b, in.read());
+        assertEquals(0xbb, in.read());
         assertEquals(1, in.skip(1));
     }
 
@@ -137,10 +187,10 @@ public class TestStreamStore extends TestBase {
 
         };
         StreamStore store = new StreamStore(map);
-        store.setMinBlockSize(10);
-        store.setMaxBlockSize(20);
+        store.setMinBlockSize(20);
+        store.setMaxBlockSize(100);
         store.setNextKey(0);
-        store.put(new ByteArrayInputStream(new byte[20]));
+        store.put(new ByteArrayInputStream(new byte[100]));
         assertEquals(1, map.size());
         assertEquals(64, tests.get());
         assertEquals(Long.MAX_VALUE / 2 + 1, store.getNextKey());
@@ -153,6 +203,7 @@ public class TestStreamStore extends TestBase {
         assertEquals(256, store.getMinBlockSize());
         store.setNextKey(0);
         assertEquals(0, store.getNextKey());
+        test(store, 10, 20, 1000);
         for (int i = 0; i < 20; i++) {
             test(store, 0, 128, i);
             test(store, 10, 128, i);
@@ -161,7 +212,6 @@ public class TestStreamStore extends TestBase {
             test(store, 0, 128, i);
             test(store, 10, 128, i);
         }
-        test(store, 10, 20, 1000);
     }
 
     private void test(StreamStore store, int minBlockSize, int maxBlockSize, int length) throws IOException {

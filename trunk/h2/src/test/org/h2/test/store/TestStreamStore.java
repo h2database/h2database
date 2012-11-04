@@ -6,7 +6,6 @@
  */
 package org.h2.test.store;
 
-// import static org.junit.Assert.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,7 +20,8 @@ import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
-import org.junit.Test;
+// import org.junit.Test;
+//import static org.junit.Assert.*;
 
 /**
  * Test the stream store.
@@ -45,25 +45,30 @@ public class TestStreamStore extends TestBase {
         testLoop();
     }
 
-    @Test
     public void testFormat() throws IOException {
         Map<Long, byte[]> map = New.hashMap();
         StreamStore store = new StreamStore(map);
         store.setMinBlockSize(10);
         store.setMaxBlockSize(20);
         store.setNextKey(123);
-        byte[] id = store.put(new ByteArrayInputStream(new byte[0]));
+
+        byte[] id;
+
+        id = store.put(new ByteArrayInputStream(new byte[200]));
+        int todoInefficient;
+        assertEquals("ffffffff0fb4010287010014028601", StringUtils.convertBytesToHex(id));
+
+        id = store.put(new ByteArrayInputStream(new byte[0]));
         assertEquals("", StringUtils.convertBytesToHex(id));
+
         id = store.put(new ByteArrayInputStream(new byte[1]));
         assertEquals("0100", StringUtils.convertBytesToHex(id));
+
         id = store.put(new ByteArrayInputStream(new byte[3]));
         assertEquals("03000000", StringUtils.convertBytesToHex(id));
-        id = store.put(new ByteArrayInputStream(new byte[10]));
-        assertEquals("000a017b", StringUtils.convertBytesToHex(id));
-        id = store.put(new ByteArrayInputStream(new byte[100]));
 
-        int todoInefficient;
-        assertEquals("ffffffff0f500281010014028001", StringUtils.convertBytesToHex(id));
+        id = store.put(new ByteArrayInputStream(new byte[10]));
+        assertEquals("000a028801", StringUtils.convertBytesToHex(id));
 
         byte[] combined = StringUtils.convertHexToBytes("010a020b0c");
         assertEquals(3, store.length(combined));
@@ -73,7 +78,6 @@ public class TestStreamStore extends TestBase {
         assertEquals(1, in.skip(1));
     }
 
-    @Test
     public void testWithExistingData() throws IOException {
 
         final AtomicInteger tests = new AtomicInteger();
@@ -116,7 +120,6 @@ public class TestStreamStore extends TestBase {
         }
     }
 
-    @Test
     public void testWithFullMap() throws IOException {
         final AtomicInteger tests = new AtomicInteger();
         Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
@@ -143,7 +146,6 @@ public class TestStreamStore extends TestBase {
         assertEquals(Long.MAX_VALUE / 2 + 1, store.getNextKey());
     }
 
-    @Test
     public void testLoop() throws IOException {
         Map<Long, byte[]> map = New.hashMap();
         StreamStore store = new StreamStore(map);

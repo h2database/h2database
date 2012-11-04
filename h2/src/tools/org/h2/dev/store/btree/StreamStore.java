@@ -25,13 +25,12 @@ import org.h2.util.IOUtils;
  * searches the next free entry using a binary search (0 to Long.MAX_VALUE).
  * <p>
  * The format of the binary id is: An empty id represents 0 bytes of data.
- * In-place data is encoded as the size (a variable size int), then the data. A
- * stored block is encoded as 0, the length of the block (a variable size long),
- * the length of the key (a variable size int), then the key. If the key large,
- * it is stored itself. This is encoded as -1 (a variable size int), the total
- * length (a variable size long), the length of the key (a variable size int),
- * and the key that points to the id. Multiple ids can be concatenated to
- * concatenate the data.
+ * In-place data is encoded as 0, the size (a variable size int), then the data.
+ * A stored block is encoded as 1, the length of the block (a variable size
+ * int), then the key (a variable size long). Multiple ids can be concatenated
+ * to concatenate the data. If the id is large, it is stored itself, which is
+ * encoded as 2, the total length (a variable size long), and the key of the
+ * block that contains the id (a variable size long).
  */
 public class StreamStore {
 
@@ -84,48 +83,64 @@ public class StreamStore {
      * @return the id (potentially an empty array)
      */
     public byte[] put(InputStream in) throws IOException {
-        ByteArrayOutputStream idStream = new ByteArrayOutputStream();
-        long length = 0;
+        ByteArrayOutputStream id = new ByteArrayOutputStream();
+        int level = 0;
         while (true) {
-            ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
-            int len = (int) IOUtils.copy(in, outBuffer, maxBlockSize);
-            if (len == 0) {
+            if (put(id, in, level)) {
                 break;
             }
-            boolean eof = len < maxBlockSize;
-            byte[] data = outBuffer.toByteArray();
-            ByteArrayOutputStream idBlock = new ByteArrayOutputStream();
-            if (len < minBlockSize) {
-                DataUtils.writeVarInt(idBlock, len);
-                idBlock.write(data);
-            } else {
-                long key = writeBlock(data);
-                DataUtils.writeVarInt(idBlock, 0);
-                DataUtils.writeVarLong(idBlock, len);
-                int keyLen = DataUtils.getVarLongLen(key);
-                DataUtils.writeVarInt(idBlock, keyLen);
-                DataUtils.writeVarLong(idBlock, key);
-            }
-            if (idStream.size() > 0) {
-                int idSize = idStream.size() + idBlock.size();
-                if (idSize > maxBlockSize || (eof && idSize > minBlockSize)) {
-                    data = idStream.toByteArray();
-                    idStream.reset();
-                    long key = writeBlock(data);
-                    DataUtils.writeVarInt(idStream, -1);
-                    DataUtils.writeVarLong(idStream, length);
-                    int keyLen = DataUtils.getVarLongLen(key);
-                    DataUtils.writeVarInt(idStream, keyLen);
-                    DataUtils.writeVarLong(idStream, key);
-                }
-            }
-            length += len;
-            idBlock.writeTo(idStream);
-            if (eof) {
-                break;
+            if (id.size() > maxBlockSize / 2) {
+                id = putIndirectId(id);
+                level++;
             }
         }
-        return idStream.toByteArray();
+        if (id.size() > minBlockSize * 2) {
+            id = putIndirectId(id);
+        }
+        return id.toByteArray();
+    }
+
+    private boolean put(ByteArrayOutputStream id, InputStream in, int level) throws IOException {
+        if (level > 0) {
+            ByteArrayOutputStream id2 = new ByteArrayOutputStream();
+            while (true) {
+                boolean eof = put(id2, in, level - 1);
+                if (id2.size() > maxBlockSize / 2) {
+                    id2 = putIndirectId(id2);
+                    id2.writeTo(id);
+                    return eof;
+                } else if (eof) {
+                    id2.writeTo(id);
+                    return true;
+                }
+            }
+        }
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int len = (int) IOUtils.copy(in, buffer, maxBlockSize);
+        if (len == 0) {
+            return true;
+        }
+        boolean eof = len < maxBlockSize;
+        byte[] data = buffer.toByteArray();
+        if (len < minBlockSize) {
+            id.write(0);
+            DataUtils.writeVarInt(id, len);
+            id.write(data);
+        } else {
+            id.write(1);
+            DataUtils.writeVarInt(id, len);
+            DataUtils.writeVarLong(id, writeBlock(data));
+        }
+        return eof;
+    }
+
+    private ByteArrayOutputStream putIndirectId(ByteArrayOutputStream id) throws IOException {
+        byte[] data = id.toByteArray();
+        id = new ByteArrayOutputStream();
+        id.write(2);
+        DataUtils.writeVarLong(id, length(data));
+        DataUtils.writeVarLong(id, writeBlock(data));
+        return id;
     }
 
     private long writeBlock(byte[] data) {
@@ -164,29 +179,27 @@ public class StreamStore {
     public void remove(byte[] id) {
         ByteBuffer idBuffer = ByteBuffer.wrap(id);
         while (idBuffer.hasRemaining()) {
-            removeBlock(idBuffer);
+            switch (idBuffer.get()) {
+            case 0:
+                int len = DataUtils.readVarInt(idBuffer);
+                idBuffer.position(idBuffer.position() + len);
+                break;
+            case 1:
+                DataUtils.readVarInt(idBuffer);
+                long k = DataUtils.readVarLong(idBuffer);
+                map.remove(k);
+                break;
+            case 2:
+                DataUtils.readVarLong(idBuffer);
+                long k2 = DataUtils.readVarLong(idBuffer);
+                // recurse
+                remove(map.get(k2));
+                map.remove(k2);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported id");
+            }
         }
-    }
-
-    private void removeBlock(ByteBuffer idBuffer) {
-        int lenInPlace = DataUtils.readVarInt(idBuffer);
-        if (lenInPlace > 0) {
-            idBuffer.position(idBuffer.position() + lenInPlace);
-            return;
-        }
-        DataUtils.readVarLong(idBuffer);
-        int lenId = DataUtils.readVarInt(idBuffer);
-        byte[] key = new byte[lenId];
-        idBuffer.get(key);
-        if (lenInPlace < 0) {
-            // recurse
-            remove(readBlock(key));
-        }
-        removeBlock(key);
-    }
-
-    private void removeBlock(byte[] key) {
-        map.remove(getKey(key));
     }
 
     /**
@@ -200,21 +213,25 @@ public class StreamStore {
         ByteBuffer idBuffer = ByteBuffer.wrap(id);
         long length = 0;
         while (idBuffer.hasRemaining()) {
-            length += readLength(idBuffer);
+            switch (idBuffer.get()) {
+            case 0:
+                int len = DataUtils.readVarInt(idBuffer);
+                idBuffer.position(idBuffer.position() + len);
+                length += len;
+                break;
+            case 1:
+                length += DataUtils.readVarInt(idBuffer);
+                DataUtils.readVarLong(idBuffer);
+                break;
+            case 2:
+                length += DataUtils.readVarLong(idBuffer);
+                DataUtils.readVarLong(idBuffer);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported id");
+            }
         }
         return length;
-    }
-
-    private static long readLength(ByteBuffer idBuffer) {
-        int lenInPlace = DataUtils.readVarInt(idBuffer);
-        if (lenInPlace > 0) {
-            idBuffer.position(idBuffer.position() + lenInPlace);
-            return lenInPlace;
-        }
-        long len = DataUtils.readVarLong(idBuffer);
-        int lenId = DataUtils.readVarInt(idBuffer);
-        idBuffer.position(idBuffer.position() + lenId);
-        return len;
     }
 
     /**
@@ -227,30 +244,13 @@ public class StreamStore {
     public boolean isInPlace(byte[] id) {
         ByteBuffer idBuffer = ByteBuffer.wrap(id);
         while (idBuffer.hasRemaining()) {
-            if (!isInPlace(idBuffer)) {
+            if (idBuffer.get() != 0) {
                 return false;
             }
+            int len = DataUtils.readVarInt(idBuffer);
+            idBuffer.position(idBuffer.position() + len);
         }
         return true;
-    }
-
-    private static boolean isInPlace(ByteBuffer idBuffer) {
-        int lenInPlace = DataUtils.readVarInt(idBuffer);
-        if (lenInPlace > 0) {
-            idBuffer.position(idBuffer.position() + lenInPlace);
-            return true;
-        }
-        return false;
-    }
-
-    byte[] readBlock(byte[] key) {
-        return map.get(getKey(key));
-    }
-
-    private static Long getKey(byte[] key) {
-        int todoRemove;
-        ByteBuffer buff = ByteBuffer.wrap(key);
-        return DataUtils.readVarLong(buff);
     }
 
     /**
@@ -261,6 +261,10 @@ public class StreamStore {
      */
     public InputStream get(byte[] id) {
         return new Stream(this, id);
+    }
+
+    byte[] getBlock(long key) {
+        return map.get(key);
     }
 
     /**
@@ -340,29 +344,39 @@ public class StreamStore {
 
         private ByteArrayInputStream nextBuffer() {
             while (idBuffer.hasRemaining()) {
-                int lenInPlace = DataUtils.readVarInt(idBuffer);
-                if (lenInPlace > 0) {
-                    if (skip >= lenInPlace) {
-                        skip -= lenInPlace;
-                        idBuffer.position(idBuffer.position() + lenInPlace);
+                switch (idBuffer.get()) {
+                case 0: {
+                    int len = DataUtils.readVarInt(idBuffer);
+                    if (skip >= len) {
+                        skip -= len;
+                        idBuffer.position(idBuffer.position() + len);
                         continue;
                     }
                     int p = (int) (idBuffer.position() + skip);
-                    int l = (int) (lenInPlace - skip);
+                    int l = (int) (len - skip);
                     idBuffer.position(p + l);
                     return new ByteArrayInputStream(idBuffer.array(), p, l);
                 }
-                long length = DataUtils.readVarLong(idBuffer);
-                int lenId = DataUtils.readVarInt(idBuffer);
-                if (skip >= length) {
-                    skip -= length;
-                    idBuffer.position(idBuffer.position() + lenId);
-                    continue;
+                case 1: {
+                    int len = DataUtils.readVarInt(idBuffer);
+                    long key = DataUtils.readVarLong(idBuffer);
+                    if (skip >= len) {
+                        skip -= len;
+                        continue;
+                    }
+                    byte[] data = store.getBlock(key);
+                    int s = (int) skip;
+                    skip = 0;
+                    return new ByteArrayInputStream(data, s, data.length - s);
                 }
-                byte[] key = new byte[lenId];
-                idBuffer.get(key);
-                if (lenInPlace < 0) {
-                    byte[] k = store.readBlock(key);
+                case 2: {
+                    long len = DataUtils.readVarInt(idBuffer);
+                    long key = DataUtils.readVarLong(idBuffer);
+                    if (skip >= len) {
+                        skip -= len;
+                        continue;
+                    }
+                    byte[] k = store.getBlock(key);
                     ByteBuffer newBuffer = ByteBuffer.allocate(k.length + idBuffer.limit() - idBuffer.position());
                     newBuffer.put(k);
                     newBuffer.put(idBuffer);
@@ -370,10 +384,9 @@ public class StreamStore {
                     idBuffer = newBuffer;
                     return nextBuffer();
                 }
-                byte[] data = store.readBlock(key);
-                int s = (int) skip;
-                skip = 0;
-                return new ByteArrayInputStream(data, s, data.length - s);
+                default:
+                    throw new IllegalArgumentException("Unsupported id");
+                }
             }
             return null;
         }

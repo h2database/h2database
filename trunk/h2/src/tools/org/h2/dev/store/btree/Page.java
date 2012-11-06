@@ -57,7 +57,7 @@ public class Page {
     private Page[] childrenPages;
     private long[] counts;
 
-    private Page(MVMap<?, ?> map, long version) {
+    Page(MVMap<?, ?> map, long version) {
         this.map = map;
         this.version = version;
     }
@@ -596,7 +596,7 @@ public class Page {
         }
     }
 
-    private void read(ByteBuffer buff, int chunkId, int offset, int maxLength) {
+    void read(ByteBuffer buff, int chunkId, int offset, int maxLength) {
         int start = buff.position();
         int pageLength = buff.getInt();
         if (pageLength > maxLength) {
@@ -661,10 +661,10 @@ public class Page {
     /**
      * Store the page and update the position.
      *
+     * @param chunk the chunk
      * @param buff the target buffer
-     * @param chunkId the chunk id
      */
-    private void write(ByteBuffer buff, int chunkId) {
+    private void write(Chunk chunk, ByteBuffer buff) {
         int start = buff.position();
         buff.putInt(0);
         buff.putShort((byte) 0);
@@ -707,11 +707,15 @@ public class Page {
         }
         int pageLength = buff.position() - start;
         buff.putInt(start, pageLength);
+        int chunkId = chunk.id;
         int check = DataUtils.getCheckValue(chunkId)
                 ^ DataUtils.getCheckValue(start)
                 ^ DataUtils.getCheckValue(pageLength);
         buff.putShort(start + 4, (short) check);
         this.pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
+        long max = DataUtils.getPageMaxLength(pos);
+        chunk.maxLength += max;
+        chunk.maxLengthLive += max;
     }
 
     /**
@@ -748,40 +752,23 @@ public class Page {
      * Store this page and all children that are changed, in reverse order, and
      * update the position and the children.
      *
+     * @param chunk the chunk
      * @param buff the target buffer
-     * @param chunkId the chunk id
      * @return the page id
      */
-    long writeTempRecursive(ByteBuffer buff, int chunkId) {
+    long writeTempRecursive(Chunk chunk, ByteBuffer buff) {
         if (!isLeaf()) {
             int len = children.length;
             for (int i = 0; i < len; i++) {
                 Page p = childrenPages[i];
                 if (p != null) {
-                    children[i] = p.writeTempRecursive(buff, chunkId);
+                    children[i] = p.writeTempRecursive(chunk, buff);
                     childrenPages[i] = null;
                 }
             }
         }
-        write(buff, chunkId);
+        write(chunk, buff);
         return pos;
-    }
-
-    /**
-     * Count the temporary pages recursively.
-     *
-     * @return the number of temporary pages
-     */
-    int countTempRecursive() {
-        int count = 1;
-        if (!isLeaf()) {
-            for (Page p : childrenPages) {
-                if (p != null) {
-                    count += p.countTempRecursive();
-                }
-            }
-        }
-        return count;
     }
 
     long getVersion() {

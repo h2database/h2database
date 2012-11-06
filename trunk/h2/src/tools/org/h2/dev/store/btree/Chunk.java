@@ -6,6 +6,7 @@
  */
 package org.h2.dev.store.btree;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 /**
@@ -19,6 +20,7 @@ import java.util.HashMap;
  * 4 bytes: length
  * 4 bytes: chunk id (an incrementing number)
  * 8 bytes: metaRootPos
+ * 8 bytes: maxLengthLive
  * [ Page ] *
  */
 public class Chunk {
@@ -34,19 +36,19 @@ public class Chunk {
     long start;
 
     /**
-     * The length in bytes (may be larger than the actual value).
+     * The length in bytes.
      */
-    long length;
+    int length;
 
     /**
-     * The entry count.
+     * The sum of the max length of all pages.
      */
-    int entryCount;
+    long maxLength;
 
     /**
-     * The number of life (non-garbage) objects.
+     * The sum of the max length of all pages that are in use.
      */
-    int liveCount;
+    long maxLengthLive;
 
     /**
      * The garbage collection priority.
@@ -67,6 +69,30 @@ public class Chunk {
         this.id = id;
     }
 
+    public static Chunk fromHeader(ByteBuffer buff, long start) {
+        if (buff.get() != 'c') {
+            throw new RuntimeException("File corrupt");
+        }
+        int length = buff.getInt();
+        int chunkId = buff.getInt();
+        long metaRootPos = buff.getLong();
+        long maxLengthLive = buff.getLong();
+        Chunk c = new Chunk(chunkId);
+        c.length = length;
+        c.start = start;
+        c.metaRootPos = metaRootPos;
+        c.maxLengthLive = maxLengthLive;
+        return c;
+    }
+
+    void writeHeader(ByteBuffer buff) {
+        buff.put((byte) 'c');
+        buff.putInt(length);
+        buff.putInt(id);
+        buff.putLong(metaRootPos);
+        buff.putLong(maxLengthLive);
+    }
+
     /**
      * Build a block from the given string.
      *
@@ -78,16 +104,16 @@ public class Chunk {
         int id = Integer.parseInt(map.get("id"));
         Chunk c = new Chunk(id);
         c.start = Long.parseLong(map.get("start"));
-        c.length = Long.parseLong(map.get("length"));
-        c.entryCount = Integer.parseInt(map.get("entryCount"));
-        c.liveCount = Integer.parseInt(map.get("liveCount"));
+        c.length = Integer.parseInt(map.get("length"));
+        c.maxLength = Long.parseLong(map.get("maxLength"));
+        c.maxLengthLive = Long.parseLong(map.get("maxLengthLive"));
         c.metaRootPos = Long.parseLong(map.get("metaRoot"));
         c.version = Long.parseLong(map.get("version"));
         return c;
     }
 
     public int getFillRate() {
-        return entryCount == 0 ? 0 : 100 * liveCount / entryCount;
+        return (int) (maxLength == 0 ? 0 : 100 * maxLengthLive / maxLength);
     }
 
     public int hashCode() {
@@ -103,8 +129,8 @@ public class Chunk {
                 "id:" + id + "," +
                 "start:" + start + "," +
                 "length:" + length + "," +
-                "entryCount:" + entryCount + "," +
-                "liveCount:" + liveCount + "," +
+                "maxLength:" + maxLength + "," +
+                "maxLengthLive:" + maxLengthLive + "," +
                 "metaRoot:" + metaRootPos + "," +
                 "version:" + version;
     }

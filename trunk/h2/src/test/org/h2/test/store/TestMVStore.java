@@ -577,7 +577,7 @@ public class TestMVStore extends TestBase {
                 m.put(j + i, "Hello " + j);
             }
             s.store();
-            s.compact(80);
+//            s.compact(80);
             s.close();
             long len = FileUtils.size(fileName);
             // System.out.println("   len:" + len);

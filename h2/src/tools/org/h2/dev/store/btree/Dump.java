@@ -80,8 +80,12 @@ public class Dump {
                 int chunkLength = block.getInt();
                 int chunkId = block.getInt();
                 long metaRootPos = block.getLong();
-                writer.println("    chunk " + chunkId + " at " + pos +
-                        " length " + chunkLength + " root " + metaRootPos);
+                long maxLengthLive = block.getLong();
+                writer.println("    chunk " + chunkId +
+                        " at " + pos +
+                        " length " + chunkLength +
+                        " root " + metaRootPos +
+                        " maxLengthLive " + maxLengthLive);
                 ByteBuffer chunk = ByteBuffer.allocate(chunkLength);
                 file.position(pos);
                 FileUtils.readFully(file, chunk);

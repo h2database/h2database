@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * A stored map.
@@ -20,7 +21,8 @@ import java.util.Set;
  * @param <K> the key class
  * @param <V> the value class
  */
-public class MVMap<K, V> extends AbstractMap<K, V> {
+public class MVMap<K, V> extends AbstractMap<K, V>
+        implements ConcurrentMap<K, V> {
 
     /**
      * The store.
@@ -50,7 +52,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         this.keyType = keyType;
         this.valueType = valueType;
         this.createVersion = createVersion;
-        this.root = Page.createEmpty(this,  createVersion);
+        this.root = Page.createEmpty(this,  createVersion - 1);
     }
 
     /**
@@ -212,10 +214,12 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      * Remove all entries, and close the map.
      */
     public void removeMap() {
-        checkWrite();
-        root.removeAllRecursive();
-        store.removeMap(name);
-        close();
+        if (!store.isMetaMap(this)) {
+            checkWrite();
+            root.removeAllRecursive();
+            store.removeMap(name);
+            close();
+        }
     }
 
     /**
@@ -246,6 +250,69 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
         V result = (V) remove(p, writeVersion, key);
         setRoot(p);
         return result;
+    }
+
+    /**
+     * Add a key-value pair if it does not yet exist.
+     *
+     * @param key the key (may not be null)
+     * @return the old value if the key existed, or null otherwise
+     */
+    public synchronized V putIfAbsent(K key, V value) {
+        V old = get(key);
+        if (old == null) {
+            put(key, value);
+        }
+        return old;
+    }
+
+    /**
+     * Remove a key-value pair if the value matches the stored one.
+     *
+     * @param key the key (may not be null)
+     * @param value the expected value
+     * @return true if the item was removed
+     */
+    public synchronized boolean remove(Object key, Object value) {
+        V old = get(key);
+        if (old.equals(value)) {
+            remove(key);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Replace a value for an existing key, if the value matches.
+     *
+     * @param key the key (may not be null)
+     * @param oldValue the expected value
+     * @param newValue the new value
+     * @return true if the value was replaced
+     */
+    public synchronized boolean replace(K key, V oldValue, V newValue) {
+        V old = get(key);
+        if (old.equals(oldValue)) {
+            put(key, newValue);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Replace a value for an existing key.
+     *
+     * @param key the key (may not be null)
+     * @param value the new value
+     * @return true if the value was replaced
+     */
+    public synchronized V replace(K key, V value) {
+        V old = get(key);
+        if (old != null) {
+            put(key, value);
+            return old;
+        }
+        return null;
     }
 
     /**
@@ -370,7 +437,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
      * @param rootPos the position, 0 for empty
      */
     void setRootPos(long rootPos) {
-        root = rootPos == 0 ? Page.createEmpty(this, 0) : readPage(rootPos);
+        root = rootPos == 0 ? Page.createEmpty(this, -1) : readPage(rootPos);
     }
 
     /**
@@ -382,7 +449,6 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     public Iterator<K> keyIterator(K from) {
         checkOpen();
         return new Cursor<K, V>(this, root, from);
-//        return new Cursor<K, V>(this, root, from);
     }
 
     /**
@@ -463,9 +529,9 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
     void rollbackTo(long version) {
         checkWrite();
         removeUnusedOldVersions();
-        if (version < createVersion) {
+        if (version <= createVersion) {
             removeMap();
-        } else if (root.getVersion() != version) {
+        } else if (root.getVersion() >= version) {
             // iterating in descending order -
             // this is not terribly efficient if there are many versions
             ArrayList<Page> list = oldRoots;
@@ -474,7 +540,7 @@ public class MVMap<K, V> extends AbstractMap<K, V> {
                 Page p = list.get(i);
                 root = p;
                 list.remove(i);
-                if (p.getVersion() <= version) {
+                if (p.getVersion() < version) {
                     break;
                 }
             }

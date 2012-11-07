@@ -31,6 +31,7 @@ public class TestMVStore extends TestBase {
     }
 
     public void test() throws InterruptedException {
+        testSetting();
         testIterateOldVersion();
         testObjects();
         testExample();
@@ -52,6 +53,33 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+
+    private void testSetting() {
+        String fileName = getBaseDir() + "/testSetting.h3";
+        FileUtils.delete(fileName);
+        MVStore s = MVStore.open(fileName);
+        assertEquals(0, s.getCurrentVersion());
+        assertEquals(0, s.getStoreVersion());
+        s.setStoreVersion(1);
+        assertEquals(null, s.getSetting("hello"));
+        s.setSetting("test", "Hello");
+        assertEquals("Hello", s.getSetting("test"));
+        s.close();
+        s = MVStore.open(fileName);
+        assertEquals(0, s.getCurrentVersion());
+        assertEquals(0, s.getStoreVersion());
+        s.setStoreVersion(1);
+        assertEquals(null, s.getSetting("hello"));
+        s.setSetting("test", "Hello");
+        assertEquals("Hello", s.getSetting("test"));
+        s.store();
+        s.close();
+        s = MVStore.open(fileName);
+        assertEquals(1, s.getCurrentVersion());
+        assertEquals(1, s.getStoreVersion());
+        assertEquals("Hello", s.getSetting("test"));
+        s.close();
     }
 
     private void testIterateOldVersion() {
@@ -184,7 +212,8 @@ public class TestMVStore extends TestBase {
         for (int i = 20; i < 40; i++) {
             assertEquals("Hi", m.put(i, "Hello"));
         }
-        long old = s.incrementVersion();
+        long old = s.getCurrentVersion();
+        s.incrementVersion();
         for (int i = 10; i < 15; i++) {
             m.put(i, "Hallo");
         }
@@ -313,7 +342,7 @@ public class TestMVStore extends TestBase {
         assertEquals(-1, s.getRetainChunk());
         s.setRetainChunk(0);
         assertEquals(0, s.getRetainChunk());
-        assertEquals(1, s.getCurrentVersion());
+        assertEquals(0, s.getCurrentVersion());
         assertFalse(s.hasUnsavedChanges());
         MVMap<String, String> m = s.openMap("data", String.class, String.class);
         assertTrue(s.hasUnsavedChanges());
@@ -324,12 +353,12 @@ public class TestMVStore extends TestBase {
         assertEquals("Hello", m.get("1"));
         long v2 = s.store();
         assertEquals(2, v2);
-        assertEquals(3, s.getCurrentVersion());
+        assertEquals(2, s.getCurrentVersion());
         assertFalse(s.hasUnsavedChanges());
         s.close();
 
         s = openStore(fileName);
-        assertEquals(3, s.getCurrentVersion());
+        assertEquals(2, s.getCurrentVersion());
         s.setRetainChunk(0);
         meta = s.getMetaMap();
         m = s.openMap("data", String.class, String.class);
@@ -346,12 +375,12 @@ public class TestMVStore extends TestBase {
         assertNull(meta.get("map.data1"));
         assertNull(m0.get("1"));
         assertEquals("Hello", m.get("1"));
-        s.store();
+        assertEquals(2, s.store());
         s.close();
 
         s = openStore(fileName);
         s.setRetainChunk(0);
-        assertEquals(3, s.getCurrentVersion());
+        assertEquals(2, s.getCurrentVersion());
         meta = s.getMetaMap();
         assertTrue(meta.get("map.data") != null);
         assertTrue(meta.get("map.data0") != null);
@@ -363,10 +392,10 @@ public class TestMVStore extends TestBase {
         assertFalse(m0.isReadOnly());
         m.put("1",  "Hallo");
         s.incrementVersion();
-        assertEquals(4, s.getCurrentVersion());
+        assertEquals(3, s.getCurrentVersion());
         long v4 = s.store();
         assertEquals(4, v4);
-        assertEquals(5, s.getCurrentVersion());
+        assertEquals(4, s.getCurrentVersion());
         s.close();
 
         s = openStore(fileName);
@@ -395,12 +424,12 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/testRollback.h3";
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
-        assertEquals(1, s.getCurrentVersion());
+        assertEquals(0, s.getCurrentVersion());
         s.setMaxPageSize(5);
         MVMap<String, String> m = s.openMap("data", String.class, String.class);
         s.rollbackTo(0);
         assertTrue(m.isClosed());
-        assertEquals(1, s.getCurrentVersion());
+        assertEquals(0, s.getCurrentVersion());
         m = s.openMap("data", String.class, String.class);
 
         MVMap<String, String> m0 = s.openMap("data0", String.class, String.class);
@@ -411,7 +440,7 @@ public class TestMVStore extends TestBase {
         }
         long v1 = s.incrementVersion();
         assertEquals(1, v1);
-        assertEquals(2, s.getCurrentVersion());
+        assertEquals(1, s.getCurrentVersion());
         MVMap<String, String> m1 = s.openMap("data1", String.class, String.class);
         assertEquals("Test", m2.get("1"));
         m.put("1", "Hallo");
@@ -421,7 +450,7 @@ public class TestMVStore extends TestBase {
         assertEquals("Hallo", m.get("1"));
         assertEquals("Hallo", m1.get("1"));
         s.rollbackTo(v1);
-        assertEquals(2, s.getCurrentVersion());
+        assertEquals(1, s.getCurrentVersion());
         for (int i = 0; i < 10; i++) {
             assertEquals("Test", m2.get("" + i));
         }
@@ -443,11 +472,11 @@ public class TestMVStore extends TestBase {
         data.put("1", "Hello");
         data.put("2", "World");
         s.store();
-        assertEquals("1/1///", m.get("map.data"));
+        assertEquals("1/0///", m.get("map.data"));
         assertTrue(m.containsKey("chunk.1"));
         assertEquals("Hello", data.put("1", "Hallo"));
         s.store();
-        assertEquals("1/1///", m.get("map.data"));
+        assertEquals("1/0///", m.get("map.data"));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
         assertTrue(m.containsKey("chunk.2"));
@@ -577,7 +606,7 @@ public class TestMVStore extends TestBase {
                 m.put(j + i, "Hello " + j);
             }
             s.store();
-//            s.compact(80);
+            s.compact(80);
             s.close();
             long len = FileUtils.size(fileName);
             // System.out.println("   len:" + len);

@@ -35,8 +35,6 @@ header:
 H:3,blockSize=4096,...
 
 TODO:
-- support database version / app version
-- atomic test-and-set (when supporting concurrent writes)
 - possibly split chunk data into immutable and mutable
 - support stores that span multiple files (chunks stored in other files)
 - triggers
@@ -46,7 +44,7 @@ TODO:
 - compression: maybe hash table reset speeds up compression
 - use file level locking to ensure there is only one writer
 - pluggable cache (specially for in-memory file systems)
-- store the factory class in the file header
+- maybe store the factory class in the file header
 - support custom fields in the header
 - auto-server: store port in the header
 - recovery: keep a list of old chunks
@@ -64,6 +62,7 @@ TODO:
 - test and possibly improve compact operation (for large dbs)
 - support background writes (concurrent modification & store)
 - limited support for writing to old versions (branches)
+- support concurrent operations (including file I/O)
 
 */
 
@@ -121,7 +120,7 @@ public class MVStore {
 
     private Compressor compressor;
 
-    private long currentVersion = 1;
+    private long currentVersion;
     private int readCount;
     private int writeCount;
 
@@ -317,6 +316,10 @@ public class MVStore {
         mapsChanged.remove(map.getId());
     }
 
+    boolean isMetaMap(MVMap<?, ?> map) {
+        return map == meta;
+    }
+
     private String getDataType(Class<?> clazz) {
         if (clazz == String.class) {
             return "";
@@ -483,10 +486,10 @@ public class MVStore {
     /**
      * Increment the current version.
      *
-     * @return the old version
+     * @return the new version
      */
     public long incrementVersion() {
-        return currentVersion++;
+        return ++currentVersion;
     }
 
     /**
@@ -494,7 +497,7 @@ public class MVStore {
      * there are no unsaved changes, otherwise it stores the data and increments
      * the current version.
      *
-     * @return the version before the commit
+     * @return the new version (incremented if there were changes)
      */
     public long store() {
         if (!hasUnsavedChanges()) {
@@ -514,7 +517,7 @@ public class MVStore {
         c.maxLengthLive = Long.MAX_VALUE;
         c.start = Long.MAX_VALUE;
         c.length = Integer.MAX_VALUE;
-        c.version = currentVersion;
+        c.version = currentVersion + 1;
         chunks.put(c.id, c);
         meta.put("chunk." + c.id, c.toString());
         applyFreedChunks();
@@ -1007,11 +1010,28 @@ public class MVStore {
         return true;
     }
 
+    public int getStoreVersion() {
+        String x = getSetting("storeVersion");
+        return x == null ? 0 : Integer.parseInt(x);
+    }
+
+    public void setStoreVersion(int version) {
+        setSetting("storeVersion", Integer.toString(version));
+    }
+
+    public String getSetting(String key) {
+        return meta.get("setting." + key);
+    }
+
+    public void setSetting(String key, String value) {
+        meta.put("setting." + key, value);
+    }
+
     /**
-     * Revert to the given version. All later changes (stored or not) are
-     * forgotten. All maps that were created later are closed. A rollback to
-     * a version before the last stored version is immediately persisted.
-     * Before this method returns, the current version is incremented.
+     * Revert to the beginning of the given version. All later changes (stored
+     * or not) are forgotten. All maps that were created later are closed. A
+     * rollback to a version before the last stored version is immediately
+     * persisted.
      *
      * @param version the version to revert to
      */
@@ -1050,7 +1070,7 @@ public class MVStore {
             }
         }
         for (MVMap<?, ?> m : maps.values()) {
-            if (m.getCreateVersion() > version) {
+            if (m.getCreateVersion() >= version) {
                 m.close();
                 removeMap(m.getName());
             } else {
@@ -1061,7 +1081,7 @@ public class MVStore {
                 }
             }
         }
-        this.currentVersion = version + 1;
+        this.currentVersion = version;
     }
 
     private void revertTemp() {
@@ -1073,8 +1093,8 @@ public class MVStore {
     }
 
     /**
-     * Get the current version of the store. When a new store is created, the
-     * version is 1. For each commit, it is incremented by one.
+     * Get the current version of the data. When a new store is created, the
+     * version is 0. For each commit, it is incremented by one.
      *
      * @return the version
      */

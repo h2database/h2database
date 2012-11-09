@@ -121,15 +121,14 @@ public class Page {
         int maxLength = DataUtils.getPageMaxLength(pos), length = maxLength;
         ByteBuffer buff;
         try {
-            file.position(filePos);
             if (maxLength == Integer.MAX_VALUE) {
                 buff = ByteBuffer.wrap(new byte[128]);
-                DataUtils.readFully(file, buff);
+                DataUtils.readFully(file, filePos, buff);
                 maxLength = buff.getInt();
-                file.position(filePos);
+                //read the first bytes again
             }
             buff = ByteBuffer.wrap(new byte[length]);
-            DataUtils.readFully(file, buff);
+            DataUtils.readFully(file, filePos, buff);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -29,6 +29,23 @@ public abstract class FileBase extends FileChannel {
 
     public abstract int write(ByteBuffer src) throws IOException;
 
+    public synchronized int read(ByteBuffer dst, long position) throws IOException {
+        long oldPos = position();
+        position(position);
+        int len = read(dst);
+        position(oldPos);
+        return len;
+    }
+
+    public synchronized int write(ByteBuffer src, long position) throws IOException {
+        long oldPos = position();
+        position(position);
+        int len = src.remaining();
+        len = write(src);
+        position(oldPos);
+        return len;
+    }
+
     public abstract FileChannel truncate(long size) throws IOException;
 
     public void force(boolean metaData) throws IOException {
@@ -47,10 +64,6 @@ public abstract class FileBase extends FileChannel {
         throw new UnsupportedOperationException();
     }
 
-    public int read(ByteBuffer dst, long position) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
     public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
         throw new UnsupportedOperationException();
     }
@@ -65,10 +78,6 @@ public abstract class FileBase extends FileChannel {
     }
 
     public FileLock tryLock(long position, long size, boolean shared) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    public int write(ByteBuffer src, long position) throws IOException {
         throw new UnsupportedOperationException();
     }
 

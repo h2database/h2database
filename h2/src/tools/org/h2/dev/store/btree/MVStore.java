@@ -35,10 +35,10 @@ header:
 H:3,blockSize=4096,...
 
 TODO:
+- implement more counted b-tree (skip, get positions)
 - possibly split chunk data into immutable and mutable
 - support stores that span multiple files (chunks stored in other files)
 - triggers
-- implement more counted b-tree (skip, get positions)
 - merge pages if small
 - r-tree: add missing features (NN search for example)
 - compression: maybe hash table reset speeds up compression
@@ -408,10 +408,9 @@ public class MVStore {
             header.put(h.getBytes("UTF-8"));
             header.rewind();
             writeCount++;
-            file.position(0);
-            file.write(header);
-            file.position(blockSize);
-            file.write(header);
+            DataUtils.writeFully(file,  0, header);
+            header.rewind();
+            DataUtils.writeFully(file,  blockSize, header);
         } catch (Exception e) {
             throw convert(e);
         }
@@ -421,8 +420,7 @@ public class MVStore {
         try {
             byte[] headers = new byte[blockSize * 2];
             readCount++;
-            file.position(0);
-            file.read(ByteBuffer.wrap(headers));
+            file.read(ByteBuffer.wrap(headers), 0);
             String s = new String(headers, 0, blockSize, "UTF-8").trim();
             HashMap<String, String> map = DataUtils.parseMap(s);
             rootChunkStart = Long.parseLong(map.get("rootChunk"));
@@ -589,8 +587,7 @@ public class MVStore {
         buff.rewind();
         try {
             writeCount++;
-            file.position(filePos);
-            file.write(buff);
+            DataUtils.writeFully(file, filePos, buff);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -708,9 +705,8 @@ public class MVStore {
     private Chunk readChunkHeader(long start) {
         try {
             readCount++;
-            file.position(start);
             ByteBuffer buff = ByteBuffer.wrap(new byte[32]);
-            DataUtils.readFully(file, buff);
+            DataUtils.readFully(file, start, buff);
             buff.rewind();
             return Chunk.fromHeader(buff, start);
         } catch (IOException e) {
@@ -804,8 +800,7 @@ public class MVStore {
     private void copyLive(Chunk chunk, ArrayList<Chunk> old) {
         ByteBuffer buff = ByteBuffer.allocate(chunk.length);
         try {
-            file.position(chunk.start);
-            DataUtils.readFully(file, buff);
+            DataUtils.readFully(file, chunk.start, buff);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -284,21 +284,37 @@ public class DataUtils {
     }
 
     /**
-     * Read from a file channel until the target buffer is full, or end-of-file
-     * has been reached.
+     * Read from a file channel until the buffer is full, or end-of-file
+     * has been reached. The buffer is rewind at the end.
      *
      * @param file the file channel
-     * @param buff the target buffer
+     * @param dst the byte buffer
      */
-    public static void readFully(FileChannel file, ByteBuffer buff) throws IOException {
+    public static void readFully(FileChannel file, long pos, ByteBuffer dst) throws IOException {
         do {
-            int len = file.read(buff);
+            int len = file.read(dst, pos);
             if (len < 0) {
                 break;
             }
-        } while (buff.remaining() > 0);
-        buff.rewind();
+            pos += len;
+        } while (dst.remaining() > 0);
+        dst.rewind();
     }
+
+    /**
+     * Write to a file channel.
+     *
+     * @param file the file channel
+     * @param src the source buffer
+     */
+    public static void writeFully(FileChannel file, long pos, ByteBuffer src) throws IOException {
+        int off = 0;
+        do {
+            int len = file.write(src, pos + off);
+            off += len;
+        } while (src.remaining() > 0);
+    }
+
 
     /**
      * Convert the length to a length code 0..31. 31 means more than 1 MB.

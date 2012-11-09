@@ -31,6 +31,7 @@ public class TestMVStore extends TestBase {
     }
 
     public void test() throws InterruptedException {
+        testMinMaxNextKey();
         testSetting();
         testIterateOldVersion();
         testObjects();
@@ -53,6 +54,68 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+
+    private void testMinMaxNextKey() {
+        MVStore s = openStore(null);
+        MVMap<Integer, Integer> map = s.openMap("test");
+        map.put(10, 100);
+        map.put(20, 200);
+        assertEquals(10, map.firstKey().intValue());
+        assertEquals(20, map.lastKey().intValue());
+        assertEquals(20, map.ceilingKey(15).intValue());
+        assertEquals(20, map.ceilingKey(20).intValue());
+        assertEquals(10, map.floorKey(15).intValue());
+        assertEquals(10, map.floorKey(10).intValue());
+        assertEquals(20, map.higherKey(10).intValue());
+        assertEquals(10, map.lowerKey(20).intValue());
+
+        for (int i = 3; i < 20; i++) {
+            s = openStore(null);
+            s.setMaxPageSize(4);
+            map = s.openMap("test");
+            for (int j = 3; j < i; j++) {
+                map.put(j * 2, j * 20);
+            }
+            if (i == 3) {
+                assertNull(map.firstKey());
+                assertNull(map.lastKey());
+            } else {
+                assertEquals(6, map.firstKey().intValue());
+                int max = (i - 1) * 2;
+                assertEquals(max, map.lastKey().intValue());
+
+                for (int j = 0; j < i * 2 + 2; j++) {
+                    if (j > max) {
+                        assertNull(map.ceilingKey(j));
+                    } else {
+                        int ceiling = Math.max((j + 1) / 2 * 2, 6);
+                        assertEquals(ceiling, map.ceilingKey(j).intValue());
+                    }
+
+                    int floor = Math.min(max, Math.max(j / 2 * 2, 4));
+                    if (floor < 6) {
+                        assertNull(map.floorKey(j));
+                    } else {
+                        map.floorKey(j);
+                    }
+
+                    int lower = Math.min(max, Math.max((j - 1) / 2 * 2, 4));
+                    if (lower < 6) {
+                        assertNull(map.lowerKey(j));
+                    } else {
+                        assertEquals(lower, map.lowerKey(j).intValue());
+                    }
+
+                    int higher = Math.max((j + 2) / 2 * 2, 6);
+                    if (higher > max) {
+                        assertNull(map.higherKey(j));
+                    } else {
+                        assertEquals(higher, map.higherKey(j).intValue());
+                    }
+                }
+            }
+        }
     }
 
     private void testSetting() {

@@ -128,6 +128,130 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
+     * Get the first key, or null if the map is empty.
+     *
+     * @return the first key, or null
+     */
+    public K firstKey() {
+        return getFirstLast(true);
+    }
+
+    /**
+     * Get the last key, or null if the map is empty.
+     *
+     * @return the last key, or null
+     */
+    public K lastKey() {
+        return getFirstLast(false);
+    }
+
+    @SuppressWarnings("unchecked")
+    private K getFirstLast(boolean first) {
+        checkOpen();
+        Page p = root;
+        if (size() == 0) {
+            return null;
+        }
+        while (true) {
+            if (p.isLeaf()) {
+                return (K) p.getKey(first ? 0 : p.getKeyCount() - 1);
+            }
+            p = p.getChildPage(first ? 0 : p.getChildPageCount() - 1);
+        }
+    }
+
+    /**
+     * Get the smallest key that is larger than the given key, or null if no
+     * such key exists.
+     *
+     * @param key the key (may not be null)
+     * @return the result
+     */
+    public K higherKey(K key) {
+        return getMinMax(key, false, true);
+    }
+
+    /**
+     * Get the smallest key that is larger or equal to this key.
+     *
+     * @param key the key (may not be null)
+     * @return the result
+     */
+    public K ceilingKey(K key) {
+        return getMinMax(key, false, false);
+    }
+
+    /**
+     * Get the largest key that is smaller or equal to this key.
+     *
+     * @param key the key (may not be null)
+     * @return the result
+     */
+    public K floorKey(K key) {
+        return getMinMax(key, true, false);
+    }
+
+    /**
+     * Get the largest key that is smaller than the given key, or null if no
+     * such key exists.
+     *
+     * @param key the key (may not be null)
+     * @return the result
+     */
+    public K lowerKey(K key) {
+        return getMinMax(key, true, true);
+    }
+
+    private K getMinMax(K key, boolean min, boolean excluding) {
+        checkOpen();
+        if (size() == 0) {
+            return null;
+        }
+        return getMinMax(root, key, min, excluding);
+    }
+
+    @SuppressWarnings("unchecked")
+    private K getMinMax(Page p, K key, boolean min, boolean excluding) {
+        if (p.isLeaf()) {
+            if (key == null) {
+                return (K) p.getKey(min ? 0 : p.getKeyCount() - 1);
+            }
+            int x = p.binarySearch(key);
+            if (x < 0) {
+                x = -x - (min ? 2 : 1);
+            } else if (excluding) {
+                x += min ? -1 : 1;
+            }
+            if (x < 0 || x >= p.getKeyCount()) {
+                return null;
+            }
+            return (K) p.getKey(x);
+        }
+        int x;
+        if (key == null) {
+            x = min ? 0 : p.getKeyCount() - 1;
+        } else {
+            x = p.binarySearch(key);
+            if (x < 0) {
+                x = -x - 1;
+            } else {
+                x++;
+            }
+        }
+        while (true) {
+            if (x < 0 || x >= p.getChildPageCount()) {
+                return null;
+            }
+            K k = getMinMax(p.getChildPage(x), key, min, excluding);
+            if (k != null) {
+                return k;
+            }
+            x += min ? -1 : 1;
+        }
+    }
+
+
+    /**
      * Get a value.
      *
      * @param key the key

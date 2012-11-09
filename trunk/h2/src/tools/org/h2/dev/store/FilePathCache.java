@@ -10,17 +10,16 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.Map;
+import org.h2.dev.store.cache.CacheLongKeyLIRS;
 import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FilePathWrapper;
-import org.h2.util.SmallLRUCache;
 
 /**
  * A file with a read cache.
  */
 public class FilePathCache extends FilePathWrapper {
 
-    public static FileChannel wrap(FileChannel f) throws IOException {
+    public static FileChannel wrap(FileChannel f) {
         return new FileCache(f);
     }
 
@@ -39,12 +38,12 @@ public class FilePathCache extends FilePathWrapper {
 
         private static final int CACHE_BLOCK_SIZE = 4 * 1024;
         private final FileChannel base;
-        private long pos, posBase, size;
-        private final Map<Long, ByteBuffer> cache = SmallLRUCache.newInstance(16);
+        // 1 MB (256 * 4 * 1024)
+        private final CacheLongKeyLIRS<ByteBuffer> cache =
+                CacheLongKeyLIRS.newInstance(256);
 
-        FileCache(FileChannel base) throws IOException {
+        FileCache(FileChannel base) {
             this.base = base;
-            this.size = base.size();
         }
 
         protected void implCloseChannel() throws IOException {
@@ -52,31 +51,29 @@ public class FilePathCache extends FilePathWrapper {
         }
 
         public FileChannel position(long newPosition) throws IOException {
-            this.pos = newPosition;
-            return this;
+            throw new UnsupportedOperationException();
+            // base.position(newPosition);
+            // return this;
         }
 
         public long position() throws IOException {
-            return pos;
-        }
-
-        private void positionBase(long pos) throws IOException {
-            if (posBase != pos) {
-                base.position(pos);
-                posBase = pos;
-            }
+            throw new UnsupportedOperationException();
+            // return base.position();
         }
 
         public int read(ByteBuffer dst) throws IOException {
-            long cachePos = getCachePos(pos);
-            int off = (int) (pos - cachePos);
+            throw new UnsupportedOperationException();
+            // return base.read(dst);
+        }
+
+        public synchronized int read(ByteBuffer dst, long position) throws IOException {
+            long cachePos = getCachePos(position);
+            int off = (int) (position - cachePos);
             int len = CACHE_BLOCK_SIZE - off;
             ByteBuffer buff = cache.get(cachePos);
             if (buff == null) {
                 buff = ByteBuffer.allocate(CACHE_BLOCK_SIZE);
-                positionBase(cachePos);
-                int read = base.read(buff);
-                posBase += read;
+                int read = base.read(buff, cachePos);
                 if (read == CACHE_BLOCK_SIZE) {
                     cache.put(cachePos, buff);
                 } else {
@@ -89,7 +86,6 @@ public class FilePathCache extends FilePathWrapper {
             len = Math.min(len, dst.remaining());
             System.arraycopy(buff.array(), off, dst.array(), dst.position(), len);
             dst.position(dst.position() + len);
-            pos += len;
             return len;
         }
 
@@ -98,30 +94,31 @@ public class FilePathCache extends FilePathWrapper {
         }
 
         public long size() throws IOException {
-            return size;
+            return base.size();
         }
 
         public FileChannel truncate(long newSize) throws IOException {
             cache.clear();
             base.truncate(newSize);
-            size = Math.min(size, newSize);
-            pos = Math.min(pos, newSize);
-            posBase = pos;
             return this;
         }
 
-        public int write(ByteBuffer src) throws IOException {
+        public int write(ByteBuffer src, long position) throws IOException {
             if (cache.size() > 0) {
-                for (long p = getCachePos(pos), len = src.remaining(); len > 0; p += CACHE_BLOCK_SIZE, len -= CACHE_BLOCK_SIZE) {
+                int len = src.remaining();
+                long p = getCachePos(position);
+                while (len > 0) {
                     cache.remove(p);
+                    p += CACHE_BLOCK_SIZE;
+                    len -= CACHE_BLOCK_SIZE;
                 }
             }
-            positionBase(pos);
-            int len = base.write(src);
-            posBase += len;
-            pos += len;
-            size = Math.max(size, pos);
-            return len;
+            return base.write(src, position);
+        }
+
+        public int write(ByteBuffer src) throws IOException {
+            throw new UnsupportedOperationException();
+            // return base.write(src);
         }
 
         public void force(boolean metaData) throws IOException {

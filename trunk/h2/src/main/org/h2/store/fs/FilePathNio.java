@@ -63,6 +63,14 @@ class FileNio extends FileBase {
         return this;
     }
 
+    public int read(ByteBuffer dst, long position) throws IOException {
+        return channel.read(dst, position);
+    }
+
+    public int write(ByteBuffer src, long position) throws IOException {
+        return channel.write(src, position);
+    }
+
     public FileChannel truncate(long newLength) throws IOException {
         try {
             channel.truncate(newLength);

@@ -330,13 +330,7 @@ public class TestFileSystem extends TestBase {
                 channel.map(MapMode.PRIVATE, 0, channel.size());
             }};
             new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
-                channel.read(ByteBuffer.allocate(10), 0);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
                 channel.read(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
-            }};
-            new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
-                channel.write(ByteBuffer.allocate(10), 0);
             }};
             new AssertThrows(UnsupportedOperationException.class) { public void test() throws IOException {
                 channel.write(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);

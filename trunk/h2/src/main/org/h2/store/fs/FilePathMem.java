@@ -493,7 +493,7 @@ class FileMemData {
             if (write) {
                 changeLength(end);
             } else {
-                return pos;
+                len = (int) (length - pos);
             }
         }
         while (len > 0) {

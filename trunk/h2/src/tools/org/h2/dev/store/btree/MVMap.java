@@ -6,11 +6,13 @@
  */
 package org.h2.dev.store.btree;
 
+import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -145,13 +147,118 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getFirstLast(false);
     }
 
+    /**
+     * Get the key at the given index.
+     * <p>
+     * This is a O(log(size)) operation.
+     *
+     * @param index the index
+     * @return the key
+     */
+    @SuppressWarnings("unchecked")
+    public K getKey(long index) {
+        checkOpen();
+        if (index < 0 || index >= size()) {
+            return null;
+        }
+        Page p = root;
+        long offset = 0;
+        while (true) {
+            if (p.isLeaf()) {
+                if (index >= offset + p.getKeyCount()) {
+                    return null;
+                }
+                return (K) p.getKey((int) (index - offset));
+            }
+            int i = 0, size = p.getChildPageCount();
+            for (; i < size; i++) {
+                long c = p.getCounts(i);
+                if (index < c + offset) {
+                    break;
+                }
+                offset += c;
+            }
+            if (i == size) {
+                return null;
+            }
+            p = p.getChildPage(i);
+        }
+    }
+
+    /**
+     * Get the key list. The list is a read-only representation of all keys.
+     * <p>
+     * The get and indexOf methods are O(log(size)) operations. The result of
+     * indexOf is cast to an int.
+     *
+     * @return the key list
+     */
+    public List<K> keyList() {
+        return new AbstractList<K>() {
+
+            public K get(int index) {
+                return getKey(index);
+            }
+
+            public int size() {
+                return MVMap.this.size();
+            }
+
+            @SuppressWarnings("unchecked")
+            public int indexOf(Object key) {
+                return (int) getKeyIndex((K) key);
+            }
+
+        };
+    }
+
+    /**
+     * Get the index of the given key in the map.
+     * <p>
+     * This is a O(log(size)) operation.
+     * <p>
+     * If the key was found, the returned value is the index in the key array.
+     * If not found, the returned value is negative, where -1 means the provided
+     * key is smaller than any keys. See also Arrays.binarySearch.
+     *
+     * @param key the key
+     * @return the index
+     */
+    public long getKeyIndex(K key) {
+        checkOpen();
+        if (size() == 0) {
+            return -1;
+        }
+        Page p = root;
+        long offset = 0;
+        while (true) {
+            if (p.isLeaf()) {
+                int x = p.binarySearch(key);
+                if (x < 0) {
+                    return -offset + x;
+                }
+                return offset + x;
+            }
+            int x = key == null ? -1 : p.binarySearch(key);
+            if (x < 0) {
+                x = -x - 1;
+            } else {
+                x++;
+            }
+            for (int i = 0; i < x; i++) {
+                offset += p.getCounts(i);
+            }
+            p = p.getChildPage(x);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private K getFirstLast(boolean first) {
         checkOpen();
-        Page p = root;
         if (size() == 0) {
             return null;
         }
+        Page p = root;
         while (true) {
             if (p.isLeaf()) {
                 return (K) p.getKey(first ? 0 : p.getKeyCount() - 1);
@@ -468,12 +575,28 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         Page cOld = p.getChildPage(index);
         Page c = cOld.copyOnWrite(writeVersion);
+
+        int todoMerge;
+//        if (c.getKeyCount() < store.getMaxPageSize() / 2) {
+//            if (p.getChildPageCount() == 1) {
+//                int todo;
+//                // replace this node with the child
+//            } else if (index > 0) {
+//                int indexSibling = index - 1;
+//                Page sOld = p.getChildPage(indexSibling);
+//                merge(cOld, sOld);
+//                p.remove(indexSibling);
+//            } else {
+//                int indexSibling = index + 1;
+//                Page sOld = p.getChildPage(indexSibling);
+//            }
+//        }
+
         long oldCount = c.getTotalCount();
         result = remove(c, writeVersion, key);
         if (oldCount == c.getTotalCount()) {
             return null;
         }
-        // TODO merge if the c key count is below the threshold
         if (c.getTotalCount() == 0) {
             // this child was deleted
             if (p.getKeyCount() == 0) {
@@ -487,6 +610,29 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         return result;
     }
+
+    int todoMerge;
+//    private boolean merge(Page a, Page b, boolean left) {
+//        boolean leaf = a.isLeaf();
+//        if (leaf != b.isLeaf()) {
+//            return false;
+//        }
+//        if (left) {
+//            int moved = 0;
+//                while (a.getKeyCount() < b.getKeyCount() - 1) {
+//                    if (leaf) {
+//                        Object k = b.getKey(0);
+//                        Object v = b.getValue(0);
+//                        b.remove(0);
+//                        a.insertLeaf(a.getKeyCount(), k, v);
+//                    } else {
+//
+//                    }
+//                    moved++;
+//                }
+//            }
+//        }
+//    }
 
     protected void setRoot(Page newRoot) {
         if (root != newRoot) {
@@ -570,9 +716,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param from the first key to return
      * @return the iterator
      */
-    public Iterator<K> keyIterator(K from) {
+    public Cursor<K> keyIterator(K from) {
         checkOpen();
-        return new Cursor<K, V>(this, root, from);
+        return new Cursor<K>(this, root, from);
     }
 
     /**
@@ -603,7 +749,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
             @Override
             public Iterator<K> iterator() {
-                return new Cursor<K, V>(map, root, null);
+                return new Cursor<K>(map, root, null);
             }
 
             @Override

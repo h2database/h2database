@@ -40,8 +40,7 @@ public abstract class FileBase extends FileChannel {
     public synchronized int write(ByteBuffer src, long position) throws IOException {
         long oldPos = position();
         position(position);
-        int len = src.remaining();
-        len = write(src);
+        int len = write(src);
         position(oldPos);
         return len;
     }

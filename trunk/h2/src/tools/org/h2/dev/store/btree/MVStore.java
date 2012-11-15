@@ -35,22 +35,16 @@ header:
 H:3,blockSize=4096,...
 
 TODO:
-- implement more counted b-tree (skip, get positions)
-- possibly split chunk data into immutable and mutable
+- merge pages if small
 - support stores that span multiple files (chunks stored in other files)
 - triggers
-- merge pages if small
 - r-tree: add missing features (NN search for example)
-- compression: maybe hash table reset speeds up compression
-- use file level locking to ensure there is only one writer
 - pluggable cache (specially for in-memory file systems)
 - maybe store the factory class in the file header
-- support custom fields in the header
+- support custom fields in the header (auto-server ip address,...)
 - auto-server: store port in the header
-- recovery: keep a list of old chunks
-- recovery: ensure data is not overwritten for 1 minute
+- recovery: keep some old chunks; don't overwritten for 1 minute
 - pluggable caching (specially for in-memory file systems)
-- file locking
 - allocate memory with Utils.newBytes and so on
 - unified exception handling
 - check if locale specific string comparison can make data disappear
@@ -63,6 +57,11 @@ TODO:
 - support background writes (concurrent modification & store)
 - limited support for writing to old versions (branches)
 - support concurrent operations (including file I/O)
+- maxPageSize should be size in bytes (not it is actually maxPageEntryCount)
+- on insert, if the child page is already full, don't load and modify it - split directly
+- performance test with encrypting file system
+- possibly split chunk data into immutable and mutable
+- compact: avoid processing pages using a counting bloom filter
 
 */
 
@@ -89,6 +88,7 @@ public class MVStore {
     private int maxPageSize = 30;
 
     private FileChannel file;
+    private long fileSize;
     private final int blockSize = 4 * 1024;
     private long rootChunkStart;
 
@@ -359,7 +359,11 @@ public class MVStore {
         try {
             log("file open");
             file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
-            if (file.size() == 0) {
+            if (file.tryLock() == null) {
+                throw new RuntimeException("The file is locked: " + fileName);
+            }
+            fileSize = file.size();
+            if (fileSize == 0) {
                 writeHeader();
             } else {
                 readHeader();
@@ -411,6 +415,7 @@ public class MVStore {
             DataUtils.writeFully(file,  0, header);
             header.rewind();
             DataUtils.writeFully(file,  blockSize, header);
+            fileSize = Math.max(fileSize, 2 * blockSize);
         } catch (Exception e) {
             throw convert(e);
         }
@@ -591,6 +596,7 @@ public class MVStore {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        fileSize = Math.max(fileSize, filePos + buff.position());
         rootChunkStart = filePos;
         revertTemp();
 
@@ -623,25 +629,25 @@ public class MVStore {
     private void shrinkFileIfPossible(int minPercent) {
         long used = getFileLengthUsed();
         try {
-            long size = file.size();
-            if (used >= size) {
+            if (used >= fileSize) {
                 return;
             }
-            if (minPercent > 0 && size - used < blockSize) {
+            if (minPercent > 0 && fileSize - used < blockSize) {
                 return;
             }
-            int savedPercent = (int) (100 - (used * 100 / size));
+            int savedPercent = (int) (100 - (used * 100 / fileSize));
             if (savedPercent < minPercent) {
                 return;
             }
             file.truncate(used);
+            fileSize = used;
         } catch (Exception e) {
             throw convert(e);
         }
     }
 
     private long getFileLengthUsed() {
-        int min = 0;
+        int min = 2;
         for (Chunk c : chunks.values()) {
             if (c.start == Long.MAX_VALUE) {
                 continue;
@@ -865,7 +871,7 @@ public class MVStore {
         if (p == null) {
             long filePos = getFilePosition(pos);
             readCount++;
-            p = Page.read(file, map, filePos, pos);
+            p = Page.read(file, map, pos, filePos, fileSize);
             cache.put(pos, p);
         }
         return p;
@@ -1089,7 +1095,7 @@ public class MVStore {
 
     /**
      * Get the current version of the data. When a new store is created, the
-     * version is 0. For each commit, it is incremented by one.
+     * version is 0.
      *
      * @return the version
      */

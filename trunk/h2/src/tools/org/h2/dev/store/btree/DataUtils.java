@@ -6,6 +6,7 @@
  */
 package org.h2.dev.store.btree;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -294,7 +295,7 @@ public class DataUtils {
         do {
             int len = file.read(dst, pos);
             if (len < 0) {
-                break;
+                throw new EOFException();
             }
             pos += len;
         } while (dst.remaining() > 0);

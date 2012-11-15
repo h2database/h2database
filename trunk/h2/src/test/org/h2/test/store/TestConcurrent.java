@@ -55,7 +55,8 @@ public class TestConcurrent extends TestMVStore {
         t.execute();
         for (int k = 0; k < 10000; k++) {
             Iterator<Integer> it = map.keyIterator(r.nextInt(len));
-            long old = s.incrementVersion();
+            long old = s.getCurrentVersion();
+            s.incrementVersion();
             s.setRetainVersion(old - 100);
             while (map.getVersion() == old) {
                 Thread.yield();
@@ -88,6 +89,10 @@ public class TestConcurrent extends TestMVStore {
                             m.remove(rand.nextInt(size));
                         }
                         m.get(rand.nextInt(size));
+                    } catch (NegativeArraySizeException e) {
+                        // ignore
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        // ignore
                     } catch (NullPointerException e) {
                         // ignore
                     }
@@ -105,6 +110,10 @@ public class TestConcurrent extends TestMVStore {
                         m.remove(rand.nextInt(size));
                     }
                     m.get(rand.nextInt(size));
+                } catch (NegativeArraySizeException e) {
+                    // ignore
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    // ignore
                 } catch (NullPointerException e) {
                     // ignore
                 }
@@ -113,21 +122,6 @@ public class TestConcurrent extends TestMVStore {
             Thread.sleep(1);
         }
         task.get();
-        // verify the structure is still somewhat usable
-        for (int x : m.keySet()) {
-            try {
-                m.get(x);
-            } catch (NullPointerException e) {
-                // ignore
-            }
-        }
-        for (int i = 0; i < size; i++) {
-            try {
-                m.get(i);
-            } catch (NullPointerException e) {
-                // ignore
-            }
-        }
         s.close();
     }
 

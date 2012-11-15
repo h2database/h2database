@@ -12,36 +12,52 @@ import java.util.Iterator;
  * A cursor to iterate over elements in ascending order.
  *
  * @param <K> the key type
- * @param <V> the value type
  */
-public class Cursor<K, V> implements Iterator<K> {
+public class Cursor<K> implements Iterator<K> {
 
-    private final MVMap<K, V> map;
+    private final MVMap<K, ?> map;
     private final K from;
-    private Page root;
+    private final Page root;
+    private boolean initialized;
     private CursorPos pos;
     private K current;
 
-    Cursor(MVMap<K, V> map, Page root, K from) {
+    Cursor(MVMap<K, ?> map, Page root, K from) {
         this.map = map;
         this.root = root;
         this.from = from;
     }
 
     public K next() {
+        hasNext();
         K c = current;
         fetchNext();
         return c;
     }
 
     public boolean hasNext() {
-        if (root != null) {
-            // initialize
+        if (!initialized) {
             min(root, from);
-            root = null;
+            initialized = true;
             fetchNext();
         }
         return current != null;
+    }
+
+    public void skip(long n) {
+        if (!hasNext()) {
+            return;
+        }
+        if (n < 10) {
+            while (n-- > 0) {
+                fetchNext();
+            }
+            return;
+        }
+        long index = map.getKeyIndex(current);
+        K k = map.getKey(index + n);
+        min(root, k);
+        fetchNext();
     }
 
     public void remove() {

@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
+import org.h2.dev.store.btree.Cursor;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.MVStore;
 import org.h2.store.fs.FileUtils;
@@ -31,6 +32,7 @@ public class TestMVStore extends TestBase {
     }
 
     public void test() throws InterruptedException {
+        testIndexSkip();
         testMinMaxNextKey();
         testSetting();
         testIterateOldVersion();
@@ -54,6 +56,53 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+
+    private void testIndexSkip() {
+        MVStore s = openStore(null);
+        s.setMaxPageSize(4);
+        MVMap<Integer, Integer> map = s.openMap("test");
+        for (int i = 0; i < 100; i += 2) {
+            map.put(i, 10 * i);
+        }
+        for (int i = -1; i < 100; i++) {
+            long index = map.getKeyIndex(i);
+            if (i < 0 || (i % 2) != 0) {
+                assertEquals(i < 0 ? -1 : -(i / 2) - 2, index);
+            } else {
+                assertEquals(i / 2, index);
+            }
+        }
+        for (int i = -1; i < 60; i++) {
+            Integer k = map.getKey(i);
+            if (i < 0 || i >= 50) {
+                assertNull(k);
+            } else {
+                assertEquals(i * 2, k.intValue());
+            }
+        }
+        // skip
+        Cursor<Integer> c = map.keyIterator(0);
+        assertTrue(c.hasNext());
+        assertEquals(0, c.next().intValue());
+        c.skip(0);
+        assertEquals(2, c.next().intValue());
+        c.skip(1);
+        assertEquals(6, c.next().intValue());
+        c.skip(20);
+        assertEquals(48, c.next().intValue());
+
+        c = map.keyIterator(0);
+        c.skip(20);
+        assertEquals(40, c.next().intValue());
+
+        c = map.keyIterator(0);
+        assertEquals(0, c.next().intValue());
+
+        assertEquals(12, map.keyList().indexOf(24));
+        assertEquals(24, map.keyList().get(12).intValue());
+        assertEquals(-14, map.keyList().indexOf(25));
+        assertEquals(map.size(), map.keyList().size());
     }
 
     private void testMinMaxNextKey() {
@@ -300,7 +349,6 @@ public class TestMVStore extends TestBase {
         MVStore s;
         s = openStore(fileName);
         MVMap<String, String> m;
-        s = openStore(fileName);
         m = s.openMap("data", String.class, String.class);
         long first = s.getCurrentVersion();
         s.incrementVersion();

@@ -117,10 +117,12 @@ public class Page {
      * @return the page
      */
     static Page read(FileChannel file, MVMap<?, ?> map,
-            long filePos, long pos) {
-        int maxLength = DataUtils.getPageMaxLength(pos), length = maxLength;
+            long pos, long filePos, long fileSize) {
         ByteBuffer buff;
+        int maxLength = DataUtils.getPageMaxLength(pos);
         try {
+            maxLength = (int) Math.min(fileSize - filePos, maxLength);
+            int length = maxLength;
             if (maxLength == Integer.MAX_VALUE) {
                 buff = ByteBuffer.wrap(new byte[128]);
                 DataUtils.readFully(file, filePos, buff);
@@ -251,10 +253,11 @@ public class Page {
 
     /**
      * Search the key in this page using a binary search. Instead of always
-     * starting the search in the middle, the last found index is cached. If the
-     * key was found, the returned value is the index in the key array. If not
-     * found, the returned value is negative, where -1 means the provided key is
-     * smaller than any keys in this page. See also Arrays.binarySearch.
+     * starting the search in the middle, the last found index is cached.
+     * <p>
+     * If the key was found, the returned value is the index in the key array.
+     * If not found, the returned value is negative, where -1 means the provided
+     * key is smaller than any keys in this page. See also Arrays.binarySearch.
      *
      * @param key the key
      * @return the value or null
@@ -394,6 +397,10 @@ public class Page {
             }
         }
         return totalCount;
+    }
+
+    long getCounts(int index) {
+        return counts[index];
     }
 
     /**
@@ -720,9 +727,22 @@ public class Page {
     /**
      * Get the maximum length in bytes to store temporary records, recursively.
      *
-     * @return the next page id
+     * @return the maximum length
      */
     int getMaxLengthTempRecursive() {
+        int maxLength = getMaxLength();
+        if (!isLeaf()) {
+            for (int i = 0; i <= keyCount; i++) {
+                Page p = childrenPages[i];
+                if (p != null) {
+                    maxLength += p.getMaxLengthTempRecursive();
+                }
+            }
+        }
+        return maxLength;
+    }
+
+    int getMaxLength() {
         // length, check, map id, key length, type
         int maxLength = 4 + 2 + DataUtils.MAX_VAR_INT_LEN
                 + DataUtils.MAX_VAR_INT_LEN + 1;
@@ -737,12 +757,6 @@ public class Page {
         } else {
             maxLength += 8 * len;
             maxLength += DataUtils.MAX_VAR_LONG_LEN * len;
-            for (int i = 0; i <= len; i++) {
-                Page p = childrenPages[i];
-                if (p != null) {
-                    maxLength += p.getMaxLengthTempRecursive();
-                }
-            }
         }
         return maxLength;
     }

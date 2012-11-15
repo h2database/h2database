@@ -677,8 +677,7 @@ public abstract class TestBase {
             return;
         } else if (expected == null || actual == null) {
             fail("Expected: " + expected + " Actual: " + actual + " " + message);
-        }
-        else if (!expected.equals(actual)) {
+        } else if (!expected.equals(actual)) {
             for (int i = 0; i < expected.length(); i++) {
                 String s = expected.substring(0, i);
                 if (!actual.startsWith(s)) {

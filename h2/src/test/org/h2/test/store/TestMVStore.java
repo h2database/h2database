@@ -185,7 +185,7 @@ public class TestMVStore extends TestBase {
         assertEquals(null, s.getSetting("hello"));
         s.setSetting("test", "Hello");
         assertEquals("Hello", s.getSetting("test"));
-        s.store();
+        s.save();
         s.close();
         s = MVStore.open(fileName);
         assertEquals(1, s.getCurrentVersion());
@@ -227,7 +227,7 @@ public class TestMVStore extends TestBase {
         map.put(1,  "Hello");
         map.put("2", 200);
         map.put(new Object[1], new Object[]{1, "2"});
-        s.store();
+        s.save();
         s.close();
         s = MVStore.open(fileName, new TestMapFactory());
         map = s.openMap("test");
@@ -273,7 +273,7 @@ public class TestMVStore extends TestBase {
                 map.openVersion(oldVersion);
 
         // store the newest data to disk
-        s.store();
+        s.save();
 
         // print the old version (can be done
         // concurrently with further modifications)
@@ -301,7 +301,7 @@ public class TestMVStore extends TestBase {
                 for (int i = 0; i < 3; i++) {
                     Integer x = m.get("value");
                     m.put("value", x == null ? 0 : x + 1);
-                    s.store();
+                    s.save();
                 }
                 s.close();
             }
@@ -320,7 +320,7 @@ public class TestMVStore extends TestBase {
             m.put(i, "Hi");
         }
         s.incrementVersion();
-        s.store();
+        s.save();
         for (int i = 20; i < 40; i++) {
             assertEquals("Hi", m.put(i, "Hello"));
         }
@@ -373,7 +373,7 @@ public class TestMVStore extends TestBase {
         assertTrue(mOld.isReadOnly());
         s.getCurrentVersion();
         s.setRetainChunk(0);
-        long old2 = s.store();
+        long old2 = s.save();
 
         // the old version is still available
         assertEquals("Hello", mOld.get("1"));
@@ -381,7 +381,7 @@ public class TestMVStore extends TestBase {
 
         m.put("1",  "Hi");
         assertEquals("Welt", m.remove("2"));
-        s.store();
+        s.save();
         s.close();
 
         s = openStore(fileName);
@@ -404,17 +404,17 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 1000; i++) {
             m.put(i, "Hello World");
         }
-        s.store();
+        s.save();
         s.close();
         long len = FileUtils.size(fileName);
         s = openStore(fileName);
         m = s.openMap("data", Integer.class, String.class);
         m.clear();
-        s.store();
+        s.save();
         s.compact(100);
         s.close();
         long len2 = FileUtils.size(fileName);
-        assertTrue(len2 < len);
+        assertTrue("len2: " + len2 + " len: " + len, len2 < len);
     }
 
     private void testFastDelete() {
@@ -423,14 +423,15 @@ public class TestMVStore extends TestBase {
         MVStore s;
         MVMap<Integer, String> m;
         s = openStore(fileName);
-        s.setMaxPageSize(100);
+        s.setMaxPageSize(700);
         m = s.openMap("data", Integer.class, String.class);
         for (int i = 0; i < 1000; i++) {
             m.put(i, "Hello World");
             assertEquals(i + 1, m.size());
         }
         assertEquals(1000, m.size());
-        s.store();
+        assertEquals(281, s.getUnsavedPageCount());
+        s.save();
         assertEquals(3, s.getWriteCount());
         s.close();
 
@@ -438,9 +439,9 @@ public class TestMVStore extends TestBase {
         m = s.openMap("data", Integer.class, String.class);
         m.clear();
         assertEquals(0, m.size());
-        s.store();
+        s.save();
         // ensure only nodes are read, but not leaves
-        assertEquals(4, s.getReadCount());
+        assertEquals(34, s.getReadCount());
         assertEquals(2, s.getWriteCount());
         s.close();
     }
@@ -462,7 +463,7 @@ public class TestMVStore extends TestBase {
         assertEquals(1, s.incrementVersion());
         s.rollbackTo(1);
         assertEquals("Hello", m.get("1"));
-        long v2 = s.store();
+        long v2 = s.save();
         assertEquals(2, v2);
         assertEquals(2, s.getCurrentVersion());
         assertFalse(s.hasUnsavedChanges());
@@ -486,7 +487,7 @@ public class TestMVStore extends TestBase {
         assertNull(meta.get("map.data1"));
         assertNull(m0.get("1"));
         assertEquals("Hello", m.get("1"));
-        assertEquals(2, s.store());
+        assertEquals(2, s.save());
         s.close();
 
         s = openStore(fileName);
@@ -504,7 +505,7 @@ public class TestMVStore extends TestBase {
         m.put("1",  "Hallo");
         s.incrementVersion();
         assertEquals(3, s.getCurrentVersion());
-        long v4 = s.store();
+        long v4 = s.save();
         assertEquals(4, v4);
         assertEquals(4, s.getCurrentVersion());
         s.close();
@@ -513,7 +514,7 @@ public class TestMVStore extends TestBase {
         s.setRetainChunk(0);
         m = s.openMap("data", String.class, String.class);
         m.put("1",  "Hello");
-        s.store();
+        s.save();
         s.close();
 
         s = openStore(fileName);
@@ -582,11 +583,11 @@ public class TestMVStore extends TestBase {
         MVMap<String, String> data = s.openMap("data", String.class, String.class);
         data.put("1", "Hello");
         data.put("2", "World");
-        s.store();
+        s.save();
         assertEquals("1/0///", m.get("map.data"));
         assertTrue(m.containsKey("chunk.1"));
         assertEquals("Hello", data.put("1", "Hallo"));
-        s.store();
+        s.save();
         assertEquals("1/0///", m.get("map.data"));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
@@ -648,10 +649,10 @@ public class TestMVStore extends TestBase {
                 m.put(i, o);
                 i++;
                 if (i % 10000 == 0) {
-                    s.store();
+                    s.save();
                 }
             }
-            s.store();
+            s.save();
             s.close();
             // System.out.println(prof.getTop(5));
             // System.out.println("store time " + (System.currentTimeMillis() - t));
@@ -679,7 +680,7 @@ public class TestMVStore extends TestBase {
         // p = new Profiler();
         //p.startCollecting();
         // t = System.currentTimeMillis();
-        s.store();
+        s.save();
         // System.out.println("store: " + (System.currentTimeMillis() - t));
         // System.out.println(p.getTop(5));
         assertEquals("hello 0", m.remove(0));
@@ -687,7 +688,7 @@ public class TestMVStore extends TestBase {
         for (int i = 1; i < count; i++) {
             assertEquals("hello " + i, m.get(i));
         }
-        s.store();
+        s.save();
         s.close();
         s = openStore(fileName);
         m = s.openMap("data", Integer.class, String.class);
@@ -698,7 +699,7 @@ public class TestMVStore extends TestBase {
         for (int i = 1; i < count; i++) {
             m.remove(i);
         }
-        s.store();
+        s.save();
         assertNull(m.get(0));
         for (int i = 0; i < count; i++) {
             assertNull(m.get(i));
@@ -713,10 +714,10 @@ public class TestMVStore extends TestBase {
         for (int j = 0; j < 20; j++) {
             MVStore s = openStore(fileName);
             MVMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 100; i++) {
                 m.put(j + i, "Hello " + j);
             }
-            s.store();
+            s.save();
             s.compact(80);
             s.close();
             long len = FileUtils.size(fileName);
@@ -734,7 +735,7 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 100; i++) {
             m.remove(i);
         }
-        s.store();
+        s.save();
         s.compact(80);
         s.close();
         // len = FileUtils.size(fileName);
@@ -757,12 +758,12 @@ public class TestMVStore extends TestBase {
             for (int i = 0; i < 10; i++) {
                 m.put(i, "Hello");
             }
-            s.store();
+            s.save();
             for (int i = 0; i < 10; i++) {
                 assertEquals("Hello", m.get(i));
                 assertEquals("Hello", m.remove(i));
             }
-            s.store();
+            s.save();
             s.close();
             long len = FileUtils.size(fileName);
             if (initialLength == 0) {
@@ -865,7 +866,7 @@ public class TestMVStore extends TestBase {
         si.put("Test", 10);
         MVMap<String, String> ss = s.openMap("stringString", String.class, String.class);
         ss.put("Hello", "World");
-        s.store();
+        s.save();
         s.close();
         s = openStore(fileName);
         is = s.openMap("intString", Integer.class, String.class);
@@ -889,7 +890,7 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 10; i++) {
             m.put(i, "hello " + i);
         }
-        s.store();
+        s.save();
         it = m.keyIterator(null);
         it.next();
         assertThrows(UnsupportedOperationException.class, it).remove();
@@ -920,7 +921,7 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 3; i++) {
             m.put(i, "hello " + i);
         }
-        s.store();
+        s.save();
         // closing twice should be fine
         s.close();
         s.close();
@@ -934,14 +935,14 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 3; i++) {
             m.put(i, "hello " + i);
         }
-        s.store();
+        s.save();
         assertEquals("hello 0", m.remove(0));
 
         assertNull(m.get(0));
         for (int i = 1; i < 3; i++) {
             assertEquals("hello " + i, m.get(i));
         }
-        s.store();
+        s.save();
         s.close();
 
         s = openStore(fileName);
@@ -961,7 +962,7 @@ public class TestMVStore extends TestBase {
      */
     protected static MVStore openStore(String fileName) {
         MVStore store = MVStore.open(fileName, new TestMapFactory());
-        store.setMaxPageSize(10);
+        store.setMaxPageSize(1000);
         return store;
     }
 

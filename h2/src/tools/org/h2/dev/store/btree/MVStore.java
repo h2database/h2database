@@ -35,13 +35,12 @@ header:
 H:3,blockSize=4096,...
 
 TODO:
-- merge pages if small
+- support custom fields in the file header (auto-server ip address,...)
 - support stores that span multiple files (chunks stored in other files)
 - triggers
 - r-tree: add missing features (NN search for example)
 - pluggable cache (specially for in-memory file systems)
 - maybe store the factory class in the file header
-- support custom fields in the header (auto-server ip address,...)
 - auto-server: store port in the header
 - recovery: keep some old chunks; don't overwritten for 1 minute
 - pluggable caching (specially for in-memory file systems)
@@ -57,11 +56,12 @@ TODO:
 - support background writes (concurrent modification & store)
 - limited support for writing to old versions (branches)
 - support concurrent operations (including file I/O)
-- maxPageSize should be size in bytes (not it is actually maxPageEntryCount)
 - on insert, if the child page is already full, don't load and modify it - split directly
 - performance test with encrypting file system
 - possibly split chunk data into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
+- defragment (re-creating maps, specially those with small pages)
+- write using ByteArrayOutputStream; remove DataType.getMaxLength
 
 */
 
@@ -85,7 +85,7 @@ public class MVStore {
 
     private final int readCacheSize = 2 * 1024 * 1024;
 
-    private int maxPageSize = 30;
+    private int maxPageSize = 4 * 1024;
 
     private FileChannel file;
     private long fileSize;
@@ -123,6 +123,7 @@ public class MVStore {
     private long currentVersion;
     private int readCount;
     private int writeCount;
+    private int unsavedPageCount;
 
     private MVStore(String fileName, MapFactory mapFactory) {
         this.fileName = fileName;
@@ -502,7 +503,7 @@ public class MVStore {
      *
      * @return the new version (incremented if there were changes)
      */
-    public long store() {
+    public long save() {
         if (!hasUnsavedChanges()) {
             return currentVersion;
         }
@@ -560,7 +561,7 @@ public class MVStore {
             }
             Page p = m.getRoot();
             if (p.getTotalCount() > 0) {
-                long root = p.writeTempRecursive(c, buff);
+                long root = p.writeUnsavedRecursive(c, buff);
                 meta.put("root." + m.getId(), "" + root);
             }
         }
@@ -569,7 +570,7 @@ public class MVStore {
 
         // this will modify maxLengthLive, but
         // the correct value is written in the chunk header
-        meta.getRoot().writeTempRecursive(c, buff);
+        meta.getRoot().writeUnsavedRecursive(c, buff);
 
         buff.flip();
         int length = buff.limit();
@@ -604,6 +605,7 @@ public class MVStore {
         // write the new version (after the commit)
         writeHeader();
         shrinkFileIfPossible(1);
+        unsavedPageCount = 0;
         return version;
     }
 
@@ -799,7 +801,7 @@ public class MVStore {
             copyLive(c, old);
         }
 
-        store();
+        save();
         return true;
     }
 
@@ -885,24 +887,26 @@ public class MVStore {
     void removePage(long pos) {
         // we need to keep temporary pages,
         // to support reading old versions and rollback
-        if (pos > 0) {
-            // this could result in a cache miss
-            // if the operation is rolled back,
-            // but we don't optimize for rollback
-            cache.remove(pos);
-            Chunk c = getChunk(pos);
-            HashMap<Integer, Chunk>freed = freedChunks.get(currentVersion);
-            if (freed == null) {
-                freed = New.hashMap();
-                freedChunks.put(currentVersion, freed);
-            }
-            Chunk f = freed.get(c.id);
-            if (f == null) {
-                f = new Chunk(c.id);
-                freed.put(c.id, f);
-            }
-            f.maxLengthLive -= DataUtils.getPageMaxLength(pos);
+        if (pos == 0) {
+            unsavedPageCount--;
+            return;
         }
+        // this could result in a cache miss
+        // if the operation is rolled back,
+        // but we don't optimize for rollback
+        cache.remove(pos);
+        Chunk c = getChunk(pos);
+        HashMap<Integer, Chunk>freed = freedChunks.get(currentVersion);
+        if (freed == null) {
+            freed = New.hashMap();
+            freedChunks.put(currentVersion, freed);
+        }
+        Chunk f = freed.get(c.id);
+        if (f == null) {
+            f = new Chunk(c.id);
+            freed.put(c.id, f);
+        }
+        f.maxLengthLive -= DataUtils.getPageMaxLength(pos);
     }
 
     /**
@@ -915,14 +919,22 @@ public class MVStore {
         // System.out.println(string);
     }
 
+    /**
+     * Set the maximum amount of memory a page should contain, in bytes. Larger
+     * pages are split. The default is 4 KB. This is not a limit in the page
+     * size, as pages with one entry can be larger. As a rule of thumb, pages
+     * should not be larger than 1 MB, for caching to work efficiently.
+     *
+     * @param maxPageSize the page size
+     */
     public void setMaxPageSize(int maxPageSize) {
         this.maxPageSize = maxPageSize;
     }
 
     /**
-     * The maximum number of key-value pairs in a page.
+     * Get the maximum page size, in bytes.
      *
-     * @return the maximum number of entries
+     * @return the maximum page size
      */
     public int getMaxPageSize() {
         return maxPageSize;
@@ -1009,6 +1021,21 @@ public class MVStore {
             }
         }
         return true;
+    }
+
+    /**
+     * Get the estimated number of unsaved pages. The returned value is not
+     * accurate, specially after rollbacks, but can be used to estimate the
+     * memory usage for unsaved data.
+     *
+     * @return the number of unsaved pages
+     */
+    public int getUnsavedPageCount() {
+        return unsavedPageCount;
+    }
+
+    void registerUnsavedPage() {
+        unsavedPageCount++;
     }
 
     public int getStoreVersion() {

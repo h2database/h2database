@@ -51,6 +51,11 @@ public class Page {
      */
     private int sharedFlags;
 
+    /**
+     * The estimated memory used.
+     */
+    private int memory;
+
     private Object[] keys;
     private Object[] values;
     private long[] children;
@@ -72,7 +77,7 @@ public class Page {
     public static Page createEmpty(MVMap<?, ?> map, long version) {
         return create(map, version, 0,
                 EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY,
-                null, null, null, 0, 0);
+                null, null, null, 0, 0, DataUtils.PAGE_MEMORY);
     }
 
     /**
@@ -93,7 +98,7 @@ public class Page {
     public static Page create(MVMap<?, ?> map, long version,
             int keyCount, Object[] keys,
             Object[] values, long[] children, Page[] childrenPages, long[] counts,
-            long totalCount, int sharedFlags) {
+            long totalCount, int sharedFlags, int memory) {
         Page p = new Page(map, version);
         // the position is 0
         p.keys = keys;
@@ -104,6 +109,7 @@ public class Page {
         p.counts = counts;
         p.totalCount = totalCount;
         p.sharedFlags = sharedFlags;
+        p.memory = memory == 0 ? p.calculateMemory() : memory;
         return p;
     }
 
@@ -246,7 +252,9 @@ public class Page {
         Page newPage = create(map, writeVersion,
                 keyCount, keys, values, children, childrenPages,
                 counts, totalCount,
-                SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS);
+                SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS,
+                memory);
+        map.getStore().registerUnsavedPage();
         newPage.cachedCompare = cachedCompare;
         return newPage;
     }
@@ -328,7 +336,10 @@ public class Page {
         totalCount = a;
         Page newPage = create(map, version, b,
                 bKeys, bValues, null, null, null,
-                bKeys.length, 0);
+                bKeys.length, 0, 0);
+        map.getStore().registerUnsavedPage();
+        memory = calculateMemory();
+        newPage.memory = newPage.calculateMemory();
         return newPage;
     }
 
@@ -372,7 +383,10 @@ public class Page {
         }
         Page newPage = create(map, version, b - 1,
                 bKeys, null, bChildren, bChildrenPages,
-                bCounts, t, 0);
+                bCounts, t, 0, 0);
+        map.getStore().registerUnsavedPage();
+        memory = calculateMemory();
+        newPage.memory = newPage.calculateMemory();
         return newPage;
     }
 
@@ -441,6 +455,11 @@ public class Page {
             keys = Arrays.copyOf(keys, keys.length);
             sharedFlags &= ~SHARED_KEYS;
         }
+        Object old = keys[index];
+        if (old != null) {
+            memory -= map.getKeyType().getMemory(old);
+        }
+        memory += map.getKeyType().getMemory(key);
         keys[index] = key;
     }
 
@@ -457,6 +476,8 @@ public class Page {
             values = Arrays.copyOf(values, values.length);
             sharedFlags &= ~SHARED_VALUES;
         }
+        memory -= map.getValueType().getMemory(old);
+        memory += map.getValueType().getMemory(value);
         values[index] = value;
         return old;
     }
@@ -511,6 +532,8 @@ public class Page {
         keyCount++;
         sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
         totalCount++;
+        memory += map.getKeyType().getMemory(key);
+        memory += map.getValueType().getMemory(value);
     }
 
     /**
@@ -545,6 +568,8 @@ public class Page {
 
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         totalCount += childPage.getTotalCount();
+        memory += map.getKeyType().getMemory(key);
+        memory += DataUtils.PAGE_MEMORY_CHILD;
     }
 
     /**
@@ -554,6 +579,8 @@ public class Page {
      */
     public void remove(int index) {
         int keyIndex = index >= keyCount ? index - 1 : index;
+        Object old = keys[keyIndex];
+        memory -= map.getKeyType().getMemory(old);
         if ((sharedFlags & SHARED_KEYS) == 0 && keys.length > keyCount - 4) {
             if (keyIndex < keyCount - 1) {
                 System.arraycopy(keys, keyIndex + 1, keys, keyIndex, keyCount - keyIndex - 1);
@@ -567,6 +594,8 @@ public class Page {
         }
 
         if (values != null) {
+            old = values[index];
+            memory -= map.getValueType().getMemory(old);
             if ((sharedFlags & SHARED_VALUES) == 0 && values.length > keyCount - 4) {
                 if (index < keyCount - 1) {
                     System.arraycopy(values, index + 1, values, index, keyCount - index - 1);
@@ -582,6 +611,7 @@ public class Page {
         }
         keyCount--;
         if (children != null) {
+            memory -= DataUtils.PAGE_MEMORY_CHILD;
             long countOffset = counts[index];
 
             long[] newChildren = new long[children.length - 1];
@@ -638,8 +668,10 @@ public class Page {
             compressor.expand(comp, 0, compLen, exp, 0, exp.length);
             buff = ByteBuffer.wrap(exp);
         }
+        DataType keyType = map.getKeyType();
         for (int i = 0; i < len; i++) {
-            keys[i] = map.getKeyType().read(buff);
+            Object k = keyType.read(buff);
+            keys[i] = k;
         }
         if (node) {
             children = new long[len + 1];
@@ -657,11 +689,14 @@ public class Page {
             totalCount = total;
         } else {
             values = new Object[len];
+            DataType valueType = map.getValueType();
             for (int i = 0; i < len; i++) {
-                values[i] = map.getValueType().read(buff);
+                Object v = valueType.read(buff);
+                values[i] = v;
             }
             totalCount = len;
         }
+        memory = calculateMemory();
     }
 
     /**
@@ -722,6 +757,7 @@ public class Page {
         long max = DataUtils.getPageMaxLength(pos);
         chunk.maxLength += max;
         chunk.maxLengthLive += max;
+        chunk.pageCount++;
     }
 
     /**
@@ -769,13 +805,13 @@ public class Page {
      * @param buff the target buffer
      * @return the page id
      */
-    long writeTempRecursive(Chunk chunk, ByteBuffer buff) {
+    long writeUnsavedRecursive(Chunk chunk, ByteBuffer buff) {
         if (!isLeaf()) {
             int len = children.length;
             for (int i = 0; i < len; i++) {
                 Page p = childrenPages[i];
                 if (p != null) {
-                    children[i] = p.writeTempRecursive(chunk, buff);
+                    children[i] = p.writeUnsavedRecursive(chunk, buff);
                     childrenPages[i] = null;
                 }
             }
@@ -807,6 +843,30 @@ public class Page {
 
     public int hashCode() {
         return pos != 0 ? (int) (pos | (pos >>> 32)) : super.hashCode();
+    }
+
+    public int getMemory() {
+        if (MVStore.ASSERT) {
+            if (memory != calculateMemory()) {
+                throw new RuntimeException("Memory calculation error");
+            }
+        }
+        return memory;
+    }
+
+    private int calculateMemory() {
+        int mem = DataUtils.PAGE_MEMORY;
+        for (int i = 0; i < keyCount; i++) {
+            mem += map.getKeyType().getMemory(keys[i]);
+        }
+        if (this.isLeaf()) {
+            for (int i = 0; i < keyCount; i++) {
+                mem += map.getValueType().getMemory(values[i]);
+            }
+        } else {
+            mem += this.getChildPageCount() * DataUtils.PAGE_MEMORY_CHILD;
+        }
+        return mem;
     }
 
 }

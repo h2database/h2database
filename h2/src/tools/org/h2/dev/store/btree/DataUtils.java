@@ -57,6 +57,16 @@ public class DataUtils {
     public static final long COMPRESSED_VAR_LONG_MAX = 0x1ffffffffffffL;
 
     /**
+     * The estimated number of bytes used per page object.
+     */
+    public static final int PAGE_MEMORY = 128;
+
+    /**
+     * The estimated number of bytes used per child entry.
+     */
+    public static final int PAGE_MEMORY_CHILD = 16;
+
+    /**
      * Get the length of the variable size int.
      *
      * @param x the value

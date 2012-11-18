@@ -55,6 +55,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.valueType = valueType;
         this.createVersion = createVersion;
         this.root = Page.createEmpty(this,  createVersion - 1);
+        store.registerUnsavedPage();
     }
 
     /**
@@ -69,7 +70,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         checkWrite();
         long writeVersion = store.getCurrentVersion();
         Page p = root.copyOnWrite(writeVersion);
-        if (p.getKeyCount() > store.getMaxPageSize()) {
+        if (p.getMemory() > store.getMaxPageSize() && p.getKeyCount() > 1) {
             int at = p.getKeyCount() / 2;
             long totalCount = p.getTotalCount();
             Object k = p.getKey(at);
@@ -79,7 +80,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             Page[] childrenPages = { p, split };
             long[] counts = { p.getTotalCount(), split.getTotalCount() };
             p = Page.create(this, writeVersion, 1,
-                    keys, null, children, childrenPages, counts, totalCount, 0);
+                    keys, null, children, childrenPages, counts, totalCount, 0, 0);
+            store.registerUnsavedPage();
             // now p is a node; insert continues
         }
         Object result = put(p, writeVersion, key, value);
@@ -114,7 +116,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             index++;
         }
         Page c = p.getChildPage(index).copyOnWrite(writeVersion);
-        if (c.getKeyCount() >= store.getMaxPageSize()) {
+        if (c.getMemory() > store.getMaxPageSize() && c.getKeyCount() > 1) {
             // split on the way down
             int at = c.getKeyCount() / 2;
             Object k = c.getKey(at);
@@ -575,23 +577,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         Page cOld = p.getChildPage(index);
         Page c = cOld.copyOnWrite(writeVersion);
-
-        int todoMerge;
-//        if (c.getKeyCount() < store.getMaxPageSize() / 2) {
-//            if (p.getChildPageCount() == 1) {
-//                int todo;
-//                // replace this node with the child
-//            } else if (index > 0) {
-//                int indexSibling = index - 1;
-//                Page sOld = p.getChildPage(indexSibling);
-//                merge(cOld, sOld);
-//                p.remove(indexSibling);
-//            } else {
-//                int indexSibling = index + 1;
-//                Page sOld = p.getChildPage(indexSibling);
-//            }
-//        }
-
         long oldCount = c.getTotalCount();
         result = remove(c, writeVersion, key);
         if (oldCount == c.getTotalCount()) {
@@ -610,29 +595,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         return result;
     }
-
-    int todoMerge;
-//    private boolean merge(Page a, Page b, boolean left) {
-//        boolean leaf = a.isLeaf();
-//        if (leaf != b.isLeaf()) {
-//            return false;
-//        }
-//        if (left) {
-//            int moved = 0;
-//                while (a.getKeyCount() < b.getKeyCount() - 1) {
-//                    if (leaf) {
-//                        Object k = b.getKey(0);
-//                        Object v = b.getValue(0);
-//                        b.remove(0);
-//                        a.insertLeaf(a.getKeyCount(), k, v);
-//                    } else {
-//
-//                    }
-//                    moved++;
-//                }
-//            }
-//        }
-//    }
 
     protected void setRoot(Page newRoot) {
         if (root != newRoot) {

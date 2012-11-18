@@ -164,18 +164,20 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         Page p = root.copyOnWrite(writeVersion);
         Object result;
         if (alwaysAdd || get(key) == null) {
-            if (p.getKeyCount() > store.getMaxPageSize()) {
+            if (p.getMemory() > store.getMaxPageSize() && p.getKeyCount() > 1) {
                 // only possible if this is the root, else we would have split earlier
                 // (this requires maxPageSize is fixed)
                 long totalCount = p.getTotalCount();
                 Page split = split(p, writeVersion);
-                Object[] keys = { getBounds(p), getBounds(split) };
+                Object k1 = getBounds(p);
+                Object k2 = getBounds(split);
+                Object[] keys = { k1, k2 };
                 long[] children = { p.getPos(), split.getPos(), 0 };
                 Page[] childrenPages = { p, split, null };
                 long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
                 p = Page.create(this, writeVersion, 2,
                         keys, null, children, childrenPages, counts,
-                        totalCount, 0);
+                        totalCount, 0, 0);
                 // now p is a node; continues
             }
             add(p, writeVersion, key, value);
@@ -244,7 +246,7 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
             }
         }
         Page c = p.getChildPage(index).copyOnWrite(writeVersion);
-        if (c.getKeyCount() >= store.getMaxPageSize()) {
+        if (c.getMemory() > store.getMaxPageSize() && c.getKeyCount() > 1) {
             // split on the way down
             Page split = split(c, writeVersion);
             p = p.copyOnWrite(writeVersion);
@@ -365,7 +367,7 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         long[] c = leaf ? null : new long[1];
         Page[] cp = leaf ? null : new Page[1];
         return Page.create(this, writeVersion, 0,
-                new Object[4], values, c, cp, c, 0, 0);
+                new Object[4], values, c, cp, c, 0, 0, 0);
     }
 
     private static void move(Page source, Page target, int sourceIndex) {

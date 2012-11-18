@@ -79,11 +79,13 @@ public class Dump {
                 }
                 int chunkLength = block.getInt();
                 int chunkId = block.getInt();
+                int pageCount = block.getInt();
                 long metaRootPos = block.getLong();
                 long maxLengthLive = block.getLong();
                 writer.println("    chunk " + chunkId +
                         " at " + pos +
                         " length " + chunkLength +
+                        " pageCount " + pageCount +
                         " root " + metaRootPos +
                         " maxLengthLive " + maxLengthLive);
                 ByteBuffer chunk = ByteBuffer.allocate(chunkLength);

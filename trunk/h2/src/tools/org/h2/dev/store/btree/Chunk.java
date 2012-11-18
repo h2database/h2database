@@ -19,6 +19,7 @@ import java.util.HashMap;
  * 1 byte: 'c'
  * 4 bytes: length
  * 4 bytes: chunk id (an incrementing number)
+ * 4 bytes: pageCount
  * 8 bytes: metaRootPos
  * 8 bytes: maxLengthLive
  * [ Page ] *
@@ -39,6 +40,11 @@ public class Chunk {
      * The length in bytes.
      */
     int length;
+
+    /**
+     * The number of pages.
+     */
+    int pageCount;
 
     /**
      * The sum of the max length of all pages.
@@ -75,10 +81,12 @@ public class Chunk {
         }
         int length = buff.getInt();
         int chunkId = buff.getInt();
+        int pageCount = buff.getInt();
         long metaRootPos = buff.getLong();
         long maxLengthLive = buff.getLong();
         Chunk c = new Chunk(chunkId);
         c.length = length;
+        c.pageCount = pageCount;
         c.start = start;
         c.metaRootPos = metaRootPos;
         c.maxLengthLive = maxLengthLive;
@@ -89,6 +97,7 @@ public class Chunk {
         buff.put((byte) 'c');
         buff.putInt(length);
         buff.putInt(id);
+        buff.putInt(pageCount);
         buff.putLong(metaRootPos);
         buff.putLong(maxLengthLive);
     }
@@ -105,6 +114,7 @@ public class Chunk {
         Chunk c = new Chunk(id);
         c.start = Long.parseLong(map.get("start"));
         c.length = Integer.parseInt(map.get("length"));
+        c.pageCount = Integer.parseInt(map.get("pageCount"));
         c.maxLength = Long.parseLong(map.get("maxLength"));
         c.maxLengthLive = Long.parseLong(map.get("maxLengthLive"));
         c.metaRootPos = Long.parseLong(map.get("metaRoot"));
@@ -129,6 +139,7 @@ public class Chunk {
                 "id:" + id + "," +
                 "start:" + start + "," +
                 "length:" + length + "," +
+                "pageCount:" + pageCount + "," +
                 "maxLength:" + maxLength + "," +
                 "maxLengthLive:" + maxLengthLive + "," +
                 "metaRoot:" + metaRootPos + "," +

@@ -1495,26 +1495,24 @@ public class PageStore implements CacheWriter {
     /**
      * Redo a delete in a table.
      *
-     * @param logPos the redo log position
      * @param tableId the object id of the table
      * @param key the key of the row to delete
      */
-    void redoDelete(int logPos, int tableId, long key) {
+    void redoDelete(int tableId, long key) {
         Index index = metaObjects.get(tableId);
         PageDataIndex scan = (PageDataIndex) index;
         Row row = scan.getRowWithKey(key);
-        redo(logPos, tableId, row, false);
+        redo(tableId, row, false);
     }
 
     /**
      * Redo a change in a table.
      *
-     * @param logPos the redo log position
      * @param tableId the object id of the table
      * @param row the row
      * @param add true if the record is added, false if deleted
      */
-    void redo(int logPos, int tableId, Row row, boolean add) {
+    void redo(int tableId, Row row, boolean add) {
         if (tableId == META_TABLE_ID) {
             if (add) {
                 addMeta(row, systemSession, true);

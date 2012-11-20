@@ -315,7 +315,7 @@ public class PageLog {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log redo + table: " + tableId + " s: " + sessionId + " " + row);
                             }
-                            store.redo(pos, tableId, row, true);
+                            store.redo(tableId, row, true);
                         } else {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log ignore s: " + sessionId + " + table: " + tableId + " " + row);
@@ -331,7 +331,7 @@ public class PageLog {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log redo - table: " + tableId + " s:" + sessionId + " key: " + key);
                             }
-                            store.redoDelete(pos, tableId, key);
+                            store.redoDelete(tableId, key);
                         } else {
                             if (trace.isDebugEnabled()) {
                                 trace.debug("log ignore s: " + sessionId + " - table: " + tableId + " " + key);

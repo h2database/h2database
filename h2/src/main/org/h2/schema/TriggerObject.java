@@ -85,7 +85,7 @@ public class TriggerObject extends SchemaObjectBase {
      * @param force whether exceptions (due to missing class or access rights)
      *            should be ignored
      */
-    public void setTriggerClassName(Session session, String triggerClassName, boolean force) {
+    public void setTriggerClassName(String triggerClassName, boolean force) {
         this.triggerClassName = triggerClassName;
         try {
             load();

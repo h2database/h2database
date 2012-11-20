@@ -98,7 +98,7 @@ public class CreateTrigger extends SchemaCommand {
         trigger.setRowBased(rowBased);
         trigger.setTypeMask(typeMask);
         trigger.setOnRollback(onRollback);
-        trigger.setTriggerClassName(session, triggerClassName, force);
+        trigger.setTriggerClassName(triggerClassName, force);
         db.addSchemaObject(session, trigger);
         table.addTrigger(trigger);
         return 0;

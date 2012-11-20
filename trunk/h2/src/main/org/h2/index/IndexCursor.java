@@ -97,7 +97,7 @@ public class IndexCursor implements Cursor {
                 if (start == null && end == null) {
                     if (canUseIndexForIn(column)) {
                         this.inColumn = column;
-                        inResult = condition.getCurrentResult(s);
+                        inResult = condition.getCurrentResult();
                     }
                 }
             } else {

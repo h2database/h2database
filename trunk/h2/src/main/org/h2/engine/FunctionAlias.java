@@ -381,7 +381,7 @@ public class FunctionAlias extends SchemaObjectBase {
                     }
                 } else {
                     if (!paramClass.isAssignableFrom(o.getClass()) && !paramClass.isPrimitive()) {
-                        o = DataType.convertTo(session, session.createConnection(false), v, paramClass);
+                        o = DataType.convertTo(session.createConnection(false), v, paramClass);
                     }
                 }
                 if (currentIsVarArg) {

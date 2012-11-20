@@ -149,10 +149,9 @@ public class IndexCondition {
      * Get the current result of the expression. The rows may not be of the same
      * type, therefore the rows may not be unique.
      *
-     * @param session the session
      * @return the result
      */
-    public ResultInterface getCurrentResult(Session session) {
+    public ResultInterface getCurrentResult() {
         return expressionQuery.query(0);
     }
 

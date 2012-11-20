@@ -175,11 +175,10 @@ public class ScanIndex extends BaseIndex {
     /**
      * Get the next row that is stored after this row.
      *
-     * @param session the session
      * @param row the current row or null to start the scan
      * @return the next row or null if there are no more rows
      */
-    Row getNextRow(Session session, Row row) {
+    Row getNextRow(Row row) {
         long key;
         if (row == null) {
             key = -1;

@@ -1052,13 +1052,12 @@ public class DataType {
     /**
      * Convert a value to the specified class.
      *
-     * @param session the session
      * @param conn the database connection
      * @param v the value
      * @param paramClass the target class
      * @return the converted object
      */
-    public static Object convertTo(SessionInterface session, JdbcConnection conn, Value v, Class<?> paramClass) {
+    public static Object convertTo(JdbcConnection conn, Value v, Class<?> paramClass) {
         if (paramClass == Blob.class) {
             return new JdbcBlob(conn, v, 0);
         } else if (paramClass == Clob.class) {

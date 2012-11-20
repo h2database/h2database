@@ -101,12 +101,11 @@ public class SortOrder implements Comparator<Value[]> {
      * Compare two expressions where one of them is NULL.
      *
      * @param aNull whether the first expression is null
-     * @param bNull whether the second expression is null
      * @param sortType the sort bit mask to use
      * @return the result of the comparison (-1 meaning the first expression
      *         should appear before the second, 0 if they are equal)
      */
-    public static int compareNull(boolean aNull, boolean bNull, int sortType) {
+    public static int compareNull(boolean aNull, int sortType) {
         if ((sortType & NULLS_FIRST) != 0) {
             return aNull ? -1 : 1;
         } else if ((sortType & NULLS_LAST) != 0) {
@@ -136,7 +135,7 @@ public class SortOrder implements Comparator<Value[]> {
                 if (aNull == bNull) {
                     continue;
                 }
-                return compareNull(aNull, bNull, type);
+                return compareNull(aNull, type);
             }
             int comp = database.compare(ao, bo);
             if (comp != 0) {

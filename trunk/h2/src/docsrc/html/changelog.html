@@ -33,6 +33,7 @@ Change Log
 </li><li>Support BOM at the beginning of files for the RUNSCRIPT command
 </li><li>Fix in calling SET @X = IDENTITY() where it would return NULL incorrectly
 </li><li>Fix ABBA deadlock between adding a constraint and the H2-Log-Writer thread.
+</li><li>Optimize IN(...) queries where the values are constant and of the same type.
 </li></ul>
 
 <h2>Version 1.3.169 (2012-09-09)</h2>

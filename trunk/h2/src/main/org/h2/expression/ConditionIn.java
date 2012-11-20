@@ -184,11 +184,10 @@ public class ConditionIn extends Condition {
      * Add an additional element if possible. Example: given two conditions
      * A IN(1, 2) OR A=3, the constant 3 is added: A IN(1, 2, 3).
      *
-     * @param session the session
      * @param other the second condition
      * @return null if the condition was not added, or the new condition
      */
-    Expression getAdditional(Session session, Comparison other) {
+    Expression getAdditional(Comparison other) {
         Expression add = other.getIfEquals(left);
         if (add != null) {
             valueList.add(add);

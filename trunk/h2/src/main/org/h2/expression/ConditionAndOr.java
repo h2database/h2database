@@ -162,12 +162,12 @@ public class ConditionAndOr extends Condition {
                     return added.optimize(session);
                 }
             } else if (left instanceof ConditionIn && right instanceof Comparison) {
-                Expression added = ((ConditionIn) left).getAdditional(session, (Comparison) right);
+                Expression added = ((ConditionIn) left).getAdditional((Comparison) right);
                 if (added != null) {
                     return added.optimize(session);
                 }
             } else if (right instanceof ConditionIn && left instanceof Comparison) {
-                Expression added = ((ConditionIn) right).getAdditional(session, (Comparison) left);
+                Expression added = ((ConditionIn) right).getAdditional((Comparison) left);
                 if (added != null) {
                     return added.optimize(session);
                 }

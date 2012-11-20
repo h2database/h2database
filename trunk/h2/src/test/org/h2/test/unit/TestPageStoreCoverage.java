@@ -208,7 +208,7 @@ public class TestPageStoreCoverage extends TestBase {
         stat.execute("delete from test where id > 5");
         stat.execute("backup to '" + getBaseDir() + "/backup.zip'");
         conn.rollback();
-        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "pageStore2", true);
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "pageStore2");
         Connection conn2;
         conn2 = getConnection("pageStore2");
         Statement stat2 = conn2.createStatement();

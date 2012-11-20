@@ -121,7 +121,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             }
             DeleteDbFiles.execute("data", null, true);
             try {
-                Restore.execute(f.getAbsolutePath(), "data", null, true);
+                Restore.execute(f.getAbsolutePath(), "data", null);
             } catch (Exception e) {
                 System.out.println(f.getName() + " restore error " + e);
                 // ignore

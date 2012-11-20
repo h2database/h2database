@@ -83,7 +83,7 @@ public class TestBackup extends TestBase {
             updateEnd.set(System.currentTimeMillis() + 2000);
             stat2.execute("backup to '"+getBaseDir()+"/backup.zip'");
             stat2.execute("checkpoint");
-            Restore.execute(getBaseDir() + "/backup.zip", getBaseDir() + "/t2", "backup", true);
+            Restore.execute(getBaseDir() + "/backup.zip", getBaseDir() + "/t2", "backup");
             Connection conn3;
             conn3 = getConnection("t2/backup");
             Statement stat3 = conn3.createStatement();
@@ -142,7 +142,7 @@ public class TestBackup extends TestBase {
         conn.close();
         Backup.execute(getBaseDir() + "/backup.zip", getBaseDir(), "backup", true);
         deleteDb("backup");
-        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "backup", true);
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "backup");
     }
 
     private void testBackupRestoreLobStatement() throws SQLException {
@@ -152,7 +152,7 @@ public class TestBackup extends TestBase {
         conn.createStatement().execute("backup to '" +getBaseDir() + "/backup.zip"+"'");
         conn.close();
         deleteDb("backup");
-        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "backup", true);
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "backup");
     }
 
     private void testBackup() throws SQLException {
@@ -177,7 +177,7 @@ public class TestBackup extends TestBase {
         conn2.rollback();
         assertEqualDatabases(stat1, stat2);
 
-        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "restored", true);
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "restored");
         conn3 = getConnection("restored");
         stat3 = conn3.createStatement();
         assertEqualDatabases(stat1, stat3);

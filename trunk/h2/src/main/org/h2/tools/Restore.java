@@ -69,7 +69,7 @@ public class Restore extends Tool {
                 showUsageAndThrowUnsupportedOption(arg);
             }
         }
-        execute(zipFileName, dir, db, false);
+        execute(zipFileName, dir, db);
     }
 
     private static String getOriginalDbName(String fileName, String db) throws IOException {
@@ -132,10 +132,9 @@ public class Restore extends Tool {
      * @param zipFileName the name of the backup file
      * @param directory the directory name
      * @param db the database name (null for all databases)
-     * @param quiet don't print progress information
      * @throws DbException if there is an IOException
      */
-    public static void execute(String zipFileName, String directory, String db, boolean quiet) {
+    public static void execute(String zipFileName, String directory, String db) {
         InputStream in = null;
         try {
             if (!FileUtils.exists(zipFileName)) {

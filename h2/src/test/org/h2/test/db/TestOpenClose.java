@@ -108,7 +108,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         stat.execute("BACKUP TO '" + getBaseDir() + "/test.zip'");
         conn.close();
         deleteDb("openClose");
-        Restore.execute(getBaseDir() + "/test.zip", getBaseDir(), null, true);
+        Restore.execute(getBaseDir() + "/test.zip", getBaseDir(), null);
         conn = DriverManager.getConnection(url, "sa", "abc def");
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST");

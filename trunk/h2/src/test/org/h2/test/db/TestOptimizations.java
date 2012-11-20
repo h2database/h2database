@@ -49,6 +49,7 @@ public class TestOptimizations extends TestBase {
         testAutoAnalyze();
         testInAndBetween();
         testNestedIn();
+        testConstantIn();
         testNestedInSelectAndLike();
         testNestedInSelect();
         testInSelectJoin();
@@ -306,6 +307,21 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
+    private void testConstantIn() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table test(id int primary key, name varchar(255))");
+        stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
+        assertSingleValue(stat, "select count(*) from test where name in ('Hello', 'World', 1)", 2);
+        assertSingleValue(stat, "select count(*) from test where name in ('Hello', 'World')", 2);
+        assertSingleValue(stat, "select count(*) from test where name in ('Hello', 'Not')", 1);
+        stat.execute("drop table test");
+
+        conn.close();
+    }
+    
     private void testNestedInSelect() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");

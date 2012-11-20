@@ -1708,45 +1708,53 @@ public class PageStore implements CacheWriter {
      * @param index the index to add
      * @param session the session
      */
-    public synchronized void addMeta(PageIndex index, Session session) {
-        int type = index instanceof PageDataIndex ? META_TYPE_DATA_INDEX : META_TYPE_BTREE_INDEX;
-        IndexColumn[] columns = index.getIndexColumns();
-        StatementBuilder buff = new StatementBuilder();
-        for (IndexColumn col : columns) {
-            buff.appendExceptFirst(",");
-            int id = col.column.getColumnId();
-            buff.append(id);
-            int sortType = col.sortType;
-            if (sortType != 0) {
-                buff.append('/');
-                buff.append(sortType);
-            }
-        }
-        String columnList = buff.toString();
+    public void addMeta(PageIndex index, Session session) {
         Table table = index.getTable();
-        CompareMode mode = table.getCompareMode();
-        String options = mode.getName()+ "," + mode.getStrength() + ",";
-        if (table.isTemporary()) {
-            options += "temp";
-        }
         if (SysProperties.CHECK) {
             if (!table.isTemporary()) {
-                database.verifyMetaLocked(session);
+                /* To prevent ABBA locking problems, we need to always take the Database lock before we take the
+                 * PageStore lock. */
+                synchronized (database) {
+                    synchronized (this) {
+                        database.verifyMetaLocked(session);
+                    }
+                }
             }
         }
-        options += ",";
-        if (index instanceof PageDelegateIndex) {
-            options += "d";
+        synchronized (this) {
+            int type = index instanceof PageDataIndex ? META_TYPE_DATA_INDEX : META_TYPE_BTREE_INDEX;
+            IndexColumn[] columns = index.getIndexColumns();
+            StatementBuilder buff = new StatementBuilder();
+            for (IndexColumn col : columns) {
+                buff.appendExceptFirst(",");
+                int id = col.column.getColumnId();
+                buff.append(id);
+                int sortType = col.sortType;
+                if (sortType != 0) {
+                    buff.append('/');
+                    buff.append(sortType);
+                }
+            }
+            String columnList = buff.toString();
+            CompareMode mode = table.getCompareMode();
+            String options = mode.getName()+ "," + mode.getStrength() + ",";
+            if (table.isTemporary()) {
+                options += "temp";
+            }
+            options += ",";
+            if (index instanceof PageDelegateIndex) {
+                options += "d";
+            }
+            Row row = metaTable.getTemplateRow();
+            row.setValue(0, ValueInt.get(index.getId()));
+            row.setValue(1, ValueInt.get(type));
+            row.setValue(2, ValueInt.get(table.getId()));
+            row.setValue(3, ValueInt.get(index.getRootPageId()));
+            row.setValue(4, ValueString.get(options));
+            row.setValue(5, ValueString.get(columnList));
+            row.setKey(index.getId() + 1);
+            metaIndex.add(session, row);
         }
-        Row row = metaTable.getTemplateRow();
-        row.setValue(0, ValueInt.get(index.getId()));
-        row.setValue(1, ValueInt.get(type));
-        row.setValue(2, ValueInt.get(table.getId()));
-        row.setValue(3, ValueInt.get(index.getRootPageId()));
-        row.setValue(4, ValueString.get(options));
-        row.setValue(5, ValueString.get(columnList));
-        row.setKey(index.getId() + 1);
-        metaIndex.add(session, row);
     }
 
     /**
@@ -1755,15 +1763,23 @@ public class PageStore implements CacheWriter {
      * @param index the index to remove
      * @param session the session
      */
-    public synchronized void removeMeta(Index index, Session session) {
+    public void removeMeta(Index index, Session session) {
         if (SysProperties.CHECK) {
             if (!index.getTable().isTemporary()) {
-                database.verifyMetaLocked(session);
+                /* To prevent ABBA locking problems, we need to always take the Database lock before we take the
+                 * PageStore lock. */
+                synchronized (database) {
+                    synchronized (this) {
+                        database.verifyMetaLocked(session);
+                    }
+                }
             }
         }
-        if (!recoveryRunning) {
-            removeMetaIndex(index, session);
-            metaObjects.remove(index.getId());
+        synchronized (this) {
+            if (!recoveryRunning) {
+                removeMetaIndex(index, session);
+                metaObjects.remove(index.getId());
+            }
         }
     }
 

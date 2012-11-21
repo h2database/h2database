@@ -829,7 +829,7 @@ public class Select extends Query {
             if (expr instanceof ExpressionColumn) {
                 Column column = ((ExpressionColumn) expr).getColumn();
                 int selectivity = column.getSelectivity();
-                Index columnIndex = topTableFilter.getTable().getIndexForColumn(column, true);
+                Index columnIndex = topTableFilter.getTable().getIndexForColumn(column);
                 if (columnIndex != null && selectivity != Constants.SELECTIVITY_DEFAULT && selectivity < 20) {
                     // the first column must be ascending
                     boolean ascending = columnIndex.getIndexColumns()[0].sortType == SortOrder.ASCENDING;

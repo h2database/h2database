@@ -942,10 +942,9 @@ public abstract class Table extends SchemaObjectBase {
      * This method returns null if no matching index is found.
      *
      * @param column the column
-     * @param first if the min value should be returned
      * @return the index or null
      */
-    public Index getIndexForColumn(Column column, boolean first) {
+    public Index getIndexForColumn(Column column) {
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {

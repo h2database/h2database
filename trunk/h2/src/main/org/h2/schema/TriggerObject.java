@@ -80,7 +80,6 @@ public class TriggerObject extends SchemaObjectBase {
     /**
      * Set the trigger class name and load the class if possible.
      *
-     * @param session the session
      * @param triggerClassName the name of the trigger class
      * @param force whether exceptions (due to missing class or access rights)
      *            should be ignored

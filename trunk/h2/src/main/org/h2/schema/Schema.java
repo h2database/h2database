@@ -510,7 +510,9 @@ public class Schema extends DbObjectBase {
      * @return a (possible empty) list of all objects
      */
     public ArrayList<Table> getAllTablesAndViews() {
-        return New.arrayList(tablesAndViews.values());
+        synchronized (database) {
+            return New.arrayList(tablesAndViews.values());
+        }
     }
 
     /**

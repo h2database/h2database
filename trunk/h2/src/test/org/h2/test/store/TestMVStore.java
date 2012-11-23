@@ -1037,7 +1037,8 @@ public class TestMVStore extends TestBase {
      * @return the store
      */
     protected static MVStore openStore(String fileName) {
-        MVStore store = MVStoreBuilder.fileBased(fileName).with(new TestMapFactory()).open();
+        MVStore store = MVStoreBuilder.fileBased(fileName).
+                with(new TestMapFactory()).open();
         store.setMaxPageSize(1000);
         return store;
     }

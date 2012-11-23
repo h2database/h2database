@@ -316,6 +316,19 @@ class FileZip extends FileBase {
     }
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+        if (shared) {
+            return new FileLock(null, position, size, shared) {
+
+                @Override
+                public boolean isValid() {
+                    return true;
+                }
+
+                @Override
+                public void release() throws IOException {
+                    // ignore
+                }};
+        }
         return null;
     }
 

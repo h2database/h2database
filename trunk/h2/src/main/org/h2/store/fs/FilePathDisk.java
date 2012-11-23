@@ -405,7 +405,7 @@ class FileDisk extends FileBase {
     }
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
-        return file.getChannel().tryLock();
+        return file.getChannel().tryLock(position, size, shared);
     }
 
     public void implCloseChannel() throws IOException {

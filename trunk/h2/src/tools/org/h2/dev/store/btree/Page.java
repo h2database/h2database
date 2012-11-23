@@ -130,12 +130,12 @@ public class Page {
             maxLength = (int) Math.min(fileSize - filePos, maxLength);
             int length = maxLength;
             if (maxLength == Integer.MAX_VALUE) {
-                buff = ByteBuffer.wrap(new byte[128]);
+                buff = ByteBuffer.allocate(128);
                 DataUtils.readFully(file, filePos, buff);
                 maxLength = buff.getInt();
                 //read the first bytes again
             }
-            buff = ByteBuffer.wrap(new byte[length]);
+            buff = ByteBuffer.allocate(length);
             DataUtils.readFully(file, filePos, buff);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -664,9 +664,9 @@ public class Page {
             int compLen = pageLength + start - buff.position();
             byte[] comp = new byte[compLen];
             buff.get(comp);
-            byte[] exp = new byte[compLen + lenAdd];
-            compressor.expand(comp, 0, compLen, exp, 0, exp.length);
-            buff = ByteBuffer.wrap(exp);
+            int l = compLen + lenAdd;
+            buff = ByteBuffer.allocate(l);
+            compressor.expand(comp, 0, compLen, buff.array(), 0, l);
         }
         DataType keyType = map.getKeyType();
         for (int i = 0; i < len; i++) {

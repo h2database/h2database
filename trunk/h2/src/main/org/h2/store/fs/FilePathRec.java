@@ -172,7 +172,7 @@ class FileRec extends FileBase {
     }
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
-        return channel.tryLock();
+        return channel.tryLock(position, size, shared);
     }
 
 }

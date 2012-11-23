@@ -293,7 +293,7 @@ class FileDebug extends FileBase {
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
         debug("tryLock");
-        return channel.tryLock();
+        return channel.tryLock(position, size, shared);
     }
 
 }

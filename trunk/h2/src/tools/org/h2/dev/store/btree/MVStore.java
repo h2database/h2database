@@ -9,12 +9,14 @@ package org.h2.dev.store.btree;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.dev.store.FilePathCache;
@@ -32,7 +34,7 @@ header: (blockSize) bytes
 [ chunk ] *
 (there are two headers for security)
 header:
-H:3,blockSize=4096,...
+H:3,...
 
 TODO:
 - support custom fields in the file header (auto-server ip address,...)
@@ -62,6 +64,13 @@ TODO:
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - write using ByteArrayOutputStream; remove DataType.getMaxLength
+- file header: check versionRead and versionWrite (and possibly rename; or rename version)
+- chunk header: store changed chunk data as row; maybe after the root
+- chunk checksum (header, last page, 2 bytes per page?)
+- allow renaming maps
+- file locking: solve problem that locks are shared for a VM
+- online backup
+- MapFactory is the wrong name (StorePlugin?) or is too flexible
 
 */
 
@@ -80,6 +89,8 @@ public class MVStore {
      */
     public static final StringType STRING_TYPE = new StringType();
 
+    static final int BLOCK_SIZE = 4 * 1024;
+
     private final String fileName;
     private final MapFactory mapFactory;
 
@@ -88,8 +99,8 @@ public class MVStore {
     private int maxPageSize = 4 * 1024;
 
     private FileChannel file;
+    private FileLock fileLock;
     private long fileSize;
-    private final int blockSize = 4 * 1024;
     private long rootChunkStart;
 
     private final CacheLongKeyLIRS<Page> cache = CacheLongKeyLIRS.newInstance(
@@ -112,6 +123,11 @@ public class MVStore {
      * The set of maps with potentially unsaved changes.
      */
     private final HashMap<Integer, MVMap<?, ?>> mapsChanged = New.hashMap();
+
+    private HashMap<String, String> fileHeader = New.hashMap();
+
+    private final boolean readOnly;
+
     private int lastMapId;
 
     private boolean reuseSpace = true;
@@ -121,37 +137,27 @@ public class MVStore {
     private Compressor compressor;
 
     private long currentVersion;
-    private int readCount;
-    private int writeCount;
+    private int fileReadCount;
+    private int fileWriteCount;
     private int unsavedPageCount;
 
-    private MVStore(String fileName, MapFactory mapFactory) {
-        this.fileName = fileName;
-        this.mapFactory = mapFactory;
-        this.compressor = mapFactory == null ?
-                new CompressLZF() :
-                mapFactory.buildCompressor();
+    MVStore(HashMap<String, Object> config) {
+        this.fileName = (String) config.get("fileName");
+        this.mapFactory = (MapFactory) config.get("mapFactory");
+        this.readOnly = "r".equals(config.get("openMode"));
+        this.compressor = "0".equals(config.get("compression")) ? null : new CompressLZF();
     }
 
     /**
-     * Open a tree store.
+     * Open a store in exclusive mode.
      *
-     * @param fileName the file name
+     * @param fileName the file name (null for in-memory)
      * @return the store
      */
     public static MVStore open(String fileName) {
-        return open(fileName, null);
-    }
-
-    /**
-     * Open a tree store.
-     *
-     * @param fileName the file name (null for in-memory)
-     * @param mapFactory the map factory
-     * @return the store
-     */
-    public static MVStore open(String fileName, MapFactory mapFactory) {
-        MVStore s = new MVStore(fileName, mapFactory);
+        HashMap<String, Object> config = New.hashMap();
+        config.put("fileName", fileName);
+        MVStore s = new MVStore(config);
         s.open();
         return s;
     }
@@ -270,7 +276,11 @@ public class MVStore {
     }
 
     /**
-     * Get the metadata map. It contains the following entries:
+     * Get the metadata map. This data is for informational purposes only. The
+     * data is subject to change in future versions. The data should not be
+     * modified (doing so may corrupt the store).
+     * <p>
+     * It contains the following entries:
      *
      * <pre>
      * map.{name} = {mapId}/{keyType}/{valueType}
@@ -351,7 +361,7 @@ public class MVStore {
         mapsChanged.put(map.getId(), map);
     }
 
-    private void open() {
+    void open() {
         meta = new MVMap<String, String>(this, 0, "meta", STRING_TYPE, STRING_TYPE, 0);
         if (fileName == null) {
             return;
@@ -360,14 +370,26 @@ public class MVStore {
         try {
             log("file open");
             file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
-            if (file.tryLock() == null) {
-                throw new RuntimeException("The file is locked: " + fileName);
+            if (readOnly) {
+                fileLock = file.tryLock(0, Long.MAX_VALUE, true);
+                if (fileLock == null) {
+                    throw new RuntimeException("The file is locked: " + fileName);
+                }
+            } else {
+                fileLock = file.tryLock();
+                if (fileLock == null) {
+                    throw new RuntimeException("The file is locked: " + fileName);
+                }
             }
             fileSize = file.size();
             if (fileSize == 0) {
-                writeHeader();
+                fileHeader.put("H", "3");
+                fileHeader.put("blockSize", "" + BLOCK_SIZE);
+                fileHeader.put("format", "1");
+                fileHeader.put("formatRead", "1");
+                writeFileHeader();
             } else {
-                readHeader();
+                readFileHeader();
                 if (rootChunkStart > 0) {
                     readMeta();
                 }
@@ -400,38 +422,54 @@ public class MVStore {
         }
     }
 
-    private void writeHeader() {
+    private void readFileHeader() {
         try {
-            ByteBuffer header = ByteBuffer.allocate(blockSize);
-            String h = "H:3," +
-                    "versionRead:1," +
-                    "versionWrite:1," +
-                    "blockSize:" + blockSize + "," +
-                    "rootChunk:" + rootChunkStart + "," +
-                    "lastMapId:" + lastMapId + "," +
-                    "version:" + currentVersion;
-            header.put(h.getBytes("UTF-8"));
-            header.rewind();
-            writeCount++;
-            DataUtils.writeFully(file,  0, header);
-            header.rewind();
-            DataUtils.writeFully(file,  blockSize, header);
-            fileSize = Math.max(fileSize, 2 * blockSize);
+            byte[] headers = new byte[2 * BLOCK_SIZE];
+            fileReadCount++;
+            DataUtils.readFully(file, 0, ByteBuffer.wrap(headers));
+            for (int i = 0; i <= BLOCK_SIZE; i += BLOCK_SIZE) {
+                String s = new String(headers, i, BLOCK_SIZE, "UTF-8").trim();
+                fileHeader = DataUtils.parseMap(s);
+                rootChunkStart = Long.parseLong(fileHeader.get("rootChunk"));
+                currentVersion = Long.parseLong(fileHeader.get("version"));
+                lastMapId = Integer.parseInt(fileHeader.get("lastMapId"));
+                int check = (int) Long.parseLong(fileHeader.get("fletcher"), 16);
+                s = s.substring(0, s.lastIndexOf("fletcher") - 1) + " ";
+                byte[] bytes = s.getBytes("UTF-8");
+                int checksum = DataUtils.getFletcher32(bytes,
+                        bytes.length / 2 * 2);
+                if (check == checksum) {
+                    return;
+                }
+            }
+            throw new RuntimeException("File header is corrupt");
         } catch (Exception e) {
             throw convert(e);
         }
     }
 
-    private void readHeader() {
+    private void writeFileHeader() {
         try {
-            byte[] headers = new byte[blockSize * 2];
-            readCount++;
-            file.read(ByteBuffer.wrap(headers), 0);
-            String s = new String(headers, 0, blockSize, "UTF-8").trim();
-            HashMap<String, String> map = DataUtils.parseMap(s);
-            rootChunkStart = Long.parseLong(map.get("rootChunk"));
-            currentVersion = Long.parseLong(map.get("version"));
-            lastMapId = Integer.parseInt(map.get("lastMapId"));
+            StringBuilder buff = new StringBuilder();
+            fileHeader.put("lastMapId", "" + lastMapId);
+            fileHeader.put("rootChunk", "" + rootChunkStart);
+            fileHeader.put("version", "" + currentVersion);
+            DataUtils.appendMap(buff, fileHeader);
+            byte[] bytes = (buff.toString() + " ").getBytes("UTF-8");
+            int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+            DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
+            bytes = buff.toString().getBytes("UTF-8");
+            if (bytes.length > BLOCK_SIZE) {
+                throw new IllegalArgumentException("File header too large: " + buff);
+            }
+            ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
+            header.put(bytes);
+            header.position(BLOCK_SIZE);
+            header.put(bytes);
+            header.rewind();
+            fileWriteCount++;
+            DataUtils.writeFully(file,  0, header);
+            fileSize = Math.max(fileSize, 2 * BLOCK_SIZE);
         } catch (Exception e) {
             throw convert(e);
         }
@@ -449,6 +487,10 @@ public class MVStore {
             try {
                 shrinkFileIfPossible(0);
                 log("file close");
+                if (fileLock != null) {
+                    fileLock.release();
+                    fileLock = null;
+                }
                 file.close();
                 for (MVMap<?, ?> m : New.arrayList(maps.values())) {
                     m.close();
@@ -477,16 +519,6 @@ public class MVStore {
         return chunks.get(DataUtils.getPageChunkId(pos));
     }
 
-    private long getFilePosition(long pos) {
-        Chunk c = getChunk(pos);
-        if (c == null) {
-            throw new RuntimeException("Chunk " + DataUtils.getPageChunkId(pos) + " not found");
-        }
-        long filePos = c.start;
-        filePos += DataUtils.getPageOffset(pos);
-        return filePos;
-    }
-
     /**
      * Increment the current version.
      *
@@ -503,7 +535,7 @@ public class MVStore {
      *
      * @return the new version (incremented if there were changes)
      */
-    public long save() {
+    public long store() {
         if (!hasUnsavedChanges()) {
             return currentVersion;
         }
@@ -592,7 +624,7 @@ public class MVStore {
         c.writeHeader(buff);
         buff.rewind();
         try {
-            writeCount++;
+            fileWriteCount++;
             DataUtils.writeFully(file, filePos, buff);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -603,7 +635,7 @@ public class MVStore {
 
         long version = incrementVersion();
         // write the new version (after the commit)
-        writeHeader();
+        writeFileHeader();
         shrinkFileIfPossible(1);
         unsavedPageCount = 0;
         return version;
@@ -634,7 +666,7 @@ public class MVStore {
             if (used >= fileSize) {
                 return;
             }
-            if (minPercent > 0 && fileSize - used < blockSize) {
+            if (minPercent > 0 && fileSize - used < BLOCK_SIZE) {
                 return;
             }
             int savedPercent = (int) (100 - (used * 100 / fileSize));
@@ -654,10 +686,10 @@ public class MVStore {
             if (c.start == Long.MAX_VALUE) {
                 continue;
             }
-            int last = (int) ((c.start + c.length) / blockSize);
+            int last = (int) ((c.start + c.length) / BLOCK_SIZE);
             min = Math.max(min,  last + 1);
         }
-        return min * blockSize;
+        return min * BLOCK_SIZE;
     }
 
     private long allocateChunk(long length) {
@@ -671,11 +703,11 @@ public class MVStore {
             if (c.start == Long.MAX_VALUE) {
                 continue;
             }
-            int first = (int) (c.start / blockSize);
-            int last = (int) ((c.start + c.length) / blockSize);
+            int first = (int) (c.start / BLOCK_SIZE);
+            int last = (int) ((c.start + c.length) / BLOCK_SIZE);
             set.set(first, last +1);
         }
-        int required = (int) (length / blockSize) + 1;
+        int required = (int) (length / BLOCK_SIZE) + 1;
         for (int i = 0; i < set.size(); i++) {
             if (!set.get(i)) {
                 boolean ok = true;
@@ -686,11 +718,11 @@ public class MVStore {
                     }
                 }
                 if (ok) {
-                    return i * blockSize;
+                    return i * BLOCK_SIZE;
                 }
             }
         }
-        return set.size() * blockSize;
+        return set.size() * BLOCK_SIZE;
     }
 
     /**
@@ -712,8 +744,8 @@ public class MVStore {
 
     private Chunk readChunkHeader(long start) {
         try {
-            readCount++;
-            ByteBuffer buff = ByteBuffer.wrap(new byte[32]);
+            fileReadCount++;
+            ByteBuffer buff = ByteBuffer.allocate(32);
             DataUtils.readFully(file, start, buff);
             buff.rewind();
             return Chunk.fromHeader(buff, start);
@@ -801,7 +833,7 @@ public class MVStore {
             copyLive(c, old);
         }
 
-        save();
+        store();
         return true;
     }
 
@@ -871,8 +903,13 @@ public class MVStore {
     Page readPage(MVMap<?, ?> map, long pos) {
         Page p = cache.get(pos);
         if (p == null) {
-            long filePos = getFilePosition(pos);
-            readCount++;
+            Chunk c = getChunk(pos);
+            if (c == null) {
+                throw new RuntimeException("Chunk " + DataUtils.getPageChunkId(pos) + " not found");
+            }
+            long filePos = c.start;
+            filePos += DataUtils.getPageOffset(pos);
+            fileReadCount++;
             p = Page.read(file, map, pos, filePos, fileSize);
             cache.put(pos, p);
         }
@@ -1038,21 +1075,26 @@ public class MVStore {
         unsavedPageCount++;
     }
 
+    /**
+     * Get the store version. The store version is usually used to upgrade the
+     * structure of the store after upgrading the application. Initially the
+     * store version is 0, until it is changed.
+     *
+     * @return the store version
+     */
     public int getStoreVersion() {
-        String x = getSetting("storeVersion");
+        String x = meta.get("setting.storeVersion");
         return x == null ? 0 : Integer.parseInt(x);
     }
 
+    /**
+     * Update the store version. The setting is immediately
+     * persisted.
+     *
+     * @param version the new store version
+     */
     public void setStoreVersion(int version) {
-        setSetting("storeVersion", Integer.toString(version));
-    }
-
-    public String getSetting(String key) {
-        return meta.get("setting." + key);
-    }
-
-    public void setSetting(String key, String value) {
-        meta.put("setting." + key, value);
+        meta.put("setting.storeVersion", Integer.toString(version));
     }
 
     /**
@@ -1092,8 +1134,8 @@ public class MVStore {
                     last = chunks.get(lastChunkId);
                 }
                 rootChunkStart = last.start;
-                writeHeader();
-                readHeader();
+                writeFileHeader();
+                readFileHeader();
                 readMeta();
             }
         }
@@ -1131,21 +1173,41 @@ public class MVStore {
     }
 
     /**
-     * Get the number of write operations since this store was opened.
+     * Get the number of file write operations since this store was opened.
      *
      * @return the number of write operations
      */
-    public int getWriteCount() {
-        return writeCount;
+    public int getFileWriteCount() {
+        return fileWriteCount;
     }
 
     /**
-     * Get the number of read operations since this store was opened.
+     * Get the number of file read operations since this store was opened.
      *
      * @return the number of read operations
      */
-    public int getReadCount() {
-        return readCount;
+    public int getFileReadCount() {
+        return fileReadCount;
+    }
+
+    /**
+     * Get the file name, or null for in-memory stores.
+     *
+     * @return the file name
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
+     * Get the file header. This data is for informational purposes only. The
+     * data is subject to change in future versions. The data should not be
+     * modified (doing so may corrupt the store).
+     *
+     * @return the file header
+     */
+    public Map<String, String> getFileHeader() {
+        return fileHeader;
     }
 
 }

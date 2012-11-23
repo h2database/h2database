@@ -64,7 +64,7 @@ public class TestMVRTree extends TestMVStore {
             SpatialKey k = new SpatialKey(i, x - p, x + p, y - p, y + p);
             r.add(k, "" + i);
             if (i > 0 && (i % len / 10) == 0) {
-                s.save();
+                s.store();
             }
             if (i > 0 && (i % 10000) == 0) {
                 render(r, getBaseDir() + "/test.png");
@@ -72,7 +72,7 @@ public class TestMVRTree extends TestMVStore {
         }
         // System.out.println(prof.getTop(5));
         // System.out.println("add: " + (System.currentTimeMillis() - t));
-        s.save();
+        s.store();
         s.close();
         s = openStore(fileName);
         r = s.openMap("data", "r", "s2", "");

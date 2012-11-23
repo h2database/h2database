@@ -17,61 +17,58 @@ import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 
 /**
- * Convert a database file to a human-readable text dump.
+ * Utility methods used in combination with the MVStore.
  */
-public class Dump {
-
-    private static int blockSize = 4 * 1024;
+public class MVStoreUtils {
 
     /**
      * Runs this tool.
      * Options are case sensitive. Supported options are:
      * <table>
-     * <tr><td>[-file]</td>
-     * <td>The database file name</td></tr>
+     * <tr><td>[-dump &lt;dir&gt;]</td>
+     * <td>Dump the contends of the file</td></tr>
      * </table>
      *
      * @param args the command line arguments
      */
-    public static void main(String... args) {
-        String fileName = "test.h3";
+    public static void main(String... args) throws IOException {
         for (int i = 0; i < args.length; i++) {
-            if ("-file".equals(args[i])) {
-                fileName = args[++i];
+            if ("-dump".equals(args[i])) {
+                String fileName = args[++i];
+                dump(fileName, new PrintWriter(System.out));
             }
         }
-        dump(fileName, new PrintWriter(System.out));
     }
 
     /**
-     * Dump the contents of the file.
+     * Read the contents of the file and display them in a human-readable
+     * format.
      *
      * @param fileName the name of the file
      * @param writer the print writer
      */
-    public static void dump(String fileName, PrintWriter writer) {
+    public static void dump(String fileName, PrintWriter writer) throws IOException {
         if (!FileUtils.exists(fileName)) {
             writer.println("File not found: " + fileName);
             return;
         }
         FileChannel file = null;
+        int blockSize = MVStore.BLOCK_SIZE;
         try {
             file = FilePath.get(fileName).open("r");
             long fileLength = file.size();
-            file.position(0);
             byte[] header = new byte[blockSize];
-            file.read(ByteBuffer.wrap(header));
+            file.read(ByteBuffer.wrap(header), 0);
             Properties prop = new Properties();
             prop.load(new ByteArrayInputStream(header));
             prop.load(new StringReader(new String(header, "UTF-8")));
             writer.println("file " + fileName);
             writer.println("    length " + fileLength);
             writer.println("    " + prop);
-            ByteBuffer block = ByteBuffer.wrap(new byte[32]);
+            ByteBuffer block = ByteBuffer.allocate(32);
             for (long pos = 0; pos < fileLength;) {
-                file.position(pos);
                 block.rewind();
-                FileUtils.readFully(file,  block);
+                DataUtils.readFully(file, pos, block);
                 block.rewind();
                 if (block.get() != 'c') {
                     pos += blockSize;
@@ -89,8 +86,7 @@ public class Dump {
                         " root " + metaRootPos +
                         " maxLengthLive " + maxLengthLive);
                 ByteBuffer chunk = ByteBuffer.allocate(chunkLength);
-                file.position(pos);
-                FileUtils.readFully(file, chunk);
+                DataUtils.readFully(file, pos, chunk);
                 int p = block.position();
                 pos = (pos + chunkLength + blockSize) / blockSize * blockSize;
                 chunkLength -= p;
@@ -114,6 +110,7 @@ public class Dump {
             }
         } catch (IOException e) {
             writer.println("ERROR: " + e);
+            throw e;
         } finally {
             if (file != null) {
                 try {

@@ -216,7 +216,7 @@ class FilePathMemLZF extends FilePathMem {
  */
 class FileMem extends FileBase {
 
-    private final FileMemData data;
+    final FileMemData data;
     private final boolean readOnly;
     private long pos;
 
@@ -282,7 +282,28 @@ class FileMem extends FileBase {
     }
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
-        return null;
+        if (shared) {
+            if (!data.lockShared()) {
+                return null;
+            }
+        } else {
+            if (!data.lockExclusive()) {
+                return null;
+            }
+        }
+        FileLock lock = new FileLock(null, position, size, shared) {
+
+            @Override
+            public boolean isValid() {
+                return true;
+            }
+
+            @Override
+            public void release() throws IOException {
+                data.unlock();
+            }
+        };
+        return lock;
     }
 
     public String toString() {
@@ -314,12 +335,45 @@ class FileMemData {
     private byte[][] data;
     private long lastModified;
     private boolean isReadOnly;
+    private boolean isLockedExclusive;
+    private int sharedLockCount;
 
     static {
         byte[] n = new byte[BLOCK_SIZE];
         int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
         COMPRESSED_EMPTY_BLOCK = new byte[len];
         System.arraycopy(BUFFER, 0, COMPRESSED_EMPTY_BLOCK, 0, len);
+    }
+
+    FileMemData(String name, boolean compress) {
+        this.name = name;
+        this.compress = compress;
+        data = new byte[0][];
+        lastModified = System.currentTimeMillis();
+    }
+
+    synchronized boolean lockExclusive() {
+        if (sharedLockCount > 0 || isLockedExclusive) {
+            return false;
+        }
+        isLockedExclusive = true;
+        return true;
+    }
+
+    synchronized boolean lockShared() {
+        if (isLockedExclusive) {
+            return false;
+        }
+        sharedLockCount++;
+        return true;
+    }
+
+    synchronized void unlock() {
+        if (isLockedExclusive) {
+            isLockedExclusive = false;
+        } else {
+            sharedLockCount = Math.max(0, sharedLockCount - 1);
+        }
     }
 
     /**
@@ -371,13 +425,7 @@ class FileMemData {
             }
             return false;
         }
-    }
 
-    FileMemData(String name, boolean compress) {
-        this.name = name;
-        this.compress = compress;
-        data = new byte[0][];
-        lastModified = System.currentTimeMillis();
     }
 
     private static void compressLater(byte[][] data, int page) {

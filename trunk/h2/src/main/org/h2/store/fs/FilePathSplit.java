@@ -370,7 +370,7 @@ class FileSplit extends FileBase {
     }
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
-        return list[0].tryLock();
+        return list[0].tryLock(position, size, shared);
     }
 
     public String toString() {

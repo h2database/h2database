@@ -188,7 +188,7 @@ class FileCrypt extends FileBase {
     }
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
-        return file.tryLock();
+        return file.tryLock(position, size, shared);
     }
 
     public void implCloseChannel() throws IOException {

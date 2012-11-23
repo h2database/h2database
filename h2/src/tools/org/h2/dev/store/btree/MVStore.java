@@ -91,6 +91,8 @@ public class MVStore {
 
     static final int BLOCK_SIZE = 4 * 1024;
 
+    private final HashMap<String, Object> config;
+
     private final String fileName;
     private final MapFactory mapFactory;
 
@@ -130,7 +132,7 @@ public class MVStore {
 
     private int lastMapId;
 
-    private boolean reuseSpace = true;
+    private volatile boolean reuseSpace = true;
     private long retainVersion = -1;
     private int retainChunk = -1;
 
@@ -142,6 +144,7 @@ public class MVStore {
     private int unsavedPageCount;
 
     MVStore(HashMap<String, Object> config) {
+        this.config = config;
         this.fileName = (String) config.get("fileName");
         this.mapFactory = (MapFactory) config.get("mapFactory");
         this.readOnly = "r".equals(config.get("openMode"));
@@ -395,6 +398,7 @@ public class MVStore {
                 }
             }
         } catch (Exception e) {
+            close();
             throw convert(e);
         }
     }
@@ -985,6 +989,19 @@ public class MVStore {
         return reuseSpace;
     }
 
+    /**
+     * Whether empty space in the file should be re-used. If enabled, old data
+     * is overwritten (default). If disabled, writes are appended at the end of
+     * the file.
+     * <p>
+     * This setting is specially useful for online backup. To create an online
+     * backup, disable this setting, then copy the file (starting at the
+     * beginning of the file). In this case, concurrent backup and write
+     * operations are possible (obviously the backup process needs to be faster
+     * than the write operations).
+     *
+     * @param reuseSpace the new value
+     */
     public void setReuseSpace(boolean reuseSpace) {
         this.reuseSpace = reuseSpace;
     }
@@ -1208,6 +1225,10 @@ public class MVStore {
      */
     public Map<String, String> getFileHeader() {
         return fileHeader;
+    }
+
+    public String toString() {
+        return DataUtils.appendMap(new StringBuilder(), config).toString();
     }
 
 }

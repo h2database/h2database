@@ -5,12 +5,19 @@
  */
 package org.h2.test.store;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.MVStore;
 import org.h2.dev.store.btree.MVStoreBuilder;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -28,10 +35,96 @@ public class TestConcurrent extends TestMVStore {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws InterruptedException {
+    public void test() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        testConcurrentOnlineBackup();
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+    }
+
+    private void testConcurrentOnlineBackup() throws Exception {
+        String fileName = getBaseDir() + "/onlineBackup.h3";
+        String fileNameRestore = getBaseDir() + "/onlineRestore.h3";
+        final MVStore s = openStore(fileName);
+        final MVMap<Integer, byte[]> map = s.openMap("test");
+        final Random r = new Random();
+        Task t = new Task() {
+            @Override
+            public void call() throws Exception {
+                while (!stop) {
+                    for (int i = 0; i < 100; i++) {
+                        map.put(i, new byte[100 * r.nextInt(100)]);
+                    }
+                    s.store();
+                    map.clear();
+                    s.store();
+                    long len = new File(s.getFileName()).length();
+                    if (len > 1024 * 100) {
+                        // slow down writing
+                        Thread.sleep(10);
+                    }
+                }
+            }
+        };
+        t.execute();
+        // the wrong way to back up
+        try {
+            for (int i = 0; i < 10; i++) {
+                byte[] buff = readFileSlowly(fileName);
+                FileOutputStream out = new FileOutputStream(fileNameRestore);
+                out.write(buff);
+                MVStore s2 = openStore(fileNameRestore);
+                try {
+                    MVMap<Integer, byte[]> test = s2.openMap("test");
+                    for (Integer k : test.keySet()) {
+                        test.get(k);
+                    }
+                } finally {
+                    s2.close();
+                }
+            }
+            fail();
+        } catch (Exception e) {
+            // expected
+        }
+        // the right way to back up
+        for (int i = 0; i < 10; i++) {
+            // System.out.println("test " + i);
+            s.setReuseSpace(false);
+            byte[] buff = readFileSlowly(fileName);
+            s.setReuseSpace(true);
+            FileOutputStream out = new FileOutputStream(fileNameRestore);
+            out.write(buff);
+            MVStore s2 = openStore(fileNameRestore);
+            MVMap<Integer, byte[]> test = s2.openMap("test");
+            for (Integer k : test.keySet()) {
+                test.get(k);
+            }
+            s2.close();
+            // let it compact
+            Thread.sleep(10);
+        }
+        t.get();
+        s.close();
+    }
+
+    private static byte[] readFileSlowly(String fileName) throws Exception {
+        InputStream in = new BufferedInputStream(new FileInputStream(
+                fileName));
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        for (int j = 0;; j++) {
+            int x = in.read();
+            if (x < 0) {
+                break;
+            }
+            buff.write(x);
+            if (j % 4096 == 0) {
+                Thread.sleep(1);
+            }
+        }
+        in.close();
+        return buff.toByteArray();
     }
 
     private void testConcurrentIterate() {

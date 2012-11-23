@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.HashMap;
 import org.h2.dev.store.btree.DataUtils;
 import org.h2.test.TestBase;
@@ -27,12 +28,36 @@ public class TestDataUtils extends TestBase {
     }
 
     public void test() throws Exception {
+        testFletcher();
         testMap();
         testMaxShortVarIntVarLong();
         testVarIntVarLong();
         testCheckValue();
         testPagePos();
         testEncodeLength();
+    }
+
+    private void testFletcher() throws Exception {
+        byte[] data = new byte[10000];
+        for (int i = 0; i < 10000; i += 1000) {
+            assertEquals(-1, DataUtils.getFletcher32(data, i));
+        }
+        Arrays.fill(data, (byte) 255);
+        for (int i = 0; i < 10000; i += 1000) {
+            assertEquals(-1, DataUtils.getFletcher32(data, i));
+        }
+        long last = 0;
+        for (int i = 1; i < 255; i++) {
+            Arrays.fill(data, (byte) i);
+            for (int j = 0; j < 10; j += 2) {
+                int x = DataUtils.getFletcher32(data, j);
+                assertTrue(x != last);
+                last = x;
+            }
+        }
+        Arrays.fill(data, (byte) 10);
+        assertEquals(0x1e1e1414, DataUtils.getFletcher32(data, 10000));
+        assertEquals(0x1e3fa7ed, DataUtils.getFletcher32("Fletcher32".getBytes(), 10));
     }
 
     private void testMap() {

@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import org.h2.util.New;
 
@@ -425,7 +427,23 @@ public class DataUtils {
     }
 
     /**
-     * Append a key-value pair to the string buffer. Keys may not contain a
+     * Append a map to the string builder, sorted by key.
+     *
+     * @param buff the target buffer
+     * @param map the map
+     * @return the string builder
+     */
+    public static StringBuilder appendMap(StringBuilder buff, HashMap<String, ?> map) {
+        ArrayList<String> list = New.arrayList(map.keySet());
+        Collections.sort(list);
+        for (String k : list) {
+            appendMap(buff, k, map.get(k));
+        }
+        return buff;
+    }
+
+    /**
+     * Append a key-value pair to the string builder. Keys may not contain a
      * colon. Values that contain a comma or a double quote are enclosed in
      * double quotes, with special characters escaped using a backslash.
      *
@@ -488,6 +506,28 @@ public class DataUtils {
             map.put(key, buff.toString());
         }
         return map;
+    }
+
+    /**
+     * Calculate the Fletcher32 checksum.
+     *
+     * @param bytes the bytes
+     * @param length the message length (must be a multiple of 2)
+     * @return the checksum
+     */
+    public static int getFletcher32(byte[] bytes, int length) {
+        int s1 = 0xffff, s2 = 0xffff;
+        for (int i = 0; i < length;) {
+            for (int end = Math.min(i + 718, length); i < end;) {
+                int x = ((bytes[i++] & 0xff) << 8) | (bytes[i++] & 0xff);
+                s2 += s1 += x;
+            }
+            s1 = (s1 & 0xffff) + (s1 >>> 16);
+            s2 = (s2 & 0xffff) + (s2 >>> 16);
+        }
+        s1 = (s1 & 0xffff) + (s1 >>> 16);
+        s2 = (s2 & 0xffff) + (s2 >>> 16);
+        return (s2 << 16) | s1;
     }
 
 }

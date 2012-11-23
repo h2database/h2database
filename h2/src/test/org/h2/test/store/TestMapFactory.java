@@ -5,8 +5,6 @@
  */
 package org.h2.test.store;
 
-import org.h2.compress.CompressLZF;
-import org.h2.compress.Compressor;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.MVStore;
 import org.h2.dev.store.btree.DataType;
@@ -57,11 +55,6 @@ public class TestMapFactory implements MapFactory {
             return "o";
         }
         throw new RuntimeException("Unsupported object class " + objectClass.toString());
-    }
-
-    @Override
-    public Compressor buildCompressor() {
-        return new CompressLZF();
     }
 
 }

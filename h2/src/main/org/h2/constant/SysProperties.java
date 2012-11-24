@@ -6,6 +6,7 @@
  */
 package org.h2.constant;
 
+import org.h2.api.JavaObjectSerializer;
 import org.h2.message.TraceSystem;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
@@ -396,6 +397,13 @@ public class SysProperties {
      * immutable.
      */
     public static boolean serializeJavaObject = Utils.getProperty("h2.serializeJavaObject", true);
+
+    /**
+     * System property <code>h2.javaObjectSerializer</code> (default: null).<br />
+     * {@link JavaObjectSerializer} class name for java objects being stored in column of type OTHER.
+     * It must be the same on client and server to work correctly.
+     */
+    public static final String JAVA_OBJECT_SERIALIZER = Utils.getProperty("h2.javaObjectSerializer", null);
 
     private static final String H2_BASE_DIR = "h2.baseDir";
 

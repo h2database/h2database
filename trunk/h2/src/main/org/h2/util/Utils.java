@@ -31,6 +31,8 @@ import org.h2.message.DbException;
  */
 public class Utils {
 
+    public static JavaObjectSerializer serializer;
+
     /**
      * An 0-size byte array.
      */
@@ -55,8 +57,6 @@ public class Utils {
     private static boolean allowAllClasses;
     private static HashSet<String> allowedClassNames;
     private static String[] allowedClassNamePrefixes;
-
-    public static JavaObjectSerializer serializer;
 
     static {
         String cls = SysProperties.JAVA_OBJECT_SERIALIZER;
@@ -267,9 +267,9 @@ public class Utils {
      */
     public static byte[] serialize(Object obj) {
         try {
-            if (serializer != null)
+            if (serializer != null) {
                 return serializer.serialize(obj);
-
+            }
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ObjectOutputStream os = new ObjectOutputStream(out);
             os.writeObject(obj);
@@ -288,9 +288,9 @@ public class Utils {
      */
     public static Object deserialize(byte[] data) {
         try {
-            if (serializer != null)
+            if (serializer != null) {
                 return serializer.deserialize(data);
-
+            }
             ByteArrayInputStream in = new ByteArrayInputStream(data);
             ObjectInputStream is;
             if (SysProperties.USE_THREAD_CONTEXT_CLASS_LOADER) {

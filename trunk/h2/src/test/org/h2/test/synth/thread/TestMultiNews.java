@@ -21,7 +21,7 @@ public class TestMultiNews extends TestMultiThread {
     private static final String PREFIX_URL =
         "http://feeds.wizbangblog.com/WizbangFullFeed?m=";
 
-    private static final int len = 10000;
+    private static final int LEN = 10000;
     private Connection conn;
 
     TestMultiNews(TestMulti base) throws SQLException {
@@ -49,7 +49,7 @@ public class TestMultiNews extends TestMultiThread {
                 } else {
                     prep = conn.prepareStatement("SELECT * FROM NEWS WHERE VALUE = ?");
                 }
-                prep.setString(1, PREFIX_URL + random.nextInt(len));
+                prep.setString(1, PREFIX_URL + random.nextInt(LEN));
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
                     throw new SQLException("expected one row, got none");
@@ -60,7 +60,7 @@ public class TestMultiNews extends TestMultiThread {
             } else {
                 PreparedStatement prep = conn.prepareStatement("UPDATE NEWS SET STATE = ? WHERE FID = ?");
                 prep.setInt(1, random.nextInt(100));
-                prep.setInt(2, random.nextInt(len));
+                prep.setInt(2, random.nextInt(LEN));
                 int count = prep.executeUpdate();
                 if (count != 1) {
                     throw new SQLException("expected one row, got " + count);
@@ -93,7 +93,7 @@ public class TestMultiNews extends TestMultiThread {
         PreparedStatement prep = c.prepareStatement("INSERT INTO NEWS (FID, COMMENTS, LINK, STATE, VALUE) VALUES "
                 + "(?, ?, ?, ?, ?) ");
         PreparedStatement prep2 = c.prepareStatement("INSERT INTO TEST (NAME) VALUES (?)");
-        for (int i = 0; i < len; i++) {
+        for (int i = 0; i < LEN; i++) {
             int x = random.nextInt(10) * 128;
             StringBuilder buff = new StringBuilder();
             while (buff.length() < x) {

@@ -25,8 +25,9 @@ public class TestKill extends TestBase {
 
     private static final String DIR = TestBase.getTestDir("kill");
 
+    private static final int ACCOUNTS = 10;
+
     private Connection conn;
-    private static final int accounts = 10;
     private final Random random = new Random(1);
 
     /**
@@ -51,7 +52,7 @@ public class TestKill extends TestBase {
                 "java", selfDestruct,
                 "-cp", getClassPath(),
                 "org.h2.test.synth.TestKillProcess", url, user,
-                password, getBaseDir(), "" + accounts };
+                password, getBaseDir(), "" + ACCOUNTS };
 
         for (int i = 0;; i++) {
             printTime("TestKill " + i);
@@ -102,13 +103,13 @@ public class TestKill extends TestBase {
         conn.createStatement().execute("DROP TABLE TEST_B");
         createTables();
         PreparedStatement prep = conn.prepareStatement("INSERT INTO ACCOUNT VALUES(?, 0)");
-        for (int i = 0; i < accounts; i++) {
+        for (int i = 0; i < ACCOUNTS; i++) {
             prep.setInt(1, i);
             prep.execute();
         }
         PreparedStatement p1 = conn.prepareStatement("INSERT INTO TEST_A VALUES(?, '')");
         PreparedStatement p2 = conn.prepareStatement("INSERT INTO TEST_B VALUES(?, '')");
-        for (int i = 0; i < accounts; i++) {
+        for (int i = 0; i < ACCOUNTS; i++) {
             p1.setInt(1, i);
             p2.setInt(1, i);
             p1.execute();
@@ -132,7 +133,7 @@ public class TestKill extends TestBase {
         }
         PreparedStatement p1 = conn.prepareStatement("SELECT * FROM TEST_A WHERE ID=?");
         PreparedStatement p2 = conn.prepareStatement("SELECT * FROM TEST_B WHERE ID=?");
-        for (int i = 0; i < accounts; i++) {
+        for (int i = 0; i < ACCOUNTS; i++) {
             p1.setInt(1, i);
             p2.setInt(1, i);
             ResultSet r1 = p1.executeQuery();

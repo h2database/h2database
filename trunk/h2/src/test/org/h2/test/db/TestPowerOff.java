@@ -24,7 +24,7 @@ import org.h2.util.JdbcUtils;
  */
 public class TestPowerOff extends TestBase {
 
-    private static final String dbName = "powerOff";
+    private static final String DB_NAME = "powerOff";
     private String dir, url;
 
     private int maxPowerOffCount;
@@ -44,10 +44,10 @@ public class TestPowerOff extends TestBase {
         }
         if (config.big || config.googleAppEngine) {
             dir = getBaseDir();
-            url = dbName;
+            url = DB_NAME;
         } else {
             dir = "memFS:";
-            url = "memFS:/" + dbName;
+            url = "memFS:/" + DB_NAME;
         }
         url += ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
         testLobCrash();
@@ -56,14 +56,14 @@ public class TestPowerOff extends TestBase {
         testShutdown();
         testMemoryTables();
         testPersistentTables();
-        deleteDb(dir, dbName);
+        deleteDb(dir, DB_NAME);
     }
 
     private void testLobCrash() throws SQLException {
         if (config.networked) {
             return;
         }
-        deleteDb(dir, dbName);
+        deleteDb(dir, DB_NAME);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity, data clob)");
@@ -97,7 +97,7 @@ public class TestPowerOff extends TestBase {
         if (config.networked) {
             return;
         }
-        deleteDb(dir, dbName);
+        deleteDb(dir, DB_NAME);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         for (int i = 0; i < 10; i++) {
@@ -141,7 +141,7 @@ public class TestPowerOff extends TestBase {
         if (config.networked) {
             return;
         }
-        deleteDb(dir, dbName);
+        deleteDb(dir, DB_NAME);
         Random random = new Random(1);
         SysProperties.runFinalize = false;
         int repeat = getSize(1, 20);
@@ -179,7 +179,7 @@ public class TestPowerOff extends TestBase {
     }
 
     private void testShutdown() throws SQLException {
-        deleteDb(dir, dbName);
+        deleteDb(dir, DB_NAME);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
@@ -199,7 +199,7 @@ public class TestPowerOff extends TestBase {
         if (config.networked) {
             return;
         }
-        deleteDb(dir, dbName);
+        deleteDb(dir, DB_NAME);
 
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
@@ -239,7 +239,7 @@ public class TestPowerOff extends TestBase {
             // individual writes, many thousand operations)
             return;
         }
-        deleteDb(dir, dbName);
+        deleteDb(dir, DB_NAME);
 
         // ((JdbcConnection)conn).setPowerOffCount(Integer.MAX_VALUE);
         testRun(true);
@@ -253,7 +253,7 @@ public class TestPowerOff extends TestBase {
 
     private void runTest(int min, int max, boolean withConsistencyCheck) throws SQLException {
         for (int i = min; i < max; i++) {
-            deleteDb(dir, dbName);
+            deleteDb(dir, DB_NAME);
             Database.setInitialPowerOffCount(i);
             int expect = testRun(false);
             if (withConsistencyCheck) {

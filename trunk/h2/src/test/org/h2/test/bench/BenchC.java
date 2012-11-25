@@ -21,8 +21,11 @@ import java.sql.Types;
  */
 public class BenchC implements Bench {
 
-        private static final String[] TABLES = { "WAREHOUSE", "DISTRICT", "CUSTOMER", "HISTORY", "ORDERS",
+    private static final int COMMIT_EVERY = 1000;
+
+    private static final String[] TABLES = { "WAREHOUSE", "DISTRICT", "CUSTOMER", "HISTORY", "ORDERS",
             "NEW_ORDER", "ITEM", "STOCK", "ORDER_LINE", "RESULTS" };
+
     private static final String[] CREATE_SQL = {
             "CREATE TABLE  WAREHOUSE(\n" +
             " W_ID INT NOT NULL PRIMARY KEY,\n" +
@@ -176,9 +179,6 @@ public class BenchC implements Bench {
     private BenchCRandom random;
     private String action;
 
-    private static final int commitEvery = 1000;
-
-
     public void init(Database db, int size) throws SQLException {
         this.database = db;
 
@@ -248,7 +248,7 @@ public class BenchC implements Bench {
             prep.setString(5, data);
             database.update(prep, "insertItem");
             trace(id, items);
-            if (id % commitEvery == 0) {
+            if (id % COMMIT_EVERY == 0) {
                 database.commit();
             }
         }
@@ -282,7 +282,7 @@ public class BenchC implements Bench {
             database.update(prep, "insertWarehouse");
             loadStock(id);
             loadDistrict(id);
-            if (id % commitEvery == 0) {
+            if (id % COMMIT_EVERY == 0) {
                 database.commit();
             }
         }
@@ -296,7 +296,7 @@ public class BenchC implements Bench {
             for (int districtId = 1; districtId <= districtsPerWarehouse; districtId++) {
                 loadCustomerSub(districtId, id);
                 trace(i++, max);
-                if (i % commitEvery == 0) {
+                if (i % COMMIT_EVERY == 0) {
                     database.commit();
                 }
             }
@@ -452,7 +452,7 @@ public class BenchC implements Bench {
                 prepLine.setBigDecimal(8, amount);
                 prepLine.setString(9, distInfo);
                 database.update(prepLine, "insertOrderLine");
-                if (i++ % commitEvery == 0) {
+                if (i++ % COMMIT_EVERY == 0) {
                     database.commit();
                 }
             }
@@ -502,7 +502,7 @@ public class BenchC implements Bench {
             prep.setInt(16, 0);
             prep.setInt(17, 0);
             database.update(prep, "insertStock");
-            if (id % commitEvery == 0) {
+            if (id % COMMIT_EVERY == 0) {
                 database.commit();
             }
             trace(id, items);

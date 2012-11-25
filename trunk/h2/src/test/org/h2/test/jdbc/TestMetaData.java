@@ -23,10 +23,10 @@ import org.h2.value.DataType;
  */
 public class TestMetaData extends TestBase {
 
+    private static final String CATALOG = "METADATA";
     private Connection conn;
     private DatabaseMetaData meta;
     private Statement stat;
-    private static final String catalog = "METADATA";
 
     /**
      * Run just this test.
@@ -65,7 +65,7 @@ public class TestMetaData extends TestBase {
 
         rs = meta.getCatalogs();
         rs.next();
-        assertEquals(catalog, rs.getString(1));
+        assertEquals(CATALOG, rs.getString(1));
         assertFalse(rs.next());
 
         rs = meta.getSchemas();
@@ -326,7 +326,7 @@ public class TestMetaData extends TestBase {
                 }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER,
                 Types.VARCHAR, Types.SMALLINT, Types.VARCHAR }, null, null);
-        assertResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "EXIT", "1", "0", "0", "",
+        assertResultSetOrdered(rs, new String[][] { { CATALOG, Constants.SCHEMA_MAIN, "EXIT", "1", "0", "0", "",
                 "" + DatabaseMetaData.procedureNoResult } });
         rs = meta.getProcedureColumns(null, null, null, null);
         assertResultSetMeta(rs, 20,
@@ -338,9 +338,9 @@ public class TestMetaData extends TestBase {
                         Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.SMALLINT, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
                         Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.VARCHAR}, null, null);
         assertResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "EXIT", "P1", "" + DatabaseMetaData.procedureColumnIn,
+                { CATALOG, Constants.SCHEMA_MAIN, "EXIT", "P1", "" + DatabaseMetaData.procedureColumnIn,
                         "" + Types.INTEGER, "INTEGER", "10", "10", "0", "10", "" + DatabaseMetaData.procedureNoNulls },
-                { catalog, Constants.SCHEMA_MAIN, "PROP", "P1", "" + DatabaseMetaData.procedureColumnIn,
+                { CATALOG, Constants.SCHEMA_MAIN, "PROP", "P1", "" + DatabaseMetaData.procedureColumnIn,
                         "" + Types.VARCHAR, "VARCHAR", "" + Integer.MAX_VALUE, "" + Integer.MAX_VALUE, "0", "10",
                         "" + DatabaseMetaData.procedureNullable }, });
         stat.execute("DROP ALIAS EXIT");
@@ -383,10 +383,10 @@ public class TestMetaData extends TestBase {
                 Types.SMALLINT, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT }, null,
                 null);
         assertResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "PARENT", "A", catalog, Constants.SCHEMA_MAIN, "CHILD", "PA", "1",
+                { CATALOG, Constants.SCHEMA_MAIN, "PARENT", "A", CATALOG, Constants.SCHEMA_MAIN, "CHILD", "PA", "1",
                         "" + DatabaseMetaData.importedKeyRestrict, "" + DatabaseMetaData.importedKeyRestrict, "AB",
                         "PRIMARY_KEY_8", "" + DatabaseMetaData.importedKeyNotDeferrable },
-                { catalog, Constants.SCHEMA_MAIN, "PARENT", "B", catalog, Constants.SCHEMA_MAIN, "CHILD", "PB", "2",
+                { CATALOG, Constants.SCHEMA_MAIN, "PARENT", "B", CATALOG, Constants.SCHEMA_MAIN, "CHILD", "PB", "2",
                         "" + DatabaseMetaData.importedKeyRestrict, "" + DatabaseMetaData.importedKeyRestrict, "AB",
                         "PRIMARY_KEY_8", "" + DatabaseMetaData.importedKeyNotDeferrable } });
     }
@@ -680,7 +680,7 @@ public class TestMetaData extends TestBase {
         stat.executeUpdate("CREATE TABLE TEST(" + "ID INT PRIMARY KEY," + "TEXT_V VARCHAR(120),"
                 + "DEC_V DECIMAL(12,3)," + "DATE_V DATETIME," + "BLOB_V BLOB," + "CLOB_V CLOB" + ")");
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, null, new String[] { "TABLE" });
-        assertResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "TABLE", "" } });
+        assertResultSetOrdered(rs, new String[][] { { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TABLE", "" } });
         trace("getColumns");
         rs = meta.getColumns(null, null, "TEST", null);
         assertResultSetMeta(rs, 24, new String[] { "TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "COLUMN_NAME", "DATA_TYPE",
@@ -693,23 +693,23 @@ public class TestMetaData extends TestBase {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.VARCHAR, Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs,
                 new String[][] {
-                        { catalog, Constants.SCHEMA_MAIN, "TEST", "ID", "" + Types.INTEGER, "INTEGER", "10", "10", "0",
+                        { CATALOG, Constants.SCHEMA_MAIN, "TEST", "ID", "" + Types.INTEGER, "INTEGER", "10", "10", "0",
                                 "10", "" + DatabaseMetaData.columnNoNulls, "", null, "" + Types.INTEGER, "0", "10", "1",
                                 "NO" },
-                        { catalog, Constants.SCHEMA_MAIN, "TEST", "TEXT_V", "" + Types.VARCHAR, "VARCHAR", "120",
+                        { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TEXT_V", "" + Types.VARCHAR, "VARCHAR", "120",
                                 "120", "0", "10", "" + DatabaseMetaData.columnNullable, "", null, "" + Types.VARCHAR,
                                 "0", "120", "2", "YES" },
-                        { catalog, Constants.SCHEMA_MAIN, "TEST", "DEC_V", "" + Types.DECIMAL, "DECIMAL", "12", "12",
+                        { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DEC_V", "" + Types.DECIMAL, "DECIMAL", "12", "12",
                                 "3", "10", "" + DatabaseMetaData.columnNullable, "", null, "" + Types.DECIMAL, "0", "12",
                                 "3", "YES" },
-                        { catalog, Constants.SCHEMA_MAIN, "TEST", "DATE_V", "" + Types.TIMESTAMP, "TIMESTAMP", "23",
+                        { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DATE_V", "" + Types.TIMESTAMP, "TIMESTAMP", "23",
                                 "23", "10", "10", "" + DatabaseMetaData.columnNullable, "", null, "" + Types.TIMESTAMP,
                                 "0", "23", "4", "YES" },
-                        { catalog, Constants.SCHEMA_MAIN, "TEST", "BLOB_V", "" + Types.BLOB, "BLOB",
+                        { CATALOG, Constants.SCHEMA_MAIN, "TEST", "BLOB_V", "" + Types.BLOB, "BLOB",
                                 "" + Integer.MAX_VALUE, "" + Integer.MAX_VALUE, "0", "10",
                                 "" + DatabaseMetaData.columnNullable, "", null, "" + Types.BLOB, "0",
                                 "" + Integer.MAX_VALUE, "5", "YES" },
-                        { catalog, Constants.SCHEMA_MAIN, "TEST", "CLOB_V", "" + Types.CLOB, "CLOB",
+                        { CATALOG, Constants.SCHEMA_MAIN, "TEST", "CLOB_V", "" + Types.CLOB, "CLOB",
                                 "" + Integer.MAX_VALUE, "" + Integer.MAX_VALUE, "0", "10",
                                 "" + DatabaseMetaData.columnNullable, "", null, "" + Types.CLOB, "0",
                                 "" + Integer.MAX_VALUE, "6", "YES" } });
@@ -727,13 +727,13 @@ public class TestMetaData extends TestBase {
                 Types.BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
                 Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER}, null, null);
         assertResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog, "IDX_DATE",
+                { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG, "IDX_DATE",
                         "" + DatabaseMetaData.tableIndexOther, "1", "DATE_V", "A", "0", "0", "" },
-                { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog, "PRIMARY_KEY_2",
+                { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG, "PRIMARY_KEY_2",
                         "" + DatabaseMetaData.tableIndexOther, "1", "ID", "A", "0", "0", "" },
-                { catalog, Constants.SCHEMA_MAIN, "TEST", "TRUE", catalog, "IDX_TEXT_DEC",
+                { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TRUE", CATALOG, "IDX_TEXT_DEC",
                         "" + DatabaseMetaData.tableIndexOther, "1", "TEXT_V", "A", "0", "0", "" },
-                { catalog, Constants.SCHEMA_MAIN, "TEST", "TRUE", catalog, "IDX_TEXT_DEC",
+                { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TRUE", CATALOG, "IDX_TEXT_DEC",
                         "" + DatabaseMetaData.tableIndexOther, "2", "DEC_V", "A", "0", "0", "" }, });
         stat.executeUpdate("DROP INDEX IDX_TEXT_DEC");
         stat.executeUpdate("DROP INDEX IDX_DATE");
@@ -743,7 +743,7 @@ public class TestMetaData extends TestBase {
                 "CARDINALITY", "PAGES", "FILTER_CONDITION", "SORT_TYPE" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.BOOLEAN, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.SMALLINT, Types.VARCHAR,
                 Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.INTEGER }, null, null);
-        assertResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "FALSE", catalog,
+        assertResultSetOrdered(rs, new String[][] { { CATALOG, Constants.SCHEMA_MAIN, "TEST", "FALSE", CATALOG,
                 "PRIMARY_KEY_2", "" + DatabaseMetaData.tableIndexOther, "1", "ID", "A", "0", "0", "" } });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "TEST");
@@ -751,63 +751,63 @@ public class TestMetaData extends TestBase {
                 "PK_NAME" }, new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT,
                 Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs,
-                new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "ID", "1", "CONSTRAINT_2" }, });
+                new String[][] { { CATALOG, Constants.SCHEMA_MAIN, "TEST", "ID", "1", "CONSTRAINT_2" }, });
         trace("getTables - using a wildcard");
         stat.executeUpdate("CREATE TABLE T_2(B INT,A VARCHAR(6),C INT,PRIMARY KEY(C,A,B))");
         stat.executeUpdate("CREATE TABLE TX2(B INT,A VARCHAR(6),C INT,PRIMARY KEY(C,A,B))");
         rs = meta.getTables(null, null, "T_2", null);
-        assertResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "TX2", "TABLE", "" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
+        assertResultSetOrdered(rs, new String[][] { { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TABLE", "" },
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
         trace("getTables - using a quoted _ character");
         rs = meta.getTables(null, null, "T\\_2", null);
-        assertResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
+        assertResultSetOrdered(rs, new String[][] { { CATALOG, Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
         trace("getTables - using the % wildcard");
         rs = meta.getTables(null, Constants.SCHEMA_MAIN, "%", new String[] { "TABLE" });
-        assertResultSetOrdered(rs, new String[][] { { catalog, Constants.SCHEMA_MAIN, "TEST", "TABLE", "" },
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "TABLE", "" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
+        assertResultSetOrdered(rs, new String[][] { { CATALOG, Constants.SCHEMA_MAIN, "TEST", "TABLE", "" },
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TABLE", "" },
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "TABLE", "" } });
         stat.execute("DROP TABLE TEST");
 
         trace("getColumns - using wildcards");
         rs = meta.getColumns(null, null, "___", "B%");
         assertResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "B", "" + Types.INTEGER, "INTEGER", "10"},
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "" + Types.INTEGER, "INTEGER", "10"}, });
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "B", "" + Types.INTEGER, "INTEGER", "10"},
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "B", "" + Types.INTEGER, "INTEGER", "10"}, });
         trace("getColumns - using wildcards");
         rs = meta.getColumns(null, null, "_\\__", "%");
         assertResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "" + Types.INTEGER, "INTEGER", "10"},
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "" + Types.VARCHAR, "VARCHAR", "6"},
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "" + Types.INTEGER, "INTEGER", "10"}, });
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "B", "" + Types.INTEGER, "INTEGER", "10"},
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "A", "" + Types.VARCHAR, "VARCHAR", "6"},
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "C", "" + Types.INTEGER, "INTEGER", "10"}, });
         trace("getIndexInfo");
         stat.executeUpdate("CREATE UNIQUE INDEX A_INDEX ON TX2(B,C,A)");
         stat.executeUpdate("CREATE INDEX B_INDEX ON TX2(A,B,C)");
         rs = meta.getIndexInfo(null, null, "TX2", false, false);
         assertResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "A_INDEX",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "FALSE", CATALOG, "A_INDEX",
                         "" + DatabaseMetaData.tableIndexOther, "1", "B", "A" },
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "A_INDEX",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "FALSE", CATALOG, "A_INDEX",
                         "" + DatabaseMetaData.tableIndexOther, "2", "C", "A"},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "A_INDEX",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "FALSE", CATALOG, "A_INDEX",
                         "" + DatabaseMetaData.tableIndexOther, "3", "A", "A"},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "FALSE", CATALOG, "PRIMARY_KEY_14",
                         "" + DatabaseMetaData.tableIndexOther, "1", "C", "A"},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "FALSE", CATALOG, "PRIMARY_KEY_14",
                         "" + DatabaseMetaData.tableIndexOther, "2", "A", "A" },
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "FALSE", catalog, "PRIMARY_KEY_14",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "FALSE", CATALOG, "PRIMARY_KEY_14",
                         "" + DatabaseMetaData.tableIndexOther, "3", "B", "A"},
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "TRUE", catalog, "B_INDEX",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG, "B_INDEX",
                         "" + DatabaseMetaData.tableIndexOther, "1", "A", "A" },
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "TRUE", catalog, "B_INDEX",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG, "B_INDEX",
                         "" + DatabaseMetaData.tableIndexOther, "2", "B", "A" },
-                { catalog, Constants.SCHEMA_MAIN, "TX2", "TRUE", catalog, "B_INDEX",
+                { CATALOG, Constants.SCHEMA_MAIN, "TX2", "TRUE", CATALOG, "B_INDEX",
                         "" + DatabaseMetaData.tableIndexOther, "3", "C", "A" }, });
         trace("getPrimaryKeys");
         rs = meta.getPrimaryKeys(null, null, "T_2");
         assertResultSetOrdered(rs, new String[][] {
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "A", "2", "CONSTRAINT_1" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "B", "3", "CONSTRAINT_1" },
-                { catalog, Constants.SCHEMA_MAIN, "T_2", "C", "1", "CONSTRAINT_1" }, });
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "A", "2", "CONSTRAINT_1" },
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "B", "3", "CONSTRAINT_1" },
+                { CATALOG, Constants.SCHEMA_MAIN, "T_2", "C", "1", "CONSTRAINT_1" }, });
         stat.executeUpdate("DROP TABLE TX2");
         stat.executeUpdate("DROP TABLE T_2");
         stat.executeUpdate("CREATE TABLE PARENT(ID INT PRIMARY KEY)");
@@ -874,7 +874,7 @@ public class TestMetaData extends TestBase {
 
         rs = meta.getCatalogs();
         assertResultSetMeta(rs, 1, new String[] { "TABLE_CAT" }, new int[] { Types.VARCHAR }, null, null);
-        assertResultSetOrdered(rs, new String[][] { { catalog } });
+        assertResultSetOrdered(rs, new String[][] { { CATALOG } });
 
         rs = meta.getTableTypes();
         assertResultSetMeta(rs, 1, new String[] { "TABLE_TYPE" }, new int[] { Types.VARCHAR }, null, null);

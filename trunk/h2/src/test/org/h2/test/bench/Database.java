@@ -30,6 +30,8 @@ import org.h2.util.StringUtils;
  */
 class Database {
 
+    private static final boolean TRACE = true;
+
     private TestPerformance test;
     private int id;
     private String name, url, user, password;
@@ -38,7 +40,6 @@ class Database {
     private long startTime;
     private Connection conn;
     private Statement stat;
-    private static final boolean trace = true;
     private long lastTrace;
     private final Random random = new Random(1);
     private final ArrayList<Object[]> results = new ArrayList<Object[]>();
@@ -373,7 +374,7 @@ class Database {
      * @param max the maximum value
      */
     void trace(String action, int i, int max) {
-        if (trace) {
+        if (TRACE) {
             long time = System.currentTimeMillis();
             if (i == 0 || lastTrace == 0) {
                 lastTrace = time;

@@ -7,6 +7,9 @@
 package org.h2.test.store;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import org.h2.dev.store.btree.Cursor;
+import org.h2.dev.store.btree.CursorPos;
 import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.MVStore;
@@ -21,7 +24,7 @@ import org.h2.util.New;
  */
 public class MVRTreeMap<K, V> extends MVMap<K, V> {
 
-    private final SpatialType keyType;
+    final SpatialType keyType;
     private boolean quadraticSplit;
 
     MVRTreeMap(MVStore store, int id, String name, DataType keyType,
@@ -34,6 +37,39 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
     public V get(Object key) {
         checkOpen();
         return (V) get(root, key);
+    }
+
+    /**
+     * Iterate over all keys that have an intersection with the given rectangle.
+     *
+     * @param x the rectangle
+     * @return the iterator
+     */
+    public Iterator<K> findIntersectingKeys(K x) {
+        checkOpen();
+        return new RTreeCursor<K>(this, root, x) {
+            protected boolean check(K key, K test) {
+                System.out.println("key " + key + " contains " + test + " = " + keyType.contains(key, test));
+
+                return keyType.contains(key, test);
+            }
+        };
+    }
+
+    /**
+     * Iterate over all keys that are fully contained within the given rectangle.
+     *
+     * @param x the rectangle
+     * @return the iterator
+     */
+    public Iterator<K> findContainedKeys(K x) {
+        checkOpen();
+        return new RTreeCursor<K>(this, root, x) {
+            protected boolean check(K key, K test) {
+                System.out.println("key " + key + " isInside " + test + " = " + keyType.contains(test, key));
+                return keyType.isInside(test, key);
+            }
+        };
     }
 
     private boolean contains(Page p, int index, Object key) {
@@ -409,6 +445,90 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
 
     protected int getChildPageCount(Page p) {
         return p.getChildPageCount() - 1;
+    }
+
+    /**
+     * A cursor to iterate over a subset of the keys.
+     *
+     * @param <K> the key class
+     */
+    static class RTreeCursor<K> extends Cursor<K> {
+
+        protected RTreeCursor(MVRTreeMap<K, ?> map, Page root, K from) {
+            super(map, root, from);
+        }
+
+        public void skip(long n) {
+            if (!hasNext()) {
+                return;
+            }
+            while (n-- > 0) {
+                fetchNext();
+            }
+        }
+
+        /**
+         * Check a given key.
+         *
+         * @param key the stored key
+         * @param test the user-supplied test key
+         * @return true if there is a match
+         */
+        protected boolean check(K key, K test) {
+            return true;
+        }
+
+        @SuppressWarnings("unchecked")
+        protected void min(Page p, K x) {
+            while (true) {
+                if (p.isLeaf()) {
+                    pos = new CursorPos(p, 0, pos);
+                    return;
+//                    for (int i = 0; i < p.getKeyCount(); i++) {
+//                        if (check((K) p.getKey(i), x)) {
+//                            pos = new CursorPos(p, i, pos);
+//                            return;
+//                        }
+//                    }
+//                    break;
+                }
+                boolean found = false;
+                for (int i = 0; i < p.getKeyCount(); i++) {
+                    if (check((K) p.getKey(i), x)) {
+                        pos = new CursorPos(p, i + 1, pos);
+                        p = p.getChildPage(i);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    break;
+                }
+            }
+            fetchNext();
+        }
+
+        @SuppressWarnings("unchecked")
+        protected void fetchNext() {
+            while (pos != null) {
+                while (pos.index < pos.page.getKeyCount()) {
+                    K k = (K) pos.page.getKey(pos.index++);
+                    if (check(k, from)) {
+                        current = k;
+                        return;
+                    }
+                }
+                pos = pos.parent;
+                if (pos == null) {
+                    break;
+                }
+                MVRTreeMap<K, ?> m = (MVRTreeMap<K, ?>) map;
+                if (pos.index < m.getChildPageCount(pos.page)) {
+                    min(pos.page.getChildPage(pos.index++), from);
+                }
+            }
+            current = null;
+        }
     }
 
 }

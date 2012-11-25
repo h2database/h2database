@@ -7,10 +7,10 @@ package org.h2.test.store;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
@@ -44,7 +44,9 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentOnlineBackup() throws Exception {
-        String fileName = getBaseDir() + "/onlineBackup.h3";
+        // because absolute and relative reads are mixed, this currently
+        // only works when using FileChannel directly
+        String fileName = "nio:" + getBaseDir() + "/onlineBackup.h3";
         String fileNameRestore = getBaseDir() + "/onlineRestore.h3";
         final MVStore s = openStore(fileName);
         final MVMap<Integer, byte[]> map = s.openMap("test");
@@ -59,7 +61,7 @@ public class TestConcurrent extends TestMVStore {
                     s.store();
                     map.clear();
                     s.store();
-                    long len = new File(s.getFileName()).length();
+                    long len = s.getFile().size();
                     if (len > 1024 * 100) {
                         // slow down writing
                         Thread.sleep(10);
@@ -70,8 +72,8 @@ public class TestConcurrent extends TestMVStore {
         t.execute();
         // the wrong way to back up
         try {
-            for (int i = 0; i < 10; i++) {
-                byte[] buff = readFileSlowly(fileName);
+            for (int i = 0; i < 100; i++) {
+                byte[] buff = readFileSlowly(s.getFile());
                 FileOutputStream out = new FileOutputStream(fileNameRestore);
                 out.write(buff);
                 MVStore s2 = openStore(fileNameRestore);
@@ -92,7 +94,7 @@ public class TestConcurrent extends TestMVStore {
         for (int i = 0; i < 10; i++) {
             // System.out.println("test " + i);
             s.setReuseSpace(false);
-            byte[] buff = readFileSlowly(fileName);
+            byte[] buff = readFileSlowly(s.getFile());
             s.setReuseSpace(true);
             FileOutputStream out = new FileOutputStream(fileNameRestore);
             out.write(buff);
@@ -109,9 +111,9 @@ public class TestConcurrent extends TestMVStore {
         s.close();
     }
 
-    private static byte[] readFileSlowly(String fileName) throws Exception {
-        InputStream in = new BufferedInputStream(new FileInputStream(
-                fileName));
+    private static byte[] readFileSlowly(FileChannel file) throws Exception {
+        file.position(0);
+        InputStream in = new BufferedInputStream(Channels.newInputStream(file));
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         for (int j = 0;; j++) {
             int x = in.read();
@@ -123,7 +125,8 @@ public class TestConcurrent extends TestMVStore {
                 Thread.sleep(1);
             }
         }
-        in.close();
+        // in.close() could close the stream
+        // in.close();
         return buff.toByteArray();
     }
 

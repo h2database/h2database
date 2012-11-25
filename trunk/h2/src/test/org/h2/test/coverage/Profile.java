@@ -12,7 +12,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.io.Writer;
 
 /**
  * The class used at runtime to measure the code usage and performance.

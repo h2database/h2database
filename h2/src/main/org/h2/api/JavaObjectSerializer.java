@@ -17,7 +17,7 @@ public interface JavaObjectSerializer {
      * Serialize object to byte array.
      *
      * @param obj
-     * @return
+     * @return the byte array
      */
     byte[] serialize(Object obj) throws Exception;
 
@@ -25,7 +25,7 @@ public interface JavaObjectSerializer {
      * Deserialize object from byte array.
      *
      * @param bytes
-     * @return
+     * @return the object
      */
     Object deserialize(byte[] bytes) throws Exception;
 

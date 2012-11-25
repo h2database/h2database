@@ -37,18 +37,15 @@ header:
 H:3,...
 
 TODO:
-- support custom fields in the file header (auto-server ip address,...)
-- support stores that span multiple files (chunks stored in other files)
-- triggers
 - r-tree: add missing features (NN search for example)
 - pluggable cache (specially for in-memory file systems)
 - maybe store the factory class in the file header
+- use comma separated format for map metadata
 - auto-server: store port in the header
-- recovery: keep some old chunks; don't overwritten for 1 minute
-- pluggable caching (specially for in-memory file systems)
+- store store creation in file header, and seconds since creation in chunk header (plus a counter)
+- recovery: keep some old chunks; don't overwritten for 5 minutes (configurable)
 - allocate memory with Utils.newBytes and so on
 - unified exception handling
-- check if locale specific string comparison can make data disappear
 - concurrent map; avoid locking during IO (pre-load pages)
 - maybe split database into multiple files, to speed up compact operation
 - automated 'kill process' and 'power failure' test
@@ -58,19 +55,25 @@ TODO:
 - support background writes (concurrent modification & store)
 - limited support for writing to old versions (branches)
 - support concurrent operations (including file I/O)
-- on insert, if the child page is already full, don't load and modify it - split directly
+- on insert, if the child page is already full, don't load and modify it - split directly (for leaves with 1 entry)
 - performance test with encrypting file system
 - possibly split chunk data into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - write using ByteArrayOutputStream; remove DataType.getMaxLength
-- file header: check versionRead and versionWrite (and possibly rename; or rename version)
+- file header: check formatRead and format (is formatRead needed if equal to format?)
 - chunk header: store changed chunk data as row; maybe after the root
 - chunk checksum (header, last page, 2 bytes per page?)
 - allow renaming maps
 - file locking: solve problem that locks are shared for a VM
 - online backup
-- MapFactory is the wrong name (StorePlugin?) or is too flexible
+- MapFactory is the wrong name (StorePlugin?) or is too flexible: remove?
+- store file "header" at the end of each chunk; at the end of the file
+- is there a better name for the file header, if it's no longer always at the beginning of a file?
+- maybe let a chunk point to possible next chunks (so no fixed location header is needed)
+- support stores that span multiple files (chunks stored in other files)
+- triggers (can be implemented with a custom map)
+- store write operations per page (maybe defragment if much different than count)
 
 */
 
@@ -1225,6 +1228,17 @@ public class MVStore {
      */
     public Map<String, String> getFileHeader() {
         return fileHeader;
+    }
+
+    /**
+     * Get the file instance in use, if a file is used. The application may read
+     * from the file (for example for online backup), but not write to it or
+     * truncate it.
+     *
+     * @return the file, or null
+     */
+    public FileChannel getFile() {
+        return file;
     }
 
     public String toString() {

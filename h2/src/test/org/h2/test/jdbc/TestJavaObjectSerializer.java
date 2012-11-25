@@ -42,14 +42,14 @@ public class TestJavaObjectSerializer extends TestBase {
         Utils.serializer = new JavaObjectSerializer() {
             @Override
             public byte[] serialize(Object obj) throws Exception {
-                assertEquals(100500, ((Integer)obj).intValue());
+                assertEquals(100500, ((Integer) obj).intValue());
 
-                return new byte[]{1,2,3};
+                return new byte[] { 1, 2, 3 };
             }
 
             @Override
             public Object deserialize(byte[] bytes) throws Exception {
-                assertEquals(new byte[]{1,2,3}, bytes);
+                assertEquals(new byte[] { 1, 2, 3 }, bytes);
 
                 return 100500;
             }
@@ -72,7 +72,7 @@ public class TestJavaObjectSerializer extends TestBase {
             assertTrue(rs.next());
 
             assertEquals(100500, ((Integer) rs.getObject(1)).intValue());
-            assertEquals(new byte[]{1,2,3}, rs.getBytes(1));
+            assertEquals(new byte[] { 1, 2, 3 }, rs.getBytes(1));
 
             deleteDb("javaSerializer");
         } finally {

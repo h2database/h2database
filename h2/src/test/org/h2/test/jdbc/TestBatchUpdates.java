@@ -37,8 +37,9 @@ public class TestBatchUpdates extends TestBase {
     private static final String COFFEE_UPDATE_SET = "UPDATE TEST SET KEY_ID=?, C_NAME=? WHERE C_NAME=?";
     private static final String COFFEE_SELECT_CONTINUED = "SELECT COUNT(*) FROM TEST WHERE C_NAME='Continue-1'";
 
-    private static final int coffeeSize = 10;
-    private static final int coffeeType = 11;
+    private static final int COFFEE_SIZE = 10;
+    private static final int COFFEE_TYPE = 11;
+
     private Connection conn;
     private Statement stat;
     private PreparedStatement prep;
@@ -173,8 +174,8 @@ public class TestBatchUpdates extends TestBase {
         int newType = 0;
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(?,?,?,?)");
         int newKey = 1;
-        for (int i = 1; i <= coffeeType && newKey <= coffeeSize; i++) {
-            for (int j = 1; j <= i && newKey <= coffeeSize; j++) {
+        for (int i = 1; i <= COFFEE_TYPE && newKey <= COFFEE_SIZE; i++) {
+            for (int j = 1; j <= i && newKey <= COFFEE_SIZE; j++) {
                 newName = "COFFEE-" + newKey;
                 newPrice = newKey + (float) .00;
                 newType = i;

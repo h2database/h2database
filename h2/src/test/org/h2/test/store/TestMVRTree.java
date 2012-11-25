@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
@@ -40,7 +41,7 @@ public class TestMVRTree extends TestMVStore {
 
     public void test() {
         testMany();
-        testTree();
+        testSimple();
         testRandom();
         testCustomMapType();
     }
@@ -108,25 +109,26 @@ public class TestMVRTree extends TestMVStore {
         // System.out.println("remove: " + (System.currentTimeMillis() - t));
     }
 
-    private void testTree() {
+    private void testSimple() {
         String fileName = getBaseDir() + "/testTree.h3";
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
         MVRTreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
-        add(r, "Bern", 46.57, 7.27, 124381);
-        add(r, "Basel", 47.34, 7.36, 170903);
-        add(r, "Zurich", 47.22, 8.33, 376008);
-        add(r, "Lucerne", 47.03, 8.18, 77491);
-        add(r, "Geneva", 46.12, 6.09, 191803);
-        add(r, "Lausanne", 46.31, 6.38, 127821);
-        add(r, "Winterthur", 47.30, 8.45, 102966);
-        add(r, "St. Gallen", 47.25, 9.22, 73500);
-        add(r, "Biel/Bienne", 47.08, 7.15, 51203);
-        add(r, "Lugano", 46.00, 8.57, 54667);
-        add(r, "Thun", 46.46, 7.38, 42623);
-        add(r, "Bellinzona", 46.12, 9.01, 17373);
-        add(r, "Chur", 46.51, 9.32, 33756);
+        add(r, "Bern", key(0, 46.57, 7.27, 124381));
+        add(r, "Basel", key(1, 47.34, 7.36, 170903));
+        add(r, "Zurich", key(2, 47.22, 8.33, 376008));
+        add(r, "Lucerne", key(3, 47.03, 8.18, 77491));
+        add(r, "Geneva", key(4, 46.12, 6.09, 191803));
+        add(r, "Lausanne", key(5, 46.31, 6.38, 127821));
+        add(r, "Winterthur", key(6, 47.30, 8.45, 102966));
+        add(r, "St. Gallen", key(7, 47.25, 9.22, 73500));
+        add(r, "Biel/Bienne", key(8, 47.08, 7.15, 51203));
+        add(r, "Lugano", key(9, 46.00, 8.57, 54667));
+        add(r, "Thun", key(10, 46.46, 7.38, 42623));
+        add(r, "Bellinzona", key(11, 46.12, 9.01, 17373));
+        add(r, "Chur", key(12, 46.51, 9.32, 33756));
+        // render(r, getBaseDir() + "/test.png");
         ArrayList<String> list = New.arrayList();
         for (SpatialKey x : r.keySet()) {
             list.add(r.get(x));
@@ -135,17 +137,46 @@ public class TestMVRTree extends TestMVStore {
         assertEquals("[Basel, Bellinzona, Bern, Biel/Bienne, Chur, Geneva, " +
                 "Lausanne, Lucerne, Lugano, St. Gallen, Thun, Winterthur, Zurich]",
                 list.toString());
-        // render(r, getBaseDir() + "/test.png");
+
+        SpatialKey k;
+
+        // intersection
+        list.clear();
+        k = key(0, 47.34, 7.36, 0);
+        for (Iterator<SpatialKey> it = r.findIntersectingKeys(k); it.hasNext();) {
+            list.add(r.get(it.next()));
+        }
+        Collections.sort(list);
+        assertEquals("[Basel]",
+                list.toString());
+
+        // contains
+        list.clear();
+        k = key(0, 47.34, 7.36, 0);
+        for (Iterator<SpatialKey> it = r.findContainedKeys(k); it.hasNext();) {
+            list.add(r.get(it.next()));
+        }
+        assertEquals(0, list.size());
+        k = key(0, 47.34, 7.36, 170903);
+
+
+        Collections.sort(list);
+        assertEquals("[Bern]",
+                list.toString());
+
         s.close();
     }
 
-    private static void add(MVRTreeMap<SpatialKey, String> r, String name, double y, double x, int population) {
-        int id = r.size();
+    private static void add(MVRTreeMap<SpatialKey, String> r, String name, SpatialKey k) {
+        r.put(k, name);
+    }
+
+    private static SpatialKey key(int id, double y, double x, int population) {
         float a = (float) ((int) x + (x - (int) x) * 5 / 3);
         float b = 50 - (float) ((int) y + (y - (int) y) * 5 / 3);
         float s = (float) Math.sqrt(population / 10000000.);
         SpatialKey k = new SpatialKey(id, a - s, a + s, b - s, b + s);
-        r.put(k, name);
+        return k;
     }
 
     private static void render(MVRTreeMap<SpatialKey, String> r, String fileName) {

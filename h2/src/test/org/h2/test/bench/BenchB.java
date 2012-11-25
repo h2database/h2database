@@ -21,13 +21,14 @@ import java.util.Random;
  */
 public class BenchB implements Bench, Runnable {
 
+    private static final int SCALE = 1;
+    private static final int BRANCHES = 1;
+    private static final int TELLERS = 10;
+    private static final int ACCOUNTS = 100000;
+    private static final int CLIENTS = 10;
+
     // master data
     private Database database;
-    private static final int scale = 1;
-    private static final int branches = 1;
-    private static final int tellers = 10;
-    private static final int accounts = 100000;
-    private static final int clients = 10;
     private int transactionPerClient;
 
     // client data
@@ -83,7 +84,7 @@ public class BenchB implements Bench, Runnable {
         int commitEvery = 1000;
         prep = db.prepare(
                 "INSERT INTO BRANCHES(BID, BBALANCE) VALUES(?, 0)");
-        for (int i = 0; i < branches * scale; i++) {
+        for (int i = 0; i < BRANCHES * SCALE; i++) {
             prep.setInt(1, i);
             db.update(prep, "insertBranches");
             if (i % commitEvery == 0) {
@@ -93,21 +94,21 @@ public class BenchB implements Bench, Runnable {
         db.commit();
         prep = db.prepare(
                 "INSERT INTO TELLERS(TID, BID, TBALANCE) VALUES(?, ?, 0)");
-        for (int i = 0; i < tellers * scale; i++) {
+        for (int i = 0; i < TELLERS * SCALE; i++) {
             prep.setInt(1, i);
-            prep.setInt(2, i / tellers);
+            prep.setInt(2, i / TELLERS);
             db.update(prep, "insertTellers");
             if (i % commitEvery == 0) {
                 db.commit();
             }
         }
         db.commit();
-        int len = accounts * scale;
+        int len = ACCOUNTS * SCALE;
         prep = db.prepare(
                 "INSERT INTO ACCOUNTS(AID, BID, ABALANCE) VALUES(?, ?, 0)");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
-            prep.setInt(2, i / accounts);
+            prep.setInt(2, i / ACCOUNTS);
             db.update(prep, "insertAccounts");
             if (i % commitEvery == 0) {
                 db.commit();
@@ -123,15 +124,15 @@ public class BenchB implements Bench, Runnable {
     }
 
     public void run() {
-        int accountsPerBranch = accounts / branches;
+        int accountsPerBranch = ACCOUNTS / BRANCHES;
         for (int i = 0; i < master.transactionPerClient; i++) {
-            int branch = random.nextInt(master.branches);
-            int teller = random.nextInt(master.tellers);
+            int branch = random.nextInt(BRANCHES);
+            int teller = random.nextInt(TELLERS);
             int account;
             if (random.nextInt(100) < 85) {
                 account = random.nextInt(accountsPerBranch) + branch * accountsPerBranch;
             } else {
-                account = random.nextInt(accounts);
+                account = random.nextInt(ACCOUNTS);
             }
             int delta = random.nextInt(1000);
             doOne(branch, teller, account, delta);
@@ -194,8 +195,8 @@ public class BenchB implements Bench, Runnable {
     }
 
     private void processTransactions() throws Exception {
-        Thread[] threads = new Thread[clients];
-        for (int i = 0; i < clients; i++) {
+        Thread[] threads = new Thread[CLIENTS];
+        for (int i = 0; i < CLIENTS; i++) {
             threads[i] = new Thread(new BenchB(this, i));
         }
         for (Thread t : threads) {

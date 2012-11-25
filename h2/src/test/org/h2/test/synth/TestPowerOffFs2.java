@@ -24,11 +24,12 @@ import org.h2.util.New;
  */
 public class TestPowerOffFs2 extends TestBase {
 
+    private static final String USER = "sa";
+    private static final String PASSWORD = "sa";
+
     private FilePathDebug fs;
 
     private String url;
-    private static final String user = "sa";
-    private static final String password = "sa";
     private final ArrayList<Connection> connections = New.arrayList();
     private final ArrayList<String> tables = New.arrayList();
 
@@ -165,7 +166,7 @@ public class TestPowerOffFs2 extends TestBase {
     }
 
     private Connection openConnection() throws SQLException {
-        Connection conn = DriverManager.getConnection(url, user, password);
+        Connection conn = DriverManager.getConnection(url, USER, PASSWORD);
         connections.add(conn);
         return conn;
     }

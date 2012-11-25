@@ -51,22 +51,19 @@ public class FilePathCache extends FilePathWrapper {
         }
 
         public FileChannel position(long newPosition) throws IOException {
-            throw new UnsupportedOperationException();
-            // base.position(newPosition);
-            // return this;
+            base.position(newPosition);
+            return this;
         }
 
         public long position() throws IOException {
-            throw new UnsupportedOperationException();
-            // return base.position();
+            return base.position();
         }
 
         public int read(ByteBuffer dst) throws IOException {
-            throw new UnsupportedOperationException();
-            // return base.read(dst);
+            return base.read(dst);
         }
 
-        public synchronized int read(ByteBuffer dst, long position) throws IOException {
+        public int read(ByteBuffer dst, long position) throws IOException {
             long cachePos = getCachePos(position);
             int off = (int) (position - cachePos);
             int len = CACHE_BLOCK_SIZE - off;

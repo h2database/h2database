@@ -15,14 +15,14 @@ import java.util.Iterator;
  */
 public class Cursor<K> implements Iterator<K> {
 
-    private final MVMap<K, ?> map;
-    private final K from;
+    protected final MVMap<K, ?> map;
+    protected final K from;
+    protected CursorPos pos;
+    protected K current;
     private final Page root;
     private boolean initialized;
-    private CursorPos pos;
-    private K current;
 
-    Cursor(MVMap<K, ?> map, Page root, K from) {
+    protected Cursor(MVMap<K, ?> map, Page root, K from) {
         this.map = map;
         this.root = root;
         this.from = from;
@@ -64,7 +64,7 @@ public class Cursor<K> implements Iterator<K> {
         throw new UnsupportedOperationException();
     }
 
-    private void min(Page p, K from) {
+    protected void min(Page p, K from) {
         while (true) {
             if (p.isLeaf()) {
                 int x = from == null ? 0 : p.binarySearch(from);
@@ -86,7 +86,7 @@ public class Cursor<K> implements Iterator<K> {
     }
 
     @SuppressWarnings("unchecked")
-    private void fetchNext() {
+    protected void fetchNext() {
         while (pos != null) {
             if (pos.index < pos.page.getKeyCount()) {
                 current = (K) pos.page.getKey(pos.index++);

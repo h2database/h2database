@@ -282,66 +282,10 @@ public class ScriptCommand extends ScriptBase {
                         add(rowcount, false);
                     }
                     if (data) {
-                        PlanItem plan = table.getBestPlanItem(session, null);
-                        Index index = plan.getIndex();
-                        Cursor cursor = index.find(session, null, null);
-                        Column[] columns = table.getColumns();
-                        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
-                        buff.append(table.getSQL()).append('(');
-                        for (Column col : columns) {
-                            buff.appendExceptFirst(", ");
-                            buff.append(Parser.quoteIdentifier(col.getName()));
-                        }
-                        buff.append(") VALUES");
-                        if (!simple) {
-                            buff.append('\n');
-                        }
-                        buff.append('(');
-                        String ins = buff.toString();
-                        buff = null;
-                        while (cursor.next()) {
-                            Row row = cursor.get();
-                            if (buff == null) {
-                                buff = new StatementBuilder(ins);
-                            } else {
-                                buff.append(",\n(");
-                            }
-                            for (int j = 0; j < row.getColumnCount(); j++) {
-                                if (j > 0) {
-                                    buff.append(", ");
-                                }
-                                Value v = row.getValue(j);
-                                if (v.getPrecision() > lobBlockSize) {
-                                    int id;
-                                    if (v.getType() == Value.CLOB) {
-                                        id = writeLobStream(v);
-                                        buff.append("SYSTEM_COMBINE_CLOB(" + id + ")");
-                                    } else if (v.getType() == Value.BLOB) {
-                                        id = writeLobStream(v);
-                                        buff.append("SYSTEM_COMBINE_BLOB(" + id + ")");
-                                    } else {
-                                        buff.append(v.getSQL());
-                                    }
-                                } else {
-                                    buff.append(v.getSQL());
-                                }
-                            }
-                            buff.append(')');
-                            count++;
-                            if ((count & 127) == 0) {
-                                checkCanceled();
-                            }
-                            if (simple || buff.length() > Constants.IO_BUFFER_SIZE) {
-                                add(buff.toString(), true);
-                                buff = null;
-                            }
-                        }
-                        if (buff != null) {
-                            add(buff.toString(), true);
-                        }
+                        count = generateInsertValues(count, table);
                     }
                 }
-                ArrayList<Index> indexes = table.getIndexes();
+                final ArrayList<Index> indexes = table.getIndexes();
                 for (int j = 0; indexes != null && j < indexes.size(); j++) {
                     Index index = indexes.get(j);
                     if (!index.getIndexType().getBelongsToConstraint()) {
@@ -418,6 +362,67 @@ public class ScriptCommand extends ScriptBase {
         LocalResult r = result;
         reset();
         return r;
+    }
+
+    private int generateInsertValues(int count, Table table) throws IOException {
+        PlanItem plan = table.getBestPlanItem(session, null);
+        Index index = plan.getIndex();
+        Cursor cursor = index.find(session, null, null);
+        Column[] columns = table.getColumns();
+        StatementBuilder buff = new StatementBuilder("INSERT INTO ");
+        buff.append(table.getSQL()).append('(');
+        for (Column col : columns) {
+            buff.appendExceptFirst(", ");
+            buff.append(Parser.quoteIdentifier(col.getName()));
+        }
+        buff.append(") VALUES");
+        if (!simple) {
+            buff.append('\n');
+        }
+        buff.append('(');
+        String ins = buff.toString();
+        buff = null;
+        while (cursor.next()) {
+            Row row = cursor.get();
+            if (buff == null) {
+                buff = new StatementBuilder(ins);
+            } else {
+                buff.append(",\n(");
+            }
+            for (int j = 0; j < row.getColumnCount(); j++) {
+                if (j > 0) {
+                    buff.append(", ");
+                }
+                Value v = row.getValue(j);
+                if (v.getPrecision() > lobBlockSize) {
+                    int id;
+                    if (v.getType() == Value.CLOB) {
+                        id = writeLobStream(v);
+                        buff.append("SYSTEM_COMBINE_CLOB(" + id + ")");
+                    } else if (v.getType() == Value.BLOB) {
+                        id = writeLobStream(v);
+                        buff.append("SYSTEM_COMBINE_BLOB(" + id + ")");
+                    } else {
+                        buff.append(v.getSQL());
+                    }
+                } else {
+                    buff.append(v.getSQL());
+                }
+            }
+            buff.append(')');
+            count++;
+            if ((count & 127) == 0) {
+                checkCanceled();
+            }
+            if (simple || buff.length() > Constants.IO_BUFFER_SIZE) {
+                add(buff.toString(), true);
+                buff = null;
+            }
+        }
+        if (buff != null) {
+            add(buff.toString(), true);
+        }
+        return count;
     }
 
     private int writeLobStream(Value v) throws IOException {

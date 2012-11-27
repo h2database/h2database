@@ -20,7 +20,7 @@ public class SpatialType implements DataType {
 
     private final int dimensions;
 
-    private SpatialType(int dimensions) {
+    public SpatialType(int dimensions) {
         if (dimensions <= 0 || dimensions > 255) {
             throw new IllegalArgumentException("Dimensions: " + dimensions);
         }
@@ -208,7 +208,7 @@ public class SpatialType implements DataType {
     }
 
     /**
-     * Check whether a given object is completely inside and does not touch the
+     * Check whether a is completely inside b and does not touch the
      * given bound.
      *
      * @param objA the object to check

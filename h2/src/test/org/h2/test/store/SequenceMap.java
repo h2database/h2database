@@ -7,19 +7,16 @@
 package org.h2.test.store;
 
 import java.util.AbstractSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.MVStore;
-import org.h2.dev.store.btree.DataType;
 
 /**
- * A custom map returning the values 1 .. 10.
- *
- * @param <K> the key type
- * @param <V> the key type
+ * A custom map returning the keys and values values 1 .. 10.
  */
-public class SequenceMap<K, V> extends MVMap<K, V> {
+public class SequenceMap extends MVMap<Integer, String> {
 
     /**
      * The minimum value.
@@ -31,18 +28,21 @@ public class SequenceMap<K, V> extends MVMap<K, V> {
      */
     int max = 10;
 
-    SequenceMap(MVStore store, int id, String name, DataType keyType,
-            DataType valueType, long createVersion) {
-        super(store, id, name, keyType, valueType, createVersion);
+    public SequenceMap() {
+        super(IntegerType.INSTANCE, IntegerType.INSTANCE);
+    }
+
+    public void open(MVStore store, HashMap<String, String> config) {
+        super.open(store, config);
         setReadOnly(true);
     }
 
-    public Set<K> keySet() {
-        return new AbstractSet<K>() {
+    public Set<Integer> keySet() {
+        return new AbstractSet<Integer>() {
 
             @Override
-            public Iterator<K> iterator() {
-                return new Iterator<K>() {
+            public Iterator<Integer> iterator() {
+                return new Iterator<Integer>() {
 
                     int x = min;
 
@@ -51,10 +51,9 @@ public class SequenceMap<K, V> extends MVMap<K, V> {
                         return x <= max;
                     }
 
-                    @SuppressWarnings("unchecked")
                     @Override
-                    public K next() {
-                        return (K) Integer.valueOf(x++);
+                    public Integer next() {
+                        return Integer.valueOf(x++);
                     }
 
                     @Override

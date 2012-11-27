@@ -65,7 +65,7 @@ public class MVStoreUtils {
             writer.println("file " + fileName);
             writer.println("    length " + fileLength);
             writer.println("    " + prop);
-            ByteBuffer block = ByteBuffer.allocate(32);
+            ByteBuffer block = ByteBuffer.allocate(40);
             for (long pos = 0; pos < fileLength;) {
                 block.rewind();
                 DataUtils.readFully(file, pos, block);
@@ -78,12 +78,14 @@ public class MVStoreUtils {
                 int chunkId = block.getInt();
                 int pageCount = block.getInt();
                 long metaRootPos = block.getLong();
+                long maxLength = block.getLong();
                 long maxLengthLive = block.getLong();
                 writer.println("    chunk " + chunkId +
                         " at " + pos +
                         " length " + chunkLength +
                         " pageCount " + pageCount +
                         " root " + metaRootPos +
+                        " maxLength " + maxLength +
                         " maxLengthLive " + maxLengthLive);
                 ByteBuffer chunk = ByteBuffer.allocate(chunkLength);
                 DataUtils.readFully(file, pos, chunk);
@@ -102,7 +104,7 @@ public class MVStoreUtils {
                     boolean node = (type & 1) != 0;
                     writer.println("        map " + mapId + " at " + p + " " +
                             (node ? "node" : "leaf") + " " +
-                            (compressed ? "compressed" : "") + " " +
+                            (compressed ? "compressed " : "") +
                             "len: " + pageLength + " entries: " + len);
                     p += pageLength;
                     chunkLength -= pageLength;

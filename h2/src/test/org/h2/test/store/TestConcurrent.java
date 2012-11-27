@@ -64,7 +64,7 @@ public class TestConcurrent extends TestMVStore {
                     long len = s.getFile().size();
                     if (len > 1024 * 100) {
                         // slow down writing
-                        Thread.sleep(10);
+                        Thread.sleep(20);
                     }
                 }
             }
@@ -131,7 +131,8 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentIterate() {
-        MVStore s = MVStoreBuilder.inMemory().with(new TestMapFactory()).open();
+        MVStore s = MVStoreBuilder.inMemory().
+                with(new SampleDataTypeFactory()).open();
         s.setMaxPageSize(3);
         final MVMap<Integer, Integer> map = s.openMap("test");
         final int len = 10;

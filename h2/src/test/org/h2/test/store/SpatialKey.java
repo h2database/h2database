@@ -8,7 +8,6 @@ package org.h2.test.store;
 
 import java.util.Arrays;
 
-
 /**
  * A unique spatial key.
  */

@@ -24,7 +24,6 @@ import org.h2.dev.store.cache.CacheLongKeyLIRS;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 
 /*
 
@@ -37,11 +36,6 @@ header:
 H:3,...
 
 TODO:
-- r-tree: add missing features (NN search for example)
-- pluggable cache (specially for in-memory file systems)
-- maybe store the factory class in the file header
-- use comma separated format for map metadata
-- auto-server: store port in the header
 - store store creation in file header, and seconds since creation in chunk header (plus a counter)
 - recovery: keep some old chunks; don't overwritten for 5 minutes (configurable)
 - allocate memory with Utils.newBytes and so on
@@ -74,6 +68,10 @@ TODO:
 - support stores that span multiple files (chunks stored in other files)
 - triggers (can be implemented with a custom map)
 - store write operations per page (maybe defragment if much different than count)
+- r-tree: nearest neighbor search
+- use FileChannel by default (nio file system)
+- auto-save temporary data if it uses too much memory, but revert it on startup if needed.
+- map and chunk metadata: do not store default values
 
 */
 
@@ -87,19 +85,12 @@ public class MVStore {
      */
     public static final boolean ASSERT = false;
 
-    /**
-     * A string data type.
-     */
-    public static final StringType STRING_TYPE = new StringType();
-
     static final int BLOCK_SIZE = 4 * 1024;
 
     private final HashMap<String, Object> config;
 
     private final String fileName;
-    private final MapFactory mapFactory;
-
-    private final int readCacheSize = 2 * 1024 * 1024;
+    private final DataTypeFactory dataTypeFactory;
 
     private int maxPageSize = 4 * 1024;
 
@@ -108,8 +99,13 @@ public class MVStore {
     private long fileSize;
     private long rootChunkStart;
 
+    /**
+     * The cache. The default size is 16 MB, and the average size is 2 KB. It is
+     * split in 16 segments. The stack move distance is 2% of the expected
+     * number of entries.
+     */
     private final CacheLongKeyLIRS<Page> cache = CacheLongKeyLIRS.newInstance(
-            readCacheSize, 2048, 16, readCacheSize / 100);
+            16 * 1024 * 1024, 2048, 16, 16 * 1024 * 1024 / 2048 * 2 / 100);
 
     private int lastChunkId;
     private final HashMap<Integer, Chunk> chunks = New.hashMap();
@@ -149,9 +145,13 @@ public class MVStore {
     MVStore(HashMap<String, Object> config) {
         this.config = config;
         this.fileName = (String) config.get("fileName");
-        this.mapFactory = (MapFactory) config.get("mapFactory");
+        this.dataTypeFactory = (DataTypeFactory) config.get("dataTypeFactory");
         this.readOnly = "r".equals(config.get("openMode"));
         this.compressor = "0".equals(config.get("compression")) ? null : new CompressLZF();
+        Object s = config.get("cacheSize");
+        if (s != null) {
+            cache.setMaxMemory(Integer.parseInt(s.toString()) * 1024 * 1024);
+        }
     }
 
     /**
@@ -176,20 +176,12 @@ public class MVStore {
      * @return the read-only map
      */
     @SuppressWarnings("unchecked")
-    <T extends MVMap<?, ?>> T  openMapVersion(long version, String name) {
-        // TODO reduce copy & pasted source code
+    <T extends MVMap<?, ?>> T  openMapVersion(long version, String name, MVMap<?, ?> template) {
         MVMap<String, String> oldMeta = getMetaMap(version);
-        String types = oldMeta.get("map." + name);
-        String[] idTypeList = StringUtils.arraySplit(types, '/', false);
-        int id = Integer.parseInt(idTypeList[0]);
-        long createVersion = Long.parseLong(idTypeList[1]);
-        String mapType = idTypeList[2];
-        String keyType = idTypeList[3];
-        String valueType = idTypeList[4];
-        String r = oldMeta.get("root." + id);
-        long root = r == null ? 0 : Long.parseLong(r);
-        MVMap<?, ?> m = buildMap(mapType, id, name, keyType, valueType, createVersion);
-        m.setRootPos(root);
+        String r = oldMeta.get("root." + template.getId());
+        long rootPos = r == null ? 0 : Long.parseLong(r);
+        MVMap<?, ?> m = template.openReadOnly();
+        m.setRootPos(rootPos);
         return (T) m;
     }
 
@@ -202,12 +194,9 @@ public class MVStore {
      * @param name the name of the map
      * @return the map
      */
+    @SuppressWarnings("unchecked")
     public <K, V> MVMap<K, V> openMap(String name) {
-        String keyType = getDataType(Object.class);
-        String valueType = getDataType(Object.class);
-        @SuppressWarnings("unchecked")
-        MVMap<K, V> m = (MVMap<K, V>) openMap(name, "", keyType, valueType);
-        return m;
+        return (MVMap<K, V>) openMap(name, Object.class, Object.class);
     }
 
     /**
@@ -221,64 +210,50 @@ public class MVStore {
      * @return the map
      */
     public <K, V> MVMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
-        String keyType = getDataType(keyClass);
-        String valueType = getDataType(valueClass);
-        @SuppressWarnings("unchecked")
-        MVMap<K, V> m = (MVMap<K, V>) openMap(name, "", keyType, valueType);
-        return m;
+        DataType keyType = getDataType(keyClass);
+        DataType valueType = getDataType(valueClass);
+        MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
+        return openMap(name, m);
     }
 
     /**
-     * Open a map.
+     * Open a map using the given template. The returned map is of the same type
+     * as the template, and contains the same key and value types. If a map with
+     * this name is already open, this map is returned. If it is not open,
+     * the template object is opened with the applicable configuration.
      *
      * @param <T> the map type
      * @param name the name of the map
-     * @param mapType the map type
-     * @param keyType the key type
-     * @param valueType the value type
-     * @return the map
+     * @param template the template map
+     * @return the opened map
      */
     @SuppressWarnings("unchecked")
-    public <T extends MVMap<?, ?>> T openMap(String name, String mapType, String keyType, String valueType) {
-        MVMap<?, ?> m = maps.get(name);
-        if (m == null) {
-            String identifier = meta.get("map." + name);
-            int id;
-            long root;
-            long createVersion;
-            // TODO use the json formatting for map metadata
-            if (identifier == null) {
-                id = ++lastMapId;
-                createVersion = currentVersion;
-                String types = id + "/" + createVersion + "/" + mapType + "/" + keyType + "/" + valueType;
-                meta.put("map." + name, types);
-                root = 0;
-            } else {
-                String types = meta.get("map." + name);
-                String[] idTypeList = StringUtils.arraySplit(types, '/', false);
-                id = Integer.parseInt(idTypeList[0]);
-                createVersion = Long.parseLong(idTypeList[1]);
-                mapType = idTypeList[2];
-                keyType = idTypeList[3];
-                valueType = idTypeList[4];
-                String r = meta.get("root." + id);
-                root = r == null ? 0 : Long.parseLong(r);
-            }
-            m = buildMap(mapType, id, name, keyType, valueType, createVersion);
-            maps.put(name, m);
-            m.setRootPos(root);
+    public <T extends MVMap<K, V>, K, V> T openMap(String name, T template) {
+        MVMap<K, V> m = (MVMap<K, V>) maps.get(name);
+        if (m != null) {
+            return (T) m;
         }
+        m = template;
+        String config = meta.get("map." + name);
+        long root;
+        HashMap<String, String> c;
+        if (config == null) {
+            c = New.hashMap();
+            c.put("id", Integer.toString(++lastMapId));
+            c.put("name", name);
+            c.put("createVersion", Long.toString(currentVersion));
+            m.open(this, c);
+            meta.put("map." + name, m.asString());
+            root = 0;
+        } else {
+            c = DataUtils.parseMap(config);
+            String r = meta.get("root." + c.get("id"));
+            root = r == null ? 0 : Long.parseLong(r);
+        }
+        m.open(this, c);
+        m.setRootPos(root);
+        maps.put(name, m);
         return (T) m;
-    }
-
-    private MVMap<?, ?> buildMap(String mapType, int id, String name,
-            String keyType, String valueType, long createVersion) {
-        DataType k = buildDataType(keyType);
-        DataType v = buildDataType(valueType);
-        if (mapType.equals("")) {
-            return new MVMap<Object, Object>(this, id, name, k, v, createVersion);
-        }
-        return getMapFactory().buildMap(mapType, this, id, name, k, v, createVersion);
     }
 
     /**
@@ -289,9 +264,9 @@ public class MVStore {
      * It contains the following entries:
      *
      * <pre>
-     * map.{name} = {mapId}/{keyType}/{valueType}
-     * root.{mapId} = {rootPos}
-     * chunk.{chunkId} = {chunkData}
+     * map.{name} = {map metadata}
+     * root.{mapId} = {root position}
+     * chunk.{chunkId} = {chunk metadata}
      * </pre>
      *
      * @return the metadata map
@@ -305,9 +280,8 @@ public class MVStore {
         if (c == null) {
             throw new IllegalArgumentException("Unknown version: " + version);
         }
-        // TODO avoid duplicate code
         c = readChunkHeader(c.start);
-        MVMap<String, String> oldMeta = new MVMap<String, String>(this, 0, "old-meta", STRING_TYPE, STRING_TYPE, 0);
+        MVMap<String, String> oldMeta = meta.openReadOnly();
         oldMeta.setRootPos(c.metaRootPos);
         return oldMeta;
     }
@@ -337,25 +311,16 @@ public class MVStore {
         return map == meta;
     }
 
-    private String getDataType(Class<?> clazz) {
+    private DataType getDataType(Class<?> clazz) {
         if (clazz == String.class) {
-            return "";
+            return StringType.INSTANCE;
         }
-        return getMapFactory().getDataType(clazz);
-    }
-
-    private DataType buildDataType(String dataType) {
-        if (dataType.equals("")) {
-            return STRING_TYPE;
+        if (dataTypeFactory == null) {
+            throw new RuntimeException("No data type factory set " +
+                    "and don't know how to serialize " + clazz);
         }
-        return getMapFactory().buildDataType(dataType);
-    }
-
-    private MapFactory getMapFactory() {
-        if (mapFactory == null) {
-            throw new RuntimeException("No factory set");
-        }
-        return mapFactory;
+        String s = dataTypeFactory.getDataType(clazz);
+        return dataTypeFactory.buildDataType(s);
     }
 
     /**
@@ -368,7 +333,12 @@ public class MVStore {
     }
 
     void open() {
-        meta = new MVMap<String, String>(this, 0, "meta", STRING_TYPE, STRING_TYPE, 0);
+        meta = new MVMap<String, String>(StringType.INSTANCE, StringType.INSTANCE);
+        HashMap<String, String> c = New.hashMap();
+        c.put("id", "0");
+        c.put("name", "meta");
+        c.put("createVersion", Long.toString(currentVersion));
+        meta.open(this, c);
         if (fileName == null) {
             return;
         }
@@ -423,6 +393,8 @@ public class MVStore {
                 c.length = header.length;
                 c.metaRootPos = header.metaRootPos;
                 c.maxLengthLive = header.maxLengthLive;
+                c.pageCount = header.pageCount;
+                c.maxLength = header.maxLength;
             }
             lastChunkId = Math.max(c.id, lastChunkId);
             chunks.put(c.id, c);
@@ -552,9 +524,8 @@ public class MVStore {
         // storing, because that would modify the meta map again)
         Chunk c = chunks.get(lastChunkId);
         if (c != null) {
-            meta.put("chunk." + c.id, c.toString());
+            meta.put("chunk." + c.id, c.asString());
         }
-
         c = new Chunk(++lastChunkId);
         c.maxLength = Long.MAX_VALUE;
         c.maxLengthLive = Long.MAX_VALUE;
@@ -562,18 +533,8 @@ public class MVStore {
         c.length = Integer.MAX_VALUE;
         c.version = currentVersion + 1;
         chunks.put(c.id, c);
-        meta.put("chunk." + c.id, c.toString());
-        applyFreedChunks();
-        ArrayList<Integer> removedChunks = New.arrayList();
-        for (Chunk x : chunks.values()) {
-            if (x.maxLengthLive == 0 && (retainChunk == -1 || x.id < retainChunk)) {
-                meta.remove("chunk." + x.id);
-                removedChunks.add(x.id);
-            } else {
-                meta.put("chunk." + x.id, x.toString());
-            }
-            applyFreedChunks();
-        }
+        meta.put("chunk." + c.id, c.asString());
+
         int maxLength = 1 + 4 + 4 + 8;
         for (MVMap<?, ?> m : mapsChanged.values()) {
             if (m == meta || !m.hasUnsavedChanges()) {
@@ -587,6 +548,19 @@ public class MVStore {
                 meta.put("root." + m.getId(), String.valueOf(Long.MAX_VALUE));
             }
         }
+        applyFreedChunks();
+        ArrayList<Integer> removedChunks = New.arrayList();
+        do {
+            for (Chunk x : chunks.values()) {
+                if (x.maxLengthLive == 0 && (retainChunk == -1 || x.id < retainChunk)) {
+                    meta.remove("chunk." + x.id);
+                    removedChunks.add(x.id);
+                } else {
+                    meta.put("chunk." + x.id, x.asString());
+                }
+                applyFreedChunks();
+            }
+        } while (freedChunks.size() > 0);
         maxLength += meta.getRoot().getMaxLengthTempRecursive();
 
         ByteBuffer buff = ByteBuffer.allocate(maxLength);
@@ -605,7 +579,13 @@ public class MVStore {
             }
         }
 
-        meta.put("chunk." + c.id, c.toString());
+        meta.put("chunk." + c.id, c.asString());
+
+        if (ASSERT) {
+            if (freedChunks.size() > 0) {
+                throw new RuntimeException("Temporary freed chunks");
+            }
+        }
 
         // this will modify maxLengthLive, but
         // the correct value is written in the chunk header
@@ -752,7 +732,7 @@ public class MVStore {
     private Chunk readChunkHeader(long start) {
         try {
             fileReadCount++;
-            ByteBuffer buff = ByteBuffer.allocate(32);
+            ByteBuffer buff = ByteBuffer.allocate(40);
             DataUtils.readFully(file, start, buff);
             buff.rewind();
             return Chunk.fromHeader(buff, start);
@@ -918,7 +898,7 @@ public class MVStore {
             filePos += DataUtils.getPageOffset(pos);
             fileReadCount++;
             p = Page.read(file, map, pos, filePos, fileSize);
-            cache.put(pos, p);
+            cache.put(pos, p, p.getMemory());
         }
         return p;
     }
@@ -1108,8 +1088,7 @@ public class MVStore {
     }
 
     /**
-     * Update the store version. The setting is immediately
-     * persisted.
+     * Update the store version.
      *
      * @param version the new store version
      */

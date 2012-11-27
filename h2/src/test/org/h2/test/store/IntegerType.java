@@ -15,6 +15,8 @@ import org.h2.dev.store.btree.DataUtils;
  */
 class IntegerType implements DataType {
 
+    public static final IntegerType INSTANCE = new IntegerType();
+
     public int compare(Object a, Object b) {
         return ((Integer) a).compareTo((Integer) b);
     }

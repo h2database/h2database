@@ -83,12 +83,14 @@ public class Chunk {
         int chunkId = buff.getInt();
         int pageCount = buff.getInt();
         long metaRootPos = buff.getLong();
+        long maxLength = buff.getLong();
         long maxLengthLive = buff.getLong();
         Chunk c = new Chunk(chunkId);
         c.length = length;
         c.pageCount = pageCount;
         c.start = start;
         c.metaRootPos = metaRootPos;
+        c.maxLength = maxLength;
         c.maxLengthLive = maxLengthLive;
         return c;
     }
@@ -99,6 +101,7 @@ public class Chunk {
         buff.putInt(id);
         buff.putInt(pageCount);
         buff.putLong(metaRootPos);
+        buff.putLong(maxLength);
         buff.putLong(maxLengthLive);
     }
 
@@ -134,7 +137,7 @@ public class Chunk {
         return o instanceof Chunk && ((Chunk) o).id == id;
     }
 
-    public String toString() {
+    public String asString() {
         return
                 "id:" + id + "," +
                 "start:" + start + "," +

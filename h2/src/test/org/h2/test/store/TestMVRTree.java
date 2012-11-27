@@ -21,6 +21,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 import org.h2.dev.store.btree.MVStore;
+import org.h2.dev.store.btree.StringType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -52,7 +53,8 @@ public class TestMVRTree extends TestMVStore {
         MVStore s;
         s = openStore(fileName);
         // s.setMaxPageSize(50);
-        MVRTreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
+        MVRTreeMap<String> r = MVRTreeMap.create(2, StringType.INSTANCE);
+        r = s.openMap("data", r);
         // r.setQuadraticSplit(true);
         Random rand = new Random(1);
         int len = 1000;
@@ -76,7 +78,8 @@ public class TestMVRTree extends TestMVStore {
         s.store();
         s.close();
         s = openStore(fileName);
-        r = s.openMap("data", "r", "s2", "");
+        r = MVRTreeMap.create(2, StringType.INSTANCE);
+        r = s.openMap("data", r);
         // t = System.currentTimeMillis();
         rand = new Random(1);
         for (int i = 0; i < len; i++) {
@@ -114,7 +117,8 @@ public class TestMVRTree extends TestMVStore {
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
-        MVRTreeMap<SpatialKey, String> r = s.openMap("data", "r", "s2", "");
+        MVRTreeMap<String> r = MVRTreeMap.create(2, StringType.INSTANCE);
+        r = s.openMap("data", r);
         add(r, "Bern", key(0, 46.57, 7.27, 124381));
         add(r, "Basel", key(1, 47.34, 7.36, 170903));
         add(r, "Zurich", key(2, 47.22, 8.33, 376008));
@@ -147,8 +151,7 @@ public class TestMVRTree extends TestMVStore {
             list.add(r.get(it.next()));
         }
         Collections.sort(list);
-        assertEquals("[Basel]",
-                list.toString());
+        assertEquals("[Basel]", list.toString());
 
         // contains
         list.clear();
@@ -157,17 +160,16 @@ public class TestMVRTree extends TestMVStore {
             list.add(r.get(it.next()));
         }
         assertEquals(0, list.size());
-        k = key(0, 47.34, 7.36, 170903);
-
-
-        Collections.sort(list);
-        assertEquals("[Bern]",
-                list.toString());
+        k = key(0, 47.34, 7.36, 171000);
+        for (Iterator<SpatialKey> it = r.findContainedKeys(k); it.hasNext();) {
+            list.add(r.get(it.next()));
+        }
+        assertEquals("[Basel]", list.toString());
 
         s.close();
     }
 
-    private static void add(MVRTreeMap<SpatialKey, String> r, String name, SpatialKey k) {
+    private static void add(MVRTreeMap<String> r, String name, SpatialKey k) {
         r.put(k, name);
     }
 
@@ -179,7 +181,7 @@ public class TestMVRTree extends TestMVStore {
         return k;
     }
 
-    private static void render(MVRTreeMap<SpatialKey, String> r, String fileName) {
+    private static void render(MVRTreeMap<String> r, String fileName) {
         int width = 1000, height = 500;
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = (Graphics2D) img.getGraphics();
@@ -235,7 +237,8 @@ public class TestMVRTree extends TestMVStore {
         String fileName = getBaseDir() + "/testRandom.h3";
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
-        MVRTreeMap<SpatialKey, String> m = s.openMap("data", "r", "s2", "");
+        MVRTreeMap<String> m = MVRTreeMap.create(2, StringType.INSTANCE);
+        m = s.openMap("data", m);
         HashMap<SpatialKey, String> map = new HashMap<SpatialKey, String>();
         Random rand = new Random(1);
         int operationCount = 1000;
@@ -278,7 +281,8 @@ public class TestMVRTree extends TestMVStore {
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
-        SequenceMap<Integer, String> seq = s.openMap("data", "s", "i", "");
+        SequenceMap seq = new SequenceMap();
+        seq = s.openMap("data", seq);
         StringBuilder buff = new StringBuilder();
         for (int x : seq.keySet()) {
             buff.append(x).append(';');

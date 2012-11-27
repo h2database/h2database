@@ -70,8 +70,10 @@ public class ScriptCommand extends ScriptBase {
     private Set<String> schemaNames;
     private Collection<Table> tables;
     private boolean passwords;
+    /** true if we're generating the INSERT..VALUES statements for row values */
     private boolean data;
     private boolean settings;
+    /** true if we're generating the DROP statements */
     private boolean drop;
     private boolean simple;
     private LocalResult result;
@@ -188,7 +190,8 @@ public class ScriptCommand extends ScriptBase {
                 Constant constant = (Constant) obj;
                 add(constant.getCreateSQL(), false);
             }
-            ArrayList<Table> tables = db.getAllTablesAndViews(false);
+            
+            final ArrayList<Table> tables = db.getAllTablesAndViews(false);
             // sort by id, so that views are after tables and views on views
             // after the base views
             Collections.sort(tables, new Comparator<Table>() {
@@ -196,6 +199,8 @@ public class ScriptCommand extends ScriptBase {
                     return t1.getId() - t2.getId();
                 }
             });
+            
+            // Generate the DROP XXX  ... IF EXISTS 
             for (Table table : tables) {
                 if (excludeSchema(table.getSchema())) {
                     continue;
@@ -241,6 +246,8 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(sequence.getCreateSQL(), false);
             }
+            
+            // Generate CREATE TABLE and INSERT...VALUES 
             int count = 0;
             for (Table table : tables) {
                 if (excludeSchema(table.getSchema())) {
@@ -253,14 +260,14 @@ public class ScriptCommand extends ScriptBase {
                     continue;
                 }
                 table.lock(session, false, false);
-                String sql = table.getCreateSQL();
-                if (sql == null) {
+                String createTableSql = table.getCreateSQL();
+                if (createTableSql == null) {
                     // null for metadata tables
                     continue;
                 }
-                String tableType = table.getTableType();
-                add(sql, false);
-                ArrayList<Constraint> constraints = table.getConstraints();
+                final String tableType = table.getTableType();
+                add(createTableSql, false);
+                final ArrayList<Constraint> constraints = table.getConstraints();
                 if (constraints != null) {
                     for (Constraint constraint : constraints) {
                         if (Constraint.PRIMARY_KEY.equals(constraint.getConstraintType())) {
@@ -349,7 +356,8 @@ public class ScriptCommand extends ScriptBase {
                 add("DROP ALIAS IF EXISTS SYSTEM_COMBINE_BLOB", true);
                 tempLobTableCreated = false;
             }
-            ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
+            // Generate CREATE CONSTRAINT ...
+            final ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
             Collections.sort(constraints, new Comparator<SchemaObject>() {
                 public int compare(SchemaObject c1, SchemaObject c2) {
                     return ((Constraint) c1).compareTo((Constraint) c2);
@@ -370,6 +378,7 @@ public class ScriptCommand extends ScriptBase {
                     add(constraint.getCreateSQLWithoutIndexes(), false);
                 }
             }
+            // Generate CREATE TRIGGER ...
             for (SchemaObject obj : db.getAllSchemaObjects(DbObject.TRIGGER)) {
                 if (excludeSchema(obj.getSchema())) {
                     continue;
@@ -380,6 +389,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(trigger.getCreateSQL(), false);
             }
+            // Generate GRANT ... 
             for (Right right : db.getAllRights()) {
                 Table table = right.getGrantedTable();
                 if (table != null) {
@@ -392,6 +402,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(right.getCreateSQL(), false);
             }
+            // Generate COMMENT ON ... 
             for (Comment comment : db.getAllComments()) {
                 add(comment.getCreateSQL(), false);
             }

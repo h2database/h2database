@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import org.h2.upgrade.v1_1.util.New;
 
 /**
  * A stored map.
@@ -29,33 +30,34 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     /**
      * The store.
      */
-    protected final MVStore store;
+    protected MVStore store;
 
     /**
      * The current root page (may not be null).
      */
     protected volatile Page root;
 
-    private final int id;
-    private final String name;
+    private int id;
+    private String name;
+    private long createVersion;
     private final DataType keyType;
     private final DataType valueType;
-    private final long createVersion;
     private ArrayList<Page> oldRoots = new ArrayList<Page>();
 
     private boolean closed;
     private boolean readOnly;
 
-    protected MVMap(MVStore store, int id, String name,
-            DataType keyType, DataType valueType, long createVersion) {
-        this.store = store;
-        this.id = id;
-        this.name = name;
+    public MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
         this.valueType = valueType;
-        this.createVersion = createVersion;
         this.root = Page.createEmpty(this,  createVersion - 1);
-        store.registerUnsavedPage();
+    }
+
+    public void open(MVStore store, HashMap<String, String> config) {
+        this.store = store;
+        this.id = Integer.parseInt(config.get("id"));
+        this.name = config.get("name");
+        this.createVersion = Long.parseLong(config.get("createVersion"));
     }
 
     /**
@@ -85,7 +87,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             // now p is a node; insert continues
         }
         Object result = put(p, writeVersion, key, value);
-        setRoot(p);
+        newRoot(p);
         return (V) result;
     }
 
@@ -440,7 +442,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public void clear() {
         checkWrite();
         root.removeAllRecursive();
-        setRoot(Page.createEmpty(this, store.getCurrentVersion()));
+        newRoot(Page.createEmpty(this, store.getCurrentVersion()));
     }
 
     /**
@@ -481,7 +483,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Page p = root.copyOnWrite(writeVersion);
         @SuppressWarnings("unchecked")
         V result = (V) remove(p, writeVersion, key);
-        setRoot(p);
+        newRoot(p);
         return result;
     }
 
@@ -596,7 +598,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return result;
     }
 
-    protected void setRoot(Page newRoot) {
+    protected void newRoot(Page newRoot) {
         if (root != newRoot) {
             removeUnusedOldVersions();
             if (root.getVersion() != newRoot.getVersion()) {
@@ -640,7 +642,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the key type
      */
-    DataType getKeyType() {
+    protected DataType getKeyType() {
         return keyType;
     }
 
@@ -649,7 +651,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the value type
      */
-    DataType getValueType() {
+    protected DataType getValueType() {
         return valueType;
     }
 
@@ -838,18 +840,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
-    public String toString() {
-        StringBuilder buff = new StringBuilder();
-        buff.append("map:").append(name);
-        if (readOnly) {
-            buff.append(" readOnly");
-        }
-        if (closed) {
-            buff.append(" closed");
-        }
-        return buff.toString();
-    }
-
     public int hashCode() {
         return id;
     }
@@ -905,15 +895,26 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 // not found
                 if (i == -1) {
                     // smaller than all in-memory versions
-                    return store.openMapVersion(version, name);
+                    return store.openMapVersion(version, name, this);
                 }
                 i = -i - 2;
             }
             newest = oldRoots.get(i);
         }
-        MVMap<K, V> m = new MVMap<K, V>(store, id, name, keyType, valueType, createVersion);
-        m.readOnly = true;
+        MVMap<K, V> m = openReadOnly();
         m.root = newest;
+        return m;
+    }
+
+    protected MVMap<K, V> openReadOnly() {
+        MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
+        m.readOnly = true;
+        HashMap<String, String> config = New.hashMap();
+        config.put("id", String.valueOf(id));
+        config.put("name", name);
+        config.put("createVersion", String.valueOf(createVersion));
+        m.open(store, config);
+        m.root = root;
         return m;
     }
 
@@ -939,6 +940,26 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     protected int getChildPageCount(Page p) {
         return p.getChildPageCount();
+    }
+
+    /**
+     * Get the map type. When opening an existing map, the map type must match.
+     *
+     * @return the map type
+     */
+    public String getType() {
+        return "btree";
+    }
+
+    public String asString() {
+        StringBuilder buff = new StringBuilder();
+        DataUtils.appendMap(buff, "id", id);
+        DataUtils.appendMap(buff, "name", name);
+        DataUtils.appendMap(buff, "type", getType());
+        DataUtils.appendMap(buff, "createVersion", createVersion);
+        DataUtils.appendMap(buff, "key", keyType.asString());
+        DataUtils.appendMap(buff, "value", valueType.asString());
+        return buff.toString();
     }
 
 }

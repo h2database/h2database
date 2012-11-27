@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
  */
 public class StringType implements DataType {
 
+    public static final StringType INSTANCE = new StringType();
+
     public int compare(Object a, Object b) {
         return a.toString().compareTo(b.toString());
     }

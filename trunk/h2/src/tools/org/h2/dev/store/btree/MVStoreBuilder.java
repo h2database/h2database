@@ -64,9 +64,18 @@ public class MVStoreBuilder {
         return set("openMode", "r");
     }
 
-    public MVStoreBuilder with(MapFactory mapFactory) {
-        int todoRemove;
-        return set("mapFactory", mapFactory);
+    /**
+     * Set the read cache size in MB. The default is 16 MB.
+     *
+     * @param mb the cache size
+     * @return this
+     */
+    public MVStoreBuilder cacheSizeMB(int mb) {
+        return set("cacheSize", Integer.toString(mb));
+    }
+
+    public MVStoreBuilder with(DataTypeFactory factory) {
+        return set("dataTypeFactory", factory);
     }
 
     /**

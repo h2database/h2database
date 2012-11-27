@@ -12,25 +12,26 @@ import org.h2.dev.store.btree.Cursor;
 import org.h2.dev.store.btree.CursorPos;
 import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.MVMap;
-import org.h2.dev.store.btree.MVStore;
 import org.h2.dev.store.btree.Page;
 import org.h2.util.New;
 
 /**
  * An r-tree implementation. It uses the quadratic split algorithm.
  *
- * @param <K> the key class
  * @param <V> the value class
  */
-public class MVRTreeMap<K, V> extends MVMap<K, V> {
+public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 
     final SpatialType keyType;
     private boolean quadraticSplit;
 
-    MVRTreeMap(MVStore store, int id, String name, DataType keyType,
-            DataType valueType, long createVersion) {
-        super(store, id, name, keyType, valueType, createVersion);
-        this.keyType = (SpatialType) keyType;
+    public MVRTreeMap(int dimensions, DataType valueType) {
+        super(new SpatialType(dimensions), valueType);
+        this.keyType = (SpatialType) getKeyType();
+    }
+
+    public static <V> MVRTreeMap<V> create(int dimensions, DataType valueType) {
+        return new MVRTreeMap<V>(dimensions, valueType);
     }
 
     @SuppressWarnings("unchecked")
@@ -45,12 +46,10 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
      * @param x the rectangle
      * @return the iterator
      */
-    public Iterator<K> findIntersectingKeys(K x) {
+    public Iterator<SpatialKey> findIntersectingKeys(SpatialKey x) {
         checkOpen();
-        return new RTreeCursor<K>(this, root, x) {
-            protected boolean check(K key, K test) {
-                System.out.println("key " + key + " contains " + test + " = " + keyType.contains(key, test));
-
+        return new RTreeCursor(this, root, x) {
+            protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
                 return keyType.contains(key, test);
             }
         };
@@ -62,12 +61,14 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
      * @param x the rectangle
      * @return the iterator
      */
-    public Iterator<K> findContainedKeys(K x) {
+    public Iterator<SpatialKey> findContainedKeys(SpatialKey x) {
         checkOpen();
-        return new RTreeCursor<K>(this, root, x) {
-            protected boolean check(K key, K test) {
-                System.out.println("key " + key + " isInside " + test + " = " + keyType.contains(test, key));
-                return keyType.isInside(test, key);
+        return new RTreeCursor(this, root, x) {
+            protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
+                if (leaf) {
+                    return keyType.isInside(key, test);
+                }
+                return keyType.isOverlap(key, test);
             }
         };
     }
@@ -103,7 +104,7 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         return null;
     }
 
-    protected Page getPage(K key) {
+    protected Page getPage(SpatialKey key) {
         return getPage(root, key);
     }
 
@@ -179,7 +180,7 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
     }
 
     @SuppressWarnings("unchecked")
-    public V put(K key, V value) {
+    public V put(SpatialKey key, V value) {
         return (V) putOrAdd(key, value, false);
     }
 
@@ -190,11 +191,11 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
      * @param key the key
      * @param value the value
      */
-    public void add(K key, V value) {
+    public void add(SpatialKey key, V value) {
         putOrAdd(key, value, true);
     }
 
-    private Object putOrAdd(K key, V value, boolean alwaysAdd) {
+    private Object putOrAdd(SpatialKey key, V value, boolean alwaysAdd) {
         checkWrite();
         long writeVersion = store.getCurrentVersion();
         Page p = root.copyOnWrite(writeVersion);
@@ -221,7 +222,7 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         } else {
             result = set(p, writeVersion, key, value);
         }
-        setRoot(p);
+        newRoot(p);
         return result;
     }
 
@@ -425,11 +426,10 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
      * @param list the list
      * @param p the root page
      */
-    @SuppressWarnings("unchecked")
-    public void addNodeKeys(ArrayList<K> list, Page p) {
+    public void addNodeKeys(ArrayList<SpatialKey> list, Page p) {
         if (p != null && !p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
-                list.add((K) p.getKey(i));
+                list.add((SpatialKey) p.getKey(i));
                 addNodeKeys(list, p.getChildPage(i));
             }
         }
@@ -449,12 +449,10 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
 
     /**
      * A cursor to iterate over a subset of the keys.
-     *
-     * @param <K> the key class
      */
-    static class RTreeCursor<K> extends Cursor<K> {
+    static class RTreeCursor extends Cursor<SpatialKey> {
 
-        protected RTreeCursor(MVRTreeMap<K, ?> map, Page root, K from) {
+        protected RTreeCursor(MVRTreeMap<?> map, Page root, SpatialKey from) {
             super(map, root, from);
         }
 
@@ -470,31 +468,24 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
         /**
          * Check a given key.
          *
+         * @param leaf if the key is from a leaf page
          * @param key the stored key
          * @param test the user-supplied test key
          * @return true if there is a match
          */
-        protected boolean check(K key, K test) {
+        protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
             return true;
         }
 
-        @SuppressWarnings("unchecked")
-        protected void min(Page p, K x) {
+        protected void min(Page p, SpatialKey x) {
             while (true) {
                 if (p.isLeaf()) {
                     pos = new CursorPos(p, 0, pos);
                     return;
-//                    for (int i = 0; i < p.getKeyCount(); i++) {
-//                        if (check((K) p.getKey(i), x)) {
-//                            pos = new CursorPos(p, i, pos);
-//                            return;
-//                        }
-//                    }
-//                    break;
                 }
                 boolean found = false;
                 for (int i = 0; i < p.getKeyCount(); i++) {
-                    if (check((K) p.getKey(i), x)) {
+                    if (check(false, (SpatialKey) p.getKey(i), x)) {
                         pos = new CursorPos(p, i + 1, pos);
                         p = p.getChildPage(i);
                         found = true;
@@ -508,12 +499,11 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
             fetchNext();
         }
 
-        @SuppressWarnings("unchecked")
         protected void fetchNext() {
             while (pos != null) {
                 while (pos.index < pos.page.getKeyCount()) {
-                    K k = (K) pos.page.getKey(pos.index++);
-                    if (check(k, from)) {
+                    SpatialKey k = (SpatialKey) pos.page.getKey(pos.index++);
+                    if (check(true, k, from)) {
                         current = k;
                         return;
                     }
@@ -522,13 +512,17 @@ public class MVRTreeMap<K, V> extends MVMap<K, V> {
                 if (pos == null) {
                     break;
                 }
-                MVRTreeMap<K, ?> m = (MVRTreeMap<K, ?>) map;
+                MVRTreeMap<?> m = (MVRTreeMap<?>) map;
                 if (pos.index < m.getChildPageCount(pos.page)) {
                     min(pos.page.getChildPage(pos.index++), from);
                 }
             }
             current = null;
         }
+    }
+
+    public String getType() {
+        return "rtree";
     }
 
 }

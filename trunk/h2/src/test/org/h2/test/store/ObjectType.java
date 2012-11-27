@@ -12,7 +12,6 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.DataUtils;
-import org.h2.dev.store.btree.MVStore;
 import org.h2.util.Utils;
 
 /**
@@ -1065,13 +1064,13 @@ public class ObjectType implements DataType {
             if (!(obj instanceof String)) {
                 return super.getMemory(obj);
             }
-            return MVStore.STRING_TYPE.getMemory(obj);
+            return 24 + 2 * obj.toString().length();
         }
 
         @Override
         public int compare(Object aObj, Object bObj) {
             if (aObj instanceof String && bObj instanceof String) {
-                return MVStore.STRING_TYPE.compare(aObj,  bObj);
+                return aObj.toString().compareTo(bObj.toString());
             }
             return super.compare(aObj, bObj);
         }
@@ -1081,7 +1080,7 @@ public class ObjectType implements DataType {
             if (!(obj instanceof String)) {
                 return super.getMaxLength(obj);
             }
-            return 1 + MVStore.STRING_TYPE.getMaxLength(obj);
+            return 1 + DataUtils.MAX_VAR_INT_LEN + 3 * obj.toString().length();
         }
 
         @Override

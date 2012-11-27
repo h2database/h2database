@@ -5,29 +5,14 @@
  */
 package org.h2.test.store;
 
-import org.h2.dev.store.btree.MVMap;
-import org.h2.dev.store.btree.MVStore;
 import org.h2.dev.store.btree.DataType;
-import org.h2.dev.store.btree.MapFactory;
+import org.h2.dev.store.btree.DataTypeFactory;
 import org.h2.dev.store.btree.StringType;
 
 /**
  * A data type factory.
  */
-public class TestMapFactory implements MapFactory {
-
-    @Override
-    public <K, V> MVMap<K, V> buildMap(String mapType, MVStore store,
-            int id, String name, DataType keyType, DataType valueType,
-            long createVersion) {
-        if (mapType.equals("s")) {
-            return new SequenceMap<K, V>(store, id, name, keyType, valueType, createVersion);
-        } else if (mapType.equals("r")) {
-            return new MVRTreeMap<K, V>(store, id, name, keyType, valueType, createVersion);
-        } else {
-            throw new RuntimeException("Unsupported map type " + mapType);
-        }
-    }
+public class SampleDataTypeFactory implements DataTypeFactory {
 
     @Override
     public DataType buildDataType(String s) {

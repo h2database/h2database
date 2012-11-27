@@ -10,23 +10,7 @@ package org.h2.dev.store.btree;
 /**
  * A factory for maps and data types.
  */
-public interface MapFactory {
-
-    /**
-     * Build a map.
-     *
-     * @param mapType the map type and type specific meta data
-     * @param store the store
-     * @param id the unique map id
-     * @param name the map name
-     * @param keyType the key type
-     * @param valueType the value type
-     * @param createVersion when the map was created
-     * @return the map
-     */
-    <K, V> MVMap<K, V> buildMap(
-            String mapType, MVStore store, int id, String name,
-            DataType keyType, DataType valueType, long createVersion);
+public interface DataTypeFactory {
 
     /**
      * Parse the data type.

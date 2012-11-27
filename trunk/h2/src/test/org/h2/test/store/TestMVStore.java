@@ -14,9 +14,11 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 import org.h2.dev.store.btree.Cursor;
+import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.MVStore;
 import org.h2.dev.store.btree.MVStoreBuilder;
+import org.h2.dev.store.btree.StringType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -38,6 +40,7 @@ public class TestMVStore extends TestBase {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
+        testCacheSize();
         testConcurrentOpen();
         testFileHeader();
         testFileHeaderCorruption();
@@ -65,6 +68,39 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+
+    private void testCacheSize() {
+        String fileName = getBaseDir() + "/testCacheSize.h3";
+        MVStore s;
+        MVMap<Integer, String> map;
+        s = MVStoreBuilder.fileBased(fileName).
+                with(new SampleDataTypeFactory()).open();
+        map = s.openMap("test");
+        // add 10 MB of data
+        for (int i = 0; i < 1024; i++) {
+            map.put(i, new String(new char[10240]));
+        }
+        s.store();
+        s.close();
+        int[] expectedReadsForCacheSize = {
+                3419, 2590, 1924, 1440, 1127, 956, 918
+        };
+        for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
+            s = MVStoreBuilder.fileBased(fileName).
+                    cacheSizeMB(1 + 3 * cacheSize).
+                    with(new SampleDataTypeFactory()).open();
+            map = s.openMap("test");
+            for (int i = 0; i < 1024; i += 128) {
+                for (int j = 0; j < i; j++) {
+                    map.get(j);
+                }
+            }
+            assertEquals(expectedReadsForCacheSize[cacheSize],
+                    s.getFileReadCount());
+            s.close();
+        }
+
     }
 
     private void testConcurrentOpen() {
@@ -273,7 +309,8 @@ public class TestMVStore extends TestBase {
     private void testIterateOldVersion() {
         MVStore s;
         Map<Integer, Integer> map;
-        s = MVStoreBuilder.inMemory().with(new TestMapFactory()).open();
+        s = MVStoreBuilder.inMemory().
+                with(new SampleDataTypeFactory()).open();
         map = s.openMap("test");
         int len = 100;
         for (int i = 0; i < len; i++) {
@@ -298,14 +335,16 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s;
         Map<Object, Object> map;
-        s = MVStoreBuilder.fileBased(fileName).with(new TestMapFactory()).open();
+        s = MVStoreBuilder.fileBased(fileName).
+                with(new SampleDataTypeFactory()).open();
         map = s.openMap("test");
         map.put(1,  "Hello");
         map.put("2", 200);
         map.put(new Object[1], new Object[]{1, "2"});
         s.store();
         s.close();
-        s = MVStoreBuilder.fileBased(fileName).with(new TestMapFactory()).open();
+        s = MVStoreBuilder.fileBased(fileName).
+                with(new SampleDataTypeFactory()).open();
         map = s.openMap("test");
         assertEquals("Hello", map.get(1).toString());
         assertEquals(200, ((Integer) map.get("2")).intValue());
@@ -506,7 +545,7 @@ public class TestMVStore extends TestBase {
             assertEquals(i + 1, m.size());
         }
         assertEquals(1000, m.size());
-        assertEquals(281, s.getUnsavedPageCount());
+        assertEquals(279, s.getUnsavedPageCount());
         s.store();
         assertEquals(3, s.getFileWriteCount());
         s.close();
@@ -517,7 +556,7 @@ public class TestMVStore extends TestBase {
         assertEquals(0, m.size());
         s.store();
         // ensure only nodes are read, but not leaves
-        assertEquals(34, s.getFileReadCount());
+        assertEquals(36, s.getFileReadCount());
         assertEquals(2, s.getFileWriteCount());
         s.close();
     }
@@ -660,11 +699,13 @@ public class TestMVStore extends TestBase {
         data.put("1", "Hello");
         data.put("2", "World");
         s.store();
-        assertEquals("1/0///", m.get("map.data"));
+        assertEquals("id:1,name:data,type:btree,createVersion:0,key:,value:",
+                m.get("map.data"));
         assertTrue(m.containsKey("chunk.1"));
         assertEquals("Hello", data.put("1", "Hallo"));
         s.store();
-        assertEquals("1/0///", m.get("map.data"));
+        assertEquals("id:1,name:data,type:btree,createVersion:0,key:,value:",
+                m.get("map.data"));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
         assertTrue(m.containsKey("chunk.2"));
@@ -713,7 +754,16 @@ public class TestMVStore extends TestBase {
             MVStore s = openStore(fileName);
             // s.setCompressor(null);
             s.setMaxPageSize(40);
-            MVMap<Integer, Object[]> m = s.openMap("data", "", "i", "r(i,,)");
+            MVMap<Integer, Object[]> m = new MVMap<Integer, Object[]>(
+                    IntegerType.INSTANCE,
+                    new RowType(new DataType[] {
+                            IntegerType.INSTANCE,
+                            StringType.INSTANCE,
+                            StringType.INSTANCE
+                    })
+            );
+
+            m = s.openMap("data", m);
             // Profiler prof = new Profiler();
             // prof.startCollecting();
             // long t = System.currentTimeMillis();
@@ -824,7 +874,7 @@ public class TestMVStore extends TestBase {
         // System.out.println("len2: " + len);
     }
 
-    private void testReuseSpace() {
+    private void testReuseSpace() throws Exception {
         String fileName = getBaseDir() + "/testReuseSpace.h3";
         FileUtils.delete(fileName);
         long initialLength = 0;
@@ -845,7 +895,8 @@ public class TestMVStore extends TestBase {
             if (initialLength == 0) {
                 initialLength = len;
             } else {
-                assertTrue(len <= initialLength * 2);
+                assertTrue("len: " + len + " initial: " + initialLength + " j: " + j,
+                        len <= initialLength * 2);
             }
         }
     }
@@ -1038,7 +1089,7 @@ public class TestMVStore extends TestBase {
      */
     protected static MVStore openStore(String fileName) {
         MVStore store = MVStoreBuilder.fileBased(fileName).
-                with(new TestMapFactory()).open();
+                with(new SampleDataTypeFactory()).open();
         store.setMaxPageSize(1000);
         return store;
     }

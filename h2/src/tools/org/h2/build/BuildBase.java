@@ -36,6 +36,7 @@ import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.h2.util.IOUtils;
 
 /**
  * This class is a complete pure Java build tool. It allows to build this
@@ -695,8 +696,9 @@ public class BuildBase {
      * @return the data
      */
     public static byte[] readFile(File file) {
+        RandomAccessFile ra = null;
         try {
-            RandomAccessFile ra = new RandomAccessFile(file, "r");
+            ra = new RandomAccessFile(file, "r");
             long len = ra.length();
             if (len >= Integer.MAX_VALUE) {
                 throw new RuntimeException("File " + file.getPath() + " is too large");
@@ -707,6 +709,8 @@ public class BuildBase {
             return buffer;
         } catch (IOException e) {
             throw new RuntimeException("Error reading from file " + file, e);
+        } finally {
+            IOUtils.closeSilently(ra);
         }
     }
 

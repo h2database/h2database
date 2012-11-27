@@ -7,11 +7,11 @@
 package org.h2.test.coverage;
 
 import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import org.h2.util.IOUtils;
 
 /**
  * The class used at runtime to measure the code usage and performance.
@@ -30,10 +30,9 @@ public class Profile extends Thread {
     private BufferedWriter trace;
 
     private Profile() {
-        FileReader reader = null;
+        LineNumberReader r = null;
         try {
-            reader = new FileReader("profile.txt");
-            LineNumberReader r = new LineNumberReader(reader);
+            r = new LineNumberReader(new FileReader("profile.txt"));
             while (r.readLine() != null) {
                 // nothing - just count lines
             }
@@ -46,7 +45,7 @@ public class Profile extends Thread {
             e.printStackTrace();
             System.exit(1);
         } finally {
-            closeSilently(reader);
+            IOUtils.closeSilently(r);
         }
     }
 
@@ -107,16 +106,6 @@ public class Profile extends Thread {
         }
     }
 
-    private static void closeSilently(Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            } catch (IOException e) {
-                // ignore
-            }
-        }
-    }
-
     private void addVisit(int i) {
         if (stop) {
             return;
@@ -143,13 +132,11 @@ public class Profile extends Thread {
         printLine('=');
         print("NOT COVERED");
         printLine('-');
-        FileReader reader = null;
-        FileWriter fileWriter = null;
+        LineNumberReader r = null;
+        BufferedWriter writer = null;
         try {
-            reader = new FileReader("profile.txt");
-            LineNumberReader r = new LineNumberReader(reader);
-            fileWriter = new FileWriter("notCovered.txt");
-            BufferedWriter writer = new BufferedWriter(fileWriter);
+            r = new LineNumberReader(new FileReader("profile.txt"));
+            writer = new BufferedWriter(new FileWriter("notCovered.txt"));
             int unvisited = 0;
             int unvisitedThrow = 0;
             for (int i = 0; i < maxIndex; i++) {
@@ -170,8 +157,8 @@ public class Profile extends Thread {
             print("Not covered: " + percent + " % " + " (" + unvisited + " of " + maxIndex + "; throw="
                     + unvisitedThrow + ")");
         } finally {
-            closeSilently(fileWriter);
-            closeSilently(reader);
+            IOUtils.closeSilently(writer);
+            IOUtils.closeSilently(r);
         }
     }
 
@@ -207,10 +194,9 @@ public class Profile extends Thread {
             list[bigIndex] = -(big + 1);
             index[i] = bigIndex;
         }
-        FileReader reader = null;
+        LineNumberReader r = null;
         try {
-            reader = new FileReader("profile.txt");
-            LineNumberReader r = new LineNumberReader(reader);
+            r = new LineNumberReader(new FileReader("profile.txt"));
             for (int i = 0; i < maxIndex; i++) {
                 String line = r.readLine();
                 int k = list[i];
@@ -229,7 +215,7 @@ public class Profile extends Thread {
                 print(text[i]);
             }
         } finally {
-            closeSilently(reader);
+            IOUtils.closeSilently(r);
         }
     }
 

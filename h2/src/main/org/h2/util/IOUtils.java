@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +39,7 @@ public class IOUtils {
      *
      * @param out the output stream or null
      */
-    public static void closeSilently(OutputStream out) {
+    public static void closeSilently(Closeable out) {
         if (out != null) {
             try {
                 trace("closeSilently", null, out);

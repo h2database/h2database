@@ -740,10 +740,9 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * Remove a sequence from the table. Sequences are used as identity columns.
      *
-     * @param session the session
      * @param sequence the sequence to remove
      */
-    public void removeSequence(Session session, Sequence sequence) {
+    public final void removeSequence(Sequence sequence) {
         remove(sequences, sequence);
     }
 

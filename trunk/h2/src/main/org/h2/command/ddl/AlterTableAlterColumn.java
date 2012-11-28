@@ -195,7 +195,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
     private void removeSequence(Sequence sequence) {
         if (sequence != null) {
-            table.removeSequence(session, sequence);
+            table.removeSequence(sequence);
             sequence.setBelongsToTable(false);
             Database db = session.getDatabase();
             db.removeSchemaObject(session, sequence);
@@ -375,7 +375,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         for (Column col : newColumns) {
             Sequence seq = col.getSequence();
             if (seq != null) {
-                table.removeSequence(session, seq);
+                table.removeSequence(seq);
                 col.setSequence(null);
             }
         }

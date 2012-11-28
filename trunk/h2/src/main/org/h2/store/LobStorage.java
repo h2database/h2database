@@ -415,7 +415,6 @@ public class LobStorage {
         private int skipSmall(long n) {
             if (n > 0 && buffer != null && pos < buffer.length) {
                 int x = MathUtils.convertLongToInt(Math.min(n, buffer.length - pos));
-                n -= x;
                 pos += x;
                 remainingBytes -= x;
                 return x;

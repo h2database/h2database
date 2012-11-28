@@ -65,7 +65,7 @@ abstract class PageData extends Page {
      * The estimated heap memory used by this object, in number of double words
      * (4 bytes each).
      */
-    protected int memoryEstimated;
+    private int memoryEstimated;
 
     PageData(PageDataIndex index, int pageId, Data data) {
         this.index = index;

@@ -102,7 +102,7 @@ public class TestMVStore extends TestBase {
         s.store();
         s.close();
         int[] expectedReadsForCacheSize = {
-                3419, 2590, 1924, 1440, 1127, 956, 918
+                3407, 2590, 1924, 1440, 1101, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = MVStoreBuilder.fileBased(fileName).

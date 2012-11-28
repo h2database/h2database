@@ -36,11 +36,13 @@ public class SpellChecker {
     private final HashSet<String> dictionary = new HashSet<String>();
     private final HashSet<String> used = new HashSet<String>();
     private final HashMap<String, Integer> unknown = new HashMap<String, Integer>();
-    private boolean debug;
-    private boolean printDictionary;
     private boolean addToDictionary;
     private int errorCount;
     private int contextCount;
+    // these are public so we can set them during development testing 
+    public boolean debug;
+    public boolean printDictionary;
+    
 
     /**
      * This method is called when executing this application from the command

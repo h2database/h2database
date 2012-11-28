@@ -993,7 +993,7 @@ public class WebApp {
      * @param size the number of statements
      * @param buff the target buffer
      */
-    protected void query(Connection conn, String s, int i, int size, StringBuilder buff) {
+    private void query(Connection conn, String s, int i, int size, StringBuilder buff) {
         if (!(s.startsWith("@") && s.endsWith("."))) {
             buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
         }
@@ -1667,7 +1667,7 @@ public class WebApp {
      *
      * @return the file to open afterwards
      */
-    String settingSave() {
+    private String settingSave() {
         ConnectionInfo info = new ConnectionInfo();
         info.name = attributes.getProperty("name", "");
         info.driver = attributes.getProperty("driver", "");

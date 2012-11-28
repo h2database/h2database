@@ -45,7 +45,7 @@ public class DbContents {
     /**
      * True if this is a H2 database in MySQL mode.
      */
-    boolean isH2ModeMySQL;
+    private boolean isH2ModeMySQL;
 
     /**
      * True if this is a PostgreSQL database.
@@ -55,7 +55,7 @@ public class DbContents {
     /**
      * True if this is a MySQL database.
      */
-    boolean isMySQL;
+    private boolean isMySQL;
 
     /**
      * True if this is an Apache Derby database.
@@ -65,7 +65,7 @@ public class DbContents {
     /**
      * True if this is a Firebird database.
      */
-    boolean isFirebird;
+    private boolean isFirebird;
 
     /**
      * True if this is an SQLite database.
@@ -75,13 +75,7 @@ public class DbContents {
     /**
      * True if this is a MS SQL Server database.
      */
-    boolean isMSSQLServer;
-
-    /**
-     * True if the unquoted names are stored as upper case.
-     * False for MySQL and PostgreSQL.
-     */
-    boolean storedUpperCaseIdentifiers;
+    private boolean isMSSQLServer;
 
     /**
      * Get the column index of a column in a result set. If the column is not
@@ -131,7 +125,6 @@ public class DbContents {
             isFirebird = url.startsWith("jdbc:firebirdsql:");
             isMSSQLServer = url.startsWith("jdbc:sqlserver:");
         }
-        storedUpperCaseIdentifiers = meta.storesUpperCaseIdentifiers();
         String defaultSchemaName = getDefaultSchemaName(meta);
         String[] schemaNames = getSchemaNames(meta);
         schemas = new DbSchema[schemaNames.length];

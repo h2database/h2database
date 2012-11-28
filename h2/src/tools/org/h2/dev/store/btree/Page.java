@@ -94,6 +94,7 @@ public class Page {
      * @param counts the children counts
      * @param totalCount the total number of keys
      * @param sharedFlags which arrays are shared
+     * @param memory the memory used in bytes
      * @return the page
      */
     public static Page create(MVMap<?, ?> map, long version,
@@ -119,8 +120,9 @@ public class Page {
      *
      * @param file the file
      * @param map the map
-     * @param filePos the position in the file
      * @param pos the page position
+     * @param filePos the position in the file
+     * @param fileSize the file size (to avoid reading past EOF)
      * @return the page
      */
     static Page read(FileChannel file, MVMap<?, ?> map,
@@ -414,6 +416,12 @@ public class Page {
         return totalCount;
     }
 
+    /**
+     * Get the descendant counts for the given child.
+     *
+     * @param index the child index
+     * @return the descendant count
+     */
     long getCounts(int index) {
         return counts[index];
     }
@@ -633,6 +641,14 @@ public class Page {
         }
     }
 
+    /**
+     * Read the page from the buffer.
+     *
+     * @param buff the buffer
+     * @param chunkId the chunk id
+     * @param offset the offset within the chunk
+     * @param maxLength the maximum length
+     */
     void read(ByteBuffer buff, int chunkId, int offset, int maxLength) {
         int start = buff.position();
         int pageLength = buff.getInt();

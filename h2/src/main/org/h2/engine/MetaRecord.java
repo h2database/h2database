@@ -143,5 +143,5 @@ public class MetaRecord implements Comparable<MetaRecord> {
     public String toString() {
         return "MetaRecord [id=" + id + ", objectType=" + objectType + ", sql=" + sql + "]";
     }
-    
+
 }

@@ -47,7 +47,7 @@ public class TestStreamStore extends TestBase {
         testLoop();
     }
 
-    public void testDetectIllegalId() throws IOException {
+    private void testDetectIllegalId() throws IOException {
         Map<Long, byte[]> map = New.hashMap();
         StreamStore store = new StreamStore(map);
         try {
@@ -72,7 +72,7 @@ public class TestStreamStore extends TestBase {
         }
     }
 
-    public void testTreeStructure() throws IOException {
+    private void testTreeStructure() throws IOException {
 
         final AtomicInteger reads = new AtomicInteger();
         Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
@@ -95,7 +95,7 @@ public class TestStreamStore extends TestBase {
         assertEquals(3, reads.get());
     }
 
-    public void testFormat() throws IOException {
+    private void testFormat() throws IOException {
         Map<Long, byte[]> map = New.hashMap();
         StreamStore store = new StreamStore(map);
         store.setMinBlockSize(10);
@@ -128,7 +128,7 @@ public class TestStreamStore extends TestBase {
         assertEquals(1, in.skip(1));
     }
 
-    public void testWithExistingData() throws IOException {
+    private void testWithExistingData() throws IOException {
 
         final AtomicInteger tests = new AtomicInteger();
         Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
@@ -170,7 +170,7 @@ public class TestStreamStore extends TestBase {
         }
     }
 
-    public void testWithFullMap() throws IOException {
+    private void testWithFullMap() throws IOException {
         final AtomicInteger tests = new AtomicInteger();
         Map<Long, byte[]> map = new HashMap<Long, byte[]>() {
 
@@ -196,7 +196,7 @@ public class TestStreamStore extends TestBase {
         assertEquals(Long.MAX_VALUE / 2 + 1, store.getNextKey());
     }
 
-    public void testLoop() throws IOException {
+    private void testLoop() throws IOException {
         Map<Long, byte[]> map = New.hashMap();
         StreamStore store = new StreamStore(map);
         assertEquals(256 * 1024, store.getMaxBlockSize());

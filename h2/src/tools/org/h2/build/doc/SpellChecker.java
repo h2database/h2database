@@ -33,8 +33,16 @@ public class SpellChecker {
     private static final String PREFIX_IGNORE = "abc";
     private static final String[] IGNORE_FILES = {"mainWeb.html", "pg_catalog.sql"};
 
-    // these are public so we can set them during development testing
+    // These are public so we can set them during development testing
+
+    /**
+     * Whether debugging is enabled.
+     */
     public boolean debug;
+
+    /**
+     * Whether to print the dictionary.
+     */
     public boolean printDictionary;
 
     private final HashSet<String> dictionary = new HashSet<String>();

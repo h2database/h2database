@@ -22,7 +22,11 @@ import org.h2.util.New;
  */
 public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 
+    /**
+     * The spatial key type.
+     */
     final SpatialType keyType;
+
     private boolean quadraticSplit;
 
     public MVRTreeMap(int dimensions, DataType valueType) {
@@ -30,6 +34,14 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         this.keyType = (SpatialType) getKeyType();
     }
 
+    /**
+     * Create a new map with the given dimensions and value type.
+     *
+     * @param <V> the value type
+     * @param dimensions the number of dimensions
+     * @param valueType the value type
+     * @return the map
+     */
     public static <V> MVRTreeMap<V> create(int dimensions, DataType valueType) {
         return new MVRTreeMap<V>(dimensions, valueType);
     }

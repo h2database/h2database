@@ -71,11 +71,18 @@ public class Chunk {
      */
     long version;
 
-    public Chunk(int id) {
+    Chunk(int id) {
         this.id = id;
     }
 
-    public static Chunk fromHeader(ByteBuffer buff, long start) {
+    /**
+     * Read the header from the byte buffer.
+     *
+     * @param buff the source buffer
+     * @param start the start of the chunk in the file
+     * @return the chunk
+     */
+    static Chunk fromHeader(ByteBuffer buff, long start) {
         if (buff.get() != 'c') {
             throw new RuntimeException("File corrupt");
         }
@@ -95,6 +102,11 @@ public class Chunk {
         return c;
     }
 
+    /**
+     * Write the header.
+     *
+     * @param buff the target buffer
+     */
     void writeHeader(ByteBuffer buff) {
         buff.put((byte) 'c');
         buff.putInt(length);
@@ -137,6 +149,11 @@ public class Chunk {
         return o instanceof Chunk && ((Chunk) o).id == id;
     }
 
+    /**
+     * Get the chunk data as a string.
+     *
+     * @return the string
+     */
     public String asString() {
         return
                 "id:" + id + "," +

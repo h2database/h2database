@@ -335,7 +335,7 @@ public class TestStatement extends TestBase {
         rs.next();
         assertEquals(7, rs.getInt(1));
         assertFalse(rs.next());
-        
+
         stat.execute("CREATE TABLE TEST2(ID identity primary key)");
         stat.execute("INSERT INTO TEST2 VALUES()");
         stat.execute("SET @X = IDENTITY()");

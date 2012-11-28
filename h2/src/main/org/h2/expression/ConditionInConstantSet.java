@@ -19,10 +19,11 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
 
 /**
- * Used for optimised IN(...) queries where the contents of the IN list are all constant and of the same type.
+ * Used for optimised IN(...) queries where the contents of the IN list are all
+ * constant and of the same type.
  * <p>
- * Checking using a HashSet is has time complexity O(1), instead of O(n) for checking using
- * an array.
+ * Checking using a HashSet is has time complexity O(1), instead of O(n) for
+ * checking using an array.
  */
 public class ConditionInConstantSet extends Condition {
 
@@ -30,10 +31,11 @@ public class ConditionInConstantSet extends Condition {
     private int queryLevel;
     private final ArrayList<Expression> valueList;
     private final HashSet<Value> valueSet;
-    
+
     /**
      * Create a new IN(..) condition.
      *
+     * @param session the session
      * @param left the expression before IN
      * @param valueList the value list (at least two elements)
      */
@@ -55,7 +57,7 @@ public class ConditionInConstantSet extends Condition {
         Value firstRightVal = valueSet.iterator().next();
         leftVal = leftVal.convertTo(firstRightVal.getType());
         boolean result = valueSet.contains(leftVal);
-        
+
         if (!result && setHasNull) {
             return ValueNull.INSTANCE;
         }

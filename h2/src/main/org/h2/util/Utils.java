@@ -31,6 +31,9 @@ import org.h2.message.DbException;
  */
 public class Utils {
 
+    /**
+     * The serializer to use.
+     */
     public static JavaObjectSerializer serializer;
 
     /**

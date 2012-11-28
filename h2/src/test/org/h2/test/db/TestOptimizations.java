@@ -321,7 +321,7 @@ public class TestOptimizations extends TestBase {
 
         conn.close();
     }
-    
+
     private void testNestedInSelect() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");

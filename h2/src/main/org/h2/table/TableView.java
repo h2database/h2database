@@ -47,7 +47,8 @@ public class TableView extends Table {
     private ViewIndex index;
     private boolean recursive;
     private DbException createException;
-    private final SmallLRUCache<IntArray, ViewIndex> indexCache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
+    private final SmallLRUCache<IntArray, ViewIndex> indexCache =
+            SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private long lastModificationCheck;
     private long maxDataModificationId;
     private User owner;

@@ -1016,7 +1016,7 @@ CONCAT(string, string [,...])
 ","
 Combines strings."
 "Functions (String)","CONCAT_WS","
-CONCAT_WS(string, string, string [,...])
+CONCAT_WS(separatorString, string, string [,...])
 ","
 Combines strings with separator."
 "Functions (String)","DIFFERENCE","

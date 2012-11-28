@@ -301,6 +301,7 @@ public class DataUtils {
      * has been reached. The buffer is rewind at the end.
      *
      * @param file the file channel
+     * @param pos the absolute position within the file
      * @param dst the byte buffer
      */
     public static void readFully(FileChannel file, long pos, ByteBuffer dst) throws IOException {
@@ -318,6 +319,7 @@ public class DataUtils {
      * Write to a file channel.
      *
      * @param file the file channel
+     * @param pos the absolute position within the file
      * @param src the source buffer
      */
     public static void writeFully(FileChannel file, long pos, ByteBuffer src) throws IOException {

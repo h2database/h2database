@@ -30,8 +30,6 @@ MVStore
     Building the MVStore Library</a><br />
 <a href="#requirements">
     Requirements</a><br />
-<a href="#future_plans">
-    Future Plans</a><br />
 
 <h2 id="overview">Overview</h2>
 <p>
@@ -61,7 +59,7 @@ open a map, add some data, and access the current and an old version.
 MVStore s = MVStore.open(fileName);
 
 // create/get the map named "data"
-MVMap<Integer, String> map = s.openMap("data");
+MVMap&lt;Integer, String&gt; map = s.openMap("data");
 
 // add some data
 map.put(1, "Hello");
@@ -80,7 +78,7 @@ map.put(1, "Hi");
 map.remove(2);
 
 // access the old data (before incrementVersion)
-MVMap<Integer, String> oldMap =
+MVMap&lt;Integer, String&gt; oldMap =
         map.openVersion(oldVersion);
 
 // store the newest data to disk
@@ -124,7 +122,7 @@ MVStore s = MVStore.open(null);
 
 // create an R-tree map
 // the key has 2 dimensions, the value is a string
-MVRTreeMap<String> r = MVRTreeMap.create(2, new ObjectType());
+MVRTreeMap&lt;String&gt; r = MVRTreeMap.create(2, new ObjectType());
 
 // open the map
 r = s.openMap("data", r);
@@ -136,7 +134,7 @@ r.add(new SpatialKey(0, -3f, -2f, 2f, 3f), "left");
 r.add(new SpatialKey(1, 3f, 4f, 4f, 5f), "right");
 
 // iterate over the intersecting keys
-Iterator<SpatialKey> it =
+Iterator&lt;SpatialKey&gt; it =
         r.findIntersectingKeys(new SpatialKey(0, 0f, 9f, 3f, 6f));
 for (SpatialKey k; it.hasNext();) {
     k = it.next();
@@ -151,7 +149,7 @@ s.close();
 <h3>Maps</h3>
 <p>
 Each store supports a set of named maps.
-A map is sorted by key, and supports the common lookup operations, 
+A map is sorted by key, and supports the common lookup operations,
 including access to the first and last key, iterate over some or all keys, and so on.
 </p><p>
 Also supported, and very uncommon for maps, is fast index lookup.
@@ -162,7 +160,7 @@ and it allows to very quickly count ranges.
 The iterator supports fast skipping.
 This is possible because internally, each map is organized in the form of a counted B+-tree.
 </p><p>
-In database terms, a map can be used like a table, where the key of the map is the primary key of the table, 
+In database terms, a map can be used like a table, where the key of the map is the primary key of the table,
 and the value is the row. A map can also represent an index, where the key of the map is the key
 of the index, and the value of the map is the primary key of the table (for non-unique indexes
 the key of the map must also contain the primary key).
@@ -194,34 +192,34 @@ But of course, if needed, changes can also be persisted if only little data was 
 The estimated amount of unsaved changes is tracked.
 The plan is to automatically store in a background thread once there are enough changes.
 </p><p>
-When storing, all changed pages are serialized, 
-compressed using the LZF algorithm (this can be disabled), 
-and written sequentially to a free area of the file. 
+When storing, all changed pages are serialized,
+compressed using the LZF algorithm (this can be disabled),
+and written sequentially to a free area of the file.
 Each such change set is called a chunk.
-All parent pages of the changed B-trees are stored in this chunk as well, 
-so that each chunk also contains the root of each changed map 
+All parent pages of the changed B-trees are stored in this chunk as well,
+so that each chunk also contains the root of each changed map
 (which is the entry point to read old data).
 There is no separate index: all data is stored as a list of pages.
 </p><p>
 There are currently two write operations per chunk:
-one to store the chunk data (the pages), and one to update the file header 
-(so it points to the chunk head), but the plan is to write the file header only 
+one to store the chunk data (the pages), and one to update the file header
+(so it points to the chunk head), but the plan is to write the file header only
 once in a while, so it does not slow down opening the store too much.
 </p><p>
-There is currently no transaction log, no undo log, 
+There is currently no transaction log, no undo log,
 and there are no in-place updates (however unused chunks are overwritten).
 To efficiently persist very small transactions, the plan is to support a transaction log
 where only the deltas is stored, until enough changes have accumulated to persist a chunk.
 Old versions are kept and are readable until they are no longer needed.
 </p><p>
-The plan is to keep all old data for at least one or two minutes (configurable), 
+The plan is to keep all old data for at least one or two minutes (configurable),
 so that there are no explicit sync operations required to guarantee data consistency.
 To reuse disk space, the chunks with the lowest amount of live data are compacted
 (the live data is simply stored again in the next chunk).
 To improve data locality and disk space usage, the plan is to automatically defragment and compact data.
 </p><p>
 Compared to regular databases that use a transaction log, undo log, and main storage area,
-the log structured storage is simpler, more flexible, and typically needs less disk operations per change, 
+the log structured storage is simpler, more flexible, and typically needs less disk operations per change,
 as data is only written once instead of twice or 3 times, and because the B-tree pages are
 always full (they are stored next to each other) and can be easily compressed.
 But temporarily, disk space usage might actually be a bit higher than for a regular database,
@@ -234,18 +232,18 @@ Performance of in-memory operations is comparable with <code>java.util.TreeMap</
 (many operations are actually faster), but usually slower than <code>java.util.HashMap</code>.
 </p><p>
 If no file name is specified, the store operates purely in memory.
-Except for persisting data, all features are supported in this mode 
+Except for persisting data, all features are supported in this mode
 (multi-versioning, index lookup, R-tree and so on).
 </p><p>
 The memory overhead for large maps is slightly better than for the regular
-map implementations, but there is a higher overhead per map. 
-For maps with less than 25 entries, the regular map implementations 
+map implementations, but there is a higher overhead per map.
+For maps with less than 25 entries, the regular map implementations
 use less memory on average.
 </p>
 
 <h3>Pluggable Data Types</h3>
 <p>
-Serialization is pluggable. The default serialization currently supports many common data types, 
+Serialization is pluggable. The default serialization currently supports many common data types,
 and uses Java serialization for other objects. The following classes are currently directly supported:
 <code>Boolean, Byte, Short, Character, Integer, Long, Float, Double, BigInteger, BigDecimal,
 byte[], char[], int[], long[], String, UUID</code>.
@@ -254,7 +252,7 @@ The plan is to add more common classes (date, time, timestamp, object array).
 Parameterized data types are supported
 (for example one could build a string data type that limits the length for some reason).
 </p><p>
-The storage engine itself does not have any length limits, so that keys, values, 
+The storage engine itself does not have any length limits, so that keys, values,
 pages, and chunks can be very big (as big as fits in memory).
 Also, there is no inherent limit to the number of maps and chunks.
 Due to using a log structured storage, there is no special case handling for large keys or pages.
@@ -262,7 +260,7 @@ Due to using a log structured storage, there is no special case handling for lar
 
 <h3>BLOB Support</h3>
 <p>
-There is a mechanism that stores large binary objects by splitting them into smaller blocks. 
+There is a mechanism that stores large binary objects by splitting them into smaller blocks.
 This allows to store objects that don't fit in memory.
 Streaming as well as random access reads on such objects are supported.
 This tool is written on top of the store (only using the map interface).
@@ -271,7 +269,7 @@ This tool is written on top of the store (only using the map interface).
 <h3>R-Tree and Pluggable Map Implementations</h3>
 <p>
 The map implementation is pluggable.
-In addition to the default MVMap (multi-version map), 
+In addition to the default MVMap (multi-version map),
 there is a multi-version R-tree map implementation
 for spatial operations (contain and intersection; nearest neighbor is not yet implemented).
 </p>
@@ -279,15 +277,15 @@ for spatial operations (contain and intersection; nearest neighbor is not yet im
 <h3>Concurrent Operations and Caching</h3>
 <p>
 At the moment, concurrent read on old versions of the data is supported.
-All such read operations can occur in parallel. Concurrent reads from the page cache, 
+All such read operations can occur in parallel. Concurrent reads from the page cache,
 as well as concurrent reads from the file system are supported.
 </p><p>
 Caching is done on the page level.
-The page cache is a concurrent LIRS cache, 
+The page cache is a concurrent LIRS cache,
 which should be resistant against scan operations.
 </p><p>
-Concurrent modification operations on the maps are currently not supported, 
-however it is planned to support an additional map implementation 
+Concurrent modification operations on the maps are currently not supported,
+however it is planned to support an additional map implementation
 that supports concurrent writes
 (at the cost of speed if used in a single thread, same as <code>ConcurrentHashMap</code>).
 </p>
@@ -306,15 +304,15 @@ Files can be opened in read-only mode, in which case a shared lock is used.
 </p>
 <p>
 The persisted data can be backed up to a different file at any time,
-even during write operations (online backup). 
+even during write operations (online backup).
 To do that, automatic disk space reuse needs to be first disabled, so that
-new data is always appended at the end of the file. 
+new data is always appended at the end of the file.
 Then, the file can be copied (the file handle is available to the application).
 </p>
 
 <h3>Tools</h3>
 <p>
-There is a builder for store instances (<code>MVStoreBuilder</code>) 
+There is a builder for store instances (<code>MVStoreBuilder</code>)
 with a fluent API to simplify building a store instance.
 </p>
 <p>
@@ -326,7 +324,7 @@ There is a tool (<code>MVStoreTool</code>) to dump the contents of a file.
 Unlike similar storage engines like LevelDB and Kyoto Cabinet, the MVStore is written in Java
 and can easily be embedded in a Java application.
 </p><p>
-The MVStore is somewhat similar to the Berkeley DB Java Edition because it is also written in Java, 
+The MVStore is somewhat similar to the Berkeley DB Java Edition because it is also written in Java,
 and is also a log structured storage, but the H2 license is more liberal.
 </p><p>
 Like SQLite, the MVStore keeps all data in one file.
@@ -334,7 +332,7 @@ The plan is to make the MVStore easier to use and faster than SQLite on Android
 (this was not recently tested, however an initial test was successful).
 </p><p>
 The API of the MVStore is similar to MapDB (previously known as JDBM) from Jan Kotek,
-and some code is shared between MapDB and JDBM. 
+and some code is shared between MapDB and JDBM.
 However, unlike MapDB, the MVStore uses is a log structured storage.
 </p>
 

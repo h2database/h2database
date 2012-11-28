@@ -44,6 +44,12 @@ public class Cursor<K> implements Iterator<K> {
         return current != null;
     }
 
+    /**
+     * Skip over that many entries. This method is relatively fast (for this map
+     * implementation) even if many entries need to be skipped.
+     *
+     * @param n the number of entries to skip
+     */
     public void skip(long n) {
         if (!hasNext()) {
             return;
@@ -64,6 +70,13 @@ public class Cursor<K> implements Iterator<K> {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Fetch the next entry that is equal or larger than the given key, starting
+     * from the given page.
+     *
+     * @param p the page to start
+     * @param from the key to search
+     */
     protected void min(Page p, K from) {
         while (true) {
             if (p.isLeaf()) {
@@ -85,6 +98,9 @@ public class Cursor<K> implements Iterator<K> {
         }
     }
 
+    /**
+     * Fetch the next entry if there is one.
+     */
     @SuppressWarnings("unchecked")
     protected void fetchNext() {
         while (pos != null) {

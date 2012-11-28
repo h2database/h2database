@@ -4,13 +4,12 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.dev.store;
+package org.h2.dev.store.cache;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import org.h2.dev.store.cache.CacheLongKeyLIRS;
 import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FilePathWrapper;
 

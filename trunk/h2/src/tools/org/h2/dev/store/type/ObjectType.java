@@ -4,13 +4,12 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.store;
+package org.h2.dev.store.type;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.UUID;
-import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.DataUtils;
 import org.h2.util.Utils;
 
@@ -652,7 +651,7 @@ public class ObjectType implements DataType {
     /**
      * The type for long objects.
      */
-    class LongType extends AutoDetectDataType {
+    public class LongType extends AutoDetectDataType {
 
         LongType(ObjectType base) {
             super(base, TYPE_LONG);

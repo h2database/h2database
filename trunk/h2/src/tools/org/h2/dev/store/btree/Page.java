@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import org.h2.compress.Compressor;
+import org.h2.dev.store.type.DataType;
 
 /**
  * A page (a node or a leaf).

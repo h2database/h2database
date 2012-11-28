@@ -19,8 +19,12 @@ import java.util.Iterator;
 import java.util.Map;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
-import org.h2.dev.store.FilePathCache;
 import org.h2.dev.store.cache.CacheLongKeyLIRS;
+import org.h2.dev.store.cache.FilePathCache;
+import org.h2.dev.store.type.DataType;
+import org.h2.dev.store.type.DataTypeFactory;
+import org.h2.dev.store.type.ObjectTypeFactory;
+import org.h2.dev.store.type.StringType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
@@ -36,6 +40,9 @@ header:
 H:3,...
 
 TODO:
+- support serialization by default
+- build script
+- test concurrent storing in a background thread
 - store store creation in file header, and seconds since creation in chunk header (plus a counter)
 - recovery: keep some old chunks; don't overwritten for 5 minutes (configurable)
 - allocate memory with Utils.newBytes and so on
@@ -69,9 +76,13 @@ TODO:
 - triggers (can be implemented with a custom map)
 - store write operations per page (maybe defragment if much different than count)
 - r-tree: nearest neighbor search
-- use FileChannel by default (nio file system)
+- use FileChannel by default (nio file system), but: an interrupt close the FileChannel
 - auto-save temporary data if it uses too much memory, but revert it on startup if needed.
 - map and chunk metadata: do not store default values
+- support maps without values (non-unique indexes), and maps without keys (counted b-tree)
+- use a small object cache (StringCache)
+- dump values
+- tool to import / manipulate CSV files
 
 */
 
@@ -92,7 +103,7 @@ public class MVStore {
     private final String fileName;
     private final DataTypeFactory dataTypeFactory;
 
-    private int maxPageSize = 4 * 1024;
+    private int pageSize = 6 * 1024;
 
     private FileChannel file;
     private FileLock fileLock;
@@ -104,8 +115,7 @@ public class MVStore {
      * split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    private final CacheLongKeyLIRS<Page> cache = CacheLongKeyLIRS.newInstance(
-            16 * 1024 * 1024, 2048, 16, 16 * 1024 * 1024 / 2048 * 2 / 100);
+    private CacheLongKeyLIRS<Page> cache;
 
     private int lastChunkId;
     private final HashMap<Integer, Chunk> chunks = New.hashMap();
@@ -145,12 +155,21 @@ public class MVStore {
     MVStore(HashMap<String, Object> config) {
         this.config = config;
         this.fileName = (String) config.get("fileName");
-        this.dataTypeFactory = (DataTypeFactory) config.get("dataTypeFactory");
+        DataTypeFactory parent = new ObjectTypeFactory();
+        DataTypeFactory f = (DataTypeFactory) config.get("dataTypeFactory");
+        if (f == null) {
+            f = parent;
+        } else {
+            f.setParent(parent);
+        }
+        this.dataTypeFactory = f;
         this.readOnly = "r".equals(config.get("openMode"));
         this.compressor = "0".equals(config.get("compression")) ? null : new CompressLZF();
-        Object s = config.get("cacheSize");
-        if (s != null) {
-            cache.setMaxMemory(Integer.parseInt(s.toString()) * 1024 * 1024);
+        if (fileName != null) {
+            Object s = config.get("cacheSize");
+            int mb = s == null ? 16 : Integer.parseInt(s.toString());
+            cache = CacheLongKeyLIRS.newInstance(
+                    mb * 1024 * 1024, 2048, 16, mb * 1024 * 1024 / 2048 * 2 / 100);
         }
     }
 
@@ -519,7 +538,7 @@ public class MVStore {
             return currentVersion;
         }
 
-        // the last chunk was not completely correct in the last save()
+        // the last chunk was not completely correct in the last store()
         // this needs to be updated now (it's better not to update right after
         // storing, because that would modify the meta map again)
         Chunk c = chunks.get(lastChunkId);
@@ -944,24 +963,24 @@ public class MVStore {
     }
 
     /**
-     * Set the maximum amount of memory a page should contain, in bytes. Larger
-     * pages are split. The default is 4 KB. This is not a limit in the page
-     * size, as pages with one entry can be larger. As a rule of thumb, pages
-     * should not be larger than 1 MB, for caching to work efficiently.
+     * Set the amount of memory a page should contain at most, in bytes. Larger
+     * pages are split. The default is 6 KB. This is not a limit in the page
+     * size (pages with one entry can get larger), it is just the point where
+     * pages are split.
      *
-     * @param maxPageSize the page size
+     * @param pageSize the page size
      */
-    public void setMaxPageSize(int maxPageSize) {
-        this.maxPageSize = maxPageSize;
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
     }
 
     /**
-     * Get the maximum page size, in bytes.
+     * Get the page size, in bytes.
      *
-     * @return the maximum page size
+     * @return the page size
      */
-    public int getMaxPageSize() {
-        return maxPageSize;
+    public int getPageSize() {
+        return pageSize;
     }
 
     Compressor getCompressor() {

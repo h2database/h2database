@@ -4,15 +4,15 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.store;
+package org.h2.dev.store.rtree;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.h2.dev.store.btree.Cursor;
 import org.h2.dev.store.btree.CursorPos;
-import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.MVMap;
 import org.h2.dev.store.btree.Page;
+import org.h2.dev.store.type.DataType;
 import org.h2.util.New;
 
 /**
@@ -50,7 +50,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         checkOpen();
         return new RTreeCursor(this, root, x) {
             protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
-                return keyType.contains(key, test);
+                return keyType.isOverlap(key, test);
             }
         };
     }
@@ -201,7 +201,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         Page p = root.copyOnWrite(writeVersion);
         Object result;
         if (alwaysAdd || get(key) == null) {
-            if (p.getMemory() > store.getMaxPageSize() && p.getKeyCount() > 1) {
+            if (p.getMemory() > store.getPageSize() && p.getKeyCount() > 1) {
                 // only possible if this is the root, else we would have split earlier
                 // (this requires maxPageSize is fixed)
                 long totalCount = p.getTotalCount();
@@ -283,7 +283,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             }
         }
         Page c = p.getChildPage(index).copyOnWrite(writeVersion);
-        if (c.getMemory() > store.getMaxPageSize() && c.getKeyCount() > 1) {
+        if (c.getMemory() > store.getPageSize() && c.getKeyCount() > 1) {
             // split on the way down
             Page split = split(c, writeVersion);
             p = p.copyOnWrite(writeVersion);

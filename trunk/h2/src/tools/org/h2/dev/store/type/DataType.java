@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.dev.store.btree;
+package org.h2.dev.store.type;
 
 import java.nio.ByteBuffer;
 
@@ -58,6 +58,9 @@ public interface DataType {
     /**
      * Get the stable string representation that is used to build this data
      * type.
+     * <p>
+     * To avoid conflict with the default factory, the returned string should
+     * start with the package name of the type factory.
      *
      * @return the string representation
      */

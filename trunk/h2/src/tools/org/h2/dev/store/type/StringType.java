@@ -4,9 +4,10 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.dev.store.btree;
+package org.h2.dev.store.type;
 
 import java.nio.ByteBuffer;
+import org.h2.dev.store.btree.DataUtils;
 
 /**
  * A string type.

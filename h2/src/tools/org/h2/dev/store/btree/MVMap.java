@@ -51,7 +51,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
         this.valueType = valueType;
-        this.root = Page.createEmpty(this,  createVersion - 1);
+        this.root = Page.createEmpty(this,  -1);
     }
 
     public void open(MVStore store, HashMap<String, String> config) {

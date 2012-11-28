@@ -21,7 +21,7 @@ public abstract class TableBase extends Table {
     /**
      * The table engine used (null for regular tables).
      */
-    protected final String tableEngine;
+    private final String tableEngine;
 
     private final boolean globalTemporary;
 

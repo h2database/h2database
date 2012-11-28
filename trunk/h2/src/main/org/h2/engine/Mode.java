@@ -69,12 +69,6 @@ public class Mode {
     public boolean nullConcatIsNull;
 
     /**
-     * When converting a floating point number to an integer, the fractional
-     * digits are not truncated, but the value is rounded.
-     */
-    public boolean roundWhenConvertToLong;
-
-    /**
      * Identifiers may be quoted using square brackets as in [Test].
      */
     public boolean squareBracketQuotedNames;
@@ -158,7 +152,6 @@ public class Mode {
         mode.convertInsertNullToZero = true;
         mode.indexDefinitionInCreateTable = true;
         mode.lowerCaseIdentifiers = true;
-        mode.roundWhenConvertToLong = true;
         add(mode);
 
         mode = new Mode("Oracle");
@@ -169,7 +162,6 @@ public class Mode {
         mode = new Mode("PostgreSQL");
         mode.aliasColumnName = true;
         mode.nullConcatIsNull = true;
-        mode.roundWhenConvertToLong = true;
         mode.supportOffsetFetch = true;
         mode.systemColumns = true;
         mode.logIsLogBase10 = true;

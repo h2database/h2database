@@ -42,7 +42,7 @@ public class PageDataIndex extends PageIndex {
     private long rowCount;
     private HashSet<Row> delta;
     private int rowCountDiff;
-    private HashMap<Integer, Integer> sessionRowCount;
+    private final HashMap<Integer, Integer> sessionRowCount;
     private int mainIndexColumn = -1;
     private DbException fastDuplicateKeyException;
 
@@ -65,6 +65,8 @@ public class PageDataIndex extends PageIndex {
         if (multiVersion) {
             sessionRowCount = New.hashMap();
             isMultiVersion = true;
+        } else {
+            sessionRowCount = null;
         }
         tableData = table;
         this.store = database.getPageStore();

@@ -30,9 +30,9 @@ import org.h2.value.ValueBoolean;
 public class ExpressionColumn extends Expression {
 
     private final Database database;
-    private String schemaName;
-    private String tableAlias;
-    private String columnName;
+    private final String schemaName;
+    private final String tableAlias;
+    private final String columnName;
     private ColumnResolver columnResolver;
     private int queryLevel;
     private Column column;
@@ -41,6 +41,9 @@ public class ExpressionColumn extends Expression {
     public ExpressionColumn(Database database, Column column) {
         this.database = database;
         this.column = column;
+        this.schemaName = null;
+        this.tableAlias = null;
+        this.columnName = null;
     }
 
     public ExpressionColumn(Database database, String schemaName, String tableAlias, String columnName) {

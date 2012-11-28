@@ -19,7 +19,7 @@ public class Page {
     /**
      * The file name.
      */
-    String fileName;
+    final String fileName;
 
     /**
      * The title of the page.

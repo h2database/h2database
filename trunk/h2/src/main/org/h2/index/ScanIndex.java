@@ -35,7 +35,7 @@ public class ScanIndex extends BaseIndex {
     private ArrayList<Row> rows = New.arrayList();
     private final RegularTable tableData;
     private int rowCountDiff;
-    private HashMap<Integer, Integer> sessionRowCount;
+    private final HashMap<Integer, Integer> sessionRowCount;
     private HashSet<Row> delta;
     private long rowCount;
 
@@ -43,6 +43,8 @@ public class ScanIndex extends BaseIndex {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
         if (database.isMultiVersion()) {
             sessionRowCount = New.hashMap();
+        } else {
+            sessionRowCount = null;
         }
         tableData = table;
     }

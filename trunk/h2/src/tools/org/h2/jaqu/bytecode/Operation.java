@@ -55,7 +55,7 @@ class Operation implements Token {
         DIVIDE("/"),
         MOD("%");
 
-        private String name;
+        private final String name;
 
         Type(String name) {
             this.name = name;

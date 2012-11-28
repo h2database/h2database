@@ -58,7 +58,7 @@ public class RegularTable extends TableBase {
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private boolean containsLargeObject;
-    private PageDataIndex mainIndex;
+    private final PageDataIndex mainIndex;
     private int changesSinceAnalyze;
     private int nextAnalyze;
     private Column rowIdColumn;
@@ -86,6 +86,7 @@ public class RegularTable extends TableBase {
                     data.create, data.session);
             scanIndex = mainIndex;
         } else {
+            mainIndex = null;
             scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData));
         }
         indexes.add(scanIndex);

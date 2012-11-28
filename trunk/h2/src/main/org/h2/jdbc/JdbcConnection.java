@@ -67,8 +67,8 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private static boolean keepOpenStackTrace;
 
-    private String url;
-    private String user;
+    private final String url;
+    private final String user;
 
     // ResultSet.HOLD_CURSORS_OVER_COMMIT
     private int holdability = 1;
@@ -83,7 +83,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private String catalog;
     private Statement executingStatement;
     private final CompareMode compareMode = CompareMode.getInstance(null, 0);
-    private CloseWatcher watcher;
+    private final CloseWatcher watcher;
     private int queryTimeoutCache = -1;
 
     /**
@@ -141,6 +141,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         this.getQueryTimeout = clone.getQueryTimeout;
         this.getReadOnly = clone.getReadOnly;
         this.rollback = clone.rollback;
+        this.watcher = null;
     }
 
     /**
@@ -153,6 +154,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         setTrace(trace, TraceObject.CONNECTION, id);
         this.user = user;
         this.url = url;
+        this.watcher = null;
     }
 
     private void closeOld() {

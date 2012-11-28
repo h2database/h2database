@@ -28,7 +28,8 @@ public class RowList {
     private FileStore file;
     private Data rowBuff;
     private ArrayList<Value> lobs;
-    private int memory, maxMemory;
+    private final int maxMemory;
+    private int memory;
     private boolean written;
     private boolean readUncached;
 
@@ -41,6 +42,8 @@ public class RowList {
         this.session = session;
         if (session.getDatabase().isPersistent()) {
             maxMemory = session.getDatabase().getMaxOperationMemory();
+        } else {
+            maxMemory = 0;
         }
     }
 

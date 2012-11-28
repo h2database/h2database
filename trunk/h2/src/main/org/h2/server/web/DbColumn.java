@@ -19,18 +19,18 @@ class DbColumn {
     /**
      * The column name.
      */
-    String name;
+    final String name;
 
     /**
      * The quoted table name.
      */
-    String quotedName;
+    final String quotedName;
 
     /**
      * The data type name (including precision and the NOT NULL flag if
      * applicable).
      */
-    String dataType;
+    final String dataType;
 
     DbColumn(DbContents contents, ResultSet rs) throws SQLException {
         name = rs.getString("COLUMN_NAME");

@@ -25,7 +25,7 @@ public class Word {
     /**
      * The pages map.
      */
-    HashMap<Page, Weight> pages = new HashMap<Page, Weight>();
+    final HashMap<Page, Weight> pages = new HashMap<Page, Weight>();
 
     private ArrayList<Weight> weightList;
 

@@ -107,7 +107,7 @@ public class Recover extends Tool implements DataHandler {
         /**
          * The count per page type.
          */
-        int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
+        final int[] pageTypeCount = new int[Page.TYPE_STREAM_DATA + 2];
 
         /**
          * The number of free pages.

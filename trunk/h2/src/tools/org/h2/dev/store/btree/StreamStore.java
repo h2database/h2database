@@ -272,12 +272,12 @@ public class StreamStore {
      */
     static class Stream extends InputStream {
 
-        private StreamStore store;
+        private final StreamStore store;
         private byte[] oneByteBuffer;
         private ByteBuffer idBuffer;
         private ByteArrayInputStream buffer;
         private long skip;
-        private long length;
+        private final long length;
         private long pos;
 
         Stream(StreamStore store, byte[] id) {

@@ -33,9 +33,9 @@ import org.h2.message.DbException;
 public class Permutations<T> {
 
     private final T[] in;
-    private T[] out;
+    private final T[] out;
     private final int n, m;
-    private int[] index;
+    private final int[] index;
     private boolean hasNext = true;
 
     private Permutations(T[] in, T[] out, int m) {

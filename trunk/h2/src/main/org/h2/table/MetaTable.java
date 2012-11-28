@@ -106,7 +106,7 @@ public class MetaTable extends Table {
 
     private final int type;
     private final int indexColumn;
-    private MetaIndex metaIndex;
+    private final MetaIndex metaIndex;
 
     /**
      * Create a new metadata table.
@@ -515,6 +515,7 @@ public class MetaTable extends Table {
 
         if (indexColumnName == null) {
             indexColumn = -1;
+            metaIndex = null;
         } else {
             indexColumn = getColumn(indexColumnName).getColumnId();
             IndexColumn[] indexCols = IndexColumn.wrap(new Column[] { cols[indexColumn] });

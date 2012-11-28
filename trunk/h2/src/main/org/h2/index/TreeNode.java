@@ -36,7 +36,7 @@ class TreeNode {
     /**
      * The row.
      */
-    Row row;
+    final Row row;
 
     TreeNode(Row row) {
         this.row = row;

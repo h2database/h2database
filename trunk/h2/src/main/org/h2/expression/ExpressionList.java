@@ -20,7 +20,7 @@ import org.h2.value.ValueArray;
  */
 public class ExpressionList extends Expression {
 
-    private Expression[] list;
+    private final Expression[] list;
 
     public ExpressionList(Expression[] list) {
         this.list = list;

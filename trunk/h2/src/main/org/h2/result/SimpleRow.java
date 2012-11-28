@@ -17,7 +17,7 @@ public class SimpleRow implements SearchRow {
 
     private long key;
     private int version;
-    private Value[] data;
+    private final Value[] data;
     private int memory;
 
     public SimpleRow(Value[] data) {

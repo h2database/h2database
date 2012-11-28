@@ -41,10 +41,10 @@ public class ViewIndex extends BaseIndex {
     private final SmallLRUCache<IntArray, CostElement> costCache =
         SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private boolean recursive;
-    private int[] indexMasks;
+    private final int[] indexMasks;
     private String planSQL;
     private Query query;
-    private Session createSession;
+    private final Session createSession;
 
     public ViewIndex(TableView view, String querySQL, ArrayList<Parameter> originalParameters, boolean recursive) {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
@@ -53,6 +53,8 @@ public class ViewIndex extends BaseIndex {
         this.originalParameters = originalParameters;
         this.recursive = recursive;
         columns = new Column[0];
+        this.createSession = null;
+        this.indexMasks = null;
     }
 
     public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) {

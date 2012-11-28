@@ -426,6 +426,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
      * @param count the retry count index
      */
     public void removeServer(IOException e, int i, int count) {
+        trace.debug(e, "removing server because of exception");
         transferList.remove(i);
         if (transferList.size() == 0 && autoReconnect(count)) {
             return;

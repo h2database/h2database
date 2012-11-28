@@ -125,7 +125,6 @@ public class Database implements DataHandler {
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;
     private boolean readOnly;
-    private boolean noDiskSpace;
     private int writeDelay = Constants.DEFAULT_WRITE_DELAY;
     private DatabaseEventListener eventListener;
     private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
@@ -1700,9 +1699,6 @@ public class Database implements DataHandler {
     public void checkWritingAllowed() {
         if (readOnly) {
             throw DbException.get(ErrorCode.DATABASE_IS_READ_ONLY);
-        }
-        if (noDiskSpace) {
-            throw DbException.get(ErrorCode.NO_DISK_SPACE_AVAILABLE);
         }
         if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
             if (!reconnectChangePending) {

@@ -263,6 +263,12 @@ public class StreamStore {
         return new Stream(this, id);
     }
 
+    /**
+     * Get the block.
+     *
+     * @param key the key
+     * @return the block
+     */
     byte[] getBlock(long key) {
         return map.get(key);
     }

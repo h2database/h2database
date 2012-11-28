@@ -190,7 +190,7 @@ public class ScriptCommand extends ScriptBase {
                 Constant constant = (Constant) obj;
                 add(constant.getCreateSQL(), false);
             }
-            
+
             final ArrayList<Table> tables = db.getAllTablesAndViews(false);
             // sort by id, so that views are after tables and views on views
             // after the base views
@@ -199,8 +199,8 @@ public class ScriptCommand extends ScriptBase {
                     return t1.getId() - t2.getId();
                 }
             });
-            
-            // Generate the DROP XXX  ... IF EXISTS 
+
+            // Generate the DROP XXX  ... IF EXISTS
             for (Table table : tables) {
                 if (excludeSchema(table.getSchema())) {
                     continue;
@@ -246,8 +246,8 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(sequence.getCreateSQL(), false);
             }
-            
-            // Generate CREATE TABLE and INSERT...VALUES 
+
+            // Generate CREATE TABLE and INSERT...VALUES
             int count = 0;
             for (Table table : tables) {
                 if (excludeSchema(table.getSchema())) {
@@ -333,7 +333,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(trigger.getCreateSQL(), false);
             }
-            // Generate GRANT ... 
+            // Generate GRANT ...
             for (Right right : db.getAllRights()) {
                 Table table = right.getGrantedTable();
                 if (table != null) {
@@ -346,7 +346,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 add(right.getCreateSQL(), false);
             }
-            // Generate COMMENT ON ... 
+            // Generate COMMENT ON ...
             for (Comment comment : db.getAllComments()) {
                 add(comment.getCreateSQL(), false);
             }

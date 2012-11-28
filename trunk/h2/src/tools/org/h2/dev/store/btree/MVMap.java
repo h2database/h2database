@@ -54,6 +54,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.root = Page.createEmpty(this,  -1);
     }
 
+    /**
+     * Open this map with the given store and configuration.
+     *
+     * @param store the store
+     * @param config the configuration
+     */
     public void open(MVStore store, HashMap<String, String> config) {
         this.store = store;
         this.id = Integer.parseInt(config.get("id"));
@@ -450,7 +456,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Remove all entries, and close the map.
      */
     public void removeMap() {
-        if (!store.isMetaMap(this)) {
+        if (this != store.getMetaMap()) {
             checkWrite();
             root.removeAllRecursive();
             store.removeMap(name);
@@ -492,6 +498,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Add a key-value pair if it does not yet exist.
      *
      * @param key the key (may not be null)
+     * @param value the new value
      * @return the old value if the key existed, or null otherwise
      */
     public synchronized V putIfAbsent(K key, V value) {
@@ -599,6 +606,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return result;
     }
 
+    /**
+     * Use the new root page from now on.
+     *
+     * @param newRoot the new root page
+     */
     protected void newRoot(Page newRoot) {
         if (root != newRoot) {
             removeUnusedOldVersions();
@@ -907,6 +919,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return m;
     }
 
+    /**
+     * Open a copy of the map in read-only mode.
+     *
+     * @return the opened map
+     */
     protected MVMap<K, V> openReadOnly() {
         MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
         m.readOnly = true;
@@ -939,6 +956,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return root.getVersion();
     }
 
+    /**
+     * Get the child page count for this page. This is to allow another map
+     * implementation to override the default, in case the last child is not to
+     * be used.
+     *
+     * @param p the page
+     * @return the number of direct children
+     */
     protected int getChildPageCount(Page p) {
         return p.getChildPageCount();
     }
@@ -952,6 +977,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return "btree";
     }
 
+    /**
+     * Get the map metadata as a string.
+     *
+     * @return the string
+     */
     public String asString() {
         StringBuilder buff = new StringBuilder();
         DataUtils.appendMap(buff, "id", id);

@@ -1710,8 +1710,8 @@ public class PageStore implements CacheWriter {
         Table table = index.getTable();
         if (SysProperties.CHECK) {
             if (!table.isTemporary()) {
-                /* To prevent ABBA locking problems, we need to always take the Database lock before we take the
-                 * PageStore lock. */
+                // to prevent ABBA locking problems, we need to always take
+                // the Database lock before we take the PageStore lock
                 synchronized (database) {
                     synchronized (this) {
                         database.verifyMetaLocked(session);
@@ -1764,8 +1764,8 @@ public class PageStore implements CacheWriter {
     public void removeMeta(Index index, Session session) {
         if (SysProperties.CHECK) {
             if (!index.getTable().isTemporary()) {
-                /* To prevent ABBA locking problems, we need to always take the Database lock before we take the
-                 * PageStore lock. */
+                // to prevent ABBA locking problems, we need to always take
+                // the Database lock before we take the PageStore lock
                 synchronized (database) {
                     synchronized (this) {
                         database.verifyMetaLocked(session);

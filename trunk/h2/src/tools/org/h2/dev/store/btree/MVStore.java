@@ -43,12 +43,14 @@ TODO:
 - support serialization by default
 - build script
 - test concurrent storing in a background thread
-- store store creation in file header, and seconds since creation in chunk header (plus a counter)
-- recovery: keep some old chunks; don't overwritten for 5 minutes (configurable)
+- store store creation in file header, and seconds since creation
+-- in chunk header (plus a counter)
+- recovery: keep some old chunks; don't overwritten
+-- for 5 minutes (configurable)
 - allocate memory with Utils.newBytes and so on
 - unified exception handling
 - concurrent map; avoid locking during IO (pre-load pages)
-- maybe split database into multiple files, to speed up compact operation
+- maybe split database into multiple files, to speed up compact
 - automated 'kill process' and 'power failure' test
 - implement table engine for H2
 - auto-compact from time to time and on close
@@ -56,13 +58,15 @@ TODO:
 - support background writes (concurrent modification & store)
 - limited support for writing to old versions (branches)
 - support concurrent operations (including file I/O)
-- on insert, if the child page is already full, don't load and modify it - split directly (for leaves with 1 entry)
+- on insert, if the child page is already full, don't load and modify it
+-- split directly (for leaves with 1 entry)
 - performance test with encrypting file system
 - possibly split chunk data into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - write using ByteArrayOutputStream; remove DataType.getMaxLength
-- file header: check formatRead and format (is formatRead needed if equal to format?)
+- file header: check formatRead and format (is formatRead
+-- needed if equal to format?)
 - chunk header: store changed chunk data as row; maybe after the root
 - chunk checksum (header, last page, 2 bytes per page?)
 - allow renaming maps
@@ -70,16 +74,22 @@ TODO:
 - online backup
 - MapFactory is the wrong name (StorePlugin?) or is too flexible: remove?
 - store file "header" at the end of each chunk; at the end of the file
-- is there a better name for the file header, if it's no longer always at the beginning of a file?
-- maybe let a chunk point to possible next chunks (so no fixed location header is needed)
+- is there a better name for the file header,
+-- if it's no longer always at the beginning of a file?
+- maybe let a chunk point to possible next chunks
+-- (so no fixed location header is needed)
 - support stores that span multiple files (chunks stored in other files)
 - triggers (can be implemented with a custom map)
-- store write operations per page (maybe defragment if much different than count)
+- store write operations per page (maybe defragment
+-- if much different than count)
 - r-tree: nearest neighbor search
-- use FileChannel by default (nio file system), but: an interrupt close the FileChannel
-- auto-save temporary data if it uses too much memory, but revert it on startup if needed.
+- use FileChannel by default (nio file system), but:
+-- an interrupt close the FileChannel
+- auto-save temporary data if it uses too much memory,
+-- but revert it on startup if needed.
 - map and chunk metadata: do not store default values
-- support maps without values (non-unique indexes), and maps without keys (counted b-tree)
+- support maps without values (non-unique indexes),
+- and maps without keys (counted b-tree)
 - use a small object cache (StringCache)
 - dump values
 - tool to import / manipulate CSV files
@@ -96,6 +106,10 @@ public class MVStore {
      */
     public static final boolean ASSERT = false;
 
+    /**
+     * The block size (physical sector size) of the disk. The file header is
+     * written twice, one copy in each block, to ensure it survives a crash.
+     */
     static final int BLOCK_SIZE = 4 * 1024;
 
     private final HashMap<String, Object> config;
@@ -192,6 +206,7 @@ public class MVStore {
      *
      * @param version the version
      * @param name the map name
+     * @param template the template map
      * @return the read-only map
      */
     @SuppressWarnings("unchecked")
@@ -326,10 +341,6 @@ public class MVStore {
         mapsChanged.remove(map.getId());
     }
 
-    boolean isMetaMap(MVMap<?, ?> map) {
-        return map == meta;
-    }
-
     private DataType getDataType(Class<?> clazz) {
         if (clazz == String.class) {
             return StringType.INSTANCE;
@@ -351,6 +362,9 @@ public class MVStore {
         mapsChanged.put(map.getId(), map);
     }
 
+    /**
+     * Open the store.
+     */
     void open() {
         meta = new MVMap<String, String>(StringType.INSTANCE, StringType.INSTANCE);
         HashMap<String, String> c = New.hashMap();
@@ -1090,6 +1104,9 @@ public class MVStore {
         return unsavedPageCount;
     }
 
+    /**
+     * Increment the number of unsaved pages.
+     */
     void registerUnsavedPage() {
         unsavedPageCount++;
     }

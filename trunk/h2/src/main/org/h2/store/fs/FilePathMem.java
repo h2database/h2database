@@ -216,7 +216,11 @@ class FilePathMemLZF extends FilePathMem {
  */
 class FileMem extends FileBase {
 
+    /**
+     * The file data.
+     */
     final FileMemData data;
+
     private final boolean readOnly;
     private long pos;
 
@@ -352,6 +356,11 @@ class FileMemData {
         lastModified = System.currentTimeMillis();
     }
 
+    /**
+     * Lock the file in exclusive mode if possible.
+     *
+     * @return if locking was successful
+     */
     synchronized boolean lockExclusive() {
         if (sharedLockCount > 0 || isLockedExclusive) {
             return false;
@@ -360,6 +369,11 @@ class FileMemData {
         return true;
     }
 
+    /**
+     * Lock the file in shared mode if possible.
+     *
+     * @return if locking was successful
+     */
     synchronized boolean lockShared() {
         if (isLockedExclusive) {
             return false;
@@ -368,6 +382,9 @@ class FileMemData {
         return true;
     }
 
+    /**
+     * Unlock the file.
+     */
     synchronized void unlock() {
         if (isLockedExclusive) {
             isLockedExclusive = false;

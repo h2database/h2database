@@ -32,8 +32,8 @@ public class ClassUtils {
 
     @SuppressWarnings("unchecked")
     public static <T> T newObject(Class<T> clazz) {
-        // must create new instances, cannot use methods like Boolean.FALSE, since the caller relies
-        // on this creating unique objects
+        // must create new instances, cannot use methods like Boolean.FALSE,
+        // since the caller relies on this creating unique objects
         if (clazz == Integer.class) {
             return (T) new Integer((int) COUNTER.getAndIncrement());
         } else if (clazz == String.class) {

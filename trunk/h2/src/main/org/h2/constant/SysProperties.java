@@ -399,8 +399,9 @@ public class SysProperties {
 
     /**
      * System property <code>h2.javaObjectSerializer</code> (default: null).<br />
-     * The JavaObjectSerializer class name for java objects being stored in column of type OTHER.
-     * It must be the same on client and server to work correctly.
+     * The JavaObjectSerializer class name for java objects being stored in
+     * column of type OTHER. It must be the same on client and server to work
+     * correctly.
      */
     public static final String JAVA_OBJECT_SERIALIZER = Utils.getProperty("h2.javaObjectSerializer", null);
 

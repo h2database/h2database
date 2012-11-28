@@ -75,6 +75,12 @@ public class MVStoreBuilder {
         return set("cacheSize", Integer.toString(mb));
     }
 
+    /**
+     * Use the given data type factory.
+     *
+     * @param factory the data type factory
+     * @return this
+     */
     public MVStoreBuilder with(DataTypeFactory factory) {
         return set("dataTypeFactory", factory);
     }
@@ -94,6 +100,12 @@ public class MVStoreBuilder {
         return DataUtils.appendMap(new StringBuilder(), config).toString();
     }
 
+    /**
+     * Read the configuration from a string.
+     *
+     * @param s the string representation
+     * @return the builder
+     */
     public static MVStoreBuilder fromString(String s) {
         HashMap<String, String> config = DataUtils.parseMap(s);
         MVStoreBuilder builder = new MVStoreBuilder();

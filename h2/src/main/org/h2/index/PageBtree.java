@@ -73,7 +73,7 @@ public abstract class PageBtree extends Page {
     /**
      * The estimated memory used by this object.
      */
-    protected int memoryEstimated;
+    private int memoryEstimated;
 
     PageBtree(PageBtreeIndex index, int pageId, Data data) {
         this.index = index;

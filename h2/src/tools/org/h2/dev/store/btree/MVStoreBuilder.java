@@ -7,6 +7,7 @@
 package org.h2.dev.store.btree;
 
 import java.util.HashMap;
+import org.h2.dev.store.type.DataTypeFactory;
 import org.h2.util.New;
 
 /**

@@ -21,7 +21,10 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageOutputStream;
 import org.h2.dev.store.btree.MVStore;
-import org.h2.dev.store.btree.StringType;
+import org.h2.dev.store.rtree.MVRTreeMap;
+import org.h2.dev.store.rtree.SpatialKey;
+import org.h2.dev.store.type.ObjectType;
+import org.h2.dev.store.type.StringType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -41,10 +44,38 @@ public class TestMVRTree extends TestMVStore {
     }
 
     public void test() {
+        testExample();
         testMany();
         testSimple();
         testRandom();
-        testCustomMapType();
+    }
+
+    private void testExample() {
+        // create an in-memory store
+        MVStore s = MVStore.open(null);
+
+        // create an R-tree map
+        // the key has 2 dimensions, the value is a string
+        MVRTreeMap<String> r = MVRTreeMap.create(2, new ObjectType());
+
+        // open the map
+        r = s.openMap("data", r);
+
+        // add two key-value pairs
+        // the first value is the key id (to make the key unique)
+        // then the min x, max x, min y, max y
+        r.add(new SpatialKey(0, -3f, -2f, 2f, 3f), "left");
+        r.add(new SpatialKey(1, 3f, 4f, 4f, 5f), "right");
+
+        // iterate over the intersecting keys
+        Iterator<SpatialKey> it = r.findIntersectingKeys(
+                new SpatialKey(0, 0f, 9f, 3f, 6f));
+        for (SpatialKey k; it.hasNext();) {
+            k = it.next();
+            // System.out.println(k + ": " + r.get(k));
+            assertTrue(k != null);
+        }
+        s.close();
     }
 
     private void testMany() {
@@ -273,21 +304,6 @@ public class TestMVRTree extends TestMVStore {
             }
             assertEquals(map.size(), m.size());
         }
-        s.close();
-    }
-
-    private void testCustomMapType() {
-        String fileName = getBaseDir() + "/testMapType.h3";
-        FileUtils.delete(fileName);
-        MVStore s;
-        s = openStore(fileName);
-        SequenceMap seq = new SequenceMap();
-        seq = s.openMap("data", seq);
-        StringBuilder buff = new StringBuilder();
-        for (int x : seq.keySet()) {
-            buff.append(x).append(';');
-        }
-        assertEquals("1;2;3;4;5;6;7;8;9;10;", buff.toString());
         s.close();
     }
 

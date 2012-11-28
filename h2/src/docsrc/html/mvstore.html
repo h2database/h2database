@@ -7,7 +7,7 @@ Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
-JaQu
+MVStore
 </title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <!-- [search] { -->
 <script type="text/javascript" src="navigation.js"></script>
@@ -34,33 +34,38 @@ JaQu
     Future Plans</a><br />
 
 <h2 id="overview">Overview</h2>
+<p>
+The MVStore is work in progress, and is planned to be the next storage subsystem of H2.
+</p>
 <ul><li>MVStore stands for multi-version store.
 </li><li>Each store contains a number of maps (using the <code>java.util.Map</code> interface).
 </li><li>The data can be persisted to disk (like a key-value store or a database).
 </li><li>Fully in-memory operation is supported.
 </li><li>It is intended to be fast, simple to use, and small.
 </li><li>Old versions of the data can be read concurrently with all other operations.
-</li><li>Transaction are supported (currently only one transaction can be open at any time).
+</li><li>Transaction are supported (currently only one transaction at a time).
 </li><li>Transactions (even if they are persisted) can be rolled back.
 </li><li>The tool is very modular. It supports pluggable data types / serialization,
 pluggable map implementations (B-tree and R-tree currently), BLOB storage,
-and a file system abstraction that supports encryption and compressed
-read-only files.
+and a file system abstraction to support encryption and compressed read-only files.
 </li></ul>
 
 <h2 id="example_code">Example Code</h2>
+<h3>Map Operations and Versioning</h3>
+<p>
+The following sample code show how to create a store,
+open a map, add some data, and access the current and an old version.
+</p>
 <pre>
 // open the store (in-memory if fileName is null)
 MVStore s = MVStore.open(fileName);
 
-// create/get the map "data"
-// the String.class, String.class will be optional later
-MVMap<String, String> map = s.openMap("data",
-        String.class, String.class);
+// create/get the map named "data"
+MVMap<Integer, String> map = s.openMap("data");
 
 // add some data
-map.put("1", "Hello");
-map.put("2", "World");
+map.put(1, "Hello");
+map.put(2, "World");
 
 // get the current version, for later use
 long oldVersion = s.getCurrentVersion();
@@ -71,11 +76,11 @@ s.incrementVersion();
 // more changes, in the new version
 // changes can be rolled back if required
 // changes always go into 'head' (the newest version)
-map.put("1", "Hi");
-map.remove("2");
+map.put(1, "Hi");
+map.remove(2);
 
 // access the old data (before incrementVersion)
-MVMap<String, String> oldMap =
+MVMap<Integer, String> oldMap =
         map.openVersion(oldVersion);
 
 // store the newest data to disk
@@ -84,13 +89,59 @@ s.store();
 // print the old version (can be done
 // concurrently with further modifications)
 // this will print Hello World
-System.out.println(oldMap.get("1"));
-System.out.println(oldMap.get("2"));
+System.out.println(oldMap.get(1));
+System.out.println(oldMap.get(2));
+oldMap.close();
 
 // print the newest version ("Hi")
-System.out.println(map.get("1"));
+System.out.println(map.get(1));
 
 // close the store - this doesn't write to disk
+s.close();
+</pre>
+
+<h3>Store Builder</h3>
+<p>
+The <code>MVStoreBuilder</code> provides a fluid interface
+to build a store if more complex configuration options are used.
+</p>
+<pre>
+MVStore s = MVStoreBuilder.
+    fileBased(fileName).
+    cacheSizeMB(10).
+    readOnly().
+    open();
+</pre>
+
+<h3>R-Tree</h3>
+<p>
+The <code>MVRTreeMap</code> is an R-tree implementation
+that supports fast spatial queries.
+</p>
+<pre>
+// create an in-memory store
+MVStore s = MVStore.open(null);
+
+// create an R-tree map
+// the key has 2 dimensions, the value is a string
+MVRTreeMap<String> r = MVRTreeMap.create(2, new ObjectType());
+
+// open the map
+r = s.openMap("data", r);
+
+// add two key-value pairs
+// the first value is the key id (to make the key unique)
+// then the min x, max x, min y, max y
+r.add(new SpatialKey(0, -3f, -2f, 2f, 3f), "left");
+r.add(new SpatialKey(1, 3f, 4f, 4f, 5f), "right");
+
+// iterate over the intersecting keys
+Iterator<SpatialKey> it =
+        r.findIntersectingKeys(new SpatialKey(0, 0f, 9f, 3f, 6f));
+for (SpatialKey k; it.hasNext();) {
+    k = it.next();
+    System.out.println(k + ": " + r.get(k));
+}
 s.close();
 </pre>
 
@@ -103,13 +154,18 @@ Each store supports a set of named maps.
 A map is sorted by key, and supports the common lookup operations, 
 including access to the first and last key, iterate over some or all keys, and so on.
 </p><p>
-Also supported, and unusual for maps, is fast index lookup, as if the map would be a list
-(get the key at the given index, get the index of a certain key), and fast skipping within an iterator.
-Internally, each map is organized in the form of a counted B+-tree.
+Also supported, and very uncommon for maps, is fast index lookup.
+The keys of the map can be accessed like a list
+(get the key at the given index, get the index of a certain key).
+That means getting the median of two keys is trivial,
+and it allows to very quickly count ranges.
+The iterator supports fast skipping.
+This is possible because internally, each map is organized in the form of a counted B+-tree.
 </p><p>
-In database terms, a map can be a table, where the key of the map is the primary key of the table, 
+In database terms, a map can be used like a table, where the key of the map is the primary key of the table, 
 and the value is the row. A map can also represent an index, where the key of the map is the key
-of the index, and the value of the map is the primary key of the table.
+of the index, and the value of the map is the primary key of the table (for non-unique indexes
+the key of the map must also contain the primary key).
 </p>
 
 <h3>Versions / Transactions</h3>
@@ -189,9 +245,11 @@ use less memory on average.
 
 <h3>Pluggable Data Types</h3>
 <p>
-Serialization is pluggable. The default serialization currently only supports string values and keys,
-but there is a sample plugin that supports many common data types, 
-and uses Java serialization for other objects.
+Serialization is pluggable. The default serialization currently supports many common data types, 
+and uses Java serialization for other objects. The following classes are currently directly supported:
+<code>Boolean, Byte, Short, Character, Integer, Long, Float, Double, BigInteger, BigDecimal,
+byte[], char[], int[], long[], String, UUID</code>.
+The plan is to add more common classes (date, time, timestamp, object array).
 </p><p>
 Parameterized data types are supported
 (for example one could build a string data type that limits the length for some reason).
@@ -232,7 +290,7 @@ which should be resistant against scan operations.
 Concurrent modification operations on the maps are currently not supported, 
 however it is planned to support an additional map implementation 
 that supports concurrent writes
-(at the cost of speed if used in a single thread, same as ConcurrentHashMap).
+(at the cost of speed if used in a single thread, same as <code>ConcurrentHashMap</code>).
 </p>
 
 <h3>File System Abstraction, File Locking and Online Backup</h3>
@@ -251,9 +309,18 @@ Files can be opened in read-only mode, in which case a shared lock is used.
 The persisted data can be backed up to a different file at any time,
 even during write operations (online backup). 
 To do that, automatic disk space reuse needs to be first disabled, so that
-new data is always appended at the end of the file. Then, the file
+new data is always appended at the end of the file. 
+Then, the file can be copied (the file handle is available to the application).
 </p>
 
+<h3>Tools</h3>
+<p>
+There is a builder for store instances (<code>MVStoreBuilder</code>) 
+with a fluent API to simplify building a store instance.
+</p>
+<p>
+There is a tool (<code>MVStoreTool</code>) to dump the contents of a file.
+</p>
 
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>
 <p>
@@ -261,7 +328,7 @@ Unlike similar storage engines like LevelDB and Kyoto Cabinet, the MVStore is wr
 and can easily be embedded in a Java application.
 </p><p>
 The MVStore is somewhat similar to the Berkeley DB Java Edition because it is also written in Java, 
-and also a log structured storage, but the MVStore licensing is more liberal.
+and is also a log structured storage, but the H2 license is more liberal.
 </p><p>
 Like SQLite, the MVStore keeps all data in one file.
 The plan is to make the MVStore easier to use and faster than SQLite on Android
@@ -269,7 +336,7 @@ The plan is to make the MVStore easier to use and faster than SQLite on Android
 </p><p>
 The API of the MVStore is similar to MapDB (previously known as JDBM) from Jan Kotek,
 and some code is shared between MapDB and JDBM. 
-However, the MVStore is a log structured storage.
+However, unlike MapDB, the MVStore uses is a log structured storage.
 </p>
 
 <h2 id="current_state">Current State</h2>

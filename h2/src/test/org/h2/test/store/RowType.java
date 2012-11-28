@@ -7,15 +7,17 @@
 package org.h2.test.store;
 
 import java.nio.ByteBuffer;
-import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.DataUtils;
-import org.h2.dev.store.btree.DataTypeFactory;
+import org.h2.dev.store.type.DataType;
+import org.h2.dev.store.type.DataTypeFactory;
 import org.h2.util.StringUtils;
 
 /**
  * A row type.
  */
 public class RowType implements DataType {
+
+    static final String PREFIX = "org.h2.test.store.row";
 
     private final DataType[] types;
 
@@ -86,7 +88,7 @@ public class RowType implements DataType {
 
     public String asString() {
         StringBuilder buff = new StringBuilder();
-        buff.append('r');
+        buff.append(PREFIX);
         buff.append('(');
         for (int i = 0; i < types.length; i++) {
             if (i > 0) {
@@ -106,10 +108,10 @@ public class RowType implements DataType {
      * @return the row type
      */
     static RowType fromString(String t, DataTypeFactory factory) {
-        if (!t.startsWith("r(") || !t.endsWith(")")) {
+        if (!t.startsWith(PREFIX) || !t.endsWith(")")) {
             throw new RuntimeException("Unknown type: " + t);
         }
-        t = t.substring(2, t.length() - 1);
+        t = t.substring(PREFIX.length(), t.length() - 1);
         String[] array = StringUtils.arraySplit(t, ',', false);
         DataType[] types = new DataType[array.length];
         for (int i = 0; i < array.length; i++) {

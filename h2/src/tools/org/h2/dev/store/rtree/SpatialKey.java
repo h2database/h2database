@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.store;
+package org.h2.dev.store.rtree;
 
 import java.util.Arrays;
 

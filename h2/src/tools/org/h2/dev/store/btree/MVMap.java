@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import org.h2.dev.store.type.DataType;
 import org.h2.util.New;
 
 /**
@@ -72,7 +73,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         checkWrite();
         long writeVersion = store.getCurrentVersion();
         Page p = root.copyOnWrite(writeVersion);
-        if (p.getMemory() > store.getMaxPageSize() && p.getKeyCount() > 1) {
+        if (p.getMemory() > store.getPageSize() && p.getKeyCount() > 1) {
             int at = p.getKeyCount() / 2;
             long totalCount = p.getTotalCount();
             Object k = p.getKey(at);
@@ -118,7 +119,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             index++;
         }
         Page c = p.getChildPage(index).copyOnWrite(writeVersion);
-        if (c.getMemory() > store.getMaxPageSize() && c.getKeyCount() > 1) {
+        if (c.getMemory() > store.getPageSize() && c.getKeyCount() > 1) {
             // split on the way down
             int at = c.getKeyCount() / 2;
             Object k = c.getKey(at);
@@ -957,8 +958,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         DataUtils.appendMap(buff, "name", name);
         DataUtils.appendMap(buff, "type", getType());
         DataUtils.appendMap(buff, "createVersion", createVersion);
-        DataUtils.appendMap(buff, "key", keyType.asString());
-        DataUtils.appendMap(buff, "value", valueType.asString());
+        if (keyType != null) {
+            DataUtils.appendMap(buff, "key", keyType.asString());
+        }
+        if (valueType != null) {
+            DataUtils.appendMap(buff, "value", valueType.asString());
+        }
         return buff.toString();
     }
 

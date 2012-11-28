@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.UUID;
+import org.h2.dev.store.type.ObjectType;
 import org.h2.test.TestBase;
 
 /**

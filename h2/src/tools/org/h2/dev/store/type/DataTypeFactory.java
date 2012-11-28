@@ -4,8 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.dev.store.btree;
-
+package org.h2.dev.store.type;
 
 /**
  * A factory for maps and data types.
@@ -13,18 +12,28 @@ package org.h2.dev.store.btree;
 public interface DataTypeFactory {
 
     /**
+     * Set the parent factory.
+     *
+     * @param parent the parent factory
+     */
+    void setParent(DataTypeFactory parent);
+
+    /**
      * Parse the data type.
      *
      * @param dataType the string and type specific meta data
-     * @return the type
+     * @return the type, or null if unknown
      */
     DataType buildDataType(String dataType);
 
     /**
-     * Get the data type object for the given class.
+     * Get the data type identifier for the given class.
+     * <p>
+     * To avoid conflict with the default factory, the returned string should
+     * start with the package name of the type factory.
      *
      * @param objectClass the class
-     * @return the data type object
+     * @return the data type identifier, or null if not supported
      */
     String getDataType(Class<?> objectClass);
 

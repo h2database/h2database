@@ -19,7 +19,7 @@ import org.h2.store.fs.FileUtils;
 /**
  * Utility methods used in combination with the MVStore.
  */
-public class MVStoreUtils {
+public class MVStoreTool {
 
     /**
      * Runs this tool.

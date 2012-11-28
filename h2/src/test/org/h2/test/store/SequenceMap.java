@@ -16,7 +16,7 @@ import org.h2.dev.store.btree.MVStore;
 /**
  * A custom map returning the keys and values values 1 .. 10.
  */
-public class SequenceMap extends MVMap<Integer, String> {
+public class SequenceMap extends MVMap<Long, Long> {
 
     /**
      * The minimum value.
@@ -29,7 +29,7 @@ public class SequenceMap extends MVMap<Integer, String> {
     int max = 10;
 
     public SequenceMap() {
-        super(IntegerType.INSTANCE, IntegerType.INSTANCE);
+        super(null, null);
     }
 
     public void open(MVStore store, HashMap<String, String> config) {
@@ -37,14 +37,14 @@ public class SequenceMap extends MVMap<Integer, String> {
         setReadOnly(true);
     }
 
-    public Set<Integer> keySet() {
-        return new AbstractSet<Integer>() {
+    public Set<Long> keySet() {
+        return new AbstractSet<Long>() {
 
             @Override
-            public Iterator<Integer> iterator() {
-                return new Iterator<Integer>() {
+            public Iterator<Long> iterator() {
+                return new Iterator<Long>() {
 
-                    int x = min;
+                    long x = min;
 
                     @Override
                     public boolean hasNext() {
@@ -52,8 +52,8 @@ public class SequenceMap extends MVMap<Integer, String> {
                     }
 
                     @Override
-                    public Integer next() {
-                        return Integer.valueOf(x++);
+                    public Long next() {
+                        return Long.valueOf(x++);
                     }
 
                     @Override

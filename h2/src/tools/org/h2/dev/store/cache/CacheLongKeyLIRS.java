@@ -148,7 +148,7 @@ public class CacheLongKeyLIRS<V> {
      * @param key the key (may not be null)
      * @return the old value, or null if there was no resident entry
      */
-    public synchronized V remove(long key) {
+    public V remove(long key) {
         int hash = getHash(key);
         return getSegment(hash).remove(key, hash);
     }

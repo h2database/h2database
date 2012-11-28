@@ -4,12 +4,12 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.store;
+package org.h2.dev.store.rtree;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import org.h2.dev.store.btree.DataType;
 import org.h2.dev.store.btree.DataUtils;
+import org.h2.dev.store.type.DataType;
 
 /**
  * A spatial data type. This class supports up to 255 dimensions. Each dimension

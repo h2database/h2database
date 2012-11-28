@@ -45,7 +45,7 @@ public class FileStore {
      * The callback object is responsible to check access rights, and free up
      * disk space if required.
      */
-    protected DataHandler handler;
+    private DataHandler handler;
 
     private FileChannel file;
     private long filePos;

@@ -66,7 +66,6 @@ import org.h2.value.ValueLong;
 public class Recover extends Tool implements DataHandler {
 
     private String databaseName;
-    private int block;
     private int storageId;
     private String storageName;
     private int recordLength;
@@ -254,7 +253,7 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void writeDataError(PrintWriter writer, String error, byte[] data) {
-        writer.println("-- ERROR: " + error + " block: " + block + " storageId: "
+        writer.println("-- ERROR: " + error + " storageId: "
                 + storageId + " recordLength: " + recordLength + " valueId: " + valueId);
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < data.length; i++) {

@@ -43,19 +43,9 @@ public class DbContents {
     boolean isH2;
 
     /**
-     * True if this is a H2 database in MySQL mode.
-     */
-    private boolean isH2ModeMySQL;
-
-    /**
      * True if this is a PostgreSQL database.
      */
     boolean isPostgreSQL;
-
-    /**
-     * True if this is a MySQL database.
-     */
-    private boolean isMySQL;
 
     /**
      * True if this is an Apache Derby database.
@@ -63,14 +53,24 @@ public class DbContents {
     boolean isDerby;
 
     /**
-     * True if this is a Firebird database.
-     */
-    private boolean isFirebird;
-
-    /**
      * True if this is an SQLite database.
      */
     boolean isSQLite;
+
+    /**
+     * True if this is a H2 database in MySQL mode.
+     */
+    private boolean isH2ModeMySQL;
+
+    /**
+     * True if this is a MySQL database.
+     */
+    private boolean isMySQL;
+
+    /**
+     * True if this is a Firebird database.
+     */
+    private boolean isFirebird;
 
     /**
      * True if this is a MS SQL Server database.

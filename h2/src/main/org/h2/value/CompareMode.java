@@ -36,7 +36,7 @@ public class CompareMode {
 
     private static CompareMode lastUsed;
 
-    private static final boolean canUseICU4J;
+    private static final boolean CAN_USE_ICU4J;
 
     static {
         boolean b = false;
@@ -46,7 +46,7 @@ public class CompareMode {
         } catch (Exception e) {
             // ignore
         }
-        canUseICU4J = b;
+        CAN_USE_ICU4J = b;
     }
 
     private final String name;
@@ -86,7 +86,7 @@ public class CompareMode {
                 useICU4J = false;
                 name = name.substring(DEFAULT.length());
             } else {
-                useICU4J = canUseICU4J;
+                useICU4J = CAN_USE_ICU4J;
             }
             if (useICU4J) {
                 lastUsed = new CompareModeIcu4J(name, strength);

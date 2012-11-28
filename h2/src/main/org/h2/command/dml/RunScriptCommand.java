@@ -23,13 +23,13 @@ import org.h2.util.ScriptReader;
  */
 public class RunScriptCommand extends ScriptBase {
 
-    /** 
+    /**
      * The byte order mark.
-     * 0xfeff because this is the Unicode char 
-     * represented by the UTF-8 byte order mark (EF BB BF). 
+     * 0xfeff because this is the Unicode char
+     * represented by the UTF-8 byte order mark (EF BB BF).
      */
     private static final char UTF8_BOM = '\uFEFF';
-    
+
     private String charset = Constants.UTF8;
 
     public RunScriptCommand(Session session) {

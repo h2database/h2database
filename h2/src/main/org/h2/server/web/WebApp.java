@@ -879,7 +879,7 @@ public class WebApp {
      * @param isH2 if the current database is a H2 database
      * @return the formatted error message
      */
-    String getLoginError(Exception e, boolean isH2) {
+    private String getLoginError(Exception e, boolean isH2) {
         if (e instanceof JdbcSQLException && ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
             return "${text.login.driverNotFound}<br />" + getStackTrace(0, e, isH2);
         }

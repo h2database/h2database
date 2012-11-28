@@ -44,7 +44,7 @@ import org.h2.value.ValueLobDb;
  */
 public class TcpServerThread implements Runnable {
 
-    protected Transfer transfer;
+    protected final Transfer transfer;
     private final TcpServer server;
     private Session session;
     private boolean stop;

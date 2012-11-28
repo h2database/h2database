@@ -29,7 +29,7 @@ public class Chunk {
     /**
      * The chunk id.
      */
-    int id;
+    final int id;
 
     /**
      * The start position within the file.

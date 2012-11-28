@@ -36,7 +36,7 @@ class WebSession {
     /**
      * The session attribute map.
      */
-    HashMap<String, Object> map = New.hashMap();
+    final HashMap<String, Object> map = New.hashMap();
 
     /**
      * The current locale.

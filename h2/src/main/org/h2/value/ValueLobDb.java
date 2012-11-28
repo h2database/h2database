@@ -38,8 +38,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     private int hash;
 
     private LobStorage lobStorage;
-    private long lobId;
-    private byte[] hmac;
+    private final long lobId;
+    private final byte[] hmac;
 
     private byte[] small;
 
@@ -60,6 +60,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.type = type;
         this.small = small;
         this.precision = precision;
+        this.lobId = 0;
+        this.hmac = null;
     }
 
     /**

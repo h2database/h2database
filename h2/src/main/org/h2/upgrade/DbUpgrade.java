@@ -26,7 +26,7 @@ import org.h2.util.Utils;
  */
 public class DbUpgrade {
 
-    private static boolean upgradeClassesPresent;
+    private static final boolean upgradeClassesPresent;
     private static boolean scriptInTempDir;
     private static boolean deleteOldDb;
 

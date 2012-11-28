@@ -24,20 +24,22 @@ public class FtpData extends Thread {
     private final InetAddress address;
     private ServerSocket serverSocket;
     private volatile Socket socket;
-    private boolean active;
-    private int port;
+    private final boolean active;
+    private final int port;
 
     FtpData(FtpServer server, InetAddress address, ServerSocket serverSocket) {
         this.server = server;
         this.address = address;
         this.serverSocket = serverSocket;
+        this.port = 0;
+        this.active = false;
     }
 
     FtpData(FtpServer server, InetAddress address, int port) {
         this.server = server;
         this.address = address;
         this.port = port;
-        active = true;
+        this.active = true;
     }
 
     public void run() {

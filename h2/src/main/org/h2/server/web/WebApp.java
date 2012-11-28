@@ -69,7 +69,7 @@ public class WebApp {
     /**
      * The web server.
      */
-    protected WebServer server;
+    protected final WebServer server;
 
     /**
      * The session.

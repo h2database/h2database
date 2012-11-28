@@ -28,13 +28,14 @@ import org.h2.util.Utils;
  */
 public class Server extends Tool implements Runnable, ShutdownHandler {
 
-    private Service service;
+    private final Service service;
     private Server web, tcp, pg;
     private ShutdownHandler shutdownHandler;
     private boolean started;
 
     public Server() {
         // nothing to do
+        this.service = null;
     }
 
     /**

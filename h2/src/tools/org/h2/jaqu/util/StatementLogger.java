@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class StatementLogger {
 
     public static boolean logStatements;
-    private static PrintWriter out = new PrintWriter(System.out);
+    private static final PrintWriter out = new PrintWriter(System.out);
     private static final AtomicLong SELECT_COUNT = new AtomicLong();
     private static final AtomicLong CREATE_COUNT = new AtomicLong();
     private static final AtomicLong INSERT_COUNT = new AtomicLong();

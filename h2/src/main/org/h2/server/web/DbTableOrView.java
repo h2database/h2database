@@ -21,22 +21,22 @@ public class DbTableOrView {
     /**
      * The schema this table belongs to.
      */
-    DbSchema schema;
+    final DbSchema schema;
 
     /**
      * The table name.
      */
-    String name;
+    final String name;
 
     /**
      * The quoted table name.
      */
-    String quotedName;
+    final String quotedName;
 
     /**
      * True if this represents a view.
      */
-    boolean isView;
+    final boolean isView;
 
     /**
      * The column list.

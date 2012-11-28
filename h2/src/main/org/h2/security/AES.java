@@ -26,8 +26,8 @@ public class AES implements BlockCipher {
     private static final int[] RT1 = new int[256];
     private static final int[] RT2 = new int[256];
     private static final int[] RT3 = new int[256];
-    private int[] encKey = new int[44];
-    private int[] decKey = new int[44];
+    private final int[] encKey = new int[44];
+    private final int[] decKey = new int[44];
 
     private static int rot8(int x) {
         return (x >>> 8) | (x << 24);

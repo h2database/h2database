@@ -33,12 +33,12 @@ public class SourceCompiler {
     /**
      * The class name to source code map.
      */
-    HashMap<String, String> sources = New.hashMap();
+    final HashMap<String, String> sources = New.hashMap();
 
     /**
      * The class name to byte code map.
      */
-    HashMap<String, Class<?>> compiled = New.hashMap();
+    final HashMap<String, Class<?>> compiled = New.hashMap();
 
     private final String compileDir = Utils.getProperty("java.io.tmpdir", ".");
 

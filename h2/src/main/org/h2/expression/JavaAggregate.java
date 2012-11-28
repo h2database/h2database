@@ -30,7 +30,7 @@ public class JavaAggregate extends Expression {
 
     private final UserAggregate userAggregate;
     private final Select select;
-    private Expression[] args;
+    private final Expression[] args;
     private int[] argTypes;
     private int dataType;
     private Connection userConnection;

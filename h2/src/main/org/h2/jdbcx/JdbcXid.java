@@ -20,9 +20,9 @@ public class JdbcXid extends TraceObject implements Xid {
 
     private static final String PREFIX = "XID";
 
-    private int formatId;
-    private byte[] branchQualifier;
-    private byte[] globalTransactionId;
+    private final int formatId;
+    private final byte[] branchQualifier;
+    private final byte[] globalTransactionId;
 
     JdbcXid(JdbcDataSourceFactory factory, int id, String tid) {
         setTrace(factory.getTrace(), TraceObject.XID, id);

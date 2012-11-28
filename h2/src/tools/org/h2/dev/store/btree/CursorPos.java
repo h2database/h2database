@@ -14,7 +14,7 @@ public class CursorPos {
     /**
      * The current page.
      */
-    public Page page;
+    public final Page page;
 
     /**
      * The current index.
@@ -24,7 +24,7 @@ public class CursorPos {
     /**
      * The position in the parent page, if any.
      */
-    public CursorPos parent;
+    public final CursorPos parent;
 
     public CursorPos(Page page, int index, CursorPos parent) {
         this.page = page;

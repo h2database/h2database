@@ -14,7 +14,7 @@ import org.h2.util.New;
  */
 public class MVStoreBuilder {
 
-    private HashMap<String, Object> config = New.hashMap();
+    private final HashMap<String, Object> config = New.hashMap();
 
     /**
      * Use the following file name. If the file does not exist, it is

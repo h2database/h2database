@@ -35,7 +35,7 @@ import org.h2.util.Utils;
 class WebThread extends WebApp implements Runnable {
 
     protected OutputStream output;
-    protected Socket socket;
+    protected final Socket socket;
     private final Thread thread;
     private InputStream input;
     private int headerBytes;

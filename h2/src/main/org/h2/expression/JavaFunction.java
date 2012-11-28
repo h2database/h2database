@@ -26,7 +26,7 @@ public class JavaFunction extends Expression implements FunctionCall {
 
     private final FunctionAlias functionAlias;
     private final FunctionAlias.JavaMethod javaMethod;
-    private Expression[] args;
+    private final Expression[] args;
 
     public JavaFunction(FunctionAlias functionAlias, Expression[] args) {
         this.functionAlias = functionAlias;

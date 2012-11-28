@@ -36,15 +36,17 @@ public class CompareMode {
 
     private static CompareMode lastUsed;
 
-    private static boolean canUseICU4J;
+    private static final boolean canUseICU4J;
 
     static {
+        boolean b = false;
         try {
             Class.forName("com.ibm.icu.text.Collator");
-            canUseICU4J = true;
+            b = true;
         } catch (Exception e) {
             // ignore
         }
+        canUseICU4J = b;
     }
 
     private final String name;

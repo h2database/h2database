@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
-import org.h2.upgrade.v1_1.util.New;
+import org.h2.util.New;
 
 /**
  * A stored map.

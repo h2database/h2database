@@ -36,7 +36,6 @@ import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.h2.util.IOUtils;
 
 /**
  * This class is a complete pure Java build tool. It allows to build this
@@ -710,7 +709,13 @@ public class BuildBase {
         } catch (IOException e) {
             throw new RuntimeException("Error reading from file " + file, e);
         } finally {
-            IOUtils.closeSilently(ra);
+            if (ra != null) {
+                try {
+                    ra.close();
+                } catch (IOException e) {
+                    // ignore
+                }
+            }
         }
     }
 

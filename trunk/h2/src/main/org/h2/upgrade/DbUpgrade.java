@@ -26,12 +26,13 @@ import org.h2.util.Utils;
  */
 public class DbUpgrade {
 
-    private static final boolean upgradeClassesPresent;
+    private static final boolean UPGRADE_CLASSES_PRESENT;
+
     private static boolean scriptInTempDir;
     private static boolean deleteOldDb;
 
     static {
-        upgradeClassesPresent = Utils.isClassPresent("org.h2.upgrade.v1_1.Driver");
+        UPGRADE_CLASSES_PRESENT = Utils.isClassPresent("org.h2.upgrade.v1_1.Driver");
     }
 
     /**
@@ -45,7 +46,7 @@ public class DbUpgrade {
      * @return the connection if connected with the old version (NO_UPGRADE)
      */
     public static Connection connectOrUpgrade(String url, Properties info) throws SQLException {
-        if (!upgradeClassesPresent) {
+        if (!UPGRADE_CLASSES_PRESENT) {
             return null;
         }
         Properties i2 = new Properties();

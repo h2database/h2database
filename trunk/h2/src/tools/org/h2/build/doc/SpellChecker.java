@@ -33,16 +33,16 @@ public class SpellChecker {
     private static final String PREFIX_IGNORE = "abc";
     private static final String[] IGNORE_FILES = {"mainWeb.html", "pg_catalog.sql"};
 
+    // these are public so we can set them during development testing
+    public boolean debug;
+    public boolean printDictionary;
+
     private final HashSet<String> dictionary = new HashSet<String>();
     private final HashSet<String> used = new HashSet<String>();
     private final HashMap<String, Integer> unknown = new HashMap<String, Integer>();
     private boolean addToDictionary;
     private int errorCount;
     private int contextCount;
-    // these are public so we can set them during development testing 
-    public boolean debug;
-    public boolean printDictionary;
-    
 
     /**
      * This method is called when executing this application from the command

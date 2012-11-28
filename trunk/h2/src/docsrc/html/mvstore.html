@@ -262,8 +262,7 @@ Due to using a log structured storage, there is no special case handling for lar
 
 <h3>BLOB Support</h3>
 <p>
-There is a mechanism that stores BLOBs (large binary objects) 
-by splitting them into smaller blocks. 
+There is a mechanism that stores large binary objects by splitting them into smaller blocks. 
 This allows to store objects that don't fit in memory.
 Streaming as well as random access reads on such objects are supported.
 This tool is written on top of the store (only using the map interface).

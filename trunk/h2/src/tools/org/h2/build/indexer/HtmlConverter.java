@@ -14,8 +14,8 @@ import java.util.HashMap;
  */
 public class HtmlConverter {
 
-    private static final HashMap<String, Character> charMap = new HashMap<String, Character>();
-    private static final HashMap<Character, String> codeMap = new HashMap<Character, String>();
+    private static final HashMap<String, Character> CHAR_MAP = new HashMap<String, Character>();
+    private static final HashMap<Character, String> CODE_MAP = new HashMap<Character, String>();
 
     private static final String[] CHARS = { "quot:34", "amp:38", "lt:60", "gt:62", "nbsp:160", "iexcl:161", "cent:162",
             "pound:163", "curren:164", "yen:165", "brvbar:166", "sect:167", "uml:168", "copy:169", "ordf:170",
@@ -60,8 +60,8 @@ public class HtmlConverter {
             String key = token.substring(0, idx);
             int ch = Integer.parseInt(token.substring(idx + 1));
             Character character = Character.valueOf((char) ch);
-            charMap.put(key, character);
-            codeMap.put(character, key);
+            CHAR_MAP.put(key, character);
+            CODE_MAP.put(character, key);
         }
     }
 
@@ -81,7 +81,7 @@ public class HtmlConverter {
         StringBuilder buff = new StringBuilder();
         for (int i = 0; i < s.length(); i++) {
             char ch = s.charAt(i);
-            String token = codeMap.get(ch);
+            String token = CODE_MAP.get(ch);
             if (token == null) {
                 if (ch < 128) {
                     buff.append(ch);
@@ -155,7 +155,7 @@ public class HtmlConverter {
                     }
                 }
             } else {
-                repl = charMap.get(key);
+                repl = CHAR_MAP.get(key);
             }
             if (repl == null) {
                 buff.append("???" + key + "???");

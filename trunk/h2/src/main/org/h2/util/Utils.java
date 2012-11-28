@@ -59,11 +59,10 @@ public class Utils {
     private static String[] allowedClassNamePrefixes;
 
     static {
-        String cls = SysProperties.JAVA_OBJECT_SERIALIZER;
-
-        if (cls != null) {
+        String clazz = SysProperties.JAVA_OBJECT_SERIALIZER;
+        if (clazz != null) {
             try {
-                serializer = (JavaObjectSerializer) loadUserClass(cls).newInstance();
+                serializer = (JavaObjectSerializer) loadUserClass(clazz).newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }

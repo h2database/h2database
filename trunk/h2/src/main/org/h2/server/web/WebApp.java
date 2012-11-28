@@ -993,7 +993,7 @@ public class WebApp {
      * @param size the number of statements
      * @param buff the target buffer
      */
-    private void query(Connection conn, String s, int i, int size, StringBuilder buff) {
+    void query(Connection conn, String s, int i, int size, StringBuilder buff) {
         if (!(s.startsWith("@") && s.endsWith("."))) {
             buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
         }

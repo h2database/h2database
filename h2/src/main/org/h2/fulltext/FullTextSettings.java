@@ -34,22 +34,22 @@ class FullTextSettings {
     /**
      * The set of words not to index (stop words).
      */
-    private HashSet<String> ignoreList = New.hashSet();
+    private final HashSet<String> ignoreList = New.hashSet();
 
     /**
      * The set of words / terms.
      */
-    private HashMap<String, Integer> words = New.hashMap();
+    private final HashMap<String, Integer> words = New.hashMap();
 
     /**
      * The set of indexes in this database.
      */
-    private HashMap<Integer, IndexInfo> indexes = New.hashMap();
+    private final HashMap<Integer, IndexInfo> indexes = New.hashMap();
 
     /**
      * The prepared statement cache.
      */
-    private SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache =
+    private final SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache =
         new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
 
     /**

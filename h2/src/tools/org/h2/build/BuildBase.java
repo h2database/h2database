@@ -150,7 +150,7 @@ public class BuildBase {
     /**
      * The output stream (System.out).
      */
-    protected PrintStream sysOut = System.out;
+    protected final PrintStream sysOut = System.out;
 
     /**
      * If output should be disabled.

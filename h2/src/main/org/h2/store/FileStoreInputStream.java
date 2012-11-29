@@ -21,7 +21,7 @@ public class FileStoreInputStream extends InputStream {
     private FileStore store;
     private final Data page;
     private int remainingInBuffer;
-    private CompressTool compress;
+    private final CompressTool compress;
     private boolean endOfFile;
     private final boolean alwaysClose;
 
@@ -30,6 +30,8 @@ public class FileStoreInputStream extends InputStream {
         this.alwaysClose = alwaysClose;
         if (compression) {
             compress = CompressTool.getInstance();
+        } else {
+            compress = null;
         }
         page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
         try {

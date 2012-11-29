@@ -16,15 +16,18 @@ import org.h2.tools.CompressTool;
 public class FileStoreOutputStream extends OutputStream {
     private FileStore store;
     private final Data page;
-    private String compressionAlgorithm;
-    private CompressTool compress;
-    private byte[] buffer = { 0 };
+    private final String compressionAlgorithm;
+    private final CompressTool compress;
+    private final byte[] buffer = { 0 };
 
     public FileStoreOutputStream(FileStore store, DataHandler handler, String compressionAlgorithm) {
         this.store = store;
         if (compressionAlgorithm != null) {
-            compress = CompressTool.getInstance();
+            this.compress = CompressTool.getInstance();
             this.compressionAlgorithm = compressionAlgorithm;
+        } else {
+            this.compress = null;
+            this.compressionAlgorithm = null;
         }
         page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
     }

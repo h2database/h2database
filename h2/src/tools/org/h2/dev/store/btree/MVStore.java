@@ -129,7 +129,7 @@ public class MVStore {
      * split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    private CacheLongKeyLIRS<Page> cache;
+    private final CacheLongKeyLIRS<Page> cache;
 
     private int lastChunkId;
     private final HashMap<Integer, Chunk> chunks = New.hashMap();
@@ -184,6 +184,8 @@ public class MVStore {
             int mb = s == null ? 16 : Integer.parseInt(s.toString());
             cache = CacheLongKeyLIRS.newInstance(
                     mb * 1024 * 1024, 2048, 16, mb * 1024 * 1024 / 2048 * 2 / 100);
+        } else {
+            cache = null;
         }
     }
 

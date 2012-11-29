@@ -35,7 +35,7 @@ public class GenerateModels {
     /**
      * The output stream where this tool writes to.
      */
-    protected PrintStream out = System.out;
+    protected final PrintStream out = System.out;
 
     public static void main(String... args) throws SQLException {
         new GenerateModels().runTool(args);

@@ -34,7 +34,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     protected int updateCount;
     protected final int resultSetType;
     protected final int resultSetConcurrency;
-    protected boolean closedByResultSet;
+    protected final boolean closedByResultSet;
     private CommandInterface executingCommand;
     private int lastExecutedCommandType;
     private ArrayList<String> batchCommands;

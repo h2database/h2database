@@ -19,43 +19,43 @@ import org.h2.util.SoftHashMap;
 /**
  * The global settings of a full text search.
  */
-public class FullTextSettings {
+class FullTextSettings {
 
     /**
      * The settings of open indexes.
      */
-    protected static final HashMap<String, FullTextSettings> SETTINGS = New.hashMap();
+    private static final HashMap<String, FullTextSettings> SETTINGS = New.hashMap();
 
     /**
      * Whether this instance has been initialized.
      */
-    protected boolean initialized;
+    private boolean initialized;
 
     /**
      * The set of words not to index (stop words).
      */
-    protected HashSet<String> ignoreList = New.hashSet();
+    private HashSet<String> ignoreList = New.hashSet();
 
     /**
      * The set of words / terms.
      */
-    protected HashMap<String, Integer> words = New.hashMap();
+    private HashMap<String, Integer> words = New.hashMap();
 
     /**
      * The set of indexes in this database.
      */
-    protected HashMap<Integer, IndexInfo> indexes = New.hashMap();
+    private HashMap<Integer, IndexInfo> indexes = New.hashMap();
 
     /**
      * The prepared statement cache.
      */
-    protected SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache =
+    private SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache =
         new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
 
     /**
      * The whitespace characters.
      */
-    protected String whitespaceChars = " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]<>\\";
+    private String whitespaceChars = " \t\n\r\f+\"*%&/()=?'!,.;:-_#@|^~`{}[]<>\\";
 
     /**
      * Create a new instance.

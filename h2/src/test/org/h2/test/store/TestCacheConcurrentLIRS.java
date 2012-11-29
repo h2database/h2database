@@ -8,7 +8,7 @@ package org.h2.test.store;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.h2.dev.store.cache.CacheLongKeyLIRS;
+import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 

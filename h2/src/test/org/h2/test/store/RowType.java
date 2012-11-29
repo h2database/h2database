@@ -7,9 +7,9 @@
 package org.h2.test.store;
 
 import java.nio.ByteBuffer;
-import org.h2.dev.store.btree.DataUtils;
-import org.h2.dev.store.type.DataType;
-import org.h2.dev.store.type.DataTypeFactory;
+import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.DataTypeFactory;
 import org.h2.util.StringUtils;
 
 /**

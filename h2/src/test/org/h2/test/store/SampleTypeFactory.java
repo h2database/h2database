@@ -5,8 +5,8 @@
  */
 package org.h2.test.store;
 
-import org.h2.dev.store.type.DataType;
-import org.h2.dev.store.type.DataTypeFactory;
+import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.DataTypeFactory;
 /**
  * A data type factory.
  */

@@ -6743,217 +6743,208 @@ H2 データベース エンジン
 # Current State
 
 @mvstore_1006_a
-# Building the MVStore Library
-
-@mvstore_1007_a
 # Requirements
 
-@mvstore_1008_h2
+@mvstore_1007_h2
 #Overview
 
-@mvstore_1009_p
-# The MVStore is work in progress, and is planned to be the next storage subsystem of H2. 
+@mvstore_1008_p
+# The MVStore is work in progress, and is planned to be the next storage subsystem of H2. But it can be also directly within an application, without using JDBC or SQL. 
 
-@mvstore_1010_li
+@mvstore_1009_li
 #MVStore stands for multi-version store. 
 
-@mvstore_1011_li
+@mvstore_1010_li
 #Each store contains a number of maps (using the <code>java.util.Map</code> interface). 
 
+@mvstore_1011_li
+#Both file based persistence and in-memory operation are supported. 
+
 @mvstore_1012_li
-#The data can be persisted to disk (like a key-value store or a database). 
-
-@mvstore_1013_li
-#Fully in-memory operation is supported. 
-
-@mvstore_1014_li
 #It is intended to be fast, simple to use, and small. 
 
-@mvstore_1015_li
+@mvstore_1013_li
 #Old versions of the data can be read concurrently with all other operations. 
 
-@mvstore_1016_li
+@mvstore_1014_li
 #Transaction are supported (currently only one transaction at a time). 
 
-@mvstore_1017_li
+@mvstore_1015_li
 #Transactions (even if they are persisted) can be rolled back. 
 
-@mvstore_1018_li
+@mvstore_1016_li
 #The tool is very modular. It supports pluggable data types / serialization, pluggable map implementations (B-tree and R-tree currently), BLOB storage, and a file system abstraction to support encryption and compressed read-only files. 
 
-@mvstore_1019_h2
+@mvstore_1017_h2
 #Example Code
 
-@mvstore_1020_h3
+@mvstore_1018_h3
 #Map Operations and Versioning
 
-@mvstore_1021_p
+@mvstore_1019_p
 # The following sample code show how to create a store, open a map, add some data, and access the current and an old version. 
 
-@mvstore_1022_h3
+@mvstore_1020_h3
 #Store Builder
 
-@mvstore_1023_p
+@mvstore_1021_p
 # The <code>MVStoreBuilder</code> provides a fluid interface to build a store if more complex configuration options are used. 
 
-@mvstore_1024_h3
+@mvstore_1022_h3
 #R-Tree
 
-@mvstore_1025_p
+@mvstore_1023_p
 # The <code>MVRTreeMap</code> is an R-tree implementation that supports fast spatial queries. 
 
-@mvstore_1026_h2
+@mvstore_1024_h2
 特徴
 
-@mvstore_1027_h3
+@mvstore_1025_h3
 #Maps
 
-@mvstore_1028_p
+@mvstore_1026_p
 # Each store supports a set of named maps. A map is sorted by key, and supports the common lookup operations, including access to the first and last key, iterate over some or all keys, and so on. 
 
-@mvstore_1029_p
+@mvstore_1027_p
 # Also supported, and very uncommon for maps, is fast index lookup. The keys of the map can be accessed like a list (get the key at the given index, get the index of a certain key). That means getting the median of two keys is trivial, and it allows to very quickly count ranges. The iterator supports fast skipping. This is possible because internally, each map is organized in the form of a counted B+-tree. 
 
-@mvstore_1030_p
-# In database terms, a map can be used like a table, where the key of the map is the primary key of the table, and the value is the row. A map can also represent an index, where the key of the map is the key of the index, and the value of the map is the primary key of the table (for non-unique indexes the key of the map must also contain the primary key). 
+@mvstore_1028_p
+# In database terms, a map can be used like a table, where the key of the map is the primary key of the table, and the value is the row. A map can also represent an index, where the key of the map is the key of the index, and the value of the map is the primary key of the table (for non-unique indexes, the key of the map must also contain the primary key). 
 
-@mvstore_1031_h3
+@mvstore_1029_h3
 #Versions / Transactions
 
-@mvstore_1032_p
+@mvstore_1030_p
 # Multiple versions are supported. A version is a snapshot of all the data of all maps at a given point in time. A transaction is a number of actions between two versions. 
 
+@mvstore_1031_p
+# Versions / transactions are not immediately persisted; instead, only the version counter is incremented. If there is a change after switching to a new version, a snapshot of the old version is kept in memory, so that it can still be read. 
+
+@mvstore_1032_p
+# Old persisted versions are readable until the old data was explicitly overwritten. Creating a snapshot is fast: only the pages that are changed after a snapshot are copied. This behavior also called COW (copy on write). 
+
 @mvstore_1033_p
-# Versions / transactions are not immediately persisted; instead, only the version counter is incremented. If there is a change after switching to a new version, a snapshot of the old version is kept in memory, so that the old version can still be read. 
-
-@mvstore_1034_p
-# Old persisted versions are readable until the old data was explicitly overwritten. Creating the snapshot is fast: only the pages that are changed after a snapshot are copied. This behavior also called COW (copy on write). 
-
-@mvstore_1035_p
 # Rollback is supported (rollback to any old in-memory version or an old persisted version). 
 
-@mvstore_1036_h3
-#Log Structured Storage
-
-@mvstore_1037_p
-# Currently, store() needs to be called explicitly to save changes. Changes are buffered in memory, and once enough changes have accumulated (for example 2 MB), all changes are written in one continuous disk write operation. But of course, if needed, changes can also be persisted if only little data was changed. The estimated amount of unsaved changes is tracked. The plan is to automatically store in a background thread once there are enough changes. 
-
-@mvstore_1038_p
-# When storing, all changed pages are serialized, compressed using the LZF algorithm (this can be disabled), and written sequentially to a free area of the file. Each such change set is called a chunk. All parent pages of the changed B-trees are stored in this chunk as well, so that each chunk also contains the root of each changed map (which is the entry point to read old data). There is no separate index: all data is stored as a list of pages. 
-
-@mvstore_1039_p
-# There are currently two write operations per chunk: one to store the chunk data (the pages), and one to update the file header (so it points to the chunk head), but the plan is to write the file header only once in a while, so it does not slow down opening the store too much. 
-
-@mvstore_1040_p
-# There is currently no transaction log, no undo log, and there are no in-place updates (however unused chunks are overwritten). To efficiently persist very small transactions, the plan is to support a transaction log where only the deltas is stored, until enough changes have accumulated to persist a chunk. Old versions are kept and are readable until they are no longer needed. 
-
-@mvstore_1041_p
-# The plan is to keep all old data for at least one or two minutes (configurable), so that there are no explicit sync operations required to guarantee data consistency. To reuse disk space, the chunks with the lowest amount of live data are compacted (the live data is simply stored again in the next chunk). To improve data locality and disk space usage, the plan is to automatically defragment and compact data. 
-
-@mvstore_1042_p
-# Compared to regular databases that use a transaction log, undo log, and main storage area, the log structured storage is simpler, more flexible, and typically needs less disk operations per change, as data is only written once instead of twice or 3 times, and because the B-tree pages are always full (they are stored next to each other) and can be easily compressed. But temporarily, disk space usage might actually be a bit higher than for a regular database, as disk space is not immediately re-used (there are no in-place updates). 
-
-@mvstore_1043_h3
+@mvstore_1034_h3
 #In-Memory Performance and Usage
 
-@mvstore_1044_p
+@mvstore_1035_p
 # Performance of in-memory operations is comparable with <code>java.util.TreeMap</code> (many operations are actually faster), but usually slower than <code>java.util.HashMap</code>. 
 
-@mvstore_1045_p
-# If no file name is specified, the store operates purely in memory. Except for persisting data, all features are supported in this mode (multi-versioning, index lookup, R-tree and so on). 
-
-@mvstore_1046_p
+@mvstore_1036_p
 # The memory overhead for large maps is slightly better than for the regular map implementations, but there is a higher overhead per map. For maps with less than 25 entries, the regular map implementations use less memory on average. 
 
-@mvstore_1047_h3
+@mvstore_1037_p
+# If no file name is specified, the store operates purely in memory. Except for persisting data, all features are supported in this mode (multi-versioning, index lookup, R-tree and so on). If a file name is specified, all operations occur in memory (with the same performance characteristics) until data is persisted. 
+
+@mvstore_1038_h3
 #Pluggable Data Types
 
-@mvstore_1048_p
+@mvstore_1039_p
 # Serialization is pluggable. The default serialization currently supports many common data types, and uses Java serialization for other objects. The following classes are currently directly supported: <code>Boolean, Byte, Short, Character, Integer, Long, Float, Double, BigInteger, BigDecimal, byte[], char[], int[], long[], String, UUID</code>. The plan is to add more common classes (date, time, timestamp, object array). 
 
-@mvstore_1049_p
+@mvstore_1040_p
 # Parameterized data types are supported (for example one could build a string data type that limits the length for some reason). 
 
-@mvstore_1050_p
+@mvstore_1041_p
 # The storage engine itself does not have any length limits, so that keys, values, pages, and chunks can be very big (as big as fits in memory). Also, there is no inherent limit to the number of maps and chunks. Due to using a log structured storage, there is no special case handling for large keys or pages. 
 
-@mvstore_1051_h3
+@mvstore_1042_h3
 #BLOB Support
 
-@mvstore_1052_p
+@mvstore_1043_p
 # There is a mechanism that stores large binary objects by splitting them into smaller blocks. This allows to store objects that don't fit in memory. Streaming as well as random access reads on such objects are supported. This tool is written on top of the store (only using the map interface). 
 
-@mvstore_1053_h3
+@mvstore_1044_h3
 #R-Tree and Pluggable Map Implementations
 
-@mvstore_1054_p
+@mvstore_1045_p
 # The map implementation is pluggable. In addition to the default MVMap (multi-version map), there is a multi-version R-tree map implementation for spatial operations (contain and intersection; nearest neighbor is not yet implemented). 
 
-@mvstore_1055_h3
+@mvstore_1046_h3
 #Concurrent Operations and Caching
 
-@mvstore_1056_p
+@mvstore_1047_p
 # At the moment, concurrent read on old versions of the data is supported. All such read operations can occur in parallel. Concurrent reads from the page cache, as well as concurrent reads from the file system are supported. 
 
-@mvstore_1057_p
+@mvstore_1048_p
 # Caching is done on the page level. The page cache is a concurrent LIRS cache, which should be resistant against scan operations. 
 
-@mvstore_1058_p
+@mvstore_1049_p
 # Concurrent modification operations on the maps are currently not supported, however it is planned to support an additional map implementation that supports concurrent writes (at the cost of speed if used in a single thread, same as <code>ConcurrentHashMap</code>). 
 
-@mvstore_1059_h3
+@mvstore_1050_h3
+#Log Structured Storage
+
+@mvstore_1051_p
+# Currently, <code>store()</code> needs to be called explicitly to save changes. Changes are buffered in memory, and once enough changes have accumulated (for example 2 MB), all changes are written in one continuous disk write operation. But of course, if needed, changes can also be persisted if only little data was changed. The estimated amount of unsaved changes is tracked. The plan is to automatically store in a background thread once there are enough changes. 
+
+@mvstore_1052_p
+# When storing, all changed pages are serialized, compressed using the LZF algorithm (this can be disabled), and written sequentially to a free area of the file. Each such change set is called a chunk. All parent pages of the changed B-trees are stored in this chunk as well, so that each chunk also contains the root of each changed map (which is the entry point to read old data). There is no separate index: all data is stored as a list of pages. Per store, the is one additional map that contains the metadata (the list of maps, where the root page of each map is stored, and the list of chunks). 
+
+@mvstore_1053_p
+# There are currently two write operations per chunk: one to store the chunk data (the pages), and one to update the file header (so it points to the latest chunk), but the plan is to write the file header only once in a while, in a way that still allows to open a store very quickly. 
+
+@mvstore_1054_p
+# There is currently no transaction log, no undo log, and there are no in-place updates (however unused chunks are overwritten). To efficiently persist very small transactions, the plan is to support a transaction log where only the deltas is stored, until enough changes have accumulated to persist a chunk. Old versions are kept and are readable until they are no longer needed. 
+
+@mvstore_1055_p
+# The plan is to keep all old data for at least one or two minutes (configurable), so that there are no explicit sync operations required to guarantee data consistency. To reuse disk space, the chunks with the lowest amount of live data are compacted (the live data is simply stored again in the next chunk). To improve data locality and disk space usage, the plan is to automatically defragment and compact data. 
+
+@mvstore_1056_p
+# Compared to regular databases (that use a transaction log, undo log, and main storage area), the log structured storage is simpler, more flexible, and typically needs less disk operations per change, as data is only written once instead of twice or 3 times, and because the B-tree pages are always full (they are stored next to each other) and can be easily compressed. But temporarily, disk space usage might actually be a bit higher than for a regular database, as disk space is not immediately re-used (there are no in-place updates). 
+
+@mvstore_1057_h3
 #File System Abstraction, File Locking and Online Backup
 
-@mvstore_1060_p
+@mvstore_1058_p
 # The file system is pluggable (the same file system abstraction is used as H2 uses). Support for encryption is planned using an encrypting file system. Other file system implementations support reading from a compressed zip or tar file. 
 
-@mvstore_1061_p
+@mvstore_1059_p
 # Each store may only be opened once within a JVM. When opening a store, the file is locked in exclusive mode, so that the file can only be changed from within one process. Files can be opened in read-only mode, in which case a shared lock is used. 
 
-@mvstore_1062_p
+@mvstore_1060_p
 # The persisted data can be backed up to a different file at any time, even during write operations (online backup). To do that, automatic disk space reuse needs to be first disabled, so that new data is always appended at the end of the file. Then, the file can be copied (the file handle is available to the application). 
 
-@mvstore_1063_h3
+@mvstore_1061_h3
 #Tools
 
-@mvstore_1064_p
+@mvstore_1062_p
 # There is a builder for store instances (<code>MVStoreBuilder</code>) with a fluent API to simplify building a store instance. 
 
-@mvstore_1065_p
+@mvstore_1063_p
 # There is a tool (<code>MVStoreTool</code>) to dump the contents of a file. 
 
-@mvstore_1066_h2
+@mvstore_1064_h2
 #Similar Projects and Differences to Other Storage Engines
 
-@mvstore_1067_p
+@mvstore_1065_p
 # Unlike similar storage engines like LevelDB and Kyoto Cabinet, the MVStore is written in Java and can easily be embedded in a Java application. 
 
-@mvstore_1068_p
+@mvstore_1066_p
 # The MVStore is somewhat similar to the Berkeley DB Java Edition because it is also written in Java, and is also a log structured storage, but the H2 license is more liberal. 
 
-@mvstore_1069_p
+@mvstore_1067_p
 # Like SQLite, the MVStore keeps all data in one file. The plan is to make the MVStore easier to use and faster than SQLite on Android (this was not recently tested, however an initial test was successful). 
 
-@mvstore_1070_p
+@mvstore_1068_p
 # The API of the MVStore is similar to MapDB (previously known as JDBM) from Jan Kotek, and some code is shared between MapDB and JDBM. However, unlike MapDB, the MVStore uses is a log structured storage. 
 
-@mvstore_1071_h2
+@mvstore_1069_h2
 #Current State
 
-@mvstore_1072_p
+@mvstore_1070_p
 # The code is still very experimental at this stage. The API as well as the behavior will probably change. Features may be added and removed (even thought the main features will stay). 
 
-@mvstore_1073_h2
-#Building the MVStore Library
-
-@mvstore_1074_p
-# There is currently no build script. To test it, run the test within the H2 project in Eclipse or any other IDE. 
-
-@mvstore_1075_h2
+@mvstore_1071_h2
 必要条件
 
-@mvstore_1076_p
-# There are no special requirements. The MVStore should run on any JVM as well as on Android (even thought this was not tested recently). 
+@mvstore_1072_p
+# The MVStore is included in the latest H2 jar file. 
+
+@mvstore_1073_p
+# There are no special requirements to use it. The MVStore should run on any JVM as well as on Android (even thought this was not tested recently). 
 
 @performance_1000_h1
 パフォーマンス

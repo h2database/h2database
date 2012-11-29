@@ -54,7 +54,6 @@ public class FileStore {
     private boolean checkedWriting = true;
     private final String mode;
     private TempFileDeleter tempFileDeleter;
-    private boolean textMode;
     private java.nio.channels.FileLock lock;
 
     /**
@@ -200,9 +199,6 @@ public class FileStore {
             initKey(salt);
             // read (maybe) encrypted
             readFully(buff, 0, Constants.FILE_BLOCK_SIZE);
-            if (textMode) {
-                buff[10] = 'B';
-            }
             if (Utils.compareNotNull(buff, magic) != 0) {
                 throw DbException.get(ErrorCode.FILE_ENCRYPTION_ERROR_1, name);
             }
@@ -469,15 +465,6 @@ public class FileStore {
         if (SysProperties.TRACE_IO) {
             System.out.println("FileStore." + method + " " + fileName + " " + o);
         }
-    }
-
-    /**
-     * Check if the file store is in text mode.
-     *
-     * @return true if it is
-     */
-    public boolean isTextMode() {
-        return textMode;
     }
 
     /**

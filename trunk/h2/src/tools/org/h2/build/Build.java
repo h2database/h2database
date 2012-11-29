@@ -306,8 +306,12 @@ public class Build extends BuildBase {
         delete(files("bin").keep("*.jar"));
         jar();
         docs();
-        exec("soffice", args("-invisible", "macro:///Standard.Module1.H2Pdf"));
-        copy("docs", files("../h2web/h2.pdf"), "../h2web");
+        try {
+            exec("soffice", args("-invisible", "macro:///Standard.Module1.H2Pdf"));
+            copy("docs", files("../h2web/h2.pdf"), "../h2web");
+        } catch (Exception e) {
+            print("OpenOffice is not available: " + e);
+        }
         delete("docs/html/onePage.html");
         FileList files = files("../h2").keep("../h2/build.*");
         files.addAll(files("../h2/bin").keep("../h2/bin/h2*"));

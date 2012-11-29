@@ -33,7 +33,7 @@ public class PageBtreeIndex extends PageIndex {
 
     private final PageStore store;
     private final RegularTable tableData;
-    private boolean needRebuild;
+    private final boolean needRebuild;
     private long rowCount;
     private int memoryPerPage;
     private int memoryCount;
@@ -55,7 +55,6 @@ public class PageBtreeIndex extends PageIndex {
         if (create) {
             // new index
             rootPageId = store.allocatePage();
-            needRebuild = true;
             // TODO currently the head position is stored in the log
             // it should not for new tables, otherwise redo of other operations
             // must ensure this page is not used for other things
@@ -67,10 +66,8 @@ public class PageBtreeIndex extends PageIndex {
             rootPageId = store.getRootPageId(id);
             PageBtree root = getPage(rootPageId);
             rowCount = root.getRowCount();
-            if (rowCount == 0 && store.isRecoveryRunning()) {
-                needRebuild = true;
-            }
         }
+        this.needRebuild = create || (rowCount == 0 && store.isRecoveryRunning());
         if (trace.isDebugEnabled()) {
             trace.debug("opened {0} rows: {1}", getName() , rowCount);
         }

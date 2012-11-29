@@ -45,7 +45,7 @@ public class FileStore {
      * The callback object is responsible to check access rights, and free up
      * disk space if required.
      */
-    private DataHandler handler;
+    private final DataHandler handler;
 
     private FileChannel file;
     private long filePos;
@@ -53,7 +53,7 @@ public class FileStore {
     private Reference<?> autoDeleteReference;
     private boolean checkedWriting = true;
     private final String mode;
-    private TempFileDeleter tempFileDeleter;
+    private final TempFileDeleter tempFileDeleter;
     private java.nio.channels.FileLock lock;
 
     /**
@@ -68,6 +68,8 @@ public class FileStore {
         this.name = name;
         if (handler != null) {
             tempFileDeleter = handler.getTempFileDeleter();
+        } else {
+            tempFileDeleter = null;
         }
         try {
             boolean exists = FileUtils.exists(name);

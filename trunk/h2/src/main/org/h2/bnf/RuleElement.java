@@ -15,16 +15,14 @@ import org.h2.util.StringUtils;
  */
 class RuleElement implements Rule {
 
-    private boolean keyword;
+    private final boolean keyword;
     private final String name;
     private Rule link;
     private final int type;
 
     RuleElement(String name, String topic) {
         this.name = name;
-        if (name.length() == 1 || name.equals(StringUtils.toUpperEnglish(name))) {
-            keyword = true;
-        }
+        this.keyword = name.length() == 1 || name.equals(StringUtils.toUpperEnglish(name));
         topic = StringUtils.toLowerEnglish(topic);
         this.type = topic.startsWith("function") ? Sentence.FUNCTION : Sentence.KEYWORD;
     }

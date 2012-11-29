@@ -77,7 +77,7 @@ public class ObjectType implements DataType {
     static final int TAG_BYTE_ARRAY_0_15 = 104;
 
     /**
-     * Contants for floating point synchronization.
+     * Constants for floating point synchronization.
      */
     static final int FLOAT_ZERO_BITS = Float.floatToIntBits(0.0f);
     static final int FLOAT_ONE_BITS = Float.floatToIntBits(1.0f);

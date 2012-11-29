@@ -37,7 +37,7 @@ public class Page {
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     private final MVMap<?, ?> map;
-    private final long version;
+    private long version;
     private long pos;
     private long totalCount;
     private int keyCount;
@@ -884,6 +884,10 @@ public class Page {
             mem += this.getChildPageCount() * DataUtils.PAGE_MEMORY_CHILD;
         }
         return mem;
+    }
+
+    void setVersion(long version) {
+        this.version = version;
     }
 
 }

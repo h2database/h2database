@@ -682,9 +682,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Set the position of the root page.
      *
      * @param rootPos the position, 0 for empty
+     * @param version the version of the root
      */
-    void setRootPos(long rootPos) {
+    void setRootPos(long rootPos, long version) {
         root = rootPos == 0 ? Page.createEmpty(this, -1) : readPage(rootPos);
+        root.setVersion(version);
     }
 
     /**
@@ -899,7 +901,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Page newest = null;
         // need to copy because it can change
         Page r = root;
-        if (r.getVersion() == version) {
+        if (r.getVersion() <= version && r.getVersion() >= 0) {
             newest = r;
         } else {
             // find the newest page that has a getVersion() <= version

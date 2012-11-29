@@ -23,6 +23,9 @@ public class ObjectType implements DataType {
     // TODO maybe support ResultSet, Date, Time, Timestamp
     // TODO maybe support boolean[], short[],...
 
+    /**
+     * The type constants are also used as tag values.
+     */
     static final int TYPE_BOOLEAN = 1;
     static final int TYPE_BYTE = 2;
     static final int TYPE_SHORT = 3;
@@ -41,6 +44,10 @@ public class ObjectType implements DataType {
     static final int TYPE_CHAR_ARRAY = 16;
     static final int TYPE_SERIALIZED_OBJECT = 17;
 
+    /**
+     *  For very common values (e.g. 0 and 1) we save space by encoding the value in the tag. 
+     *  e.g. TAG_BOOLEAN_TRUE and TAG_FLOAT_0.
+     */
     static final int TAG_BOOLEAN_TRUE = 32;
     static final int TAG_INTEGER_NEGATIVE = 33;
     static final int TAG_INTEGER_FIXED = 34;
@@ -60,6 +67,7 @@ public class ObjectType implements DataType {
     static final int TAG_BIG_DECIMAL_SMALL = 48;
     static final int TAG_BIG_DECIMAL_SMALL_SCALED = 49;
 
+    /** For small-values/small-arrays, we encode the value/array-length in the tag. */
     static final int TAG_INTEGER_0_15 = 64;
     static final int TAG_LONG_0_7 = 80;
     static final int TAG_STRING_0_15 = 88;

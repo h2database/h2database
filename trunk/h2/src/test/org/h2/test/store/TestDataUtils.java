@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
-import org.h2.dev.store.btree.DataUtils;
+import org.h2.mvstore.DataUtils;
 import org.h2.test.TestBase;
 
 /**

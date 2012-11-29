@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.h2.dev.store.btree.StreamStore;
+import org.h2.mvstore.StreamStore;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.New;

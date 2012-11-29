@@ -40,10 +40,9 @@ header:
 H:3,...
 
 TODO:
-- build script
 - test concurrent storing in a background thread
 - store store creation in file header, and seconds since creation
--- in chunk header (plus a counter)
+-- in chunk header (plus a counter) - ensure time never goes backwards
 - recovery: keep some old chunks; don't overwritten
 -- for 5 minutes (configurable)
 - allocate memory with Utils.newBytes and so on
@@ -91,7 +90,8 @@ TODO:
 - and maps without keys (counted b-tree)
 - use a small object cache (StringCache)
 - dump values
-- tool to import / manipulate CSV files
+- tool to import / manipulate CSV files (maybe concurrently)
+- map split / merge (fast if no overlap)
 
 */
 
@@ -216,7 +216,7 @@ public class MVStore {
         String r = oldMeta.get("root." + template.getId());
         long rootPos = r == null ? 0 : Long.parseLong(r);
         MVMap<?, ?> m = template.openReadOnly();
-        m.setRootPos(rootPos);
+        m.setRootPos(rootPos, version);
         return (T) m;
     }
 
@@ -286,7 +286,7 @@ public class MVStore {
             root = r == null ? 0 : Long.parseLong(r);
         }
         m.open(this, c);
-        m.setRootPos(root);
+        m.setRootPos(root, -1);
         maps.put(name, m);
         return (T) m;
     }
@@ -317,7 +317,7 @@ public class MVStore {
         }
         c = readChunkHeader(c.start);
         MVMap<String, String> oldMeta = meta.openReadOnly();
-        oldMeta.setRootPos(c.metaRootPos);
+        oldMeta.setRootPos(c.metaRootPos, version);
         return oldMeta;
     }
 
@@ -414,7 +414,7 @@ public class MVStore {
         Chunk header = readChunkHeader(rootChunkStart);
         lastChunkId = header.id;
         chunks.put(header.id, header);
-        meta.setRootPos(header.metaRootPos);
+        meta.setRootPos(header.metaRootPos, -1);
         Iterator<String> it = meta.keyIterator("chunk.");
         while (it.hasNext()) {
             String s = it.next();
@@ -553,6 +553,10 @@ public class MVStore {
             return currentVersion;
         }
 
+        int currentUnsavedPageCount = unsavedPageCount;
+        long storeVersion = currentVersion;
+        long version = incrementVersion();
+
         // the last chunk was not completely correct in the last store()
         // this needs to be updated now (it's better not to update right after
         // storing, because that would modify the meta map again)
@@ -565,7 +569,7 @@ public class MVStore {
         c.maxLengthLive = Long.MAX_VALUE;
         c.start = Long.MAX_VALUE;
         c.length = Integer.MAX_VALUE;
-        c.version = currentVersion + 1;
+        c.version = version;
         chunks.put(c.id, c);
         meta.put("chunk." + c.id, c.asString());
 
@@ -574,7 +578,7 @@ public class MVStore {
             if (m == meta || !m.hasUnsavedChanges()) {
                 continue;
             }
-            Page p = m.getRoot();
+            Page p = m.openVersion(storeVersion).getRoot();
             if (p.getTotalCount() == 0) {
                 meta.put("root." + m.getId(), "0");
             } else {
@@ -606,7 +610,7 @@ public class MVStore {
             if (m == meta || !m.hasUnsavedChanges()) {
                 continue;
             }
-            Page p = m.getRoot();
+            Page p = m.openVersion(storeVersion).getRoot();
             if (p.getTotalCount() > 0) {
                 long root = p.writeUnsavedRecursive(c, buff);
                 meta.put("root." + m.getId(), "" + root);
@@ -654,11 +658,11 @@ public class MVStore {
         rootChunkStart = filePos;
         revertTemp();
 
-        long version = incrementVersion();
         // write the new version (after the commit)
         writeFileHeader();
         shrinkFileIfPossible(1);
-        unsavedPageCount = 0;
+        // some pages might have been changed in the meantime (in the newest version)
+        unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
         return version;
     }
 
@@ -756,7 +760,7 @@ public class MVStore {
             return false;
         }
         for (MVMap<?, ?> m : mapsChanged.values()) {
-            if (m.hasUnsavedChanges()) {
+            if (m == meta || m.hasUnsavedChanges()) {
                 return true;
             }
         }
@@ -867,6 +871,9 @@ public class MVStore {
         }
         Chunk.fromHeader(buff, chunk.start);
         int chunkLength = chunk.length;
+        // mark a change, even if it doesn't look like there was a change
+        // as changes in the metadata alone are not detected
+        markChanged(meta);
         while (buff.position() < chunkLength) {
             int start = buff.position();
             int pageLength = buff.getInt();
@@ -1161,14 +1168,11 @@ public class MVStore {
         if (last != null) {
             if (last.version >= version) {
                 revertTemp();
-            }
-            if (last.version > version) {
                 loadFromFile = true;
-                while (last != null && last.version > version) {
-                    chunks.remove(lastChunkId);
+                do {
+                    last = chunks.remove(lastChunkId);
                     lastChunkId--;
-                    last = chunks.get(lastChunkId);
-                }
+                } while (last.version > version && chunks.size() > 0);
                 rootChunkStart = last.start;
                 writeFileHeader();
                 readFileHeader();
@@ -1183,7 +1187,7 @@ public class MVStore {
                 if (loadFromFile) {
                     String r = meta.get("root." + m.getId());
                     long root = r == null ? 0 : Long.parseLong(r);
-                    m.setRootPos(root);
+                    m.setRootPos(root, version);
                 }
             }
         }

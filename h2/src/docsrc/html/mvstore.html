@@ -243,10 +243,14 @@ Caching is done on the page level.
 The page cache is a concurrent LIRS cache,
 which should be resistant against scan operations.
 </p><p>
-Concurrent modification operations on the maps are currently not supported,
+Concurrent modification operations on a map are currently not supported
+(the same as <code>HashMap</code> and <code>TreeMap</code>),
 however it is planned to support an additional map implementation
 that supports concurrent writes
 (at the cost of speed if used in a single thread, same as <code>ConcurrentHashMap</code>).
+</p><p>
+Storing changes can occur concurrently to modifying the data,
+as <code>store()</code> operates on a snapshot.
 </p>
 
 <h3>Log Structured Storage</h3>

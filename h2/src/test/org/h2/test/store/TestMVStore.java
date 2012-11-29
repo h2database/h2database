@@ -111,7 +111,8 @@ public class TestMVStore extends TestBase {
             map = s.openMap("test");
             for (int i = 0; i < 1024; i += 128) {
                 for (int j = 0; j < i; j++) {
-                    map.get(j);
+                    String x = map.get(j);
+                    assertEquals(10240, x.length());
                 }
             }
             assertEquals(expectedReadsForCacheSize[cacheSize],
@@ -410,11 +411,14 @@ public class TestMVStore extends TestBase {
         // concurrently with further modifications)
         // this will print Hello World
         // System.out.println(oldMap.get(1));
+        assertEquals("Hello", oldMap.get(1));
         // System.out.println(oldMap.get(2));
+        assertEquals("World", oldMap.get(2));
         oldMap.close();
 
         // print the newest version ("Hi")
         // System.out.println(map.get(1));
+        assertEquals("Hi", map.get(1));
 
         // close the store - this doesn't write to disk
         s.close();
@@ -504,11 +508,15 @@ public class TestMVStore extends TestBase {
         assertTrue(mOld.isReadOnly());
         s.getCurrentVersion();
         s.setRetainChunk(0);
-        long old2 = s.store();
+        long old3 = s.store();
 
         // the old version is still available
         assertEquals("Hello", mOld.get("1"));
         assertEquals("World", mOld.get("2"));
+
+        mOld = m.openVersion(old3);
+        assertEquals("Hallo", mOld.get("1"));
+        assertEquals("Welt", mOld.get("2"));
 
         m.put("1",  "Hi");
         assertEquals("Welt", m.remove("2"));
@@ -519,7 +527,8 @@ public class TestMVStore extends TestBase {
         m = s.openMap("data", String.class, String.class);
         assertEquals("Hi", m.get("1"));
         assertEquals(null, m.get("2"));
-        mOld = m.openVersion(old2);
+
+        mOld = m.openVersion(old3);
         assertEquals("Hallo", mOld.get("1"));
         assertEquals("Welt", mOld.get("2"));
         s.close();
@@ -635,23 +644,25 @@ public class TestMVStore extends TestBase {
         assertFalse(m0.isReadOnly());
         m.put("1",  "Hallo");
         s.incrementVersion();
-        assertEquals(3, s.getCurrentVersion());
+        long v3 = s.getCurrentVersion();
+        assertEquals(3, v3);
         long v4 = s.store();
         assertEquals(4, v4);
         assertEquals(4, s.getCurrentVersion());
         s.close();
 
         s = openStore(fileName);
+        assertEquals(4, s.getCurrentVersion());
         s.setRetainChunk(0);
         m = s.openMap("data", String.class, String.class);
-        m.put("1",  "Hello");
+        m.put("1",  "Hi");
         s.store();
         s.close();
 
         s = openStore(fileName);
         s.setRetainChunk(0);
         m = s.openMap("data", String.class, String.class);
-        assertEquals("Hello", m.get("1"));
+        assertEquals("Hi", m.get("1"));
         s.rollbackTo(v4);
         assertEquals("Hallo", m.get("1"));
         s.close();
@@ -715,6 +726,10 @@ public class TestMVStore extends TestBase {
         data.put("1", "Hello");
         data.put("2", "World");
         s.store();
+        assertEquals(1, s.getCurrentVersion());
+        assertTrue(m.containsKey("chunk.1"));
+        assertFalse(m.containsKey("chunk.2"));
+
         assertEquals("id:1,name:data,type:btree,createVersion:0,key:,value:",
                 m.get("map.data"));
         assertTrue(m.containsKey("chunk.1"));
@@ -725,9 +740,14 @@ public class TestMVStore extends TestBase {
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
         assertTrue(m.containsKey("chunk.2"));
+        assertEquals(2, s.getCurrentVersion());
+
         s.rollbackTo(1);
+        assertEquals("Hello", data.get("1"));
+        assertEquals("World", data.get("2"));
         assertTrue(m.containsKey("chunk.1"));
         assertFalse(m.containsKey("chunk.2"));
+
         s.close();
     }
 

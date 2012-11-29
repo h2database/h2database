@@ -91,7 +91,7 @@ public class FileStoreInputStream extends InputStream {
         }
         store.readFully(page.getBytes(), 0, Constants.FILE_BLOCK_SIZE);
         page.reset();
-        remainingInBuffer = readInt();
+        remainingInBuffer = page.readInt();
         if (remainingInBuffer < 0) {
             close();
             return;
@@ -100,18 +100,18 @@ public class FileStoreInputStream extends InputStream {
         // get the length to read
         if (compress != null) {
             page.checkCapacity(Data.LENGTH_INT);
-            readInt();
+            page.readInt();
         }
         page.setPos(page.length() + remainingInBuffer);
         page.fillAligned();
         int len = page.length() - Constants.FILE_BLOCK_SIZE;
         page.reset();
-        readInt();
+        page.readInt();
         store.readFully(page.getBytes(), Constants.FILE_BLOCK_SIZE, len);
         page.reset();
-        readInt();
+        page.readInt();
         if (compress != null) {
-            int uncompressed = readInt();
+            int uncompressed = page.readInt();
             byte[] buff = Utils.newBytes(remainingInBuffer);
             page.read(buff, 0, remainingInBuffer);
             page.reset();
@@ -147,16 +147,6 @@ public class FileStoreInputStream extends InputStream {
         int i = page.readByte() & 0xff;
         remainingInBuffer--;
         return i;
-    }
-
-    private int readInt() {
-        if (store.isTextMode()) {
-            byte[] buff = new byte[8];
-            page.read(buff, 0, 8);
-            String s = new String(buff);
-            return Integer.parseInt(s, 16);
-        }
-        return page.readInt();
     }
 
 }

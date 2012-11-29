@@ -99,7 +99,6 @@ public class Session extends SessionWithState {
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
     private int modificationId;
-    private int modificationIdState;
     private int objectId;
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
@@ -665,9 +664,7 @@ public class Session extends SessionWithState {
             }
         }
         savepoints = null;
-        if (modificationIdState != modificationId) {
-            sessionStateChanged = true;
-        }
+        sessionStateChanged = true;
     }
 
     private void cleanTempTables(boolean closeSession) {

@@ -23,8 +23,8 @@ import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.DataTypeFactory;
-import org.h2.mvstore.type.ObjectTypeFactory;
-import org.h2.mvstore.type.StringType;
+import org.h2.mvstore.type.ObjectDataTypeFactory;
+import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
@@ -91,6 +91,8 @@ TODO:
 - dump values
 - tool to import / manipulate CSV files (maybe concurrently)
 - map split / merge (fast if no overlap)
+- auto-save if there are too many changes (required for StreamStore)
+- StreamStore optimization: avoid copying bytes
 
 */
 
@@ -149,6 +151,8 @@ public class MVStore {
 
     private HashMap<String, String> fileHeader = New.hashMap();
 
+    private ByteBuffer writeBuffer;
+
     private final boolean readOnly;
 
     private int lastMapId;
@@ -157,7 +161,9 @@ public class MVStore {
     private long retainVersion = -1;
     private int retainChunk = -1;
 
-    private Compressor compressor;
+    private final Compressor compressor = new CompressLZF();
+
+    private final boolean compress;
 
     private long currentVersion;
     private int fileReadCount;
@@ -167,7 +173,7 @@ public class MVStore {
     MVStore(HashMap<String, Object> config) {
         this.config = config;
         this.fileName = (String) config.get("fileName");
-        DataTypeFactory parent = new ObjectTypeFactory();
+        DataTypeFactory parent = new ObjectDataTypeFactory();
         DataTypeFactory f = (DataTypeFactory) config.get("dataTypeFactory");
         if (f == null) {
             f = parent;
@@ -176,7 +182,7 @@ public class MVStore {
         }
         this.dataTypeFactory = f;
         this.readOnly = "r".equals(config.get("openMode"));
-        this.compressor = "0".equals(config.get("compression")) ? null : new CompressLZF();
+        this.compress = "1".equals(config.get("compress"));
         if (fileName != null) {
             Object s = config.get("cacheSize");
             int mb = s == null ? 16 : Integer.parseInt(s.toString());
@@ -343,7 +349,7 @@ public class MVStore {
 
     private DataType getDataType(Class<?> clazz) {
         if (clazz == String.class) {
-            return StringType.INSTANCE;
+            return StringDataType.INSTANCE;
         }
         if (dataTypeFactory == null) {
             throw new RuntimeException("No data type factory set " +
@@ -366,7 +372,7 @@ public class MVStore {
      * Open the store.
      */
     void open() {
-        meta = new MVMap<String, String>(StringType.INSTANCE, StringType.INSTANCE);
+        meta = new MVMap<String, String>(StringDataType.INSTANCE, StringDataType.INSTANCE);
         HashMap<String, String> c = New.hashMap();
         c.put("id", "0");
         c.put("name", "meta");
@@ -508,7 +514,6 @@ public class MVStore {
                     m.close();
                 }
                 meta = null;
-                compressor = null;
                 chunks.clear();
                 cache.clear();
                 maps.clear();
@@ -599,8 +604,17 @@ public class MVStore {
             }
         } while (freedChunks.size() > 0);
         maxLength += meta.getRoot().getMaxLengthTempRecursive();
-
-        ByteBuffer buff = ByteBuffer.allocate(maxLength);
+        ByteBuffer buff;
+        if (maxLength > 16 * 1024 * 1024) {
+            buff = ByteBuffer.allocate(maxLength);
+        } else {
+            if (writeBuffer != null && writeBuffer.capacity() >= maxLength) {
+                buff = writeBuffer;
+                buff.clear();
+            } else {
+                writeBuffer = buff = ByteBuffer.allocate(maxLength + 1024 * 1024);
+            }
+        }
         // need to patch the header later
         c.writeHeader(buff);
         c.maxLength = 0;
@@ -1006,6 +1020,10 @@ public class MVStore {
 
     Compressor getCompressor() {
         return compressor;
+    }
+
+    boolean getCompress() {
+        return compress;
     }
 
     public boolean getReuseSpace() {

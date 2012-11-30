@@ -76,6 +76,15 @@ public class MVStoreBuilder {
     }
 
     /**
+     * Enable data compression using the LZF algorithm.
+     *
+     * @return this
+     */
+    public MVStoreBuilder compressData() {
+        return set("compress", "1");
+    }
+
+    /**
      * Use the given data type factory.
      *
      * @param factory the data type factory

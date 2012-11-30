@@ -110,7 +110,7 @@ import org.h2.test.store.TestConcurrent;
 import org.h2.test.store.TestDataUtils;
 import org.h2.test.store.TestMVStore;
 import org.h2.test.store.TestMVRTree;
-import org.h2.test.store.TestObjectType;
+import org.h2.test.store.TestObjectDataType;
 import org.h2.test.store.TestStreamStore;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
@@ -682,7 +682,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestDataUtils().runTest(this);
         new TestMVRTree().runTest(this);
         new TestMVStore().runTest(this);
-        new TestObjectType().runTest(this);
+        new TestObjectDataType().runTest(this);
         new TestStreamStore().runTest(this);
 
         // unit

@@ -18,9 +18,9 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreBuilder;
 import org.h2.mvstore.type.DataType;
-import org.h2.mvstore.type.ObjectType;
-import org.h2.mvstore.type.ObjectTypeFactory;
-import org.h2.mvstore.type.StringType;
+import org.h2.mvstore.type.ObjectDataType;
+import org.h2.mvstore.type.ObjectDataTypeFactory;
+import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -93,7 +93,8 @@ public class TestMVStore extends TestBase {
         MVStore s;
         MVMap<Integer, String> map;
         s = MVStoreBuilder.fileBased(fileName).
-                with(new ObjectTypeFactory()).open();
+                compressData().
+                with(new ObjectDataTypeFactory()).open();
         map = s.openMap("test");
         // add 10 MB of data
         for (int i = 0; i < 1024; i++) {
@@ -107,7 +108,7 @@ public class TestMVStore extends TestBase {
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = MVStoreBuilder.fileBased(fileName).
                     cacheSizeMB(1 + 3 * cacheSize).
-                    with(new ObjectTypeFactory()).open();
+                    with(new ObjectDataTypeFactory()).open();
             map = s.openMap("test");
             for (int i = 0; i < 1024; i += 128) {
                 for (int j = 0; j < i; j++) {
@@ -329,7 +330,7 @@ public class TestMVStore extends TestBase {
         MVStore s;
         Map<Integer, Integer> map;
         s = MVStoreBuilder.inMemory().
-                with(new ObjectTypeFactory()).open();
+                with(new ObjectDataTypeFactory()).open();
         map = s.openMap("test");
         int len = 100;
         for (int i = 0; i < len; i++) {
@@ -355,7 +356,7 @@ public class TestMVStore extends TestBase {
         MVStore s;
         Map<Object, Object> map;
         s = MVStoreBuilder.fileBased(fileName).
-                with(new ObjectTypeFactory()).open();
+                with(new ObjectDataTypeFactory()).open();
         map = s.openMap("test");
         map.put(1,  "Hello");
         map.put("2", 200);
@@ -363,7 +364,7 @@ public class TestMVStore extends TestBase {
         s.store();
         s.close();
         s = MVStoreBuilder.fileBased(fileName).
-                with(new ObjectTypeFactory()).open();
+                with(new ObjectDataTypeFactory()).open();
         map = s.openMap("test");
         assertEquals("Hello", map.get(1).toString());
         assertEquals(200, ((Integer) map.get("2")).intValue());
@@ -791,11 +792,11 @@ public class TestMVStore extends TestBase {
             // s.setCompressor(null);
             s.setPageSize(40);
             MVMap<Integer, Object[]> m = new MVMap<Integer, Object[]>(
-                    new ObjectType(),
-                    new RowType(new DataType[] {
-                            new ObjectType(),
-                            StringType.INSTANCE,
-                            StringType.INSTANCE
+                    new ObjectDataType(),
+                    new RowDataType(new DataType[] {
+                            new ObjectDataType(),
+                            StringDataType.INSTANCE,
+                            StringDataType.INSTANCE
                     })
             );
 

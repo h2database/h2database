@@ -17,7 +17,7 @@ import java.util.Random;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreBuilder;
-import org.h2.mvstore.type.ObjectTypeFactory;
+import org.h2.mvstore.type.ObjectDataTypeFactory;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -133,7 +133,7 @@ public class TestConcurrent extends TestMVStore {
 
     private void testConcurrentIterate() {
         MVStore s = MVStoreBuilder.inMemory().
-                with(new ObjectTypeFactory()).open();
+                with(new ObjectDataTypeFactory()).open();
         s.setPageSize(3);
         final MVMap<Integer, Integer> map = s.openMap("test");
         final int len = 10;

@@ -25,13 +25,13 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     /**
      * The spatial key type.
      */
-    final SpatialType keyType;
+    final SpatialDataType keyType;
 
     private boolean quadraticSplit;
 
     public MVRTreeMap(int dimensions, DataType valueType) {
-        super(new SpatialType(dimensions), valueType);
-        this.keyType = (SpatialType) getKeyType();
+        super(new SpatialDataType(dimensions), valueType);
+        this.keyType = (SpatialDataType) getKeyType();
     }
 
     /**

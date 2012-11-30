@@ -21,20 +21,14 @@ public class SampleTypeFactory implements DataTypeFactory {
 
     @Override
     public DataType buildDataType(String s) {
-//        if ("org.h2.test.store.int".equals(s)) {
-//            return new IntegerType();
-//        } else
-        if (s.startsWith(RowType.PREFIX)) {
-            return RowType.fromString(s, this);
+        if (s.startsWith(RowDataType.PREFIX)) {
+            return RowDataType.fromString(s, this);
         }
         return parent.buildDataType(s);
     }
 
     @Override
     public String getDataType(Class<?> objectClass) {
-//        if (objectClass == Integer.class) {
-//            return "org.h2.test.store.int";
-//        }
         return parent.getDataType(objectClass);
     }
 

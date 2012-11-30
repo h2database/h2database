@@ -633,7 +633,8 @@ public class TableInspector {
             append('=');
             if (value instanceof List) {
                 append("{ ");
-                List list = (List) value;
+                @SuppressWarnings("unchecked")
+                List<Object> list = (List<Object>) value;
                 StatementBuilder flat = new StatementBuilder();
                 for (Object o:list) {
                     flat.appendExceptFirst(", ");

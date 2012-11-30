@@ -385,7 +385,7 @@ public class Query<T> {
         if (!orderByList.isEmpty()) {
             stat.appendSQL(" ORDER BY ");
             int i = 0;
-            for (OrderExpression o : orderByList) {
+            for (OrderExpression<T> o : orderByList) {
                 if (i++ > 0) {
                     stat.appendSQL(", ");
                 }

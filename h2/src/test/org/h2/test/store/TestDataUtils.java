@@ -28,13 +28,13 @@ public class TestDataUtils extends TestBase {
     }
 
     public void test() throws Exception {
+        testEncodeLength();
         testFletcher();
         testMap();
         testMaxShortVarIntVarLong();
         testVarIntVarLong();
         testCheckValue();
         testPagePos();
-        testEncodeLength();
     }
 
     private void testFletcher() throws Exception {
@@ -224,8 +224,20 @@ public class TestDataUtils extends TestBase {
         assertEquals(1, DataUtils.encodeLength(33));
         assertEquals(1, DataUtils.encodeLength(48));
         assertEquals(2, DataUtils.encodeLength(49));
+        assertEquals(2, DataUtils.encodeLength(64));
+        assertEquals(3, DataUtils.encodeLength(65));
         assertEquals(30, DataUtils.encodeLength(1024 * 1024));
         assertEquals(31, DataUtils.encodeLength(1024 * 1024 + 1));
+        assertEquals(31, DataUtils.encodeLength(Integer.MAX_VALUE));
+        int[] maxLengthForIndex = {32, 48, 64, 96, 128, 192, 256,
+                384, 512, 768, 1024, 1536, 2048, 3072, 4096, 6144,
+                8192, 12288, 16384, 24576, 32768, 49152, 65536,
+                98304, 131072, 196608, 262144, 393216, 524288,
+                786432, 1048576};
+        for (int i = 0; i < maxLengthForIndex.length; i++) {
+            assertEquals(i, DataUtils.encodeLength(maxLengthForIndex[i]));
+            assertEquals(i + 1, DataUtils.encodeLength(maxLengthForIndex[i] + 1));
+        }
         for (int i = 1024 * 1024 + 1; i < 100 * 1024 * 1024; i += 1024) {
             int code = DataUtils.encodeLength(i);
             assertEquals(31, code);

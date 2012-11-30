@@ -60,6 +60,11 @@ public class StreamStore {
         return nextKey.get();
     }
 
+    /**
+     * Set the minimum block size. The default is 256 bytes.
+     *
+     * @param minBlockSize the new value
+     */
     public void setMinBlockSize(int minBlockSize) {
         this.minBlockSize = minBlockSize;
     }
@@ -68,6 +73,11 @@ public class StreamStore {
         return minBlockSize;
     }
 
+    /**
+     * Set the maximum block size. The default is 256 KB.
+     *
+     * @param maxBlockSize the new value
+     */
     public void setMaxBlockSize(int maxBlockSize) {
         this.maxBlockSize = maxBlockSize;
     }

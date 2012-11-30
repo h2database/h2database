@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.170 (2012-11-30)</h2>
 <ul><li>Issue 407: The TriggerAdapter didn't work with CLOB and BLOB columns.
 </li><li>PostgreSQL compatibility: support for data types BIGSERIAL and SERIAL
     as an alias for AUTO_INCREMENT.
@@ -300,33 +304,6 @@ Change Log
 </li><li>Issue 329: CASE expression: data type problem is not detected.
 </li><li>Issue 311: File lock mode serialized: selecting the next value from a sequence didn't work
     after a pause, because the database thought this is a read-only operation.
-</li></ul>
-
-<h2>Version 1.3.159 (2011-08-13)</h2>
-<ul><li>Creating a temporary table with the option 'transactional' will now also create the indexes
-    in transactional mode, if the indexes are included in the 'create table' statement as follows:
-    "create local temporary table temp(id int primary key, name varchar, constraint x index(name)) transactional".
-</li><li>The database file size grows now 35%, but at most 256 MB at a time.
-</li><li>Improved error message on network configuration problems.
-</li><li>The build now support an offline build using ./build.sh offline.
-    This will list the required dependencies if jar files are missing.
-</li><li>The BLOB / CLOB data was dropped a little bit before the table was dropped.
-    This could cause "lob not found" errors when the process was killed while a table was dropped.
-</li><li>"group_concat(distinct ...)" did not work correctly in a view or subquery (the 'distinct' was lost). Example:
-    select * from (select group_concat(distinct 1) from system_range(1, 3));
-</li><li>Database URLs can now be re-mapped to another URL using the system property
-    "h2.urlMap", which points to a properties file with database URL mappings.
-</li><li>When using InputStream.skip, trying to read past the end of a BLOB failed with
-    the exception "IO Exception: Missing lob entry: ..." [90028-...].
-</li><li>The in-memory file system "memFS:" now has limited support for directories.
-</li><li>To test recovery, append ;RECOVER_TEST=64 to the database URL.
-    This will simulate an application crash after each 64 writes to the database file.
-    A log file named databaseName.h2.db.log is created that lists the operations.
-    The recovery is tested using an in-memory file system, that means it may require a larger heap setting.
-</li><li>Converting a hex string to a byte array is now faster.
-</li><li>The SQL statement "shutdown defrag" could corrupt the database if the process was killed
-    while the shutdown was in progress. The same problem could occur when the database
-    setting "defrag_always" was used.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

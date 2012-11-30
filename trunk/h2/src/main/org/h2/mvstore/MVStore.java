@@ -40,8 +40,7 @@ header:
 H:3,...
 
 TODO:
-- test concurrent storing in a background thread
-- store store creation in file header, and seconds since creation
+- store creation in file header, and seconds since creation
 -- in chunk header (plus a counter) - ensure time never goes backwards
 - recovery: keep some old chunks; don't overwritten
 -- for 5 minutes (configurable)

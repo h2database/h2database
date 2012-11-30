@@ -16,11 +16,11 @@ import org.h2.mvstore.type.DataType;
  * can have a minimum and a maximum value of type float. For each dimension, the
  * maximum value is only stored when it is not the same as the minimum.
  */
-public class SpatialType implements DataType {
+public class SpatialDataType implements DataType {
 
     private final int dimensions;
 
-    public SpatialType(int dimensions) {
+    public SpatialDataType(int dimensions) {
         if (dimensions <= 0 || dimensions > 255) {
             throw new IllegalArgumentException("Dimensions: " + dimensions);
         }
@@ -33,8 +33,8 @@ public class SpatialType implements DataType {
      * @param s the string
      * @return the value
      */
-    public static SpatialType fromString(String s) {
-        return new SpatialType(Integer.parseInt(s.substring(1)));
+    public static SpatialDataType fromString(String s) {
+        return new SpatialDataType(Integer.parseInt(s.substring(1)));
     }
 
     @Override

@@ -5,12 +5,12 @@
  */
 package org.h2.mvstore.type;
 
-import org.h2.mvstore.rtree.SpatialType;
+import org.h2.mvstore.rtree.SpatialDataType;
 
 /**
  * A data type factory.
  */
-public class ObjectTypeFactory implements DataTypeFactory {
+public class ObjectDataTypeFactory implements DataTypeFactory {
 
     @Override
     public void setParent(DataTypeFactory parent) {
@@ -20,16 +20,16 @@ public class ObjectTypeFactory implements DataTypeFactory {
     @Override
     public DataType buildDataType(String s) {
         if ("s".equals(s)) {
-            return SpatialType.fromString(s);
+            return SpatialDataType.fromString(s);
         } else if ("o".equals(s)) {
-            return new ObjectType();
+            return new ObjectDataType();
         }
         return null;
     }
 
     @Override
     public String getDataType(Class<?> objectClass) {
-        if (objectClass == SpatialType.class) {
+        if (objectClass == SpatialDataType.class) {
             return "s";
         }
         return "o";

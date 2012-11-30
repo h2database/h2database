@@ -17,7 +17,7 @@ import org.h2.util.Utils;
  * A data type implementation for the most common data types, including
  * serializable objects.
  */
-public class ObjectType implements DataType {
+public class ObjectDataType implements DataType {
 
     // TODO maybe support InputStream, Reader
     // TODO maybe support ResultSet, Date, Time, Timestamp
@@ -341,10 +341,10 @@ public class ObjectType implements DataType {
      */
     abstract class AutoDetectDataType implements DataType {
 
-        protected final ObjectType base;
+        protected final ObjectDataType base;
         protected final int typeId;
 
-        AutoDetectDataType(ObjectType base, int typeId) {
+        AutoDetectDataType(ObjectDataType base, int typeId) {
             this.base = base;
             this.typeId = typeId;
         }
@@ -411,7 +411,7 @@ public class ObjectType implements DataType {
      */
     class BooleanType extends AutoDetectDataType {
 
-        BooleanType(ObjectType base) {
+        BooleanType(ObjectDataType base) {
             super(base, TYPE_BOOLEAN);
         }
 
@@ -457,7 +457,7 @@ public class ObjectType implements DataType {
      */
     class ByteType extends AutoDetectDataType {
 
-        ByteType(ObjectType base) {
+        ByteType(ObjectDataType base) {
             super(base, TYPE_BYTE);
         }
 
@@ -502,7 +502,7 @@ public class ObjectType implements DataType {
      */
     class CharacterType extends AutoDetectDataType {
 
-        CharacterType(ObjectType base) {
+        CharacterType(ObjectDataType base) {
             super(base, TYPE_CHARACTER);
         }
 
@@ -548,7 +548,7 @@ public class ObjectType implements DataType {
      */
     class ShortType extends AutoDetectDataType {
 
-        ShortType(ObjectType base) {
+        ShortType(ObjectDataType base) {
             super(base, TYPE_SHORT);
         }
 
@@ -594,7 +594,7 @@ public class ObjectType implements DataType {
      */
     class IntegerType extends AutoDetectDataType {
 
-        IntegerType(ObjectType base) {
+        IntegerType(ObjectDataType base) {
             super(base, TYPE_INTEGER);
         }
 
@@ -667,7 +667,7 @@ public class ObjectType implements DataType {
      */
     public class LongType extends AutoDetectDataType {
 
-        LongType(ObjectType base) {
+        LongType(ObjectDataType base) {
             super(base, TYPE_LONG);
         }
 
@@ -740,7 +740,7 @@ public class ObjectType implements DataType {
      */
     class FloatType extends AutoDetectDataType {
 
-        FloatType(ObjectType base) {
+        FloatType(ObjectDataType base) {
             super(base, TYPE_FLOAT);
         }
 
@@ -771,9 +771,9 @@ public class ObjectType implements DataType {
             if (obj instanceof Float) {
                 float x = (Float) obj;
                 int f = Float.floatToIntBits(x);
-                if (f == ObjectType.FLOAT_ZERO_BITS) {
+                if (f == ObjectDataType.FLOAT_ZERO_BITS) {
                     buff.put((byte) TAG_FLOAT_0);
-                } else if (f == ObjectType.FLOAT_ONE_BITS) {
+                } else if (f == ObjectDataType.FLOAT_ONE_BITS) {
                         buff.put((byte) TAG_FLOAT_1);
                 } else {
                     int value = Integer.reverse(f);
@@ -810,7 +810,7 @@ public class ObjectType implements DataType {
      */
     class DoubleType extends AutoDetectDataType {
 
-        DoubleType(ObjectType base) {
+        DoubleType(ObjectDataType base) {
             super(base, TYPE_DOUBLE);
         }
 
@@ -841,9 +841,9 @@ public class ObjectType implements DataType {
             if (obj instanceof Double) {
                 double x = (Double) obj;
                 long d = Double.doubleToLongBits(x);
-                if (d == ObjectType.DOUBLE_ZERO_BITS) {
+                if (d == ObjectDataType.DOUBLE_ZERO_BITS) {
                     buff.put((byte) TAG_DOUBLE_0);
-                } else if (d == ObjectType.DOUBLE_ONE_BITS) {
+                } else if (d == ObjectDataType.DOUBLE_ONE_BITS) {
                         buff.put((byte) TAG_DOUBLE_1);
                 } else {
                     long value = Long.reverse(d);
@@ -880,7 +880,7 @@ public class ObjectType implements DataType {
      */
     class BigIntegerType extends AutoDetectDataType {
 
-        BigIntegerType(ObjectType base) {
+        BigIntegerType(ObjectDataType base) {
             super(base, TYPE_BIG_INTEGER);
         }
 
@@ -964,7 +964,7 @@ public class ObjectType implements DataType {
      */
     class BigDecimalType extends AutoDetectDataType {
 
-        BigDecimalType(ObjectType base) {
+        BigDecimalType(ObjectDataType base) {
             super(base, TYPE_BIG_DECIMAL);
         }
 
@@ -1068,7 +1068,7 @@ public class ObjectType implements DataType {
      */
     class StringType extends AutoDetectDataType {
 
-        StringType(ObjectType base) {
+        StringType(ObjectDataType base) {
             super(base, TYPE_STRING);
         }
 
@@ -1131,7 +1131,7 @@ public class ObjectType implements DataType {
      */
     class UUIDType extends AutoDetectDataType {
 
-        UUIDType(ObjectType base) {
+        UUIDType(ObjectDataType base) {
             super(base, TYPE_UUID);
         }
 
@@ -1183,7 +1183,7 @@ public class ObjectType implements DataType {
      */
     class ByteArrayType extends AutoDetectDataType {
 
-        ByteArrayType(ObjectType base) {
+        ByteArrayType(ObjectDataType base) {
             super(base, TYPE_BYTE_ARRAY);
         }
 
@@ -1250,7 +1250,7 @@ public class ObjectType implements DataType {
      */
     class CharArrayType extends AutoDetectDataType {
 
-        CharArrayType(ObjectType base) {
+        CharArrayType(ObjectDataType base) {
             super(base, TYPE_CHAR_ARRAY);
         }
 
@@ -1310,7 +1310,7 @@ public class ObjectType implements DataType {
      */
     class IntArrayType extends AutoDetectDataType {
 
-        IntArrayType(ObjectType base) {
+        IntArrayType(ObjectDataType base) {
             super(base, TYPE_INT_ARRAY);
         }
 
@@ -1370,7 +1370,7 @@ public class ObjectType implements DataType {
      */
     class LongArrayType extends AutoDetectDataType {
 
-        LongArrayType(ObjectType base) {
+        LongArrayType(ObjectDataType base) {
             super(base, TYPE_LONG_ARRAY);
         }
 
@@ -1430,7 +1430,7 @@ public class ObjectType implements DataType {
      */
     class SerializedObjectType extends AutoDetectDataType {
 
-        SerializedObjectType(ObjectType base) {
+        SerializedObjectType(ObjectDataType base) {
             super(base, TYPE_SERIALIZED_OBJECT);
         }
 

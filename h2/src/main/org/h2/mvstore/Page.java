@@ -729,7 +729,6 @@ public class Page {
         DataUtils.writeVarInt(buff, map.getId());
         int len = keyCount;
         DataUtils.writeVarInt(buff, len);
-        Compressor compressor = map.getStore().getCompressor();
         int type = children != null ? DataUtils.PAGE_TYPE_NODE
                 : DataUtils.PAGE_TYPE_LEAF;
         buff.put((byte) type);
@@ -749,7 +748,8 @@ public class Page {
                 map.getValueType().write(buff, values[i]);
             }
         }
-        if (compressor != null) {
+        if (map.getStore().getCompress()) {
+            Compressor compressor = map.getStore().getCompressor();
             int expLen = buff.position() - compressStart;
             byte[] exp = new byte[expLen];
             buff.position(compressStart);

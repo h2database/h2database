@@ -341,15 +341,27 @@ public class DataUtils {
         if (len <= 32) {
             return 0;
         }
-        int x = len;
-        int shift = 0;
-        while (x > 3) {
-            shift++;
-            x = (x >> 1) + (x & 1);
+        int code = Integer.numberOfLeadingZeros(len);
+        int remaining = len << (code + 1);
+        code += code;
+        if ((remaining & (1 << 31)) != 0) {
+            code--;
         }
-        shift = Math.max(0,  shift - 4);
-        int code = (shift << 1) + (x & 1);
-        return Math.min(31, code);
+        if ((remaining << 1) != 0) {
+            code--;
+        }
+        code = Math.min(31, 52 - code);
+        // alternative code (slower):
+        // int x = len;
+        // int shift = 0;
+        // while (x > 3) {
+        //    shift++;
+        //    x = (x >>> 1) + (x & 1);
+        // }
+        // shift = Math.max(0,  shift - 4);
+        // int code = (shift << 1) + (x & 1);
+        // code = Math.min(31, code);
+        return code;
     }
 
     /**

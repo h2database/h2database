@@ -15,13 +15,13 @@ import org.h2.util.StringUtils;
 /**
  * A row type.
  */
-public class RowType implements DataType {
+public class RowDataType implements DataType {
 
     static final String PREFIX = "org.h2.test.store.row";
 
     private final DataType[] types;
 
-    RowType(DataType[] types) {
+    RowDataType(DataType[] types) {
         this.types = types;
     }
 
@@ -107,7 +107,7 @@ public class RowType implements DataType {
      * @param factory the data type factory
      * @return the row type
      */
-    static RowType fromString(String t, DataTypeFactory factory) {
+    static RowDataType fromString(String t, DataTypeFactory factory) {
         if (!t.startsWith(PREFIX) || !t.endsWith(")")) {
             throw new RuntimeException("Unknown type: " + t);
         }
@@ -117,7 +117,7 @@ public class RowType implements DataType {
         for (int i = 0; i < array.length; i++) {
             types[i] = factory.buildDataType(array[i]);
         }
-        return new RowType(types);
+        return new RowDataType(types);
     }
 
 }

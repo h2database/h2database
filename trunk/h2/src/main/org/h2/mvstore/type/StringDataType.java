@@ -12,9 +12,9 @@ import org.h2.mvstore.DataUtils;
 /**
  * A string type.
  */
-public class StringType implements DataType {
+public class StringDataType implements DataType {
 
-    public static final StringType INSTANCE = new StringType();
+    public static final StringDataType INSTANCE = new StringDataType();
 
     public int compare(Object a, Object b) {
         return a.toString().compareTo(b.toString());

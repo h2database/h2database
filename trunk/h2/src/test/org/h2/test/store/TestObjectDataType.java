@@ -13,13 +13,13 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.UUID;
-import org.h2.mvstore.type.ObjectType;
+import org.h2.mvstore.type.ObjectDataType;
 import org.h2.test.TestBase;
 
 /**
  * Test the ObjectType class.
  */
-public class TestObjectType extends TestBase {
+public class TestObjectDataType extends TestBase {
 
     /**
      * Run just this test.
@@ -37,7 +37,7 @@ public class TestObjectType extends TestBase {
 
     private void testCommonValues() {
         BigInteger largeBigInt = BigInteger.probablePrime(200,  new Random(1));
-        ObjectType ot = new ObjectType();
+        ObjectDataType ot = new ObjectDataType();
         assertEquals("o", ot.asString());
         Object[] array = {
                 false, true,
@@ -104,7 +104,7 @@ public class TestObjectType extends TestBase {
     }
 
     private void test(Object last, Object x) {
-        ObjectType ot = new ObjectType();
+        ObjectDataType ot = new ObjectDataType();
 
         // switch to the last type before every operation,
         // to test switching types

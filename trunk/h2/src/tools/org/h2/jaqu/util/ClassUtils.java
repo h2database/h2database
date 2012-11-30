@@ -63,15 +63,15 @@ public class ClassUtils {
         } else if (clazz == java.util.Date.class) {
             return (T) new java.util.Date(COUNTER.getAndIncrement());
         } else if (clazz == List.class) {
-            return (T) new ArrayList();
+            return (T) new ArrayList<Object>();
         }
         try {
             return clazz.newInstance();
         } catch (Exception e) {
             if (MAKE_ACCESSIBLE) {
-                Constructor[] constructors = clazz.getDeclaredConstructors();
+                Constructor<?>[] constructors = clazz.getDeclaredConstructors();
                 // try 0 length constructors
-                for (Constructor c : constructors) {
+                for (Constructor<?> c : constructors) {
                     if (c.getParameterTypes().length == 0) {
                         c.setAccessible(true);
                         try {
@@ -82,7 +82,7 @@ public class ClassUtils {
                     }
                 }
                 // try 1 length constructors
-                for (Constructor c : constructors) {
+                for (Constructor<?> c : constructors) {
                     if (c.getParameterTypes().length == 1) {
                         c.setAccessible(true);
                         try {

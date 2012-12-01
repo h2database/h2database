@@ -999,4 +999,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return buff.toString();
     }
 
+    public String toString() {
+        return asString();
+    }
+
 }

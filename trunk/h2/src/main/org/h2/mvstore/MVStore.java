@@ -40,10 +40,6 @@ header:
 H:3,...
 
 TODO:
-- store creation in file header, and seconds since creation
--- in chunk header (plus a counter) - ensure time never goes backwards
-- recovery: keep some old chunks; don't overwritten
--- for 5 minutes (configurable)
 - allocate memory with Utils.newBytes and so on
 - unified exception handling
 - concurrent map; avoid locking during IO (pre-load pages)
@@ -69,7 +65,6 @@ TODO:
 - allow renaming maps
 - file locking: solve problem that locks are shared for a VM
 - online backup
-- MapFactory is the wrong name (StorePlugin?) or is too flexible: remove?
 - store file "header" at the end of each chunk; at the end of the file
 - is there a better name for the file header,
 -- if it's no longer always at the beginning of a file?
@@ -89,10 +84,12 @@ TODO:
 - and maps without keys (counted b-tree)
 - use a small object cache (StringCache)
 - dump values
+- support Object[] and similar serialization by default
 - tool to import / manipulate CSV files (maybe concurrently)
 - map split / merge (fast if no overlap)
 - auto-save if there are too many changes (required for StreamStore)
 - StreamStore optimization: avoid copying bytes
+- unlimited transaction size
 
 */
 
@@ -159,7 +156,6 @@ public class MVStore {
 
     private volatile boolean reuseSpace = true;
     private long retainVersion = -1;
-    private int retainChunk = -1;
 
     private final Compressor compressor = new CompressLZF();
 
@@ -169,6 +165,12 @@ public class MVStore {
     private int fileReadCount;
     private int fileWriteCount;
     private int unsavedPageCount;
+
+    /**
+     * The time the store was created, in seconds since 1970.
+     */
+    private long creationTime;
+    private int retentionTime = 45;
 
     MVStore(HashMap<String, Object> config) {
         this.config = config;
@@ -398,10 +400,12 @@ public class MVStore {
             }
             fileSize = file.size();
             if (fileSize == 0) {
+                creationTime = 0;
+                creationTime = getTime();
                 fileHeader.put("H", "3");
                 fileHeader.put("blockSize", "" + BLOCK_SIZE);
                 fileHeader.put("format", "1");
-                fileHeader.put("formatRead", "1");
+                fileHeader.put("creationTime", "" + creationTime);
                 writeFileHeader();
             } else {
                 readFileHeader();
@@ -449,6 +453,7 @@ public class MVStore {
                 String s = new String(headers, i, BLOCK_SIZE, "UTF-8").trim();
                 fileHeader = DataUtils.parseMap(s);
                 rootChunkStart = Long.parseLong(fileHeader.get("rootChunk"));
+                creationTime = Long.parseLong(fileHeader.get("creationTime"));
                 currentVersion = Long.parseLong(fileHeader.get("version"));
                 lastMapId = Integer.parseInt(fileHeader.get("lastMapId"));
                 int check = (int) Long.parseLong(fileHeader.get("fletcher"), 16);
@@ -560,19 +565,25 @@ public class MVStore {
         int currentUnsavedPageCount = unsavedPageCount;
         long storeVersion = currentVersion;
         long version = incrementVersion();
+        long time = getTime();
 
         // the last chunk was not completely correct in the last store()
         // this needs to be updated now (it's better not to update right after
         // storing, because that would modify the meta map again)
-        Chunk c = chunks.get(lastChunkId);
-        if (c != null) {
-            meta.put("chunk." + c.id, c.asString());
+        Chunk lastChunk = chunks.get(lastChunkId);
+        if (lastChunk != null) {
+            meta.put("chunk." + lastChunk.id, lastChunk.asString());
+            // never go backward in time
+            time = Math.max(lastChunk.time, time);
         }
+        Chunk c;
         c = new Chunk(++lastChunkId);
         c.maxLength = Long.MAX_VALUE;
         c.maxLengthLive = Long.MAX_VALUE;
         c.start = Long.MAX_VALUE;
         c.length = Integer.MAX_VALUE;
+        time = Math.max(0, time - creationTime);
+        c.time = time;
         c.version = version;
         chunks.put(c.id, c);
         meta.put("chunk." + c.id, c.asString());
@@ -594,7 +605,7 @@ public class MVStore {
         ArrayList<Integer> removedChunks = New.arrayList();
         do {
             for (Chunk x : chunks.values()) {
-                if (x.maxLengthLive == 0 && (retainChunk == -1 || x.id < retainChunk)) {
+                if (x.maxLengthLive == 0 && canOverwriteChunk(x, time)) {
                     meta.remove("chunk." + x.id);
                     removedChunks.add(x.id);
                 } else {
@@ -677,6 +688,14 @@ public class MVStore {
         // some pages might have been changed in the meantime (in the newest version)
         unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
         return version;
+    }
+
+    private boolean canOverwriteChunk(Chunk c, long time) {
+        return c.time + retentionTime <= time;
+    }
+
+    private long getTime() {
+        return (System.currentTimeMillis() / 1000) - creationTime;
     }
 
     private void applyFreedChunks() {
@@ -822,10 +841,12 @@ public class MVStore {
         // calculate the average max length
         int averageMaxLength = (int) (maxLengthSum / chunks.size());
 
+        long time = getTime();
+
         // the 'old' list contains the chunks we want to free up
         ArrayList<Chunk> old = New.arrayList();
         for (Chunk c : chunks.values()) {
-            if (retainChunk == -1 || c.id < retainChunk) {
+            if (canOverwriteChunk(c, time)) {
                 int age = lastChunkId - c.id + 1;
                 c.collectPriority = c.getFillRate() / age;
                 old.add(c);
@@ -1047,27 +1068,32 @@ public class MVStore {
         this.reuseSpace = reuseSpace;
     }
 
-    public int getRetainChunk() {
-        return retainChunk;
+    public int getRetentionTime() {
+        return retentionTime;
     }
 
     /**
-     * Which chunk to retain. If not set, old chunks are re-used as soon as
-     * possible, which may make it impossible to roll back beyond a save
-     * operation, or read a older version before.
+     * How long to retain old, persisted chunks, in seconds. Chunks that are
+     * older than this many seconds may be overwritten once they contain no live
+     * data. The default is 45 seconds. It is assumed that a file system and
+     * hard disk will flush all write buffers after this many seconds at the
+     * latest. Using a lower value might be dangerous, unless the file system
+     * and hard disk flush the buffers earlier. To manually flush the buffers,
+     * use <code>MVStore.getFile().force(true)</code>, however please note that
+     * according to various tests this does not always work as expected.
      * <p>
      * This setting is not persisted.
      *
-     * @param retainChunk the earliest chunk to retain (0 to retain all chunks,
-     *        -1 to re-use space as early as possible)
+     * @param seconds how many seconds to retain old chunks (0 to overwrite them
+     *        as early as possible)
      */
-    public void setRetainChunk(int retainChunk) {
-        this.retainChunk = retainChunk;
+    public void setRetentionTime(int seconds) {
+        this.retentionTime = seconds;
     }
 
     /**
-     * Which version to retain. If not set, all versions up to the last stored
-     * version are retained.
+     * Which version to retain in memory. If not set, all versions back to the
+     * last stored version are retained.
      *
      * @param retainVersion the oldest version to retain
      */

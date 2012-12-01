@@ -71,6 +71,11 @@ public class Chunk {
      */
     long version;
 
+    /**
+     * When this chunk was created, in seconds after the store was created.
+     */
+    long time;
+
     Chunk(int id) {
         this.id = id;
     }
@@ -133,6 +138,7 @@ public class Chunk {
         c.maxLength = Long.parseLong(map.get("maxLength"));
         c.maxLengthLive = Long.parseLong(map.get("maxLengthLive"));
         c.metaRootPos = Long.parseLong(map.get("metaRoot"));
+        c.time = Long.parseLong(map.get("time"));
         c.version = Long.parseLong(map.get("version"));
         return c;
     }
@@ -157,13 +163,18 @@ public class Chunk {
     public String asString() {
         return
                 "id:" + id + "," +
-                "start:" + start + "," +
                 "length:" + length + "," +
-                "pageCount:" + pageCount + "," +
                 "maxLength:" + maxLength + "," +
                 "maxLengthLive:" + maxLengthLive + "," +
                 "metaRoot:" + metaRootPos + "," +
+                "pageCount:" + pageCount + "," +
+                "start:" + start + "," +
+                "time:" + time + "," +
                 "version:" + version;
+    }
+
+    public String toString() {
+        return asString();
     }
 
 }

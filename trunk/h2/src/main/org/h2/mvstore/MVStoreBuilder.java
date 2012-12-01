@@ -76,7 +76,9 @@ public class MVStoreBuilder {
     }
 
     /**
-     * Enable data compression using the LZF algorithm.
+     * Compress data before writing using the LZF algorithm. This setting only
+     * affects writes; it is not necessary to enable compression when reading,
+     * even if compression was enabled when writing.
      *
      * @return this
      */

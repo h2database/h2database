@@ -22,7 +22,7 @@ public class SpatialDataType implements DataType {
 
     public SpatialDataType(int dimensions) {
         if (dimensions <= 0 || dimensions > 255) {
-            throw new IllegalArgumentException("Dimensions: " + dimensions);
+            throw DataUtils.illegalArgumentException("Dimensions: " + dimensions);
         }
         this.dimensions = dimensions;
     }

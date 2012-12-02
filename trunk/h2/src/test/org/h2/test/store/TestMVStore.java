@@ -130,14 +130,14 @@ public class TestMVStore extends TestBase {
             MVStore s1 = MVStoreBuilder.fileBased(fileName).open();
             s1.close();
             fail();
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
             // expected
         }
         try {
             MVStore s1 = MVStoreBuilder.fileBased(fileName).readOnly().open();
             s1.close();
             fail();
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
             // expected
         }
         s.close();

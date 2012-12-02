@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.mvstore.cache;
+package org.h2.dev.cache;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -622,7 +622,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
          */
         synchronized V put(K key, int hash, V value, int memory) {
             if (value == null) {
-                throw new NullPointerException();
+                throw new NullPointerException("The value may not be null");
             }
             V old;
             Entry<K, V> e = find(key, hash);

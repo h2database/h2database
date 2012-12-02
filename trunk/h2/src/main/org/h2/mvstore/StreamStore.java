@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import org.h2.util.IOUtils;
+import org.h2.util.StringUtils;
 
 /**
  * A facility to store streams in a map. Streams are split into blocks, which
@@ -207,7 +208,7 @@ public class StreamStore {
                 map.remove(k2);
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported id");
+                throw DataUtils.illegalArgumentException("Unsupported id " + StringUtils.convertBytesToHex(id));
             }
         }
     }
@@ -238,7 +239,7 @@ public class StreamStore {
                 DataUtils.readVarLong(idBuffer);
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported id");
+                throw DataUtils.illegalArgumentException("Unsupported id " + StringUtils.convertBytesToHex(id));
             }
         }
         return length;
@@ -401,7 +402,8 @@ public class StreamStore {
                     return nextBuffer();
                 }
                 default:
-                    throw new IllegalArgumentException("Unsupported id");
+                    throw DataUtils.illegalArgumentException("Unsupported id " +
+                            StringUtils.convertBytesToHex(idBuffer.array()));
                 }
             }
             return null;

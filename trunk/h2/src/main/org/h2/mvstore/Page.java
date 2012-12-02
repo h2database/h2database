@@ -6,12 +6,12 @@
  */
 package org.h2.mvstore;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
+import org.h2.util.Utils;
 
 /**
  * A page (a node or a leaf).
@@ -129,20 +129,16 @@ public class Page {
             long pos, long filePos, long fileSize) {
         ByteBuffer buff;
         int maxLength = DataUtils.getPageMaxLength(pos);
-        try {
-            maxLength = (int) Math.min(fileSize - filePos, maxLength);
-            int length = maxLength;
-            if (maxLength == Integer.MAX_VALUE) {
-                buff = ByteBuffer.allocate(128);
-                DataUtils.readFully(file, filePos, buff);
-                maxLength = buff.getInt();
-                //read the first bytes again
-            }
-            buff = ByteBuffer.allocate(length);
+        maxLength = (int) Math.min(fileSize - filePos, maxLength);
+        int length = maxLength;
+        if (maxLength == Integer.MAX_VALUE) {
+            buff = ByteBuffer.allocate(128);
             DataUtils.readFully(file, filePos, buff);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            maxLength = buff.getInt();
+            //read the first bytes again
         }
+        buff = ByteBuffer.allocate(length);
+        DataUtils.readFully(file, filePos, buff);
         Page p = new Page(map, 0);
         p.pos = pos;
         int chunkId = DataUtils.getPageChunkId(pos);
@@ -409,7 +405,7 @@ public class Page {
                 }
             }
             if (check != totalCount) {
-                throw new AssertionError("Expected: " + check + " got: "
+                throw DataUtils.illegalStateException("Expected: " + check + " got: "
                         + totalCount);
             }
         }
@@ -653,20 +649,20 @@ public class Page {
         int start = buff.position();
         int pageLength = buff.getInt();
         if (pageLength > maxLength) {
-            throw new RuntimeException("Length too large, expected =< "
+            throw DataUtils.illegalStateException("File corrupted, expected length =< "
                     + maxLength + " got " + pageLength);
         }
         short check = buff.getShort();
         int mapId = DataUtils.readVarInt(buff);
         if (mapId != map.getId()) {
-            throw new RuntimeException("Error reading page, expected map "
+            throw DataUtils.illegalStateException("File corrupted, expected map id "
                     + map.getId() + " got " + mapId);
         }
         int checkTest = DataUtils.getCheckValue(chunkId)
                 ^ DataUtils.getCheckValue(offset)
                 ^ DataUtils.getCheckValue(pageLength);
         if (check != (short) checkTest) {
-            throw new RuntimeException("Error in check value, expected "
+            throw DataUtils.illegalStateException("File corrupted, expected check value "
                     + checkTest + " got " + check);
         }
         int len = DataUtils.readVarInt(buff);
@@ -679,7 +675,7 @@ public class Page {
             Compressor compressor = map.getStore().getCompressor();
             int lenAdd = DataUtils.readVarInt(buff);
             int compLen = pageLength + start - buff.position();
-            byte[] comp = new byte[compLen];
+            byte[] comp = Utils.newBytes(compLen);
             buff.get(comp);
             int l = compLen + lenAdd;
             buff = ByteBuffer.allocate(l);
@@ -865,7 +861,7 @@ public class Page {
     public int getMemory() {
         if (MVStore.ASSERT) {
             if (memory != calculateMemory()) {
-                throw new RuntimeException("Memory calculation error");
+                throw DataUtils.illegalStateException("Memory calculation error");
             }
         }
         return memory;

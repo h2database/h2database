@@ -14,6 +14,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import org.h2.engine.Constants;
 import org.h2.util.New;
 
 /**
@@ -304,15 +305,19 @@ public class DataUtils {
      * @param pos the absolute position within the file
      * @param dst the byte buffer
      */
-    public static void readFully(FileChannel file, long pos, ByteBuffer dst) throws IOException {
-        do {
-            int len = file.read(dst, pos);
-            if (len < 0) {
-                throw new EOFException();
-            }
-            pos += len;
-        } while (dst.remaining() > 0);
-        dst.rewind();
+    public static void readFully(FileChannel file, long pos, ByteBuffer dst) {
+        try {
+            do {
+                int len = file.read(dst, pos);
+                if (len < 0) {
+                    throw new EOFException();
+                }
+                pos += len;
+            } while (dst.remaining() > 0);
+            dst.rewind();
+        } catch (IOException e) {
+            throw illegalStateException("Reading from " + file + "  failed; length " + dst.remaining() + " at " + pos, e);
+        }
     }
 
     /**
@@ -322,12 +327,16 @@ public class DataUtils {
      * @param pos the absolute position within the file
      * @param src the source buffer
      */
-    public static void writeFully(FileChannel file, long pos, ByteBuffer src) throws IOException {
-        int off = 0;
-        do {
-            int len = file.write(src, pos + off);
-            off += len;
-        } while (src.remaining() > 0);
+    public static void writeFully(FileChannel file, long pos, ByteBuffer src) {
+        try {
+            int off = 0;
+            do {
+                int len = file.write(src, pos + off);
+                off += len;
+            } while (src.remaining() > 0);
+        } catch (IOException e) {
+            throw illegalStateException("Writing to " + file + "  failed; length " + src.remaining() + " at " + pos, e);
+        }
     }
 
 
@@ -542,6 +551,27 @@ public class DataUtils {
         s1 = (s1 & 0xffff) + (s1 >>> 16);
         s2 = (s2 & 0xffff) + (s2 >>> 16);
         return (s2 << 16) | s1;
+    }
+
+    public static IllegalStateException illegalStateException(String message) {
+        return new IllegalStateException(message + version());
+    }
+
+    public static IllegalStateException illegalStateException(String message, Exception e) {
+        return new IllegalStateException(message + version(), e);
+    }
+
+    public static IllegalArgumentException illegalArgumentException(String message) {
+        return new IllegalArgumentException(message + version());
+    }
+
+    public static UnsupportedOperationException unsupportedOperationException(String message) {
+        return new UnsupportedOperationException(message + version());
+    }
+
+    private static String version() {
+        return " [" + Constants.VERSION_MAJOR + "." +
+                Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "]";
     }
 
 }

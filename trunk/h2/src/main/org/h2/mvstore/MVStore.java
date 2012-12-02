@@ -28,6 +28,7 @@ import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /*
 
@@ -40,8 +41,6 @@ header:
 H:3,...
 
 TODO:
-- allocate memory with Utils.newBytes and so on
-- unified exception handling
 - concurrent map; avoid locking during IO (pre-load pages)
 - maybe split database into multiple files, to speed up compact
 - automated 'kill process' and 'power failure' test
@@ -90,6 +89,8 @@ TODO:
 - auto-save if there are too many changes (required for StreamStore)
 - StreamStore optimization: avoid copying bytes
 - unlimited transaction size
+- MVStoreTool.shrink to shrink a store (create, copy, rename, delete)
+-- and for MVStore on Windows, auto-detect renamed file
 
 */
 
@@ -320,7 +321,7 @@ public class MVStore {
     private MVMap<String, String> getMetaMap(long version) {
         Chunk c = getChunkForVersion(version);
         if (c == null) {
-            throw new IllegalArgumentException("Unknown version: " + version);
+            throw DataUtils.illegalArgumentException("Unknown version: " + version);
         }
         c = readChunkHeader(c.start);
         MVMap<String, String> oldMeta = meta.openReadOnly();
@@ -352,10 +353,6 @@ public class MVStore {
     private DataType getDataType(Class<?> clazz) {
         if (clazz == String.class) {
             return StringDataType.INSTANCE;
-        }
-        if (dataTypeFactory == null) {
-            throw new RuntimeException("No data type factory set " +
-                    "and don't know how to serialize " + clazz);
         }
         String s = dataTypeFactory.getDataType(clazz);
         return dataTypeFactory.buildDataType(s);
@@ -390,12 +387,12 @@ public class MVStore {
             if (readOnly) {
                 fileLock = file.tryLock(0, Long.MAX_VALUE, true);
                 if (fileLock == null) {
-                    throw new RuntimeException("The file is locked: " + fileName);
+                    throw new IOException("The file is locked: " + fileName);
                 }
             } else {
                 fileLock = file.tryLock();
                 if (fileLock == null) {
-                    throw new RuntimeException("The file is locked: " + fileName);
+                    throw new IOException("The file is locked: " + fileName);
                 }
             }
             fileSize = file.size();
@@ -414,8 +411,12 @@ public class MVStore {
                 }
             }
         } catch (Exception e) {
-            close();
-            throw convert(e);
+            try {
+                close();
+            } catch (Exception e2) {
+                // ignore
+            }
+            throw DataUtils.illegalStateException("Could not open " + fileName, e);
         }
     }
 
@@ -445,61 +446,49 @@ public class MVStore {
     }
 
     private void readFileHeader() {
-        try {
-            byte[] headers = new byte[2 * BLOCK_SIZE];
-            fileReadCount++;
-            DataUtils.readFully(file, 0, ByteBuffer.wrap(headers));
-            for (int i = 0; i <= BLOCK_SIZE; i += BLOCK_SIZE) {
-                String s = new String(headers, i, BLOCK_SIZE, "UTF-8").trim();
-                fileHeader = DataUtils.parseMap(s);
-                rootChunkStart = Long.parseLong(fileHeader.get("rootChunk"));
-                creationTime = Long.parseLong(fileHeader.get("creationTime"));
-                currentVersion = Long.parseLong(fileHeader.get("version"));
-                lastMapId = Integer.parseInt(fileHeader.get("lastMapId"));
-                int check = (int) Long.parseLong(fileHeader.get("fletcher"), 16);
-                s = s.substring(0, s.lastIndexOf("fletcher") - 1) + " ";
-                byte[] bytes = s.getBytes("UTF-8");
-                int checksum = DataUtils.getFletcher32(bytes,
-                        bytes.length / 2 * 2);
-                if (check == checksum) {
-                    return;
-                }
+        byte[] headers = new byte[2 * BLOCK_SIZE];
+        fileReadCount++;
+        DataUtils.readFully(file, 0, ByteBuffer.wrap(headers));
+        for (int i = 0; i <= BLOCK_SIZE; i += BLOCK_SIZE) {
+            String s = StringUtils.utf8Decode(headers, i, BLOCK_SIZE).trim();
+            fileHeader = DataUtils.parseMap(s);
+            rootChunkStart = Long.parseLong(fileHeader.get("rootChunk"));
+            creationTime = Long.parseLong(fileHeader.get("creationTime"));
+            currentVersion = Long.parseLong(fileHeader.get("version"));
+            lastMapId = Integer.parseInt(fileHeader.get("lastMapId"));
+            int check = (int) Long.parseLong(fileHeader.get("fletcher"), 16);
+            s = s.substring(0, s.lastIndexOf("fletcher") - 1) + " ";
+            byte[] bytes = StringUtils.utf8Encode(s);
+            int checksum = DataUtils.getFletcher32(bytes,
+                    bytes.length / 2 * 2);
+            if (check == checksum) {
+                return;
             }
-            throw new RuntimeException("File header is corrupt");
-        } catch (Exception e) {
-            throw convert(e);
         }
+        throw DataUtils.illegalStateException("File header is corrupt");
     }
 
     private void writeFileHeader() {
-        try {
-            StringBuilder buff = new StringBuilder();
-            fileHeader.put("lastMapId", "" + lastMapId);
-            fileHeader.put("rootChunk", "" + rootChunkStart);
-            fileHeader.put("version", "" + currentVersion);
-            DataUtils.appendMap(buff, fileHeader);
-            byte[] bytes = (buff.toString() + " ").getBytes("UTF-8");
-            int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
-            DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
-            bytes = buff.toString().getBytes("UTF-8");
-            if (bytes.length > BLOCK_SIZE) {
-                throw new IllegalArgumentException("File header too large: " + buff);
-            }
-            ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
-            header.put(bytes);
-            header.position(BLOCK_SIZE);
-            header.put(bytes);
-            header.rewind();
-            fileWriteCount++;
-            DataUtils.writeFully(file,  0, header);
-            fileSize = Math.max(fileSize, 2 * BLOCK_SIZE);
-        } catch (Exception e) {
-            throw convert(e);
+        StringBuilder buff = new StringBuilder();
+        fileHeader.put("lastMapId", "" + lastMapId);
+        fileHeader.put("rootChunk", "" + rootChunkStart);
+        fileHeader.put("version", "" + currentVersion);
+        DataUtils.appendMap(buff, fileHeader);
+        byte[] bytes = StringUtils.utf8Encode(buff.toString() + " ");
+        int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+        DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
+        bytes = StringUtils.utf8Encode(buff.toString());
+        if (bytes.length > BLOCK_SIZE) {
+            throw DataUtils.illegalArgumentException("File header too large: " + buff);
         }
-    }
-
-    private static RuntimeException convert(Exception e) {
-        throw new RuntimeException("Exception: " + e, e);
+        ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
+        header.put(bytes);
+        header.position(BLOCK_SIZE);
+        header.put(bytes);
+        header.rewind();
+        fileWriteCount++;
+        DataUtils.writeFully(file,  0, header);
+        fileSize = Math.max(fileSize, 2 * BLOCK_SIZE);
     }
 
     /**
@@ -524,7 +513,7 @@ public class MVStore {
                 maps.clear();
                 mapsChanged.clear();
             } catch (Exception e) {
-                throw convert(e);
+                throw DataUtils.illegalStateException("Closing failed for file " + fileName, e);
             } finally {
                 file = null;
             }
@@ -645,7 +634,7 @@ public class MVStore {
 
         if (ASSERT) {
             if (freedChunks.size() > 0) {
-                throw new RuntimeException("Temporary freed chunks");
+                throw DataUtils.illegalStateException("Temporary freed chunks");
             }
         }
 
@@ -672,12 +661,8 @@ public class MVStore {
         c.metaRootPos = meta.getRoot().getPos();
         c.writeHeader(buff);
         buff.rewind();
-        try {
-            fileWriteCount++;
-            DataUtils.writeFully(file, filePos, buff);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        fileWriteCount++;
+        DataUtils.writeFully(file, filePos, buff);
         fileSize = Math.max(fileSize, filePos + buff.position());
         rootChunkStart = filePos;
         revertTemp();
@@ -704,7 +689,7 @@ public class MVStore {
                 Chunk c = chunks.get(f.id);
                 c.maxLengthLive += f.maxLengthLive;
                 if (c.maxLengthLive < 0) {
-                    throw new RuntimeException("Corrupt max length");
+                    throw DataUtils.illegalStateException("Corrupt max length: " + c.maxLengthLive);
                 }
             }
         }
@@ -719,22 +704,22 @@ public class MVStore {
      */
     private void shrinkFileIfPossible(int minPercent) {
         long used = getFileLengthUsed();
-        try {
-            if (used >= fileSize) {
-                return;
-            }
-            if (minPercent > 0 && fileSize - used < BLOCK_SIZE) {
-                return;
-            }
-            int savedPercent = (int) (100 - (used * 100 / fileSize));
-            if (savedPercent < minPercent) {
-                return;
-            }
-            file.truncate(used);
-            fileSize = used;
-        } catch (Exception e) {
-            throw convert(e);
+        if (used >= fileSize) {
+            return;
         }
+        if (minPercent > 0 && fileSize - used < BLOCK_SIZE) {
+            return;
+        }
+        int savedPercent = (int) (100 - (used * 100 / fileSize));
+        if (savedPercent < minPercent) {
+            return;
+        }
+        try {
+            file.truncate(used);
+        } catch (IOException e) {
+            throw DataUtils.illegalStateException("Could not truncate to size " + used, e);
+        }
+        fileSize = used;
     }
 
     private long getFileLengthUsed() {
@@ -800,15 +785,11 @@ public class MVStore {
     }
 
     private Chunk readChunkHeader(long start) {
-        try {
-            fileReadCount++;
-            ByteBuffer buff = ByteBuffer.allocate(40);
-            DataUtils.readFully(file, start, buff);
-            buff.rewind();
-            return Chunk.fromHeader(buff, start);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        fileReadCount++;
+        ByteBuffer buff = ByteBuffer.allocate(40);
+        DataUtils.readFully(file, start, buff);
+        buff.rewind();
+        return Chunk.fromHeader(buff, start);
     }
 
     /**
@@ -898,11 +879,7 @@ public class MVStore {
 
     private void copyLive(Chunk chunk, ArrayList<Chunk> old) {
         ByteBuffer buff = ByteBuffer.allocate(chunk.length);
-        try {
-            DataUtils.readFully(file, chunk.start, buff);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        DataUtils.readFully(file, chunk.start, buff);
         Chunk.fromHeader(buff, chunk.start);
         int chunkLength = chunk.length;
         // mark a change, even if it doesn't look like there was a change
@@ -967,7 +944,7 @@ public class MVStore {
         if (p == null) {
             Chunk c = getChunk(pos);
             if (c == null) {
-                throw new RuntimeException("Chunk " + DataUtils.getPageChunkId(pos) + " not found");
+                throw DataUtils.illegalStateException("Chunk " + DataUtils.getPageChunkId(pos) + " not found");
             }
             long filePos = c.start;
             filePos += DataUtils.getPageOffset(pos);
@@ -1193,7 +1170,7 @@ public class MVStore {
      */
     public void rollbackTo(long version) {
         if (!isKnownVersion(version)) {
-            throw new IllegalArgumentException("Unknown version: " + version);
+            throw DataUtils.illegalArgumentException("Unknown version: " + version);
         }
         // TODO could remove newer temporary pages on rollback
         for (MVMap<?, ?> m : mapsChanged.values()) {

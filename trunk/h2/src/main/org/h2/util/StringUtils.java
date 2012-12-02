@@ -365,7 +365,7 @@ public class StringUtils {
      * @param length the number of bytes
      * @return the text
      */
-    private static String utf8Decode(byte[] bytes, int offset, int length) {
+    public static String utf8Decode(byte[] bytes, int offset, int length) {
         try {
             return new String(bytes, offset, length, Constants.UTF8);
         } catch (Exception e) {

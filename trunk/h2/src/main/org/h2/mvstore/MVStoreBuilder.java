@@ -39,7 +39,7 @@ public class MVStoreBuilder {
 
     private MVStoreBuilder set(String key, Object value) {
         if (config.containsKey(key)) {
-            throw new IllegalArgumentException("Parameter " + config.get(key) + " is already set");
+            throw DataUtils.illegalArgumentException("Parameter " + config.get(key) + " is already set");
         }
         config.put(key, value);
         return this;

@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.h2.mvstore.DataUtils;
 
 /**
  * A scan resistant cache that uses keys of type long. It is meant to cache
@@ -65,7 +66,7 @@ public class CacheLongKeyLIRS<V> {
         setMaxMemory(maxMemory);
         setAverageMemory(averageMemory);
         if (Integer.bitCount(segmentCount) != 1) {
-            throw new IllegalArgumentException("The segment count must be a power of 2, is " + segmentCount);
+            throw DataUtils.illegalArgumentException("The segment count must be a power of 2, is " + segmentCount);
         }
         this.segmentCount = segmentCount;
         this.segmentMask = segmentCount - 1;
@@ -221,7 +222,7 @@ public class CacheLongKeyLIRS<V> {
      */
     public void setMaxMemory(long maxMemory) {
         if (maxMemory <= 0) {
-            throw new IllegalArgumentException("Max memory must be larger than 0");
+            throw DataUtils.illegalArgumentException("Max memory must be larger than 0");
         }
         this.maxMemory = maxMemory;
         if (segments != null) {
@@ -240,7 +241,7 @@ public class CacheLongKeyLIRS<V> {
      */
     public void setAverageMemory(int averageMemory) {
         if (averageMemory <= 0) {
-            throw new IllegalArgumentException("Average memory must be larger than 0");
+            throw DataUtils.illegalArgumentException("Average memory must be larger than 0");
         }
         this.averageMemory = averageMemory;
         if (segments != null) {
@@ -682,7 +683,7 @@ public class CacheLongKeyLIRS<V> {
          */
         synchronized V put(long key, int hash, V value, int memory) {
             if (value == null) {
-                throw new NullPointerException();
+                throw DataUtils.illegalArgumentException("The value may not be null");
             }
             V old;
             Entry<V> e = find(key, hash);
@@ -947,7 +948,7 @@ public class CacheLongKeyLIRS<V> {
          */
         void setMaxMemory(long maxMemory) {
             if (maxMemory <= 0) {
-                throw new IllegalArgumentException("Max memory must be larger than 0");
+                throw DataUtils.illegalArgumentException("Max memory must be larger than 0");
             }
             this.maxMemory = maxMemory;
         }
@@ -960,7 +961,7 @@ public class CacheLongKeyLIRS<V> {
          */
         void setAverageMemory(int averageMemory) {
             if (averageMemory <= 0) {
-                throw new IllegalArgumentException("Average memory must be larger than 0");
+                throw DataUtils.illegalArgumentException("Average memory must be larger than 0");
             }
             this.averageMemory = averageMemory;
         }

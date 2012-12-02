@@ -67,7 +67,7 @@ public class Cursor<K> implements Iterator<K> {
     }
 
     public void remove() {
-        throw new UnsupportedOperationException();
+        throw DataUtils.unsupportedOperationException("Removing is not supported");
     }
 
     /**

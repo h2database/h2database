@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-import org.h2.mvstore.cache.CacheLIRS;
+import org.h2.dev.cache.CacheLIRS;
 import org.h2.test.TestBase;
 import org.h2.util.New;
 

@@ -327,6 +327,22 @@ with a fluent API to simplify building a store instance.
 There is a tool (<code>MVStoreTool</code>) to dump the contents of a file.
 </p>
 
+<h3>Exception Handling</h3>
+<p>
+This tool does not throw checked exceptions. 
+Instead, unchecked exceptions are thrown if needed. 
+The error message always contains the version of the tool.
+The following exceptions can occur:
+</p>
+<ul><li><code>IllegalStateException</code> if a map was already closed, 
+    in IO exception occurred, for example if the file was locked, is already closed, 
+    could not be opened or closed, if reading or writing failed, 
+    if the file is corrupt, or if there is an internal error in the tool. 
+</li><li><code>IllegalArgumentException</code> if a method was called with an illegal argument.
+</li><li><code>UnsupportedOperationException</code> if a method was called that is not supported,
+    for example trying to modify a read-only map or view.
+</ul>
+
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>
 <p>
 Unlike similar storage engines like LevelDB and Kyoto Cabinet, the MVStore is written in Java

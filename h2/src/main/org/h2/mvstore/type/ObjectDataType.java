@@ -143,7 +143,7 @@ public class ObjectDataType implements DataType {
         case TYPE_SERIALIZED_OBJECT:
             return new SerializedObjectType(this);
         }
-        throw new RuntimeException("Unsupported type: " + typeId);
+        throw DataUtils.illegalStateException("Unsupported type: " + typeId);
     }
 
     @Override
@@ -196,7 +196,7 @@ public class ObjectDataType implements DataType {
                 } else if (tag >= TAG_BYTE_ARRAY_0_15 && tag <= TAG_BYTE_ARRAY_0_15 + 15) {
                     typeId = TYPE_BYTE_ARRAY;
                 } else {
-                    throw new RuntimeException("Unknown tag: " + tag);
+                    throw DataUtils.illegalStateException("Unknown tag: " + tag);
                 }
             }
         }
@@ -250,7 +250,7 @@ public class ObjectDataType implements DataType {
             return TYPE_CHARACTER;
         }
         if (obj == null) {
-            throw new NullPointerException();
+            throw DataUtils.illegalArgumentException("Null is not supported");
         }
         return TYPE_SERIALIZED_OBJECT;
     }
@@ -377,7 +377,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public final Object read(ByteBuffer buff) {
-            throw new RuntimeException();
+            throw DataUtils.illegalStateException("Internal error");
         }
 
         /**
@@ -1232,13 +1232,14 @@ public class ObjectDataType implements DataType {
 
         @Override
         public Object read(ByteBuffer buff, int tag) {
-            int len;
+            byte[] data;
             if (tag == TYPE_BYTE_ARRAY) {
-                len = DataUtils.readVarInt(buff);
+                int len = DataUtils.readVarInt(buff);
+                data = Utils.newBytes(len);
             } else {
-                len = tag - TAG_BYTE_ARRAY_0_15;
+                int len = tag - TAG_BYTE_ARRAY_0_15;
+                data = Utils.newBytes(len);
             }
-            byte[] data = new byte[len];
             buff.get(data);
             return data;
         }
@@ -1497,7 +1498,7 @@ public class ObjectDataType implements DataType {
         @Override
         public Object read(ByteBuffer buff, int tag) {
             int len = DataUtils.readVarInt(buff);
-            byte[] data = new byte[len];
+            byte[] data = Utils.newBytes(len);
             buff.get(data);
             return Utils.deserialize(data);
         }

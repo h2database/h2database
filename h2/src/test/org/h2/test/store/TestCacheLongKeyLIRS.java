@@ -51,7 +51,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         try {
             test.put(1,  null, 100);
             fail();
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException e) {
             // expected
         }
         try {

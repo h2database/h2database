@@ -38,7 +38,7 @@ public class TestConcurrent extends TestMVStore {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
-        testConcurrentOnlineBackup();
+        // testConcurrentOnlineBackup();
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
@@ -66,6 +66,9 @@ public class TestConcurrent extends TestMVStore {
                     if (len > 1024 * 100) {
                         // slow down writing
                         Thread.sleep(20);
+                    } else if (len > 1024 * 200) {
+                        // slow down writing
+                        Thread.sleep(200);
                     }
                 }
             }

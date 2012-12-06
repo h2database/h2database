@@ -235,22 +235,31 @@ for spatial operations (contain and intersection; nearest neighbor is not yet im
 
 <h3>Concurrent Operations and Caching</h3>
 <p>
-At the moment, concurrent read on old versions of the data is supported.
+The default map implementation supports concurrent reads on old versions of the data.
 All such read operations can occur in parallel. Concurrent reads from the page cache,
 as well as concurrent reads from the file system are supported.
 </p><p>
-Caching is done on the page level.
-The page cache is a concurrent LIRS cache,
-which should be resistant against scan operations.
-</p><p>
-Concurrent modification operations on a map are currently not supported
-(the same as <code>HashMap</code> and <code>TreeMap</code>),
-however it is planned to support an additional map implementation
-that supports concurrent writes
-(at the cost of speed if used in a single thread, same as <code>ConcurrentHashMap</code>).
-</p><p>
 Storing changes can occur concurrently to modifying the data,
 as <code>store()</code> operates on a snapshot.
+</p><p>
+Caching is done on the page level.
+The page cache is a concurrent LIRS cache, which should be resistant against scan operations.
+</p><p>
+The default map implementation does not support concurrent modification 
+operations on a map (the same as <code>HashMap</code> and <code>TreeMap</code>).
+</p><p>
+With the <code>MVMapConcurrent</code> implementation, 
+read operations even on the newest version can happen concurrently with all other
+operations, without risk of corruption.
+This comes with slightly reduced speed in single threaded mode, 
+the same as with other <code>ConcurrentHashMap</code> implementations.
+Write operations first read the relevant area from disk to memory
+(this can happen concurrently), and only then modify the data. The in-memory part of write
+operations is synchronized.
+</p><p>
+For fully scalable concurrent write operations to a map (in-memory and to disk), 
+the map could be split into multiple maps in different stores ('sharding'). 
+The plan is to add such a mechanism later when needed.
 </p>
 
 <h3>Log Structured Storage</h3>

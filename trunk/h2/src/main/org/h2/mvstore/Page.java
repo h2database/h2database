@@ -39,7 +39,15 @@ public class Page {
     private final MVMap<?, ?> map;
     private long version;
     private long pos;
+
+    /**
+     * The total entry count of this page and all children.
+     */
     private long totalCount;
+
+    /**
+     * The number of keys.
+     */
     private int keyCount;
 
     /**
@@ -57,10 +65,37 @@ public class Page {
      */
     private int memory;
 
+    /**
+     * The keys.
+     * <p>
+     * The array might be larger than needed, to avoid frequent re-sizing.
+     */
     private Object[] keys;
+
+    /**
+     * The values.
+     * <p>
+     * The array might be larger than needed, to avoid frequent re-sizing.
+     */
     private Object[] values;
+
+    /**
+     * The child page ids.
+     * <p>
+     * The array might be larger than needed, to avoid frequent re-sizing.
+     */
     private long[] children;
+
+    /**
+     * The child pages.
+     * <p>
+     * The array might be larger than needed, to avoid frequent re-sizing.
+     */
     private Page[] childrenPages;
+
+    /**
+     * The entry count for the given children.
+     */
     private long[] counts;
 
     Page(MVMap<?, ?> map, long version) {
@@ -169,16 +204,6 @@ public class Page {
     }
 
     /**
-     * Get the position of the child page at the given index.
-     *
-     * @param index the index
-     * @return the position
-     */
-    long getChildPagePos(int index) {
-        return children[index];
-    }
-
-    /**
      * Get the value at the given index.
      *
      * @param index the index
@@ -237,18 +262,14 @@ public class Page {
     }
 
     /**
-     * Create a copy of this page, if the write version is higher than the
-     * current version.
+     * Create a copy of this page.
      *
-     * @param writeVersion the write version
-     * @return a page with the given write version
+     * @param version the new version
+     * @return a page with the given version
      */
-    public Page copyOnWrite(long writeVersion) {
-        if (version == writeVersion) {
-            return this;
-        }
+    public Page copy(long version) {
         map.getStore().removePage(pos);
-        Page newPage = create(map, writeVersion,
+        Page newPage = create(map, version,
                 keyCount, keys, values, children, childrenPages,
                 counts, totalCount,
                 SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS,
@@ -438,13 +459,32 @@ public class Page {
             children[index] = c.getPos();
             childrenPages[index] = c;
         }
-        if (c.getTotalCount() != counts[index]) {
+    }
+
+    /**
+     * Update the (descendent) count for the given child, if there was a change.
+     *
+     * @param index the index
+     * @param c the new child page
+     */
+    public void setCounts(int index, Page c) {
+        setCounts(index, c.totalCount);
+    }
+
+    /**
+     * Update the (descendent) count for the given child, if there was a change.
+     *
+     * @param index the index
+     * @param total the new value
+     */
+    public void setCounts(int index, long total) {
+        if (total != counts[index]) {
             if ((sharedFlags & SHARED_COUNTS) != 0) {
                 counts = Arrays.copyOf(counts, counts.length);
                 sharedFlags &= ~SHARED_COUNTS;
             }
             long oldCount = counts[index];
-            counts[index] = c.getTotalCount();
+            counts[index] = total;
             totalCount += counts[index] - oldCount;
         }
     }
@@ -568,11 +608,11 @@ public class Page {
 
         long[] newCounts = new long[counts.length + 1];
         DataUtils.copyWithGap(counts, newCounts, counts.length, index);
-        newCounts[index] = childPage.getTotalCount();
+        newCounts[index] = childPage.totalCount;
         counts = newCounts;
 
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
-        totalCount += childPage.getTotalCount();
+        totalCount += childPage.totalCount;
         memory += map.getKeyType().getMemory(key);
         memory += DataUtils.PAGE_MEMORY_CHILD;
     }

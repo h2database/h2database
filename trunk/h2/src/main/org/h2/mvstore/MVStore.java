@@ -91,6 +91,8 @@ TODO:
 - unlimited transaction size
 - MVStoreTool.shrink to shrink a store (create, copy, rename, delete)
 -- and for MVStore on Windows, auto-detect renamed file
+- ensure data is overwritten eventually if the system doesn't have a timer
+- SSD-friendly write (always in blocks of 128 or 256 KB?)
 
 */
 

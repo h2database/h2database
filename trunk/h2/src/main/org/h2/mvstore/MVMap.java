@@ -68,6 +68,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
+     * Create a copy of a page, if the write version is higher than the current
+     * version.
+     *
+     * @param p the page
+     * @param writeVersion the write version
+     * @return a page with the given write version
+     */
+    protected Page copyOnWrite(Page p, long writeVersion) {
+        if (p.getVersion() == writeVersion) {
+            return p;
+        }
+        return p.copy(writeVersion);
+    }
+
+    /**
      * Add or replace a key-value pair.
      *
      * @param key the key (may not be null)
@@ -78,24 +93,29 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public V put(K key, V value) {
         checkWrite();
         long writeVersion = store.getCurrentVersion();
-        Page p = root.copyOnWrite(writeVersion);
-        if (p.getMemory() > store.getPageSize() && p.getKeyCount() > 1) {
-            int at = p.getKeyCount() / 2;
-            long totalCount = p.getTotalCount();
-            Object k = p.getKey(at);
-            Page split = p.split(at);
-            Object[] keys = { k };
-            long[] children = { p.getPos(), split.getPos() };
-            Page[] childrenPages = { p, split };
-            long[] counts = { p.getTotalCount(), split.getTotalCount() };
-            p = Page.create(this, writeVersion, 1,
-                    keys, null, children, childrenPages, counts, totalCount, 0, 0);
-            store.registerUnsavedPage();
-            // now p is a node; insert continues
-        }
+        Page p = copyOnWrite(root, writeVersion);
+        p = splitRootIfNeeded(p, writeVersion);
         Object result = put(p, writeVersion, key, value);
         newRoot(p);
         return (V) result;
+    }
+
+    protected Page splitRootIfNeeded(Page p, long writeVersion) {
+        if (p.getMemory() <= store.getPageSize() || p.getKeyCount() <= 1) {
+            return p;
+        }
+        int at = p.getKeyCount() / 2;
+        long totalCount = p.getTotalCount();
+        Object k = p.getKey(at);
+        Page split = p.split(at);
+        Object[] keys = { k };
+        long[] children = { p.getPos(), split.getPos() };
+        Page[] childrenPages = { p, split };
+        long[] counts = { p.getTotalCount(), split.getTotalCount() };
+        p = Page.create(this, writeVersion, 1,
+                keys, null, children, childrenPages, counts, totalCount, 0, 0);
+        store.registerUnsavedPage();
+        return p;
     }
 
     /**
@@ -108,8 +128,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the old value, or null
      */
     protected Object put(Page p, long writeVersion, Object key, Object value) {
+        int index = p.binarySearch(key);
         if (p.isLeaf()) {
-            int index = p.binarySearch(key);
             if (index < 0) {
                 index = -index - 1;
                 p.insertLeaf(index, key, value);
@@ -118,25 +138,26 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             return p.setValue(index, value);
         }
         // p is a node
-        int index = p.binarySearch(key);
         if (index < 0) {
             index = -index - 1;
         } else {
             index++;
         }
-        Page c = p.getChildPage(index).copyOnWrite(writeVersion);
+        Page c = copyOnWrite(p.getChildPage(index), writeVersion);
         if (c.getMemory() > store.getPageSize() && c.getKeyCount() > 1) {
             // split on the way down
             int at = c.getKeyCount() / 2;
             Object k = c.getKey(at);
             Page split = c.split(at);
             p.setChild(index, split);
+            p.setCounts(index, c);
             p.insertNode(index, k, c);
             // now we are not sure where to add
             return put(p, writeVersion, key, value);
         }
-        Object result = put(c, writeVersion, key, value);
         p.setChild(index, c);
+        Object result = put(c, writeVersion, key, value);
+        p.setCounts(index, c);
         return result;
     }
 
@@ -243,14 +264,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Page p = root;
         long offset = 0;
         while (true) {
+            int x = p.binarySearch(key);
             if (p.isLeaf()) {
-                int x = p.binarySearch(key);
                 if (x < 0) {
                     return -offset + x;
                 }
                 return offset + x;
             }
-            int x = key == null ? -1 : p.binarySearch(key);
             if (x < 0) {
                 x = -x - 1;
             } else {
@@ -264,7 +284,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     @SuppressWarnings("unchecked")
-    private K getFirstLast(boolean first) {
+    protected K getFirstLast(boolean first) {
         checkOpen();
         if (size() == 0) {
             return null;
@@ -320,7 +340,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getMinMax(key, true, true);
     }
 
-    private K getMinMax(K key, boolean min, boolean excluding) {
+    protected K getMinMax(K key, boolean min, boolean excluding) {
         checkOpen();
         if (size() == 0) {
             return null;
@@ -487,7 +507,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public V remove(Object key) {
         checkWrite();
         long writeVersion = store.getCurrentVersion();
-        Page p = root.copyOnWrite(writeVersion);
+        Page p = copyOnWrite(root, writeVersion);
         @SuppressWarnings("unchecked")
         V result = (V) remove(p, writeVersion, key);
         newRoot(p);
@@ -586,22 +606,23 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             index++;
         }
         Page cOld = p.getChildPage(index);
-        Page c = cOld.copyOnWrite(writeVersion);
-        long oldCount = c.getTotalCount();
+        Page c = copyOnWrite(cOld, writeVersion);
         result = remove(c, writeVersion, key);
-        if (oldCount == c.getTotalCount()) {
+        if (result == null) {
             return null;
         }
         if (c.getTotalCount() == 0) {
             // this child was deleted
             if (p.getKeyCount() == 0) {
                 p.setChild(index, c);
+                p.setCounts(index, c);
                 removePage(p);
             } else {
                 p.remove(index);
             }
         } else {
             p.setChild(index, c);
+            p.setCounts(index, c);
         }
         return result;
     }

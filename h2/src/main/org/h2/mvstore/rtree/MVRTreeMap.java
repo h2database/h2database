@@ -158,7 +158,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         for (int i = 0; i < p.getKeyCount(); i++) {
             if (contains(p, i, key)) {
                 Page cOld = p.getChildPage(i);
-                Page c = cOld.copyOnWrite(writeVersion);
+                Page c = copyOnWrite(cOld, writeVersion);
                 long oldSize = c.getTotalCount();
                 result = remove(c, writeVersion, key);
                 if (oldSize == c.getTotalCount()) {
@@ -177,6 +177,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     p.setKey(i, getBounds(c));
                 }
                 p.setChild(i, c);
+                p.setCounts(i, c);
                 break;
             }
         }
@@ -210,7 +211,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     private Object putOrAdd(SpatialKey key, V value, boolean alwaysAdd) {
         checkWrite();
         long writeVersion = store.getCurrentVersion();
-        Page p = root.copyOnWrite(writeVersion);
+        Page p = copyOnWrite(root, writeVersion);
         Object result;
         if (alwaysAdd || get(key) == null) {
             if (p.getMemory() > store.getPageSize() && p.getKeyCount() > 1) {
@@ -251,10 +252,11 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
-                    Page c = p.getChildPage(i).copyOnWrite(writeVersion);
+                    Page c = copyOnWrite(p.getChildPage(i), writeVersion);
                     Object result = set(c, writeVersion, key, value);
                     if (result != null) {
                         p.setChild(i, c);
+                        p.setCounts(i, c);
                         return result;
                     }
                 }
@@ -294,13 +296,14 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 }
             }
         }
-        Page c = p.getChildPage(index).copyOnWrite(writeVersion);
+        Page c = copyOnWrite(p.getChildPage(index), writeVersion);
         if (c.getMemory() > store.getPageSize() && c.getKeyCount() > 1) {
             // split on the way down
             Page split = split(c, writeVersion);
-            p = p.copyOnWrite(writeVersion);
+            p = copyOnWrite(p, writeVersion);
             p.setKey(index, getBounds(c));
             p.setChild(index, c);
+            p.setCounts(index, c);
             p.insertNode(index, getBounds(split), split);
             // now we are not sure where to add
             add(p, writeVersion, key, value);
@@ -311,6 +314,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         keyType.increaseBounds(bounds, key);
         p.setKey(index, bounds);
         p.setChild(index, c);
+        p.setCounts(index, c);
     }
 
     private Page split(Page p, long writeVersion) {

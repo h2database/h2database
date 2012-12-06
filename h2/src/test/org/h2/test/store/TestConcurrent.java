@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVMapConcurrent;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreBuilder;
 import org.h2.mvstore.type.ObjectDataTypeFactory;
@@ -39,9 +40,63 @@ public class TestConcurrent extends TestMVStore {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         // testConcurrentOnlineBackup();
+        testConcurrentMap();
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+    }
+
+    /**
+     * Test the concurrent map implementation.
+     */
+    private void testConcurrentMap() throws InterruptedException {
+        final MVStore s = openStore(null);
+        final MVMap<Integer, Integer> cm = MVMapConcurrent.create();
+        final MVMap<Integer, Integer> m = s.openMap("data", cm);
+        final int size = 20;
+        final Random rand = new Random(1);
+        Task task = new Task() {
+            public void call() throws Exception {
+                try {
+                    while (!stop) {
+                        if (rand.nextBoolean()) {
+                            m.put(rand.nextInt(size), 1);
+                        } else {
+                            m.remove(rand.nextInt(size));
+                        }
+                        m.get(rand.nextInt(size));
+                        m.firstKey();
+                        m.lastKey();
+                        m.ceilingKey(5);
+                        m.floorKey(5);
+                        m.higherKey(5);
+                        m.lowerKey(5);
+                        for (Iterator<Integer> it = m.keyIterator(null);
+                                it.hasNext();) {
+                            it.next();
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        task.execute();
+        Thread.sleep(1);
+        for (int j = 0; j < 100; j++) {
+            for (int i = 0; i < 100; i++) {
+                if (rand.nextBoolean()) {
+                    m.put(rand.nextInt(size), 2);
+                } else {
+                    m.remove(rand.nextInt(size));
+                }
+                m.get(rand.nextInt(size));
+            }
+            s.incrementVersion();
+            Thread.sleep(1);
+        }
+        task.get();
+        s.close();
     }
 
     private void testConcurrentOnlineBackup() throws Exception {
@@ -195,6 +250,8 @@ public class TestConcurrent extends TestMVStore {
                         // ignore
                     } catch (ArrayIndexOutOfBoundsException e) {
                         // ignore
+                    } catch (IllegalArgumentException e) {
+                        // ignore
                     } catch (NullPointerException e) {
                         // ignore
                     }
@@ -215,6 +272,8 @@ public class TestConcurrent extends TestMVStore {
                 } catch (NegativeArraySizeException e) {
                     // ignore
                 } catch (ArrayIndexOutOfBoundsException e) {
+                    // ignore
+                } catch (IllegalArgumentException e) {
                     // ignore
                 } catch (NullPointerException e) {
                     // ignore

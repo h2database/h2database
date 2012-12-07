@@ -7,10 +7,9 @@ package org.h2.test.store;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
@@ -39,7 +38,7 @@ public class TestConcurrent extends TestMVStore {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
-        // testConcurrentOnlineBackup();
+        testConcurrentOnlineBackup();
         testConcurrentMap();
         testConcurrentIterate();
         testConcurrentWrite();
@@ -100,9 +99,7 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentOnlineBackup() throws Exception {
-        // because absolute and relative reads are mixed, this currently
-        // only works when using FileChannel directly
-        String fileName = "nio:" + getBaseDir() + "/onlineBackup.h3";
+        String fileName = getBaseDir() + "/onlineBackup.h3";
         String fileNameRestore = getBaseDir() + "/onlineRestore.h3";
         final MVStore s = openStore(fileName);
         final MVMap<Integer, byte[]> map = s.openMap("test");
@@ -111,49 +108,28 @@ public class TestConcurrent extends TestMVStore {
             @Override
             public void call() throws Exception {
                 while (!stop) {
-                    for (int i = 0; i < 100; i++) {
+                    for (int i = 0; i < 20; i++) {
                         map.put(i, new byte[100 * r.nextInt(100)]);
                     }
                     s.store();
                     map.clear();
                     s.store();
                     long len = s.getFile().size();
-                    if (len > 1024 * 100) {
+                    if (len > 1024 * 1024) {
+                        // slow down writing a lot
+                        Thread.sleep(200);
+                    } else if (len > 1024 * 100) {
                         // slow down writing
                         Thread.sleep(20);
-                    } else if (len > 1024 * 200) {
-                        // slow down writing
-                        Thread.sleep(200);
                     }
                 }
             }
         };
         t.execute();
-        // the wrong way to back up
-        try {
-            for (int i = 0; i < 100; i++) {
-                byte[] buff = readFileSlowly(s.getFile());
-                FileOutputStream out = new FileOutputStream(fileNameRestore);
-                out.write(buff);
-                MVStore s2 = openStore(fileNameRestore);
-                try {
-                    MVMap<Integer, byte[]> test = s2.openMap("test");
-                    for (Integer k : test.keySet()) {
-                        test.get(k);
-                    }
-                } finally {
-                    s2.close();
-                }
-            }
-            fail();
-        } catch (Exception e) {
-            // expected
-        }
-        // the right way to back up
         for (int i = 0; i < 10; i++) {
             // System.out.println("test " + i);
             s.setReuseSpace(false);
-            byte[] buff = readFileSlowly(s.getFile());
+            byte[] buff = readFileSlowly(fileName, s.getFile().size());
             s.setReuseSpace(true);
             FileOutputStream out = new FileOutputStream(fileNameRestore);
             out.write(buff);
@@ -170,22 +146,17 @@ public class TestConcurrent extends TestMVStore {
         s.close();
     }
 
-    private static byte[] readFileSlowly(FileChannel file) throws Exception {
-        file.position(0);
-        InputStream in = new BufferedInputStream(Channels.newInputStream(file));
+    private static byte[] readFileSlowly(String fileName, long length) throws Exception {
+        InputStream in = new BufferedInputStream(new FileInputStream(fileName));
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
-        for (int j = 0;; j++) {
+        for (int j = 0; j < length; j++) {
             int x = in.read();
             if (x < 0) {
                 break;
             }
             buff.write(x);
-            if (j % 4096 == 0) {
-                Thread.sleep(1);
-            }
         }
-        // in.close() could close the stream
-        // in.close();
+        in.close();
         return buff.toByteArray();
     }
 

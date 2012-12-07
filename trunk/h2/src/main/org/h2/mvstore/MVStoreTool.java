@@ -6,13 +6,11 @@
  */
 package org.h2.mvstore;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringReader;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Properties;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 
@@ -47,9 +45,10 @@ public class MVStoreTool {
      * @param fileName the name of the file
      * @param writer the print writer
      */
-    public static void dump(String fileName, PrintWriter writer) throws IOException {
+    public static void dump(String fileName, Writer writer) throws IOException {
+        PrintWriter pw = new PrintWriter(writer, true);
         if (!FileUtils.exists(fileName)) {
-            writer.println("File not found: " + fileName);
+            pw.println("File not found: " + fileName);
             return;
         }
         FileChannel file = null;
@@ -57,20 +56,21 @@ public class MVStoreTool {
         try {
             file = FilePath.get(fileName).open("r");
             long fileLength = file.size();
-            byte[] header = new byte[blockSize];
-            file.read(ByteBuffer.wrap(header), 0);
-            Properties prop = new Properties();
-            prop.load(new ByteArrayInputStream(header));
-            prop.load(new StringReader(new String(header, "UTF-8")));
-            writer.println("file " + fileName);
-            writer.println("    length " + fileLength);
-            writer.println("    " + prop);
-            ByteBuffer block = ByteBuffer.allocate(40);
+            pw.println("file " + fileName);
+            pw.println("    length " + fileLength);
+            ByteBuffer block = ByteBuffer.allocate(4096);
             for (long pos = 0; pos < fileLength;) {
                 block.rewind();
                 DataUtils.readFully(file, pos, block);
                 block.rewind();
-                if (block.get() != 'c') {
+                int tag = block.get();
+                if (tag == 'H') {
+                    pw.println("    header at " + pos);
+                    pw.println("    " + new String(block.array(), "UTF-8").trim());
+                    pos += blockSize;
+                    continue;
+                }
+                if (tag != 'c') {
                     pos += blockSize;
                     continue;
                 }
@@ -80,7 +80,7 @@ public class MVStoreTool {
                 long metaRootPos = block.getLong();
                 long maxLength = block.getLong();
                 long maxLengthLive = block.getLong();
-                writer.println("    chunk " + chunkId +
+                pw.println("    chunk " + chunkId +
                         " at " + pos +
                         " length " + chunkLength +
                         " pageCount " + pageCount +
@@ -102,7 +102,7 @@ public class MVStoreTool {
                     int type = chunk.get();
                     boolean compressed = (type & 2) != 0;
                     boolean node = (type & 1) != 0;
-                    writer.println("        map " + mapId + " at " + p + " " +
+                    pw.println("        map " + mapId + " at " + p + " " +
                             (node ? "node" : "leaf") + " " +
                             (compressed ? "compressed " : "") +
                             "len: " + pageLength + " entries: " + len);
@@ -111,7 +111,7 @@ public class MVStoreTool {
                 }
             }
         } catch (IOException e) {
-            writer.println("ERROR: " + e);
+            pw.println("ERROR: " + e);
             throw e;
         } finally {
             if (file != null) {
@@ -122,8 +122,8 @@ public class MVStoreTool {
                 }
             }
         }
-        writer.println();
-        writer.flush();
+        pw.println();
+        pw.flush();
     }
 
 }

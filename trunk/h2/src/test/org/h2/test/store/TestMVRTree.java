@@ -265,10 +265,16 @@ public class TestMVRTree extends TestMVStore {
     }
 
     private void testRandom() {
+        testRandom(true);
+        testRandom(false);
+    }
+
+    private void testRandom(boolean quadraticSplit) {
         String fileName = getBaseDir() + "/testRandom.h3";
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVRTreeMap<String> m = MVRTreeMap.create(2, StringDataType.INSTANCE);
+        m.setQuadraticSplit(quadraticSplit);
         m = s.openMap("data", m);
         HashMap<SpatialKey, String> map = new HashMap<SpatialKey, String>();
         Random rand = new Random(1);

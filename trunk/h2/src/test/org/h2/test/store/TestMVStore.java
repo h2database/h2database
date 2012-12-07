@@ -103,7 +103,7 @@ public class TestMVStore extends TestBase {
         s.store();
         s.close();
         int[] expectedReadsForCacheSize = {
-                3407, 2590, 1924, 1440, 1101, 956, 918
+                3408, 2590, 1924, 1440, 1102, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = MVStoreBuilder.fileBased(fileName).
@@ -172,6 +172,10 @@ public class TestMVStore extends TestBase {
         // test corrupt file headers
         for (int i = 0; i <= blockSize; i += blockSize) {
             FileChannel fc = f.open("rw");
+            if (i == 0) {
+                // corrupt the last block (the end header)
+                fc.truncate(fc.size() - 4096);
+            }
             ByteBuffer buff = ByteBuffer.allocate(4 * 1024);
             fc.read(buff, i);
             String h = new String(buff.array(), "UTF-8").trim();
@@ -577,7 +581,7 @@ public class TestMVStore extends TestBase {
         assertEquals(1000, m.size());
         assertEquals(284, s.getUnsavedPageCount());
         s.store();
-        assertEquals(3, s.getFileWriteCount());
+        assertEquals(2, s.getFileWriteCount());
         s.close();
 
         s = openStore(fileName);
@@ -586,8 +590,8 @@ public class TestMVStore extends TestBase {
         assertEquals(0, m.size());
         s.store();
         // ensure only nodes are read, but not leaves
-        assertEquals(41, s.getFileReadCount());
-        assertEquals(2, s.getFileWriteCount());
+        assertEquals(42, s.getFileReadCount());
+        assertEquals(1, s.getFileWriteCount());
         s.close();
     }
 
@@ -832,6 +836,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         s.close();
+
         s = openStore(fileName);
         MVMap<Integer, String> m = s.openMap("data", Integer.class, String.class);
         int count = 2000;
@@ -857,6 +862,7 @@ public class TestMVStore extends TestBase {
         }
         s.store();
         s.close();
+
         s = openStore(fileName);
         m = s.openMap("data", Integer.class, String.class);
         assertNull(m.get(0));

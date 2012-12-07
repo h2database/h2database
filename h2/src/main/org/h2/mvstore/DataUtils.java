@@ -299,7 +299,7 @@ public class DataUtils {
 
     /**
      * Read from a file channel until the buffer is full, or end-of-file
-     * has been reached. The buffer is rewind at the end.
+     * has been reached. The buffer is rewind after reading.
      *
      * @param file the file channel
      * @param pos the absolute position within the file

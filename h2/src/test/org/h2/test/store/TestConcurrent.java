@@ -7,9 +7,10 @@ package org.h2.test.store;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
@@ -99,7 +100,8 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentOnlineBackup() throws Exception {
-        String fileName = getBaseDir() + "/onlineBackup.h3";
+        // need to use NIO because we mix absolute and relative operations
+        String fileName = "nio:" + getBaseDir() + "/onlineBackup.h3";
         String fileNameRestore = getBaseDir() + "/onlineRestore.h3";
         final MVStore s = openStore(fileName);
         final MVMap<Integer, byte[]> map = s.openMap("test");
@@ -129,7 +131,7 @@ public class TestConcurrent extends TestMVStore {
         for (int i = 0; i < 10; i++) {
             // System.out.println("test " + i);
             s.setReuseSpace(false);
-            byte[] buff = readFileSlowly(fileName, s.getFile().size());
+            byte[] buff = readFileSlowly(s.getFile(), s.getFile().size());
             s.setReuseSpace(true);
             FileOutputStream out = new FileOutputStream(fileNameRestore);
             out.write(buff);
@@ -146,8 +148,13 @@ public class TestConcurrent extends TestMVStore {
         s.close();
     }
 
-    private static byte[] readFileSlowly(String fileName, long length) throws Exception {
-        InputStream in = new BufferedInputStream(new FileInputStream(fileName));
+    private static byte[] readFileSlowly(FileChannel file, long length) throws Exception {
+        file.position(0);
+        InputStream in = new BufferedInputStream(Channels.newInputStream(file)) {
+            public void close() {
+                // don't close
+            }
+        };
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         for (int j = 0; j < length; j++) {
             int x = in.read();

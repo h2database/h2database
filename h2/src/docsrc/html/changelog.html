@@ -18,14 +18,23 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore: store the file header also at the end of each chunk,
+<ul><li>New table engine "org.h2.mvstore.db.MVTableEngine"
+    that internally uses the MVStore to persist data.
+    To try it out, append ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine"
+    to the database URL.
+    This is still very experimental, and many features are not supported yet.
+    The data is stored in a file with the suffix ".mv.db".
+</li><li>New connection setting "DEFAULT_TABLE_ENGINE" to use a specific
+    table engine if none is set explicitly. This is to simplify testing 
+    the MVStore table engine.
+</li><li>MVStore: store the file header also at the end of each chunk,
     which results in a further reduced number of write operations.
 </li><li>MVStore: a map implementation that supports concurrent operations.
 </li><li>MVStore: unified exception handling; the version is included in the messages.
 </li><li>MVStore: old data is now retained for 45 seconds by default.
 </ul><li>MVStore: compress is now disabled by default, and can be enabled on request.
-</ul><li>Support ALTER TABLE ADD ... AFTER. Patch from Andrew Gaul argaul@gmail.com. Fixes issue 401.
-</ul><li>support "SELECT version()". Patch from Andrew Gaul argaul@gmail.com. Fixes issue 406.
+</ul><li>Support ALTER TABLE ADD ... AFTER. Patch from Andrew Gaul (argaul at gmail.com). Fixes issue 401.
+</ul><li>support "SELECT version()". Patch from Andrew Gaul. Fixes issue 406.
 </ul><li>Improved OSGi support. H2 now registers itself as a DataSourceFactory service. Fixes issue 365.
 </li></ul>
 

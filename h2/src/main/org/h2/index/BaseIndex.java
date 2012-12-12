@@ -72,11 +72,12 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     /**
-     * Create a duplicate key exception with a message that contains the index name
+     * Create a duplicate key exception with a message that contains the index
+     * name.
      *
      * @return the exception
      */
-    DbException getDuplicateKeyException() {
+    protected DbException getDuplicateKeyException() {
         String sql = getName() + " ON " + table.getSQL() + "(" + getColumnListSQL() + ")";
         DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
         e.setSource(this);

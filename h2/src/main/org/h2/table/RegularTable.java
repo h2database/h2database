@@ -111,11 +111,11 @@ public class RegularTable extends TableBase {
     }
 
     public void addRow(Session session, Row row) {
-        int i = 0;
         lastModificationId = database.getNextModificationDataId();
         if (database.isMultiVersion()) {
             row.setSessionId(session.getId());
         }
+        int i = 0;
         try {
             for (int size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);

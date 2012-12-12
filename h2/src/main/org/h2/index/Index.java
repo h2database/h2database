@@ -203,7 +203,7 @@ public interface Index extends SchemaObject {
 
     /**
      * Commit the operation for a row. This is only important for multi-version
-     * indexes.
+     * indexes. The method is only called if multi-version is enabled.
      *
      * @param operation the operation type
      * @param row the row

@@ -137,7 +137,7 @@ public class DbContents {
             }
             schemas[i] = schema;
             String[] tableTypes = { "TABLE", "SYSTEM TABLE", "VIEW", "SYSTEM VIEW",
-                    "TABLE LINK", "SYNONYM" };
+                    "TABLE LINK", "SYNONYM", "EXTERNAL" };
             schema.readTables(meta, tableTypes);
         }
         if (defaultSchema == null) {

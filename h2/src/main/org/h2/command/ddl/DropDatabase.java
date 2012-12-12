@@ -68,6 +68,11 @@ public class DropDatabase extends DefineCommand {
                 db.removeSchemaObject(session, t);
             }
         }
+        for (Table t : tables) {
+            if (t.getName() != null && Table.EXTERNAL_TABLE_ENGINE.equals(t.getTableType()) && !t.isHidden()) {
+                db.removeSchemaObject(session, t);
+            }
+        }
         session.findLocalTempTable(null);
         ArrayList<SchemaObject> list = New.arrayList();
         list.addAll(db.getAllSchemaObjects(DbObject.SEQUENCE));

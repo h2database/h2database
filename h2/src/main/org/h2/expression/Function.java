@@ -26,6 +26,7 @@ import java.util.regex.PatternSyntaxException;
 import org.h2.command.Command;
 import org.h2.command.Parser;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
@@ -97,7 +98,8 @@ public class Function extends Expression implements FunctionCall {
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
             MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
             LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230;
+            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230,
+            VERSION = 231;
 
     public static final int ROW_NUMBER = 300;
 
@@ -343,6 +345,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, false);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
         addFunctionWithNull("DECODE", DECODE, VAR_ARGS, Value.NULL);
+        addFunction("VERSION", VERSION, 0, Value.STRING);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -1113,6 +1116,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         case LPAD:
             result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false));
+            break;
+        case VERSION:
+            result = ValueString.get(Constants.getVersion());
             break;
             // date
         case DATE_ADD:

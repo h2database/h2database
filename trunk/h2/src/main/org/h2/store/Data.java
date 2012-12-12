@@ -873,7 +873,7 @@ public class Data {
      * @param handler the data handler for lobs
      * @return the number of bytes required to store this value
      */
-    private static int getValueLen(Value v, DataHandler handler) {
+    public static int getValueLen(Value v, DataHandler handler) {
         if (v == ValueNull.INSTANCE) {
             return 1;
         }

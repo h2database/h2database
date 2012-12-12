@@ -606,13 +606,15 @@ public class Session extends SessionWithState {
             }
             undoLog.add(log);
         } else {
-            // see also UndoLogRecord.commit
-            ArrayList<Index> indexes = table.getIndexes();
-            for (int i = 0, size = indexes.size(); i < size; i++) {
-                Index index = indexes.get(i);
-                index.commit(operation, row);
+            if (database.isMultiVersion()) {
+                // see also UndoLogRecord.commit
+                ArrayList<Index> indexes = table.getIndexes();
+                for (int i = 0, size = indexes.size(); i < size; i++) {
+                    Index index = indexes.get(i);
+                    index.commit(operation, row);
+                }
+                row.commit();
             }
-            row.commit();
         }
     }
 

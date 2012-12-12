@@ -5278,6 +5278,8 @@ public class Parser {
         }
         if (readIf("ENGINE")) {
             command.setTableEngine(readUniqueIdentifier());
+        } else if (database.getSettings().defaultTableEngine != null) {
+            command.setTableEngine(database.getSettings().defaultTableEngine);
         }
         if (temp) {
             if (readIf("ON")) {

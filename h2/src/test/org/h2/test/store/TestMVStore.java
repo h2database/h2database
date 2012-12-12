@@ -27,7 +27,7 @@ import org.h2.test.TestBase;
 import org.h2.util.New;
 
 /**
- * Tests the tree map store.
+ * Tests the MVStore.
  */
 public class TestMVStore extends TestBase {
 

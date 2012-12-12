@@ -78,8 +78,8 @@ TODO:
 - auto-save temporary data if it uses too much memory,
 -- but revert it on startup if needed.
 - map and chunk metadata: do not store default values
-- support maps without values (non-unique indexes),
-- and maps without keys (counted b-tree)
+- support maps without values (just existence of the key)
+- support maps without keys (counted b-tree features)
 - use a small object cache (StringCache)
 - dump values
 - support Object[] and similar serialization by default
@@ -95,6 +95,11 @@ TODO:
 - close the file on out of memory or disk write error (out of disk space or so)
 - implement a shareded map (in one store, multiple stores)
 -- to support concurrent updates and writes, and very large maps
+- implement an off-heap file system
+- optimize API for Java 7 (diamond operator)
+- use new MVStore.Builder().open();
+- see Google Guice: Generic Type
+- JAXB (java xml binding) new TypeReference<String, String>(){}
 
 */
 
@@ -155,7 +160,7 @@ public class MVStore {
 
     private ByteBuffer writeBuffer;
 
-    private final boolean readOnly;
+    private boolean readOnly;
 
     private int lastMapId;
 
@@ -176,6 +181,8 @@ public class MVStore {
      */
     private long creationTime;
     private int retentionTime = 45;
+
+    private boolean closed;
 
     MVStore(HashMap<String, Object> config) {
         this.config = config;
@@ -257,6 +264,7 @@ public class MVStore {
      * @return the map
      */
     public <K, V> MVMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
+        checkOpen();
         DataType keyType = getDataType(keyClass);
         DataType valueType = getDataType(valueClass);
         MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
@@ -276,6 +284,7 @@ public class MVStore {
      */
     @SuppressWarnings("unchecked")
     public <T extends MVMap<K, V>, K, V> T openMap(String name, T template) {
+        checkOpen();
         MVMap<K, V> m = (MVMap<K, V>) maps.get(name);
         if (m != null) {
             return (T) m;
@@ -319,6 +328,7 @@ public class MVStore {
      * @return the metadata map
      */
     public MVMap<String, String> getMetaMap() {
+        checkOpen();
         return meta;
     }
 
@@ -351,6 +361,8 @@ public class MVStore {
      */
     void removeMap(String name) {
         MVMap<?, ?> map = maps.remove(name);
+        meta.remove("map." + name);
+        meta.remove("root." + map.getId());
         mapsChanged.remove(map.getId());
     }
 
@@ -387,7 +399,11 @@ public class MVStore {
         FileUtils.createDirectories(FileUtils.getParent(fileName));
         try {
             log("file open");
-            file = FilePathCache.wrap(FilePath.get(fileName).open("rw"));
+            FilePath f = FilePath.get(fileName);
+            if (f.exists() && !f.canWrite()) {
+                readOnly = true;
+            }
+            file = FilePathCache.wrap(f.open(readOnly ? "r" : "rw"));
             if (readOnly) {
                 fileLock = file.tryLock(0, Long.MAX_VALUE, true);
                 if (fileLock == null) {
@@ -527,6 +543,7 @@ public class MVStore {
      * Close the file. Uncommitted changes are ignored, and all open maps are closed.
      */
     public void close() {
+        closed = true;
         if (file != null) {
             try {
                 shrinkFileIfPossible(0);
@@ -579,6 +596,7 @@ public class MVStore {
      * @return the new version (incremented if there were changes)
      */
     public long store() {
+        checkOpen();
         if (!hasUnsavedChanges()) {
             return currentVersion;
         }
@@ -729,6 +747,7 @@ public class MVStore {
     }
 
     private void applyFreedChunks() {
+        // TODO support concurrent operations
         for (HashMap<Integer, Chunk> freed : freedChunks.values()) {
             for (Chunk f : freed.values()) {
                 Chunk c = chunks.get(f.id);
@@ -815,6 +834,7 @@ public class MVStore {
      * @return if there are any changes
      */
     public boolean hasUnsavedChanges() {
+        checkOpen();
         if (mapsChanged.size() == 0) {
             return false;
         }
@@ -843,6 +863,7 @@ public class MVStore {
      * @return if anything was written
      */
     public boolean compact(int fillRate) {
+        checkOpen();
         if (chunks.size() == 0) {
             // avoid division by 0
             return false;
@@ -1189,6 +1210,7 @@ public class MVStore {
      * @return the store version
      */
     public int getStoreVersion() {
+        checkOpen();
         String x = meta.get("setting.storeVersion");
         return x == null ? 0 : Integer.parseInt(x);
     }
@@ -1199,6 +1221,7 @@ public class MVStore {
      * @param version the new store version
      */
     public void setStoreVersion(int version) {
+        checkOpen();
         meta.put("setting.storeVersion", Integer.toString(version));
     }
 
@@ -1211,6 +1234,7 @@ public class MVStore {
      * @param version the version to revert to
      */
     public void rollbackTo(long version) {
+        checkOpen();
         if (!isKnownVersion(version)) {
             throw DataUtils.illegalArgumentException("Unknown version: " + version);
         }
@@ -1329,7 +1353,14 @@ public class MVStore {
      * @return the file, or null
      */
     public FileChannel getFile() {
+        checkOpen();
         return file;
+    }
+
+    private void checkOpen() {
+        if (closed) {
+            throw DataUtils.illegalStateException("This store is closed");
+        }
     }
 
     public String toString() {

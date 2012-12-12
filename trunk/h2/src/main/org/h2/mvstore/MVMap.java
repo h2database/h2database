@@ -476,6 +476,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Remove all entries, and close the map.
      */
     public void removeMap() {
+        checkOpen();
         if (this != store.getMetaMap()) {
             checkWrite();
             root.removeAllRecursive();
@@ -779,11 +780,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the name
      */
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    MVStore getStore() {
+    public MVStore getStore() {
         return store;
     }
 

@@ -312,6 +312,13 @@ public class DbSettings extends SettingsBase {
      */
     public final boolean shareLinkedConnections = get("SHARE_LINKED_CONNECTIONS", true);
 
+    /**
+     * Database setting <code>DEFAULT_TABLE_ENGINE</code>
+     * (default: null).<br />
+     * The default table engine to use for new tables.
+     */
+    public String defaultTableEngine = get("DEFAULT_TABLE_ENGINE", null);
+
     private DbSettings(HashMap<String, String> s) {
         super(s);
     }

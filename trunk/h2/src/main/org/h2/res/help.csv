@@ -80,7 +80,7 @@ ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 Changes the next value and the increment of a sequence."
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition [ BEFORE columnName ]
+{ [ IF NOT EXISTS ] columnDefinition [ BEFORE columnName | AFTER columnName ]
     | ( { columnDefinition } [,...] ) }
 ","
 Adds a new column to a table."

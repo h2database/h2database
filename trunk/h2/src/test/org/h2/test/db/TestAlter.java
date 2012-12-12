@@ -7,6 +7,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -42,6 +43,8 @@ public class TestAlter extends TestBase {
         testAlterTableAddColumnIfNotExists();
         testAlterTableAddMultipleColumns();
         testAlterTableAlterColumn2();
+        testAlterTableAddColumnBefore();
+        testAlterTableAddColumnAfter();
         conn.close();
         deleteDb("alter");
     }
@@ -144,6 +147,34 @@ public class TestAlter extends TestBase {
         stat.execute("create table t(x varchar) as select 'x'");
         stat.execute("alter table t add (y int)");
         stat.execute("drop table t");
+    }
+
+    // column and field names must be upper-case due to getMetaData sensitivity
+    private void testAlterTableAddColumnBefore() throws SQLException {
+        stat.execute("create table T(X varchar)");
+        stat.execute("alter table T add Y int before X");
+        DatabaseMetaData dbmeta = conn.getMetaData();
+        ResultSet rs = dbmeta.getColumns(null, null, "T", null);
+        assertTrue(rs.next());
+        assertEquals("Y", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("X", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        stat.execute("drop table T");
+    }
+
+    // column and field names must be upper-case due to getMetaData sensitivity
+    private void testAlterTableAddColumnAfter() throws SQLException {
+        stat.execute("create table T(X varchar)");
+        stat.execute("alter table T add Y int after X");
+        DatabaseMetaData dbmeta = conn.getMetaData();
+        ResultSet rs = dbmeta.getColumns(null, null, "T", null);
+        assertTrue(rs.next());
+        assertEquals("X", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("Y", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        stat.execute("drop table T");
     }
 
     private void testAlterTableAlterColumn2() throws SQLException {

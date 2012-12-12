@@ -112,7 +112,8 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/servlet-api-2.4.jar" +
             File.pathSeparator + "ext/" + getLuceneJar() +
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
-            File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
+            File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
+            File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
             File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
@@ -155,7 +156,8 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/org.osgi.core-1.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
         FileList files;
         if (clientOnly) {
@@ -244,8 +246,10 @@ public class Build extends BuildBase {
         }
         downloadOrVerify("ext/slf4j-api-1.6.0.jar", "org/slf4j", "slf4j-api", "1.6.0",
                 "b353147a7d51fcfcd818d8aa6784839783db0915", offline);
-        downloadOrVerify("ext/org.osgi.core-1.2.0.jar", "org/apache/felix", "org.osgi.core", "1.2.0",
-                "3006beb1ca6a83449def6127dad3c060148a0209", offline);
+        downloadOrVerify("ext/org.osgi.core-4.2.0.jar", "org/osgi", "org.osgi.core", "4.2.0",
+                "66ab449ff3aa5c4adfc82c89025cc983b422eb95", offline);
+        downloadOrVerify("ext/org.osgi.enterprise-4.2.0.jar", "org/osgi", "org.osgi.enterprise", "4.2.0",
+                "8634dcb0fc62196e820ed0f1062993c377f74972", offline);
     }
 
     private void downloadOrVerify(String target, String group, String artifact,
@@ -506,7 +510,8 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
-                File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
+                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar",
+                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
         System.setProperty("h2.interfacesOnly", "false");
@@ -516,7 +521,8 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
-                File.pathSeparator + "ext/org.osgi.core-1.2.0.jar",
+                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",

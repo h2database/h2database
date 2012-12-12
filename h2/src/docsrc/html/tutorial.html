@@ -66,6 +66,8 @@ Tutorial
     Date and Time</a><br />
 <a href="#spring">
     Using Spring</a><br />
+<a href="#osgi">
+    OSGi</a><br />
 <a href="#jmx">
     Java Management Extension (JMX)</a><br />
 
@@ -1406,6 +1408,20 @@ The workaround is to add the following XML file to the root of the classpath:
     &lt;/bean&gt;
 &lt;/beans&gt;
 </pre>
+
+<h2 id="osgi">OSGi</h2>
+<p>
+The standard H2 jar can be dropped in as a bundle in an OSGi container. H2 implements the
+JDBC Service defined in OSGi Service Platform Release 4 Version 4.2 Enterprise Specification.
+The H2 Data Source Factory service is registered with the following properties
+OSGI_JDBC_DRIVER_CLASS=org.h2.Driver and OSGI_JDBC_DRIVER_NAME=H2. The OSGI_JDBC_DRIVER_VERSION
+property reflects the version of the driver as is.
+</p>
+<p>
+The following standard configuration properties are supported: JDBC_USER, JDBC_PASSWORD, JDBC_DESCRIPTION,
+JDBC_DATASOURCE_NAME, JDBC_NETWORK_PROTOCOL, JDBC_URL, JDBC_SERVER_NAME, JDBC_PORT_NUMBER. Any other standard
+property will be rejected. Non-standard properties will be passed on to H2 in the connection URL.
+</p>
 
 <h2 id="jmx">Java Management Extension (JMX)</h2>
 <p>

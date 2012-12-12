@@ -400,7 +400,7 @@ otherwise they are not parsed correctly. If in doubt, add <code>;</code> before 
     </tr>
     <tr>
         <td class="notranslate">
-            @prof_stop;<br />
+            @prof_start;<br />
             @sleep 10;<br />
             @prof_stop;
         </td>
@@ -1411,16 +1411,19 @@ The workaround is to add the following XML file to the root of the classpath:
 
 <h2 id="osgi">OSGi</h2>
 <p>
-The standard H2 jar can be dropped in as a bundle in an OSGi container. H2 implements the
-JDBC Service defined in OSGi Service Platform Release 4 Version 4.2 Enterprise Specification.
-The H2 Data Source Factory service is registered with the following properties
-OSGI_JDBC_DRIVER_CLASS=org.h2.Driver and OSGI_JDBC_DRIVER_NAME=H2. The OSGI_JDBC_DRIVER_VERSION
+The standard H2 jar can be dropped in as a bundle in an OSGi container. 
+H2 implements the JDBC Service defined in OSGi Service Platform Release 4 Version 4.2 Enterprise Specification.
+The H2 Data Source Factory service is registered with the following properties:
+<code>OSGI_JDBC_DRIVER_CLASS=org.h2.Driver</code>
+and <code>OSGI_JDBC_DRIVER_NAME=H2</code>.
+The <code>OSGI_JDBC_DRIVER_VERSION</code>
 property reflects the version of the driver as is.
 </p>
 <p>
-The following standard configuration properties are supported: JDBC_USER, JDBC_PASSWORD, JDBC_DESCRIPTION,
-JDBC_DATASOURCE_NAME, JDBC_NETWORK_PROTOCOL, JDBC_URL, JDBC_SERVER_NAME, JDBC_PORT_NUMBER. Any other standard
-property will be rejected. Non-standard properties will be passed on to H2 in the connection URL.
+The following standard configuration properties are supported: 
+<code>JDBC_USER, JDBC_PASSWORD, JDBC_DESCRIPTION, JDBC_DATASOURCE_NAME, JDBC_NETWORK_PROTOCOL, JDBC_URL, JDBC_SERVER_NAME, JDBC_PORT_NUMBER</code>.
+Any other standard property will be rejected. 
+Non-standard properties will be passed on to H2 in the connection URL.
 </p>
 
 <h2 id="jmx">Java Management Extension (JMX)</h2>

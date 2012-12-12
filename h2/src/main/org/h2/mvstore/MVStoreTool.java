@@ -29,7 +29,7 @@ public class MVStoreTool {
      *
      * @param args the command line arguments
      */
-    public static void main(String... args) throws IOException {
+    public static void main(String... args) {
         for (int i = 0; i < args.length; i++) {
             if ("-dump".equals(args[i])) {
                 String fileName = args[++i];
@@ -45,7 +45,7 @@ public class MVStoreTool {
      * @param fileName the name of the file
      * @param writer the print writer
      */
-    public static void dump(String fileName, Writer writer) throws IOException {
+    public static void dump(String fileName, Writer writer) {
         PrintWriter pw = new PrintWriter(writer, true);
         if (!FileUtils.exists(fileName)) {
             pw.println("File not found: " + fileName);
@@ -112,7 +112,7 @@ public class MVStoreTool {
             }
         } catch (IOException e) {
             pw.println("ERROR: " + e);
-            throw e;
+            e.printStackTrace(pw);
         } finally {
             if (file != null) {
                 try {

@@ -19,7 +19,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreBuilder;
 import org.h2.mvstore.type.DataTypeFactory;
 import org.h2.table.TableBase;
-import org.h2.upgrade.v1_1.util.New;
+import org.h2.util.New;
 
 /**
  * A table engine that internally uses the MVStore.

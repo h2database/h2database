@@ -95,4 +95,7 @@ public class RangeIndex extends BaseIndex {
         return rangeTable.getRowCountApproximation();
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
 }

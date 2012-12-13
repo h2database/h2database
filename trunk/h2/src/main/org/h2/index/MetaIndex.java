@@ -97,6 +97,10 @@ public class MetaIndex extends BaseIndex {
         return MetaTable.ROW_COUNT_APPROXIMATION;
     }
 
+    public long getDiskSpaceUsed() {
+        return meta.getDiskSpaceUsed();
+    }
+    
     public String getPlanSQL() {
         return "meta";
     }

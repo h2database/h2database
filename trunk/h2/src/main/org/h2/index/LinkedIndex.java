@@ -246,4 +246,7 @@ public class LinkedIndex extends BaseIndex {
         return rowCount;
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
 }

@@ -187,6 +187,10 @@ public class MVPrimaryIndex extends BaseIndex {
         return map.getSize();
     }
 
+    public long getDiskSpaceUsed() {
+        return 0; // TODO
+    }
+
     @Override
     public void checkRename() {
         // ok

@@ -418,6 +418,10 @@ public class MVTable extends TableBase {
         return primaryIndex.getRowCountApproximation();
     }
 
+    public long getDiskSpaceUsed() {
+        return primaryIndex.getDiskSpaceUsed();
+    }
+
     @Override
     public void checkRename() {
         // ok

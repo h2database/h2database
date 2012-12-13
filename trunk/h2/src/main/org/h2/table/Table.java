@@ -293,6 +293,8 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract long getRowCountApproximation();
 
+    public abstract long getDiskSpaceUsed();
+    
     /**
      * Get the row id column if this table has one.
      *

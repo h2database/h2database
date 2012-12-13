@@ -300,6 +300,10 @@ public class PageBtreeIndex extends PageIndex {
         return tableData.getRowCountApproximation();
     }
 
+    public long getDiskSpaceUsed() {
+        return tableData.getDiskSpaceUsed();
+    }
+    
     public long getRowCount(Session session) {
         return rowCount;
     }

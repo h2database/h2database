@@ -81,6 +81,10 @@ public class HashIndex extends BaseIndex {
         return rows.size();
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+
     public void close(Session session) {
         // nothing to do
     }

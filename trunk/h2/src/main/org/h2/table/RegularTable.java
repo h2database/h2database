@@ -724,6 +724,11 @@ public class RegularTable extends TableBase {
     public long getRowCountApproximation() {
         return scanIndex.getRowCountApproximation();
     }
+    
+    @Override
+    public long getDiskSpaceUsed() {
+        return scanIndex.getDiskSpaceUsed();
+    }
 
     public void setCompareMode(CompareMode compareMode) {
         this.compareMode = compareMode;

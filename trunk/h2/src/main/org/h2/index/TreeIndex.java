@@ -383,4 +383,8 @@ public class TreeIndex extends BaseIndex {
         return rowCount;
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+
 }

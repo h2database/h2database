@@ -90,6 +90,10 @@ public class FunctionIndex extends BaseIndex {
         return functionTable.getRowCountApproximation();
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+    
     public String getPlanSQL() {
         return "function";
     }

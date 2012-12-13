@@ -118,4 +118,8 @@ public class MVDelegateIndex extends BaseIndex {
         return mainIndex.getRowCountApproximation();
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+
 }

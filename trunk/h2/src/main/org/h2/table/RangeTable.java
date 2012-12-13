@@ -167,6 +167,10 @@ public class RangeTable extends Table {
         return 100;
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+
     public boolean isDeterministic() {
         return true;
     }

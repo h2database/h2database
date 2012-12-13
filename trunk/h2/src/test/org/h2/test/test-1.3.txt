@@ -9972,3 +9972,13 @@ select * from word;
 drop table word;
 > ok
 
+create table test(id int, name varchar);
+> ok
+
+insert into test values(5, 'b'), (5, 'b'), (20, 'a');
+> update count: 3
+
+CALL DISK_SPACE_USED('test');
+> DISK_SPACE_USED('test')
+> -----------------------
+> 2048

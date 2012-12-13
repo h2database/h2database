@@ -5379,4 +5379,16 @@ public class Parser {
         return readExpression();
     }
 
+    /**
+     * Parse a SQL code snippet that represents a table name.
+     *
+     * @param sql the code snippet
+     * @return the table object
+     */
+    public Table parseTableName(String sql) {
+        parameters = New.arrayList();
+        initialize(sql);
+        read();
+        return readTableOrView();
+    }
 }

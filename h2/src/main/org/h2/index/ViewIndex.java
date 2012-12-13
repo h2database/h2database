@@ -375,6 +375,10 @@ public class ViewIndex extends BaseIndex {
         return 0;
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+
     public boolean isRecursive() {
         return recursive;
     }

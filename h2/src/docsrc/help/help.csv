@@ -3573,6 +3573,16 @@ This function is provided for Oracle compatibility (see there for details).
 CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
 "
 
+"Functions (System)","DISK_SPACE_USED","
+DISK_SPACE_USED(tablename)
+","
+Returns the approximate amount of space used by the table specified.
+Does not currently take into account indexes or LOB's.
+This function may be expensive since it has to load every page in the table.
+","
+CALL DISK_SPACE_USED('my_table');
+"
+
 "Functions (System)","FILE_READ","
 FILE_READ(fileNameString [,encodingString])
 ","

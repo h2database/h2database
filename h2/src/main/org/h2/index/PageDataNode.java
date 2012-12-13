@@ -277,7 +277,7 @@ public class PageDataNode extends PageData {
                 int child = childPageIds[i];
                 PageData page = index.getPage(child, getPos());
                 if (getPos() == page.getPos()) {
-                    throw DbException.throwInternalError("Page it its own child: " + getPos());
+                    throw DbException.throwInternalError("Page is its own child: " + getPos());
                 }
                 count += page.getRowCount();
                 index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE,
@@ -288,6 +288,21 @@ public class PageDataNode extends PageData {
         return rowCount;
     }
 
+    long getDiskSpaceUsed() {
+        long count = 0;
+        for (int i = 0; i < entryCount + 1; i++) {
+            int child = childPageIds[i];
+            PageData page = index.getPage(child, getPos());
+            if (getPos() == page.getPos()) {
+                throw DbException.throwInternalError("Page is its own child: " + getPos());
+            }
+            count += page.getDiskSpaceUsed();
+            index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE,
+                    index.getTable() + "." + index.getName(), (int) (count>>16), Integer.MAX_VALUE);
+        }
+        return count;
+    }
+    
     void setRowCountStored(int rowCount) {
         this.rowCount = rowCount;
         if (rowCountStored != rowCount) {

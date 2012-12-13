@@ -117,6 +117,10 @@ public class PageDelegateIndex extends PageIndex {
         return mainIndex.getRowCountApproximation();
     }
 
+    public long getDiskSpaceUsed() {
+        return mainIndex.getDiskSpaceUsed();
+    }
+    
     public void writeRowCount() {
         // ignore
     }

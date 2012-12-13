@@ -302,6 +302,10 @@ public class MultiVersionIndex implements Index {
         return base.getRowCountApproximation();
     }
 
+    public long getDiskSpaceUsed() {
+        return base.getDiskSpaceUsed();
+    }
+    
     public Index getBaseIndex() {
         return base;
     }

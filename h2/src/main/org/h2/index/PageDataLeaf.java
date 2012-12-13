@@ -451,6 +451,10 @@ public class PageDataLeaf extends PageData {
         // ignore
     }
 
+    long getDiskSpaceUsed() {
+        return index.getPageStore().getPageSize();
+    }
+    
     public void write() {
         writeData();
         index.getPageStore().writePage(getPos(), data);

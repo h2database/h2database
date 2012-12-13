@@ -437,6 +437,10 @@ public class TableView extends Table {
         return ROW_COUNT_APPROXIMATION;
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+
     public int getParameterOffset() {
         return topQuery == null ? 0 : topQuery.getParameters().size();
     }

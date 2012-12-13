@@ -598,6 +598,10 @@ public class TableLink extends Table {
         return ROW_COUNT_APPROXIMATION;
     }
 
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+
     /**
      * Add this prepared statement to the list of cached statements.
      *

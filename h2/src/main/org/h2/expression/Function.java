@@ -40,6 +40,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.LinkSchema;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
@@ -92,7 +93,7 @@ public class Function extends Expression implements FunctionCall {
             ISO_YEAR = 123, ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
 
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152, IDENTITY = 153, SCOPE_IDENTITY = 154,
-            AUTOCOMMIT = 155, READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158;
+            AUTOCOMMIT = 155, READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158, DISK_SPACE_USED = 159;
 
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203, COALESCE = 204, NULLIF = 205,
             CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
@@ -346,6 +347,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
         addFunctionWithNull("DECODE", DECODE, VAR_ARGS, Value.NULL);
         addFunction("VERSION", VERSION, 0, Value.STRING);
+        addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED, 1, Value.LONG);
 
         // TableFunction
         addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
@@ -760,6 +762,9 @@ public class Function extends Expression implements FunctionCall {
         case LOCK_TIMEOUT:
             result = ValueInt.get(session.getLockTimeout());
             break;
+        case DISK_SPACE_USED:
+            result = ValueLong.get(getDiskSpaceUsed(session, v0));
+            break;
         case CAST:
         case CONVERT: {
             v0 = v0.convertTo(dataType);
@@ -942,6 +947,13 @@ public class Function extends Expression implements FunctionCall {
         return false;
     }
 
+    private static long getDiskSpaceUsed(Session session, Value v0) {
+        Parser p = new Parser(session);
+        String sql = v0.getString();
+        Table table = p.parseTableName(sql);
+        return table.getDiskSpaceUsed();
+    }
+    
     private static Value getNullOrValue(Session session, Expression[] args, Value[] values, int i) {
         if (i >= args.length) {
             return null;

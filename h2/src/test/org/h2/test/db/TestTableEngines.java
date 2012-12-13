@@ -148,6 +148,10 @@ public class TestTableEngines extends TestBase {
                     return table.getRowCountApproximation();
                 }
 
+                public long getDiskSpaceUsed() {
+                    return table.getDiskSpaceUsed();
+                }
+                
                 public long getRowCount(Session session) {
                     return table.getRowCount(session);
                 }
@@ -255,6 +259,10 @@ public class TestTableEngines extends TestBase {
             @Override
             public long getRowCountApproximation() {
                 return row == null ? 0 : 1;
+            }
+
+            public long getDiskSpaceUsed() {
+                return 0;
             }
 
             @Override

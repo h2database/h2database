@@ -298,11 +298,12 @@ public class PageDataNode extends PageData {
             }
             count += page.getDiskSpaceUsed();
             index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE,
-                    index.getTable() + "." + index.getName(), (int) (count>>16), Integer.MAX_VALUE);
+                    index.getTable() + "." + index.getName(),
+                    (int) (count >> 16), Integer.MAX_VALUE);
         }
         return count;
     }
-    
+
     void setRowCountStored(int rowCount) {
         this.rowCount = rowCount;
         if (rowCountStored != rowCount) {

@@ -46,7 +46,6 @@ public class MVTable extends TableBase {
 
     private final String storeName;
     private final MVStore store;
-    private final boolean hidden;
     private MVPrimaryIndex primaryIndex;
     private ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
@@ -66,7 +65,7 @@ public class MVTable extends TableBase {
         super(data);
         this.storeName = storeName;
         this.store = store;
-        this.hidden = data.isHidden;
+        this.isHidden = data.isHidden;
         traceLock = database.getTrace(Trace.LOCK);
     }
 
@@ -303,11 +302,6 @@ public class MVTable extends TableBase {
                 }
             }
         }
-    }
-
-    @Override
-    public boolean isHidden() {
-        return hidden;
     }
 
     @Override

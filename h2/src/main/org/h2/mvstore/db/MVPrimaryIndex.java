@@ -34,7 +34,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     protected final MVTable mvTable;
     protected MVMap<Long, Value[]> map;
-    private long nextKey;
+    private long lastKey;
     private int mainIndexColumn = -1;
 
     public MVPrimaryIndex(Database db, MVTable table, int id, IndexColumn[] columns,
@@ -50,7 +50,7 @@ public class MVPrimaryIndex extends BaseIndex {
         map = new MVMap<Long, Value[]>(new ObjectDataType(), t);
         map = table.getStore().openMap(getName() + "_" + getId(), map);
         Long k = map.lastKey();
-        nextKey = k == null ? 0 : k + 1;
+        lastKey = k == null ? 0 : k;
     }
 
     public void renameTable(String newName) {
@@ -82,7 +82,9 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public void add(Session session, Row row) {
         if (mainIndexColumn == -1) {
-            row.setKey(nextKey++);
+            if (row.getKey() == 0) {
+                row.setKey(++lastKey);
+            }
         } else {
             Long c = row.getValue(mainIndexColumn).getLong();
             row.setKey(c);

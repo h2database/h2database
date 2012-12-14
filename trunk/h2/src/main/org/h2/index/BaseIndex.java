@@ -194,7 +194,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return true if one of the columns is null and multiple nulls in unique
      *         indexes are allowed
      */
-    boolean containsNullAndAllowMultipleNull(SearchRow newRow) {
+    protected boolean containsNullAndAllowMultipleNull(SearchRow newRow) {
         Mode mode = database.getMode();
         if (mode.uniqueIndexSingleNull) {
             return false;

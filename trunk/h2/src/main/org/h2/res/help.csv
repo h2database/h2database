@@ -1384,6 +1384,10 @@ Truncate a value to the required precision."
 { USER | CURRENT_USER } ()
 ","
 Returns the name of the current user of this session."
+"Functions (System)","VERSION","
+VERSION()
+","
+Returns the H2 version as a String."
 "System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","

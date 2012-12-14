@@ -735,16 +735,16 @@ public class TestMVStore extends TestBase {
         assertTrue(m.containsKey("chunk.1"));
         assertFalse(m.containsKey("chunk.2"));
 
-        assertEquals("id:1,name:data,type:btree,createVersion:0,key:,value:",
+        assertEquals("id:1,type:btree,createVersion:0,key:,value:",
                 m.get("map.data"));
         assertTrue(m.containsKey("chunk.1"));
         assertEquals("Hello", data.put("1", "Hallo"));
         s.store();
-        assertEquals("id:1,name:data,type:btree,createVersion:0,key:,value:",
+        assertEquals("id:1,type:btree,createVersion:0,key:,value:",
                 m.get("map.data"));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
-        assertEquals("id:1,length:281,maxLength:288,maxLengthLive:0," +
+        assertEquals("id:1,length:271,maxLength:288,maxLengthLive:0," +
                 "metaRoot:274877910924,pageCount:2," +
                 "start:8192,time:0,version:1", m.get("chunk.1"));
 

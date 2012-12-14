@@ -67,7 +67,7 @@ public abstract class TableBase extends Table {
             buff.append(column.getCreateSQL());
         }
         buff.append("\n)");
-        if (tableEngine != null) {
+        if (tableEngine != null && !tableEngine.endsWith(getDatabase().getSettings().defaultTableEngine)) {
             buff.append("\nENGINE \"");
             buff.append(tableEngine);
             buff.append('\"');

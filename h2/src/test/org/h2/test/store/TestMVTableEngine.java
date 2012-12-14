@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Random;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -37,18 +38,53 @@ public class TestMVTableEngine extends TestBase {
         deleteDb("cases");
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
+        ResultSet rs;
 
-        conn = getConnection("cases");
-        stat = conn.createStatement();
-        stat.execute("set max_operation_memory 1");
-        stat.execute("create table test(id int)");
-        stat.execute("insert into test values(1), (2)");
-        stat.execute("create index idx on test(id)");
-        conn.setAutoCommit(false);
-        stat.execute("update test set id = id where id=2");
-        stat.execute("update test set id = id");
-        conn.rollback();
+        Random random = new Random(1);
+        int len = getSize(50, 500);
+        for (int i = 0; i < len; i++) {
+            stat.execute("drop table if exists test");
+            stat.execute("create table test(x int)");
+            if (random.nextBoolean()) {
+                int count = random.nextBoolean() ? 1 : 1 + random.nextInt(len);
+                if (count > 0) {
+                    stat.execute("insert into test select null from system_range(1, " + count + ")");
+                }
+            }
+            int maxExpected = -1;
+            int minExpected = -1;
+            if (random.nextInt(10) != 1) {
+                minExpected = 1;
+                maxExpected = 1 + random.nextInt(len);
+                stat.execute("insert into test select x from system_range(1, " + maxExpected + ")");
+            }
+            String sql = "create index idx on test(x";
+            if (random.nextBoolean()) {
+                sql += " desc";
+            }
+            if (random.nextBoolean()) {
+                if (random.nextBoolean()) {
+                    sql += " nulls first";
+                } else {
+                    sql += " nulls last";
+                }
+            }
+            sql += ")";
+            stat.execute(sql);
 
+            rs = stat.executeQuery("select min(x), max(x) from test");
+            rs.next();
+            int min = rs.getInt(1);
+            if (rs.wasNull()) {
+                min = -1;
+            }
+            int max = rs.getInt(2);
+            if (rs.wasNull()) {
+                max = -1;
+            }
+            assertEquals(minExpected, min);
+            assertEquals(maxExpected, max);
+        }
         conn.close();
 
     }

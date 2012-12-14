@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import org.h2.api.DatabaseEventListener;
+import org.h2.command.ddl.Analyze;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -37,6 +38,7 @@ import org.h2.table.Table;
 import org.h2.table.TableBase;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 
 /**
@@ -53,6 +55,10 @@ public class MVTable extends TableBase {
     private volatile Session lockExclusive;
     private HashSet<Session> lockShared = New.hashSet();
     private final Trace traceLock;
+    private int changesSinceAnalyze;
+    private int nextAnalyze;
+    private boolean containsLargeObject;
+    private Column rowIdColumn;
 
     /**
      * True if one thread ever was waiting to lock this table. This is to avoid
@@ -63,9 +69,15 @@ public class MVTable extends TableBase {
 
     public MVTable(CreateTableData data, String storeName, MVStore store) {
         super(data);
+        nextAnalyze = database.getSettings().analyzeAuto;
         this.storeName = storeName;
         this.store = store;
         this.isHidden = data.isHidden;
+        for (Column col : getColumns()) {
+            if (DataType.isLargeObject(col.getType())) {
+                containsLargeObject = true;
+            }
+        }
         traceLock = database.getTrace(Trace.LOCK);
     }
 
@@ -475,7 +487,6 @@ public class MVTable extends TableBase {
             for (; i >= 0; i--) {
                 Index index = indexes.get(i);
                 index.remove(session, row);
-                checkRowCount(session, index, -1);
             }
             rowCount--;
         } catch (Throwable e) {
@@ -483,7 +494,6 @@ public class MVTable extends TableBase {
                 while (++i < indexes.size()) {
                     Index index = indexes.get(i);
                     index.add(session, row);
-                    checkRowCount(session, index, 0);
                 }
             } catch (DbException e2) {
                 // this could happen, for example on failure in the storage
@@ -506,6 +516,7 @@ public class MVTable extends TableBase {
             index.truncate(session);
         }
         rowCount = 0;
+        changesSinceAnalyze = 0;
         storeIfRequired();
     }
 
@@ -517,7 +528,6 @@ public class MVTable extends TableBase {
             for (int size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
                 index.add(session, row);
-                checkRowCount(session, index, 1);
             }
             rowCount++;
         } catch (Throwable e) {
@@ -525,7 +535,6 @@ public class MVTable extends TableBase {
                 while (--i >= 0) {
                     Index index = indexes.get(i);
                     index.remove(session, row);
-                    checkRowCount(session, index, 0);
                 }
             } catch (DbException e2) {
                 // this could happen, for example on failure in the storage
@@ -552,12 +561,17 @@ public class MVTable extends TableBase {
         storeIfRequired();
     }
 
-    private void checkRowCount(Session session, Index index, int offset) {
-        // TODO verify
-    }
-
     private void analyzeIfRequired(Session session) {
-        // TODO analyze
+        if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
+            return;
+        }
+        changesSinceAnalyze = 0;
+        int n = 2 * nextAnalyze;
+        if (n > 0) {
+            nextAnalyze = n;
+        }
+        int rows = session.getDatabase().getSettings().analyzeSample;
+        Analyze.analyzeTable(session, this, rows, false);
     }
 
     @Override
@@ -590,6 +604,10 @@ public class MVTable extends TableBase {
         return lastModificationId;
     }
 
+    public boolean getContainsLargeObject() {
+        return containsLargeObject;
+    }
+
     @Override
     public boolean isDeterministic() {
         return true;
@@ -606,6 +624,12 @@ public class MVTable extends TableBase {
     }
 
     public void removeChildrenAndResources(Session session) {
+        if (containsLargeObject) {
+            // unfortunately, the data is gone on rollback
+            truncate(session);
+            database.getLobStorage().removeAllForTable(getId());
+            database.lockMeta(session);
+        }
         super.removeChildrenAndResources(session);
         // go backwards because database.removeIndex will call table.removeIndex
         while (indexes.size() > 1) {
@@ -656,6 +680,14 @@ public class MVTable extends TableBase {
 
     public MVStore getStore() {
         return store;
+    }
+
+    public Column getRowIdColumn() {
+        if (rowIdColumn == null) {
+            rowIdColumn = new Column(Column.ROWID, Value.LONG);
+            rowIdColumn.setTable(this, -1);
+        }
+        return rowIdColumn;
     }
 
 }

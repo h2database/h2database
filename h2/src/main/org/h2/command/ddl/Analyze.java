@@ -13,7 +13,6 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
-import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -53,7 +52,7 @@ public class Analyze extends DefineCommand {
      * @param manual whether the command was called by the user
      */
     public static void analyzeTable(Session session, Table table, int sample, boolean manual) {
-        if (!(table instanceof RegularTable) || table.isHidden() || session == null) {
+        if (!(table.getTableType().equals(Table.TABLE)) || table.isHidden() || session == null) {
             return;
         }
         if (!manual) {

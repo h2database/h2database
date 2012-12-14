@@ -103,6 +103,7 @@ public class MVPrimaryIndex extends BaseIndex {
             throw e;
         }
         map.put(row.getKey(), array);
+        lastKey = Math.max(lastKey, row.getKey());
     }
 
     @Override
@@ -172,6 +173,9 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public void truncate(Session session) {
+        if (mvTable.getContainsLargeObject()) {
+            database.getLobStorage().removeAllForTable(table.getId());
+        }
         map.clear();
     }
 

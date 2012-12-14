@@ -582,6 +582,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestLargeBlob().runTest(this);
         new TestLinkedTable().runTest(this);
         new TestListener().runTest(this);
+        // verify
         new TestLob().runTest(this);
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
@@ -596,8 +597,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestReadOnly().runTest(this);
         new TestRecursiveQueries().runTest(this);
         new TestRights().runTest(this);
+        // verify
         new TestRunscript().runTest(this);
         new TestSQLInjection().runTest(this);
+        // verify
         new TestSessionsLocks().runTest(this);
         new TestSelectCountNonNullColumn().runTest(this);
         new TestSequence().runTest(this);
@@ -706,6 +709,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
+        // verify
         new TestJmx().runTest(this);
         new TestMathUtils().runTest(this);
         new TestModifyOnWrite().runTest(this);

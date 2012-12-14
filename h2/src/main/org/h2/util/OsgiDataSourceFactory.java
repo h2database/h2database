@@ -148,7 +148,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      * @throws SQLFeatureNotSupportedException if unsupported properties are
      *             present
      */
-    private void rejectUnsupportedOptions(final Properties properties) throws SQLFeatureNotSupportedException {
+    private static void rejectUnsupportedOptions(Properties properties) throws SQLFeatureNotSupportedException {
         // Unsupported standard properties in OSGi
         if (properties.containsKey(DataSourceFactory.JDBC_ROLE_NAME)) {
             throw new SQLFeatureNotSupportedException("The " + DataSourceFactory.JDBC_ROLE_NAME
@@ -167,7 +167,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      * @param dataSource the data source to configure
      * @param properties the properties to apply to the data source
      */
-    private void setupH2DataSource(final JdbcDataSource dataSource, final Properties properties) {
+    private static void setupH2DataSource(JdbcDataSource dataSource, Properties properties) {
         // Setting user and password
         if (properties.containsKey(DataSourceFactory.JDBC_USER)) {
             dataSource.setUser((String) properties.remove(DataSourceFactory.JDBC_USER));
@@ -245,7 +245,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      * @throws SQLFeatureNotSupportedException if unsupported properties are
      *             present
      */
-    private void rejectPoolingOptions(final Properties properties) throws SQLFeatureNotSupportedException {
+    private static void rejectPoolingOptions(Properties properties) throws SQLFeatureNotSupportedException {
         if (properties.containsKey(DataSourceFactory.JDBC_INITIAL_POOL_SIZE)
                 || properties.containsKey(DataSourceFactory.JDBC_MAX_IDLE_TIME)
                 || properties.containsKey(DataSourceFactory.JDBC_MAX_POOL_SIZE)

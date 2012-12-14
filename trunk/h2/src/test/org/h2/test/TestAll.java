@@ -556,16 +556,16 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         beforeTest();
 
         // db
-//        new TestScriptSimple().runTest(this);
+        new TestScriptSimple().runTest(this);
         new TestScript().runTest(this);
         new TestAlter().runTest(this);
         new TestAlterSchemaRename().runTest(this);
         new TestAutoRecompile().runTest(this);
         new TestBitField().runTest(this);
-//        new TestBackup().runTest(this);
+        new TestBackup().runTest(this);
         new TestBigDb().runTest(this);
         new TestBigResult().runTest(this);
-        new TestCases().runTest(this); // <<=
+        new TestCases().runTest(this);
         new TestCheckpoint().runTest(this);
         new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
@@ -630,7 +630,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestLimitUpdates().runTest(this);
         new TestLobApi().runTest(this);
         new TestManyJdbcObjects().runTest(this);
-        new TestMetaData().runTest(this); // <<=
+        new TestMetaData().runTest(this);
         new TestNativeSQL().runTest(this);
         new TestPreparedStatement().runTest(this);
         new TestResultSet().runTest(this);

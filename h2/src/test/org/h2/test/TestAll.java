@@ -565,14 +565,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 //        new TestBackup().runTest(this);
         new TestBigDb().runTest(this);
         new TestBigResult().runTest(this);
-//        new TestCases().runTest(this); // <<=
+        new TestCases().runTest(this); // <<=
         new TestCheckpoint().runTest(this);
-//        new TestCluster().runTest(this);
+        new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
         new TestCsv().runTest(this);
         new TestDateStorage().runTest(this);
         new TestDeadlock().runTest(this);
-//        new TestEncryptedDb().runTest(this);
+        new TestEncryptedDb().runTest(this);
         new TestExclusive().runTest(this);
         new TestFullText().runTest(this);
         new TestFunctionOverload().runTest(this);
@@ -581,33 +581,33 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestIndex().runTest(this);
         new TestLargeBlob().runTest(this);
         new TestLinkedTable().runTest(this);
-//        new TestListener().runTest(this);
-//        new TestLob().runTest(this);
+        new TestListener().runTest(this);
+        new TestLob().runTest(this);
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
         new TestMultiDimension().runTest(this);
         new TestMultiThread().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
-//        new TestOpenClose().runTest(this);
-//        new TestOptimizations().runTest(this);
-//        new TestOutOfMemory().runTest(this);
-//        new TestPowerOff().runTest(this);
+        new TestOpenClose().runTest(this);
+        new TestOptimizations().runTest(this);
+        new TestOutOfMemory().runTest(this);
+        new TestPowerOff().runTest(this);
         new TestQueryCache().runTest(this);
-//        new TestReadOnly().runTest(this);
+        new TestReadOnly().runTest(this);
         new TestRecursiveQueries().runTest(this);
         new TestRights().runTest(this);
-//        new TestRunscript().runTest(this);
+        new TestRunscript().runTest(this);
         new TestSQLInjection().runTest(this);
-//        new TestSessionsLocks().runTest(this);
+        new TestSessionsLocks().runTest(this);
         new TestSelectCountNonNullColumn().runTest(this);
         new TestSequence().runTest(this);
         new TestSpaceReuse().runTest(this);
         new TestSpeed().runTest(this);
         new TestTableEngines().runTest(this);
         new TestTempTables().runTest(this);
-//        new TestTransaction().runTest(this);
+        new TestTransaction().runTest(this);
         new TestTriggersConstraints().runTest(this);
-//        new TestTwoPhaseCommit().runTest(this);
+        new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
         new TestViewAlterTable().runTest(this);
         new TestViewDropView().runTest(this);
@@ -624,13 +624,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestBatchUpdates().runTest(this);
         new TestCallableStatement().runTest(this);
         new TestCancel().runTest(this);
-//        new TestDatabaseEventListener().runTest(this);
+        new TestDatabaseEventListener().runTest(this);
         new TestDriver().runTest(this);
         new TestJavaObject().runTest(this);
         new TestLimitUpdates().runTest(this);
         new TestLobApi().runTest(this);
         new TestManyJdbcObjects().runTest(this);
-//        new TestMetaData().runTest(this); // <<=
+        new TestMetaData().runTest(this); // <<=
         new TestNativeSQL().runTest(this);
         new TestPreparedStatement().runTest(this);
         new TestResultSet().runTest(this);
@@ -643,10 +643,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestConnectionPool().runTest(this);
         new TestDataSource().runTest(this);
         new TestXA().runTest(this);
-//        new TestXASimple().runTest(this);
+        new TestXASimple().runTest(this);
 
         // server
-//        new TestAutoServer().runTest(this);
+        new TestAutoServer().runTest(this);
         new TestNestedLoop().runTest(this);
         new TestWeb().runTest(this);
 
@@ -655,7 +655,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMvcc2().runTest(this);
         new TestMvcc3().runTest(this);
         new TestMvccMultiThreaded().runTest(this);
-//        new TestRowLocks().runTest(this);
+        new TestRowLocks().runTest(this);
 
         // synth
         new TestBtreeIndex().runTest(this);

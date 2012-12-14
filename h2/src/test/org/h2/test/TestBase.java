@@ -267,7 +267,7 @@ public abstract class TestBase {
             url = name;
         }
         int test;
-        url = addOption(url, "DEFAULT_TABLE_ENGINE", MVTableEngine.class.getName());
+        // url = addOption(url, "DEFAULT_TABLE_ENGINE", MVTableEngine.class.getName());
         if (!config.memory) {
             if (config.smallLog && admin) {
                 url = addOption(url, "MAX_LOG_SIZE", "1");

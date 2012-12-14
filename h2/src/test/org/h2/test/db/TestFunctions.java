@@ -29,7 +29,6 @@ import java.util.Properties;
 import java.util.UUID;
 import org.h2.api.AggregateFunction;
 import org.h2.constant.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
@@ -55,7 +54,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     public void test() throws Exception {
         deleteDb("functions");
-        testVersion();
         testFunctionTable();
         testArrayParameters();
         testDefaultConnection();
@@ -79,20 +77,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testConcatWs();
         deleteDb("functions");
         FileUtils.deleteRecursive(TEMP_DIR, true);
-    }
-
-    private void testVersion() throws SQLException {
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        String query = "select version()";
-        ResultSet rs = stat.executeQuery(query);
-        assertTrue(rs.next());
-        String version = rs.getString(1);
-        assertEquals(Constants.getVersion(), version);
-        assertFalse(rs.next());
-        rs.close();
-        stat.close();
-        conn.close();
     }
 
     private void testFunctionTable() throws SQLException {

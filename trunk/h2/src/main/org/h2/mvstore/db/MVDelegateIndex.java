@@ -29,7 +29,7 @@ public class MVDelegateIndex extends BaseIndex {
         IndexColumn[] cols = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
-        if (!database.isPersistent() || id < 0) {
+        if (id < 0) {
             throw DbException.throwInternalError("" + name);
         }
     }

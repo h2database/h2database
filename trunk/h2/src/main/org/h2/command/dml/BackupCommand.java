@@ -21,6 +21,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
 import org.h2.store.PageStore;
@@ -56,6 +57,7 @@ public class BackupCommand extends Prepared {
             throw DbException.get(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
         }
         try {
+            MVTableEngine.flush(db);
             String name = db.getName();
             name = FileUtils.getName(name);
             OutputStream zip = FileUtils.newOutputStream(fileName, false);
@@ -73,6 +75,9 @@ public class BackupCommand extends Prepared {
                 ArrayList<String> fileList = FileLister.getDatabaseFiles(dir, name, true);
                 for (String n : fileList) {
                     if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
+                        backupFile(out, base, n);
+                    }
+                    if (n.endsWith(Constants.SUFFIX_MV_FILE)) {
                         backupFile(out, base, n);
                     }
                 }

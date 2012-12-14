@@ -28,6 +28,21 @@ public class MVTableEngine implements TableEngine {
 
     static final Map<String, Store> STORES = new WeakHashMap<String, Store>();
 
+    public static void flush(Database db) {
+        String storeName = db.getDatabasePath();
+        if (storeName == null) {
+            return;
+        }
+        synchronized (STORES) {
+            Store store = STORES.get(storeName);
+            if (store == null) {
+                return;
+            }
+            // TODO this stores uncommitted transactions as well
+            store.store.store();
+        }
+    }
+
     @Override
     public TableBase createTable(CreateTableData data) {
         Database db = data.session.getDatabase();
@@ -61,11 +76,13 @@ public class MVTableEngine implements TableEngine {
     static void closeTable(String storeName, MVTable table) {
         synchronized (STORES) {
             Store store = STORES.get(storeName);
-            store.openTables.remove(table);
-            if (store.openTables.size() == 0) {
-                store.store.store();
-                store.store.close();
-                STORES.remove(storeName);
+            if (store != null) {
+                store.openTables.remove(table);
+                if (store.openTables.size() == 0) {
+                    store.store.store();
+                    store.store.close();
+                    STORES.remove(storeName);
+                }
             }
         }
     }

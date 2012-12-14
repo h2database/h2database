@@ -26,6 +26,7 @@ import org.h2.table.IndexColumn;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
 
 /**
  * A table stored in a MVStore.
@@ -40,6 +41,9 @@ public class MVSecondaryIndex extends BaseIndex {
                 IndexColumn[] columns, IndexType indexType) {
         this.mvTable = table;
         initBaseIndex(table, id, indexName, columns, indexType);
+        if (!database.isStarting()) {
+            checkIndexColumnTypes(columns);
+        }
         // always store the row key in the map key,
         // even for unique indexes, as some of the index columns could be null
         keyColumns = columns.length + 1;
@@ -52,6 +56,15 @@ public class MVSecondaryIndex extends BaseIndex {
                 db.getCompareMode(), db, sortTypes);
         map = new MVMap<Value[], Long>(t, new ObjectDataType());
         map = table.getStore().openMap(getName() + "_" + getId(), map);
+    }
+
+    private static void checkIndexColumnTypes(IndexColumn[] columns) {
+        for (IndexColumn c : columns) {
+            int type = c.column.getType();
+            if (type == Value.CLOB || type == Value.BLOB) {
+                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "Index on BLOB or CLOB column: " + c.column.getCreateSQL());
+            }
+        }
     }
 
     @Override
@@ -158,10 +171,16 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        if (map.getSize() == 0) {
-            return new MVStoreCursor(session, Collections.<Value[]>emptyList().iterator(), null);
-        }
         Value[] key = first ? map.firstKey() : map.lastKey();
+        while (true) {
+            if (key == null) {
+                return new MVStoreCursor(session, Collections.<Value[]>emptyList().iterator(), null);
+            }
+            if (key[0] != ValueNull.INSTANCE) {
+                break;
+            }
+            key = first ? map.higherKey(key) : map.lowerKey(key);
+        }
         ArrayList<Value[]> list = New.arrayList();
         list.add(key);
         MVStoreCursor cursor = new MVStoreCursor(session, list.iterator(), null);

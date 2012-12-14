@@ -603,8 +603,8 @@ public class MVStore {
 
     /**
      * Commit all changes and persist them to disk. This method does nothing if
-     * there are no unsaved changes, otherwise it stores the data and increments
-     * the current version.
+     * there are no unsaved changes, otherwise it increments the current version
+     * and stores the data (for file based stores).
      *
      * @return the new version (incremented if there were changes)
      */
@@ -618,6 +618,10 @@ public class MVStore {
         long storeVersion = currentVersion;
         long version = incrementVersion();
         long time = getTime();
+
+        if (file == null) {
+            return version;
+        }
 
         // the last chunk was not completely correct in the last store()
         // this needs to be updated now (it's better not to update right after

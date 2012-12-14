@@ -9,6 +9,8 @@ package org.h2.mvstore.db;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
@@ -23,12 +25,14 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
+import org.h2.message.Trace;
 import org.h2.mvstore.MVStore;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
 import org.h2.util.MathUtils;
@@ -47,12 +51,23 @@ public class MVTable extends TableBase {
     private ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private long rowCount;
+    private volatile Session lockExclusive;
+    private HashSet<Session> lockShared = New.hashSet();
+    private final Trace traceLock;
+
+    /**
+     * True if one thread ever was waiting to lock this table. This is to avoid
+     * calling notifyAll if no session was ever waiting to lock this table. If
+     * set, the flag stays. In theory, it could be reset, however not sure when.
+     */
+    private boolean waitForLock;
 
     public MVTable(CreateTableData data, String storeName, MVStore store) {
         super(data);
         this.storeName = storeName;
         this.store = store;
         this.hidden = data.isHidden;
+        traceLock = database.getTrace(Trace.LOCK);
     }
 
     void init(Session session) {
@@ -67,7 +82,227 @@ public class MVTable extends TableBase {
 
     @Override
     public void lock(Session session, boolean exclusive, boolean force) {
-        // TODO locking
+        int lockMode = database.getLockMode();
+        if (lockMode == Constants.LOCK_MODE_OFF) {
+            return;
+        }
+        if (!force && database.isMultiVersion()) {
+            // MVCC: update, delete, and insert use a shared lock.
+            // Select doesn't lock except when using FOR UPDATE and
+            // the system property h2.selectForUpdateMvcc
+            // is not enabled
+            if (exclusive) {
+                exclusive = false;
+            } else {
+                if (lockExclusive == null) {
+                    return;
+                }
+            }
+        }
+        if (lockExclusive == session) {
+            return;
+        }
+        synchronized (database) {
+            try {
+                doLock(session, lockMode, exclusive);
+            } finally {
+                session.setWaitForLock(null);
+            }
+        }
+    }
+
+    public void rename(String newName) {
+        super.rename(newName);
+        primaryIndex.renameTable(newName);
+    }
+
+    private void doLock(Session session, int lockMode, boolean exclusive) {
+        traceLock(session, exclusive, "requesting for");
+        // don't get the current time unless necessary
+        long max = 0;
+        boolean checkDeadlock = false;
+        while (true) {
+            if (lockExclusive == session) {
+                return;
+            }
+            if (exclusive) {
+                if (lockExclusive == null) {
+                    if (lockShared.isEmpty()) {
+                        traceLock(session, exclusive, "added for");
+                        session.addLock(this);
+                        lockExclusive = session;
+                        return;
+                    } else if (lockShared.size() == 1 && lockShared.contains(session)) {
+                        traceLock(session, exclusive, "add (upgraded) for ");
+                        lockExclusive = session;
+                        return;
+                    }
+                }
+            } else {
+                if (lockExclusive == null) {
+                    if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
+                        if (!database.isMultiThreaded() && !database.isMultiVersion()) {
+                            // READ_COMMITTED: a read lock is acquired,
+                            // but released immediately after the operation
+                            // is complete.
+                            // When allowing only one thread, no lock is
+                            // required.
+                            // Row level locks work like read committed.
+                            return;
+                        }
+                    }
+                    if (!lockShared.contains(session)) {
+                        traceLock(session, exclusive, "ok");
+                        session.addLock(this);
+                        lockShared.add(session);
+                    }
+                    return;
+                }
+            }
+            session.setWaitForLock(this);
+            if (checkDeadlock) {
+                ArrayList<Session> sessions = checkDeadlock(session, null, null);
+                if (sessions != null) {
+                    throw DbException.get(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions));
+                }
+            } else {
+                // check for deadlocks from now on
+                checkDeadlock = true;
+            }
+            long now = System.currentTimeMillis();
+            if (max == 0) {
+                // try at least one more time
+                max = now + session.getLockTimeout();
+            } else if (now >= max) {
+                traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
+                throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
+            }
+            try {
+                traceLock(session, exclusive, "waiting for");
+                if (database.getLockMode() == Constants.LOCK_MODE_TABLE_GC) {
+                    for (int i = 0; i < 20; i++) {
+                        long free = Runtime.getRuntime().freeMemory();
+                        System.gc();
+                        long free2 = Runtime.getRuntime().freeMemory();
+                        if (free == free2) {
+                            break;
+                        }
+                    }
+                }
+                // don't wait too long so that deadlocks are detected early
+                long sleep = Math.min(Constants.DEADLOCK_CHECK, max - now);
+                if (sleep == 0) {
+                    sleep = 1;
+                }
+                waitForLock = true;
+                database.wait(sleep);
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }
+    }
+
+    private static String getDeadlockDetails(ArrayList<Session> sessions) {
+        StringBuilder buff = new StringBuilder();
+        for (Session s : sessions) {
+            Table lock = s.getWaitForLock();
+            buff.append("\nSession ").
+                append(s.toString()).
+                append(" is waiting to lock ").
+                append(lock.toString()).
+                append(" while locking ");
+            int i = 0;
+            for (Table t : s.getLocks()) {
+                if (i++ > 0) {
+                    buff.append(", ");
+                }
+                buff.append(t.toString());
+                if (t instanceof RegularTable) {
+                    if (((MVTable) t).lockExclusive == s) {
+                        buff.append(" (exclusive)");
+                    } else {
+                        buff.append(" (shared)");
+                    }
+                }
+            }
+            buff.append('.');
+        }
+        return buff.toString();
+    }
+
+    public ArrayList<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
+        // only one deadlock check at any given time
+        synchronized (RegularTable.class) {
+            if (clash == null) {
+                // verification is started
+                clash = session;
+                visited = New.hashSet();
+            } else if (clash == session) {
+                // we found a circle where this session is involved
+                return New.arrayList();
+            } else if (visited.contains(session)) {
+                // we have already checked this session.
+                // there is a circle, but the sessions in the circle need to
+                // find it out themselves
+                return null;
+            }
+            visited.add(session);
+            ArrayList<Session> error = null;
+            for (Session s : lockShared) {
+                if (s == session) {
+                    // it doesn't matter if we have locked the object already
+                    continue;
+                }
+                Table t = s.getWaitForLock();
+                if (t != null) {
+                    error = t.checkDeadlock(s, clash, visited);
+                    if (error != null) {
+                        error.add(session);
+                        break;
+                    }
+                }
+            }
+            if (error == null && lockExclusive != null) {
+                Table t = lockExclusive.getWaitForLock();
+                if (t != null) {
+                    error = t.checkDeadlock(lockExclusive, clash, visited);
+                    if (error != null) {
+                        error.add(session);
+                    }
+                }
+            }
+            return error;
+        }
+    }
+
+    private void traceLock(Session session, boolean exclusive, String s) {
+        if (traceLock.isDebugEnabled()) {
+            traceLock.debug("{0} {1} {2} {3}", session.getId(),
+                    exclusive ? "exclusive write lock" : "shared read lock", s, getName());
+        }
+    }
+
+    public boolean isLockedExclusively() {
+        return lockExclusive != null;
+    }
+
+    public void unlock(Session s) {
+        if (database != null) {
+            traceLock(s, lockExclusive == s, "unlock");
+            if (lockExclusive == s) {
+                lockExclusive = null;
+            }
+            if (lockShared.size() > 0) {
+                lockShared.remove(s);
+            }
+            // TODO lock: maybe we need we fifo-queue to make sure nobody
+            // starves. check what other databases do
+            synchronized (database) {
+                if (database.getSessionCount() > 1 && waitForLock) {
+                    database.notifyAll();
+                }
+            }
+        }
     }
 
     @Override
@@ -94,17 +329,6 @@ public class MVTable extends TableBase {
             }
         }
         return true;
-    }
-
-    @Override
-    public void unlock(Session s) {
-        // TODO locking
-    }
-
-    @Override
-    public boolean isLockedExclusively() {
-        // TODO locking
-        return false;
     }
 
     @Override
@@ -144,6 +368,9 @@ public class MVTable extends TableBase {
 //                mainIndexColumn = -1;
 //            } else {
 //            }
+            if (!database.isStarting() && primaryIndex.getRowCount(session) != 0) {
+                mainIndexColumn = -1;
+            }
             if (mainIndexColumn != -1) {
                 primaryIndex.setMainIndexColumn(mainIndexColumn);
                 index = new MVDelegateIndex(this, indexId,
@@ -346,7 +573,7 @@ public class MVTable extends TableBase {
 
     @Override
     public String getTableType() {
-        return Table.EXTERNAL_TABLE_ENGINE;
+        return Table.TABLE;
     }
 
     @Override

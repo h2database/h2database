@@ -43,9 +43,7 @@ public class MVDelegateIndex extends BaseIndex {
     }
 
     public boolean canGetFirstOrLast() {
-        return false;
-        // TODO
-        // return true;
+        return true;
     }
 
     public void close(Session session) {
@@ -61,16 +59,7 @@ public class MVDelegateIndex extends BaseIndex {
     }
 
     public Cursor findFirstOrLast(Session session, boolean first) {
-        return null;
-//        Cursor cursor;
-//        if (first) {
-//            cursor = mainIndex.find(session, Long.MIN_VALUE, Long.MAX_VALUE, false);
-//        } else  {
-//            long x = mainIndex.getLastKey();
-//            cursor = mainIndex.find(session, x, x, false);
-//        }
-//        cursor.next();
-//        return cursor;
+        return mainIndex.findFirstOrLast(session, first);
     }
 
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {

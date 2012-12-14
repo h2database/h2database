@@ -6,6 +6,8 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
@@ -20,6 +22,7 @@ import org.h2.mvstore.type.ObjectDataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -45,9 +48,14 @@ public class MVPrimaryIndex extends BaseIndex {
         ValueArrayDataType t = new ValueArrayDataType(
                 db.getCompareMode(), db, sortTypes);
         map = new MVMap<Long, Value[]>(new ObjectDataType(), t);
-        map = table.getStore().openMap(getName(), map);
+        map = table.getStore().openMap(getName() + "_" + getId(), map);
         Long k = map.lastKey();
         nextKey = k == null ? 0 : k + 1;
+    }
+
+    public void renameTable(String newName) {
+        rename(newName + "_DATA");
+        map.rename(newName + "_DATA_" + getId());
     }
 
     public String getCreateSQL() {
@@ -147,6 +155,12 @@ public class MVPrimaryIndex extends BaseIndex {
         return cost;
     }
 
+    public int getColumnIndex(Column col) {
+        // can not use this index - use the delegate index instead
+        return -1;
+    }
+
+
     @Override
     public void remove(Session session) {
         if (!map.isClosed()) {
@@ -161,19 +175,22 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public boolean canGetFirstOrLast() {
-        return false;
+        return true;
     }
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        // return first ? map.firstKey() : map.lastKey();
-        // TODO get first / last
-        return null;
+        if (map.getSize() == 0) {
+            return new MVStoreCursor(session, Collections.<Long>emptyList().iterator(), 0);
+        }
+        long key = first ? map.firstKey() : map.lastKey();
+        MVStoreCursor cursor = new MVStoreCursor(session, Arrays.asList(key).iterator(), key);
+        cursor.next();
+        return cursor;
     }
 
     @Override
     public boolean needRebuild() {
-        // TODO Auto-generated method stub
         return false;
     }
 
@@ -188,7 +205,8 @@ public class MVPrimaryIndex extends BaseIndex {
     }
 
     public long getDiskSpaceUsed() {
-        return 0; // TODO
+        // TODO estimate disk space usage
+        return 0;
     }
 
     @Override
@@ -249,7 +267,9 @@ public class MVPrimaryIndex extends BaseIndex {
         @Override
         public Row get() {
             if (row == null) {
-                row = getRow(session, current);
+                if (current != null) {
+                    row = getRow(session, current);
+                }
             }
             return row;
         }
@@ -275,6 +295,10 @@ public class MVPrimaryIndex extends BaseIndex {
             return false;
         }
 
+    }
+
+    public boolean isRowIdIndex() {
+        return true;
     }
 
 }

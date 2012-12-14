@@ -6,6 +6,8 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
@@ -21,6 +23,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -48,7 +51,7 @@ public class MVSecondaryIndex extends BaseIndex {
         ValueArrayDataType t = new ValueArrayDataType(
                 db.getCompareMode(), db, sortTypes);
         map = new MVMap<Value[], Long>(t, new ObjectDataType());
-        map = table.getStore().openMap(getName(), map);
+        map = table.getStore().openMap(getName() + "_" + getId(), map);
     }
 
     @Override
@@ -56,13 +59,24 @@ public class MVSecondaryIndex extends BaseIndex {
         // ok
     }
 
+    public void rename(String newName) {
+        map.rename(newName + "_" + getId());
+        super.rename(newName);
+    }
+
     @Override
     public void add(Session session, Row row) {
         Value[] array = getKey(row);
         if (indexType.isUnique()) {
             array[keyColumns - 1] = ValueLong.get(0);
-            if (map.containsKey(array)) {
-                throw getDuplicateKeyException();
+            Value[] key = map.ceilingKey(array);
+            if (key != null) {
+                SearchRow r2 = getRow(key);
+                if (compareRows(row, r2) == 0) {
+                    if (!containsNullAndAllowMultipleNull(r2)) {
+                        throw getDuplicateKeyException();
+                    }
+                }
             }
         }
         array[keyColumns - 1] = ValueLong.get(row.getKey());
@@ -103,6 +117,19 @@ public class MVSecondaryIndex extends BaseIndex {
         return array;
     }
 
+    SearchRow getRow(Value[] array) {
+        SearchRow searchRow = mvTable.getTemplateRow();
+        searchRow.setKey((array[array.length - 1]).getLong());
+        Column[] cols = getColumns();
+        for (int i = 0; i < array.length - 1; i++) {
+            Column c = cols[i];
+            int idx = c.getColumnId();
+            Value v = array[i];
+            searchRow.setValue(idx, v);
+        }
+        return searchRow;
+    }
+
     public MVTable getTable() {
         return mvTable;
     }
@@ -126,17 +153,24 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public boolean canGetFirstOrLast() {
-        return false;
+        return true;
     }
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        return null;
+        if (map.getSize() == 0) {
+            return new MVStoreCursor(session, Collections.<Value[]>emptyList().iterator(), null);
+        }
+        Value[] key = first ? map.firstKey() : map.lastKey();
+        ArrayList<Value[]> list = New.arrayList();
+        list.add(key);
+        MVStoreCursor cursor = new MVStoreCursor(session, list.iterator(), null);
+        cursor.next();
+        return cursor;
     }
 
     @Override
     public boolean needRebuild() {
-        // TODO there should be a better way
         return map.getSize() == 0;
     }
 
@@ -151,7 +185,8 @@ public class MVSecondaryIndex extends BaseIndex {
     }
 
     public long getDiskSpaceUsed() {
-        return 0; // TODO
+        // TODO estimate disk space usage
+        return 0;
     }
 
     @Override
@@ -180,7 +215,10 @@ public class MVSecondaryIndex extends BaseIndex {
         @Override
         public Row get() {
             if (row == null) {
-                row = mvTable.getRow(session, getSearchRow().getKey());
+                SearchRow r = getSearchRow();
+                if (r != null) {
+                    row = mvTable.getRow(session, r.getKey());
+                }
             }
             return row;
         }
@@ -188,15 +226,8 @@ public class MVSecondaryIndex extends BaseIndex {
         @Override
         public SearchRow getSearchRow() {
             if (searchRow == null) {
-                Value[] array = current;
-                Column[] cols = getColumns();
-                searchRow = mvTable.getTemplateRow();
-                searchRow.setKey((array[array.length - 1]).getLong());
-                for (int i = 0; i < array.length - 1; i++) {
-                    Column c = cols[i];
-                    int idx = c.getColumnId();
-                    Value v = array[i];
-                    searchRow.setValue(idx, v);
+                if (current != null) {
+                    searchRow = getRow(current);
                 }
             }
             return searchRow;

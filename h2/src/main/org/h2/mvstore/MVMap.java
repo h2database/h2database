@@ -39,7 +39,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     protected volatile Page root;
 
     private int id;
-    private String name;
     private long createVersion;
     private final DataType keyType;
     private final DataType valueType;
@@ -63,7 +62,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public void open(MVStore store, HashMap<String, String> config) {
         this.store = store;
         this.id = Integer.parseInt(config.get("id"));
-        this.name = config.get("name");
         this.createVersion = Long.parseLong(config.get("createVersion"));
     }
 
@@ -480,7 +478,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (this != store.getMetaMap()) {
             checkWrite();
             root.removeAllRecursive();
-            store.removeMap(name);
+            store.removeMap(id);
             close();
         }
     }
@@ -781,7 +779,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the name
      */
     public String getName() {
-        return name;
+        return store.getMapName(id);
     }
 
     public MVStore getStore() {
@@ -891,6 +889,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     public long getSize() {
+        checkOpen();
         return root.getTotalCount();
     }
 
@@ -933,7 +932,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 // not found
                 if (i == -1) {
                     // smaller than all in-memory versions
-                    return store.openMapVersion(version, name, this);
+                    return store.openMapVersion(version, id, this);
                 }
                 i = -i - 2;
             }
@@ -954,7 +953,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         m.readOnly = true;
         HashMap<String, String> config = New.hashMap();
         config.put("id", String.valueOf(id));
-        config.put("name", name);
         config.put("createVersion", String.valueOf(createVersion));
         m.open(store, config);
         m.root = root;
@@ -1010,7 +1008,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public String asString() {
         StringBuilder buff = new StringBuilder();
         DataUtils.appendMap(buff, "id", id);
-        DataUtils.appendMap(buff, "name", name);
         DataUtils.appendMap(buff, "type", getType());
         DataUtils.appendMap(buff, "createVersion", createVersion);
         if (keyType != null) {
@@ -1020,6 +1017,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             DataUtils.appendMap(buff, "value", valueType.asString());
         }
         return buff.toString();
+    }
+
+    /**
+     * Rename the map.
+     *
+     * @param newMapName the name name
+     */
+    public void rename(String newMapName) {
+        checkWrite();
+        store.renameMap(this, newMapName);
     }
 
     public String toString() {

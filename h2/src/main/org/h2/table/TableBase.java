@@ -67,10 +67,13 @@ public abstract class TableBase extends Table {
             buff.append(column.getCreateSQL());
         }
         buff.append("\n)");
-        if (tableEngine != null && !tableEngine.endsWith(getDatabase().getSettings().defaultTableEngine)) {
-            buff.append("\nENGINE \"");
-            buff.append(tableEngine);
-            buff.append('\"');
+        if (tableEngine != null) {
+            String d = getDatabase().getSettings().defaultTableEngine;
+            if (d == null || !tableEngine.endsWith(d)) {
+                buff.append("\nENGINE \"");
+                buff.append(tableEngine);
+                buff.append('\"');
+            }
         }
         if (!isPersistIndexes() && !isPersistData()) {
             buff.append("\nNOT PERSISTENT");

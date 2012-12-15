@@ -44,9 +44,7 @@ H:3,...
 
 TODO:
 
-- after rollback: is a regular save ok?
 - cache: change API to better match guava / Android
-- rename a map
 - MVStore: improved API thanks to Simo Tripodi
 - implement table engine for H2
 - automated 'kill process' and 'power failure' test
@@ -154,8 +152,7 @@ public class MVStore {
     private final HashMap<Long, HashMap<Integer, Chunk>> freedChunks = New.hashMap();
 
     private MVMap<String, String> meta;
-    private final HashMap<String, MVMap<?, ?>> maps = New.hashMap();
-    private final HashMap<Integer, String> mapIdName = New.hashMap();
+    private final HashMap<Integer, MVMap<?, ?>> maps = New.hashMap();
 
     /**
      * The set of maps with potentially unsaved changes.
@@ -291,34 +288,37 @@ public class MVStore {
     @SuppressWarnings("unchecked")
     public <T extends MVMap<K, V>, K, V> T openMap(String name, T template) {
         checkOpen();
-        MVMap<K, V> m = (MVMap<K, V>) maps.get(name);
-        if (m != null) {
-            return (T) m;
-        }
-        m = template;
-        String config = meta.get("map." + name);
-        long root;
+        MVMap<K, V> m;
+        String x = meta.get("name." + name);
         int id;
+        long root;
         HashMap<String, String> c;
-        if (config == null) {
+        if (x != null) {
+            id = Integer.parseInt(x);
+            m = (MVMap<K, V>) maps.get(id);
+            if (m != null) {
+                return (T) m;
+            }
+            m = template;
+            String config = meta.get("map." + x);
+            c = DataUtils.parseMap(config);
+            c.put("id", x);
+            m.open(this, c);
+            String r = meta.get("root." + id);
+            root = r == null ? 0 : Long.parseLong(r);
+        } else {
             c = New.hashMap();
             id = ++lastMapId;
             c.put("id", Integer.toString(id));
-            c.put("name", name);
             c.put("createVersion", Long.toString(currentVersion));
+            m = template;
             m.open(this, c);
-            meta.put("map." + name, m.asString());
+            meta.put("map." + id, m.asString(name));
+            meta.put("name." + name, Integer.toString(id));
             root = 0;
-        } else {
-            c = DataUtils.parseMap(config);
-            id = Integer.parseInt(c.get("id"));
-            String r = meta.get("root." + id);
-            root = r == null ? 0 : Long.parseLong(r);
         }
-        m.open(this, c);
         m.setRootPos(root, -1);
-        mapIdName.put(id, name);
-        maps.put(name, m);
+        maps.put(id, m);
         return (T) m;
     }
 
@@ -370,12 +370,12 @@ public class MVStore {
      * @param id the map id
      */
     void removeMap(int id) {
-        String name = mapIdName.get(id);
-        meta.remove("map." + name);
+        String name = getMapName(id);
+        meta.remove("map." + id);
+        meta.remove("name." + name);
         meta.remove("root." + id);
         mapsChanged.remove(id);
-        mapIdName.remove(id);
-        maps.remove(name);
+        maps.remove(id);
     }
 
     private DataType getDataType(Class<?> clazz) {
@@ -402,7 +402,6 @@ public class MVStore {
         meta = new MVMap<String, String>(StringDataType.INSTANCE, StringDataType.INSTANCE);
         HashMap<String, String> c = New.hashMap();
         c.put("id", "0");
-        c.put("name", "meta");
         c.put("createVersion", Long.toString(currentVersion));
         meta.open(this, c);
         if (fileName == null) {
@@ -572,7 +571,6 @@ public class MVStore {
                 chunks.clear();
                 cache.clear();
                 maps.clear();
-                mapIdName.clear();
                 mapsChanged.clear();
             } catch (Exception e) {
                 throw DataUtils.illegalStateException("Closing failed for file " + fileName, e);
@@ -1004,7 +1002,7 @@ public class MVStore {
         if (mapId == 0) {
             return meta;
         }
-        return maps.get(mapIdName.get(mapId));
+        return maps.get(mapId);
     }
 
     /**
@@ -1250,7 +1248,6 @@ public class MVStore {
         if (!isKnownVersion(version)) {
             throw DataUtils.illegalArgumentException("Unknown version: " + version);
         }
-        // TODO could remove newer temporary pages on rollback
         for (MVMap<?, ?> m : mapsChanged.values()) {
             m.rollbackTo(version);
         }
@@ -1286,12 +1283,11 @@ public class MVStore {
                 readMeta();
             }
         }
-        int todoRollbackMapNames;
-        for (MVMap<?, ?> m : maps.values()) {
+        for (MVMap<?, ?> m : New.arrayList(maps.values())) {
             int id = m.getId();
             if (m.getCreateVersion() >= version) {
                 m.close();
-                removeMap(id);
+                maps.remove(id);
             } else {
                 if (loadFromFile) {
                     String r = meta.get("root." + id);
@@ -1389,20 +1385,20 @@ public class MVStore {
         if (map.getName().equals(newName)) {
             return;
         }
-        if (meta.containsKey("map." + newName)) {
+        if (meta.containsKey("name." + newName)) {
             throw DataUtils.illegalArgumentException("A map named " + newName + " already exists");
         }
         int id = map.getId();
-        String oldName = mapIdName.remove(id);
-        maps.remove(oldName);
-        String value = meta.remove("map." + oldName);
-        meta.put("map." + newName, value);
-        maps.put(newName, map);
-        mapIdName.put(id, newName);
+        String oldName = getMapName(id);
+        meta.remove("map." + id);
+        meta.remove("name." + oldName);
+        meta.put("map." + id, map.asString(newName));
+        meta.put("name." + newName, Integer.toString(id));
     }
 
     String getMapName(int id) {
-        return mapIdName.get(id);
+        String m = meta.get("map." + id);
+        return DataUtils.parseMap(m).get("name");
     }
 
 }

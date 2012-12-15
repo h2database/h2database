@@ -55,7 +55,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     public void renameTable(String newName) {
         rename(newName + "_DATA");
-        map.rename(newName + "_DATA_" + getId());
+        map.renameMap(newName + "_DATA_" + getId());
     }
 
     public String getCreateSQL() {

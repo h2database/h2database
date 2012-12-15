@@ -73,7 +73,7 @@ public class MVSecondaryIndex extends BaseIndex {
     }
 
     public void rename(String newName) {
-        map.rename(newName + "_" + getId());
+        map.renameMap(newName + "_" + getId());
         super.rename(newName);
     }
 

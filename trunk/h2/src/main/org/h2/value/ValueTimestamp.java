@@ -153,6 +153,7 @@ public class ValueTimestamp extends Value {
                 ms = DateTimeUtils.convertToLocal(new Date(millis), Calendar.getInstance(TimeZone.getTimeZone("UTC")));
                 long md = DateTimeUtils.MILLIS_PER_DAY;
                 long absoluteDay = (ms >= 0 ? ms : ms - md + 1) / md;
+                dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay);
                 ms -= absoluteDay * md;
                 nanos += ms * 1000000;
             }

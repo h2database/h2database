@@ -161,7 +161,19 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
      * @return the old value, or null if there was no resident entry
      */
     public V put(K key, V value) {
-        return put(key, value, averageMemory);
+        return put(key, value, sizeOf(key, value));
+    }
+
+    /**
+     * Get the size of the given value. The default implementation returns the
+     * average memory as configured for this cache.
+     *
+     * @param key the key
+     * @param value the value
+     * @return the size
+     */
+    protected int sizeOf(K key, V value) {
+        return averageMemory;
     }
 
     /**

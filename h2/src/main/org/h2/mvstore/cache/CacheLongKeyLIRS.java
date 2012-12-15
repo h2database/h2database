@@ -137,6 +137,17 @@ public class CacheLongKeyLIRS<V> {
     }
 
     /**
+     * Add an entry to the cache using the average memory size.
+     *
+     * @param key the key (may not be null)
+     * @param value the value (may not be null)
+     * @return the old value, or null if there was no resident entry
+     */
+    public V put(long key, V value) {
+        return put(key, value, sizeOf(value));
+    }
+
+    /**
      * Add an entry to the cache. The entry may or may not exist in the
      * cache yet. This method will usually mark unknown entries as cold and
      * known entries as hot.
@@ -152,14 +163,14 @@ public class CacheLongKeyLIRS<V> {
     }
 
     /**
-     * Add an entry to the cache using the average memory size.
+     * Get the size of the given value. The default implementation returns the
+     * average memory as configured for this cache.
      *
-     * @param key the key (may not be null)
-     * @param value the value (may not be null)
-     * @return the old value, or null if there was no resident entry
+     * @param value the value
+     * @return the size
      */
-    public V put(long key, V value) {
-        return put(key, value, averageMemory);
+    protected int sizeOf(V value) {
+        return averageMemory;
     }
 
     /**

@@ -62,8 +62,29 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     private final int segmentMask;
     private final int stackMoveDistance;
 
+
+    /**
+     * Create a new cache with the given number of entries, and the default
+     * settings (an average size of 1 per entry, 16 segments, and stack move
+     * distance equals to the maximum number of entries divided by 100).
+     *
+     * @param maxEntries the maximum number of entries
+     */
+    public CacheLIRS(int maxEntries) {
+        this(maxEntries, 1, 16, maxEntries / 100);
+    }
+
+    /**
+     * Create a new cache with the given memory size.
+     *
+     * @param maxMemory the maximum memory to use (1 or larger)
+     * @param averageMemory the average memory (1 or larger)
+     * @param segmentCount the number of cache segments (must be a power of 2)
+     * @param stackMoveDistance how many other item are to be moved to the top
+     *        of the stack before the current item is moved
+     */
     @SuppressWarnings("unchecked")
-    private CacheLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
+    public CacheLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
         setMaxMemory(maxMemory);
         setAverageMemory(averageMemory);
         if (Integer.bitCount(segmentCount) != 1) {
@@ -268,33 +289,6 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
      */
     public long getMaxMemory() {
         return maxMemory;
-    }
-
-    /**
-     * Create a new cache with the given number of entries, and the default
-     * settings (an average size of 1 per entry, 16 segments, and stack move
-     * distance equals to the maximum number of entries divided by 100).
-     *
-     * @param maxEntries the maximum number of entries
-     * @return the cache
-     */
-    public static <K, V> CacheLIRS<K, V> newInstance(int maxEntries) {
-        return new CacheLIRS<K, V>(maxEntries, 1, 16, maxEntries / 100);
-    }
-
-    /**
-     * Create a new cache with the given memory size.
-     *
-     * @param maxMemory the maximum memory to use (1 or larger)
-     * @param averageMemory the average memory (1 or larger)
-     * @param segmentCount the number of cache segments (must be a power of 2)
-     * @param stackMoveDistance how many other item are to be moved to the top
-     *        of the stack before the current item is moved
-     * @return the cache
-     */
-    public static <K, V> CacheLIRS<K, V> newInstance(int maxMemory, int averageMemory,
-            int segmentCount, int stackMoveDistance) {
-        return new CacheLIRS<K, V>(maxMemory, averageMemory, segmentCount, stackMoveDistance);
     }
 
     /**

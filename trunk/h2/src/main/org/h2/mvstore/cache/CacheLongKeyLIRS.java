@@ -61,8 +61,28 @@ public class CacheLongKeyLIRS<V> {
     private final int segmentMask;
     private final int stackMoveDistance;
 
+    /**
+     * Create a new cache with the given number of entries, and the default
+     * settings (an average size of 1 per entry, 16 segments, and stack move
+     * distance equals to the maximum number of entries divided by 100).
+     *
+     * @param maxEntries the maximum number of entries
+     */
+    public CacheLongKeyLIRS(int maxEntries) {
+        this(maxEntries, 1, 16, maxEntries / 100);
+    }
+
+    /**
+     * Create a new cache with the given memory size.
+     *
+     * @param maxMemory the maximum memory to use (1 or larger)
+     * @param averageMemory the average memory (1 or larger)
+     * @param segmentCount the number of cache segments (must be a power of 2)
+     * @param stackMoveDistance how many other item are to be moved to the top
+     *        of the stack before the current item is moved
+     */
     @SuppressWarnings("unchecked")
-    private CacheLongKeyLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
+    public CacheLongKeyLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
         setMaxMemory(maxMemory);
         setAverageMemory(averageMemory);
         if (Integer.bitCount(segmentCount) != 1) {
@@ -270,33 +290,6 @@ public class CacheLongKeyLIRS<V> {
     }
 
     /**
-     * Create a new cache with the given number of entries, and the default
-     * settings (an average size of 1 per entry, 16 segments, and stack move
-     * distance equals to the maximum number of entries divided by 100).
-     *
-     * @param maxEntries the maximum number of entries
-     * @return the cache
-     */
-    public static <K, V> CacheLongKeyLIRS<V> newInstance(int maxEntries) {
-        return new CacheLongKeyLIRS<V>(maxEntries, 1, 16, maxEntries / 100);
-    }
-
-    /**
-     * Create a new cache with the given memory size.
-     *
-     * @param maxMemory the maximum memory to use (1 or larger)
-     * @param averageMemory the average memory (1 or larger)
-     * @param segmentCount the number of cache segments (must be a power of 2)
-     * @param stackMoveDistance how many other item are to be moved to the top
-     *        of the stack before the current item is moved
-     * @return the cache
-     */
-    public static <V> CacheLongKeyLIRS<V> newInstance(int maxMemory, int averageMemory,
-            int segmentCount, int stackMoveDistance) {
-        return new CacheLongKeyLIRS<V>(maxMemory, averageMemory, segmentCount, stackMoveDistance);
-    }
-
-    /**
      * Get the entry set for all resident entries.
      *
      * @return the entry set
@@ -458,7 +451,7 @@ public class CacheLongKeyLIRS<V> {
      *
      * @param <V> the value type
      */
-    static class Segment<V> {
+    private static class Segment<V> {
 
         /**
          * The number of (hot, cold, and non-resident) entries in the map.

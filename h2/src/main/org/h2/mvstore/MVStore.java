@@ -44,7 +44,6 @@ H:3,...
 
 TODO:
 
-- cache: change API to better match guava / Android
 - MVStore: improved API thanks to Simo Tripodi
 - implement table engine for H2
 - automated 'kill process' and 'power failure' test
@@ -1399,6 +1398,109 @@ public class MVStore {
     String getMapName(int id) {
         String m = meta.get("map." + id);
         return DataUtils.parseMap(m).get("name");
+    }
+
+    /**
+     * A builder for an MVStore.
+     */
+    public static class Builder {
+
+        private final HashMap<String, Object> config = New.hashMap();
+
+        private Builder set(String key, Object value) {
+            if (config.containsKey(key)) {
+                throw DataUtils.illegalArgumentException("Parameter " + config.get(key) + " is already set");
+            }
+            config.put(key, value);
+            return this;
+        }
+
+        /**
+         * Use the following file name. If the file does not exist, it is
+         * automatically created.
+         *
+         * @param fileName the file name
+         * @return this
+         */
+        public Builder fileName(String fileName) {
+            return set("fileName", fileName);
+        }
+
+        /**
+         * Open the file in read-only mode. In this case, a shared lock will be
+         * acquired to ensure the file is not concurrently opened in write mode.
+         * <p>
+         * If this option is not used, the file is locked exclusively.
+         * <p>
+         * Please note a store may only be opened once in every JVM (no matter
+         * whether it is opened in read-only or read-write mode), because each file
+         * may be locked only once in a process.
+         *
+         * @return this
+         */
+        public Builder readOnly() {
+            return set("openMode", "r");
+        }
+
+        /**
+         * Set the read cache size in MB. The default is 16 MB.
+         *
+         * @param mb the cache size
+         * @return this
+         */
+        public Builder cacheSizeMB(int mb) {
+            return set("cacheSize", Integer.toString(mb));
+        }
+
+        /**
+         * Compress data before writing using the LZF algorithm. This setting only
+         * affects writes; it is not necessary to enable compression when reading,
+         * even if compression was enabled when writing.
+         *
+         * @return this
+         */
+        public Builder compressData() {
+            return set("compress", "1");
+        }
+
+        /**
+         * Use the given data type factory.
+         *
+         * @param factory the data type factory
+         * @return this
+         */
+        public Builder with(DataTypeFactory factory) {
+            return set("dataTypeFactory", factory);
+        }
+
+        /**
+         * Open the store.
+         *
+         * @return the opened store
+         */
+        public MVStore open() {
+            MVStore s = new MVStore(config);
+            s.open();
+            return s;
+        }
+
+        public String toString() {
+            return DataUtils.appendMap(new StringBuilder(), config).toString();
+        }
+
+        /**
+         * Read the configuration from a string.
+         *
+         * @param s the string representation
+         * @return the builder
+         */
+        public static Builder fromString(String s) {
+            HashMap<String, String> config = DataUtils.parseMap(s);
+            Builder builder = new Builder();
+            builder.config.putAll(config);
+            return builder;
+        }
+
     }
 
 }

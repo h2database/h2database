@@ -42,6 +42,7 @@ public class TestMVStore extends TestBase {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
+        testRenameMapRollback();
         testCustomMapType();
         testCacheSize();
         testConcurrentOpen();
@@ -73,11 +74,24 @@ public class TestMVStore extends TestBase {
         testSimple();
     }
 
+    private void testRenameMapRollback() {
+        MVStore s = openStore(null);
+        MVMap<Integer, Integer> map;
+        map = s.openMap("hello");
+        map.put(1, 10);
+        long old = s.incrementVersion();
+        map.renameMap("world");
+        map.put(2, 20);
+        assertEquals("world", map.getName());
+        s.rollbackTo(old);
+        assertEquals("hello", map.getName());
+        s.close();
+    }
+
     private void testCustomMapType() {
         String fileName = getBaseDir() + "/testMapType.h3";
         FileUtils.delete(fileName);
-        MVStore s;
-        s = openStore(fileName);
+        MVStore s = openStore(fileName);
         SequenceMap seq = new SequenceMap();
         seq = s.openMap("data", seq);
         StringBuilder buff = new StringBuilder();
@@ -634,7 +648,7 @@ public class TestMVStore extends TestBase {
         assertTrue(s.hasUnsavedChanges());
         s.rollbackTo(v2);
         assertFalse(s.hasUnsavedChanges());
-        assertNull(meta.get("map.data1"));
+        assertNull(meta.get("name.data1"));
         assertNull(m0.get("1"));
         assertEquals("Hello", m.get("1"));
         assertEquals(2, s.store());
@@ -643,9 +657,9 @@ public class TestMVStore extends TestBase {
         s = openStore(fileName);
         assertEquals(2, s.getCurrentVersion());
         meta = s.getMetaMap();
-        assertTrue(meta.get("map.data") != null);
-        assertTrue(meta.get("map.data0") != null);
-        assertNull(meta.get("map.data1"));
+        assertTrue(meta.get("name.data") != null);
+        assertTrue(meta.get("name.data0") != null);
+        assertNull(meta.get("name.data1"));
         m = s.openMap("data", String.class, String.class);
         m0 = s.openMap("data0", String.class, String.class);
         assertNull(m0.get("1"));
@@ -735,17 +749,16 @@ public class TestMVStore extends TestBase {
         assertTrue(m.containsKey("chunk.1"));
         assertFalse(m.containsKey("chunk.2"));
 
-        assertEquals("id:1,type:btree,createVersion:0,key:,value:",
-                m.get("map.data"));
+        String id = s.getMetaMap().get("name.data");
+        assertEquals("name:data", m.get("map." + id));
         assertTrue(m.containsKey("chunk.1"));
         assertEquals("Hello", data.put("1", "Hallo"));
         s.store();
-        assertEquals("id:1,type:btree,createVersion:0,key:,value:",
-                m.get("map.data"));
+        assertEquals("name:data", m.get("map." + id));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
-        assertEquals("id:1,length:271,maxLength:288,maxLengthLive:0," +
-                "metaRoot:274877910924,pageCount:2," +
+        assertEquals("id:1,length:246,maxLength:224,maxLengthLive:0," +
+                "metaRoot:274877910922,pageCount:2," +
                 "start:8192,time:0,version:1", m.get("chunk.1"));
 
         assertTrue(m.containsKey("chunk.2"));

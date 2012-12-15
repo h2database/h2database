@@ -62,7 +62,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public void open(MVStore store, HashMap<String, String> config) {
         this.store = store;
         this.id = Integer.parseInt(config.get("id"));
-        this.createVersion = Long.parseLong(config.get("createVersion"));
+        String x = config.get("createVersion");
+        this.createVersion = x == null ? 0 : Long.parseLong(x);
     }
 
     /**
@@ -799,7 +800,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         checkWrite();
         removeUnusedOldVersions();
         if (version <= createVersion) {
-            removeMap();
+            // the map is removed later
         } else if (root.getVersion() >= version) {
             // iterating in descending order -
             // this is not terribly efficient if there are many versions
@@ -997,24 +998,38 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the map type
      */
     public String getType() {
-        return "btree";
+        return null;
     }
 
     /**
      * Get the map metadata as a string.
      *
+     * @param name the map name (or null)
      * @return the string
      */
-    public String asString() {
+    public String asString(String name) {
         StringBuilder buff = new StringBuilder();
-        DataUtils.appendMap(buff, "id", id);
-        DataUtils.appendMap(buff, "type", getType());
-        DataUtils.appendMap(buff, "createVersion", createVersion);
+        if (name != null) {
+            DataUtils.appendMap(buff, "name", name);
+        }
+        if (createVersion != 0) {
+            DataUtils.appendMap(buff, "createVersion", createVersion);
+        }
+        String type = getType();
+        if (type != null) {
+            DataUtils.appendMap(buff, "type", type);
+        }
         if (keyType != null) {
-            DataUtils.appendMap(buff, "key", keyType.asString());
+            String k = keyType.asString();
+            if (k.length() > 0) {
+                DataUtils.appendMap(buff, "key", k);
+            }
         }
         if (valueType != null) {
-            DataUtils.appendMap(buff, "value", valueType.asString());
+            String v = valueType.asString();
+            if (v.length() > 0) {
+                DataUtils.appendMap(buff, "value", v);
+            }
         }
         return buff.toString();
     }
@@ -1024,13 +1039,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param newMapName the name name
      */
-    public void rename(String newMapName) {
+    public void renameMap(String newMapName) {
         checkWrite();
         store.renameMap(this, newMapName);
     }
 
     public String toString() {
-        return asString();
+        return asString(null);
     }
 
 }

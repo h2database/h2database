@@ -204,7 +204,7 @@ public class DateTimeUtils {
      *
      * @param x the date to convert
      * @param target the calendar with the target timezone
-     * @return the milliseconds the milliseconds in UTC
+     * @return the milliseconds in UTC
      */
     public static long convertToLocal(java.util.Date x, Calendar target) {
         if (target == null) {

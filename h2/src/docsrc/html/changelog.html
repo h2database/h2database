@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>New table engine "org.h2.mvstore.db.MVTableEngine"
+<ul><li>Timestamps with timezone that were passed as a string were not always
+    converted correctly. For example "2012-11-06T23:00:00.000Z" was converted to
+    "2012-11-06" instead of to "2012-11-07" in the timezone CET.
+    Thanks a lot to Steve Hruda for reporting the problem!
+</li><li>New table engine "org.h2.mvstore.db.MVTableEngine"
     that internally uses the MVStore to persist data.
     To try it out, append ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine"
     to the database URL.
@@ -27,6 +31,7 @@ Change Log
 </li><li>New connection setting "DEFAULT_TABLE_ENGINE" to use a specific
     table engine if none is set explicitly. This is to simplify testing 
     the MVStore table engine.
+</li><li>MVStore: maps can now be renamed.
 </li><li>MVStore: store the file header also at the end of each chunk,
     which results in a further reduced number of write operations.
 </li><li>MVStore: a map implementation that supports concurrent operations.

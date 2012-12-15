@@ -533,7 +533,7 @@ public class TestCacheLIRS extends TestBase {
     }
 
     private static <K, V> CacheLIRS<K, V> createCache(int maxSize, int averageSize) {
-        return CacheLIRS.newInstance(maxSize, averageSize, 1, 0);
+        return new CacheLIRS<K, V>(maxSize, averageSize, 1, 0);
     }
 
 }

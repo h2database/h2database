@@ -203,7 +203,7 @@ public class MVStore {
         if (fileName != null) {
             Object s = config.get("cacheSize");
             int mb = s == null ? 16 : Integer.parseInt(s.toString());
-            cache = CacheLongKeyLIRS.newInstance(
+            cache = new CacheLongKeyLIRS<Page>(
                     mb * 1024 * 1024, 2048, 16, mb * 1024 * 1024 / 2048 * 2 / 100);
         } else {
             cache = null;

@@ -39,7 +39,7 @@ public class FilePathCache extends FilePathWrapper {
         private final FileChannel base;
         // 1 MB (256 * 4 * 1024)
         private final CacheLongKeyLIRS<ByteBuffer> cache =
-                CacheLongKeyLIRS.newInstance(256);
+                new CacheLongKeyLIRS<ByteBuffer>(256);
 
         FileCache(FileChannel base) {
             this.base = base;

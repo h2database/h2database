@@ -463,7 +463,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private static <V> CacheLongKeyLIRS<V> createCache(int maxSize, int averageSize) {
-        return CacheLongKeyLIRS.newInstance(maxSize, averageSize, 1, 0);
+        return new CacheLongKeyLIRS<V>(maxSize, averageSize, 1, 0);
     }
 
 }

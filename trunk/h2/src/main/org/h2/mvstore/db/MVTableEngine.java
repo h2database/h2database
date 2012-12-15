@@ -16,7 +16,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.MVStoreBuilder;
 import org.h2.mvstore.type.DataTypeFactory;
 import org.h2.table.TableBase;
 import org.h2.util.New;
@@ -47,20 +46,19 @@ public class MVTableEngine implements TableEngine {
     public TableBase createTable(CreateTableData data) {
         Database db = data.session.getDatabase();
         String storeName = db.getDatabasePath();
-        MVStoreBuilder storeBuilder;
+        MVStore.Builder builder = new MVStore.Builder();
         Store store;
         DataTypeFactory f = new ValueDataTypeFactory(db.getCompareMode(), db);
         if (storeName == null) {
-            storeBuilder = MVStoreBuilder.inMemory();
-            storeBuilder.with(f);
-            store = new Store(db, storeBuilder.open());
+            builder.with(f);
+            store = new Store(db, builder.open());
         } else {
             synchronized (STORES) {
                 store = STORES.get(storeName);
                 if (store == null) {
-                    storeBuilder = MVStoreBuilder.fileBased(storeName + Constants.SUFFIX_MV_FILE);
-                    storeBuilder.with(f);
-                    store = new Store(db, storeBuilder.open());
+                    builder.fileName(storeName + Constants.SUFFIX_MV_FILE);
+                    builder.with(f);
+                    store = new Store(db, builder.open());
                     STORES.put(storeName, store);
                 } else if (store.db != db) {
                     throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, storeName);

@@ -16,7 +16,6 @@ import java.util.TreeMap;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.MVStoreBuilder;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.ObjectDataTypeFactory;
@@ -106,7 +105,8 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/testCacheSize.h3";
         MVStore s;
         MVMap<Integer, String> map;
-        s = MVStoreBuilder.fileBased(fileName).
+        s = new MVStore.Builder().
+                fileName(fileName).
                 compressData().
                 with(new ObjectDataTypeFactory()).open();
         map = s.openMap("test");
@@ -120,7 +120,8 @@ public class TestMVStore extends TestBase {
                 3408, 2590, 1924, 1440, 1102, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
-            s = MVStoreBuilder.fileBased(fileName).
+            s = new MVStore.Builder().
+                    fileName(fileName).
                     cacheSizeMB(1 + 3 * cacheSize).
                     with(new ObjectDataTypeFactory()).open();
             map = s.openMap("test");
@@ -139,16 +140,16 @@ public class TestMVStore extends TestBase {
 
     private void testConcurrentOpen() {
         String fileName = getBaseDir() + "/testConcurrentOpen.h3";
-        MVStore s = MVStoreBuilder.fileBased(fileName).open();
+        MVStore s = new MVStore.Builder().fileName(fileName).open();
         try {
-            MVStore s1 = MVStoreBuilder.fileBased(fileName).open();
+            MVStore s1 = new MVStore.Builder().fileName(fileName).open();
             s1.close();
             fail();
         } catch (IllegalStateException e) {
             // expected
         }
         try {
-            MVStore s1 = MVStoreBuilder.fileBased(fileName).readOnly().open();
+            MVStore s1 = new MVStore.Builder().fileName(fileName).readOnly().open();
             s1.close();
             fail();
         } catch (IllegalStateException e) {
@@ -351,7 +352,7 @@ public class TestMVStore extends TestBase {
     private void testIterateOldVersion() {
         MVStore s;
         Map<Integer, Integer> map;
-        s = MVStoreBuilder.inMemory().
+        s = new MVStore.Builder().
                 with(new ObjectDataTypeFactory()).open();
         map = s.openMap("test");
         int len = 100;
@@ -377,7 +378,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s;
         Map<Object, Object> map;
-        s = MVStoreBuilder.fileBased(fileName).
+        s = new MVStore.Builder().fileName(fileName).
                 with(new ObjectDataTypeFactory()).open();
         map = s.openMap("test");
         map.put(1,  "Hello");
@@ -385,7 +386,7 @@ public class TestMVStore extends TestBase {
         map.put(new Object[1], new Object[]{1, "2"});
         s.store();
         s.close();
-        s = MVStoreBuilder.fileBased(fileName).
+        s = new MVStore.Builder().fileName(fileName).
                 with(new ObjectDataTypeFactory()).open();
         map = s.openMap("test");
         assertEquals("Hello", map.get(1).toString());
@@ -1133,7 +1134,8 @@ public class TestMVStore extends TestBase {
      * @return the store
      */
     protected static MVStore openStore(String fileName) {
-        MVStore store = MVStoreBuilder.fileBased(fileName).
+        MVStore store = new MVStore.Builder().
+                fileName(fileName).
                 with(new SampleTypeFactory()).open();
         store.setPageSize(1000);
         return store;

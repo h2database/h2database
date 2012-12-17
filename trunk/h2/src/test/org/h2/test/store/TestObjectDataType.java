@@ -38,7 +38,6 @@ public class TestObjectDataType extends TestBase {
     private void testCommonValues() {
         BigInteger largeBigInt = BigInteger.probablePrime(200,  new Random(1));
         ObjectDataType ot = new ObjectDataType();
-        assertEquals("o", ot.asString());
         Object[] array = {
                 false, true,
                 Byte.MIN_VALUE, (byte) -1, (byte) 0, (byte) 1, Byte.MAX_VALUE,

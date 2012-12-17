@@ -26,7 +26,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -181,40 +180,6 @@ public class ValueArrayDataType implements DataType {
         for (int i = 0; i < len; i++) {
             writeValue(buff, x[i]);
         }
-    }
-
-    public String asString() {
-        StringBuilder buff = new StringBuilder();
-        buff.append(PREFIX);
-        buff.append('(');
-        for (int i = 0; i < sortTypes.length; i++) {
-            if (i > 0) {
-                buff.append(',');
-            }
-            buff.append(sortTypes[i]);
-        }
-        buff.append(')');
-        return buff.toString();
-    }
-
-    /**
-     * Convert a row type to a row.
-     *
-     * @param t the type string
-     * @param factory the data type factory
-     * @return the row type
-     */
-    static ValueArrayDataType fromString(CompareMode compareMode, DataHandler handler, String t) {
-        if (!t.startsWith(PREFIX) || !t.endsWith(")")) {
-            throw new RuntimeException("Unknown type: " + t);
-        }
-        t = t.substring(PREFIX.length(), t.length() - 1);
-        String[] array = StringUtils.arraySplit(t, ',', false);
-        int[] sortTypes = new int[array.length];
-        for (int i = 0; i < array.length; i++) {
-            sortTypes[i] = Integer.parseInt(array[i]);
-        }
-        return new ValueArrayDataType(compareMode, handler, sortTypes);
     }
 
     private void writeValue(ByteBuffer buff, Value v) {

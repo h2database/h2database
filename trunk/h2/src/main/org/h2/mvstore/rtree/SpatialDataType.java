@@ -27,16 +27,6 @@ public class SpatialDataType implements DataType {
         this.dimensions = dimensions;
     }
 
-    /**
-     * Read a value from a string.
-     *
-     * @param s the string
-     * @return the value
-     */
-    public static SpatialDataType fromString(String s) {
-        return new SpatialDataType(Integer.parseInt(s.substring(1)));
-    }
-
     @Override
     public int compare(Object a, Object b) {
         long la = ((SpatialKey) a).getId();
@@ -103,11 +93,6 @@ public class SpatialDataType implements DataType {
         }
         long id = DataUtils.readVarLong(buff);
         return new SpatialKey(id, minMax);
-    }
-
-    @Override
-    public String asString() {
-        return "s" + dimensions;
     }
 
     /**

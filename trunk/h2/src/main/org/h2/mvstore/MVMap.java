@@ -1020,18 +1020,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (type != null) {
             DataUtils.appendMap(buff, "type", type);
         }
-        if (keyType != null) {
-            String k = keyType.asString();
-            if (k.length() > 0) {
-                DataUtils.appendMap(buff, "key", k);
-            }
-        }
-        if (valueType != null) {
-            String v = valueType.asString();
-            if (v.length() > 0) {
-                DataUtils.appendMap(buff, "value", v);
-            }
-        }
         return buff.toString();
     }
 

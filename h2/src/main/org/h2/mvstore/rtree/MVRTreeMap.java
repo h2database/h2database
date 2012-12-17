@@ -13,6 +13,8 @@ import org.h2.mvstore.CursorPos;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.ObjectDataType;
+import org.h2.mvstore.type.StringDataType;
 import org.h2.util.New;
 
 /**
@@ -539,6 +541,55 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 
     public String getType() {
         return "rtree";
+    }
+
+    /**
+     * A builder for this class.
+     *
+     * @param <V> the value type
+     */
+    public static class Builder<V> implements
+            MVMap.MapBuilder<MVRTreeMap<V>, SpatialKey, V> {
+
+        private int dimensions = 2;
+        private DataType valueType;
+
+        /**
+         * Create a new builder for maps with 2 dimensions.
+         */
+        public Builder() {
+            // default
+        }
+
+        /**
+         * Set the dimensions.
+         *
+         * @param dimensions the dimensions to use
+         * @return this
+         */
+        public Builder<V> dimensions(int dimensions) {
+            this.dimensions = dimensions;
+            return this;
+        }
+
+        /**
+         * Set the key data type.
+         *
+         * @param valueType the key type
+         * @return this
+         */
+        public Builder<V> valueType(StringDataType valueType) {
+            this.valueType = valueType;
+            return this;
+        }
+
+        public MVRTreeMap<V> create() {
+            if (valueType == null) {
+                valueType = new ObjectDataType();
+            }
+            return new MVRTreeMap<V>(dimensions, valueType);
+        }
+
     }
 
 }

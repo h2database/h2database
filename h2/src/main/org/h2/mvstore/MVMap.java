@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.New;
 
 /**
@@ -47,7 +48,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private boolean closed;
     private boolean readOnly;
 
-    public MVMap(DataType keyType, DataType valueType) {
+    protected MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
         this.valueType = valueType;
         this.root = Page.createEmpty(this,  -1);
@@ -1046,6 +1047,78 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     public String toString() {
         return asString(null);
+    }
+
+
+    /**
+     * A builder for maps.
+     *
+     * @param <M> the map type
+     * @param <K> the key type
+     * @param <V> the value type
+     */
+    public interface MapBuilder<M extends MVMap<K, V>, K, V> {
+
+        /**
+         * Create a new map of the given type.
+         *
+         * @return the map
+         */
+        public M create();
+
+    }
+
+    /**
+     * A builder for this class.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     */
+    public static class Builder<K, V> implements MapBuilder<MVMap<K, V>, K, V> {
+
+        protected DataType keyType;
+        protected DataType valueType;
+
+        /**
+         * Create a new builder with the default key and value data types.
+         */
+        public Builder() {
+            // ignore
+        }
+
+        /**
+         * Set the key data type.
+         *
+         * @param keyType the key type
+         * @return this
+         */
+        public Builder<K, V> keyType(DataType keyType) {
+            this.keyType = keyType;
+            return this;
+        }
+
+        /**
+         * Set the key data type.
+         *
+         * @param valueType the key type
+         * @return this
+         */
+        public Builder<K, V> valueType(DataType valueType) {
+            this.valueType = valueType;
+            return this;
+        }
+
+        @Override
+        public MVMap<K, V> create() {
+            if (keyType == null) {
+                keyType = new ObjectDataType();
+            }
+            if (valueType == null) {
+                valueType = new ObjectDataType();
+            }
+            return new MVMap<K, V>(keyType, valueType);
+        }
+
     }
 
 }

@@ -71,4 +71,23 @@ public class SequenceMap extends MVMap<Long, Long> {
         };
     }
 
+    /**
+     * A builder for this class.
+     */
+    public static class Builder implements MapBuilder<SequenceMap, Long, Long> {
+
+        /**
+         * Create a new builder.
+         */
+        public Builder() {
+            // ignore
+        }
+
+        @Override
+        public SequenceMap create() {
+            return new SequenceMap();
+        }
+
+    }
+
 }

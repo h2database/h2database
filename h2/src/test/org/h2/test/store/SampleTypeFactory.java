@@ -27,9 +27,4 @@ public class SampleTypeFactory implements DataTypeFactory {
         return parent.buildDataType(s);
     }
 
-    @Override
-    public String getDataType(Class<?> objectClass) {
-        return parent.getDataType(objectClass);
-    }
-
 }

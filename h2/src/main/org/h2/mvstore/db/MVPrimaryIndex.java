@@ -18,7 +18,6 @@ import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.type.ObjectDataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -47,8 +46,8 @@ public class MVPrimaryIndex extends BaseIndex {
         }
         ValueArrayDataType t = new ValueArrayDataType(
                 db.getCompareMode(), db, sortTypes);
-        map = new MVMap<Long, Value[]>(new ObjectDataType(), t);
-        map = table.getStore().openMap(getName() + "_" + getId(), map);
+        map = table.getStore().openMap(getName() + "_" + getId(),
+                new MVMap.Builder<Long, Value[]>().valueType(t));
         Long k = map.lastKey();
         lastKey = k == null ? 0 : k;
     }

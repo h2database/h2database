@@ -50,8 +50,8 @@ public class TestConcurrent extends TestMVStore {
      */
     private void testConcurrentMap() throws InterruptedException {
         final MVStore s = openStore(null);
-        final MVMap<Integer, Integer> cm = MVMapConcurrent.create();
-        final MVMap<Integer, Integer> m = s.openMap("data", cm);
+        final MVMap<Integer, Integer> m = s.openMap("data",
+                new MVMapConcurrent.Builder<Integer, Integer>());
         final int size = 20;
         final Random rand = new Random(1);
         Task task = new Task() {
@@ -210,7 +210,7 @@ public class TestConcurrent extends TestMVStore {
      */
     private void testConcurrentWrite() throws InterruptedException {
         final MVStore s = openStore(null);
-        final MVMap<Integer, Integer> m = s.openMap("data", Integer.class, Integer.class);
+        final MVMap<Integer, Integer> m = s.openMap("data");
         final int size = 20;
         final Random rand = new Random(1);
         Task task = new Task() {
@@ -265,7 +265,7 @@ public class TestConcurrent extends TestMVStore {
 
     private void testConcurrentRead() throws InterruptedException {
         final MVStore s = openStore(null);
-        final MVMap<Integer, Integer> m = s.openMap("data", Integer.class, Integer.class);
+        final MVMap<Integer, Integer> m = s.openMap("data");
         final int size = 3;
         int x = (int) s.getCurrentVersion();
         for (int i = 0; i < size; i++) {

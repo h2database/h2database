@@ -121,8 +121,8 @@ that supports fast spatial queries.
 MVStore s = MVStore.open(null);
 
 // open an R-tree map
-MVRTreeMap<String> r = s.openMap("data",
-        new MVRTreeMap.Builder<String>());
+MVRTreeMap&lt;String&gt; r = s.openMap("data",
+        new MVRTreeMap.Builder&lt;String&gt;());
 
 // add two key-value pairs
 // the first value is the key id (to make the key unique)

@@ -41,7 +41,6 @@ H:3,...
 
 TODO:
 
-- fix MVStore documentation, example code
 - improve exception factory (fluent api)
 - implement table engine for H2
 - automated 'kill process' and 'power failure' test

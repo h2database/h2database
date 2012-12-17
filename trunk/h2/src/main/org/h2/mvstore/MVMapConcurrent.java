@@ -69,4 +69,57 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
         return result;
     }
 
+    /**
+     * A builder for this class.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     */
+    public static class Builder<K, V> implements MapBuilder<MVMapConcurrent<K, V>, K, V> {
+
+        protected DataType keyType;
+        protected DataType valueType;
+
+        /**
+         * Create a new builder with the default key and value data types.
+         */
+        public Builder() {
+            // ignore
+        }
+
+        /**
+         * Set the key data type.
+         *
+         * @param keyType the key type
+         * @return this
+         */
+        public Builder<K, V> keyType(DataType keyType) {
+            this.keyType = keyType;
+            return this;
+        }
+
+        /**
+         * Set the key data type.
+         *
+         * @param valueType the key type
+         * @return this
+         */
+        public Builder<K, V> valueType(DataType valueType) {
+            this.valueType = valueType;
+            return this;
+        }
+
+        @Override
+        public MVMapConcurrent<K, V> create() {
+            if (keyType == null) {
+                keyType = new ObjectDataType();
+            }
+            if (valueType == null) {
+                valueType = new ObjectDataType();
+            }
+            return new MVMapConcurrent<K, V>(keyType, valueType);
+        }
+
+    }
+
 }

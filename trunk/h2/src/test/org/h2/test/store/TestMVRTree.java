@@ -23,7 +23,6 @@ import javax.imageio.stream.FileImageOutputStream;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.rtree.MVRTreeMap;
 import org.h2.mvstore.rtree.SpatialKey;
-import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -54,12 +53,9 @@ public class TestMVRTree extends TestMVStore {
         // create an in-memory store
         MVStore s = MVStore.open(null);
 
-        // create an R-tree map
-        // the key has 2 dimensions, the value is a string
-        MVRTreeMap<String> r = MVRTreeMap.create(2, new ObjectDataType());
-
-        // open the map
-        r = s.openMap("data", r);
+        // open an R-tree map
+        MVRTreeMap<String> r = s.openMap("data",
+                new MVRTreeMap.Builder<String>());
 
         // add two key-value pairs
         // the first value is the key id (to make the key unique)
@@ -84,8 +80,9 @@ public class TestMVRTree extends TestMVStore {
         MVStore s;
         s = openStore(fileName);
         // s.setMaxPageSize(50);
-        MVRTreeMap<String> r = MVRTreeMap.create(2, StringDataType.INSTANCE);
-        r = s.openMap("data", r);
+        MVRTreeMap<String> r = s.openMap("data",
+                new MVRTreeMap.Builder<String>().dimensions(2).
+                valueType(StringDataType.INSTANCE));
         // r.setQuadraticSplit(true);
         Random rand = new Random(1);
         int len = 1000;
@@ -109,8 +106,9 @@ public class TestMVRTree extends TestMVStore {
         s.store();
         s.close();
         s = openStore(fileName);
-        r = MVRTreeMap.create(2, StringDataType.INSTANCE);
-        r = s.openMap("data", r);
+        r = s.openMap("data",
+                new MVRTreeMap.Builder<String>().dimensions(2).
+                valueType(StringDataType.INSTANCE));
         // t = System.currentTimeMillis();
         rand = new Random(1);
         for (int i = 0; i < len; i++) {
@@ -148,8 +146,10 @@ public class TestMVRTree extends TestMVStore {
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
-        MVRTreeMap<String> r = MVRTreeMap.create(2, StringDataType.INSTANCE);
-        r = s.openMap("data", r);
+        MVRTreeMap<String> r = s.openMap("data",
+                new MVRTreeMap.Builder<String>().dimensions(2).
+                valueType(StringDataType.INSTANCE));
+
         add(r, "Bern", key(0, 46.57, 7.27, 124381));
         add(r, "Basel", key(1, 47.34, 7.36, 170903));
         add(r, "Zurich", key(2, 47.22, 8.33, 376008));
@@ -273,9 +273,11 @@ public class TestMVRTree extends TestMVStore {
         String fileName = getBaseDir() + "/testRandom.h3";
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
-        MVRTreeMap<String> m = MVRTreeMap.create(2, StringDataType.INSTANCE);
+
+        MVRTreeMap<String> m = s.openMap("data",
+                new MVRTreeMap.Builder<String>());
+
         m.setQuadraticSplit(quadraticSplit);
-        m = s.openMap("data", m);
         HashMap<SpatialKey, String> map = new HashMap<SpatialKey, String>();
         Random rand = new Random(1);
         int operationCount = 1000;

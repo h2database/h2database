@@ -17,7 +17,6 @@ import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.type.ObjectDataType;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -52,10 +51,12 @@ public class MVSecondaryIndex extends BaseIndex {
             sortTypes[i] = columns[i].sortType;
         }
         sortTypes[keyColumns - 1] = SortOrder.ASCENDING;
+        String name = getName() + "_" + getId();
         ValueArrayDataType t = new ValueArrayDataType(
                 db.getCompareMode(), db, sortTypes);
-        map = new MVMap<Value[], Long>(t, new ObjectDataType());
-        map = table.getStore().openMap(getName() + "_" + getId(), map);
+        map = table.getStore().openMap(name,
+                new MVMap.Builder<Value[], Long>().keyType(t));
+
     }
 
     private static void checkIndexColumnTypes(IndexColumn[] columns) {

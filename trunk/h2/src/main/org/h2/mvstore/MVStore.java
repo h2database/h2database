@@ -21,7 +21,6 @@ import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.cache.FilePathCache;
-import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.DataTypeFactory;
 import org.h2.mvstore.type.ObjectDataTypeFactory;
 import org.h2.mvstore.type.StringDataType;
@@ -44,7 +43,8 @@ H:3,...
 
 TODO:
 
-- MVStore: improved API thanks to Simo Tripodi
+- fix MVStore documentation, example code
+- improve exception factory (fluent api)
 - implement table engine for H2
 - automated 'kill process' and 'power failure' test
 - maybe split database into multiple files, to speed up compact
@@ -121,8 +121,6 @@ public class MVStore {
      */
     static final int BLOCK_SIZE = 4 * 1024;
 
-    private final HashMap<String, Object> config;
-
     private final String fileName;
     private final DataTypeFactory dataTypeFactory;
 
@@ -187,7 +185,6 @@ public class MVStore {
     private boolean closed;
 
     MVStore(HashMap<String, Object> config) {
-        this.config = config;
         this.fileName = (String) config.get("fileName");
         DataTypeFactory parent = new ObjectDataTypeFactory();
         DataTypeFactory f = (DataTypeFactory) config.get("dataTypeFactory");
@@ -242,67 +239,49 @@ public class MVStore {
     }
 
     /**
-     * Open a map with the previous key and value type (if the map already
-     * exists), or Object if not.
+     * Open a map with the default settings. The map is automatically create if
+     * it does not yet exist. If a map with this name is already open, this map
+     * is returned.
      *
      * @param <K> the key type
      * @param <V> the value type
      * @param name the name of the map
      * @return the map
      */
-    @SuppressWarnings("unchecked")
     public <K, V> MVMap<K, V> openMap(String name) {
-        return (MVMap<K, V>) openMap(name, Object.class, Object.class);
+        return openMap(name, new MVMap.Builder<K, V>());
     }
 
     /**
-     * Open a map.
+     * Open a map with the given builder. The map is automatically create if it
+     * does not yet exist. If a map with this name is already open, this map is
+     * returned.
      *
      * @param <K> the key type
      * @param <V> the value type
      * @param name the name of the map
-     * @param keyClass the key class
-     * @param valueClass the value class
+     * @param builder the map builder
      * @return the map
      */
-    public <K, V> MVMap<K, V> openMap(String name, Class<K> keyClass, Class<V> valueClass) {
+    public <M extends MVMap<K, V>, K, V> M openMap(String name, MVMap.MapBuilder<M, K, V> builder) {
         checkOpen();
-        DataType keyType = getDataType(keyClass);
-        DataType valueType = getDataType(valueClass);
-        MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
-        return openMap(name, m);
-    }
-
-    /**
-     * Open a map using the given template. The returned map is of the same type
-     * as the template, and contains the same key and value types. If a map with
-     * this name is already open, this map is returned. If it is not open,
-     * the template object is opened with the applicable configuration.
-     *
-     * @param <T> the map type
-     * @param name the name of the map
-     * @param template the template map
-     * @return the opened map
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends MVMap<K, V>, K, V> T openMap(String name, T template) {
-        checkOpen();
-        MVMap<K, V> m;
         String x = meta.get("name." + name);
         int id;
         long root;
         HashMap<String, String> c;
+        M map;
         if (x != null) {
             id = Integer.parseInt(x);
-            m = (MVMap<K, V>) maps.get(id);
-            if (m != null) {
-                return (T) m;
+            @SuppressWarnings("unchecked")
+            M old = (M) maps.get(id);
+            if (old != null) {
+                return old;
             }
-            m = template;
+            map = builder.create();
             String config = meta.get("map." + x);
             c = DataUtils.parseMap(config);
             c.put("id", x);
-            m.open(this, c);
+            map.open(this, c);
             String r = meta.get("root." + id);
             root = r == null ? 0 : Long.parseLong(r);
         } else {
@@ -310,15 +289,15 @@ public class MVStore {
             id = ++lastMapId;
             c.put("id", Integer.toString(id));
             c.put("createVersion", Long.toString(currentVersion));
-            m = template;
-            m.open(this, c);
-            meta.put("map." + id, m.asString(name));
+            map = builder.create();
+            map.open(this, c);
+            meta.put("map." + id, map.asString(name));
             meta.put("name." + name, Integer.toString(id));
             root = 0;
         }
-        m.setRootPos(root, -1);
-        maps.put(id, m);
-        return (T) m;
+        map.setRootPos(root, -1);
+        maps.put(id, map);
+        return map;
     }
 
     /**
@@ -375,14 +354,6 @@ public class MVStore {
         meta.remove("root." + id);
         mapsChanged.remove(id);
         maps.remove(id);
-    }
-
-    private DataType getDataType(Class<?> clazz) {
-        if (clazz == String.class) {
-            return StringDataType.INSTANCE;
-        }
-        String s = dataTypeFactory.getDataType(clazz);
-        return dataTypeFactory.buildDataType(s);
     }
 
     /**
@@ -1370,10 +1341,6 @@ public class MVStore {
         if (closed) {
             throw DataUtils.illegalStateException("This store is closed");
         }
-    }
-
-    public String toString() {
-        return DataUtils.appendMap(new StringBuilder(), config).toString();
     }
 
     void renameMap(MVMap<?, ?> map, String newName) {

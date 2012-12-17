@@ -27,12 +27,4 @@ public class ObjectDataTypeFactory implements DataTypeFactory {
         return null;
     }
 
-    @Override
-    public String getDataType(Class<?> objectClass) {
-        if (objectClass == SpatialDataType.class) {
-            return "s";
-        }
-        return "o";
-    }
-
 }

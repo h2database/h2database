@@ -26,15 +26,4 @@ public interface DataTypeFactory {
      */
     DataType buildDataType(String dataType);
 
-    /**
-     * Get the data type identifier for the given class.
-     * <p>
-     * To avoid conflict with the default factory, the returned string should
-     * start with the package name of the type factory.
-     *
-     * @param objectClass the class
-     * @return the data type identifier, or null if not supported
-     */
-    String getDataType(Class<?> objectClass);
-
 }

@@ -557,12 +557,16 @@ public class DataUtils {
         return new IllegalStateException(message + version());
     }
 
-    public static IllegalStateException illegalStateException(String message, Exception e) {
-        return new IllegalStateException(message + version(), e);
+    public static IllegalStateException illegalStateException(String message, Exception cause) {
+        return new IllegalStateException(message + version(), cause);
     }
 
     public static IllegalArgumentException illegalArgumentException(String message) {
         return new IllegalArgumentException(message + version());
+    }
+
+    public static IllegalArgumentException illegalArgumentException(String message, Exception cause) {
+        return new IllegalArgumentException(message + version(), cause);
     }
 
     public static UnsupportedOperationException unsupportedOperationException(String message) {

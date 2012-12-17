@@ -28,7 +28,7 @@ public class TestMVTableEngine extends TestBase {
     }
 
     public void test() throws Exception {
-        // testCase();
+        testCase();
         testSimple();
     }
 

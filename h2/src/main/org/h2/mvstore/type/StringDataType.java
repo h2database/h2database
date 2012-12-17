@@ -40,9 +40,5 @@ public class StringDataType implements DataType {
         DataUtils.writeStringData(buff, s, len);
     }
 
-    public String asString() {
-        return "";
-    }
-
 }
 

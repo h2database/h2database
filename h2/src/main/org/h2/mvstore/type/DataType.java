@@ -55,16 +55,5 @@ public interface DataType {
      */
     Object read(ByteBuffer buff);
 
-    /**
-     * Get the stable string representation that is used to build this data
-     * type.
-     * <p>
-     * To avoid conflict with the default factory, the returned string should
-     * start with the package name of the type factory.
-     *
-     * @return the string representation
-     */
-    String asString();
-
 }
 

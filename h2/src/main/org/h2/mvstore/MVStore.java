@@ -21,8 +21,6 @@ import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.cache.FilePathCache;
-import org.h2.mvstore.type.DataTypeFactory;
-import org.h2.mvstore.type.ObjectDataTypeFactory;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -65,6 +63,9 @@ TODO:
 - allow renaming maps
 - file locking: solve problem that locks are shared for a VM
 - online backup
+- data types: maybe support InputStream, Reader
+- data types: maybe support ResultSet, Date, Time, Timestamp
+- data types: maybe support boolean[], short[],...
 - store file "header" at the end of each chunk; at the end of the file
 - is there a better name for the file header,
 -- if it's no longer always at the beginning of a file?
@@ -122,7 +123,6 @@ public class MVStore {
     static final int BLOCK_SIZE = 4 * 1024;
 
     private final String fileName;
-    private final DataTypeFactory dataTypeFactory;
 
     private int pageSize = 6 * 1024;
 
@@ -186,14 +186,6 @@ public class MVStore {
 
     MVStore(HashMap<String, Object> config) {
         this.fileName = (String) config.get("fileName");
-        DataTypeFactory parent = new ObjectDataTypeFactory();
-        DataTypeFactory f = (DataTypeFactory) config.get("dataTypeFactory");
-        if (f == null) {
-            f = parent;
-        } else {
-            f.setParent(parent);
-        }
-        this.dataTypeFactory = f;
         this.readOnly = "r".equals(config.get("openMode"));
         this.compress = "1".equals(config.get("compress"));
         if (fileName != null) {
@@ -1428,16 +1420,6 @@ public class MVStore {
          */
         public Builder compressData() {
             return set("compress", "1");
-        }
-
-        /**
-         * Use the given data type factory.
-         *
-         * @param factory the data type factory
-         * @return this
-         */
-        public Builder with(DataTypeFactory factory) {
-            return set("dataTypeFactory", factory);
         }
 
         /**

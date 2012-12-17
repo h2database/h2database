@@ -18,7 +18,6 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.mvstore.type.ObjectDataTypeFactory;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -106,8 +105,7 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, String> map;
         s = new MVStore.Builder().
                 fileName(fileName).
-                compressData().
-                with(new ObjectDataTypeFactory()).open();
+                compressData().open();
         map = s.openMap("test");
         // add 10 MB of data
         for (int i = 0; i < 1024; i++) {
@@ -116,13 +114,12 @@ public class TestMVStore extends TestBase {
         s.store();
         s.close();
         int[] expectedReadsForCacheSize = {
-                3408, 2590, 1924, 1440, 1102, 956, 918
+                3412, 2590, 1924, 1440, 1102, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = new MVStore.Builder().
                     fileName(fileName).
-                    cacheSizeMB(1 + 3 * cacheSize).
-                    with(new ObjectDataTypeFactory()).open();
+                    cacheSizeMB(1 + 3 * cacheSize).open();
             map = s.openMap("test");
             for (int i = 0; i < 1024; i += 128) {
                 for (int j = 0; j < i; j++) {
@@ -351,8 +348,7 @@ public class TestMVStore extends TestBase {
     private void testIterateOldVersion() {
         MVStore s;
         Map<Integer, Integer> map;
-        s = new MVStore.Builder().
-                with(new ObjectDataTypeFactory()).open();
+        s = new MVStore.Builder().open();
         map = s.openMap("test");
         int len = 100;
         for (int i = 0; i < len; i++) {
@@ -377,16 +373,14 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s;
         Map<Object, Object> map;
-        s = new MVStore.Builder().fileName(fileName).
-                with(new ObjectDataTypeFactory()).open();
+        s = new MVStore.Builder().fileName(fileName).open();
         map = s.openMap("test");
         map.put(1,  "Hello");
         map.put("2", 200);
         map.put(new Object[1], new Object[]{1, "2"});
         s.store();
         s.close();
-        s = new MVStore.Builder().fileName(fileName).
-                with(new ObjectDataTypeFactory()).open();
+        s = new MVStore.Builder().fileName(fileName).open();
         map = s.openMap("test");
         assertEquals("Hello", map.get(1).toString());
         assertEquals(200, ((Integer) map.get("2")).intValue());
@@ -749,15 +743,15 @@ public class TestMVStore extends TestBase {
         assertFalse(m.containsKey("chunk.2"));
 
         String id = s.getMetaMap().get("name.data");
-        assertEquals("name:data,key:o,value:o", m.get("map." + id));
+        assertEquals("name:data", m.get("map." + id));
         assertTrue(m.containsKey("chunk.1"));
         assertEquals("Hello", data.put("1", "Hallo"));
         s.store();
-        assertEquals("name:data,key:o,value:o", m.get("map." + id));
+        assertEquals("name:data", m.get("map." + id));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
-        assertEquals("id:1,length:260,maxLength:288,maxLengthLive:0," +
-                "metaRoot:274877910924,pageCount:2," +
+        assertEquals("id:1,length:246,maxLength:224,maxLengthLive:0," +
+                "metaRoot:274877910922,pageCount:2," +
                 "start:8192,time:0,version:1", m.get("chunk.1"));
 
         assertTrue(m.containsKey("chunk.2"));
@@ -1130,8 +1124,7 @@ public class TestMVStore extends TestBase {
      */
     protected static MVStore openStore(String fileName) {
         MVStore store = new MVStore.Builder().
-                fileName(fileName).
-                with(new SampleTypeFactory()).open();
+                fileName(fileName).open();
         store.setPageSize(1000);
         return store;
     }

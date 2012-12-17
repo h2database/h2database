@@ -19,10 +19,6 @@ import org.h2.util.Utils;
  */
 public class ObjectDataType implements DataType {
 
-    // TODO maybe support InputStream, Reader
-    // TODO maybe support ResultSet, Date, Time, Timestamp
-    // TODO maybe support boolean[], short[],...
-
     /**
      * The type constants are also used as tag values.
      */
@@ -204,11 +200,6 @@ public class ObjectDataType implements DataType {
             last = newType(typeId);
         }
         return last.read(buff, tag);
-    }
-
-    @Override
-    public String asString() {
-        return "o";
     }
 
     private static int getTypeId(Object obj) {
@@ -398,11 +389,6 @@ public class ObjectDataType implements DataType {
          * @return the read object
          */
         abstract Object read(ByteBuffer buff, int tag);
-
-        @Override
-        public String asString() {
-            return "o" + typeId;
-        }
 
     }
 

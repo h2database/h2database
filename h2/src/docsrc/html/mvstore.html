@@ -42,7 +42,7 @@ But it can be also directly within an application, without using JDBC or SQL.
 </li><li>Transaction are supported (currently only one transaction at a time).
 </li><li>Transactions (even if they are persisted) can be rolled back.
 </li><li>The tool is very modular. It supports pluggable data types / serialization,
-pluggable map implementations (B-tree and R-tree currently), BLOB storage,
+pluggable map implementations (B-tree, R-tree, concurrent B-tree currently), BLOB storage,
 and a file system abstraction to support encryption and compressed read-only files.
 </li></ul>
 
@@ -100,12 +100,12 @@ s.close();
 
 <h3>Store Builder</h3>
 <p>
-The <code>MVStoreBuilder</code> provides a fluid interface
+The <code>MVStore.Builder</code> provides a fluid interface
 to build a store if more complex configuration options are used.
 </p>
 <pre>
-MVStore s = MVStoreBuilder.
-    fileBased(fileName).
+MVStore s = new MVStore.Builder().
+    fileName(fileName).
     cacheSizeMB(10).
     readOnly().
     open();
@@ -120,12 +120,9 @@ that supports fast spatial queries.
 // create an in-memory store
 MVStore s = MVStore.open(null);
 
-// create an R-tree map
-// the key has 2 dimensions, the value is a string
-MVRTreeMap&lt;String&gt; r = MVRTreeMap.create(2, new ObjectType());
-
-// open the map
-r = s.openMap("data", r);
+// open an R-tree map
+MVRTreeMap<String> r = s.openMap("data",
+        new MVRTreeMap.Builder<String>());
 
 // add two key-value pairs
 // the first value is the key id (to make the key unique)
@@ -329,10 +326,6 @@ Then, the file can be copied (the file handle is available to the application).
 </p>
 
 <h3>Tools</h3>
-<p>
-There is a builder for store instances (<code>MVStoreBuilder</code>)
-with a fluent API to simplify building a store instance.
-</p>
 <p>
 There is a tool (<code>MVStoreTool</code>) to dump the contents of a file.
 </p>

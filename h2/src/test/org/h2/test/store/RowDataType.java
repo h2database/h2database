@@ -9,8 +9,6 @@ package org.h2.test.store;
 import java.nio.ByteBuffer;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.type.DataType;
-import org.h2.mvstore.type.DataTypeFactory;
-import org.h2.util.StringUtils;
 
 /**
  * A row type.
@@ -84,40 +82,6 @@ public class RowDataType implements DataType {
         for (int i = 0; i < len; i++) {
             types[i].write(buff, x[i]);
         }
-    }
-
-    public String asString() {
-        StringBuilder buff = new StringBuilder();
-        buff.append(PREFIX);
-        buff.append('(');
-        for (int i = 0; i < types.length; i++) {
-            if (i > 0) {
-                buff.append(',');
-            }
-            buff.append(types[i].asString());
-        }
-        buff.append(')');
-        return buff.toString();
-    }
-
-    /**
-     * Convert a row type to a row.
-     *
-     * @param t the type string
-     * @param factory the data type factory
-     * @return the row type
-     */
-    static RowDataType fromString(String t, DataTypeFactory factory) {
-        if (!t.startsWith(PREFIX) || !t.endsWith(")")) {
-            throw new RuntimeException("Unknown type: " + t);
-        }
-        t = t.substring(PREFIX.length(), t.length() - 1);
-        String[] array = StringUtils.arraySplit(t, ',', false);
-        DataType[] types = new DataType[array.length];
-        for (int i = 0; i < array.length; i++) {
-            types[i] = factory.buildDataType(array[i]);
-        }
-        return new RowDataType(types);
     }
 
 }

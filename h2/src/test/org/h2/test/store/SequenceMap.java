@@ -32,8 +32,8 @@ public class SequenceMap extends MVMap<Long, Long> {
         super(null, null);
     }
 
-    public void open(MVStore store, HashMap<String, String> config) {
-        super.open(store, config);
+    public void init(MVStore store, HashMap<String, String> config) {
+        super.init(store, config);
         setReadOnly(true);
     }
 

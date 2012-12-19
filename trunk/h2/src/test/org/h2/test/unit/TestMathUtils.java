@@ -10,6 +10,7 @@ import java.math.BigInteger;
 import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
+import org.h2.util.MathUtils;
 
 /**
  * Tests math utility methods.
@@ -26,8 +27,30 @@ public class TestMathUtils extends TestBase {
     }
 
     public void test() {
+        testRandom();
         testReverse();
         testFactorial();
+    }
+
+    private void testRandom() {
+        int bits = 0;
+        for (int i = 0; i < 1000; i++) {
+            bits |= 1 << MathUtils.randomInt(8);
+        }
+        assertEquals(255, bits);
+        bits = 0;
+        for (int i = 0; i < 1000; i++) {
+            bits |= 1 << MathUtils.secureRandomInt(8);
+        }
+        assertEquals(255, bits);
+        bits = 0;
+        for (int i = 0; i < 1000; i++) {
+            bits |= 1 << (MathUtils.secureRandomLong() & 7);
+        }
+        assertEquals(255, bits);
+        // just verify the method doesn't throw an exception
+        byte[] data = MathUtils.generateAlternativeSeed();
+        assertTrue(data.length > 10);
     }
 
     private void testReverse() {

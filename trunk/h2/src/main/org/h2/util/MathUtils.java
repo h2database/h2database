@@ -104,7 +104,7 @@ public class MathUtils {
         return cachedSecureRandom;
     }
 
-    private static byte[] generateAlternativeSeed() {
+    public static byte[] generateAlternativeSeed() {
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(bout);

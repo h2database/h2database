@@ -40,6 +40,7 @@ public class TestMVStore extends TestBase {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
+        testRecreateMap();
         testRenameMapRollback();
         testCustomMapType();
         testCacheSize();
@@ -70,6 +71,22 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+
+    private void testRecreateMap() {
+        String fileName = getBaseDir() + "/testRecreateMap.h3";
+        FileUtils.delete(fileName);
+        MVStore s = openStore(fileName);
+        MVMap<Integer, Integer> m = s.openMap("test");
+        m.put(1, 1);
+        s.store();
+        m.removeMap();
+        s.store();
+        s.close();
+        s = openStore(fileName);
+        m = s.openMap("test");
+        assertNull(m.get(1));
+        s.close();
     }
 
     private void testRenameMapRollback() {
@@ -546,6 +563,13 @@ public class TestMVStore extends TestBase {
         mOld = m.openVersion(old3);
         assertEquals("Hallo", mOld.get("1"));
         assertEquals("Welt", mOld.get("2"));
+
+        try {
+            m.openVersion(-3);
+            fail();
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
         s.close();
     }
 

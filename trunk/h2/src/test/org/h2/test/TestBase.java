@@ -31,7 +31,6 @@ import java.util.LinkedList;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
-import org.h2.mvstore.db.MVTableEngine;
 import org.h2.store.FileLock;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
@@ -266,8 +265,7 @@ public abstract class TestBase {
         } else {
             url = name;
         }
-        int test;
-        // url = addOption(url, "DEFAULT_TABLE_ENGINE", MVTableEngine.class.getName());
+        // url = addOption(url, "DEFAULT_TABLE_ENGINE", "org.h2.mvstore.db.MVTableEngine");
         if (!config.memory) {
             if (config.smallLog && admin) {
                 url = addOption(url, "MAX_LOG_SIZE", "1");

@@ -208,7 +208,8 @@ public class StreamStore {
                 map.remove(k2);
                 break;
             default:
-                throw DataUtils.illegalArgumentException("Unsupported id " + StringUtils.convertBytesToHex(id));
+                throw DataUtils.newIllegalArgumentException(
+                        "Unsupported id {0}", StringUtils.convertBytesToHex(id));
             }
         }
     }
@@ -239,7 +240,8 @@ public class StreamStore {
                 DataUtils.readVarLong(idBuffer);
                 break;
             default:
-                throw DataUtils.illegalArgumentException("Unsupported id " + StringUtils.convertBytesToHex(id));
+                throw DataUtils.newIllegalArgumentException(
+                        "Unsupported id {0}", StringUtils.convertBytesToHex(id));
             }
         }
         return length;
@@ -402,8 +404,8 @@ public class StreamStore {
                     return nextBuffer();
                 }
                 default:
-                    throw DataUtils.illegalArgumentException("Unsupported id " +
-                            StringUtils.convertBytesToHex(idBuffer.array()));
+                    throw DataUtils.newIllegalArgumentException(
+                            "Unsupported id {0}", StringUtils.convertBytesToHex(idBuffer.array()));
                 }
             }
             return null;

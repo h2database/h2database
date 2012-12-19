@@ -60,7 +60,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param store the store
      * @param config the configuration
      */
-    public void open(MVStore store, HashMap<String, String> config) {
+    protected void init(MVStore store, HashMap<String, String> config) {
         this.store = store;
         this.id = Integer.parseInt(config.get("id"));
         String x = config.get("createVersion");
@@ -861,7 +861,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     protected void checkOpen() {
         if (closed) {
-            throw DataUtils.illegalStateException("This map is closed");
+            throw DataUtils.newIllegalStateException("This map is closed");
         }
     }
 
@@ -873,7 +873,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     protected void checkWrite() {
         if (readOnly) {
             checkOpen();
-            throw DataUtils.unsupportedOperationException("This map is read-only");
+            throw DataUtils.newUnsupportedOperationException(
+                    "This map is read-only");
         }
     }
 
@@ -916,12 +917,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public MVMap<K, V> openVersion(long version) {
         if (readOnly) {
-            throw DataUtils.unsupportedOperationException(
+            throw DataUtils.newUnsupportedOperationException(
                     "This map is read-only - need to call the method on the writable map");
         }
-        if (version < createVersion) {
-            throw DataUtils.illegalArgumentException("Unknown version");
-        }
+        DataUtils.checkArgument(version >= createVersion,
+                "Unknown version {0}; this map was created in version is {1}",
+                version, createVersion);
         Page newest = null;
         // need to copy because it can change
         Page r = root;
@@ -956,7 +957,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         HashMap<String, String> config = New.hashMap();
         config.put("id", String.valueOf(id));
         config.put("createVersion", String.valueOf(createVersion));
-        m.open(store, config);
+        m.init(store, config);
         m.root = root;
         return m;
     }
@@ -1052,7 +1053,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
          *
          * @return the map
          */
-        public M create();
+        M create();
 
     }
 

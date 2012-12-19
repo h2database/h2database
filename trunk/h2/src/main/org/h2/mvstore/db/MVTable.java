@@ -365,30 +365,21 @@ public class MVTable extends TableBase {
         }
         Index index;
         // TODO support in-memory indexes
-      //  if (isPersistIndexes() && indexType.isPersistent()) {
-            int mainIndexColumn;
-            mainIndexColumn = getMainIndexColumn(indexType, cols);
-//            if (database.isStarting()) {
-//                mainIndexColumn = -1;
-//            } else if (!database.isStarting() && primaryIndex.getRowCount(session) != 0) {
-//                mainIndexColumn = -1;
-//            } else {
-//            }
-            if (!database.isStarting() && primaryIndex.getRowCount(session) != 0) {
-                mainIndexColumn = -1;
-            }
-            if (mainIndexColumn != -1) {
-                primaryIndex.setMainIndexColumn(mainIndexColumn);
-                index = new MVDelegateIndex(this, indexId,
-                        indexName, primaryIndex, indexType);
-            } else {
-                index = new MVSecondaryIndex(session.getDatabase(),
-                        this, indexId,
-                        indexName, cols, indexType);
-            }
-//        } else {
-//            index = new TreeIndex(this, indexId, indexName, cols, indexType);
-//        }
+        //  if (isPersistIndexes() && indexType.isPersistent()) {
+        int mainIndexColumn;
+        mainIndexColumn = getMainIndexColumn(indexType, cols);
+        if (!database.isStarting() && primaryIndex.getRowCount(session) != 0) {
+            mainIndexColumn = -1;
+        }
+        if (mainIndexColumn != -1) {
+            primaryIndex.setMainIndexColumn(mainIndexColumn);
+            index = new MVDelegateIndex(this, indexId,
+                    indexName, primaryIndex, indexType);
+        } else {
+            index = new MVSecondaryIndex(session.getDatabase(),
+                    this, indexId,
+                    indexName, cols, indexType);
+        }
         if (index.needRebuild() && rowCount > 0) {
             try {
                 Index scan = getScanIndex(session);
@@ -674,7 +665,7 @@ public class MVTable extends TableBase {
 
     private void storeIfRequired() {
         if (store.getUnsavedPageCount() > 1000) {
-            store.store();
+            MVTableEngine.store(store);
         }
     }
 
@@ -688,6 +679,10 @@ public class MVTable extends TableBase {
             rowIdColumn.setTable(this, -1);
         }
         return rowIdColumn;
+    }
+
+    public String toString() {
+        return getSQL();
     }
 
 }

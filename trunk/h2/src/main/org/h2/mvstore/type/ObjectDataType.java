@@ -139,7 +139,7 @@ public class ObjectDataType implements DataType {
         case TYPE_SERIALIZED_OBJECT:
             return new SerializedObjectType(this);
         }
-        throw DataUtils.illegalStateException("Unsupported type: " + typeId);
+        throw DataUtils.newIllegalStateException("Unsupported type {0}", typeId);
     }
 
     @Override
@@ -192,7 +192,7 @@ public class ObjectDataType implements DataType {
                 } else if (tag >= TAG_BYTE_ARRAY_0_15 && tag <= TAG_BYTE_ARRAY_0_15 + 15) {
                     typeId = TYPE_BYTE_ARRAY;
                 } else {
-                    throw DataUtils.illegalStateException("Unknown tag: " + tag);
+                    throw DataUtils.newIllegalStateException("Unknown tag {0}", tag);
                 }
             }
         }
@@ -241,7 +241,8 @@ public class ObjectDataType implements DataType {
             return TYPE_CHARACTER;
         }
         if (obj == null) {
-            throw DataUtils.illegalArgumentException("Null is not supported");
+            throw DataUtils.newIllegalArgumentException(
+                    "Null is not supported");
         }
         return TYPE_SERIALIZED_OBJECT;
     }
@@ -368,7 +369,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public final Object read(ByteBuffer buff) {
-            throw DataUtils.illegalStateException("Internal error");
+            throw DataUtils.newIllegalStateException("Internal error");
         }
 
         /**

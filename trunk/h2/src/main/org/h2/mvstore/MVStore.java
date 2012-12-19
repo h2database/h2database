@@ -41,8 +41,7 @@ H:3,...
 
 TODO:
 
-- improve exception factory (fluent api)
-- implement table engine for H2
+- update checkstyle
 - automated 'kill process' and 'power failure' test
 - maybe split database into multiple files, to speed up compact
 - auto-compact from time to time and on close
@@ -272,7 +271,7 @@ public class MVStore {
             String config = meta.get("map." + x);
             c = DataUtils.parseMap(config);
             c.put("id", x);
-            map.open(this, c);
+            map.init(this, c);
             String r = meta.get("root." + id);
             root = r == null ? 0 : Long.parseLong(r);
         } else {
@@ -281,9 +280,10 @@ public class MVStore {
             c.put("id", Integer.toString(id));
             c.put("createVersion", Long.toString(currentVersion));
             map = builder.create();
-            map.open(this, c);
+            map.init(this, c);
             meta.put("map." + id, map.asString(name));
             meta.put("name." + name, Integer.toString(id));
+            markMetaChanged();
             root = 0;
         }
         map.setRootPos(root, -1);
@@ -313,9 +313,7 @@ public class MVStore {
 
     private MVMap<String, String> getMetaMap(long version) {
         Chunk c = getChunkForVersion(version);
-        if (c == null) {
-            throw DataUtils.illegalArgumentException("Unknown version: " + version);
-        }
+        DataUtils.checkArgument(c != null, "Unknown version {}", version);
         c = readChunkHeader(c.start);
         MVMap<String, String> oldMeta = meta.openReadOnly();
         oldMeta.setRootPos(c.metaRootPos, version);
@@ -340,6 +338,7 @@ public class MVStore {
      */
     void removeMap(int id) {
         String name = getMapName(id);
+        markMetaChanged();
         meta.remove("map." + id);
         meta.remove("name." + name);
         meta.remove("root." + id);
@@ -356,6 +355,12 @@ public class MVStore {
         mapsChanged.put(map.getId(), map);
     }
 
+    private void markMetaChanged() {
+        // changes in the metadata alone are usually not detected, as the meta
+        // map is changed after storing
+        markChanged(meta);
+    }
+
     /**
      * Open the store.
      */
@@ -364,7 +369,7 @@ public class MVStore {
         HashMap<String, String> c = New.hashMap();
         c.put("id", "0");
         c.put("createVersion", Long.toString(currentVersion));
-        meta.open(this, c);
+        meta.init(this, c);
         if (fileName == null) {
             return;
         }
@@ -408,7 +413,8 @@ public class MVStore {
             } catch (Exception e2) {
                 // ignore
             }
-            throw DataUtils.illegalStateException("Could not open " + fileName, e);
+            throw DataUtils.newIllegalStateException(
+                    "Could not open file {0}", fileName, e);
         }
     }
 
@@ -479,7 +485,7 @@ public class MVStore {
             }
         }
         if (currentVersion < 0) {
-            throw DataUtils.illegalStateException("File header is corrupt");
+            throw DataUtils.newIllegalStateException("File header is corrupt");
         }
     }
 
@@ -493,9 +499,8 @@ public class MVStore {
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
         DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
         bytes = StringUtils.utf8Encode(buff.toString());
-        if (bytes.length > BLOCK_SIZE) {
-            throw DataUtils.illegalArgumentException("File header too large: " + buff);
-        }
+        DataUtils.checkArgument(bytes.length <= BLOCK_SIZE,
+                "File header too large: {}", buff);
         return bytes;
     }
 
@@ -534,7 +539,8 @@ public class MVStore {
                 maps.clear();
                 mapsChanged.clear();
             } catch (Exception e) {
-                throw DataUtils.illegalStateException("Closing failed for file " + fileName, e);
+                throw DataUtils.newIllegalStateException(
+                        "Closing failed for file {0}", fileName, e);
             } finally {
                 file = null;
             }
@@ -660,7 +666,7 @@ public class MVStore {
 
         if (ASSERT) {
             if (freedChunks.size() > 0) {
-                throw DataUtils.illegalStateException("Temporary freed chunks");
+                throw DataUtils.newIllegalStateException("Temporary freed chunks");
             }
         }
 
@@ -729,7 +735,8 @@ public class MVStore {
                 Chunk c = chunks.get(f.id);
                 c.maxLengthLive += f.maxLengthLive;
                 if (c.maxLengthLive < 0) {
-                    throw DataUtils.illegalStateException("Corrupt max length: " + c.maxLengthLive);
+                    throw DataUtils.newIllegalStateException(
+                            "Corrupt max length {0}", c.maxLengthLive);
                 }
             }
         }
@@ -757,7 +764,9 @@ public class MVStore {
         try {
             file.truncate(used);
         } catch (IOException e) {
-            throw DataUtils.illegalStateException("Could not truncate to size " + used, e);
+            throw DataUtils.newIllegalStateException(
+                    "Could not truncate file {0} to size {1}",
+                    fileName, used, e);
         }
         fileSize = used;
     }
@@ -921,9 +930,7 @@ public class MVStore {
         DataUtils.readFully(file, chunk.start, buff);
         Chunk.fromHeader(buff, chunk.start);
         int chunkLength = chunk.length;
-        // mark a change, even if it doesn't look like there was a change
-        // as changes in the metadata alone are not detected
-        markChanged(meta);
+        markMetaChanged();
         while (buff.position() < chunkLength) {
             int start = buff.position();
             int pageLength = buff.getInt();
@@ -978,7 +985,9 @@ public class MVStore {
         if (p == null) {
             Chunk c = getChunk(pos);
             if (c == null) {
-                throw DataUtils.illegalStateException("Chunk " + DataUtils.getPageChunkId(pos) + " not found");
+                throw DataUtils.newIllegalStateException(
+                        "Chunk {0} not found",
+                        DataUtils.getPageChunkId(pos));
             }
             long filePos = c.start;
             filePos += DataUtils.getPageOffset(pos);
@@ -1193,6 +1202,7 @@ public class MVStore {
      */
     public void setStoreVersion(int version) {
         checkOpen();
+        markMetaChanged();
         meta.put("setting.storeVersion", Integer.toString(version));
     }
 
@@ -1206,9 +1216,9 @@ public class MVStore {
      */
     public void rollbackTo(long version) {
         checkOpen();
-        if (!isKnownVersion(version)) {
-            throw DataUtils.illegalArgumentException("Unknown version: " + version);
-        }
+        DataUtils.checkArgument(
+                isKnownVersion(version),
+                "Unknown version {0}", version);
         for (MVMap<?, ?> m : mapsChanged.values()) {
             m.rollbackTo(version);
         }
@@ -1330,23 +1340,23 @@ public class MVStore {
 
     private void checkOpen() {
         if (closed) {
-            throw DataUtils.illegalStateException("This store is closed");
+            throw DataUtils.newIllegalStateException("This store is closed");
         }
     }
 
     void renameMap(MVMap<?, ?> map, String newName) {
         checkOpen();
-        if (map == meta) {
-            throw DataUtils.unsupportedOperationException("Renaming the meta map is not allowed");
-        }
+        DataUtils.checkArgument(map != meta,
+                "Renaming the meta map is not allowed");
         if (map.getName().equals(newName)) {
             return;
         }
-        if (meta.containsKey("name." + newName)) {
-            throw DataUtils.illegalArgumentException("A map named " + newName + " already exists");
-        }
+        DataUtils.checkArgument(
+                !meta.containsKey("name." + newName),
+                "A map named {0} already exists", newName);
         int id = map.getId();
         String oldName = getMapName(id);
+        markMetaChanged();
         meta.remove("map." + id);
         meta.remove("name." + oldName);
         meta.put("map." + id, map.asString(newName));
@@ -1366,9 +1376,6 @@ public class MVStore {
         private final HashMap<String, Object> config = New.hashMap();
 
         private Builder set(String key, Object value) {
-            if (config.containsKey(key)) {
-                throw DataUtils.illegalArgumentException("Parameter " + config.get(key) + " is already set");
-            }
             config.put(key, value);
             return this;
         }

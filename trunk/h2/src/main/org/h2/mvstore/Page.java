@@ -426,8 +426,8 @@ public class Page {
                 }
             }
             if (check != totalCount) {
-                throw DataUtils.illegalStateException("Expected: " + check + " got: "
-                        + totalCount);
+                throw DataUtils.newIllegalStateException(
+                        "Expected: {0} got: {1}", check, totalCount);
             }
         }
         return totalCount;
@@ -689,21 +689,24 @@ public class Page {
         int start = buff.position();
         int pageLength = buff.getInt();
         if (pageLength > maxLength) {
-            throw DataUtils.illegalStateException("File corrupted, expected length =< "
-                    + maxLength + " got " + pageLength);
+            throw DataUtils.newIllegalStateException(
+                    "File corrupted, expected length =< {0}, got {1}",
+                    maxLength, pageLength);
         }
         short check = buff.getShort();
         int mapId = DataUtils.readVarInt(buff);
         if (mapId != map.getId()) {
-            throw DataUtils.illegalStateException("File corrupted, expected map id "
-                    + map.getId() + " got " + mapId);
+            throw DataUtils.newIllegalStateException(
+                    "File corrupted, expected map id {0}, got {1}",
+                    map.getId(), mapId);
         }
         int checkTest = DataUtils.getCheckValue(chunkId)
                 ^ DataUtils.getCheckValue(offset)
                 ^ DataUtils.getCheckValue(pageLength);
         if (check != (short) checkTest) {
-            throw DataUtils.illegalStateException("File corrupted, expected check value "
-                    + checkTest + " got " + check);
+            throw DataUtils.newIllegalStateException(
+                    "File corrupted, expected check value {0}, got {1}",
+                    checkTest, check);
         }
         int len = DataUtils.readVarInt(buff);
         keys = new Object[len];
@@ -901,7 +904,7 @@ public class Page {
     public int getMemory() {
         if (MVStore.ASSERT) {
             if (memory != calculateMemory()) {
-                throw DataUtils.illegalStateException("Memory calculation error");
+                throw DataUtils.newIllegalStateException("Memory calculation error");
             }
         }
         return memory;

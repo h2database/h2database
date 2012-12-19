@@ -21,9 +21,9 @@ public class SpatialDataType implements DataType {
     private final int dimensions;
 
     public SpatialDataType(int dimensions) {
-        if (dimensions <= 0 || dimensions > 255) {
-            throw DataUtils.illegalArgumentException("Dimensions: " + dimensions);
-        }
+        DataUtils.checkArgument(
+                dimensions > 1 && dimensions < 256,
+                "Dimensions must be between 2 and 255, is {0}", dimensions);
         this.dimensions = dimensions;
     }
 

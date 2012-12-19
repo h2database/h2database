@@ -7,6 +7,7 @@
 package org.h2.mvstore.db;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.WeakHashMap;
 import org.h2.api.TableEngine;
@@ -37,8 +38,12 @@ public class MVTableEngine implements TableEngine {
                 return;
             }
             // TODO this stores uncommitted transactions as well
-            store.store.store();
+            store(store.store);
         }
+    }
+
+    public static Collection<Store> getStores() {
+        return STORES.values();
     }
 
     @Override
@@ -73,7 +78,7 @@ public class MVTableEngine implements TableEngine {
             if (store != null) {
                 store.openTables.remove(table);
                 if (store.openTables.size() == 0) {
-                    store.store.store();
+                    store(store.store);
                     store.store.close();
                     STORES.remove(storeName);
                 }
@@ -81,10 +86,15 @@ public class MVTableEngine implements TableEngine {
         }
     }
 
+    static void store(MVStore store) {
+        store.compact(50);
+        store.store();
+    }
+
     /**
      * A store with open tables.
      */
-    static class Store {
+    public static class Store {
 
         final Database db;
         final MVStore store;
@@ -93,6 +103,10 @@ public class MVTableEngine implements TableEngine {
         public Store(Database db, MVStore store) {
             this.db = db;
             this.store = store;
+        }
+
+        public MVStore getStore() {
+            return store;
         }
 
     }

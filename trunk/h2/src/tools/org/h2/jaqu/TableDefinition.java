@@ -269,7 +269,7 @@ class TableDefinition<T> {
     /**
      * Optionally truncates strings to the maximum length
      */
-    private Object getValue(Object obj, FieldDefinition field) {
+    private static Object getValue(Object obj, FieldDefinition field) {
         Object value = field.getValue(obj);
         if (field.trimString && field.maxLength > 0) {
             if (value instanceof String) {
@@ -499,7 +499,7 @@ class TableDefinition<T> {
      * @param index the index columns, separated by space
      * @return the column list
      */
-    private List<String> getColumns(String index) {
+    private static List<String> getColumns(String index) {
         List<String> cols = New.arrayList();
         if (index == null || index.length() == 0) {
             return null;

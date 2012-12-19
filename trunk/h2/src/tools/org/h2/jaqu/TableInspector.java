@@ -40,7 +40,8 @@ import static org.h2.jaqu.ValidationRemark.warn;
  */
 public class TableInspector {
 
-    private final static int todoReviewClass = 0;
+    private static final int todoReviewClass = 0;
+    private static final String EOL = "\n";
 
     private final String schema;
     private final String table;
@@ -49,7 +50,6 @@ public class TableInspector {
     private final List<String> primaryKeys = New.arrayList();
     private Map<String, IndexInspector> indexes;
     private Map<String, ColumnInspector> columns;
-    private static final String eol = "\n";
 
     TableInspector(String schema, String table, boolean forceUpperCase,
             Class<? extends java.util.Date> dateTimeClass) {
@@ -180,16 +180,16 @@ public class TableInspector {
         if (!StringUtils.isNullOrEmpty(packageName)) {
             // package
             model.append("package " + packageName + ";");
-            model.append(eol).append(eol);
+            model.append(EOL).append(EOL);
         }
 
         // imports
         List<String> sortedImports = new ArrayList<String>(imports);
         Collections.sort(sortedImports);
         for (String imp : sortedImports) {
-            model.append("import ").append(imp).append(';').append(eol);
+            model.append("import ").append(imp).append(';').append(EOL);
         }
-        model.append(eol);
+        model.append(EOL);
 
         // @JQSchema
         if (annotateSchema && !StringUtils.isNullOrEmpty(schema)) {
@@ -198,7 +198,7 @@ public class TableInspector {
             AnnotationBuilder ap = new AnnotationBuilder();
             ap.addParameter("name", schema);
             model.append(ap);
-            model.append(')').append(eol);
+            model.append(')').append(EOL);
         }
 
         // @JQTable
@@ -220,7 +220,7 @@ public class TableInspector {
 
         // finish @JQTable annotation
         model.append(ap);
-        model.append(')').append(eol);
+        model.append(')').append(EOL);
 
         // @JQIndex
         ap = new AnnotationBuilder();
@@ -232,20 +232,20 @@ public class TableInspector {
             model.append('@').append(JQIndex.class.getSimpleName());
             model.append('(');
             model.append(ap);
-            model.append(')').append(eol);
+            model.append(')').append(EOL);
         }
 
         // class declaration
         String clazzName = ModelUtils.convertTableToClassName(table);
-        model.append(MessageFormat.format("public class {0} '{'", clazzName)).append(eol);
-        model.append(eol);
+        model.append(MessageFormat.format("public class {0} '{'", clazzName)).append(EOL);
+        model.append(EOL);
 
         // field declarations
         model.append(fields);
 
         // default constructor
-        model.append("\t" + "public ").append(clazzName).append("() {").append(eol);
-        model.append("\t}").append(eol);
+        model.append("\t" + "public ").append(clazzName).append("() {").append(EOL);
+        model.append("\t}").append(EOL);
 
         // end of class body
         model.append('}');
@@ -348,7 +348,7 @@ public class TableInspector {
             }
             sb.append(ap.toString());
         }
-        sb.append(eol);
+        sb.append(EOL);
 
         // variable declaration
         sb.append("\t" + "public ");
@@ -356,7 +356,7 @@ public class TableInspector {
         sb.append(' ');
         sb.append(column);
         sb.append(';');
-        sb.append(eol).append(eol);
+        sb.append(EOL).append(EOL);
         return sb;
     }
 

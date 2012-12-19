@@ -48,7 +48,7 @@
         </module>
         <module name="NeedBraces"/>
         <module name="RightCurly"/>
-        <module name="DoubleCheckedLocking"/>
+        <module name="DoubleCheckedLocking">
             <property name="severity" value="ignore"/>
             <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
         </module>

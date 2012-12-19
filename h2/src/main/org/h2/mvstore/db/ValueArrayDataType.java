@@ -501,26 +501,6 @@ public class ValueArrayDataType implements DataType {
         }
     }
 
-//    private void writeStringWithoutLength(char[] chars, int len) {
-//        int p = pos;
-//        byte[] buff = data;
-//        for (int i = 0; i < len; i++) {
-//            int c = chars[i];
-//            if (c < 0x80) {
-//                buff[p++] = (byte) c;
-//            } else if (c >= 0x800) {
-//                buff[p++] = (byte) (0xe0 | (c >> 12));
-//                buff[p++] = (byte) (((c >> 6) & 0x3f));
-//                buff[p++] = (byte) (c & 0x3f);
-//            } else {
-//                buff[p++] = (byte) (0xc0 | (c >> 6));
-//                buff[p++] = (byte) (c & 0x3f);
-//            }
-//        }
-//        pos = p;
-//    }
-
-
     /**
      * Read a value.
      *

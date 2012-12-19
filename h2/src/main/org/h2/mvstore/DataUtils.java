@@ -11,11 +11,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import org.h2.engine.Constants;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * Utility methods
@@ -316,7 +318,9 @@ public class DataUtils {
             } while (dst.remaining() > 0);
             dst.rewind();
         } catch (IOException e) {
-            throw illegalStateException("Reading from " + file + "  failed; length " + dst.remaining() + " at " + pos, e);
+            throw newIllegalStateException(
+                    "Reading from {0} failed; length {1} at {2}",
+                    file, dst.remaining(), pos, e);
         }
     }
 
@@ -335,7 +339,9 @@ public class DataUtils {
                 off += len;
             } while (src.remaining() > 0);
         } catch (IOException e) {
-            throw illegalStateException("Writing to " + file + "  failed; length " + src.remaining() + " at " + pos, e);
+            throw newIllegalStateException(
+                    "Writing to {0} failed; length {1} at {2}",
+                    file, src.remaining(), pos, e);
         }
     }
 
@@ -553,27 +559,51 @@ public class DataUtils {
         return (s2 << 16) | s1;
     }
 
-    public static IllegalStateException illegalStateException(String message) {
-        return new IllegalStateException(message + version());
+    public static void checkArgument(boolean test, String message, Object... arguments) {
+        if (!test) {
+            throw newIllegalArgumentException(message, arguments);
+        }
     }
 
-    public static IllegalStateException illegalStateException(String message, Exception cause) {
-        return new IllegalStateException(message + version(), cause);
+    public static IllegalArgumentException newIllegalArgumentException(
+            String message, Object... arguments) {
+        return initCause(new IllegalArgumentException(
+                        formatMessage(message, arguments)), arguments);
     }
 
-    public static IllegalArgumentException illegalArgumentException(String message) {
-        return new IllegalArgumentException(message + version());
+    public static UnsupportedOperationException newUnsupportedOperationException(
+            String message) {
+        return new UnsupportedOperationException(message + getVersion());
     }
 
-    public static IllegalArgumentException illegalArgumentException(String message, Exception cause) {
-        return new IllegalArgumentException(message + version(), cause);
+    public static IllegalStateException newIllegalStateException(
+            String message, Object... arguments) {
+        return initCause(new IllegalStateException(
+                formatMessage(message, arguments)), arguments);
     }
 
-    public static UnsupportedOperationException unsupportedOperationException(String message) {
-        return new UnsupportedOperationException(message + version());
+    private static <T extends Exception> T initCause(T e, Object... arguments) {
+        int size = arguments.length;
+        if (size > 0) {
+            Object o = arguments[size - 1];
+            if (o instanceof Exception) {
+                e.initCause((Exception) o);
+            }
+        }
+        return e;
     }
 
-    private static String version() {
+    private static String formatMessage(String pattern, Object... arguments) {
+        for (int i = 0, size = arguments.length; i < size; i++) {
+            Object o = arguments[i];
+            String s = o == null ? "null" : o instanceof String ? StringUtils
+                    .quoteIdentifier(o.toString()) : o.toString();
+            arguments[i] = s;
+        }
+        return MessageFormat.format(pattern, arguments) + getVersion();
+    }
+
+    private static String getVersion() {
         return " [" + Constants.VERSION_MAJOR + "." +
                 Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "]";
     }

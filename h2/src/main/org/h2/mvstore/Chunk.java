@@ -89,7 +89,8 @@ public class Chunk {
      */
     static Chunk fromHeader(ByteBuffer buff, long start) {
         if (buff.get() != 'c') {
-            throw DataUtils.illegalStateException("File corrupt reading chunk at position " + start);
+            throw DataUtils.newIllegalStateException(
+                    "File corrupt reading chunk at position {0}", start);
         }
         int length = buff.getInt();
         int chunkId = buff.getInt();

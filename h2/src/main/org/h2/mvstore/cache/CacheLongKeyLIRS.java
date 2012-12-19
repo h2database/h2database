@@ -85,9 +85,9 @@ public class CacheLongKeyLIRS<V> {
     public CacheLongKeyLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
         setMaxMemory(maxMemory);
         setAverageMemory(averageMemory);
-        if (Integer.bitCount(segmentCount) != 1) {
-            throw DataUtils.illegalArgumentException("The segment count must be a power of 2, is " + segmentCount);
-        }
+        DataUtils.checkArgument(
+                Integer.bitCount(segmentCount) == 1,
+                "The segment count must be a power of 2, is {0}", segmentCount);
         this.segmentCount = segmentCount;
         this.segmentMask = segmentCount - 1;
         this.stackMoveDistance = stackMoveDistance;
@@ -252,9 +252,9 @@ public class CacheLongKeyLIRS<V> {
      * @param maxMemory the maximum size (1 or larger)
      */
     public void setMaxMemory(long maxMemory) {
-        if (maxMemory <= 0) {
-            throw DataUtils.illegalArgumentException("Max memory must be larger than 0");
-        }
+        DataUtils.checkArgument(
+                maxMemory > 0,
+                "Max memory must be larger than 0, is {0}", maxMemory);
         this.maxMemory = maxMemory;
         if (segments != null) {
             long max = 1 + maxMemory / segments.length;
@@ -271,9 +271,9 @@ public class CacheLongKeyLIRS<V> {
      * @param averageMemory the average memory used (1 or larger)
      */
     public void setAverageMemory(int averageMemory) {
-        if (averageMemory <= 0) {
-            throw DataUtils.illegalArgumentException("Average memory must be larger than 0");
-        }
+        DataUtils.checkArgument(
+                averageMemory > 0,
+                "Average memory must be larger than 0, is {0}", averageMemory);
         this.averageMemory = averageMemory;
         if (segments != null) {
             for (Segment<V> s : segments) {
@@ -687,7 +687,8 @@ public class CacheLongKeyLIRS<V> {
          */
         synchronized V put(long key, int hash, V value, int memory) {
             if (value == null) {
-                throw DataUtils.illegalArgumentException("The value may not be null");
+                throw DataUtils.newIllegalArgumentException(
+                        "The value may not be null");
             }
             V old;
             Entry<V> e = find(key, hash);
@@ -951,9 +952,6 @@ public class CacheLongKeyLIRS<V> {
          * @param maxMemory the maximum size (1 or larger)
          */
         void setMaxMemory(long maxMemory) {
-            if (maxMemory <= 0) {
-                throw DataUtils.illegalArgumentException("Max memory must be larger than 0");
-            }
             this.maxMemory = maxMemory;
         }
 
@@ -964,9 +962,6 @@ public class CacheLongKeyLIRS<V> {
          * @param averageMemory the average memory used (1 or larger)
          */
         void setAverageMemory(int averageMemory) {
-            if (averageMemory <= 0) {
-                throw DataUtils.illegalArgumentException("Average memory must be larger than 0");
-            }
             this.averageMemory = averageMemory;
         }
 

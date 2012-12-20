@@ -204,6 +204,14 @@ public class TestMVTableEngine extends TestBase {
             stat = conn.createStatement();
         }
         stat.execute("select * from test");
+
+        rs = stat.executeQuery("script");
+        int count = 0;
+        while (rs.next()) {
+            count++;
+        }
+        assertTrue(count < 10);
+
         stat.execute("drop table test");
         conn.close();
     }

@@ -38,10 +38,6 @@ public class MVDelegateIndex extends BaseIndex {
         // nothing to do
     }
 
-    public boolean canFindNext() {
-        return false;
-    }
-
     public boolean canGetFirstOrLast() {
         return true;
     }
@@ -60,10 +56,6 @@ public class MVDelegateIndex extends BaseIndex {
 
     public Cursor findFirstOrLast(Session session, boolean first) {
         return mainIndex.findFirstOrLast(session, first);
-    }
-
-    public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError();
     }
 
     public int getColumnIndex(Column col) {
@@ -87,8 +79,6 @@ public class MVDelegateIndex extends BaseIndex {
 
     public void remove(Session session) {
         mainIndex.setMainIndexColumn(-1);
-        // TODO remove map?
-        // session.getDatabase().getPageStore().removeMeta(this, session);
     }
 
     public void truncate(Session session) {

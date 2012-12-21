@@ -265,7 +265,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             return Integer.signum(getString().compareTo(v.getString()));
         }
         byte[] v2 = v.getBytesNoCopy();
-        return Utils.compareNotNull(getBytes(), v2);
+        return Utils.compareNotNullSigned(getBytes(), v2);
     }
 
     public Object getObject() {

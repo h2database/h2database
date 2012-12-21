@@ -124,7 +124,6 @@ class FileCrypt extends FileBase {
     static final int BLOCK_SIZE = Constants.FILE_BLOCK_SIZE;
 
     // TODO improve the header
-    // TODO store the number of empty blocks in the last block
     private static final byte[] HEADER = "-- H2 crypt --\n\0".getBytes();
     private static final int SALT_POS = HEADER.length;
     private static final int SALT_LENGTH = 16;

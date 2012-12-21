@@ -40,6 +40,7 @@ public class TestMVStore extends TestBase {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
+        testFileFormatChange();
         testRecreateMap();
         testRenameMapRollback();
         testCustomMapType();
@@ -71,6 +72,29 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+
+    private void testFileFormatChange() {
+        String fileName = getBaseDir() + "/testFileFormatChange.h3";
+        FileUtils.delete(fileName);
+        MVStore s;
+        MVMap<Integer, Integer> m;
+        s = openStore(fileName);
+        m = s.openMap("test");
+        m.put(1, 1);
+        Map<String, String> header = s.getFileHeader();
+        int format = Integer.parseInt(header.get("format"));
+        assertEquals(1, format);
+        header.put("format", Integer.toString(format + 1));
+        s.store();
+        s.close();
+        try {
+            openStore(fileName).close();
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getCause() != null);
+        }
+        FileUtils.delete(fileName);
     }
 
     private void testRecreateMap() {
@@ -168,6 +192,10 @@ public class TestMVStore extends TestBase {
         } catch (IllegalStateException e) {
             // expected
         }
+        assertFalse(s.isReadOnly());
+        s.close();
+        s = new MVStore.Builder().fileName(fileName).readOnly().open();
+        assertTrue(s.isReadOnly());
         s.close();
     }
 

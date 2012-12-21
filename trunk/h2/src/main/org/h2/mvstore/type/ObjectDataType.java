@@ -6,11 +6,15 @@
  */
 package org.h2.mvstore.type;
 
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.UUID;
 import org.h2.mvstore.DataUtils;
+import org.h2.util.New;
 import org.h2.util.Utils;
 
 /**
@@ -22,23 +26,22 @@ public class ObjectDataType implements DataType {
     /**
      * The type constants are also used as tag values.
      */
+    static final int TYPE_NULL = 0;
     static final int TYPE_BOOLEAN = 1;
     static final int TYPE_BYTE = 2;
     static final int TYPE_SHORT = 3;
-    static final int TYPE_INTEGER = 4;
+    static final int TYPE_INT = 4;
     static final int TYPE_LONG = 5;
     static final int TYPE_BIG_INTEGER = 6;
     static final int TYPE_FLOAT = 7;
     static final int TYPE_DOUBLE = 8;
     static final int TYPE_BIG_DECIMAL = 9;
-    static final int TYPE_CHARACTER = 10;
+    static final int TYPE_CHAR = 10;
     static final int TYPE_STRING = 11;
     static final int TYPE_UUID = 12;
-    static final int TYPE_BYTE_ARRAY = 13;
-    static final int TYPE_INT_ARRAY = 14;
-    static final int TYPE_LONG_ARRAY = 15;
-    static final int TYPE_CHAR_ARRAY = 16;
-    static final int TYPE_SERIALIZED_OBJECT = 17;
+    static final int TYPE_DATE = 13;
+    static final int TYPE_ARRAY = 14;
+    static final int TYPE_SERIALIZED_OBJECT = 19;
 
     /**
      * For very common values (e.g. 0 and 1) we save space by encoding the value
@@ -80,6 +83,15 @@ public class ObjectDataType implements DataType {
     static final long DOUBLE_ZERO_BITS = Double.doubleToLongBits(0.0d);
     static final long DOUBLE_ONE_BITS = Double.doubleToLongBits(1.0d);
 
+    static final Class<?>[] COMMON_CLASSES = { boolean.class, byte.class,
+            short.class, char.class, int.class, long.class, float.class,
+            double.class, Object.class, Boolean.class, Byte.class, Short.class,
+            Character.class, Integer.class, Long.class, BigInteger.class,
+            Float.class, Double.class, BigDecimal.class, String.class,
+            UUID.class, Date.class };
+
+    private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = New.hashMap();
+
     private AutoDetectDataType last = new StringType(this);
 
     @Override
@@ -104,15 +116,17 @@ public class ObjectDataType implements DataType {
 
     private AutoDetectDataType newType(int typeId) {
         switch (typeId) {
+        case TYPE_NULL:
+            return new NullType(this);
         case TYPE_BOOLEAN:
             return new BooleanType(this);
         case TYPE_BYTE:
             return new ByteType(this);
         case TYPE_SHORT:
             return new ShortType(this);
-        case TYPE_CHARACTER:
+        case TYPE_CHAR:
             return new CharacterType(this);
-        case TYPE_INTEGER:
+        case TYPE_INT:
             return new IntegerType(this);
         case TYPE_LONG:
             return new LongType(this);
@@ -124,18 +138,14 @@ public class ObjectDataType implements DataType {
             return new BigIntegerType(this);
         case TYPE_BIG_DECIMAL:
             return new BigDecimalType(this);
-        case TYPE_BYTE_ARRAY:
-            return new ByteArrayType(this);
-        case TYPE_CHAR_ARRAY:
-            return new CharArrayType(this);
-        case TYPE_INT_ARRAY:
-            return new IntArrayType(this);
-        case TYPE_LONG_ARRAY:
-            return new LongArrayType(this);
         case TYPE_STRING:
             return new StringType(this);
         case TYPE_UUID:
             return new UUIDType(this);
+        case TYPE_DATE:
+            return new DateType(this);
+        case TYPE_ARRAY:
+            return new ObjectArrayType(this);
         case TYPE_SERIALIZED_OBJECT:
             return new SerializedObjectType(this);
         }
@@ -155,7 +165,7 @@ public class ObjectDataType implements DataType {
                 break;
             case TAG_INTEGER_NEGATIVE:
             case TAG_INTEGER_FIXED:
-                typeId = TYPE_INTEGER;
+                typeId = TYPE_INT;
                 break;
             case TAG_LONG_NEGATIVE:
             case TAG_LONG_FIXED:
@@ -184,13 +194,13 @@ public class ObjectDataType implements DataType {
                 break;
             default:
                 if (tag >= TAG_INTEGER_0_15 && tag <= TAG_INTEGER_0_15 + 15) {
-                    typeId = TYPE_INTEGER;
+                    typeId = TYPE_INT;
                 } else if (tag >= TAG_STRING_0_15 && tag <= TAG_STRING_0_15 + 15) {
                     typeId = TYPE_STRING;
                 } else if (tag >= TAG_LONG_0_7 && tag <= TAG_LONG_0_7 + 7) {
                     typeId = TYPE_LONG;
                 } else if (tag >= TAG_BYTE_ARRAY_0_15 && tag <= TAG_BYTE_ARRAY_0_15 + 15) {
-                    typeId = TYPE_BYTE_ARRAY;
+                    typeId = TYPE_ARRAY;
                 } else {
                     throw DataUtils.newIllegalStateException("Unknown tag {0}", tag);
                 }
@@ -204,17 +214,11 @@ public class ObjectDataType implements DataType {
 
     private static int getTypeId(Object obj) {
         if (obj instanceof Integer) {
-            return TYPE_INTEGER;
+            return TYPE_INT;
         } else if (obj instanceof String) {
             return TYPE_STRING;
         } else if (obj instanceof Long) {
             return TYPE_LONG;
-        } else if (obj instanceof BigDecimal) {
-            if (obj.getClass() == BigDecimal.class) {
-                return TYPE_BIG_DECIMAL;
-            }
-        } else if (obj instanceof byte[]) {
-            return TYPE_BYTE_ARRAY;
         } else if (obj instanceof Double) {
             return TYPE_DOUBLE;
         } else if (obj instanceof Float) {
@@ -225,24 +229,20 @@ public class ObjectDataType implements DataType {
             return TYPE_UUID;
         } else if (obj instanceof Byte) {
             return TYPE_BYTE;
-        } else if (obj instanceof int[]) {
-            return TYPE_INT_ARRAY;
-        } else if (obj instanceof long[]) {
-            return TYPE_LONG_ARRAY;
-        } else if (obj instanceof char[]) {
-            return TYPE_CHAR_ARRAY;
         } else if (obj instanceof Short) {
             return TYPE_SHORT;
-        } else if (obj instanceof BigInteger) {
-            if (obj.getClass() == BigInteger.class) {
-                return TYPE_BIG_INTEGER;
-            }
         } else if (obj instanceof Character) {
-            return TYPE_CHARACTER;
-        }
-        if (obj == null) {
-            throw DataUtils.newIllegalArgumentException(
-                    "Null is not supported");
+            return TYPE_CHAR;
+        } else if (obj == null) {
+            return TYPE_NULL;
+        } else if (isDate(obj)) {
+            return TYPE_DATE;
+        } else if (isBigInteger(obj)) {
+            return TYPE_BIG_INTEGER;
+        } else if (isBigDecimal(obj)) {
+            return TYPE_BIG_DECIMAL;
+        } else if (obj.getClass().isArray()) {
+            return TYPE_ARRAY;
         }
         return TYPE_SERIALIZED_OBJECT;
     }
@@ -262,70 +262,31 @@ public class ObjectDataType implements DataType {
         return l;
     }
 
-    /**
-     * Compare the contents of two arrays.
-     *
-     * @param data1 the first array (must not be null)
-     * @param data2 the second array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNull(char[] data1, char[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            char x = data1[i];
-            char x2 = data2[i];
-            if (x != x2) {
-                return x > x2 ? 1 : -1;
-            }
-        }
-        return Integer.signum(data1.length - data2.length);
+    static boolean isBigInteger(Object obj) {
+        return obj instanceof BigInteger && obj.getClass() == BigInteger.class;
     }
 
-    /**
-     * Compare the contents of two arrays.
-     *
-     * @param data1 the first array (must not be null)
-     * @param data2 the second array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNull(int[] data1, int[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            int x = data1[i];
-            int x2 = data2[i];
-            if (x != x2) {
-                return x > x2 ? 1 : -1;
-            }
-        }
-        return Integer.signum(data1.length - data2.length);
+    static boolean isBigDecimal(Object obj) {
+        return obj instanceof BigDecimal && obj.getClass() == BigDecimal.class;
     }
 
-    /**
-     * Compare the contents of two arrays.
-     *
-     * @param data1 the first array (must not be null)
-     * @param data2 the second array (must not be null)
-     * @return the result of the comparison (-1, 1 or 0)
-     */
-    public static int compareNotNull(long[] data1, long[] data2) {
-        if (data1 == data2) {
-            return 0;
-        }
-        int len = Math.min(data1.length, data2.length);
-        for (int i = 0; i < len; i++) {
-            long x = data1[i];
-            long x2 = data2[i];
-            if (x != x2) {
-                return x > x2 ? 1 : -1;
+    static boolean isDate(Object obj) {
+        return obj instanceof Date && obj.getClass() == Date.class;
+    }
+
+    static boolean isArray(Object obj) {
+        return obj != null && obj.getClass().isArray();
+    }
+
+    static Integer getCommonClassId(Class<?> clazz) {
+        HashMap<Class<?>, Integer> map = COMMON_CLASSES_MAP;
+        if (map.size() == 0) {
+            // lazy initialization
+            for (int i = 0, size = COMMON_CLASSES.length; i < size; i++) {
+                COMMON_CLASSES_MAP.put(COMMON_CLASSES[i], i);
             }
         }
-        return Integer.signum(data1.length - data2.length);
+        return map.get(clazz);
     }
 
     /**
@@ -390,6 +351,53 @@ public class ObjectDataType implements DataType {
          * @return the read object
          */
         abstract Object read(ByteBuffer buff, int tag);
+
+    }
+
+    /**
+     * The type for the null value
+     */
+    class NullType extends AutoDetectDataType {
+
+        NullType(ObjectDataType base) {
+            super(base, TYPE_NULL);
+        }
+
+        @Override
+        public int compare(Object aObj, Object bObj) {
+            if (aObj == null && bObj == null) {
+                return 0;
+            } else if (aObj == null) {
+                return -1;
+            } else if (bObj == null) {
+                return 1;
+            }
+            return super.compare(aObj, bObj);
+        }
+
+        @Override
+        public int getMemory(Object obj) {
+            return obj == null ? 0 : super.getMemory(obj);
+        }
+
+        @Override
+        public int getMaxLength(Object obj) {
+            return obj == null ? 1 : super.getMaxLength(obj);
+        }
+
+        @Override
+        public void write(ByteBuffer buff, Object obj) {
+            if (obj == null) {
+                buff.put((byte) TYPE_NULL);
+            } else {
+                super.write(buff, obj);
+            }
+        }
+
+        @Override
+        public Object read(ByteBuffer buff, int tag) {
+            return null;
+        }
 
     }
 
@@ -490,7 +498,7 @@ public class ObjectDataType implements DataType {
     class CharacterType extends AutoDetectDataType {
 
         CharacterType(ObjectDataType base) {
-            super(base, TYPE_CHARACTER);
+            super(base, TYPE_CHAR);
         }
 
         @Override
@@ -516,7 +524,7 @@ public class ObjectDataType implements DataType {
         @Override
         public void write(ByteBuffer buff, Object obj) {
             if (obj instanceof Character) {
-                buff.put((byte) TYPE_CHARACTER);
+                buff.put((byte) TYPE_CHAR);
                 buff.putChar(((Character) obj).charValue());
             } else {
                 super.write(buff, obj);
@@ -582,7 +590,7 @@ public class ObjectDataType implements DataType {
     class IntegerType extends AutoDetectDataType {
 
         IntegerType(ObjectDataType base) {
-            super(base, TYPE_INTEGER);
+            super(base, TYPE_INT);
         }
 
         @Override
@@ -623,7 +631,7 @@ public class ObjectDataType implements DataType {
                 } else if (x <= 15) {
                     buff.put((byte) (TAG_INTEGER_0_15 + x));
                 } else if (x <= DataUtils.COMPRESSED_VAR_INT_MAX) {
-                    buff.put((byte) TYPE_INTEGER);
+                    buff.put((byte) TYPE_INT);
                     DataUtils.writeVarInt(buff, x);
                 } else {
                     buff.put((byte) TAG_INTEGER_FIXED);
@@ -637,7 +645,7 @@ public class ObjectDataType implements DataType {
         @Override
         public Object read(ByteBuffer buff, int tag) {
             switch (tag) {
-            case TYPE_INTEGER:
+            case TYPE_INT:
                 return DataUtils.readVarInt(buff);
             case TAG_INTEGER_NEGATIVE:
                 return -DataUtils.readVarInt(buff);
@@ -652,7 +660,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for long objects.
      */
-    public class LongType extends AutoDetectDataType {
+    class LongType extends AutoDetectDataType {
 
         LongType(ObjectDataType base) {
             super(base, TYPE_LONG);
@@ -873,7 +881,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof BigInteger && bObj instanceof BigInteger) {
+            if (isBigInteger(aObj) && isBigInteger(bObj)) {
                 BigInteger a = (BigInteger) aObj;
                 BigInteger b = (BigInteger) bObj;
                 return a.compareTo(b);
@@ -883,12 +891,12 @@ public class ObjectDataType implements DataType {
 
         @Override
         public int getMemory(Object obj) {
-            return obj instanceof BigInteger ? 100 : super.getMemory(obj);
+            return isBigInteger(obj) ? 100 : super.getMemory(obj);
         }
 
         @Override
         public int getMaxLength(Object obj) {
-            if (!(obj instanceof BigInteger)) {
+            if (!isBigInteger(obj)) {
                 return super.getMaxLength(obj);
             }
             BigInteger x = (BigInteger) obj;
@@ -905,7 +913,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public void write(ByteBuffer buff, Object obj) {
-            if (obj instanceof BigInteger) {
+            if (isBigInteger(obj)) {
                 BigInteger x = (BigInteger) obj;
                 if (BigInteger.ZERO.equals(x)) {
                     buff.put((byte) TAG_BIG_INTEGER_0);
@@ -957,7 +965,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof BigDecimal && bObj instanceof BigDecimal) {
+            if (isBigDecimal(aObj) && isBigDecimal(bObj)) {
                 BigDecimal a = (BigDecimal) aObj;
                 BigDecimal b = (BigDecimal) bObj;
                 return a.compareTo(b);
@@ -967,12 +975,12 @@ public class ObjectDataType implements DataType {
 
         @Override
         public int getMemory(Object obj) {
-            return obj instanceof BigDecimal ? 150 : super.getMemory(obj);
+            return isBigDecimal(obj) ? 150 : super.getMemory(obj);
         }
 
         @Override
         public int getMaxLength(Object obj) {
-            if (!(obj instanceof BigDecimal)) {
+            if (!isBigDecimal(obj)) {
                 return super.getMaxLength(obj);
             }
             BigDecimal x = (BigDecimal) obj;
@@ -996,7 +1004,7 @@ public class ObjectDataType implements DataType {
 
         @Override
         public void write(ByteBuffer buff, Object obj) {
-            if (obj instanceof BigDecimal) {
+            if (isBigDecimal(obj)) {
                 BigDecimal x = (BigDecimal) obj;
                 if (BigDecimal.ZERO.equals(x)) {
                     buff.put((byte) TAG_BIG_DECIMAL_0);
@@ -1166,249 +1174,324 @@ public class ObjectDataType implements DataType {
     }
 
     /**
-     * The type for byte arrays.
+     * The type for java.util.Date objects.
      */
-    class ByteArrayType extends AutoDetectDataType {
+    class DateType extends AutoDetectDataType {
 
-        ByteArrayType(ObjectDataType base) {
-            super(base, TYPE_BYTE_ARRAY);
+        DateType(ObjectDataType base) {
+            super(base, TYPE_DATE);
         }
 
         @Override
         public int getMemory(Object obj) {
-            if (!(obj instanceof byte[])) {
-                return super.getMemory(obj);
-            }
-            return 24 + ((byte[]) obj).length;
+            return isDate(obj) ? 40 : super.getMemory(obj);
         }
 
         @Override
         public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof byte[] && bObj instanceof byte[]) {
-                byte[] a = (byte[]) aObj;
-                byte[] b = (byte[]) bObj;
-                return Utils.compareNotNull(a, b);
+            if (isDate(aObj) && isDate(bObj)) {
+                Date a = (Date) aObj;
+                Date b = (Date) bObj;
+                return a.compareTo(b);
             }
             return super.compare(aObj, bObj);
         }
 
         @Override
         public int getMaxLength(Object obj) {
-            if (!(obj instanceof byte[])) {
+            if (!isDate(obj)) {
                 return super.getMaxLength(obj);
             }
-            return 1 + DataUtils.MAX_VAR_INT_LEN + ((byte[]) obj).length;
+            return 9;
         }
 
         @Override
         public void write(ByteBuffer buff, Object obj) {
-            if (obj instanceof byte[]) {
-                byte[] data = (byte[]) obj;
-                int len = data.length;
-                if (len <= 15) {
-                    buff.put((byte) (TAG_BYTE_ARRAY_0_15 + len));
-                } else {
-                    buff.put((byte) TYPE_BYTE_ARRAY);
-                    DataUtils.writeVarInt(buff,  data.length);
-                }
-                buff.put(data);
-            } else {
+            if (!isDate(obj)) {
                 super.write(buff, obj);
+                return;
+            }
+            buff.put((byte) TYPE_DATE);
+            Date a = (Date) obj;
+            buff.putLong(a.getTime());
+        }
+
+        @Override
+        public Object read(ByteBuffer buff, int tag) {
+            long a = buff.getLong();
+            return new Date(a);
+        }
+
+    }
+
+    /**
+     * The type for object arrays.
+     */
+    class ObjectArrayType extends AutoDetectDataType {
+
+        private final ObjectDataType elementType = new ObjectDataType();
+
+        ObjectArrayType(ObjectDataType base) {
+            super(base, TYPE_ARRAY);
+        }
+
+        @Override
+        public int getMemory(Object obj) {
+            if (!isArray(obj)) {
+                return super.getMemory(obj);
+            }
+            int size = 64;
+            Class<?> type = obj.getClass().getComponentType();
+            if (type.isPrimitive()) {
+                int len = Array.getLength(obj);
+                if (type == boolean.class) {
+                    size += len;
+                } else if (type == byte.class) {
+                    size += len;
+                } else if (type == char.class) {
+                    size += len * 2;
+                } else if (type == short.class) {
+                    size += len * 2;
+                } else if (type == int.class) {
+                    size += len * 4;
+                } else if (type == float.class) {
+                    size += len * 4;
+                } else if (type == double.class) {
+                    size += len * 8;
+                } else if (type == long.class) {
+                    size += len * 8;
+                }
+            } else {
+                for (Object x : (Object[]) obj) {
+                    if (x != null) {
+                        size += elementType.getMemory(x);
+                    }
+                }
+            }
+            return size;
+        }
+
+        @Override
+        public int compare(Object aObj, Object bObj) {
+            if (!isArray(aObj) || !isArray(bObj)) {
+                return super.compare(aObj, bObj);
+            }
+            if (aObj == bObj) {
+                return 0;
+            }
+            Class<?> type = aObj.getClass().getComponentType();
+            Class<?> bType = bObj.getClass().getComponentType();
+            if (type != bType) {
+                Integer classA = getCommonClassId(type);
+                Integer classB = getCommonClassId(bType);
+                if (classA != null) {
+                    if (classB != null) {
+                        return classA.compareTo(classB);
+                    }
+                    return -1;
+                } else if (classB != null) {
+                    return 1;
+                }
+                return type.getName().compareTo(bType.getName());
+            }
+            int aLen = Array.getLength(aObj);
+            int bLen = Array.getLength(bObj);
+            int len = Math.min(aLen, bLen);
+            if (type.isPrimitive()) {
+                if (type == byte.class) {
+                    byte[] a = (byte[]) aObj;
+                    byte[] b = (byte[]) bObj;
+                    return Utils.compareNotNull(a, b);
+                }
+                for (int i = 0; i < len; i++) {
+                    int x;
+                    if (type == boolean.class) {
+                        x = Integer.signum(
+                                (((boolean[]) aObj)[i] ? 1 : 0) -
+                                (((boolean[]) bObj)[i] ? 1 : 0));
+                    } else if (type == char.class) {
+                        x = Integer.signum(
+                                (((char[]) aObj)[i]) -
+                                (((char[]) bObj)[i]));
+                    } else if (type == short.class) {
+                        x = Integer.signum(
+                                (((short[]) aObj)[i]) -
+                                (((short[]) bObj)[i]));
+                    } else if (type == int.class) {
+                        int a = ((int[]) aObj)[i];
+                        int b = ((int[]) bObj)[i];
+                        x = a == b ? 0 : a < b ? -1 : 1;
+                    } else if (type == float.class) {
+                        x = Float.compare(
+                                ((float[]) aObj)[i],
+                                ((float[]) bObj)[i]);
+                    } else if (type == double.class) {
+                        x = Double.compare(
+                                ((double[]) aObj)[i],
+                                ((double[]) bObj)[i]);
+                    } else {
+                        long a = ((long[]) aObj)[i];
+                        long b = ((long[]) bObj)[i];
+                        x = a == b ? 0 : a < b ? -1 : 1;
+                    }
+                    if (x != 0) {
+                        return x;
+                    }
+                }
+            } else {
+                Object[] a = (Object[]) aObj;
+                Object[] b = (Object[]) bObj;
+                for (int i = 0; i < len; i++) {
+                    int comp = elementType.compare(a[i], b[i]);
+                    if (comp != 0) {
+                        return comp;
+                    }
+                }
+            }
+            return aLen == bLen ? 0 : aLen < bLen ? -1 : 1;
+        }
+
+        @Override
+        public int getMaxLength(Object obj) {
+            if (!isArray(obj)) {
+                return super.getMaxLength(obj);
+            }
+            int size = 1 + DataUtils.MAX_VAR_INT_LEN;
+            Class<?> componentType = obj.getClass().getComponentType();
+            if (componentType.isPrimitive()) {
+                size += getMemory(obj);
+            } else {
+                Object[] array = (Object[]) obj;
+                String ct = array.getClass().getComponentType().getName();
+                size += StringDataType.INSTANCE.getMaxLength(ct);
+                for (Object x : array) {
+                    size += elementType.getMaxLength(x);
+                }
+            }
+            return size;
+        }
+
+        @Override
+        public void write(ByteBuffer buff, Object obj) {
+            if (!isArray(obj)) {
+                super.write(buff, obj);
+            } else {
+                Class<?> type = obj.getClass().getComponentType();
+                Integer classId = getCommonClassId(type);
+                if (classId != null) {
+                    if (type.isPrimitive()) {
+                        if (type == byte.class) {
+                            byte[] data = (byte[]) obj;
+                            int len = data.length;
+                            if (len <= 15) {
+                                buff.put((byte) (TAG_BYTE_ARRAY_0_15 + len));
+                            } else {
+                                buff.put((byte) TYPE_ARRAY);
+                                buff.put((byte) classId.intValue());
+                                DataUtils.writeVarInt(buff,  len);
+                            }
+                            buff.put(data);
+                            return;
+                        }
+                        buff.put((byte) TYPE_ARRAY);
+                        buff.put((byte) classId.intValue());
+                        int len = Array.getLength(obj);
+                        DataUtils.writeVarInt(buff, len);
+                        for (int i = 0; i < len; i++) {
+                            if (type == boolean.class) {
+                                buff.put((byte) (((boolean[]) obj)[i] ? 1 : 0));
+                            } else if (type == char.class) {
+                                buff.putChar(((char[]) obj)[i]);
+                            } else if (type == short.class) {
+                                buff.putShort(((short[]) obj)[i]);
+                            } else if (type == int.class) {
+                                buff.putInt(((int[]) obj)[i]);
+                            } else if (type == float.class) {
+                                buff.putFloat(((float[]) obj)[i]);
+                            } else if (type == double.class) {
+                                buff.putDouble(((double[]) obj)[i]);
+                            } else {
+                                buff.putLong(((long[]) obj)[i]);
+                            }
+                        }
+                        return;
+                    }
+                    buff.put((byte) TYPE_ARRAY);
+                    buff.put((byte) classId.intValue());
+                } else {
+                    buff.put((byte) TYPE_ARRAY);
+                    buff.put((byte) -1);
+                    String c = type.getName();
+                    StringDataType.INSTANCE.write(buff, c);
+                }
+                Object[] array = (Object[]) obj;
+                int len = array.length;
+                DataUtils.writeVarInt(buff,  len);
+                for (Object x : array) {
+                    elementType.write(buff, x);
+                }
             }
         }
 
         @Override
         public Object read(ByteBuffer buff, int tag) {
-            byte[] data;
-            if (tag == TYPE_BYTE_ARRAY) {
-                int len = DataUtils.readVarInt(buff);
-                data = Utils.newBytes(len);
-            } else {
+            if (tag != TYPE_ARRAY) {
+                byte[] data;
                 int len = tag - TAG_BYTE_ARRAY_0_15;
                 data = Utils.newBytes(len);
+                buff.get(data);
+                return data;
             }
-            buff.get(data);
-            return data;
-        }
-
-    }
-
-    /**
-     * The type for char arrays.
-     */
-    class CharArrayType extends AutoDetectDataType {
-
-        CharArrayType(ObjectDataType base) {
-            super(base, TYPE_CHAR_ARRAY);
-        }
-
-        @Override
-        public int getMemory(Object obj) {
-            if (!(obj instanceof char[])) {
-                return super.getMemory(obj);
-            }
-            return 24 + 2 * ((char[]) obj).length;
-        }
-
-        @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof char[] && bObj instanceof char[]) {
-                char[] a = (char[]) aObj;
-                char[] b = (char[]) bObj;
-                return compareNotNull(a, b);
-            }
-            return super.compare(aObj, bObj);
-        }
-
-        @Override
-        public int getMaxLength(Object obj) {
-            if (!(obj instanceof char[])) {
-                return super.getMaxLength(obj);
-            }
-            return 1 + DataUtils.MAX_VAR_INT_LEN + 2 * ((char[]) obj).length;
-        }
-
-        @Override
-        public void write(ByteBuffer buff, Object obj) {
-            if (obj instanceof char[]) {
-                buff.put((byte) TYPE_CHAR_ARRAY);
-                char[] data = (char[]) obj;
-                int len = data.length;
-                DataUtils.writeVarInt(buff,  len);
-                buff.asCharBuffer().put(data);
-                buff.position(buff.position() + len + len);
+            int ct = buff.get();
+            Class<?> clazz;
+            Object obj;
+            if (ct == -1) {
+                String componentType = StringDataType.INSTANCE.read(buff);
+                try {
+                    clazz = Class.forName(componentType);
+                } catch (Exception e) {
+                    throw DataUtils.newIllegalStateException(
+                            "Could not get class {0}",
+                            componentType, e);
+                }
             } else {
-                super.write(buff, obj);
+                clazz = COMMON_CLASSES[ct];
             }
-        }
-
-        @Override
-        public Object read(ByteBuffer buff, int tag) {
             int len = DataUtils.readVarInt(buff);
-            char[] data = new char[len];
-            buff.asCharBuffer().get(data);
-            buff.position(buff.position() + len + len);
-            return data;
-        }
-
-    }
-
-    /**
-     * The type for char arrays.
-     */
-    class IntArrayType extends AutoDetectDataType {
-
-        IntArrayType(ObjectDataType base) {
-            super(base, TYPE_INT_ARRAY);
-        }
-
-        @Override
-        public int getMemory(Object obj) {
-            if (!(obj instanceof int[])) {
-                return super.getMemory(obj);
+            try {
+                obj = Array.newInstance(clazz, len);
+            } catch (Exception e) {
+                throw DataUtils.newIllegalStateException(
+                        "Could not create array of type {0} length {1}",
+                        clazz, len, e);
             }
-            return 24 + 4 * ((int[]) obj).length;
-        }
-
-        @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof int[] && bObj instanceof int[]) {
-                int[] a = (int[]) aObj;
-                int[] b = (int[]) bObj;
-                return compareNotNull(a, b);
-            }
-            return super.compare(aObj, bObj);
-        }
-
-        @Override
-        public int getMaxLength(Object obj) {
-            if (!(obj instanceof int[])) {
-                return super.getMaxLength(obj);
-            }
-            return 1 + DataUtils.MAX_VAR_INT_LEN + 4 * ((int[]) obj).length;
-        }
-
-        @Override
-        public void write(ByteBuffer buff, Object obj) {
-            if (obj instanceof int[]) {
-                buff.put((byte) TYPE_INT_ARRAY);
-                int[] data = (int[]) obj;
-                int len = data.length;
-                DataUtils.writeVarInt(buff,  len);
-                buff.asIntBuffer().put(data);
-                buff.position(buff.position() + 4 * len);
+            if (clazz.isPrimitive()) {
+                for (int i = 0; i < len; i++) {
+                    if (clazz == boolean.class) {
+                        ((boolean[]) obj)[i] = buff.get() == 1;
+                    } else if (clazz == byte.class) {
+                        ((byte[]) obj)[i] = buff.get();
+                    } else if (clazz == char.class) {
+                        ((char[]) obj)[i] = buff.getChar();
+                    } else if (clazz == short.class) {
+                        ((short[]) obj)[i] = buff.getShort();
+                    } else if (clazz == int.class) {
+                        ((int[]) obj)[i] = buff.getInt();
+                    } else if (clazz == float.class) {
+                        ((float[]) obj)[i] = buff.getFloat();
+                    } else if (clazz == double.class) {
+                        ((double[]) obj)[i] = buff.getDouble();
+                    } else {
+                        ((long[]) obj)[i] = buff.getLong();
+                    }
+                }
             } else {
-                super.write(buff, obj);
+                Object[] array = (Object[]) obj;
+                for (int i = 0; i < len; i++) {
+                    array[i] = elementType.read(buff);
+                }
             }
-        }
-
-        @Override
-        public Object read(ByteBuffer buff, int tag) {
-            int len = DataUtils.readVarInt(buff);
-            int[] data = new int[len];
-            buff.asIntBuffer().get(data);
-            buff.position(buff.position() + 4 * len);
-            return data;
-        }
-
-    }
-
-    /**
-     * The type for char arrays.
-     */
-    class LongArrayType extends AutoDetectDataType {
-
-        LongArrayType(ObjectDataType base) {
-            super(base, TYPE_LONG_ARRAY);
-        }
-
-        @Override
-        public int getMemory(Object obj) {
-            if (!(obj instanceof long[])) {
-                return super.getMemory(obj);
-            }
-            return 24 + 8 * ((long[]) obj).length;
-        }
-
-        @Override
-        public int compare(Object aObj, Object bObj) {
-            if (aObj instanceof long[] && bObj instanceof long[]) {
-                long[] a = (long[]) aObj;
-                long[] b = (long[]) bObj;
-                return compareNotNull(a, b);
-            }
-            return super.compare(aObj, bObj);
-        }
-
-        @Override
-        public int getMaxLength(Object obj) {
-            if (!(obj instanceof long[])) {
-                return super.getMaxLength(obj);
-            }
-            return 1 + DataUtils.MAX_VAR_INT_LEN + 8 * ((long[]) obj).length;
-        }
-
-        @Override
-        public void write(ByteBuffer buff, Object obj) {
-            if (obj instanceof long[]) {
-                buff.put((byte) TYPE_LONG_ARRAY);
-                long[] data = (long[]) obj;
-                int len = data.length;
-                DataUtils.writeVarInt(buff,  len);
-                buff.asLongBuffer().put(data);
-                buff.position(buff.position() + 8 * len);
-            } else {
-                super.write(buff, obj);
-            }
-        }
-
-        @Override
-        public Object read(ByteBuffer buff, int tag) {
-            int len = DataUtils.readVarInt(buff);
-            long[] data = new long[len];
-            buff.asLongBuffer().get(data);
-            buff.position(buff.position() + 8 * len);
-            return data;
+            return obj;
         }
 
     }

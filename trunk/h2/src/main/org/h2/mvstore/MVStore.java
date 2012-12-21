@@ -41,49 +41,43 @@ H:3,...
 
 TODO:
 
+- file system encryption: check standard
+
+- mvcc with multiple transactions
 - update checkstyle
 - automated 'kill process' and 'power failure' test
 - maybe split database into multiple files, to speed up compact
 - auto-compact from time to time and on close
 - test and possibly improve compact operation (for large dbs)
-- limited support for writing to old versions (branches)
-- on insert, if the child page is already full, don't load and modify it
--- split directly (for leaves with 1 entry)
 - performance test with encrypting file system
 - possibly split chunk data into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
-- write using ByteArrayOutputStream; remove DataType.getMaxLength
-- file header: check formatRead and format (is formatRead
--- needed if equal to format?)
+- remove DataType.getMaxLength (use ByteArrayOutputStream or getMemory)
 - chunk header: store changed chunk data as row; maybe after the root
 - chunk checksum (header, last page, 2 bytes per page?)
-- allow renaming maps
 - file locking: solve problem that locks are shared for a VM
-- online backup
-- data types: maybe support InputStream, Reader
-- data types: maybe support ResultSet, Date, Time, Timestamp
-- data types: maybe support boolean[], short[],...
 - store file "header" at the end of each chunk; at the end of the file
 - is there a better name for the file header,
 -- if it's no longer always at the beginning of a file?
+- on insert, if the child page is already full, don't load and modify it
+-- split directly (for leaves with 1 entry)
 - maybe let a chunk point to possible next chunks
 -- (so no fixed location header is needed)
 - support stores that span multiple files (chunks stored in other files)
 - triggers (can be implemented with a custom map)
-- store write operations per page (maybe defragment
+- store number of write operations per page (maybe defragment
 -- if much different than count)
 - r-tree: nearest neighbor search
 - use FileChannel by default (nio file system), but:
--- an interrupt close the FileChannel
+-- an interrupt closes the FileChannel
 - auto-save temporary data if it uses too much memory,
 -- but revert it on startup if needed.
-- map and chunk metadata: do not store default values
+- chunk metadata: do not store default values
 - support maps without values (just existence of the key)
 - support maps without keys (counted b-tree features)
 - use a small object cache (StringCache)
 - dump values
-- support Object[] and similar serialization by default
 - tool to import / manipulate CSV files (maybe concurrently)
 - map split / merge (fast if no overlap)
 - auto-save if there are too many changes (required for StreamStore)
@@ -97,10 +91,7 @@ TODO:
 - implement a shareded map (in one store, multiple stores)
 -- to support concurrent updates and writes, and very large maps
 - implement an off-heap file system
-- optimize API for Java 7 (diamond operator)
-- use new MVStore.Builder().open();
-- see Google Guice: Generic Type
-- JAXB (java xml binding) new TypeReference<String, String>(){}
+- remove change cursor, or add support for writing to branches
 
 */
 
@@ -119,6 +110,9 @@ public class MVStore {
      * written twice, one copy in each block, to ensure it survives a crash.
      */
     static final int BLOCK_SIZE = 4 * 1024;
+
+    private static final int FORMAT_WRITE = 1;
+    private static final int FORMAT_READ = 1;
 
     private final String fileName;
 
@@ -374,6 +368,23 @@ public class MVStore {
             return;
         }
         FileUtils.createDirectories(FileUtils.getParent(fileName));
+        if (readOnly) {
+            openFile();
+        } else if (!openFile()) {
+            readOnly = true;
+            openFile();
+        }
+    }
+
+    /**
+     * Try to open the file in read or write mode.
+     *
+     * @return if opening the file was successful, and false if the file could
+     *         not be opened in write mode because the write file format it too
+     *         high (in which case the file can be opened in read-only mode)
+     * @throw IllegalStateException if the file could not be opened at all
+     */
+    private boolean openFile() {
         try {
             log("file open");
             FilePath f = FilePath.get(fileName);
@@ -398,11 +409,24 @@ public class MVStore {
                 creationTime = getTime();
                 fileHeader.put("H", "3");
                 fileHeader.put("blockSize", "" + BLOCK_SIZE);
-                fileHeader.put("format", "1");
+                fileHeader.put("format", "" + FORMAT_WRITE);
                 fileHeader.put("creationTime", "" + creationTime);
                 writeFileHeader();
             } else {
                 readFileHeader();
+                int formatWrite = Integer.parseInt(fileHeader.get("format"));
+                String x = fileHeader.get("formatRead");
+                int formatRead = x == null ? formatWrite : Integer.parseInt(x);
+                if (formatRead > FORMAT_READ) {
+                    throw DataUtils.newIllegalStateException(
+                        "The file format {0} is larger than the supported format {1}",
+                        formatRead, FORMAT_READ);
+                }
+                if (formatWrite > FORMAT_WRITE) {
+                    readOnly = true;
+                    file.close();
+                    return false;
+                }
                 if (rootChunkStart > 0) {
                     readMeta();
                 }
@@ -416,6 +440,7 @@ public class MVStore {
             throw DataUtils.newIllegalStateException(
                     "Could not open file {0}", fileName, e);
         }
+        return true;
     }
 
     private void readMeta() {
@@ -1456,6 +1481,10 @@ public class MVStore {
             return builder;
         }
 
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
     }
 
 }

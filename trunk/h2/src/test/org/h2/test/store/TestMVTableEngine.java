@@ -33,10 +33,30 @@ public class TestMVTableEngine extends TestBase {
     }
 
     public void test() throws Exception {
+        testReadOnly();
         testReuseDiskSpace();
         testDataTypes();
         testLocking();
         testSimple();
+    }
+
+    private void testReadOnly() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        String dbName = "mvstore" +
+                ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
+        Connection conn;
+        Statement stat;
+        conn = getConnection(dbName);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        conn.close();
+        FileUtils.setReadOnly(getBaseDir() + "/mvstore.h2.db");
+        conn = getConnection(dbName);
+        for (MVTableEngine.Store s : MVTableEngine.getStores()) {
+            assertTrue(s.getStore().isReadOnly());
+        }
+        conn.close();
+        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testReuseDiskSpace() throws Exception {

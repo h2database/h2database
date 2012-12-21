@@ -596,9 +596,9 @@ public class DataUtils {
     private static String formatMessage(String pattern, Object... arguments) {
         for (int i = 0, size = arguments.length; i < size; i++) {
             Object o = arguments[i];
-            String s = o == null ? "null" : o instanceof String ? StringUtils
-                    .quoteIdentifier(o.toString()) : o.toString();
-            arguments[i] = s;
+            if (o instanceof String) {
+                arguments[i] = StringUtils.quoteIdentifier(o.toString());
+            }
         }
         return MessageFormat.format(pattern, arguments) + getVersion();
     }

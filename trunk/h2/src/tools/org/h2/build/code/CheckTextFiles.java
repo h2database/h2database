@@ -9,8 +9,7 @@ package org.h2.build.code;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.RandomAccessFile;
-
-import org.h2.util.Utils;
+import java.util.Arrays;
 
 /**
  * This tool checks that source code files only contain the allowed set of
@@ -239,7 +238,7 @@ public class CheckTextFiles {
         }
         if (fix) {
             byte[] changed = out.toByteArray();
-            if (Utils.compareNotNull(data, changed) != 0) {
+            if (!Arrays.equals(data, changed)) {
                 RandomAccessFile f = new RandomAccessFile(file, "rw");
                 f.write(changed);
                 f.setLength(changed.length);

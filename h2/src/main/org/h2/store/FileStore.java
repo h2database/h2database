@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Arrays;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -17,7 +18,6 @@ import org.h2.message.DbException;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.TempFileDeleter;
-import org.h2.util.Utils;
 
 /**
  * This class is an abstraction of a random access file.
@@ -193,7 +193,7 @@ public class FileStore {
             seek(0);
             byte[] buff = new byte[len];
             readFullyDirect(buff, 0, len);
-            if (Utils.compareNotNull(buff, magic) != 0) {
+            if (!Arrays.equals(buff, magic)) {
                 throw DbException.get(ErrorCode.FILE_VERSION_ERROR_1, name);
             }
             salt = new byte[len];
@@ -201,7 +201,7 @@ public class FileStore {
             initKey(salt);
             // read (maybe) encrypted
             readFully(buff, 0, Constants.FILE_BLOCK_SIZE);
-            if (Utils.compareNotNull(buff, magic) != 0) {
+            if (!Arrays.equals(buff, magic)) {
                 throw DbException.get(ErrorCode.FILE_ENCRYPTION_ERROR_1, name);
             }
         }

@@ -6,10 +6,10 @@
  */
 package org.h2.test.jdbcx;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.transaction.xa.Xid;
 import org.h2.util.MathUtils;
-import org.h2.util.Utils;
 
 /**
  * A simple Xid implementation.
@@ -62,8 +62,8 @@ public class SimpleXid implements Xid {
         if (other instanceof Xid) {
             Xid xid = (Xid) other;
             if (xid.getFormatId() == formatId) {
-                if (Utils.compareNotNull(branchQualifier, xid.getBranchQualifier()) == 0) {
-                    if (Utils.compareNotNull(globalTransactionId, xid.getGlobalTransactionId()) == 0) {
+                if (Arrays.equals(branchQualifier, xid.getBranchQualifier())) {
+                    if (Arrays.equals(globalTransactionId, xid.getGlobalTransactionId())) {
                         return true;
                     }
                 }

@@ -69,19 +69,34 @@ public class TestObjectDataType extends TestBase {
                 new UUID(Long.MIN_VALUE, Long.MIN_VALUE),
                 new UUID(Long.MIN_VALUE, 0), new UUID(0, 0),
                 new UUID(Long.MAX_VALUE, Long.MAX_VALUE),
+                new java.util.Date(0), new java.util.Date(1000),
+                new java.util.Date(4000), new java.util.Date(5000),
+                new boolean[0], new boolean[] { false, false },
+                new boolean[] { true },
                 new byte[0], new byte[1], new byte[15], new byte[16],
                 new byte[10000], new byte[] { (byte) 1 },
+                new byte[] { (byte) 0xff },
+                new short[0], new short[] { -1 }, new short[] { 1 },
+                new char[0], new char[1], new char[10000],
+                new char[] { (char) 1 },
                 new int[0], new int[1], new int[15], new int[16],
                 new int[10000], new int[] { (byte) 1 },
                 new long[0], new long[1], new long[15], new long[16],
                 new long[10000], new long[] { (byte) 1 },
-                new char[0], new char[1], new char[10000], new char[] { (char) 1 },
-                new java.util.Date(0), new java.util.Date(1000),
-                new Timestamp(2000), new Timestamp(3000),
-                new java.util.Date(4000), new java.util.Date(5000),
-                new Object[0], new Object[] { 1 },
+                new float[0], new float[]{Float.NEGATIVE_INFINITY},
+                new float[1], new float[]{Float.POSITIVE_INFINITY},
+                new double[0], new double[]{Double.NEGATIVE_INFINITY},
+                new double[1], new double[]{Double.POSITIVE_INFINITY},
+                new Object[0],
+                new Object[100],
+                new Object[] { 1 },
                 new Object[] { 0.0, "Hello", null, Double.NaN },
-                new Object[100]
+                new String[] { "Hello", null },
+                new String[] { "World" },
+                new java.sql.Date[] { },
+                new Timestamp[] { },
+                new Timestamp[] { null },
+                new Timestamp(2000), new Timestamp(3000),
             };
         Object otherType = false;
         Object last = null;
@@ -91,7 +106,8 @@ public class TestObjectDataType extends TestBase {
                 int comp = ot.compare(x, last);
                 if (comp <= 0) {
                     ot.compare(x, last);
-                    fail(x.getClass().getName() + ": " + x.toString() + " " + comp);
+                    fail(x.getClass().getSimpleName() + ": " +
+                            x.toString() + " " + comp);
                 }
                 assertTrue(x.toString(), ot.compare(last, x) < 0);
             }
@@ -133,6 +149,14 @@ public class TestObjectDataType extends TestBase {
         if (x.getClass().isArray()) {
             if (x instanceof byte[]) {
                 assertTrue(Arrays.equals((byte[]) x, (byte[]) y));
+            } else if (x instanceof boolean[]) {
+                assertTrue(Arrays.equals((boolean[]) x, (boolean[]) y));
+            } else if (x instanceof short[]) {
+                assertTrue(Arrays.equals((short[]) x, (short[]) y));
+            } else if (x instanceof float[]) {
+                assertTrue(Arrays.equals((float[]) x, (float[]) y));
+            } else if (x instanceof double[]) {
+                assertTrue(Arrays.equals((double[]) x, (double[]) y));
             } else if (x instanceof char[]) {
                 assertTrue(Arrays.equals((char[]) x, (char[]) y));
             } else if (x instanceof int[]) {

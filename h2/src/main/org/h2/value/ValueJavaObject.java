@@ -122,7 +122,7 @@ public class ValueJavaObject extends ValueBytes {
                     return 0;
                 }
 
-                return Utils.compareNotNull(getBytesNoCopy(), v.getBytesNoCopy());
+                return Utils.compareNotNullSigned(getBytesNoCopy(), v.getBytesNoCopy());
             }
 
             return h1 > h2 ? 1 : -1;

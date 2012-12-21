@@ -8,6 +8,7 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 import org.h2.constant.SysProperties;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -86,7 +87,7 @@ public class ValueBytes extends Value {
 
     protected int compareSecure(Value v, CompareMode mode) {
         byte[] v2 = ((ValueBytes) v).value;
-        return Utils.compareNotNull(value, v2);
+        return Utils.compareNotNullSigned(value, v2);
     }
 
     public String getString() {
@@ -121,7 +122,7 @@ public class ValueBytes extends Value {
     }
 
     public boolean equals(Object other) {
-        return other instanceof ValueBytes && Utils.compareNotNull(value, ((ValueBytes) other).value) == 0;
+        return other instanceof ValueBytes && Arrays.equals(value, ((ValueBytes) other).value);
     }
 
     public Value convertPrecision(long precision, boolean force) {

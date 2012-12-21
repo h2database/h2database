@@ -9,12 +9,12 @@ package org.h2.test.unit;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * Tests various security primitives.
@@ -142,7 +142,7 @@ public class TestSecurity extends TestBase {
         byte[] enc = new byte[128];
         test.encrypt(enc, 0, 128);
         test.decrypt(enc, 0, 128);
-        if (Utils.compareNotNull(in, enc) != 0) {
+        if (!Arrays.equals(in, enc)) {
             throw new AssertionError();
         }
 

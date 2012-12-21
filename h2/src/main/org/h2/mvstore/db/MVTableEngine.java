@@ -59,6 +59,9 @@ public class MVTableEngine implements TableEngine {
                 store = STORES.get(storeName);
                 if (store == null) {
                     builder.fileName(storeName + Constants.SUFFIX_MV_FILE);
+                    if (db.isReadOnly()) {
+                        builder.readOnly();
+                    }
                     store = new Store(db, builder.open());
                     STORES.put(storeName, store);
                 } else if (store.db != db) {

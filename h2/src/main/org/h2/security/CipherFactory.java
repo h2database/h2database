@@ -21,6 +21,7 @@ import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Properties;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
@@ -33,7 +34,6 @@ import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * A factory to create new block cipher objects.
@@ -231,7 +231,7 @@ public class CipherFactory {
                 // don't need to overwrite the file if it did not change
                 InputStream fin = FileUtils.newInputStream(fileName);
                 byte[] now = IOUtils.readBytesAndClose(fin, 0);
-                if (now != null && Utils.compareNotNull(data, now) == 0) {
+                if (now != null && Arrays.equals(data, now)) {
                     needWrite = false;
                 }
             }

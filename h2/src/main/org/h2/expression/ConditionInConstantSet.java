@@ -53,13 +53,23 @@ public class ConditionInConstantSet extends Condition {
         if (leftVal == ValueNull.INSTANCE) {
             return leftVal;
         }
-        boolean setHasNull = valueSet.contains(ValueNull.INSTANCE);
-        Value firstRightVal = valueSet.iterator().next();
-        leftVal = leftVal.convertTo(firstRightVal.getType());
+        Value firstRightValue = null;
+        for (Value v : valueSet) {
+            if (v != ValueNull.INSTANCE) {
+                firstRightValue = v;
+                break;
+            }
+        }
+        if (firstRightValue == null) {
+            throw DbException.throwInternalError();
+        }
+        leftVal = leftVal.convertTo(firstRightValue.getType());
         boolean result = valueSet.contains(leftVal);
-
-        if (!result && setHasNull) {
-            return ValueNull.INSTANCE;
+        if (!result) {
+            boolean setHasNull = valueSet.contains(ValueNull.INSTANCE);
+            if (setHasNull) {
+                return ValueNull.INSTANCE;
+            }
         }
         return ValueBoolean.get(result);
     }

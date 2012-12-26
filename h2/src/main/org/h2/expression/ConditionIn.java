@@ -81,11 +81,15 @@ public class ConditionIn extends Condition {
         }
         boolean allValuesConstant = true;
         boolean allValuesSameType = true;
+        boolean allValuesNull = true;
         int size = valueList.size();
         Expression lastExpr = null;
         for (int i = 0; i < size; i++) {
             Expression e = valueList.get(i);
             e = e.optimize(session);
+            if (e.isConstant() && e.getValue(session) != ValueNull.INSTANCE) {
+                allValuesNull = false;
+            }
             if (allValuesConstant && !e.isConstant()) {
                 allValuesConstant = false;
             }
@@ -104,7 +108,7 @@ public class ConditionIn extends Condition {
             expr = expr.optimize(session);
             return expr;
         }
-        if (allValuesConstant && allValuesSameType) {
+        if (allValuesConstant && allValuesSameType && !allValuesNull) {
             Expression expr = new ConditionInConstantSet(session, left, valueList);
             expr = expr.optimize(session);
             return expr;

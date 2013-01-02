@@ -40,6 +40,7 @@ public class TestMVStore extends TestBase {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
+        testEncryptedFile();
         testFileFormatChange();
         testRecreateMap();
         testRenameMapRollback();
@@ -72,6 +73,54 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+
+    private void testEncryptedFile() {
+        String fileName = getBaseDir() + "/testEncryptedFile.h3";
+        FileUtils.delete(fileName);
+        MVStore s;
+        MVMap<Integer, String> m;
+
+        char[] passwordChars = "007".toCharArray();
+        s = new MVStore.Builder().
+                fileName(fileName).
+                encryptionKey(passwordChars).
+                open();
+        assertEquals(0, passwordChars[0]);
+        assertEquals(0, passwordChars[1]);
+        assertEquals(0, passwordChars[2]);
+        assertTrue(FileUtils.exists(fileName));
+        m = s.openMap("test");
+        m.put(1, "Hello");
+        assertEquals("Hello", m.get(1));
+        s.store();
+        s.close();
+
+        passwordChars = "008".toCharArray();
+        try {
+            s = new MVStore.Builder().
+                    fileName(fileName).
+                    encryptionKey(passwordChars).open();
+            fail();
+        } catch (IllegalStateException e) {
+            assertTrue(e.getCause() != null);
+        }
+        assertEquals(0, passwordChars[0]);
+        assertEquals(0, passwordChars[1]);
+        assertEquals(0, passwordChars[2]);
+
+        passwordChars = "007".toCharArray();
+        s = new MVStore.Builder().
+                fileName(fileName).
+                encryptionKey(passwordChars).open();
+        assertEquals(0, passwordChars[0]);
+        assertEquals(0, passwordChars[1]);
+        assertEquals(0, passwordChars[2]);
+        m = s.openMap("test");
+        assertEquals("Hello", m.get(1));
+        s.close();
+        FileUtils.delete(fileName);
+        assertFalse(FileUtils.exists(fileName));
     }
 
     private void testFileFormatChange() {

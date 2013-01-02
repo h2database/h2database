@@ -43,7 +43,7 @@ But it can be also directly within an application, without using JDBC or SQL.
 </li><li>Transactions (even if they are persisted) can be rolled back.
 </li><li>The tool is very modular. It supports pluggable data types / serialization,
 pluggable map implementations (B-tree, R-tree, concurrent B-tree currently), BLOB storage,
-and a file system abstraction to support encryption and compressed read-only files.
+and a file system abstraction to support encryption and zip files.
 </li></ul>
 
 <h2 id="example_code">Example Code</h2>
@@ -323,6 +323,29 @@ even during write operations (online backup).
 To do that, automatic disk space reuse needs to be first disabled, so that
 new data is always appended at the end of the file.
 Then, the file can be copied (the file handle is available to the application).
+</p>
+
+<h3>Encrypted Files</h3>
+<p>
+Data can be encrypted as follows:
+</p>
+<pre>
+MVStore s = new MVStore.Builder().
+    fileName(fileName).
+    encryptionKey("007".toCharArray()).
+    open();
+</pre>
+<p>
+The same security algorithms are used as modern disk encryption software use.
+The password char array is cleared after use, 
+to reduce the risk that the password is stolen
+even if the attacker has access to the main memory.
+The password is hashed using the PBKDF2 standard, using the SHA-256 hash algorithm.
+The length of the salt is 256 bits, so that an attacker can not use a rainbow table.
+The salt is generated using a cryptographically secure random number generator.
+The number of PBKDF2 iterations is 10000, so that an attacker can not "brute force" the password.
+The file itself is encrypted using the standardized disk encryption mode XTS-AES,
+so that only little more than one AES-128 round per block is needed.
 </p>
 
 <h3>Tools</h3>

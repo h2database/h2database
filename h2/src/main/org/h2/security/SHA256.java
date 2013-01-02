@@ -77,6 +77,54 @@ public class SHA256 {
         return getHash(buff, true);
     }
 
+    public static byte[] getHMAC(byte[] key, byte[] message) {
+        int blockSize = 64;
+        if (key.length > blockSize) {
+            key = getHash(key, false);
+        }
+        if (key.length < blockSize) {
+            key = Arrays.copyOf(key, blockSize);
+        }
+        byte[] iKeyPadMessage = new byte[blockSize + message.length];
+        Arrays.fill(iKeyPadMessage, 0, blockSize, (byte) 0x36);
+        xor(iKeyPadMessage, key, blockSize);
+        System.arraycopy(message, 0, iKeyPadMessage, blockSize, message.length);
+        byte[] k = getHash(iKeyPadMessage, false);
+        byte[] oKeyPad = new byte[blockSize + k.length];
+        Arrays.fill(oKeyPad, 0, blockSize, (byte) 0x5c);
+        xor(oKeyPad, key, blockSize);
+        System.arraycopy(k, 0, oKeyPad, blockSize, k.length);
+        return getHash(oKeyPad, false);
+    }
+
+    private static void xor(byte[] target, byte[] data, int len) {
+        for (int i = 0; i < len; i++) {
+            target[i] ^= data[i];
+        }
+    }
+
+    public static byte[] getPBKDF2(byte[] password, byte[] salt, int iterations, int len) {
+        byte[] result = new byte[len];
+        byte[] last = null;
+        for (int k = 1, offset = 0; offset < len; k++, offset += 32) {
+            for (int i = 0; i < iterations; i++) {
+                byte[] x;
+                if (i == 0) {
+                    x = Arrays.copyOf(salt, salt.length + 4);
+                    writeInt(x, salt.length, k);
+                } else {
+                    x = last;
+                }
+                last = getHMAC(password, x);
+                for (int j = 0; j < 32 && j + offset < len; j++) {
+                    result[j + offset] ^= last[j];
+                }
+            }
+        }
+        Arrays.fill(password, (byte) 0);
+        return result;
+    }
+
     /**
      * Calculate the hash code for the given data.
      *

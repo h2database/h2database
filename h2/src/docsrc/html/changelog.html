@@ -33,6 +33,8 @@ Change Log
 </li><li>New connection setting "DEFAULT_TABLE_ENGINE" to use a specific
     table engine if none is set explicitly. This is to simplify testing 
     the MVStore table engine.
+</li><li>MVStore: encrypted stores are now supported.
+    Only standardized algorithms are used: PBKDF2, SHA-256, XTS-AES, AES-128. 
 </li><li>MVStore: improved API thanks to Simo Tripodi.
 </li><li>MVStore: maps can now be renamed.
 </li><li>MVStore: store the file header also at the end of each chunk,

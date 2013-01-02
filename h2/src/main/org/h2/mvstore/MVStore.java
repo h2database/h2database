@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,6 +24,7 @@ import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathCrypt2;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -41,8 +43,7 @@ H:3,...
 
 TODO:
 
-- file system encryption: check standard
-
+- file system encryption
 - mvcc with multiple transactions
 - update checkstyle
 - automated 'kill process' and 'power failure' test
@@ -115,6 +116,7 @@ public class MVStore {
     private static final int FORMAT_READ = 1;
 
     private final String fileName;
+    private final char[] filePassword;
 
     private int pageSize = 6 * 1024;
 
@@ -185,8 +187,10 @@ public class MVStore {
             int mb = s == null ? 16 : Integer.parseInt(s.toString());
             cache = new CacheLongKeyLIRS<Page>(
                     mb * 1024 * 1024, 2048, 16, mb * 1024 * 1024 / 2048 * 2 / 100);
+            filePassword = (char[]) config.get("encrypt");
         } else {
             cache = null;
+            filePassword = null;
         }
     }
 
@@ -368,11 +372,17 @@ public class MVStore {
             return;
         }
         FileUtils.createDirectories(FileUtils.getParent(fileName));
-        if (readOnly) {
-            openFile();
-        } else if (!openFile()) {
-            readOnly = true;
-            openFile();
+        try {
+            if (readOnly) {
+                openFile();
+            } else if (!openFile()) {
+                readOnly = true;
+                openFile();
+            }
+        } finally {
+            if (filePassword != null) {
+                Arrays.fill(filePassword, (char) 0);
+            }
         }
     }
 
@@ -391,7 +401,12 @@ public class MVStore {
             if (f.exists() && !f.canWrite()) {
                 readOnly = true;
             }
-            file = FilePathCache.wrap(f.open(readOnly ? "r" : "rw"));
+            file = f.open(readOnly ? "r" : "rw");
+            if (filePassword != null) {
+                byte[] password = DataUtils.getPasswordBytes(filePassword);
+                file = new FilePathCrypt2.FileCrypt2(password, file);
+            }
+            file = FilePathCache.wrap(file);
             if (readOnly) {
                 fileLock = file.tryLock(0, Long.MAX_VALUE, true);
                 if (fileLock == null) {
@@ -433,7 +448,7 @@ public class MVStore {
             }
         } catch (Exception e) {
             try {
-                close();
+                close(false);
             } catch (Exception e2) {
                 // ignore
             }
@@ -442,6 +457,7 @@ public class MVStore {
         }
         return true;
     }
+
 
     private void readMeta() {
         Chunk header = readChunkHeader(rootChunkStart);
@@ -545,10 +561,16 @@ public class MVStore {
      * Close the file. Uncommitted changes are ignored, and all open maps are closed.
      */
     public void close() {
+        close(true);
+    }
+
+    private void close(boolean shrinkIfPossible) {
         closed = true;
         if (file != null) {
             try {
-                shrinkFileIfPossible(0);
+                if (shrinkIfPossible) {
+                    shrinkFileIfPossible(0);
+                }
                 log("file close");
                 if (fileLock != null) {
                     fileLock.release();
@@ -1414,6 +1436,21 @@ public class MVStore {
          */
         public Builder fileName(String fileName) {
             return set("fileName", fileName);
+        }
+
+        /**
+         * Encrypt / decrypt the file using the given password. This method has
+         * no effect for in-memory stores. The password is passed as a char
+         * array so that it can be cleared as soon as possible. Please note
+         * there is still a small risk that password stays in memory (due to
+         * Java garbage collection). Also, the hashed encryption key is kept in
+         * memory as long as the file is open.
+         *
+         * @param password the password
+         * @return this
+         */
+        public Builder encryptionKey(char[] password) {
+            return set("encrypt", password);
         }
 
         /**

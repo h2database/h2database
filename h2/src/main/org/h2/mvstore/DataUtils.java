@@ -512,6 +512,7 @@ public class DataUtils {
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
             i = s.indexOf(':', i);
+            checkArgument(i > 0, "Not a map");
             String key = s.substring(startKey, i++);
             StringBuilder buff = new StringBuilder();
             while (i < size) {
@@ -606,6 +607,18 @@ public class DataUtils {
     private static String getVersion() {
         return " [" + Constants.VERSION_MAJOR + "." +
                 Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "]";
+    }
+
+    static byte[] getPasswordBytes(char[] passwordChars) {
+        // using UTF-16
+        int len = passwordChars.length;
+        byte[] password = new byte[len * 2];
+        for (int i = 0; i < len; i++) {
+            char c = passwordChars[i];
+            password[i + i] = (byte) (c >>> 8);
+            password[i + i + 1] = (byte) c;
+        }
+        return password;
     }
 
 }

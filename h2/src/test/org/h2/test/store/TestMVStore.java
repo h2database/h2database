@@ -507,7 +507,7 @@ public class TestMVStore extends TestBase {
 
         // more changes, in the new version
         // changes can be rolled back if required
-        // changes always go into 'head' (the newest version)
+        // changes always go into "head" (the newest version)
         map.put(1, "Hi");
         map.remove(2);
 
@@ -520,7 +520,7 @@ public class TestMVStore extends TestBase {
 
         // print the old version (can be done
         // concurrently with further modifications)
-        // this will print Hello World
+        // this will print "Hello" and "World":
         // System.out.println(oldMap.get(1));
         assertEquals("Hello", oldMap.get(1));
         // System.out.println(oldMap.get(2));

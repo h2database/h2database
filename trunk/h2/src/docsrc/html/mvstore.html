@@ -34,23 +34,23 @@ MVStore
 The MVStore is work in progress, and is planned to be the next storage subsystem of H2.
 But it can be also directly within an application, without using JDBC or SQL.
 </p>
-<ul><li>MVStore stands for multi-version store.
+<ul><li>MVStore stands for "multi-version store".
 </li><li>Each store contains a number of maps (using the <code>java.util.Map</code> interface).
-</li><li>Both file based persistence and in-memory operation are supported.
+</li><li>Both file-based persistence and in-memory operation are supported.
 </li><li>It is intended to be fast, simple to use, and small.
 </li><li>Old versions of the data can be read concurrently with all other operations.
 </li><li>Transaction are supported (currently only one transaction at a time).
 </li><li>Transactions (even if they are persisted) can be rolled back.
 </li><li>The tool is very modular. It supports pluggable data types / serialization,
 pluggable map implementations (B-tree, R-tree, concurrent B-tree currently), BLOB storage,
-and a file system abstraction to support encryption and zip files.
+and a file system abstraction to support encrypted files and zip files.
 </li></ul>
 
 <h2 id="example_code">Example Code</h2>
 <h3>Map Operations and Versioning</h3>
 <p>
 The following sample code show how to create a store,
-open a map, add some data, and access the current and an old version.
+open a map, add some data, and access the current and an old version:
 </p>
 <pre>
 import org.h2.mvstore.*;
@@ -73,7 +73,7 @@ s.incrementVersion();
 
 // more changes, in the new version
 // changes can be rolled back if required
-// changes always go into 'head' (the newest version)
+// changes always go into "head" (the newest version)
 map.put(1, "Hi");
 map.remove(2);
 
@@ -86,7 +86,7 @@ s.store();
 
 // print the old version (can be done
 // concurrently with further modifications)
-// this will print Hello World
+// this will print "Hello" and "World":
 System.out.println(oldMap.get(1));
 System.out.println(oldMap.get(2));
 oldMap.close();
@@ -101,11 +101,12 @@ s.close();
 <h3>Store Builder</h3>
 <p>
 The <code>MVStore.Builder</code> provides a fluid interface
-to build a store if more complex configuration options are used.
+to build a store if more complex configuration options are used:
 </p>
 <pre>
 MVStore s = new MVStore.Builder().
     fileName(fileName).
+    encryptionKey("007".toCharArray()).
     cacheSizeMB(10).
     readOnly().
     open();
@@ -114,7 +115,7 @@ MVStore s = new MVStore.Builder().
 <h3>R-Tree</h3>
 <p>
 The <code>MVRTreeMap</code> is an R-tree implementation
-that supports fast spatial queries.
+that supports fast spatial queries. It can be used as follows:
 </p>
 <pre>
 // create an in-memory store
@@ -327,6 +328,7 @@ Then, the file can be copied (the file handle is available to the application).
 
 <h3>Encrypted Files</h3>
 <p>
+File encryption ensures the data can only be read with the correct password.
 Data can be encrypted as follows:
 </p>
 <pre>
@@ -336,17 +338,23 @@ MVStore s = new MVStore.Builder().
     open();
 </pre>
 <p>
-The same security algorithms are used as modern disk encryption software use.
-The password char array is cleared after use, 
-to reduce the risk that the password is stolen
-even if the attacker has access to the main memory.
-The password is hashed using the PBKDF2 standard, using the SHA-256 hash algorithm.
-The length of the salt is 256 bits, so that an attacker can not use a rainbow table.
-The salt is generated using a cryptographically secure random number generator.
-The number of PBKDF2 iterations is 10000, so that an attacker can not "brute force" the password.
-The file itself is encrypted using the standardized disk encryption mode XTS-AES,
-so that only little more than one AES-128 round per block is needed.
+</p><p>
+Only state of the art disk encryption algorithms are used:
 </p>
+<ul><li>The password char array is cleared after use, 
+    to reduce the risk that the password is stolen
+    even if the attacker has access to the main memory.
+</li><li>The password is hashed according to the PBKDF2 standard, 
+    using the SHA-256 hash algorithm.
+</li><li>The length of the salt is 256 bits, 
+    so that an attacker can not use a pre-calculated password hash table (rainbow table).
+</li><li>The salt is generated using a cryptographically secure random number generator.
+</li><li>To protect against brute-force password cracking attacks, 
+    the number of PBKDF2 iterations is 10000.
+</li><li>For fastest possible read and write operations, 
+    the file itself is encrypted using the standardized disk encryption mode XTS-AES.
+    This means only little more than one AES-128 round per block is needed.
+</li></ul>
 
 <h3>Tools</h3>
 <p>

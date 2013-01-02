@@ -43,7 +43,10 @@ H:3,...
 
 TODO:
 
-- file system encryption
+- file system encryption (
+  test and document speed,
+  support un-aligned operations,
+  test other algorithms)
 - mvcc with multiple transactions
 - update checkstyle
 - automated 'kill process' and 'power failure' test
@@ -93,6 +96,7 @@ TODO:
 -- to support concurrent updates and writes, and very large maps
 - implement an off-heap file system
 - remove change cursor, or add support for writing to branches
+- file encryption / decryption using multiple threads
 
 */
 

@@ -16,6 +16,7 @@ import java.util.Arrays;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.security.AES;
+import org.h2.security.BlockCipher;
 import org.h2.security.SHA256;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -129,7 +130,7 @@ public class FilePathCrypt2 extends FilePathWrapper {
 
         private final FileChannel base;
 
-        private final XTSAES xts;
+        private final XTS xts;
 
         private long pos;
 
@@ -147,8 +148,11 @@ public class FilePathCrypt2 extends FilePathWrapper {
                 salt = new byte[SALT_LENGTH];
                 DataUtils.readFully(base, SALT_POS, ByteBuffer.wrap(salt));
             }
-            byte[] key = SHA256.getPBKDF2(passwordBytes, salt, HASH_ITERATIONS, 16);
-            xts = new XTSAES(key);
+            // TODO support Fog (and maybe Fog2)
+            // Fog cipher = new Fog();
+            AES cipher = new AES();
+            cipher.setKey(SHA256.getPBKDF2(passwordBytes, salt, HASH_ITERATIONS, 16));
+            xts = new XTS(cipher);
         }
 
         protected void implCloseChannel() throws IOException {
@@ -249,12 +253,12 @@ public class FilePathCrypt2 extends FilePathWrapper {
     }
 
     /**
-     * An XTS-AES implementation as described in
+     * An XTS implementation as described in
      * IEEE P1619 (Standard Architecture for Encrypted Shared Storage Media).
      * See also
      * http://axelkenzo.ru/downloads/1619-2007-NIST-Submission.pdf
      */
-    static class XTSAES {
+    static class XTS {
 
         /**
          * Galois Field feedback.
@@ -264,75 +268,75 @@ public class FilePathCrypt2 extends FilePathWrapper {
         /**
          * The AES encryption block size.
          */
-        private static final int AES_BLOCK_SIZE = 16;
+        private static final int CIPHER_BLOCK_SIZE = 16;
 
-        private final AES aes = new AES();
+        private final BlockCipher cipher;
 
-        XTSAES(byte[] key) {
-            aes.setKey(key);
+        XTS(BlockCipher cipher) {
+            this.cipher = cipher;
         }
 
         void encrypt(long id, int len, byte[] data, int offset) {
             byte[] tweak = initTweak(id);
             int i = 0;
-            for (; i + AES_BLOCK_SIZE <= len; i += AES_BLOCK_SIZE) {
+            for (; i + CIPHER_BLOCK_SIZE <= len; i += CIPHER_BLOCK_SIZE) {
                 if (i > 0) {
                     updateTweak(tweak);
                 }
                 xorTweak(data, i + offset, tweak);
-                aes.encrypt(data, i + offset, AES_BLOCK_SIZE);
+                cipher.encrypt(data, i + offset, CIPHER_BLOCK_SIZE);
                 xorTweak(data, i + offset, tweak);
             }
             if (i < len) {
                 updateTweak(tweak);
-                swap(data, i + offset, i - AES_BLOCK_SIZE + offset, len - i);
-                xorTweak(data, i - AES_BLOCK_SIZE + offset, tweak);
-                aes.encrypt(data, i - AES_BLOCK_SIZE + offset, AES_BLOCK_SIZE);
-                xorTweak(data, i - AES_BLOCK_SIZE + offset, tweak);
+                swap(data, i + offset, i - CIPHER_BLOCK_SIZE + offset, len - i);
+                xorTweak(data, i - CIPHER_BLOCK_SIZE + offset, tweak);
+                cipher.encrypt(data, i - CIPHER_BLOCK_SIZE + offset, CIPHER_BLOCK_SIZE);
+                xorTweak(data, i - CIPHER_BLOCK_SIZE + offset, tweak);
             }
         }
 
         void decrypt(long id, int len, byte[] data, int offset) {
             byte[] tweak = initTweak(id), tweakEnd = tweak;
             int i = 0;
-            for (; i + AES_BLOCK_SIZE <= len; i += AES_BLOCK_SIZE) {
+            for (; i + CIPHER_BLOCK_SIZE <= len; i += CIPHER_BLOCK_SIZE) {
                 if (i > 0) {
                     updateTweak(tweak);
-                    if (i + AES_BLOCK_SIZE + AES_BLOCK_SIZE > len && i + AES_BLOCK_SIZE < len) {
-                        tweakEnd = Arrays.copyOf(tweak, AES_BLOCK_SIZE);
+                    if (i + CIPHER_BLOCK_SIZE + CIPHER_BLOCK_SIZE > len && i + CIPHER_BLOCK_SIZE < len) {
+                        tweakEnd = Arrays.copyOf(tweak, CIPHER_BLOCK_SIZE);
                         updateTweak(tweak);
                     }
                 }
                 xorTweak(data, i + offset, tweak);
-                aes.decrypt(data, i + offset, AES_BLOCK_SIZE);
+                cipher.decrypt(data, i + offset, CIPHER_BLOCK_SIZE);
                 xorTweak(data, i + offset, tweak);
             }
             if (i < len) {
-                swap(data, i, i - AES_BLOCK_SIZE + offset, len - i + offset);
-                xorTweak(data, i - AES_BLOCK_SIZE  + offset, tweakEnd);
-                aes.decrypt(data, i - AES_BLOCK_SIZE + offset, AES_BLOCK_SIZE);
-                xorTweak(data, i - AES_BLOCK_SIZE + offset, tweakEnd);
+                swap(data, i, i - CIPHER_BLOCK_SIZE + offset, len - i + offset);
+                xorTweak(data, i - CIPHER_BLOCK_SIZE  + offset, tweakEnd);
+                cipher.decrypt(data, i - CIPHER_BLOCK_SIZE + offset, CIPHER_BLOCK_SIZE);
+                xorTweak(data, i - CIPHER_BLOCK_SIZE + offset, tweakEnd);
             }
         }
 
         private byte[] initTweak(long id) {
-            byte[] tweak = new byte[AES_BLOCK_SIZE];
-            for (int j = 0; j < AES_BLOCK_SIZE; j++, id >>>= 8) {
+            byte[] tweak = new byte[CIPHER_BLOCK_SIZE];
+            for (int j = 0; j < CIPHER_BLOCK_SIZE; j++, id >>>= 8) {
                 tweak[j] = (byte) (id & 0xff);
             }
-            aes.encrypt(tweak, 0, AES_BLOCK_SIZE);
+            cipher.encrypt(tweak, 0, CIPHER_BLOCK_SIZE);
             return tweak;
         }
 
         private static void xorTweak(byte[] data, int pos, byte[] tweak) {
-            for (int i = 0; i < AES_BLOCK_SIZE; i++) {
+            for (int i = 0; i < CIPHER_BLOCK_SIZE; i++) {
                 data[pos + i] ^= tweak[i];
             }
         }
 
         static void updateTweak(byte[] tweak) {
             byte ci = 0, co = 0;
-            for (int i = 0; i < AES_BLOCK_SIZE; i++) {
+            for (int i = 0; i < CIPHER_BLOCK_SIZE; i++) {
                 co = (byte) ((tweak[i] >> 7) & 1);
                 tweak[i] = (byte) (((tweak[i] << 1) + ci) & 255);
                 ci = co;

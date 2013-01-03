@@ -435,7 +435,7 @@ public class Parser {
             case 'w':
             case 'W':
                 if (readIf("WITH")) {
-                    c = parserWith();
+                    c = parseWith();
                 }
                 break;
             default:
@@ -1502,7 +1502,7 @@ public class Parser {
         } else if (readIf("MERGE")) {
             command.setCommand(parseMerge());
         } else if (readIf("WITH")) {
-            command.setCommand(parserWith());
+            command.setCommand(parseWith());
         } else {
             throw getSyntaxError();
         }
@@ -4211,7 +4211,7 @@ public class Parser {
         return command;
     }
 
-    private Query parserWith() {
+    private Query parseWith() {
         readIf("RECURSIVE");
         String tempViewName = readIdentifierWithSchema();
         Schema schema = getSchema();

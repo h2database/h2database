@@ -398,7 +398,8 @@ class FileZip2 extends FileBase {
 
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
         if (shared) {
-            return new FileLock(null, position, size, shared) {
+        	// Cast null to FileChannel to avoid JDK 1.7 ambiguity
+            return new FileLock((FileChannel) null, position, size, shared) {
 
                 @Override
                 public boolean isValid() {

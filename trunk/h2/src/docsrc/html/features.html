@@ -695,6 +695,8 @@ protect the database file. The watchdog reads the lock file each second.
 The socket method does not require reading the lock file every second.
 The socket method should only be used if the database files
 are only accessed by one (and always the same) computer.
+</li><li>The third method is <code>FS</code>.
+This will use native file locking using <code>FileChannel.lock</code>.
 </li><li>It is also possible to open the database without file locking;
 in this case it is up to the application to protect the database files.
 Failing to do so will result in a corrupted database.

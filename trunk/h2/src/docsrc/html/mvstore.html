@@ -339,21 +339,22 @@ MVStore s = new MVStore.Builder().
 </pre>
 <p>
 </p><p>
-Only state of the art disk encryption algorithms are used:
+The following algorithms and settings are used:
 </p>
 <ul><li>The password char array is cleared after use, 
     to reduce the risk that the password is stolen
     even if the attacker has access to the main memory.
 </li><li>The password is hashed according to the PBKDF2 standard, 
     using the SHA-256 hash algorithm.
-</li><li>The length of the salt is 256 bits, 
+</li><li>The length of the salt is 64 bits,
     so that an attacker can not use a pre-calculated password hash table (rainbow table).
-</li><li>The salt is generated using a cryptographically secure random number generator.
-</li><li>To protect against brute-force password cracking attacks, 
-    the number of PBKDF2 iterations is 10000.
-</li><li>For fastest possible read and write operations, 
-    the file itself is encrypted using the standardized disk encryption mode XTS-AES.
-    This means only little more than one AES-128 round per block is needed.
+    It is generated using a cryptographically secure random number generator.
+</li><li>To speed up opening an encrypted stores on Android,
+    the number of PBKDF2 iterations is 10.
+    The higher the value, the better the protection against brute-force password cracking attacks,
+    but the slower is opening a file.
+</li><li>The file itself is encrypted using the standardized disk encryption mode XTS-AES.
+    Only little more than one AES-128 round per block is needed.
 </li></ul>
 
 <h3>Tools</h3>
@@ -379,15 +380,18 @@ The following exceptions can occur:
 
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>
 <p>
-Unlike similar storage engines like LevelDB and Kyoto Cabinet, the MVStore is written in Java
-and can easily be embedded in a Java application.
+Unlike similar storage engines like LevelDB and Kyoto Cabinet, 
+the MVStore is written in Java
+and can easily be embedded in a Java and Android application.
 </p><p>
-The MVStore is somewhat similar to the Berkeley DB Java Edition because it is also written in Java,
+The MVStore is somewhat similar to the Berkeley DB Java Edition 
+because it is also written in Java,
 and is also a log structured storage, but the H2 license is more liberal.
 </p><p>
 Like SQLite, the MVStore keeps all data in one file.
-The plan is to make the MVStore easier to use than SQLite and faster, including faster on Android
-(this was not recently tested, however an initial test was successful).
+Unlike SQLite, the MVStore uses is a log structured storage.
+The plan is to make the MVStore both easier to use as well as faster than SQLite.
+In a recent (very simple) test, the MVStore was about twice as fast as SQLite on Android.
 </p><p>
 The API of the MVStore is similar to MapDB (previously known as JDBM) from Jan Kotek,
 and some code is shared between MapDB and JDBM.
@@ -407,8 +411,7 @@ Features may be added and removed (even thought the main features will stay).
 The MVStore is included in the latest H2 jar file.
 </p><p>
 There are no special requirements to use it.
-The MVStore should run on any JVM as well as on Android
-(even thought this was not tested recently).
+The MVStore should run on any JVM as well as on Android.
 </p>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

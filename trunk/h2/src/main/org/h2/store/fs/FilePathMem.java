@@ -295,7 +295,8 @@ class FileMem extends FileBase {
                 return null;
             }
         }
-        // Cast null to FileChannel to avoid JDK 1.7 ambiguity
+
+        // cast to FileChannel to avoid JDK 1.7 ambiguity
         FileLock lock = new FileLock((FileChannel) null, position, size, shared) {
 
             @Override

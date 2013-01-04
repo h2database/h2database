@@ -232,17 +232,22 @@ public class Profiler implements Runnable {
 
     /**
      * Start collecting profiling data.
+     *
+     * @return this
      */
-    public void startCollecting() {
+    public Profiler startCollecting() {
         thread = new Thread(this, "Profiler");
         thread.setDaemon(true);
         thread.start();
+        return this;
     }
 
     /**
      * Stop collecting.
+     *
+     * @return this
      */
-    public void stopCollecting() {
+    public Profiler stopCollecting() {
         stop = true;
         if (thread != null) {
             try {
@@ -252,6 +257,7 @@ public class Profiler implements Runnable {
             }
             thread = null;
         }
+        return this;
     }
 
     public void run() {

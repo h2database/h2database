@@ -512,7 +512,7 @@ public class DataUtils {
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
             i = s.indexOf(':', i);
-            checkArgument(i > 0, "Not a map");
+            checkArgument(i >= 0, "Not a map");
             String key = s.substring(startKey, i++);
             StringBuilder buff = new StringBuilder();
             while (i < size) {

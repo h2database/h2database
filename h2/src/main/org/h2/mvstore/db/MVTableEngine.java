@@ -49,6 +49,7 @@ public class MVTableEngine implements TableEngine {
     @Override
     public TableBase createTable(CreateTableData data) {
         Database db = data.session.getDatabase();
+        byte[] key = db.getFilePasswordHash();
         String storeName = db.getDatabasePath();
         MVStore.Builder builder = new MVStore.Builder();
         Store store;
@@ -61,6 +62,13 @@ public class MVTableEngine implements TableEngine {
                     builder.fileName(storeName + Constants.SUFFIX_MV_FILE);
                     if (db.isReadOnly()) {
                         builder.readOnly();
+                    }
+                    if (key != null) {
+                        char[] password = new char[key.length];
+                        for (int i = 0; i < key.length; i++) {
+                            password[i] = (char) key[i];
+                        }
+                        builder.encryptionKey(password);
                     }
                     store = new Store(db, builder.open());
                     STORES.put(storeName, store);

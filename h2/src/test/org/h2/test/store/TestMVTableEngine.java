@@ -7,6 +7,7 @@ package org.h2.test.store;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,11 +34,32 @@ public class TestMVTableEngine extends TestBase {
     }
 
     public void test() throws Exception {
+        testEncryption();
         testReadOnly();
         testReuseDiskSpace();
         testDataTypes();
         testLocking();
         testSimple();
+    }
+
+    private void testEncryption() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        String dbName = "mvstore" +
+                ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
+        Connection conn;
+        Statement stat;
+        String url = getURL(dbName + ";CIPHER=AES", true);
+        String user = "sa";
+        String password = "123 123";
+        conn = DriverManager.getConnection(url, user, password);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        conn.close();
+        conn = DriverManager.getConnection(url, user, password);
+        stat = conn.createStatement();
+        stat.execute("select * from test");
+        conn.close();
+        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testReadOnly() throws Exception {

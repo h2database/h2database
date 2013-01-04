@@ -24,7 +24,7 @@ import org.h2.util.StringUtils;
 /**
  * An encrypted file.
  */
-public class FilePathCrypt2 extends FilePathWrapper {
+public class FilePathCrypt extends FilePathWrapper {
 
     private static final String SCHEME = "crypt2";
 
@@ -32,7 +32,7 @@ public class FilePathCrypt2 extends FilePathWrapper {
      * Register this file system.
      */
     public static void register() {
-        FilePath.register(new FilePathCrypt2());
+        FilePath.register(new FilePathCrypt());
     }
 
     public FileChannel open(String mode) throws IOException {
@@ -121,12 +121,13 @@ public class FilePathCrypt2 extends FilePathWrapper {
         /**
          * The length of the salt, in bytes.
          */
-        private static final int SALT_LENGTH = 32;
+        private static final int SALT_LENGTH = 8;
 
         /**
-         * The number of iterations.
+         * The number of iterations. It is relatively low; a higher value would
+         * slow down opening files on Android too much.
          */
-        private static final int HASH_ITERATIONS = 10000;
+        private static final int HASH_ITERATIONS = 10;
 
         private final FileChannel base;
 

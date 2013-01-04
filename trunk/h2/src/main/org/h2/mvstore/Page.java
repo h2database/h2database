@@ -501,10 +501,11 @@ public class Page {
             sharedFlags &= ~SHARED_KEYS;
         }
         Object old = keys[index];
+        DataType keyType = map.getKeyType();
         if (old != null) {
-            memory -= map.getKeyType().getMemory(old);
+            memory -= keyType.getMemory(old);
         }
-        memory += map.getKeyType().getMemory(key);
+        memory += keyType.getMemory(key);
         keys[index] = key;
     }
 
@@ -521,8 +522,9 @@ public class Page {
             values = Arrays.copyOf(values, values.length);
             sharedFlags &= ~SHARED_VALUES;
         }
-        memory -= map.getValueType().getMemory(old);
-        memory += map.getValueType().getMemory(value);
+        DataType valueType = map.getValueType();
+        memory -= valueType.getMemory(old);
+        memory += valueType.getMemory(value);
         values[index] = value;
         return old;
     }
@@ -772,8 +774,9 @@ public class Page {
                 : DataUtils.PAGE_TYPE_LEAF;
         buff.put((byte) type);
         int compressStart = buff.position();
+        DataType keyType = map.getKeyType();
         for (int i = 0; i < len; i++) {
-            map.getKeyType().write(buff, keys[i]);
+            keyType.write(buff, keys[i]);
         }
         if (type == DataUtils.PAGE_TYPE_NODE) {
             for (int i = 0; i <= len; i++) {
@@ -783,8 +786,9 @@ public class Page {
                 DataUtils.writeVarLong(buff, counts[i]);
             }
         } else {
+            DataType valueType = map.getValueType();
             for (int i = 0; i < len; i++) {
-                map.getValueType().write(buff, values[i]);
+                valueType.write(buff, values[i]);
             }
         }
         if (map.getStore().getCompress()) {
@@ -839,12 +843,14 @@ public class Page {
         int maxLength = 4 + 2 + DataUtils.MAX_VAR_INT_LEN
                 + DataUtils.MAX_VAR_INT_LEN + 1;
         int len = keyCount;
+        DataType keyType = map.getKeyType();
         for (int i = 0; i < len; i++) {
-            maxLength += map.getKeyType().getMaxLength(keys[i]);
+            maxLength += keyType.getMaxLength(keys[i]);
         }
         if (isLeaf()) {
+            DataType valueType = map.getValueType();
             for (int i = 0; i < len; i++) {
-                maxLength += map.getValueType().getMaxLength(values[i]);
+                maxLength += valueType.getMaxLength(values[i]);
             }
         } else {
             maxLength += 8 * len;
@@ -912,12 +918,14 @@ public class Page {
 
     private int calculateMemory() {
         int mem = DataUtils.PAGE_MEMORY;
+        DataType keyType = map.getKeyType();
         for (int i = 0; i < keyCount; i++) {
-            mem += map.getKeyType().getMemory(keys[i]);
+            mem += keyType.getMemory(keys[i]);
         }
         if (this.isLeaf()) {
+            DataType valueType = map.getValueType();
             for (int i = 0; i < keyCount; i++) {
-                mem += map.getValueType().getMemory(values[i]);
+                mem += valueType.getMemory(values[i]);
             }
         } else {
             mem += this.getChildPageCount() * DataUtils.PAGE_MEMORY_CHILD;

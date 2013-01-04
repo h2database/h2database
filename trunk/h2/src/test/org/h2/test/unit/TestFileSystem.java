@@ -14,8 +14,8 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
 import java.nio.channels.FileChannel.MapMode;
+import java.nio.channels.FileLock;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Random;
-import org.h2.dev.fs.FilePathCrypt;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -58,9 +57,8 @@ public class TestFileSystem extends TestBase {
         testUnsupportedFeatures(getBaseDir());
         testMemFsDir();
         testClasspath();
-        FilePathCrypt.register();
         FilePathDebug.register().setTrace(true);
-        testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
+        // testFileSystem("crypt:007:" + getBaseDir() + "/fs");
 
         testSimpleExpandTruncateSize();
         testSplitDatabaseInZip();
@@ -74,8 +72,7 @@ public class TestFileSystem extends TestBase {
         testFileSystem("memLZF:");
         testUserHome();
         try {
-            FilePathCrypt.register();
-            testFileSystem("crypt:aes:x:" + getBaseDir() + "/fs");
+            // testFileSystem("crypt:007:" + getBaseDir() + "/fs");
             testFileSystem("nio:" + getBaseDir() + "/fs");
             testFileSystem("nioMapped:" + getBaseDir() + "/fs");
             if (!config.splitFileSystem) {

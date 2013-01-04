@@ -2402,4 +2402,8 @@ public class Database implements DataHandler {
         throw DbException.throwInternalError();
     }
 
+    public byte[] getFilePasswordHash() {
+        return filePasswordHash;
+    }
+
 }

@@ -24,7 +24,7 @@ import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathCrypt2;
+import org.h2.store.fs.FilePathCrypt;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -43,27 +43,21 @@ H:3,...
 
 TODO:
 
-- file system encryption (
-  test and document speed,
-  support un-aligned operations,
-  test other algorithms)
+- automated 'kill process' and 'power failure' test
+- test stream store if data doesn't fit in memory
 - mvcc with multiple transactions
 - update checkstyle
-- automated 'kill process' and 'power failure' test
 - maybe split database into multiple files, to speed up compact
 - auto-compact from time to time and on close
 - test and possibly improve compact operation (for large dbs)
-- performance test with encrypting file system
 - possibly split chunk data into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - remove DataType.getMaxLength (use ByteArrayOutputStream or getMemory)
 - chunk header: store changed chunk data as row; maybe after the root
 - chunk checksum (header, last page, 2 bytes per page?)
-- file locking: solve problem that locks are shared for a VM
-- store file "header" at the end of each chunk; at the end of the file
 - is there a better name for the file header,
--- if it's no longer always at the beginning of a file?
+-- if it's no longer always at the beginning of a file? store header?
 - on insert, if the child page is already full, don't load and modify it
 -- split directly (for leaves with 1 entry)
 - maybe let a chunk point to possible next chunks
@@ -80,7 +74,7 @@ TODO:
 - chunk metadata: do not store default values
 - support maps without values (just existence of the key)
 - support maps without keys (counted b-tree features)
-- use a small object cache (StringCache)
+- use a small object cache (StringCache), test on Android
 - dump values
 - tool to import / manipulate CSV files (maybe concurrently)
 - map split / merge (fast if no overlap)
@@ -96,7 +90,10 @@ TODO:
 -- to support concurrent updates and writes, and very large maps
 - implement an off-heap file system
 - remove change cursor, or add support for writing to branches
-- file encryption / decryption using multiple threads
+- file encryption: try using multiple threads
+- file encryption: support un-aligned operations
+- file encryption: separate algorithm/key for tweak
+- file encryption: add a fast (insecure) algorithm
 
 */
 
@@ -408,7 +405,7 @@ public class MVStore {
             file = f.open(readOnly ? "r" : "rw");
             if (filePassword != null) {
                 byte[] password = DataUtils.getPasswordBytes(filePassword);
-                file = new FilePathCrypt2.FileCrypt2(password, file);
+                file = new FilePathCrypt.FileCrypt2(password, file);
             }
             file = FilePathCache.wrap(file);
             if (readOnly) {

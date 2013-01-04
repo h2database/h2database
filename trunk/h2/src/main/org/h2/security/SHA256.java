@@ -31,6 +31,13 @@ public class SHA256 {
             0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814,
             0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2 };
 
+    private static final int[] HH = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
+
+    private final byte[] result = new byte[32];
+    private final int[] w = new int[64];
+    private final int[] hh = new int[8];
+
     /**
      * Calculate the hash code by using the given salt. The salt is appended
      * after the data before the hash code is calculated. After generating the
@@ -78,23 +85,38 @@ public class SHA256 {
     }
 
     public static byte[] getHMAC(byte[] key, byte[] message) {
-        int blockSize = 64;
-        if (key.length > blockSize) {
+        key = normalizeKeyForHMAC(key);
+        int len = message.length;
+        int byteLen = 64 + Math.max(32, len);
+        int intLen = getIntCount(byteLen);
+        byte[] byteBuff = new byte[intLen * 4];
+        int[] intBuff = new int[intLen];
+        SHA256 sha = new SHA256();
+        byte[] iKey = new byte[64 + len];
+        byte[] oKey = new byte[64 + 32];
+        sha.calculateHMAC(key, message, len, iKey, oKey, byteBuff, intBuff);
+        return sha.result;
+    }
+
+    private void calculateHMAC(byte[] key, byte[] message, int len, byte[] iKey, byte[] oKey, byte[] byteBuff, int[] intBuff) {
+        Arrays.fill(iKey, 0, 64, (byte) 0x36);
+        xor(iKey, key, 64);
+        System.arraycopy(message, 0, iKey, 64, len);
+        calculateHash(iKey, 64 + len, byteBuff, intBuff);
+        Arrays.fill(oKey, 0, 64, (byte) 0x5c);
+        xor(oKey, key, 64);
+        System.arraycopy(result, 0, oKey, 64, 32);
+        calculateHash(oKey, 64 + 32, byteBuff, intBuff);
+    }
+
+    private static byte[] normalizeKeyForHMAC(byte[] key) {
+        if (key.length > 64) {
             key = getHash(key, false);
         }
-        if (key.length < blockSize) {
-            key = Arrays.copyOf(key, blockSize);
+        if (key.length < 64) {
+            key = Arrays.copyOf(key, 64);
         }
-        byte[] iKeyPadMessage = new byte[blockSize + message.length];
-        Arrays.fill(iKeyPadMessage, 0, blockSize, (byte) 0x36);
-        xor(iKeyPadMessage, key, blockSize);
-        System.arraycopy(message, 0, iKeyPadMessage, blockSize, message.length);
-        byte[] k = getHash(iKeyPadMessage, false);
-        byte[] oKeyPad = new byte[blockSize + k.length];
-        Arrays.fill(oKeyPad, 0, blockSize, (byte) 0x5c);
-        xor(oKeyPad, key, blockSize);
-        System.arraycopy(k, 0, oKeyPad, blockSize, k.length);
-        return getHash(oKeyPad, false);
+        return key;
     }
 
     private static void xor(byte[] target, byte[] data, int len) {
@@ -103,25 +125,35 @@ public class SHA256 {
         }
     }
 
-    public static byte[] getPBKDF2(byte[] password, byte[] salt, int iterations, int len) {
-        byte[] result = new byte[len];
-        byte[] last = null;
-        for (int k = 1, offset = 0; offset < len; k++, offset += 32) {
+    public static byte[] getPBKDF2(byte[] password, byte[] salt, int iterations, int resultLen) {
+        byte[] result = new byte[resultLen];
+        byte[] key = normalizeKeyForHMAC(password);
+        SHA256 sha = new SHA256();
+        int len = 64 + Math.max(32, salt.length + 4);
+        byte[] message = new byte[len];
+        int intLen = getIntCount(len);
+        byte[] byteBuff = new byte[intLen * 4];
+        int[] intBuff = new int[intLen];
+        byte[] iKey = new byte[64 + len];
+        byte[] oKey = new byte[64 + 32];
+        for (int k = 1, offset = 0; offset < resultLen; k++, offset += 32) {
             for (int i = 0; i < iterations; i++) {
-                byte[] x;
                 if (i == 0) {
-                    x = Arrays.copyOf(salt, salt.length + 4);
-                    writeInt(x, salt.length, k);
+                    System.arraycopy(salt, 0, message, 0, salt.length);
+                    writeInt(message, salt.length, k);
+                    len = salt.length + 4;
                 } else {
-                    x = last;
+                    System.arraycopy(sha.result, 0, message, 0, 32);
+                    len = 32;
                 }
-                last = getHMAC(password, x);
-                for (int j = 0; j < 32 && j + offset < len; j++) {
-                    result[j + offset] ^= last[j];
+                sha.calculateHMAC(key, message, len, iKey, oKey, byteBuff, intBuff);
+                for (int j = 0; j < 32 && j + offset < resultLen; j++) {
+                    result[j + offset] ^= sha.result[j];
                 }
             }
         }
         Arrays.fill(password, (byte) 0);
+        Arrays.fill(key, (byte) 0);
         return result;
     }
 
@@ -134,26 +166,47 @@ public class SHA256 {
      * @return the hash code
      */
     public static byte[] getHash(byte[] data, boolean nullData) {
-        int byteLen = data.length;
-        int intLen = ((byteLen + 9 + 63) / 64) * 16;
-        byte[] bytes = new byte[intLen * 4];
-        System.arraycopy(data, 0, bytes, 0, byteLen);
+        int len = data.length;
+        int intLen = getIntCount(len);
+        byte[] byteBuff = new byte[intLen * 4];
+        int[] intBuff = new int[intLen];
+        SHA256 sha = new SHA256();
+        sha.calculateHash(data, len, byteBuff, intBuff);
         if (nullData) {
+            sha.fillWithNull();
+            Arrays.fill(intBuff, 0);
+            Arrays.fill(byteBuff, (byte) 0);
             Arrays.fill(data, (byte) 0);
         }
-        bytes[byteLen] = (byte) 0x80;
-        int[] buff = new int[intLen];
+        return sha.result;
+    }
+
+    private static int getIntCount(int byteCount) {
+        return ((byteCount + 9 + 63) / 64) * 16;
+    }
+
+    private void fillWithNull() {
+        Arrays.fill(w, 0);
+        Arrays.fill(hh, 0);
+    }
+
+    private void calculateHash(byte[] data, int len, byte[] byteBuff, int[] intBuff) {
+        int[] w = this.w;
+        int[] hh = this.hh;
+        byte[] result = this.result;
+        int intLen = getIntCount(len);
+        System.arraycopy(data, 0, byteBuff, 0, len);
+        byteBuff[len] = (byte) 0x80;
+        Arrays.fill(byteBuff, len + 1, intLen * 4, (byte) 0);
         for (int i = 0, j = 0; j < intLen; i += 4, j++) {
-            buff[j] = readInt(bytes, i);
+            intBuff[j] = readInt(byteBuff, i);
         }
-        buff[intLen - 2] = byteLen >>> 29;
-        buff[intLen - 1] = byteLen << 3;
-        int[] w = new int[64];
-        int[] hh = { 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-                0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19 };
+        intBuff[intLen - 2] = len >>> 29;
+        intBuff[intLen - 1] = len << 3;
+        System.arraycopy(HH, 0, hh, 0, 8);
         for (int block = 0; block < intLen; block += 16) {
             for (int i = 0; i < 16; i++) {
-                w[i] = buff[block + i];
+                w[i] = intBuff[block + i];
             }
             for (int i = 16; i < 64; i++) {
                 int x = w[i - 2];
@@ -189,19 +242,13 @@ public class SHA256 {
             hh[6] += g;
             hh[7] += h;
         }
-        byte[] result = new byte[32];
         for (int i = 0; i < 8; i++) {
             writeInt(result, i * 4, hh[i]);
         }
-        Arrays.fill(w, 0);
-        Arrays.fill(buff, 0);
-        Arrays.fill(hh, 0);
-        Arrays.fill(bytes, (byte) 0);
-        return result;
     }
 
     private static int rot(int i, int count) {
-        return (i << (32 - count)) | (i >>> count);
+        return Integer.rotateRight(i, count);
     }
 
     private static int readInt(byte[] b, int i) {

@@ -122,7 +122,7 @@ public class FilePathUnstable extends FilePathWrapper {
         return new FileUnstable(this, super.open(mode));
     }
 
-    public OutputStream newOutputStream(boolean append) {
+    public OutputStream newOutputStream(boolean append) throws IOException {
         return super.newOutputStream(append);
     }
 

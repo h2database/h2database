@@ -166,12 +166,8 @@ public class FilePathSplit extends FilePathWrapper {
         throw new IOException(message);
     }
 
-    public OutputStream newOutputStream(boolean append) {
-        try {
-            return new FileChannelOutputStream(open("rw"), append);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, name);
-        }
+    public OutputStream newOutputStream(boolean append) throws IOException {
+        return new FileChannelOutputStream(open("rw"), append);
     }
 
     public void moveTo(FilePath path) {

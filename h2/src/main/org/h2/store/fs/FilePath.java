@@ -213,7 +213,7 @@ public abstract class FilePath {
      *            truncated first
      * @return the output stream
      */
-    public abstract OutputStream newOutputStream(boolean append);
+    public abstract OutputStream newOutputStream(boolean append) throws IOException;
 
     /**
      * Open a random access file object.

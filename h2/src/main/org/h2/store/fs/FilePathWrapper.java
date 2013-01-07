@@ -124,7 +124,7 @@ public abstract class FilePathWrapper extends FilePath {
         return base.newInputStream();
     }
 
-    public OutputStream newOutputStream(boolean append) {
+    public OutputStream newOutputStream(boolean append) throws IOException {
         return base.newOutputStream(append);
     }
 

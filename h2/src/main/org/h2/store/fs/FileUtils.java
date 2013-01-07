@@ -219,7 +219,7 @@ public class FileUtils {
      *            truncated first
      * @return the output stream
      */
-    public static OutputStream newOutputStream(String fileName, boolean append) {
+    public static OutputStream newOutputStream(String fileName, boolean append) throws IOException {
         return FilePath.get(fileName).newOutputStream(append);
     }
 

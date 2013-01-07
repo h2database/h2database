@@ -247,7 +247,7 @@ public class FilePathDisk extends FilePath {
         throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name);
     }
 
-    public OutputStream newOutputStream(boolean append) {
+    public OutputStream newOutputStream(boolean append) throws IOException {
         try {
             File file = new File(name);
             File parent = file.getParentFile();
@@ -259,11 +259,7 @@ public class FilePathDisk extends FilePath {
             return out;
         } catch (IOException e) {
             freeMemoryAndFinalize();
-            try {
-                return new FileOutputStream(name);
-            } catch (IOException e2) {
-                throw DbException.convertIOException(e, name);
-            }
+            return new FileOutputStream(name);
         }
     }
 
@@ -398,7 +394,6 @@ class FileDisk extends FileBase {
 
     public FileChannel truncate(long newLength) throws IOException {
         if (newLength < file.length()) {
-            // some implementations actually only support truncate
             file.setLength(newLength);
         }
         return this;

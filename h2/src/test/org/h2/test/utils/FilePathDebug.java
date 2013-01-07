@@ -132,7 +132,7 @@ public class FilePathDebug extends FilePathWrapper {
     public InputStream newInputStream() throws IOException {
         trace(name, "newInputStream");
         InputStream in = super.newInputStream();
-        if (!trace) {
+        if (!isTrace()) {
             return in;
         }
         final String fileName = name;
@@ -159,7 +159,7 @@ public class FilePathDebug extends FilePathWrapper {
         return new FileDebug(this, super.open(mode), name);
     }
 
-    public OutputStream newOutputStream(boolean append) {
+    public OutputStream newOutputStream(boolean append) throws IOException {
         trace(name, "newOutputStream", append);
         return super.newOutputStream(append);
     }
@@ -183,7 +183,7 @@ public class FilePathDebug extends FilePathWrapper {
      * @param params parameters if any
      */
     void trace(String fileName, String method, Object... params) {
-        if (trace) {
+        if (isTrace()) {
             StringBuilder buff = new StringBuilder("    ");
             buff.append(unwrap(fileName)).append(' ').append(method);
             for (Object s : params) {
@@ -202,11 +202,11 @@ public class FilePathDebug extends FilePathWrapper {
     }
 
     public boolean isTrace() {
-        return trace;
+        return INSTANCE.trace;
     }
 
     public void setTrace(boolean trace) {
-        this.trace = trace;
+        INSTANCE.trace = trace;
     }
 
     public String getScheme() {
@@ -227,7 +227,7 @@ class FileDebug extends FileBase {
     FileDebug(FilePathDebug debug, FileChannel channel, String name) {
         this.debug = debug;
         this.channel = channel;
-        this.name = debug.getScheme() + ":" + name;
+        this.name = name;
     }
 
     public void implCloseChannel() throws IOException {
@@ -294,6 +294,10 @@ class FileDebug extends FileBase {
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
         debug("tryLock");
         return channel.tryLock(position, size, shared);
+    }
+
+    public String toString() {
+        return name;
     }
 
 }

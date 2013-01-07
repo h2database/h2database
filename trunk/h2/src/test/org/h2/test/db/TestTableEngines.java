@@ -151,7 +151,7 @@ public class TestTableEngines extends TestBase {
                 public long getDiskSpaceUsed() {
                     return table.getDiskSpaceUsed();
                 }
-                
+
                 public long getRowCount(Session session) {
                     return table.getRowCount(session);
                 }

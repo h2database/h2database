@@ -153,8 +153,8 @@ public class TestAlter extends TestBase {
     private void testAlterTableAddColumnBefore() throws SQLException {
         stat.execute("create table T(X varchar)");
         stat.execute("alter table T add Y int before X");
-        DatabaseMetaData dbmeta = conn.getMetaData();
-        ResultSet rs = dbmeta.getColumns(null, null, "T", null);
+        DatabaseMetaData dbMeta = conn.getMetaData();
+        ResultSet rs = dbMeta.getColumns(null, null, "T", null);
         assertTrue(rs.next());
         assertEquals("Y", rs.getString("COLUMN_NAME"));
         assertTrue(rs.next());
@@ -167,8 +167,8 @@ public class TestAlter extends TestBase {
     private void testAlterTableAddColumnAfter() throws SQLException {
         stat.execute("create table T(X varchar)");
         stat.execute("alter table T add Y int after X");
-        DatabaseMetaData dbmeta = conn.getMetaData();
-        ResultSet rs = dbmeta.getColumns(null, null, "T", null);
+        DatabaseMetaData dbMeta = conn.getMetaData();
+        ResultSet rs = dbMeta.getColumns(null, null, "T", null);
         assertTrue(rs.next());
         assertEquals("X", rs.getString("COLUMN_NAME"));
         assertTrue(rs.next());

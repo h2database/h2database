@@ -6,6 +6,7 @@
  */
 package org.h2.store.fs;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,7 +14,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.Arrays;
-import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.security.AES;
 import org.h2.security.BlockCipher;
@@ -26,7 +26,7 @@ import org.h2.util.StringUtils;
  */
 public class FilePathCrypt extends FilePathWrapper {
 
-    private static final String SCHEME = "crypt2";
+    private static final String SCHEME = "crypt";
 
     /**
      * Register this file system.
@@ -39,7 +39,7 @@ public class FilePathCrypt extends FilePathWrapper {
         String[] parsed = parse(name);
         FileChannel file = FileUtils.open(parsed[1], mode);
         byte[] passwordBytes = StringUtils.convertHexToBytes(parsed[0]);
-        return new FileCrypt2(passwordBytes, file);
+        return new FileCrypt(name, passwordBytes, file);
     }
 
     public String getScheme() {
@@ -56,24 +56,20 @@ public class FilePathCrypt extends FilePathWrapper {
     }
 
     public long size() {
-        long len = getBase().size();
-        return Math.max(0, len - FileCrypt2.HEADER_LENGTH);
+        long size = getBase().size() - FileCrypt.HEADER_LENGTH;
+        size = Math.max(0, size);
+        if ((size & FileCrypt.BLOCK_SIZE_MASK) != 0) {
+            size -= FileCrypt.BLOCK_SIZE;
+        }
+        return size;
     }
 
-    public OutputStream newOutputStream(boolean append) {
-        try {
-            return new FileChannelOutputStream(open("rw"), append);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, name);
-        }
+    public OutputStream newOutputStream(boolean append) throws IOException {
+        return new FileChannelOutputStream(open("rw"), append);
     }
 
-    public InputStream newInputStream() {
-        try {
-            return new FileChannelInputStream(open("r"));
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, name);
-        }
+    public InputStream newInputStream() throws IOException {
+        return new FileChannelInputStream(open("r"));
     }
 
     /**
@@ -84,13 +80,13 @@ public class FilePathCrypt extends FilePathWrapper {
      */
     private String[] parse(String fileName) {
         if (!fileName.startsWith(getScheme())) {
-            DbException.throwInternalError(fileName + " doesn't start with " + getScheme());
+            throw new IllegalArgumentException(fileName + " doesn't start with " + getScheme());
         }
         fileName = fileName.substring(getScheme().length() + 1);
         int idx = fileName.indexOf(':');
         String password;
         if (idx < 0) {
-            DbException.throwInternalError(fileName + " doesn't contain encryption algorithm and password");
+            throw new IllegalArgumentException(fileName + " doesn't contain encryption algorithm and password");
         }
         password = fileName.substring(0, idx);
         fileName = fileName.substring(idx + 1);
@@ -100,13 +96,17 @@ public class FilePathCrypt extends FilePathWrapper {
     /**
      * An encrypted file with a read cache.
      */
-    public static class FileCrypt2 extends FileBase {
+    public static class FileCrypt extends FileBase {
 
         /**
          * The block size.
          */
-        // TODO use a block size of 2048 and a header size of 4096
         static final int BLOCK_SIZE = 4096;
+
+        /**
+         * The block size bit mask.
+         */
+        static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
 
         /**
          * The length of the file header. Using a smaller header is possible, but
@@ -114,7 +114,6 @@ public class FilePathCrypt extends FilePathWrapper {
          */
         static final int HEADER_LENGTH = BLOCK_SIZE;
 
-        // TODO improve the header
         private static final byte[] HEADER = "H2crypt\n".getBytes();
         private static final int SALT_POS = HEADER.length;
 
@@ -133,24 +132,37 @@ public class FilePathCrypt extends FilePathWrapper {
 
         private final XTS xts;
 
+        /**
+         * The current position within the file, from a user perspective.
+         */
         private long pos;
 
-        public FileCrypt2(byte[] passwordBytes, FileChannel base) throws IOException {
-            // TODO rename 'password' to 'options' (comma separated)
+        /**
+         * The current file size, from a user perspective.
+         */
+        private long size;
+
+        private final String name;
+
+        public FileCrypt(String name, byte[] passwordBytes, FileChannel base) throws IOException {
+            this.name = name;
             this.base = base;
-            boolean newFile = base.size() < HEADER_LENGTH;
+            this.size = base.size() - HEADER_LENGTH;
+            boolean newFile = size < 0;
             byte[] salt;
             if (newFile) {
                 byte[] header = Arrays.copyOf(HEADER, BLOCK_SIZE);
                 salt = MathUtils.secureRandomBytes(SALT_LENGTH);
                 System.arraycopy(salt, 0, header, SALT_POS, salt.length);
                 DataUtils.writeFully(base, 0, ByteBuffer.wrap(header));
+                size = 0;
             } else {
                 salt = new byte[SALT_LENGTH];
                 DataUtils.readFully(base, SALT_POS, ByteBuffer.wrap(salt));
+                if ((size & BLOCK_SIZE_MASK) != 0) {
+                    size -= BLOCK_SIZE;
+                }
             }
-            // TODO support Fog (and maybe Fog2)
-            // Fog cipher = new Fog();
             AES cipher = new AES();
             cipher.setKey(SHA256.getPBKDF2(passwordBytes, salt, HASH_ITERATIONS, 16));
             xts = new XTS(cipher);
@@ -179,63 +191,141 @@ public class FilePathCrypt extends FilePathWrapper {
 
         public int read(ByteBuffer dst, long position) throws IOException {
             int len = dst.remaining();
-            if (position % BLOCK_SIZE != 0) {
+            if (len == 0) {
+                return 0;
+            }
+            len = (int) Math.min(len, size - position);
+            if (position >= size) {
+                return -1;
+            } else if (position < 0) {
                 throw new IllegalArgumentException("pos: " + position);
             }
-            if (len % BLOCK_SIZE != 0) {
-                throw new IllegalArgumentException("len: " + len);
+            if ((position & BLOCK_SIZE_MASK) != 0 ||
+                    (len & BLOCK_SIZE_MASK) != 0) {
+                // either the position or the len is unaligned:
+                // read aligned, and then truncate
+                long p = position / BLOCK_SIZE * BLOCK_SIZE;
+                int offset = (int) (position - p);
+                int l = (len + offset + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
+                ByteBuffer temp = ByteBuffer.allocate(l);
+                readInternal(temp, p, l);
+                temp.flip();
+                temp.limit(offset + len);
+                temp.position(offset);
+                dst.put(temp);
+                return len;
             }
+            readInternal(dst, position, len);
+            return len;
+        }
+
+        private void readInternal(ByteBuffer dst, long position, int len) throws IOException {
             int x = dst.position();
-            len = base.read(dst, position + HEADER_LENGTH);
+            readFully(base, position + HEADER_LENGTH, dst);
             long block = position / BLOCK_SIZE;
-            int l = len;
-            while (l > 0) {
+            while (len > 0) {
                 xts.decrypt(block++, BLOCK_SIZE, dst.array(), x);
                 x += BLOCK_SIZE;
+                len -= BLOCK_SIZE;
+            }
+        }
+
+        private static void readFully(FileChannel file, long pos, ByteBuffer dst) throws IOException {
+            do {
+                int len = file.read(dst, pos);
+                if (len < 0) {
+                    throw new EOFException();
+                }
+                pos += len;
+            } while (dst.remaining() > 0);
+        }
+
+        public int write(ByteBuffer src, long position) throws IOException {
+            int len = src.remaining();
+            if ((position & BLOCK_SIZE_MASK) != 0 ||
+                    (len & BLOCK_SIZE_MASK) != 0) {
+                // either the position or the len is unaligned:
+                // read aligned, and then truncate
+                long p = position / BLOCK_SIZE * BLOCK_SIZE;
+                int offset = (int) (position - p);
+                int l = (len + offset + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
+                ByteBuffer temp = ByteBuffer.allocate(l);
+                int available = (int) (size - p + BLOCK_SIZE - 1) / BLOCK_SIZE * BLOCK_SIZE;
+                int readLen = Math.min(l, available);
+                if (readLen > 0) {
+                    readInternal(temp, p, readLen);
+                    temp.rewind();
+                }
+                temp.limit(offset + len);
+                temp.position(offset);
+                temp.put(src);
+                temp.limit(l);
+                temp.rewind();
+                writeInternal(temp, p, l);
+                long p2 = position + len;
+                size = Math.max(size, p2);
+                int plus = (int) (size & BLOCK_SIZE_MASK);
+                if (plus > 0) {
+                    temp = ByteBuffer.allocate(plus);
+                    DataUtils.writeFully(base, p + HEADER_LENGTH + l, temp);
+                }
+                return len;
+            }
+            writeInternal(src, position, len);
+            long p2 = position + len;
+            size = Math.max(size, p2);
+            return len;
+        }
+
+        private void writeInternal(ByteBuffer src, long position, int len) throws IOException {
+            ByteBuffer crypt = ByteBuffer.allocate(len);
+            crypt.put(src);
+            crypt.flip();
+            long block = position / BLOCK_SIZE;
+            int x = 0, l = len;
+            while (l > 0) {
+                xts.encrypt(block++, BLOCK_SIZE, crypt.array(), x);
+                x += BLOCK_SIZE;
                 l -= BLOCK_SIZE;
+            }
+            writeFully(base, position + HEADER_LENGTH, crypt);
+        }
+
+        private static void writeFully(FileChannel file, long pos, ByteBuffer src) throws IOException {
+            int off = 0;
+            do {
+                int len = file.write(src, pos + off);
+                off += len;
+            } while (src.remaining() > 0);
+        }
+
+        public int write(ByteBuffer src) throws IOException {
+            int len = write(src, pos);
+            if (len > 0) {
+                pos += len;
             }
             return len;
         }
 
-        public int write(ByteBuffer src, long position) throws IOException {
-          int len = src.remaining();
-          // TODO support non-block aligned file length / reads / writes
-          if (position % BLOCK_SIZE != 0) {
-              throw new IllegalArgumentException("pos: " + position);
-          }
-          if (len % BLOCK_SIZE != 0) {
-              throw new IllegalArgumentException("len: " + len);
-          }
-          ByteBuffer crypt = ByteBuffer.allocate(len);
-          crypt.put(src);
-          crypt.flip();
-          long block = position / BLOCK_SIZE;
-          int x = 0;
-          while (len > 0) {
-              xts.encrypt(block++, BLOCK_SIZE, crypt.array(), x);
-              x += BLOCK_SIZE;
-              len -= BLOCK_SIZE;
-          }
-          return base.write(crypt, position + BLOCK_SIZE);
-      }
-
-      public int write(ByteBuffer src) throws IOException {
-          int len = write(src, pos);
-          if (len > 0) {
-              pos += len;
-          }
-          return len;
-      }
-
         public long size() throws IOException {
-            return base.size() - HEADER_LENGTH;
+            return size;
         }
 
         public FileChannel truncate(long newSize) throws IOException {
-            if (newSize % BLOCK_SIZE != 0) {
+            if (newSize > size) {
+                return this;
+            }
+            if (newSize < 0) {
                 throw new IllegalArgumentException("newSize: " + newSize);
             }
-            base.truncate(newSize + BLOCK_SIZE);
+            int offset = (int) (newSize & BLOCK_SIZE_MASK);
+            if (offset > 0) {
+                base.truncate(newSize + HEADER_LENGTH + BLOCK_SIZE);
+            } else {
+                base.truncate(newSize + HEADER_LENGTH);
+            }
+            this.size = newSize;
+            pos = Math.min(pos, size);
             return this;
         }
 
@@ -248,7 +338,7 @@ public class FilePathCrypt extends FilePathWrapper {
         }
 
         public String toString() {
-            return SCHEME + ":" + base.toString();
+            return name;
         }
 
     }
@@ -262,7 +352,7 @@ public class FilePathCrypt extends FilePathWrapper {
     static class XTS {
 
         /**
-         * Galois Field feedback.
+         * Galois field feedback.
          */
         private static final int GF_128_FEEDBACK = 0x87;
 
@@ -277,6 +367,14 @@ public class FilePathCrypt extends FilePathWrapper {
             this.cipher = cipher;
         }
 
+        /**
+         * Encrypt the data.
+         *
+         * @param id the (sector) id
+         * @param len the number of bytes
+         * @param data the data
+         * @param offset the offset within the data
+         */
         void encrypt(long id, int len, byte[] data, int offset) {
             byte[] tweak = initTweak(id);
             int i = 0;
@@ -297,6 +395,14 @@ public class FilePathCrypt extends FilePathWrapper {
             }
         }
 
+        /**
+         * Decrypt the data.
+         *
+         * @param id the (sector) id
+         * @param len the number of bytes
+         * @param data the data
+         * @param offset the offset within the data
+         */
         void decrypt(long id, int len, byte[] data, int offset) {
             byte[] tweak = initTweak(id), tweakEnd = tweak;
             int i = 0;
@@ -335,7 +441,7 @@ public class FilePathCrypt extends FilePathWrapper {
             }
         }
 
-        static void updateTweak(byte[] tweak) {
+        private static void updateTweak(byte[] tweak) {
             byte ci = 0, co = 0;
             for (int i = 0; i < CIPHER_BLOCK_SIZE; i++) {
                 co = (byte) ((tweak[i] >> 7) & 1);
@@ -347,7 +453,7 @@ public class FilePathCrypt extends FilePathWrapper {
             }
         }
 
-        static void swap(byte[] data, int source, int target, int len) {
+        private static void swap(byte[] data, int source, int target, int len) {
             for (int i = 0; i < len; i++) {
                 byte temp = data[source + i];
                 data[source + i] = data[target + i];

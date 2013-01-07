@@ -137,7 +137,12 @@ abstract class ScriptBase extends Prepared implements DataHandler {
             // always use a big buffer, otherwise end-of-block is written a lot
             out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE_COMPRESS);
         } else {
-            OutputStream o = FileUtils.newOutputStream(file, false);
+            OutputStream o;
+            try {
+                o = FileUtils.newOutputStream(file, false);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, null);
+            }
             out = new BufferedOutputStream(o, Constants.IO_BUFFER_SIZE);
             out = CompressTool.wrapOutputStream(out, compressionAlgorithm, SCRIPT_SQL);
         }

@@ -120,7 +120,7 @@ public class PageDelegateIndex extends PageIndex {
     public long getDiskSpaceUsed() {
         return mainIndex.getDiskSpaceUsed();
     }
-    
+
     public void writeRowCount() {
         // ignore
     }

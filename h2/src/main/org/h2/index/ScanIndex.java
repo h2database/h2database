@@ -235,7 +235,7 @@ public class ScanIndex extends BaseIndex {
     public long getDiskSpaceUsed() {
         return 0;
     }
-    
+
     public String getPlanSQL() {
         return table.getSQL() + ".tableScan";
     }

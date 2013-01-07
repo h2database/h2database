@@ -100,7 +100,7 @@ public class MetaIndex extends BaseIndex {
     public long getDiskSpaceUsed() {
         return meta.getDiskSpaceUsed();
     }
-    
+
     public String getPlanSQL() {
         return "meta";
     }

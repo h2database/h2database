@@ -82,8 +82,8 @@ public class TestSecurity extends TestBase {
                 "348c89dbcbd32b2f32d814b8116e84cf2b17347ebc1800181c4e2a1fb8dd53e1c635518c7dac47e9",
                 StringUtils.convertBytesToHex(
                 SHA256.getPBKDF2(
-                "passwordPASSWORDpassword".getBytes(),
-                "saltSALTsaltSALTsaltSALTsaltSALTsalt".getBytes(), 4096, 40)));
+                ("password" + "PASSWORD" + "password").getBytes(),
+                ("salt"+ "SALT"+ "salt"+ "SALT"+ "salt"+ "SALT"+ "salt"+ "SALT"+ "salt").getBytes(), 4096, 40)));
         assertEquals(
                 "89b69d0516f829893c696226650a8687",
                 StringUtils.convertBytesToHex(

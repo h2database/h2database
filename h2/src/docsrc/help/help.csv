@@ -213,7 +213,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition [ BEFORE columnName ]
+{ [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
     | ( { columnDefinition } [,...] ) }
 ","
 Adds a new column to a table.
@@ -3574,7 +3574,7 @@ CALL DECODE(RAND()>0.5, 0, 'Red', 1, 'Black');
 "
 
 "Functions (System)","DISK_SPACE_USED","
-DISK_SPACE_USED(tablename)
+DISK_SPACE_USED(tableNameString)
 ","
 Returns the approximate amount of space used by the table specified.
 Does not currently take into account indexes or LOB's.

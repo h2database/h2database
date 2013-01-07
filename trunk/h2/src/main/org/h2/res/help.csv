@@ -80,7 +80,7 @@ ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 Changes the next value and the increment of a sequence."
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition [ BEFORE columnName | AFTER columnName ]
+{ [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
     | ( { columnDefinition } [,...] ) }
 ","
 Adds a new column to a table."
@@ -1291,6 +1291,10 @@ Returns the directory of the database files and the database name, if it is file
 DECODE(value, whenValue, thenValue [,...])
 ","
 Returns the first matching value."
+"Functions (System)","DISK_SPACE_USED","
+DISK_SPACE_USED(tableNameString)
+","
+Returns the approximate amount of space used by the table specified."
 "Functions (System)","FILE_READ","
 FILE_READ(fileNameString [,encodingString])
 ","
@@ -1384,10 +1388,6 @@ Truncate a value to the required precision."
 { USER | CURRENT_USER } ()
 ","
 Returns the name of the current user of this session."
-"Functions (System)","VERSION","
-VERSION()
-","
-Returns the H2 version as a String."
 "System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","

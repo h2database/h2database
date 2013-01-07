@@ -147,6 +147,25 @@ public class Build extends BuildBase {
         }
     }
 
+    private void compileMVStore(boolean debugInfo) {
+        switchSource(debugInfo);
+        clean();
+        mkdir("temp");
+        download();
+        String classpath = "temp";
+        FileList files;
+        files = files("src/main/org/h2/mvstore").
+                exclude("src/main/org/h2/mvstore/db/*");
+        StringList args = args();
+        if (debugInfo) {
+            args = args.plus("-Xlint:unchecked", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
+        } else {
+            args = args.plus("-Xlint:unchecked", "-g:none", "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
+        }
+        System.out.println(files);
+        javac(args, files);
+    }
+
     private void compile(boolean debugInfo, boolean clientOnly, boolean basicResourcesOnly) {
         switchSource(debugInfo);
         clean();
@@ -435,6 +454,15 @@ public class Build extends BuildBase {
     }
 
     /**
+     * Create the file h2mvstore.jar. This only contains the MVStore.
+     */
+    public void jarMVStore() {
+        compileMVStore(true);
+        FileList files = files("temp");
+        jar("bin/h2mvstore" + getJarSuffix(), files, "temp");
+    }
+
+    /**
      * Create the file h2small.jar. This only contains the embedded database.
      * Debug information is disabled.
      */
@@ -510,7 +538,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
-                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar",
+                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");

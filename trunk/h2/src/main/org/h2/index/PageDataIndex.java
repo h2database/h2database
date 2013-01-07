@@ -431,7 +431,7 @@ public class PageDataIndex extends PageIndex {
         PageData root = getPage(rootPageId, 0);
         return root.getDiskSpaceUsed();
     }
-    
+
     public String getCreateSQL() {
         return null;
     }

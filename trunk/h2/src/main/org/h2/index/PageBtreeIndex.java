@@ -303,7 +303,7 @@ public class PageBtreeIndex extends PageIndex {
     public long getDiskSpaceUsed() {
         return tableData.getDiskSpaceUsed();
     }
-    
+
     public long getRowCount(Session session) {
         return rowCount;
     }

@@ -305,7 +305,7 @@ public class MultiVersionIndex implements Index {
     public long getDiskSpaceUsed() {
         return base.getDiskSpaceUsed();
     }
-    
+
     public Index getBaseIndex() {
         return base;
     }

@@ -157,10 +157,12 @@ public interface Index extends SchemaObject {
     long getRowCountApproximation();
 
     /**
-     * @return the estimated number of bytes of disk space used by this page and all child pages.
+     * Get the used disk space for this index.
+     *
+     * @return the estimated number of bytes
      */
     long getDiskSpaceUsed();
-    
+
     /**
      * Compare two rows.
      *

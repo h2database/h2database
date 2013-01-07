@@ -93,7 +93,7 @@ public class FunctionIndex extends BaseIndex {
     public long getDiskSpaceUsed() {
         return 0;
     }
-    
+
     public String getPlanSQL() {
         return "function";
     }

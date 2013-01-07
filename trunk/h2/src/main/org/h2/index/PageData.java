@@ -89,7 +89,9 @@ abstract class PageData extends Page {
     abstract void setRowCountStored(int rowCount);
 
     /**
-     * @return the estimated number of bytes of disk space used by this page and all child pages.
+     * Get the used disk space for this index.
+     *
+     * @return the estimated number of bytes
      */
     abstract long getDiskSpaceUsed();
 
@@ -234,7 +236,7 @@ abstract class PageData extends Page {
         // to how much memory a row needs on average
         return memoryEstimated;
     }
-    
+
     int getParentPageId() {
         return parentPageId;
     }

@@ -32,9 +32,13 @@ import org.h2.value.ValueNull;
  */
 public class MVSecondaryIndex extends BaseIndex {
 
-    protected final MVTable mvTable;
-    protected final int keyColumns;
-    protected MVMap<Value[], Long> map;
+    /**
+     * The multi-value table.
+     */
+    final MVTable mvTable;
+
+    private final int keyColumns;
+    private MVMap<Value[], Long> map;
 
     public MVSecondaryIndex(Database db, MVTable table, int id, String indexName,
                 IndexColumn[] columns, IndexType indexType) {
@@ -131,6 +135,12 @@ public class MVSecondaryIndex extends BaseIndex {
         return array;
     }
 
+    /**
+     * Get the row with the given index key.
+     *
+     * @param array the index key
+     * @return the row
+     */
     SearchRow getRow(Value[] array) {
         SearchRow searchRow = mvTable.getTemplateRow();
         searchRow.setKey((array[array.length - 1]).getLong());

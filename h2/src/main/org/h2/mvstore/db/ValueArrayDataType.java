@@ -126,7 +126,7 @@ public class ValueArrayDataType implements DataType {
         return comp;
     }
 
-    public int compareTypeSave(Value a, Value b) {
+    private int compareTypeSave(Value a, Value b) {
         if (a == b) {
             return 0;
         }

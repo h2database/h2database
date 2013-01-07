@@ -43,8 +43,8 @@ H:3,...
 
 TODO:
 
+- separate jar file
 - automated 'kill process' and 'power failure' test
-- test stream store if data doesn't fit in memory
 - mvcc with multiple transactions
 - update checkstyle
 - maybe split database into multiple files, to speed up compact
@@ -86,14 +86,12 @@ TODO:
 - ensure data is overwritten eventually if the system doesn't have a timer
 - SSD-friendly write (always in blocks of 128 or 256 KB?)
 - close the file on out of memory or disk write error (out of disk space or so)
-- implement a shareded map (in one store, multiple stores)
+- implement a sharded map (in one store, multiple stores)
 -- to support concurrent updates and writes, and very large maps
 - implement an off-heap file system
 - remove change cursor, or add support for writing to branches
 - file encryption: try using multiple threads
-- file encryption: support un-aligned operations
-- file encryption: separate algorithm/key for tweak
-- file encryption: add a fast (insecure) algorithm
+- file encryption: add a fast, insecure algorithm
 
 */
 
@@ -405,7 +403,7 @@ public class MVStore {
             file = f.open(readOnly ? "r" : "rw");
             if (filePassword != null) {
                 byte[] password = DataUtils.getPasswordBytes(filePassword);
-                file = new FilePathCrypt.FileCrypt2(password, file);
+                file = new FilePathCrypt.FileCrypt(fileName, password, file);
             }
             file = FilePathCache.wrap(file);
             if (readOnly) {
@@ -1392,6 +1390,12 @@ public class MVStore {
         }
     }
 
+    /**
+     * Rename a map.
+     *
+     * @param map the map
+     * @param newName the new name
+     */
     void renameMap(MVMap<?, ?> map, String newName) {
         checkOpen();
         DataUtils.checkArgument(map != meta,
@@ -1411,6 +1415,12 @@ public class MVStore {
         meta.put("name." + newName, Integer.toString(id));
     }
 
+    /**
+     * Get the name of the given map.
+     *
+     * @param id the map id
+     * @return the name
+     */
     String getMapName(int id) {
         String m = meta.get("map." + id);
         return DataUtils.parseMap(m).get("name");

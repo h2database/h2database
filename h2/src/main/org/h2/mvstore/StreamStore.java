@@ -25,6 +25,8 @@ import org.h2.util.StringUtils;
  * checks if there is already a block with the next key, and if necessary
  * searches the next free entry using a binary search (0 to Long.MAX_VALUE).
  * <p>
+ * Before storing
+ * <p>
  * The format of the binary id is: An empty id represents 0 bytes of data.
  * In-place data is encoded as 0, the size (a variable size int), then the data.
  * A stored block is encoded as 1, the length of the block (a variable size
@@ -157,7 +159,18 @@ public class StreamStore {
     private long writeBlock(byte[] data) {
         long key = getAndIncrementNextKey();
         map.put(key, data);
+        onStore(data.length);
         return key;
+    }
+
+    /**
+     * This method is called after a block of data is stored. Override this
+     * method to persist data if necessary.
+     *
+     * @param len the length of the stored block.
+     */
+    protected void onStore(int len) {
+        // do nothing by default
     }
 
     private long getAndIncrementNextKey() {

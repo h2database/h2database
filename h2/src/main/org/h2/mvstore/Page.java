@@ -462,7 +462,7 @@ public class Page {
     }
 
     /**
-     * Update the (descendent) count for the given child, if there was a change.
+     * Update the (descendant) count for the given child, if there was a change.
      *
      * @param index the index
      * @param c the new child page
@@ -472,7 +472,7 @@ public class Page {
     }
 
     /**
-     * Update the (descendent) count for the given child, if there was a change.
+     * Update the (descendant) count for the given child, if there was a change.
      *
      * @param index the index
      * @param total the new value

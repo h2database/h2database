@@ -243,20 +243,20 @@ as <code>store()</code> operates on a snapshot.
 Caching is done on the page level.
 The page cache is a concurrent LIRS cache, which should be resistant against scan operations.
 </p><p>
-The default map implementation does not support concurrent modification 
+The default map implementation does not support concurrent modification
 operations on a map (the same as <code>HashMap</code> and <code>TreeMap</code>).
 </p><p>
-With the <code>MVMapConcurrent</code> implementation, 
+With the <code>MVMapConcurrent</code> implementation,
 read operations even on the newest version can happen concurrently with all other
 operations, without risk of corruption.
-This comes with slightly reduced speed in single threaded mode, 
+This comes with slightly reduced speed in single threaded mode,
 the same as with other <code>ConcurrentHashMap</code> implementations.
 Write operations first read the relevant area from disk to memory
 (this can happen concurrently), and only then modify the data. The in-memory part of write
 operations is synchronized.
 </p><p>
-For fully scalable concurrent write operations to a map (in-memory and to disk), 
-the map could be split into multiple maps in different stores ('sharding'). 
+For fully scalable concurrent write operations to a map (in-memory and to disk),
+the map could be split into multiple maps in different stores ('sharding').
 The plan is to add such a mechanism later when needed.
 </p>
 
@@ -265,7 +265,7 @@ The plan is to add such a mechanism later when needed.
 Currently, <code>store()</code> needs to be called explicitly to save changes.
 Changes are buffered in memory, and once enough changes have accumulated
 (for example 2 MB), all changes are written in one continuous disk write operation.
-(According to a test, write throughput of a common SSD gets higher the larger the block size, 
+(According to a test, write throughput of a common SSD gets higher the larger the block size,
 until a block size of 2 MB, and then does not further increase.)
 But of course, if needed, changes can also be persisted if only little data was changed.
 The estimated amount of unsaved changes is tracked.
@@ -341,10 +341,10 @@ MVStore s = new MVStore.Builder().
 </p><p>
 The following algorithms and settings are used:
 </p>
-<ul><li>The password char array is cleared after use, 
+<ul><li>The password char array is cleared after use,
     to reduce the risk that the password is stolen
     even if the attacker has access to the main memory.
-</li><li>The password is hashed according to the PBKDF2 standard, 
+</li><li>The password is hashed according to the PBKDF2 standard,
     using the SHA-256 hash algorithm.
 </li><li>The length of the salt is 64 bits,
     so that an attacker can not use a pre-calculated password hash table (rainbow table).
@@ -364,27 +364,27 @@ There is a tool (<code>MVStoreTool</code>) to dump the contents of a file.
 
 <h3>Exception Handling</h3>
 <p>
-This tool does not throw checked exceptions. 
-Instead, unchecked exceptions are thrown if needed. 
+This tool does not throw checked exceptions.
+Instead, unchecked exceptions are thrown if needed.
 The error message always contains the version of the tool.
 The following exceptions can occur:
 </p>
 <ul><li><code>IllegalStateException</code> if a map was already closed or
-    an IO exception occurred, for example if the file was locked, is already closed, 
-    could not be opened or closed, if reading or writing failed, 
-    if the file is corrupt, or if there is an internal error in the tool. 
+    an IO exception occurred, for example if the file was locked, is already closed,
+    could not be opened or closed, if reading or writing failed,
+    if the file is corrupt, or if there is an internal error in the tool.
 </li><li><code>IllegalArgumentException</code> if a method was called with an illegal argument.
 </li><li><code>UnsupportedOperationException</code> if a method was called that is not supported,
     for example trying to modify a read-only map or view.
-</ul>
+</li></ul>
 
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>
 <p>
-Unlike similar storage engines like LevelDB and Kyoto Cabinet, 
+Unlike similar storage engines like LevelDB and Kyoto Cabinet,
 the MVStore is written in Java
 and can easily be embedded in a Java and Android application.
 </p><p>
-The MVStore is somewhat similar to the Berkeley DB Java Edition 
+The MVStore is somewhat similar to the Berkeley DB Java Edition
 because it is also written in Java,
 and is also a log structured storage, but the H2 license is more liberal.
 </p><p>

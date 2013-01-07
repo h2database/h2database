@@ -216,7 +216,7 @@ public class FunctionTable extends Table {
     public long getRowCountApproximation() {
         return rowCount;
     }
-    
+
     public long getDiskSpaceUsed() {
         return 0;
     }

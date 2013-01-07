@@ -254,7 +254,11 @@ public class Recover extends Tool implements DataHandler {
         fileName = fileName.substring(0, fileName.length() - 3);
         String outputFile = fileName + suffix;
         trace("Created file: " + outputFile);
-        return new PrintWriter(IOUtils.getBufferedWriter(FileUtils.newOutputStream(outputFile, false)));
+        try {
+            return new PrintWriter(IOUtils.getBufferedWriter(FileUtils.newOutputStream(outputFile, false)));
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, null);
+        }
     }
 
     private void writeDataError(PrintWriter writer, String error, byte[] data) {

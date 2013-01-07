@@ -104,6 +104,11 @@ public class MathUtils {
         return cachedSecureRandom;
     }
 
+    /**
+     * Generate a seed value, using as much unpredictable data as possible.
+     *
+     * @return the seed
+     */
     public static byte[] generateAlternativeSeed() {
         try {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();

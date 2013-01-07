@@ -724,7 +724,7 @@ public class RegularTable extends TableBase {
     public long getRowCountApproximation() {
         return scanIndex.getRowCountApproximation();
     }
-    
+
     @Override
     public long getDiskSpaceUsed() {
         return scanIndex.getDiskSpaceUsed();

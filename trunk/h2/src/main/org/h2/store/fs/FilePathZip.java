@@ -168,8 +168,8 @@ public class FilePathZip extends FilePath {
         return new FileZip(file, entry);
     }
 
-    public OutputStream newOutputStream(boolean append) {
-        throw DbException.getUnsupportedException("write");
+    public OutputStream newOutputStream(boolean append) throws IOException {
+        throw new IOException("write");
     }
 
     public void moveTo(FilePath newName) {

@@ -59,7 +59,7 @@ public class FilePathRec extends FilePathWrapper {
         return new FileRec(this, super.open(mode), name);
     }
 
-    public OutputStream newOutputStream(boolean append) {
+    public OutputStream newOutputStream(boolean append) throws IOException {
         log(Recorder.OPEN_OUTPUT_STREAM, name);
         return super.newOutputStream(append);
     }

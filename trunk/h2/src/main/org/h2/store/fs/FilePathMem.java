@@ -136,14 +136,10 @@ public class FilePathMem extends FilePath {
         // TODO directories are not really supported
     }
 
-    public OutputStream newOutputStream(boolean append) {
-        try {
-            FileMemData obj = getMemoryFile();
-            FileMem m = new FileMem(obj, false);
-            return new FileChannelOutputStream(m, append);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, name);
-        }
+    public OutputStream newOutputStream(boolean append) throws IOException {
+        FileMemData obj = getMemoryFile();
+        FileMem m = new FileMem(obj, false);
+        return new FileChannelOutputStream(m, append);
     }
 
     public InputStream newInputStream() {

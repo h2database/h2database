@@ -6,7 +6,6 @@
  */
 package org.h2.test.unit;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +24,7 @@ import java.util.List;
 import java.util.Random;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathCrypt;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
@@ -58,8 +58,8 @@ public class TestFileSystem extends TestBase {
         testMemFsDir();
         testClasspath();
         FilePathDebug.register().setTrace(true);
-        // testFileSystem("crypt:007:" + getBaseDir() + "/fs");
-
+        FilePathCrypt.register();
+        testFileSystem("crypt:0007:" + getBaseDir() + "/fs");
         testSimpleExpandTruncateSize();
         testSplitDatabaseInZip();
         testDatabaseInMemFileSys();
@@ -72,7 +72,6 @@ public class TestFileSystem extends TestBase {
         testFileSystem("memLZF:");
         testUserHome();
         try {
-            // testFileSystem("crypt:007:" + getBaseDir() + "/fs");
             testFileSystem("nio:" + getBaseDir() + "/fs");
             testFileSystem("nioMapped:" + getBaseDir() + "/fs");
             if (!config.splitFileSystem) {
@@ -230,7 +229,7 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testReadOnly(final String f) throws IOException {
-        new AssertThrows(DbException.class) { public void test() {
+        new AssertThrows(IOException.class) { public void test() throws IOException {
             FileUtils.newOutputStream(f, false);
         }};
         new AssertThrows(DbException.class) { public void test() {
@@ -500,6 +499,7 @@ public class TestFileSystem extends TestBase {
                 }
                 case 2: {
                     trace("truncate " + pos);
+                    buff.append("truncate " + pos + "\n");
                     f.truncate(pos);
                     if (pos < ra.length()) {
                         // truncate is supposed to have no effect if the
@@ -507,7 +507,6 @@ public class TestFileSystem extends TestBase {
                         ra.setLength(pos);
                     }
                     assertEquals(ra.getFilePointer(), f.position());
-                    buff.append("truncate " + pos + "\n");
                     break;
                 }
                 case 3: {
@@ -516,13 +515,9 @@ public class TestFileSystem extends TestBase {
                     byte[] b1 = new byte[len];
                     byte[] b2 = new byte[len];
                     trace("readFully " + len);
-                    ra.readFully(b1, 0, len);
-                    try {
-                        FileUtils.readFully(f, ByteBuffer.wrap(b2, 0, len));
-                    } catch (EOFException e) {
-                        e.printStackTrace();
-                    }
                     buff.append("readFully " + len + "\n");
+                    ra.readFully(b1, 0, len);
+                    FileUtils.readFully(f, ByteBuffer.wrap(b2, 0, len));
                     assertEquals(b1, b2);
                     break;
                 }

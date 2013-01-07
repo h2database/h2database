@@ -6,6 +6,7 @@
  */
 package org.h2.store;
 
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -88,6 +89,8 @@ public class RecoverTester implements Recorder {
                     new OutputStreamWriter(
                     FileUtils.newOutputStream(fileName + ".log", true)));
             testDatabase(fileName, out);
+        } catch (IOException e) {
+            throw DbException.convertIOException(e, null);
         } finally {
             IOUtils.closeSilently(out);
             testing = false;

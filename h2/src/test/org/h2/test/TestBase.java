@@ -265,7 +265,8 @@ public abstract class TestBase {
         } else {
             url = name;
         }
-        // url = addOption(url, "DEFAULT_TABLE_ENGINE", "org.h2.mvstore.db.MVTableEngine");
+        // url = addOption(url, "DEFAULT_TABLE_ENGINE",
+        //         "org.h2.mvstore.db.MVTableEngine");
         if (!config.memory) {
             if (config.smallLog && admin) {
                 url = addOption(url, "MAX_LOG_SIZE", "1");

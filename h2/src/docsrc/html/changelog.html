@@ -31,10 +31,10 @@ Change Log
     This is still very experimental, and many features are not supported yet.
     The data is stored in a file with the suffix ".mv.db".
 </li><li>New connection setting "DEFAULT_TABLE_ENGINE" to use a specific
-    table engine if none is set explicitly. This is to simplify testing 
+    table engine if none is set explicitly. This is to simplify testing
     the MVStore table engine.
 </li><li>MVStore: encrypted stores are now supported.
-    Only standardized algorithms are used: PBKDF2, SHA-256, XTS-AES, AES-128. 
+    Only standardized algorithms are used: PBKDF2, SHA-256, XTS-AES, AES-128.
 </li><li>MVStore: improved API thanks to Simo Tripodi.
 </li><li>MVStore: maps can now be renamed.
 </li><li>MVStore: store the file header also at the end of each chunk,
@@ -42,11 +42,11 @@ Change Log
 </li><li>MVStore: a map implementation that supports concurrent operations.
 </li><li>MVStore: unified exception handling; the version is included in the messages.
 </li><li>MVStore: old data is now retained for 45 seconds by default.
-</ul><li>MVStore: compress is now disabled by default, and can be enabled on request.
-</ul><li>Support ALTER TABLE ADD ... AFTER. Patch from Andrew Gaul (argaul at gmail.com). Fixes issue 401.
-</ul><li>Improved OSGi support. H2 now registers itself as a DataSourceFactory service. Fixes issue 365.
-</ul><li>Add a DISK_SPACE_USED system function. Fixes issue 270.
-</ul><li>Fix a compile-time ambiguity when compiling with JDK7, thanks to a patch from Lukas Eder.
+</li><li>MVStore: compress is now disabled by default, and can be enabled on request.
+</li><li>Support ALTER TABLE ADD ... AFTER. Patch from Andrew Gaul (argaul at gmail.com). Fixes issue 401.
+</li><li>Improved OSGi support. H2 now registers itself as a DataSourceFactory service. Fixes issue 365.
+</li><li>Add a DISK_SPACE_USED system function. Fixes issue 270.
+</li><li>Fix a compile-time ambiguity when compiling with JDK7, thanks to a patch from Lukas Eder.
 </li></ul>
 
 <h2>Version 1.3.170 (2012-11-30)</h2>

@@ -262,22 +262,52 @@ public class ObjectDataType implements DataType {
         return l;
     }
 
+    /**
+     * Check whether this object is a BigInteger.
+     *
+     * @param obj the object
+     * @return true if yes
+     */
     static boolean isBigInteger(Object obj) {
         return obj instanceof BigInteger && obj.getClass() == BigInteger.class;
     }
 
+    /**
+     * Check whether this object is a BigDecimal.
+     *
+     * @param obj the object
+     * @return true if yes
+     */
     static boolean isBigDecimal(Object obj) {
         return obj instanceof BigDecimal && obj.getClass() == BigDecimal.class;
     }
 
+    /**
+     * Check whether this object is a date.
+     *
+     * @param obj the object
+     * @return true if yes
+     */
     static boolean isDate(Object obj) {
         return obj instanceof Date && obj.getClass() == Date.class;
     }
 
+    /**
+     * Check whether this object is an array.
+     *
+     * @param obj the object
+     * @return true if yes
+     */
     static boolean isArray(Object obj) {
         return obj != null && obj.getClass().isArray();
     }
 
+    /**
+     * Get the class id, or null if not found.
+     *
+     * @param clazz the class
+     * @return the class id or null
+     */
     static Integer getCommonClassId(Class<?> clazz) {
         HashMap<Class<?>, Integer> map = COMMON_CLASSES_MAP;
         if (map.size() == 0) {

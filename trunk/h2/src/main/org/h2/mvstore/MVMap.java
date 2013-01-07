@@ -100,6 +100,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return (V) result;
     }
 
+    /**
+     * Split the root page if necessary.
+     *
+     * @param p the page
+     * @param writeVersion the write version
+     * @return the new sibling
+     */
     protected Page splitRootIfNeeded(Page p, long writeVersion) {
         if (p.getMemory() <= store.getPageSize() || p.getKeyCount() <= 1) {
             return p;
@@ -283,6 +290,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
+    /**
+     * Get the first (lowest) or last (largest) key.
+     *
+     * @param first whether to retrieve the first key
+     * @return the key, or null if the map is empty
+     */
     @SuppressWarnings("unchecked")
     protected K getFirstLast(boolean first) {
         checkOpen();
@@ -340,6 +353,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return getMinMax(key, true, true);
     }
 
+    /**
+     * Get the smallest or largest key using the given bounds.
+     *
+     * @param key the key
+     * @param min whether to retrieve the smallest key
+     * @param excluding if the given upper/lower bound is exclusive
+     * @return the key, or null if the map is empty
+     */
     protected K getMinMax(K key, boolean min, boolean excluding) {
         checkOpen();
         if (size() == 0) {

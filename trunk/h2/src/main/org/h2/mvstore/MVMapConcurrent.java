@@ -28,10 +28,6 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
         super(keyType, valueType);
     }
 
-    public static <K, V> MVMap<K, V> create() {
-        return new MVMapConcurrent<K, V>(new ObjectDataType(), new ObjectDataType());
-    }
-
     protected Page copyOnWrite(Page p, long writeVersion) {
         return p.copy(writeVersion);
     }

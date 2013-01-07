@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import org.h2.engine.Constants;
@@ -345,7 +346,6 @@ public class DataUtils {
         }
     }
 
-
     /**
      * Convert the length to a length code 0..31. 31 means more than 1 MB.
      *
@@ -560,23 +560,51 @@ public class DataUtils {
         return (s2 << 16) | s1;
     }
 
+    /**
+     * Throw an IllegalArgumentException if the argument is invalid.
+     *
+     * @param test true if the argument is valid
+     * @param message the message
+     * @param arguments the arguments
+     * @throws IllegalArgumentException if the argument is invalid
+     */
     public static void checkArgument(boolean test, String message, Object... arguments) {
         if (!test) {
             throw newIllegalArgumentException(message, arguments);
         }
     }
 
+    /**
+     * Create a new IllegalArgumentException.
+     *
+     * @param message the message
+     * @param arguments the arguments
+     * @return the exception
+     */
     public static IllegalArgumentException newIllegalArgumentException(
             String message, Object... arguments) {
         return initCause(new IllegalArgumentException(
                         formatMessage(message, arguments)), arguments);
     }
 
+    /**
+     * Create a new UnsupportedOperationException.
+     *
+     * @param message the message
+     * @return the exception
+     */
     public static UnsupportedOperationException newUnsupportedOperationException(
             String message) {
         return new UnsupportedOperationException(message + getVersion());
     }
 
+    /**
+     * Create a new IllegalStateException.
+     *
+     * @param message the message
+     * @param arguments the arguments
+     * @return the exception
+     */
     public static IllegalStateException newIllegalStateException(
             String message, Object... arguments) {
         return initCause(new IllegalStateException(
@@ -609,6 +637,13 @@ public class DataUtils {
                 Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "]";
     }
 
+    /**
+     * Convert a char array to a byte array. The char array is cleared after
+     * use.
+     *
+     * @param passwordChars the password characters
+     * @return the byte array
+     */
     static byte[] getPasswordBytes(char[] passwordChars) {
         // using UTF-16
         int len = passwordChars.length;
@@ -618,6 +653,7 @@ public class DataUtils {
             password[i + i] = (byte) (c >>> 8);
             password[i + i + 1] = (byte) c;
         }
+        Arrays.fill(passwordChars, (char) 0);
         return password;
     }
 

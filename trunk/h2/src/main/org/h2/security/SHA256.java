@@ -84,6 +84,13 @@ public class SHA256 {
         return getHash(buff, true);
     }
 
+    /**
+     * Calculate the hash-based message authentication code.
+     *
+     * @param key the key
+     * @param message the message
+     * @return the hash
+     */
     public static byte[] getHMAC(byte[] key, byte[] message) {
         key = normalizeKeyForHMAC(key);
         int len = message.length;
@@ -98,7 +105,8 @@ public class SHA256 {
         return sha.result;
     }
 
-    private void calculateHMAC(byte[] key, byte[] message, int len, byte[] iKey, byte[] oKey, byte[] byteBuff, int[] intBuff) {
+    private void calculateHMAC(byte[] key, byte[] message, int len,
+            byte[] iKey, byte[] oKey, byte[] byteBuff, int[] intBuff) {
         Arrays.fill(iKey, 0, 64, (byte) 0x36);
         xor(iKey, key, 64);
         System.arraycopy(message, 0, iKey, 64, len);
@@ -125,6 +133,15 @@ public class SHA256 {
         }
     }
 
+    /**
+     * Calculate the hash using the password-based key derivation function 2.
+     *
+     * @param password the password
+     * @param salt the salt
+     * @param iterations the number of iterations
+     * @param resultLen the number of bytes in the result
+     * @return the result
+     */
     public static byte[] getPBKDF2(byte[] password, byte[] salt, int iterations, int resultLen) {
         byte[] result = new byte[resultLen];
         byte[] key = normalizeKeyForHMAC(password);

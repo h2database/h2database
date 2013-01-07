@@ -15,13 +15,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.StreamStore;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
-// import org.junit.Test;
-// import static org.junit.Assert.*;
 
 /**
  * Test the stream store.
@@ -39,12 +40,74 @@ public class TestStreamStore extends TestBase {
 
     @Override
     public void test() throws IOException {
+        testVeryLarge();
         testDetectIllegalId();
         testTreeStructure();
         testFormat();
         testWithExistingData();
         testWithFullMap();
         testLoop();
+    }
+
+    private void testVeryLarge() throws IOException {
+        String fileName = getBaseDir() + "/testVeryLarge.h3";
+        FileUtils.delete(fileName);
+        final MVStore s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        MVMap<Long, byte[]> map = s.openMap("data");
+        final AtomicInteger count = new AtomicInteger();
+        StreamStore streamStore = new StreamStore(map) {
+            @Override
+            protected void onStore(int len) {
+                count.incrementAndGet();
+                s.store();
+            }
+        };
+        long size = 1 * 1024 * 1024;
+        streamStore.put(new RandomStream(size, 0));
+        s.store();
+        s.close();
+        assertEquals(4, count.get());
+    }
+
+    /**
+     * A stream of incompressible data.
+     */
+    static class RandomStream extends InputStream {
+
+        private long pos, size;
+        private int seed;
+
+        RandomStream(long size, int seed) {
+            this.size = size;
+            this.seed = seed;
+        }
+
+        public int read() {
+            byte[] data = new byte[1];
+            int len = read(data, 0, 1);
+            return len <= 0 ? len : data[0] & 255;
+        }
+
+        public int read(byte[] b, int off, int len) {
+            if (pos >= size) {
+                return -1;
+            }
+            len = (int) Math.min(size - pos, len);
+            int x = seed, end = off + len;
+            // a very simple pseudo-random number generator
+            // with a period length of 4 GB
+            // also good: x * 9 + 1, shift 6; x * 11 + 1, shift 7
+            while (off < end) {
+                x = (x << 4) + x + 1;
+                b[off++] = (byte) (x >> 8);
+            }
+            seed = x;
+            pos += len;
+            return len;
+        }
+
     }
 
     private void testDetectIllegalId() throws IOException {

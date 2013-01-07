@@ -81,6 +81,11 @@ public class MVTable extends TableBase {
         traceLock = database.getTrace(Trace.LOCK);
     }
 
+    /**
+     * Initialize the table.
+     *
+     * @param session the session
+     */
     void init(Session session) {
         primaryIndex = new MVPrimaryIndex(session.getDatabase(),
                 this, getId(),
@@ -342,6 +347,13 @@ public class MVTable extends TableBase {
         MVTableEngine.closeTable(storeName, this);
     }
 
+    /**
+     * Get the given row.
+     *
+     * @param session the session
+     * @param key the primary key
+     * @return the row
+     */
     Row getRow(Session session, long key) {
         return primaryIndex.getRow(session, key);
     }

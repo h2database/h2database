@@ -31,8 +31,8 @@ import org.h2.value.ValueNull;
  */
 public class MVPrimaryIndex extends BaseIndex {
 
-    protected final MVTable mvTable;
-    protected MVMap<Long, Value[]> map;
+    private final MVTable mvTable;
+    private MVMap<Long, Value[]> map;
     private long lastKey;
     private int mainIndexColumn = -1;
 
@@ -52,6 +52,11 @@ public class MVPrimaryIndex extends BaseIndex {
         lastKey = k == null ? 0 : k;
     }
 
+    /**
+     * Rename the index.
+     *
+     * @param newName the new name
+     */
     public void renameTable(String newName) {
         rename(newName + "_DATA");
         map.renameMap(newName + "_DATA_" + getId());

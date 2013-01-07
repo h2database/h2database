@@ -27,6 +27,11 @@ public class MVTableEngine implements TableEngine {
 
     static final Map<String, Store> STORES = new WeakHashMap<String, Store>();
 
+    /**
+     * Flush all changes.
+     *
+     * @param db the database
+     */
     public static void flush(Database db) {
         String storeName = db.getDatabasePath();
         if (storeName == null) {
@@ -38,7 +43,7 @@ public class MVTableEngine implements TableEngine {
                 return;
             }
             // TODO this stores uncommitted transactions as well
-            store(store.store);
+            store(store.getStore());
         }
     }
 
@@ -77,26 +82,38 @@ public class MVTableEngine implements TableEngine {
                 }
             }
         }
-        MVTable table = new MVTable(data, storeName, store.store);
+        MVTable table = new MVTable(data, storeName, store.getStore());
         store.openTables.add(table);
         table.init(data.session);
         return table;
     }
 
+    /**
+     * Close the table, and close the store if there are no remaining open
+     * tables.
+     *
+     * @param storeName the store name
+     * @param table the table
+     */
     static void closeTable(String storeName, MVTable table) {
         synchronized (STORES) {
             Store store = STORES.get(storeName);
             if (store != null) {
                 store.openTables.remove(table);
                 if (store.openTables.size() == 0) {
-                    store(store.store);
-                    store.store.close();
+                    store(store.getStore());
+                    store.getStore().close();
                     STORES.remove(storeName);
                 }
             }
         }
     }
 
+    /**
+     * Store the data if needed.
+     *
+     * @param store the store
+     */
     static void store(MVStore store) {
         store.compact(50);
         store.store();
@@ -107,9 +124,20 @@ public class MVTableEngine implements TableEngine {
      */
     public static class Store {
 
+        /**
+         * The database.
+         */
         final Database db;
-        final MVStore store;
+
+        /**
+         * The list of open tables.
+         */
         final ArrayList<MVTable> openTables = New.arrayList();
+
+        /**
+         * The store.
+         */
+        private final MVStore store;
 
         public Store(Database db, MVStore store) {
             this.db = db;

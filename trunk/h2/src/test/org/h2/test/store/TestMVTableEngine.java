@@ -301,7 +301,8 @@ public class TestMVTableEngine extends TestBase {
                 ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
         Connection conn = getConnection(dbName);
         Statement stat = conn.createStatement();
-        // create table test(id int, name varchar) engine "org.h2.mvstore.db.MVStoreTableEngine"
+        // create table test(id int, name varchar)
+        // engine "org.h2.mvstore.db.MVStoreTableEngine"
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
         ResultSet rs = stat.executeQuery("select *, _rowid_ from test");

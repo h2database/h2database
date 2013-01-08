@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Optimize IN(...) queries: there was a bug in version 1.3.170 for comparison of the type
+<ul><li>When using trace level 4 (SLF4J) in the server mode, a directory "trace.db" 
+    and an empty file was created on the client side. This is no longer made.
+</li><li>Optimize IN(...) queries: there was a bug in version 1.3.170 for comparison of the type
     "X IN(NULL, NULL)". Fixed.
 </li><li>Timestamps with timezone that were passed as a string were not always
     converted correctly. For example "2012-11-06T23:00:00.000Z" was converted to

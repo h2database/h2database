@@ -26,7 +26,6 @@ import org.h2.store.DataHandler;
 import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -136,20 +135,6 @@ public class ValueArrayDataType implements DataType {
         return a.compareTypeSave(b, compareMode);
     }
 
-    public int getMaxLength(Object obj) {
-        Value[] x = (Value[]) obj;
-        int len = x.length;
-        int result = DataUtils.MAX_VAR_INT_LEN;
-        for (int i = 0; i < len; i++) {
-            result += getMaxLength(x[i]);
-        }
-        return result;
-    }
-
-    private int getMaxLength(Value v) {
-        return Data.getValueLen(v, handler);
-    }
-
     public int getMemory(Object obj) {
         Value[] x = (Value[]) obj;
         int len = x.length;
@@ -173,20 +158,22 @@ public class ValueArrayDataType implements DataType {
         return x;
     }
 
-    public void write(ByteBuffer buff, Object obj) {
+    public ByteBuffer write(ByteBuffer buff, Object obj) {
         Value[] x = (Value[]) obj;
         int len = x.length;
         DataUtils.writeVarInt(buff, len);
         for (int i = 0; i < len; i++) {
-            writeValue(buff, x[i]);
+            buff = DataUtils.ensureCapacity(buff, 0);
+            buff = writeValue(buff, x[i]);
         }
+        return buff;
     }
 
-    private void writeValue(ByteBuffer buff, Value v) {
+    private ByteBuffer writeValue(ByteBuffer buff, Value v) {
         int start = buff.position();
         if (v == ValueNull.INSTANCE) {
             buff.put((byte) 0);
-            return;
+            return buff;
         }
         int type = v.getType();
         switch (type) {
@@ -251,6 +238,7 @@ public class ValueArrayDataType implements DataType {
                     writeVarInt(buff, scale);
                     byte[] bytes = b.toByteArray();
                     writeVarInt(buff, bytes.length);
+                    buff = DataUtils.ensureCapacity(buff, bytes.length);
                     buff.put(bytes, 0, bytes.length);
                 }
             }
@@ -305,6 +293,7 @@ public class ValueArrayDataType implements DataType {
             buff.put((byte) type);
             byte[] b = v.getBytesNoCopy();
             writeVarInt(buff, b.length);
+            buff = DataUtils.ensureCapacity(buff, b.length);
             buff.put(b, 0, b.length);
             break;
         }
@@ -317,6 +306,7 @@ public class ValueArrayDataType implements DataType {
             } else {
                 buff.put((byte) type);
                 writeVarInt(buff, b.length);
+                buff = DataUtils.ensureCapacity(buff, b.length);
                 buff.put(b, 0, b.length);
             }
             break;
@@ -333,17 +323,17 @@ public class ValueArrayDataType implements DataType {
             int len = s.length();
             if (len < 32) {
                 buff.put((byte) (STRING_0_31 + len));
-                writeStringWithoutLength(buff, s, len);
+                buff = writeStringWithoutLength(buff, s, len);
             } else {
                 buff.put((byte) type);
-                writeString(buff, s);
+                buff = writeString(buff, s);
             }
             break;
         }
         case Value.STRING_IGNORECASE:
         case Value.STRING_FIXED:
             buff.put((byte) type);
-            writeString(buff, v.getString());
+            buff = writeString(buff, v.getString());
             break;
         case Value.DOUBLE: {
             double x = v.getDouble();
@@ -393,10 +383,11 @@ public class ValueArrayDataType implements DataType {
                     writeVarLong(buff, lob.getPrecision());
                     buff.put((byte) (lob.useCompression() ? 1 : 0));
                     if (t == -2) {
-                        writeString(buff, lob.getFileName());
+                        buff = writeString(buff, lob.getFileName());
                     }
                 } else {
                     writeVarInt(buff, small.length);
+                    buff = DataUtils.ensureCapacity(buff, small.length);
                     buff.put(small, 0, small.length);
                 }
             } else {
@@ -409,6 +400,7 @@ public class ValueArrayDataType implements DataType {
                     writeVarLong(buff, lob.getPrecision());
                 } else {
                     writeVarInt(buff, small.length);
+                    buff = DataUtils.ensureCapacity(buff, small.length);
                     buff.put(small, 0, small.length);
                 }
             }
@@ -419,7 +411,8 @@ public class ValueArrayDataType implements DataType {
             Value[] list = ((ValueArray) v).getList();
             writeVarInt(buff, list.length);
             for (Value x : list) {
-                writeValue(buff, x);
+                buff = DataUtils.ensureCapacity(buff, 0);
+                buff = writeValue(buff, x);
             }
             break;
         }
@@ -432,7 +425,8 @@ public class ValueArrayDataType implements DataType {
                 int columnCount = meta.getColumnCount();
                 writeVarInt(buff, columnCount);
                 for (int i = 0; i < columnCount; i++) {
-                    writeString(buff, meta.getColumnName(i + 1));
+                    buff = DataUtils.ensureCapacity(buff, 0);
+                    buff = writeString(buff, meta.getColumnName(i + 1));
                     writeVarInt(buff, meta.getColumnType(i + 1));
                     writeVarInt(buff, meta.getPrecision(i + 1));
                     writeVarInt(buff, meta.getScale(i + 1));
@@ -442,7 +436,7 @@ public class ValueArrayDataType implements DataType {
                     for (int i = 0; i < columnCount; i++) {
                         int t = org.h2.value.DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
                         Value val = org.h2.value.DataType.readValue(null, rs, i + 1, t);
-                        writeValue(buff, val);
+                        buff = writeValue(buff, val);
                     }
                 }
                 buff.put((byte) 0);
@@ -461,6 +455,7 @@ public class ValueArrayDataType implements DataType {
                         .throwInternalError("value size error: got " + (buff.position() - start) + " expected " + Data.getValueLen(v, handler));
             }
         }
+        return buff;
     }
 
     private static void writeVarInt(ByteBuffer buff, int x) {
@@ -479,13 +474,14 @@ public class ValueArrayDataType implements DataType {
         buff.put((byte) x);
     }
 
-    private static void writeString(ByteBuffer buff, String s) {
+    private static ByteBuffer writeString(ByteBuffer buff, String s) {
         int len = s.length();
         writeVarInt(buff, len);
-        writeStringWithoutLength(buff, s, len);
+        return writeStringWithoutLength(buff, s, len);
     }
 
-    private static void writeStringWithoutLength(ByteBuffer buff, String s, int len) {
+    private static ByteBuffer writeStringWithoutLength(ByteBuffer buff, String s, int len) {
+        buff = DataUtils.ensureCapacity(buff, 3 * len);
         for (int i = 0; i < len; i++) {
             int c = s.charAt(i);
             if (c < 0x80) {
@@ -499,6 +495,7 @@ public class ValueArrayDataType implements DataType {
                 buff.put((byte) (c & 0x3f));
             }
         }
+        return buff;
     }
 
     /**
@@ -540,7 +537,7 @@ public class ValueArrayDataType implements DataType {
         case Value.DECIMAL: {
             int scale = readVarInt(buff);
             int len = readVarInt(buff);
-            byte[] buff2 = Utils.newBytes(len);
+            byte[] buff2 = DataUtils.newBytes(len);
             buff.get(buff2, 0, len);
             BigInteger b = new BigInteger(buff2);
             return ValueDecimal.get(new BigDecimal(b, scale));
@@ -571,13 +568,13 @@ public class ValueArrayDataType implements DataType {
         }
         case Value.BYTES: {
             int len = readVarInt(buff);
-            byte[] b = Utils.newBytes(len);
+            byte[] b = DataUtils.newBytes(len);
             buff.get(b, 0, len);
             return ValueBytes.getNoCopy(b);
         }
         case Value.JAVA_OBJECT: {
             int len = readVarInt(buff);
-            byte[] b = Utils.newBytes(len);
+            byte[] b = DataUtils.newBytes(len);
             buff.get(b, 0, len);
             return ValueJavaObject.getNoCopy(null, b);
         }
@@ -605,7 +602,7 @@ public class ValueArrayDataType implements DataType {
         case Value.CLOB: {
             int smallLen = readVarInt(buff);
             if (smallLen >= 0) {
-                byte[] small = Utils.newBytes(smallLen);
+                byte[] small = DataUtils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
                 return LobStorage.createSmallLob(type, small);
             } else if (smallLen == -3) {
@@ -666,7 +663,7 @@ public class ValueArrayDataType implements DataType {
                 return ValueLong.get(type - LONG_0_7);
             } else if (type >= BYTES_0_31 && type < BYTES_0_31 + 32) {
                 int len = type - BYTES_0_31;
-                byte[] b = Utils.newBytes(len);
+                byte[] b = DataUtils.newBytes(len);
                 buff.get(b, 0, len);
                 return ValueBytes.getNoCopy(b);
             } else if (type >= STRING_0_31 && type < STRING_0_31 + 32) {

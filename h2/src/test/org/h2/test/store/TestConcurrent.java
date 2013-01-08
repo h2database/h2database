@@ -37,6 +37,8 @@ public class TestConcurrent extends TestMVStore {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
+        FileUtils.createDirectories(getBaseDir());
+
         testConcurrentOnlineBackup();
         testConcurrentMap();
         testConcurrentIterate();

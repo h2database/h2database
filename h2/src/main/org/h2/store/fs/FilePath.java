@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 
 /**
  * A path to a file. It similar to the Java 7 <code>java.nio.file.Path</code>,
@@ -25,7 +24,7 @@ import org.h2.util.StringUtils;
  */
 public abstract class FilePath {
 
-    private static final FilePath DEFAULT = new FilePathDisk();
+    private static FilePath defaultProvider;
 
     private static Map<String, FilePath> providers;
 
@@ -51,25 +50,26 @@ public abstract class FilePath {
     public static FilePath get(String path) {
         path = path.replace('\\', '/');
         int index = path.indexOf(':');
+        registerDefaultProviders();
         if (index < 2) {
             // use the default provider if no prefix or
             // only a single character (drive name)
-            return DEFAULT.getPath(path);
+            return defaultProvider.getPath(path);
         }
         String scheme = path.substring(0, index);
-        registerDefaultProviders();
         FilePath p = providers.get(scheme);
         if (p == null) {
             // provider not found - use the default
-            p = DEFAULT;
+            p = defaultProvider;
         }
         return p.getPath(path);
     }
 
     private static void registerDefaultProviders() {
-        if (providers == null) {
+        if (providers == null || defaultProvider == null) {
             Map<String, FilePath> map = Collections.synchronizedMap(New.<String, FilePath>hashMap());
             for (String c : new String[] {
+                    "org.h2.store.fs.FilePathDisk",
                     "org.h2.store.fs.FilePathMem",
                     "org.h2.store.fs.FilePathMemLZF",
                     "org.h2.store.fs.FilePathSplit",
@@ -80,6 +80,9 @@ public abstract class FilePath {
                 try {
                     FilePath p = (FilePath) Class.forName(c).newInstance();
                     map.put(p.getScheme(), p);
+                    if (defaultProvider == null) {
+                        defaultProvider = p;
+                    }
                 } catch (Exception e) {
                     // ignore - the files may be excluded in purpose
                 }
@@ -267,9 +270,7 @@ public abstract class FilePath {
      */
     protected static synchronized String getNextTempFileNamePart(boolean newRandom) {
         if (newRandom || tempRandom == null) {
-            byte[] prefix = new byte[8];
-            MathUtils.randomBytes(prefix);
-            tempRandom = StringUtils.convertBytesToHex(prefix) + ".";
+            tempRandom = MathUtils.randomInt(Integer.MAX_VALUE) + ".";
         }
         return tempRandom + tempSequence++;
     }

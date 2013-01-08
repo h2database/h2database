@@ -127,14 +127,14 @@ public class TestObjectDataType extends TestBase {
         assertTrue(ot.getMemory(x) >= 0);
 
         ot.getMemory(last);
-        assertTrue(ot.getMaxLength(x) >= 1);
+        assertTrue(ot.getMemory(x) >= 0);
 
         ot.getMemory(last);
         assertEquals(0, ot.compare(x, x));
-        ByteBuffer buff = ByteBuffer.allocate(ot.getMaxLength(x) + 1);
+        ByteBuffer buff = ByteBuffer.allocate(1024);
 
         ot.getMemory(last);
-        ot.write(buff, x);
+        buff = ot.write(buff, x);
         buff.put((byte) 123);
         buff.flip();
 

@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
@@ -438,11 +439,11 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 buff = IOUtils.readBytesAndClose(in, -1);
                 len = buff.length;
             } else {
-                buff = Utils.newBytes(len);
+                buff = DataUtils.newBytes(len);
                 len = IOUtils.readFully(in, buff, 0, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = Utils.newBytes(len);
+                byte[] small = DataUtils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
                 return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
             }

@@ -13,12 +13,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import org.h2.engine.Constants;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 
 /**
  * Utility methods
@@ -71,6 +69,11 @@ public class DataUtils {
      * The estimated number of bytes used per child entry.
      */
     public static final int PAGE_MEMORY_CHILD = 16;
+
+    /**
+     * An 0-size byte array.
+     */
+    private static final byte[] EMPTY_BYTES = {};
 
     /**
      * Get the length of the variable size int.
@@ -199,8 +202,10 @@ public class DataUtils {
      * @param buff the target buffer
      * @param s the string
      * @param len the number of characters
+     * @return the byte buffer
      */
-    public static void writeStringData(ByteBuffer buff, String s, int len) {
+    public static ByteBuffer writeStringData(ByteBuffer buff, String s, int len) {
+        buff = DataUtils.ensureCapacity(buff, 3 * len);
         for (int i = 0; i < len; i++) {
             int c = s.charAt(i);
             if (c < 0x80) {
@@ -214,6 +219,7 @@ public class DataUtils {
                 buff.put((byte) (c & 0x3f));
             }
         }
+        return buff;
     }
 
     /**
@@ -584,7 +590,8 @@ public class DataUtils {
     public static IllegalArgumentException newIllegalArgumentException(
             String message, Object... arguments) {
         return initCause(new IllegalArgumentException(
-                        formatMessage(message, arguments)), arguments);
+                MessageFormat.format(message, arguments) + getVersion()),
+                arguments);
     }
 
     /**
@@ -608,7 +615,8 @@ public class DataUtils {
     public static IllegalStateException newIllegalStateException(
             String message, Object... arguments) {
         return initCause(new IllegalStateException(
-                formatMessage(message, arguments)), arguments);
+                MessageFormat.format(message, arguments) + getVersion()),
+                arguments);
     }
 
     private static <T extends Exception> T initCause(T e, Object... arguments) {
@@ -622,39 +630,111 @@ public class DataUtils {
         return e;
     }
 
-    private static String formatMessage(String pattern, Object... arguments) {
-        for (int i = 0, size = arguments.length; i < size; i++) {
-            Object o = arguments[i];
-            if (o instanceof String) {
-                arguments[i] = StringUtils.quoteIdentifier(o.toString());
-            }
-        }
-        return MessageFormat.format(pattern, arguments) + getVersion();
-    }
-
     private static String getVersion() {
         return " [" + Constants.VERSION_MAJOR + "." +
                 Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "]";
     }
 
     /**
-     * Convert a char array to a byte array. The char array is cleared after
-     * use.
+     * Convert the text to UTF-8 format. For the Unicode characters
+     * 0xd800-0xdfff only one byte is returned.
      *
-     * @param passwordChars the password characters
-     * @return the byte array
+     * @param s the text
+     * @return the UTF-8 representation
      */
-    static byte[] getPasswordBytes(char[] passwordChars) {
-        // using UTF-16
-        int len = passwordChars.length;
-        byte[] password = new byte[len * 2];
-        for (int i = 0; i < len; i++) {
-            char c = passwordChars[i];
-            password[i + i] = (byte) (c >>> 8);
-            password[i + i + 1] = (byte) c;
+    public static byte[] utf8Encode(String s) {
+        try {
+            return s.getBytes(Constants.UTF8);
+        } catch (Exception e) {
+            // UnsupportedEncodingException
+            throw newIllegalArgumentException("UTF-8 not supported", e);
         }
-        Arrays.fill(passwordChars, (char) 0);
-        return password;
+    }
+
+    /**
+     * Convert a UTF-8 representation of a text to the text.
+     *
+     * @param utf8 the UTF-8 representation
+     * @return the text
+     */
+    public static String utf8Decode(byte[] utf8) {
+        try {
+            return new String(utf8, Constants.UTF8);
+        } catch (Exception e) {
+            // UnsupportedEncodingException
+            throw newIllegalArgumentException("UTF-8 not supported", e);
+        }
+    }
+
+    /**
+     * Convert a UTF-8 representation of a text to the text using the given
+     * offset and length.
+     *
+     * @param bytes the UTF-8 representation
+     * @param offset the offset in the bytes array
+     * @param length the number of bytes
+     * @return the text
+     */
+    public static String utf8Decode(byte[] bytes, int offset, int length) {
+        try {
+            return new String(bytes, offset, length, Constants.UTF8);
+        } catch (Exception e) {
+            // UnsupportedEncodingException
+            throw newIllegalArgumentException("UTF-8 not supported", e);
+        }
+    }
+
+    /**
+     * Create an array of bytes with the given size. If this is not possible
+     * because not enough memory is available, an OutOfMemoryError with the
+     * requested size in the message is thrown.
+     * <p>
+     * This method should be used if the size of the array is user defined, or
+     * stored in a file, so wrong size data can be distinguished from regular
+     * out-of-memory.
+     *
+     * @param len the number of bytes requested
+     * @return the byte array
+     * @throws OutOfMemoryError
+     */
+    public static byte[] newBytes(int len) {
+        if (len == 0) {
+            return EMPTY_BYTES;
+        }
+        try {
+            return new byte[len];
+        } catch (OutOfMemoryError e) {
+            Error e2 = new OutOfMemoryError("Requested memory: " + len);
+            e2.initCause(e);
+            throw e2;
+        }
+    }
+
+    /**
+     * Ensure the byte buffer has the given capacity, plus 1 KB. If not, a new,
+     * larger byte buffer is created and the data is copied.
+     *
+     * @param buff the byte buffer
+     * @param len the minimum remaining capacity
+     * @return the byte buffer (possibly a new one)
+     */
+    public static ByteBuffer ensureCapacity(ByteBuffer buff, int len) {
+        len += 1024;
+        if (buff.remaining() > len) {
+            return buff;
+        }
+        return grow(buff, len);
+    }
+
+    private static ByteBuffer grow(ByteBuffer buff, int len) {
+        len = buff.remaining() + len;
+        int capacity = buff.capacity();
+        // grow at most 1 MB at a time
+        len = Math.max(len, Math.min(capacity + 1024 * 1024, capacity * 2));
+        ByteBuffer temp = ByteBuffer.allocate(len);
+        buff.flip();
+        temp.put(buff);
+        return temp;
     }
 
 }

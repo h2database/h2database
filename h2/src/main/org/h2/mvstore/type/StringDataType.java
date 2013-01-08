@@ -20,10 +20,6 @@ public class StringDataType implements DataType {
         return a.toString().compareTo(b.toString());
     }
 
-    public int getMaxLength(Object obj) {
-        return DataUtils.MAX_VAR_INT_LEN + 3 * obj.toString().length();
-    }
-
     public int getMemory(Object obj) {
         return 24 + 2 * obj.toString().length();
     }
@@ -33,11 +29,11 @@ public class StringDataType implements DataType {
         return DataUtils.readString(buff, len);
     }
 
-    public void write(ByteBuffer buff, Object obj) {
+    public ByteBuffer write(ByteBuffer buff, Object obj) {
         String s = obj.toString();
         int len = s.length();
         DataUtils.writeVarInt(buff, len);
-        DataUtils.writeStringData(buff, s, len);
+        return DataUtils.writeStringData(buff, s, len);
     }
 
 }

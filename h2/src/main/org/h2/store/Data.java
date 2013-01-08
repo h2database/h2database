@@ -24,10 +24,10 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
-import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -720,7 +720,7 @@ public class Data {
         case Value.DECIMAL: {
             int scale = readVarInt();
             int len = readVarInt();
-            byte[] buff = Utils.newBytes(len);
+            byte[] buff = DataUtils.newBytes(len);
             read(buff, 0, len);
             BigInteger b = new BigInteger(buff);
             return ValueDecimal.get(new BigDecimal(b, scale));
@@ -751,13 +751,13 @@ public class Data {
         }
         case Value.BYTES: {
             int len = readVarInt();
-            byte[] b = Utils.newBytes(len);
+            byte[] b = DataUtils.newBytes(len);
             read(b, 0, len);
             return ValueBytes.getNoCopy(b);
         }
         case Value.JAVA_OBJECT: {
             int len = readVarInt();
-            byte[] b = Utils.newBytes(len);
+            byte[] b = DataUtils.newBytes(len);
             read(b, 0, len);
             return ValueJavaObject.getNoCopy(null, b);
         }
@@ -785,7 +785,7 @@ public class Data {
         case Value.CLOB: {
             int smallLen = readVarInt();
             if (smallLen >= 0) {
-                byte[] small = Utils.newBytes(smallLen);
+                byte[] small = DataUtils.newBytes(smallLen);
                 read(small, 0, smallLen);
                 return LobStorage.createSmallLob(type, small);
             } else if (smallLen == -3) {
@@ -846,7 +846,7 @@ public class Data {
                 return ValueLong.get(type - LONG_0_7);
             } else if (type >= BYTES_0_31 && type < BYTES_0_31 + 32) {
                 int len = type - BYTES_0_31;
-                byte[] b = Utils.newBytes(len);
+                byte[] b = DataUtils.newBytes(len);
                 read(b, 0, len);
                 return ValueBytes.getNoCopy(b);
             } else if (type >= STRING_0_31 && type < STRING_0_31 + 32) {
@@ -1260,7 +1260,7 @@ public class Data {
     }
 
     private void expand(int plus) {
-        byte[] d = Utils.newBytes((data.length + plus) * 2);
+        byte[] d = DataUtils.newBytes((data.length + plus) * 2);
         // must copy everything, because pos could be 0 and data may be
         // still required
         System.arraycopy(data, 0, d, 0, data.length);

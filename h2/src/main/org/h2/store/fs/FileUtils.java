@@ -13,9 +13,6 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
-import org.h2.constant.ErrorCode;
-import org.h2.message.DbException;
-import org.h2.util.IOUtils;
 import org.h2.util.New;
 
 /**
@@ -290,9 +287,8 @@ public class FileUtils {
         if (dir != null) {
             if (exists(dir)) {
                 if (!isDirectory(dir)) {
-                    DbException.get(ErrorCode.FILE_CREATION_FAILED_1,
-                            "Could not create directory, " +
-                            "because a file with the same name already exists: " + dir);
+                    // this will fail
+                    createDirectory(dir);
                 }
             } else {
                 String parent = getParent(dir);
@@ -300,18 +296,6 @@ public class FileUtils {
                 createDirectory(dir);
             }
         }
-    }
-
-    /**
-     * Copy a file from one directory to another, or to another file.
-     *
-     * @param original the original file name
-     * @param copy the file name of the copy
-     */
-    public static void copy(String original, String copy) throws IOException {
-        InputStream in = newInputStream(original);
-        OutputStream out = newOutputStream(copy, false);
-        IOUtils.copyAndClose(in, out);
     }
 
     /**

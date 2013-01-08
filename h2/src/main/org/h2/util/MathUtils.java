@@ -10,10 +10,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Random;
-import org.h2.message.DbException;
 
 /**
  * This is a utility class with mathematical helper functions.
@@ -32,14 +30,37 @@ public class MathUtils {
 
     private static final Random RANDOM  = new Random();
 
-    /**
-     * The maximum scale of a BigDecimal value.
-     */
-    private static final int BIG_DECIMAL_SCALE_MAX = 100000;
-
-
     private MathUtils() {
         // utility class
+    }
+
+
+    /**
+     * Round the value up to the next block size. The block size must be a power
+     * of two. As an example, using the block size of 8, the following rounding
+     * operations are done: 0 stays 0; values 1..8 results in 8, 9..16 results
+     * in 16, and so on.
+     *
+     * @param x the value to be rounded
+     * @param blockSizePowerOf2 the block size
+     * @return the rounded value
+     */
+    public static int roundUpInt(int x, int blockSizePowerOf2) {
+        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
+    }
+
+    /**
+     * Round the value up to the next block size. The block size must be a power
+     * of two. As an example, using the block size of 8, the following rounding
+     * operations are done: 0 stays 0; values 1..8 results in 8, 9..16 results
+     * in 16, and so on.
+     *
+     * @param x the value to be rounded
+     * @param blockSizePowerOf2 the block size
+     * @return the rounded value
+     */
+    public static long roundUpLong(long x, long blockSizePowerOf2) {
+        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
     }
 
     private static synchronized SecureRandom getSecureRandom() {
@@ -199,34 +220,6 @@ public class MathUtils {
     }
 
     /**
-     * Round the value up to the next block size. The block size must be a power
-     * of two. As an example, using the block size of 8, the following rounding
-     * operations are done: 0 stays 0; values 1..8 results in 8, 9..16 results
-     * in 16, and so on.
-     *
-     * @param x the value to be rounded
-     * @param blockSizePowerOf2 the block size
-     * @return the rounded value
-     */
-    public static int roundUpInt(int x, int blockSizePowerOf2) {
-        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
-    }
-
-    /**
-     * Round the value up to the next block size. The block size must be a power
-     * of two. As an example, using the block size of 8, the following rounding
-     * operations are done: 0 stays 0; values 1..8 results in 8, 9..16 results
-     * in 16, and so on.
-     *
-     * @param x the value to be rounded
-     * @param blockSizePowerOf2 the block size
-     * @return the rounded value
-     */
-    public static long roundUpLong(long x, long blockSizePowerOf2) {
-        return (x + blockSizePowerOf2 - 1) & (-blockSizePowerOf2);
-    }
-
-    /**
      * Get the value that is equal or higher than this value, and that is a
      * power of two.
      *
@@ -239,20 +232,6 @@ public class MathUtils {
             i += i;
         }
         return (int) i;
-    }
-
-    /**
-     * Set the scale of a BigDecimal value.
-     *
-     * @param bd the BigDecimal value
-     * @param scale the new scale
-     * @return the scaled value
-     */
-    public static BigDecimal setScale(BigDecimal bd, int scale) {
-        if (scale > BIG_DECIMAL_SCALE_MAX || scale < -BIG_DECIMAL_SCALE_MAX) {
-            throw DbException.getInvalidValueException("scale", scale);
-        }
-        return bd.setScale(scale, BigDecimal.ROUND_HALF_UP);
     }
 
     /**

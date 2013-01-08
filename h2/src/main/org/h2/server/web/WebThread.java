@@ -23,10 +23,10 @@ import java.util.StringTokenizer;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.TraceSystem;
+import org.h2.mvstore.DataUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * For each connection to a session, an object of this class is created.
@@ -320,7 +320,7 @@ class WebThread extends WebApp implements Runnable {
         if (multipart) {
             uploadMultipart(input, len);
         } else if (session != null && len > 0) {
-            byte[] bytes = Utils.newBytes(len);
+            byte[] bytes = DataUtils.newBytes(len);
             for (int pos = 0; pos < len;) {
                 pos += input.read(bytes, pos, len - pos);
             }
@@ -360,7 +360,7 @@ class WebThread extends WebApp implements Runnable {
         RandomAccessFile f = new RandomAccessFile(file, "rw");
         int testSize = (int) Math.min(f.length(), Constants.IO_BUFFER_SIZE);
         f.seek(f.length() - testSize);
-        byte[] bytes = Utils.newBytes(Constants.IO_BUFFER_SIZE);
+        byte[] bytes = DataUtils.newBytes(Constants.IO_BUFFER_SIZE);
         f.readFully(bytes, 0, testSize);
         String s = new String(bytes, "ASCII");
         int x = s.lastIndexOf(boundary);

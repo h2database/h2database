@@ -11,7 +11,6 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
-import org.h2.util.Utils;
 
 /**
  * A page (a node or a leaf).
@@ -720,7 +719,7 @@ public class Page {
             Compressor compressor = map.getStore().getCompressor();
             int lenAdd = DataUtils.readVarInt(buff);
             int compLen = pageLength + start - buff.position();
-            byte[] comp = Utils.newBytes(compLen);
+            byte[] comp = DataUtils.newBytes(compLen);
             buff.get(comp);
             int l = compLen + lenAdd;
             buff = ByteBuffer.allocate(l);
@@ -762,8 +761,9 @@ public class Page {
      *
      * @param chunk the chunk
      * @param buff the target buffer
+     * @return the target buffer
      */
-    private void write(Chunk chunk, ByteBuffer buff) {
+    private ByteBuffer write(Chunk chunk, ByteBuffer buff) {
         int start = buff.position();
         buff.putInt(0);
         buff.putShort((byte) 0);
@@ -776,7 +776,7 @@ public class Page {
         int compressStart = buff.position();
         DataType keyType = map.getKeyType();
         for (int i = 0; i < len; i++) {
-            keyType.write(buff, keys[i]);
+            buff = keyType.write(buff, keys[i]);
         }
         if (type == DataUtils.PAGE_TYPE_NODE) {
             for (int i = 0; i <= len; i++) {
@@ -788,7 +788,7 @@ public class Page {
         } else {
             DataType valueType = map.getValueType();
             for (int i = 0; i < len; i++) {
-                valueType.write(buff, values[i]);
+                buff = valueType.write(buff, values[i]);
             }
         }
         if (map.getStore().getCompress()) {
@@ -818,45 +818,7 @@ public class Page {
         chunk.maxLength += max;
         chunk.maxLengthLive += max;
         chunk.pageCount++;
-    }
-
-    /**
-     * Get the maximum length in bytes to store temporary records, recursively.
-     *
-     * @return the maximum length
-     */
-    int getMaxLengthTempRecursive() {
-        int maxLength = getMaxLength();
-        if (!isLeaf()) {
-            for (int i = 0; i <= keyCount; i++) {
-                Page p = childrenPages[i];
-                if (p != null) {
-                    maxLength += p.getMaxLengthTempRecursive();
-                }
-            }
-        }
-        return maxLength;
-    }
-
-    int getMaxLength() {
-        // length, check, map id, key length, type
-        int maxLength = 4 + 2 + DataUtils.MAX_VAR_INT_LEN
-                + DataUtils.MAX_VAR_INT_LEN + 1;
-        int len = keyCount;
-        DataType keyType = map.getKeyType();
-        for (int i = 0; i < len; i++) {
-            maxLength += keyType.getMaxLength(keys[i]);
-        }
-        if (isLeaf()) {
-            DataType valueType = map.getValueType();
-            for (int i = 0; i < len; i++) {
-                maxLength += valueType.getMaxLength(values[i]);
-            }
-        } else {
-            maxLength += 8 * len;
-            maxLength += DataUtils.MAX_VAR_LONG_LEN * len;
-        }
-        return maxLength;
+        return buff;
     }
 
     /**
@@ -865,21 +827,21 @@ public class Page {
      *
      * @param chunk the chunk
      * @param buff the target buffer
-     * @return the page id
+     * @return the target buffer
      */
-    long writeUnsavedRecursive(Chunk chunk, ByteBuffer buff) {
+    ByteBuffer writeUnsavedRecursive(Chunk chunk, ByteBuffer buff) {
         if (!isLeaf()) {
             int len = children.length;
             for (int i = 0; i < len; i++) {
                 Page p = childrenPages[i];
                 if (p != null) {
-                    children[i] = p.writeUnsavedRecursive(chunk, buff);
+                    buff = p.writeUnsavedRecursive(chunk, buff);
+                    children[i] = p.getPos();
                     childrenPages[i] = null;
                 }
             }
         }
-        write(chunk, buff);
-        return pos;
+        return write(chunk, buff);
     }
 
     long getVersion() {

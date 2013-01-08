@@ -48,17 +48,12 @@ public class SpatialDataType implements DataType {
     }
 
     @Override
-    public int getMaxLength(Object obj) {
-        return 1 + dimensions * 8 + DataUtils.MAX_VAR_LONG_LEN;
-    }
-
-    @Override
     public int getMemory(Object obj) {
         return 40 + dimensions * 4;
     }
 
     @Override
-    public void write(ByteBuffer buff, Object obj) {
+    public ByteBuffer write(ByteBuffer buff, Object obj) {
         SpatialKey k = (SpatialKey) obj;
         int flags = 0;
         for (int i = 0; i < dimensions; i++) {
@@ -74,6 +69,7 @@ public class SpatialDataType implements DataType {
             }
         }
         DataUtils.writeVarLong(buff, k.getId());
+        return buff;
     }
 
     @Override

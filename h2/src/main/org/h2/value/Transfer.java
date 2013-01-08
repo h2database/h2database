@@ -26,6 +26,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
+import org.h2.mvstore.DataUtils;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
@@ -288,7 +289,7 @@ public class Transfer {
         if (len == -1) {
             return null;
         }
-        byte[] b = Utils.newBytes(len);
+        byte[] b = DataUtils.newBytes(len);
         in.readFully(b);
         return b;
     }

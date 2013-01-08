@@ -11,10 +11,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
-import org.h2.util.IOUtils;
-import org.h2.util.StringUtils;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A facility to store streams in a map. Streams are split into blocks, which
@@ -41,6 +41,7 @@ public class StreamStore {
     private int minBlockSize = 256;
     private int maxBlockSize = 256 * 1024;
     private final AtomicLong nextKey = new AtomicLong();
+    private final AtomicReference<byte[]> nextBuffer = new AtomicReference<byte[]>();
 
     /**
      * Create a stream store instance.
@@ -128,23 +129,44 @@ public class StreamStore {
                 }
             }
         }
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int len = (int) IOUtils.copy(in, buffer, maxBlockSize);
+        byte[] readBuffer = nextBuffer.getAndSet(null);
+        if (readBuffer == null) {
+            readBuffer = new byte[maxBlockSize];
+        }
+        byte[] buff = read(in, readBuffer);
+        if (buff != readBuffer) {
+            // re-use the buffer if the result was shorter
+            nextBuffer.set(readBuffer);
+        }
+        int len = buff.length;
         if (len == 0) {
             return true;
         }
         boolean eof = len < maxBlockSize;
-        byte[] data = buffer.toByteArray();
         if (len < minBlockSize) {
             id.write(0);
             DataUtils.writeVarInt(id, len);
-            id.write(data);
+            id.write(buff);
         } else {
             id.write(1);
             DataUtils.writeVarInt(id, len);
-            DataUtils.writeVarLong(id, writeBlock(data));
+            DataUtils.writeVarLong(id, writeBlock(buff));
         }
         return eof;
+    }
+
+    private static byte[] read(InputStream in, byte[] target) throws IOException {
+        int copied = 0;
+        int remaining = target.length;
+        while (remaining > 0) {
+            int len = in.read(target, copied, remaining);
+            if (len < 0) {
+                return Arrays.copyOf(target, copied);
+            }
+            copied += len;
+            remaining -= len;
+        }
+        return target;
     }
 
     private ByteArrayOutputStream putIndirectId(ByteArrayOutputStream id) throws IOException {
@@ -222,7 +244,7 @@ public class StreamStore {
                 break;
             default:
                 throw DataUtils.newIllegalArgumentException(
-                        "Unsupported id {0}", StringUtils.convertBytesToHex(id));
+                        "Unsupported id {0}", Arrays.toString(id));
             }
         }
     }
@@ -254,7 +276,7 @@ public class StreamStore {
                 break;
             default:
                 throw DataUtils.newIllegalArgumentException(
-                        "Unsupported id {0}", StringUtils.convertBytesToHex(id));
+                        "Unsupported id {0}", Arrays.toString(id));
             }
         }
         return length;
@@ -418,7 +440,7 @@ public class StreamStore {
                 }
                 default:
                     throw DataUtils.newIllegalArgumentException(
-                            "Unsupported id {0}", StringUtils.convertBytesToHex(idBuffer.array()));
+                            "Unsupported id {0}", Arrays.toString(idBuffer.array()));
                 }
             }
             return null;

@@ -25,10 +25,9 @@ import org.h2.mvstore.cache.FilePathCache;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathCrypt;
-import org.h2.store.fs.FileUtils;
+import org.h2.store.fs.FilePathNio;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 
 /*
 
@@ -43,7 +42,6 @@ H:3,...
 
 TODO:
 
-- separate jar file
 - automated 'kill process' and 'power failure' test
 - mvcc with multiple transactions
 - update checkstyle
@@ -53,7 +51,6 @@ TODO:
 - possibly split chunk data into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
-- remove DataType.getMaxLength (use ByteArrayOutputStream or getMemory)
 - chunk header: store changed chunk data as row; maybe after the root
 - chunk checksum (header, last page, 2 bytes per page?)
 - is there a better name for the file header,
@@ -84,7 +81,7 @@ TODO:
 - MVStoreTool.shrink to shrink a store (create, copy, rename, delete)
 -- and for MVStore on Windows, auto-detect renamed file
 - ensure data is overwritten eventually if the system doesn't have a timer
-- SSD-friendly write (always in blocks of 128 or 256 KB?)
+- SSD-friendly write (always in blocks of 4 MB / 1 second?)
 - close the file on out of memory or disk write error (out of disk space or so)
 - implement a sharded map (in one store, multiple stores)
 -- to support concurrent updates and writes, and very large maps
@@ -178,7 +175,13 @@ public class MVStore {
     private boolean closed;
 
     MVStore(HashMap<String, Object> config) {
-        this.fileName = (String) config.get("fileName");
+        String f = (String) config.get("fileName");
+        if (f != null && !f.startsWith("nio:")) {
+            // nio is used by default
+            FilePathNio.class.getName();
+            f = "nio:" + f;
+        }
+        this.fileName = f;
         this.readOnly = "r".equals(config.get("openMode"));
         this.compress = "1".equals(config.get("compress"));
         if (fileName != null) {
@@ -194,7 +197,8 @@ public class MVStore {
     }
 
     /**
-     * Open a store in exclusive mode.
+     * Open a store in exclusive mode. For a file-based store, the parent
+     * directory must already exist.
      *
      * @param fileName the file name (null for in-memory)
      * @return the store
@@ -370,7 +374,10 @@ public class MVStore {
         if (fileName == null) {
             return;
         }
-        FileUtils.createDirectories(FileUtils.getParent(fileName));
+        FilePath parent = FilePath.get(fileName).getParent();
+        if (!parent.exists()) {
+            throw DataUtils.newIllegalArgumentException("Directory does not exist: {0}", parent);
+        }
         try {
             if (readOnly) {
                 openFile();
@@ -402,7 +409,7 @@ public class MVStore {
             }
             file = f.open(readOnly ? "r" : "rw");
             if (filePassword != null) {
-                byte[] password = DataUtils.getPasswordBytes(filePassword);
+                byte[] password = FilePathCrypt.getPasswordBytes(filePassword);
                 file = new FilePathCrypt.FileCrypt(fileName, password, file);
             }
             file = FilePathCache.wrap(file);
@@ -496,7 +503,7 @@ public class MVStore {
         fileReadCount++;
         DataUtils.readFully(file, 0, buff);
         for (int i = 0; i < 3 * BLOCK_SIZE; i += BLOCK_SIZE) {
-            String s = StringUtils.utf8Decode(buff.array(), i, BLOCK_SIZE)
+            String s = DataUtils.utf8Decode(buff.array(), i, BLOCK_SIZE)
                     .trim();
             HashMap<String, String> m = DataUtils.parseMap(s);
             String f = m.remove("fletcher");
@@ -510,7 +517,7 @@ public class MVStore {
                 check = -1;
             }
             s = s.substring(0, s.lastIndexOf("fletcher") - 1) + " ";
-            byte[] bytes = StringUtils.utf8Encode(s);
+            byte[] bytes = DataUtils.utf8Encode(s);
             int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
             if (check != checksum) {
                 continue;
@@ -535,10 +542,10 @@ public class MVStore {
         fileHeader.put("rootChunk", "" + rootChunkStart);
         fileHeader.put("version", "" + currentVersion);
         DataUtils.appendMap(buff, fileHeader);
-        byte[] bytes = StringUtils.utf8Encode(buff.toString() + " ");
+        byte[] bytes = DataUtils.utf8Encode(buff.toString() + " ");
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
         DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
-        bytes = StringUtils.utf8Encode(buff.toString());
+        bytes = DataUtils.utf8Encode(buff.toString());
         DataUtils.checkArgument(bytes.length <= BLOCK_SIZE,
                 "File header too large: {}", buff);
         return bytes;
@@ -655,7 +662,6 @@ public class MVStore {
         chunks.put(c.id, c);
         meta.put("chunk." + c.id, c.asString());
 
-        int maxLength = 1 + 4 + 4 + 8;
         for (MVMap<?, ?> m : mapsChanged.values()) {
             if (m == meta || !m.hasUnsavedChanges()) {
                 continue;
@@ -664,7 +670,6 @@ public class MVStore {
             if (p.getTotalCount() == 0) {
                 meta.put("root." + m.getId(), "0");
             } else {
-                maxLength += p.getMaxLengthTempRecursive();
                 meta.put("root." + m.getId(), String.valueOf(Long.MAX_VALUE));
             }
         }
@@ -681,17 +686,12 @@ public class MVStore {
                 applyFreedChunks();
             }
         } while (freedChunks.size() > 0);
-        maxLength += meta.getRoot().getMaxLengthTempRecursive();
         ByteBuffer buff;
-        if (maxLength > 16 * 1024 * 1024) {
-            buff = ByteBuffer.allocate(maxLength);
+        if (writeBuffer != null) {
+            buff = writeBuffer;
+            buff.clear();
         } else {
-            if (writeBuffer != null && writeBuffer.capacity() >= maxLength) {
-                buff = writeBuffer;
-                buff.clear();
-            } else {
-                writeBuffer = buff = ByteBuffer.allocate(maxLength + 128 * 1024);
-            }
+            buff = ByteBuffer.allocate(1024 * 1024);
         }
         // need to patch the header later
         c.writeHeader(buff);
@@ -703,7 +703,8 @@ public class MVStore {
             }
             Page p = m.openVersion(storeVersion).getRoot();
             if (p.getTotalCount() > 0) {
-                long root = p.writeUnsavedRecursive(c, buff);
+                buff = p.writeUnsavedRecursive(c, buff);
+                long root = p.getPos();
                 meta.put("root." + m.getId(), "" + root);
             }
         }
@@ -718,7 +719,7 @@ public class MVStore {
 
         // this will modify maxLengthLive, but
         // the correct value is written in the chunk header
-        meta.getRoot().writeUnsavedRecursive(c, buff);
+        buff = meta.getRoot().writeUnsavedRecursive(c, buff);
 
         int chunkLength = buff.position();
 
@@ -755,6 +756,9 @@ public class MVStore {
         fileWriteCount++;
         DataUtils.writeFully(file, filePos, buff);
         fileSize = Math.max(fileSize, filePos + buff.position());
+        if (buff.capacity() <= 4 * 1024 * 1024) {
+            writeBuffer = buff;
+        }
 
         // overwrite the header if required
         if (!atEnd) {
@@ -1440,7 +1444,7 @@ public class MVStore {
 
         /**
          * Use the following file name. If the file does not exist, it is
-         * automatically created.
+         * automatically created. The parent directory already must exist.
          *
          * @param fileName the file name
          * @return this

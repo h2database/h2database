@@ -9,7 +9,7 @@ package org.h2.compress;
 import java.io.IOException;
 import java.io.InputStream;
 import org.h2.message.DbException;
-import org.h2.util.Utils;
+import org.h2.mvstore.DataUtils;
 
 /**
  * An input stream to read from an LZF stream.
@@ -32,7 +32,7 @@ public class LZFInputStream extends InputStream {
     }
 
     private static byte[] ensureSize(byte[] buff, int len) {
-        return buff == null || buff.length < len ? Utils.newBytes(len) : buff;
+        return buff == null || buff.length < len ? DataUtils.newBytes(len) : buff;
     }
 
     private void fillBuffer() throws IOException {

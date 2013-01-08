@@ -31,6 +31,7 @@ import org.h2.test.utils.AssertThrows;
 import org.h2.test.utils.FilePathDebug;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
+import org.h2.util.IOUtils;
 
 /**
  * Tests various file system.
@@ -425,7 +426,7 @@ public class TestFileSystem extends TestBase {
         List<String> list = FileUtils.newDirectoryStream(fsBase);
         assertEquals(1, list.size());
         assertTrue(list.get(0).endsWith("test"));
-        FileUtils.copy(fsBase + "/test", fsBase + "/test3");
+        IOUtils.copyFiles(fsBase + "/test", fsBase + "/test3");
         FileUtils.moveTo(fsBase + "/test3", fsBase + "/test2");
         FileUtils.moveTo(fsBase + "/test2", fsBase + "/test2");
         assertTrue(!FileUtils.exists(fsBase + "/test3"));

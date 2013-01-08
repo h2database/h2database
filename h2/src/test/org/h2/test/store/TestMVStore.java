@@ -40,6 +40,8 @@ public class TestMVStore extends TestBase {
 
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
+        FileUtils.createDirectories(getBaseDir());
+
         testEncryptedFile();
         testFileFormatChange();
         testRecreateMap();

@@ -11,7 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.List;
-import org.h2.message.DbException;
 
 /**
  * The base class for wrapping / delegating file systems such as
@@ -46,7 +45,7 @@ public abstract class FilePathWrapper extends FilePath {
             p.base = base;
             return p;
         } catch (Exception e) {
-            throw DbException.convert(e);
+            throw new IllegalArgumentException("Path: " + path, e);
         }
     }
 

@@ -6,9 +6,6 @@
  */
 package org.h2.security;
 
-import org.h2.constant.SysProperties;
-import org.h2.message.DbException;
-
 /**
  * An implementation of the AES block cipher algorithm,
  * also known as Rijndael. Only AES-128 is supported by this class.
@@ -118,22 +115,12 @@ public class AES implements BlockCipher {
     }
 
     public void encrypt(byte[] bytes, int off, int len) {
-        if (SysProperties.CHECK) {
-            if (len % ALIGN != 0) {
-                DbException.throwInternalError("unaligned len " + len);
-            }
-        }
         for (int i = off; i < off + len; i += 16) {
             encryptBlock(bytes, bytes, i);
         }
     }
 
     public void decrypt(byte[] bytes, int off, int len) {
-        if (SysProperties.CHECK) {
-            if (len % ALIGN != 0) {
-                DbException.throwInternalError("unaligned len " + len);
-            }
-        }
         for (int i = off; i < off + len; i += 16) {
             decryptBlock(bytes, bytes, i);
         }

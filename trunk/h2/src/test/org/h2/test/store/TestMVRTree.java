@@ -43,6 +43,9 @@ public class TestMVRTree extends TestMVStore {
     }
 
     public void test() {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        FileUtils.createDirectories(getBaseDir());
+
         testExample();
         testMany();
         testSimple();

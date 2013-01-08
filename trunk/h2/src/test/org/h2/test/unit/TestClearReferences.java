@@ -29,6 +29,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.engine.SessionRemote.sessionFactory",
         "org.h2.jdbcx.JdbcDataSourceFactory.cachedTraceSystem",
         "org.h2.store.RecoverTester.instance",
+        "org.h2.store.fs.FilePath.defaultProvider",
         "org.h2.store.fs.FilePath.providers",
         "org.h2.store.fs.FilePath.tempRandom",
         "org.h2.tools.CompressTool.cachedBuffer",

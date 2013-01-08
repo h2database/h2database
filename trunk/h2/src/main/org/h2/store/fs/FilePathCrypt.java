@@ -19,7 +19,6 @@ import org.h2.security.AES;
 import org.h2.security.BlockCipher;
 import org.h2.security.SHA256;
 import org.h2.util.MathUtils;
-import org.h2.util.StringUtils;
 
 /**
  * An encrypted file.
@@ -38,7 +37,7 @@ public class FilePathCrypt extends FilePathWrapper {
     public FileChannel open(String mode) throws IOException {
         String[] parsed = parse(name);
         FileChannel file = FileUtils.open(parsed[1], mode);
-        byte[] passwordBytes = StringUtils.convertHexToBytes(parsed[0]);
+        byte[] passwordBytes = DataUtils.utf8Encode(parsed[0]);
         return new FileCrypt(name, passwordBytes, file);
     }
 
@@ -91,6 +90,26 @@ public class FilePathCrypt extends FilePathWrapper {
         password = fileName.substring(0, idx);
         fileName = fileName.substring(idx + 1);
         return new String[] { password, fileName };
+    }
+
+    /**
+     * Convert a char array to a byte array. The char array is cleared after
+     * use.
+     *
+     * @param passwordChars the password characters
+     * @return the byte array
+     */
+    public static byte[] getPasswordBytes(char[] passwordChars) {
+        // using UTF-16
+        int len = passwordChars.length;
+        byte[] password = new byte[len * 2];
+        for (int i = 0; i < len; i++) {
+            char c = passwordChars[i];
+            password[i + i] = (byte) (c >>> 8);
+            password[i + i + 1] = (byte) c;
+        }
+        Arrays.fill(passwordChars, (char) 0);
+        return password;
     }
 
     /**

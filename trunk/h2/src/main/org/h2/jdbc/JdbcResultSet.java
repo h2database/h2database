@@ -40,7 +40,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.UpdatableRow;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -721,7 +720,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 throw DbException.getInvalidValueException("scale", scale);
             }
             BigDecimal bd = get(columnLabel).getBigDecimal();
-            return bd == null ? null : MathUtils.setScale(bd, scale);
+            return bd == null ? null : ValueDecimal.setScale(bd, scale);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -747,7 +746,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
                 throw DbException.getInvalidValueException("scale", scale);
             }
             BigDecimal bd = get(columnIndex).getBigDecimal();
-            return bd == null ? null : MathUtils.setScale(bd, scale);
+            return bd == null ? null : ValueDecimal.setScale(bd, scale);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

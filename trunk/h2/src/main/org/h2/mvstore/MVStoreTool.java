@@ -12,7 +12,6 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FileUtils;
 
 /**
  * Utility methods used in combination with the MVStore.
@@ -47,7 +46,7 @@ public class MVStoreTool {
      */
     public static void dump(String fileName, Writer writer) {
         PrintWriter pw = new PrintWriter(writer, true);
-        if (!FileUtils.exists(fileName)) {
+        if (!FilePath.get(fileName).exists()) {
             pw.println("File not found: " + fileName);
             return;
         }

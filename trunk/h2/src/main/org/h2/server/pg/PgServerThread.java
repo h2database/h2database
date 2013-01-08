@@ -35,6 +35,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
@@ -132,7 +133,7 @@ public class PgServerThread implements Runnable {
         }
         int len = dataInRaw.readInt();
         len -= 4;
-        byte[] data = Utils.newBytes(len);
+        byte[] data = DataUtils.newBytes(len);
         dataInRaw.readFully(data, 0, len);
         dataIn = new DataInputStream(new ByteArrayInputStream(data, 0, len));
         switchBlock: switch (x) {
@@ -246,7 +247,7 @@ public class PgServerThread implements Runnable {
             int paramCount = readShort();
             for (int i = 0; i < paramCount; i++) {
                 int paramLen = readInt();
-                byte[] d2 = Utils.newBytes(paramLen);
+                byte[] d2 = DataUtils.newBytes(paramLen);
                 readFully(d2);
                 try {
                     setParameter(prep.prep, i, d2, formatCodes);

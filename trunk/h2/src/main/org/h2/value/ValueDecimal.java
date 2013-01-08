@@ -45,6 +45,11 @@ public class ValueDecimal extends Value {
 
     private static final int DIVIDE_SCALE_ADD = 25;
 
+    /**
+     * The maximum scale of a BigDecimal value.
+     */
+    private static final int BIG_DECIMAL_SCALE_MAX = 100000;
+
     private final BigDecimal value;
     private String valueString;
     private int precision;
@@ -183,7 +188,7 @@ public class ValueDecimal extends Value {
                 return this;
             }
         }
-        BigDecimal bd = MathUtils.setScale(value, targetScale);
+        BigDecimal bd = ValueDecimal.setScale(value, targetScale);
         return ValueDecimal.get(bd);
     }
 
@@ -227,6 +232,20 @@ public class ValueDecimal extends Value {
 
     public int getMemory() {
         return value.precision() + 120;
+    }
+
+    /**
+     * Set the scale of a BigDecimal value.
+     *
+     * @param bd the BigDecimal value
+     * @param scale the new scale
+     * @return the scaled value
+     */
+    public static BigDecimal setScale(BigDecimal bd, int scale) {
+        if (scale > BIG_DECIMAL_SCALE_MAX || scale < -BIG_DECIMAL_SCALE_MAX) {
+            throw DbException.getInvalidValueException("scale", scale);
+        }
+        return bd.setScale(scale, BigDecimal.ROUND_HALF_UP);
     }
 
 }

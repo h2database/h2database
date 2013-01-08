@@ -408,32 +408,6 @@ public class Utils {
     }
 
     /**
-     * Create an array of bytes with the given size. If this is not possible
-     * because not enough memory is available, an OutOfMemoryError with the
-     * requested size in the message is thrown.
-     * <p>
-     * This method should be used if the size of the array is user defined, or
-     * stored in a file, so wrong size data can be distinguished from regular
-     * out-of-memory.
-     *
-     * @param len the number of bytes requested
-     * @return the byte array
-     * @throws OutOfMemoryError
-     */
-    public static byte[] newBytes(int len) {
-        if (len == 0) {
-            return EMPTY_BYTES;
-        }
-        try {
-            return new byte[len];
-        } catch (OutOfMemoryError e) {
-            Error e2 = new OutOfMemoryError("Requested memory: " + len);
-            e2.initCause(e);
-            throw e2;
-        }
-    }
-
-    /**
      * Create an int array with the given size.
      *
      * @param len the number of bytes requested

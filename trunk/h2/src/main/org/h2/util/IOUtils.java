@@ -24,6 +24,7 @@ import java.io.Writer;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileUtils;
 
 /**
  * This utility class contains input/output functions.
@@ -475,6 +476,18 @@ public class IOUtils {
             return null;
         }
         return new ByteArrayInputStream(StringUtils.utf8Encode(s));
+    }
+
+    /**
+     * Copy a file from one directory to another, or to another file.
+     *
+     * @param original the original file name
+     * @param copy the file name of the copy
+     */
+    public static void copyFiles(String original, String copy) throws IOException {
+        InputStream in = FileUtils.newInputStream(original);
+        OutputStream out = FileUtils.newOutputStream(copy, false);
+        copyAndClose(in, out);
     }
 
 }

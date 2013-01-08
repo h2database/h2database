@@ -200,7 +200,7 @@ public class FileShell extends Tool {
             String source = getFile(list[i++]);
             String target = getFile(list[i++]);
             end(list, i);
-            FileUtils.copy(source, target);
+            IOUtils.copyFiles(source, target);
         } else if ("head".equals(c)) {
             String file = getFile(list[i++]);
             end(list, i);

@@ -44,7 +44,7 @@ public class ConditionInConstantSet extends Condition {
         this.valueList = valueList;
         this.valueSet = new HashSet<Value>(valueList.size());
         for (Expression expression : valueList) {
-            this.valueSet.add(expression.getValue(session));
+            valueSet.add(expression.getValue(session));
         }
     }
 
@@ -53,6 +53,7 @@ public class ConditionInConstantSet extends Condition {
         if (leftVal == ValueNull.INSTANCE) {
             return leftVal;
         }
+        int todoFix;
         Value firstRightValue = null;
         for (Value v : valueSet) {
             if (v != ValueNull.INSTANCE) {

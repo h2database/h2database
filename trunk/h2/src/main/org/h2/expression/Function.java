@@ -30,6 +30,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.security.BlockCipher;
@@ -1334,7 +1335,7 @@ public class Function extends Expression implements FunctionCall {
 
     private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
         int size = MathUtils.roundUpInt(data.length, blockSize);
-        byte[] newData = Utils.newBytes(size);
+        byte[] newData = DataUtils.newBytes(size);
         System.arraycopy(data, 0, newData, 0, data.length);
         return newData;
     }

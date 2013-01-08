@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
@@ -360,11 +361,11 @@ public class ValueLob extends Value {
                 buff = IOUtils.readBytesAndClose(in, -1);
                 len = buff.length;
             } else {
-                buff = Utils.newBytes(len);
+                buff = DataUtils.newBytes(len);
                 len = IOUtils.readFully(in, buff, 0, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = Utils.newBytes(len);
+                byte[] small = DataUtils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
                 return ValueLob.createSmallLob(Value.BLOB, small);
             }
@@ -696,7 +697,7 @@ public class ValueLob extends Value {
             int len = getBufferSize(h, compress, Long.MAX_VALUE);
             int tabId = tableId;
             if (type == Value.BLOB) {
-                createFromStream(Utils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
+                createFromStream(DataUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
             } else {
                 createFromReader(new char[len], 0, getReader(), Long.MAX_VALUE, h);
             }
@@ -757,7 +758,7 @@ public class ValueLob extends Value {
     private static void copyFileTo(DataHandler h, String sourceFileName, String targetFileName) {
         synchronized (h.getLobSyncObject()) {
             try {
-                FileUtils.copy(sourceFileName, targetFileName);
+                IOUtils.copyFiles(sourceFileName, targetFileName);
             } catch (IOException e) {
                 throw DbException.convertIOException(e, null);
             }

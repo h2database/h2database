@@ -46,16 +46,6 @@ public class RowDataType implements DataType {
         return 0;
     }
 
-    public int getMaxLength(Object obj) {
-        Object[] x = (Object[]) obj;
-        int len = x.length;
-        int result = DataUtils.MAX_VAR_INT_LEN;
-        for (int i = 0; i < len; i++) {
-            result += types[i].getMaxLength(x[i]);
-        }
-        return result;
-    }
-
     public int getMemory(Object obj) {
         Object[] x = (Object[]) obj;
         int len = x.length;
@@ -75,13 +65,15 @@ public class RowDataType implements DataType {
         return x;
     }
 
-    public void write(ByteBuffer buff, Object obj) {
+    public ByteBuffer write(ByteBuffer buff, Object obj) {
         Object[] x = (Object[]) obj;
         int len = x.length;
         DataUtils.writeVarInt(buff, len);
         for (int i = 0; i < len; i++) {
-            types[i].write(buff, x[i]);
+            buff = DataUtils.ensureCapacity(buff, 0);
+            buff = types[i].write(buff, x[i]);
         }
+        return buff;
     }
 
 }

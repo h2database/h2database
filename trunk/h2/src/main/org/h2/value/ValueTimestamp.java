@@ -211,7 +211,7 @@ public class ValueTimestamp extends Value {
         long n = nanos;
         BigDecimal bd = BigDecimal.valueOf(n);
         bd = bd.movePointLeft(9);
-        bd = MathUtils.setScale(bd, targetScale);
+        bd = ValueDecimal.setScale(bd, targetScale);
         bd = bd.movePointRight(9);
         long n2 = bd.longValue();
         if (n2 == n) {

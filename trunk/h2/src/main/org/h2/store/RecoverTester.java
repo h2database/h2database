@@ -100,7 +100,7 @@ public class RecoverTester implements Recorder {
     private synchronized void testDatabase(String fileName, PrintWriter out) {
         out.println("+ write #" + writeCount + " verify #" + verifyCount);
         try {
-            FileUtils.copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+            IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
             verifyCount++;
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
@@ -145,7 +145,7 @@ public class RecoverTester implements Recorder {
         }
         testDatabase += "X";
         try {
-            FileUtils.copy(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+            IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
             ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase + ";FILE_LOCK=NO", p);

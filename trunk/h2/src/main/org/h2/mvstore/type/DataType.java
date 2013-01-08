@@ -23,15 +23,6 @@ public interface DataType {
     int compare(Object a, Object b);
 
     /**
-     * Get the maximum length in bytes used to store an object. In many cases,
-     * this method can be faster than calculating the exact length.
-     *
-     * @param obj the object
-     * @return the maximum length
-     */
-    int getMaxLength(Object obj);
-
-    /**
      * Estimate the used memory in bytes.
      *
      * @param obj the object
@@ -44,8 +35,9 @@ public interface DataType {
      *
      * @param buff the target buffer
      * @param obj the value
+     * @return the byte buffer
      */
-    void write(ByteBuffer buff, Object obj);
+    ByteBuffer write(ByteBuffer buff, Object obj);
 
     /**
      * Read an object.

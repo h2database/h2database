@@ -43,29 +43,18 @@ public class ConditionInConstantSet extends Condition {
         this.left = left;
         this.valueList = valueList;
         this.valueSet = new HashSet<Value>(valueList.size());
+        int type = left.getType();
         for (Expression expression : valueList) {
-            valueSet.add(expression.getValue(session));
+            valueSet.add(expression.getValue(session).convertTo(type));
         }
     }
 
     public Value getValue(Session session) {
-        Value leftVal = left.getValue(session);
-        if (leftVal == ValueNull.INSTANCE) {
-            return leftVal;
+        Value x = left.getValue(session);
+        if (x == ValueNull.INSTANCE) {
+            return x;
         }
-        int todoFix;
-        Value firstRightValue = null;
-        for (Value v : valueSet) {
-            if (v != ValueNull.INSTANCE) {
-                firstRightValue = v;
-                break;
-            }
-        }
-        if (firstRightValue == null) {
-            throw DbException.throwInternalError();
-        }
-        leftVal = leftVal.convertTo(firstRightValue.getType());
-        boolean result = valueSet.contains(leftVal);
+        boolean result = valueSet.contains(x);
         if (!result) {
             boolean setHasNull = valueSet.contains(ValueNull.INSTANCE);
             if (setHasNull) {

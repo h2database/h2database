@@ -1,4 +1,10 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from dual where cast('a' || x as varchar_ignorecase) in ('A1', 'B1');
+> X
+> -
+> 1
+> rows: 1
+
 create sequence seq start with 65 increment by 1;
 > ok
 

@@ -106,6 +106,7 @@ public class FullTextLucene extends FullText {
         stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
                         + ".INDEXES(SCHEMA VARCHAR, TABLE VARCHAR, COLUMNS VARCHAR, PRIMARY KEY(SCHEMA, TABLE))");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_CREATE_INDEX FOR \"" + FullTextLucene.class.getName() + ".createIndex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_INDEX FOR \"" + FullTextLucene.class.getName() + ".dropIndex\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH FOR \"" + FullTextLucene.class.getName() + ".search\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH_DATA FOR \"" + FullTextLucene.class.getName() + ".searchData\"");
         stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" + FullTextLucene.class.getName() + ".reindex\"");
@@ -138,6 +139,29 @@ public class FullTextLucene extends FullText {
         indexExistingRows(conn, schema, table);
     }
 
+    /**
+     * Drop an existing full text index for a table. This method returns
+     * silently if no index for this table exists.
+     *
+     * @param conn the connection
+     * @param schema the schema name of the table (case sensitive)
+     * @param table the table name (case sensitive)
+     */
+    public static void dropIndex(Connection conn, String schema, String table) throws SQLException {
+        init(conn);
+        
+        PreparedStatement prep = conn.prepareStatement("DELETE FROM " + SCHEMA
+                + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
+        prep.setString(1, schema);
+        prep.setString(2, table);
+        int rowCount = prep.executeUpdate();
+        if (rowCount == 0) {
+            return;
+        }
+
+        reindex(conn);
+    }
+    
     /**
      * Re-creates the full text index for this database. Calling this method is
      * usually not needed, as the index is kept up-to-date automatically.
@@ -233,21 +257,28 @@ public class FullTextLucene extends FullText {
      * @param table the table name
      */
     protected static void createTrigger(Connection conn, String schema, String table) throws SQLException {
+        createOrDropTrigger(conn, schema, table, true);
+    }
+    
+    private static void createOrDropTrigger(Connection conn,
+            String schema, String table, boolean create) throws SQLException {
         Statement stat = conn.createStatement();
         String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
-        StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
-        // the trigger is also called on rollback because transaction rollback
-        // will not undo the changes in the Lucene index
-        buff.append(trigger).
-            append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ").
-            append(StringUtils.quoteIdentifier(schema)).
-            append('.').
-            append(StringUtils.quoteIdentifier(table)).
-            append(" FOR EACH ROW CALL \"").
-            append(FullTextLucene.FullTextTrigger.class.getName()).
-            append('\"');
-        stat.execute(buff.toString());
+        if (create) {
+            StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
+            // the trigger is also called on rollback because transaction rollback
+            // will not undo the changes in the Lucene index
+            buff.append(trigger).
+                append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ").
+                append(StringUtils.quoteIdentifier(schema)).
+                append('.').
+                append(StringUtils.quoteIdentifier(table)).
+                append(" FOR EACH ROW CALL \"").
+                append(FullTextLucene.FullTextTrigger.class.getName()).
+                append('\"');
+            stat.execute(buff.toString());
+        }
     }
 
     /**

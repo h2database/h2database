@@ -1,12 +1,13 @@
 /*
- * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.test.db;
 
 import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -31,10 +32,11 @@ public class TestFullText extends TestBase {
      * The words used in this test.
      */
     static final String[] KNOWN_WORDS = { "skiing", "balance", "storage", "water", "train" };
+    private static final String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -46,15 +48,16 @@ public class TestFullText extends TestBase {
         testAutoAnalyze();
         testNativeFeatures();
         testTransaction(false);
-        testCreateDrop();
+        testCreateDropNative();
         testStreamLob();
         test(false, "VARCHAR");
         test(false, "CLOB");
         testPerformance(false);
         testReopen(false);
-        String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
+        testDropIndex(false);
         try {
             Class.forName(luceneFullTextClassName);
+            testCreateDropLucene();
             testUuidPrimaryKey(true);
             testMultiThreaded(true);
             testMultiThreaded(false);
@@ -63,6 +66,7 @@ public class TestFullText extends TestBase {
             test(true, "CLOB");
             testPerformance(true);
             testReopen(true);
+            testDropIndex(true);
         } catch (ClassNotFoundException e) {
             println("Class not found, not tested: " + luceneFullTextClassName);
             // ok
@@ -170,11 +174,10 @@ public class TestFullText extends TestBase {
         Statement stat = conn.createStatement();
         String prefix = lucene ? "FTL" : "FT";
         String className = lucene ? "FullTextLucene" : "FullText";
-        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
-        stat.execute("CALL " + prefix + "_INIT()");
+        initFullText(stat, lucene);
         stat.execute("CREATE TABLE TEST(ID UUID PRIMARY KEY, NAME VARCHAR)");
         String id = UUID.randomUUID().toString();
-        stat.execute("INSERT INTO TEST VALUES('"+ id +"', 'Hello World')");
+        stat.execute("INSERT INTO TEST VALUES('" + id + "', 'Hello World')");
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME')");
         ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
         assertTrue(rs.next());
@@ -196,9 +199,7 @@ public class TestFullText extends TestBase {
         ArrayList<Connection> connList = new ArrayList<Connection>();
         Connection conn = getConnection("fullTextTransaction", connList);
         Statement stat = conn.createStatement();
-        String className = lucene ? "FullTextLucene" : "FullText";
-        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
-        stat.execute("CALL " + prefix + "_INIT()");
+        initFullText(stat, lucene);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
@@ -236,11 +237,8 @@ public class TestFullText extends TestBase {
             // getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
             final Connection conn = getConnection("fullText", connList);
             Statement stat = conn.createStatement();
-            String className = lucene ? "FullTextLucene" : "FullText";
-            stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
-            stat.execute("CALL " + prefix + "_INIT()");
-            stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
-            stat.execute("CALL " + prefix + "_INIT()");
+            initFullText(stat, lucene);
+            initFullText(stat, lucene);
             final String tableName = "TEST" + i;
             stat.execute("CREATE TABLE " + tableName + "(ID INT PRIMARY KEY, DATA VARCHAR)");
             stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', '" + tableName + "', NULL)");
@@ -265,7 +263,8 @@ public class TestFullText extends TestBase {
                         x++;
                         for (String knownWord : KNOWN_WORDS) {
                             trace("searching for " + knownWord + " with " + Thread.currentThread());
-                            ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('" + knownWord + "', 0, 0)");
+                            ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('" + knownWord
+                                    + "', 0, 0)");
                             assertTrue(rs.next());
                         }
                     }
@@ -308,9 +307,11 @@ public class TestFullText extends TestBase {
         final int length = 1024 * 1024;
         prep.setCharacterStream(1, new Reader() {
             int remaining = length;
+
             public void close() {
                 // ignore
             }
+
             public int read(char[] buff, int off, int len) {
                 if (remaining >= len) {
                     remaining -= len;
@@ -330,7 +331,7 @@ public class TestFullText extends TestBase {
         deleteDb("fullText");
     }
 
-    private void testCreateDrop() throws SQLException {
+    private void testCreateDropNative() throws SQLException {
         deleteDb("fullText");
         FileUtils.deleteRecursive(getBaseDir() + "/fullText", false);
         Connection conn = getConnection("fullText");
@@ -346,6 +347,27 @@ public class TestFullText extends TestBase {
         FileUtils.deleteRecursive(getBaseDir() + "/fullText", false);
     }
 
+    private void testCreateDropLucene() throws SQLException, SecurityException, NoSuchMethodException,
+            ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+        deleteDb("fullText");
+        FileUtils.deleteRecursive(getBaseDir() + "/fullText", false);
+        Connection conn = getConnection("fullText");
+        Statement stat = conn.createStatement();
+        initFullText(stat, true);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        Method createIndexMethod = Class.forName(luceneFullTextClassName).getMethod("createIndex",
+                new Class[] { java.sql.Connection.class, String.class, String.class, String.class });
+        Method dropIndexMethod = Class.forName(luceneFullTextClassName).getMethod("dropIndex",
+                new Class[] { java.sql.Connection.class, String.class, String.class });
+        for (int i = 0; i < 10; i++) {
+            createIndexMethod.invoke(null, conn, "PUBLIC", "TEST", null);
+            dropIndexMethod.invoke(null, conn, "PUBLIC", "TEST");
+        }
+        conn.close();
+        deleteDb("fullText");
+        FileUtils.deleteRecursive(getBaseDir() + "/fullText", false);
+    }
+
     private void testReopen(boolean lucene) throws SQLException {
         if (config.memory) {
             return;
@@ -355,9 +377,7 @@ public class TestFullText extends TestBase {
         FileUtils.deleteRecursive(getBaseDir() + "/fullTextReopen", false);
         Connection conn = getConnection("fullTextReopen");
         Statement stat = conn.createStatement();
-        String className = lucene ? "FullTextLucene" : "FullText";
-        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
-        stat.execute("CALL " + prefix + "_INIT()");
+        initFullText(stat, lucene);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
@@ -387,9 +407,7 @@ public class TestFullText extends TestBase {
         Connection conn = getConnection("fullText");
         String prefix = lucene ? "FTL" : "FT";
         Statement stat = conn.createStatement();
-        String className = lucene ? "FullTextLucene" : "FullText";
-        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
-        stat.execute("CALL " + prefix + "_INIT()");
+        initFullText(stat, lucene);
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST AS SELECT * FROM INFORMATION_SCHEMA.HELP");
         stat.execute("ALTER TABLE TEST ALTER COLUMN ID INT NOT NULL");
@@ -522,5 +540,37 @@ public class TestFullText extends TestBase {
         stat.execute("CALL " + prefix + "DROP_ALL()");
 
         close(connList);
+    }
+
+    private void testDropIndex(boolean lucene) throws SQLException {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("fullTextDropIndex");
+        String prefix = lucene ? "FTL" : "FT";
+        FileUtils.deleteRecursive(getBaseDir() + "/fullTextDropIndex", false);
+        Connection conn = getConnection("fullTextDropIndex");
+        Statement stat = conn.createStatement();
+        initFullText(stat, lucene);
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME1 VARCHAR, NAME2 VARCHAR)");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello World', 'Hello Again')");
+        stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME1')");
+        stat.execute("UPDATE TEST SET NAME1=NULL WHERE ID=1");
+        stat.execute("UPDATE TEST SET NAME1='Hello World' WHERE ID=1");
+        stat.execute("CALL " + prefix + "_DROP_INDEX('PUBLIC', 'TEST')");
+        stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME1, NAME2')");
+        stat.execute("UPDATE TEST SET NAME2=NULL WHERE ID=1");
+        stat.execute("UPDATE TEST SET NAME2='Hello World' WHERE ID=1");
+        conn.close();
+
+        conn.close();
+        FileUtils.deleteRecursive(getBaseDir() + "/fullTextDropIndex", false);
+    }
+
+    private static void initFullText(Statement stat, boolean lucene) throws SQLException {
+        String prefix = lucene ? "FTL" : "FT";
+        String className = lucene ? "FullTextLucene" : "FullText";
+        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
+        stat.execute("CALL " + prefix + "_INIT()");
     }
 }

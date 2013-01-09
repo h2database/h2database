@@ -1,7 +1,8 @@
 /*
- * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License, Version
- * 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+ * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.test.db;
 
@@ -32,11 +33,11 @@ public class TestFullText extends TestBase {
      * The words used in this test.
      */
     static final String[] KNOWN_WORDS = { "skiing", "balance", "storage", "water", "train" };
-    private static final String luceneFullTextClassName = "org.h2.fulltext.FullTextLucene";
+    private static final String LUCENE_FULLTEXT_CLASS_NAME = "org.h2.fulltext.FullTextLucene";
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -56,7 +57,7 @@ public class TestFullText extends TestBase {
         testReopen(false);
         testDropIndex(false);
         try {
-            Class.forName(luceneFullTextClassName);
+            Class.forName(LUCENE_FULLTEXT_CLASS_NAME);
             testCreateDropLucene();
             testUuidPrimaryKey(true);
             testMultiThreaded(true);
@@ -68,10 +69,10 @@ public class TestFullText extends TestBase {
             testReopen(true);
             testDropIndex(true);
         } catch (ClassNotFoundException e) {
-            println("Class not found, not tested: " + luceneFullTextClassName);
+            println("Class not found, not tested: " + LUCENE_FULLTEXT_CLASS_NAME);
             // ok
         } catch (NoClassDefFoundError e) {
-            println("Class not found, not tested: " + luceneFullTextClassName);
+            println("Class not found, not tested: " + LUCENE_FULLTEXT_CLASS_NAME);
             // ok
         }
         FullText.closeAll();
@@ -173,7 +174,6 @@ public class TestFullText extends TestBase {
         Connection conn = getConnection("fullText");
         Statement stat = conn.createStatement();
         String prefix = lucene ? "FTL" : "FT";
-        String className = lucene ? "FullTextLucene" : "FullText";
         initFullText(stat, lucene);
         stat.execute("CREATE TABLE TEST(ID UUID PRIMARY KEY, NAME VARCHAR)");
         String id = UUID.randomUUID().toString();
@@ -355,9 +355,9 @@ public class TestFullText extends TestBase {
         Statement stat = conn.createStatement();
         initFullText(stat, true);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        Method createIndexMethod = Class.forName(luceneFullTextClassName).getMethod("createIndex",
+        Method createIndexMethod = Class.forName(LUCENE_FULLTEXT_CLASS_NAME).getMethod("createIndex",
                 new Class[] { java.sql.Connection.class, String.class, String.class, String.class });
-        Method dropIndexMethod = Class.forName(luceneFullTextClassName).getMethod("dropIndex",
+        Method dropIndexMethod = Class.forName(LUCENE_FULLTEXT_CLASS_NAME).getMethod("dropIndex",
                 new Class[] { java.sql.Connection.class, String.class, String.class });
         for (int i = 0; i < 10; i++) {
             createIndexMethod.invoke(null, conn, "PUBLIC", "TEST", null);

@@ -201,7 +201,7 @@ public class Constants {
 
     /**
      * The default maximum length of an LOB that is stored with the record itself.
-     * Only used if h2.lobInDatabase is enabled.
+     * Only used if h2.lobInDatabase is enabled (and lobInDatabase is false by default)
      */
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB2 = 128;
 

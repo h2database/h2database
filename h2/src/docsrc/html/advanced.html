@@ -413,6 +413,11 @@ on the client side.
 The SQL statement <code>SET AUTOCOMMIT FALSE</code> is not supported in the cluster mode.
 To disable autocommit, the method <code>Connection.setAutoCommit(false)</code> needs to be called.
 </p>
+<p>
+It is possible that a transaction from one connection overtakes a transaction from a different connection.
+Depending on the operations, this might result in different results, for example when
+conditionally incrementing a value in a row.
+</p>
 
 <h2 id="two_phase_commit">Two Phase Commit</h2>
 <p>

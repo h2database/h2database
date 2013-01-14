@@ -17,6 +17,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.zip.ZipEntry;
@@ -431,6 +433,63 @@ public class Utils {
             return EMPTY_LONG_ARRAY;
         }
         return new long[len];
+    }
+
+    /**
+     * Will find top limit values in array using given comparator and place them on positions like if
+     * full array sort occur. Does not guarantee any sort order of these top elements.
+     *
+     * @param array the array.
+     * @param offset the offset.
+     * @param limit the limit.
+     * @param cmp the comparator.
+     */
+    public static <X> void topN(X[] array, int offset, int limit, Comparator<? super X> cmp) {
+        partialQuickSort(array, 0, array.length - 1, cmp, offset, offset + limit - 1);
+    }
+
+    /**
+     * The same as {@link #topN(Object[], int, int, Comparator)}} but guarantees sort order of
+     * found top elements.
+     *
+     * @param array the array.
+     * @param offset the offset.
+     * @param limit the limit.
+     * @param cmp the comparator.
+     */
+    public static <X> void topNSorted(X[] array, int offset, int limit, Comparator<? super X> cmp) {
+        topN(array, offset, limit, cmp);
+        Arrays.sort(array, offset, Math.min(offset + limit, array.length), cmp);
+    }
+
+    private static <X> void partialQuickSort(X[] array, int low, int high, Comparator<? super X> cmp, int start, int end) {
+        if (low > end || high < start || (low > start && high < end))
+            return;
+
+        int i = low, j = high;
+        X pivot = array[low + (high - low) / 2];
+
+        while (i <= j) {
+            while (cmp.compare(array[i], pivot) < 0) {
+                i++;
+            }
+            while (cmp.compare(array[j], pivot) > 0) {
+                j--;
+            }
+            if (i <= j) {
+                X x = array[i];
+                array[i] = array[j];
+                array[j] = x;
+
+                i++;
+                j--;
+            }
+        }
+
+        if (low < j)
+            partialQuickSort(array, low, j, cmp, start, end);
+        if (i < high)
+            partialQuickSort(array, i, high, cmp, start, end);
     }
 
     /**

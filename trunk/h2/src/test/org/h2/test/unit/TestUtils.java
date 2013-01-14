@@ -10,6 +10,8 @@ import java.io.File;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Random;
 import org.h2.test.TestBase;
@@ -40,6 +42,7 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testReflectionUtils();
+        testTopN();
     }
 
     private void testWriteReadLong() {
@@ -56,6 +59,42 @@ public class TestUtils extends TestBase {
             Utils.writeLong(buff, 0, x);
             long y = Utils.readLong(buff, 0);
             assertEquals(x, y);
+        }
+    }
+
+    private void testTopN() {
+        Random rnd = new Random();
+
+        Comparator<Integer> cmp = new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return o1.compareTo(o2);
+            }
+        };
+
+        for (int z = 0; z < 10000; z++) {
+            Integer[] arr = new Integer[1 + rnd.nextInt(500)];
+
+            for (int i = 0; i < arr.length; i++) {
+                arr[i] = rnd.nextInt(50);
+            }
+
+            Integer[] arr2 = Arrays.copyOf(arr, arr.length);
+
+            int offset = rnd.nextInt(arr.length);
+            int limit = rnd.nextInt(arr.length);
+
+            Utils.topNSorted(arr, offset, limit, cmp);
+            Arrays.sort(arr2, cmp);
+
+            for (int i = offset, end = Math.min(offset + limit, arr.length); i < end; i++) {
+                if (!arr[i].equals(arr2[i])) {
+                    System.out.println(offset + " " + end);
+                    System.out.println(Arrays.toString(arr));
+                    System.out.println(Arrays.toString(arr2));
+                    fail();
+                }
+            }
         }
     }
 

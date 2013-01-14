@@ -335,7 +335,11 @@ public class LocalResult implements ResultInterface, ResultTarget {
             external.done();
         } else {
             if (sort != null) {
-                sort.sort(rows);
+                if (offset > 0 || limit > 0) {
+                    sort.sort(rows, offset, limit == -1 ? rows.size() : limit);
+                } else {
+                    sort.sort(rows);
+                }
             }
         }
         applyOffset();

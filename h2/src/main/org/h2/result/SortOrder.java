@@ -14,6 +14,7 @@ import org.h2.engine.Database;
 import org.h2.expression.Expression;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -152,6 +153,29 @@ public class SortOrder implements Comparator<Value[]> {
      */
     public void sort(ArrayList<Value[]> rows) {
         Collections.sort(rows, this);
+    }
+
+    /**
+     * Sort a list of rows using offset and limit.
+     *
+     * @param rows the list of rows
+     * @param offset the offset
+     * @param limit the limit
+     */
+    public void sort(ArrayList<Value[]> rows, int offset, int limit) {
+        if (rows.isEmpty())
+            return;
+
+        if (limit == 1 && offset == 0) {
+             rows.set(0, Collections.min(rows, this));
+             return;
+        }
+
+        Value[][] arr = rows.toArray(new Value[rows.size()][]);
+        Utils.topNSorted(arr, offset, limit, this);
+        for (int i = 0, end = Math.min(offset + limit, arr.length); i < end; i++) {
+            rows.set(i, arr[i]);
+        }
     }
 
     /**

@@ -77,6 +77,7 @@ public class ScriptCommand extends ScriptBase {
     private boolean drop;
     private boolean simple;
     private LocalResult result;
+    private String lineSeparatorString;
     private byte[] lineSeparator;
     private byte[] buffer;
     private boolean tempLobTableCreated;
@@ -625,7 +626,8 @@ public class ScriptCommand extends ScriptBase {
         result = null;
         buffer = null;
         try {
-            lineSeparator = SysProperties.LINE_SEPARATOR.getBytes(charset);
+            lineSeparatorString = SysProperties.LINE_SEPARATOR;
+            lineSeparator = lineSeparatorString.getBytes(charset);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }
@@ -654,6 +656,9 @@ public class ScriptCommand extends ScriptBase {
     private void add(String s, boolean insert) throws IOException {
         if (s == null) {
             return;
+        }
+        if (lineSeparator.length > 1 || lineSeparator[0] != '\n') {
+            s = StringUtils.replaceAll(s, "\n", lineSeparatorString);
         }
         s += ";";
         if (out != null) {

@@ -48,6 +48,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private boolean closed;
     private boolean readOnly;
 
+    private volatile boolean writing;
+    private volatile int writeCount;
+
     protected MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
         this.valueType = valueType;
@@ -91,13 +94,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @SuppressWarnings("unchecked")
     public V put(K key, V value) {
-        checkWrite();
-        long writeVersion = store.getCurrentVersion();
-        Page p = copyOnWrite(root, writeVersion);
-        p = splitRootIfNeeded(p, writeVersion);
-        Object result = put(p, writeVersion, key, value);
-        newRoot(p);
-        return (V) result;
+        beforeWrite();
+        try {
+            long writeVersion = store.getCurrentVersion();
+            Page p = copyOnWrite(root, writeVersion);
+            p = splitRootIfNeeded(p, writeVersion);
+            Object result = put(p, writeVersion, key, value);
+            newRoot(p);
+            return (V) result;
+        } finally {
+            afterWrite();
+        }
     }
 
     /**
@@ -488,9 +495,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Remove all entries.
      */
     public void clear() {
-        checkWrite();
-        root.removeAllRecursive();
-        newRoot(Page.createEmpty(this, store.getCurrentVersion()));
+        beforeWrite();
+        try {
+            root.removeAllRecursive();
+            newRoot(Page.createEmpty(this, store.getCurrentVersion()));
+        } finally {
+            afterWrite();
+        }
     }
 
     /**
@@ -498,11 +509,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public void removeMap() {
         checkOpen();
-        if (this != store.getMetaMap()) {
-            checkWrite();
+        if (this == store.getMetaMap()) {
+            return;
+        }
+        beforeWrite();
+        try {
             root.removeAllRecursive();
             store.removeMap(id);
             close();
+        } finally {
+            afterWrite();
         }
     }
 
@@ -527,13 +543,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the old value if the key existed, or null otherwise
      */
     public V remove(Object key) {
-        checkWrite();
-        long writeVersion = store.getCurrentVersion();
-        Page p = copyOnWrite(root, writeVersion);
-        @SuppressWarnings("unchecked")
-        V result = (V) remove(p, writeVersion, key);
-        newRoot(p);
-        return result;
+        beforeWrite();
+        try {
+            long writeVersion = store.getCurrentVersion();
+            Page p = copyOnWrite(root, writeVersion);
+            @SuppressWarnings("unchecked")
+            V result = (V) remove(p, writeVersion, key);
+            newRoot(p);
+            return result;
+        } finally {
+            afterWrite();
+        }
     }
 
     /**
@@ -616,7 +636,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 result = p.getValue(index);
                 p.remove(index);
                 if (p.getKeyCount() == 0) {
-                    removePage(p);
+                    removePage(p.getPos());
                 }
             }
             return result;
@@ -638,7 +658,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (p.getKeyCount() == 0) {
                 p.setChild(index, c);
                 p.setCounts(index, c);
-                removePage(p);
+                removePage(p.getPos());
             } else {
                 p.remove(index);
             }
@@ -671,15 +691,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
             root = newRoot;
         }
-    }
-
-    /**
-     * Check whether this map has any unsaved changes.
-     *
-     * @return true if there are unsaved changes.
-     */
-    public boolean hasUnsavedChanges() {
-        return !oldRoots.isEmpty();
     }
 
     /**
@@ -819,30 +830,34 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param version the version
      */
     void rollbackTo(long version) {
-        checkWrite();
-        removeUnusedOldVersions();
-        if (version <= createVersion) {
-            // the map is removed later
-        } else if (root.getVersion() >= version) {
-            // iterating in descending order -
-            // this is not terribly efficient if there are many versions
-            ArrayList<Page> list = oldRoots;
-            while (list.size() > 0) {
-                int i = list.size() - 1;
-                Page p = list.get(i);
-                root = p;
-                list.remove(i);
-                if (p.getVersion() < version) {
-                    break;
+        beforeWrite();
+        try {
+            removeUnusedOldVersions();
+            if (version <= createVersion) {
+                // the map is removed later
+            } else if (root.getVersion() >= version) {
+                // iterating in descending order -
+                // this is not terribly efficient if there are many versions
+                ArrayList<Page> list = oldRoots;
+                while (list.size() > 0) {
+                    int i = list.size() - 1;
+                    Page p = list.get(i);
+                    root = p;
+                    list.remove(i);
+                    if (p.getVersion() < version) {
+                        break;
+                    }
                 }
             }
+        } finally {
+            afterWrite();
         }
     }
 
     /**
      * Forget all old versions.
      */
-    void removeAllOldVersions() {
+    private void removeAllOldVersions() {
         // create a new instance
         // because another thread might iterate over it
         oldRoots = new ArrayList<Page>();
@@ -887,15 +902,43 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Check whether writing is allowed.
+     * This method is called before writing to the map. The default
+     * implementation checks whether writing is allowed.
      *
-     * @throws IllegalStateException if the map is read-only
+     * @throws UnsupportedOperationException if the map is read-only
      */
-    protected void checkWrite() {
+    protected void beforeWrite() {
         if (readOnly) {
             checkOpen();
             throw DataUtils.newUnsupportedOperationException(
                     "This map is read-only");
+        }
+        writing = true;
+        store.beforeWrite();
+    }
+
+    /**
+     * This method is called after writing to the map.
+     */
+    protected void afterWrite() {
+        writeCount++;
+        writing = false;
+    }
+
+    void waitUntilWritten(long version) {
+        if (root.getVersion() < version) {
+            // a write will create a new version
+            return;
+        }
+        // wait until writing is done,
+        // but only for the current write operation
+        // a bit like a spin lock
+        int w = writeCount;
+        while (writing) {
+            if (writeCount > w) {
+                return;
+            }
+            Thread.yield();
         }
     }
 
@@ -926,8 +969,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param p the page
      */
-    protected void removePage(Page p) {
-        store.removePage(p.getPos());
+    protected void removePage(long pos) {
+        store.removePage(this, pos);
     }
 
     /**
@@ -1051,14 +1094,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param newMapName the name name
      */
     public void renameMap(String newMapName) {
-        checkWrite();
-        store.renameMap(this, newMapName);
+        beforeWrite();
+        try {
+            store.renameMap(this, newMapName);
+        } finally {
+            afterWrite();
+        }
     }
 
     public String toString() {
         return asString(null);
     }
-
 
     /**
      * A builder for maps.

@@ -206,7 +206,7 @@ public class TestMVStore extends TestBase {
         s.store();
         s.close();
         int[] expectedReadsForCacheSize = {
-                3412, 2590, 1924, 1440, 1102, 956, 918
+                3407, 2590, 1924, 1440, 1106, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = new MVStore.Builder().
@@ -723,17 +723,22 @@ public class TestMVStore extends TestBase {
         m.put("1", "Hello");
         assertEquals(1, s.incrementVersion());
         s.rollbackTo(1);
+        assertEquals(1, s.getCurrentVersion());
         assertEquals("Hello", m.get("1"));
+
         long v2 = s.store();
         assertEquals(2, v2);
         assertEquals(2, s.getCurrentVersion());
         assertFalse(s.hasUnsavedChanges());
+        assertEquals("Hello", m.get("1"));
         s.close();
 
         s = openStore(fileName);
         assertEquals(2, s.getCurrentVersion());
         meta = s.getMetaMap();
         m = s.openMap("data");
+        assertFalse(s.hasUnsavedChanges());
+        assertEquals("Hello", m.get("1"));
         m0 = s.openMap("data0");
         MVMap<String, String> m1 = s.openMap("data1");
         m.put("1", "Hallo");

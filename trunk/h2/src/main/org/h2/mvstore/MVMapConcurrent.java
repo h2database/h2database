@@ -34,35 +34,46 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
 
     @SuppressWarnings("unchecked")
     public V put(K key, V value) {
-        checkWrite();
-        V result = get(key);
-        if (value.equals(result)) {
-            return result;
+        beforeWrite();
+        try {
+            // even if the result is the same, we still update the value
+            // (otherwise compact doesn't work)
+            get(key);
+            long writeVersion = store.getCurrentVersion();
+            synchronized (this) {
+                Page p = copyOnWrite(root, writeVersion);
+                p = splitRootIfNeeded(p, writeVersion);
+                V result = (V) put(p, writeVersion, key, value);
+                newRoot(p);
+                return result;
+            }
+        } finally {
+            afterWrite();
         }
-        long writeVersion = store.getCurrentVersion();
-        synchronized (this) {
-            Page p = copyOnWrite(root, writeVersion);
-            p = splitRootIfNeeded(p, writeVersion);
-            result = (V) put(p, writeVersion, key, value);
-            newRoot(p);
-        }
-        return result;
+    }
+
+    void waitUntilWritten(long version) {
+        // no need to wait
     }
 
     @SuppressWarnings("unchecked")
     public V remove(Object key) {
-        checkWrite();
-        V result = get(key);
-        if (result == null) {
-            return null;
+        beforeWrite();
+        try {
+            V result = get(key);
+            if (result == null) {
+                return null;
+            }
+            long writeVersion = store.getCurrentVersion();
+            synchronized (this) {
+                Page p = copyOnWrite(root, writeVersion);
+                result = (V) remove(p, writeVersion, key);
+                newRoot(p);
+            }
+            return result;
+        } finally {
+            afterWrite();
         }
-        long writeVersion = store.getCurrentVersion();
-        synchronized (this) {
-            Page p = copyOnWrite(root, writeVersion);
-            result = (V) remove(p, writeVersion, key);
-            newRoot(p);
-        }
-        return result;
     }
 
     /**

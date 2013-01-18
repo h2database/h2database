@@ -267,7 +267,7 @@ public class Page {
      * @return a page with the given version
      */
     public Page copy(long version) {
-        map.getStore().removePage(pos);
+        map.removePage(pos);
         Page newPage = create(map, version,
                 keyCount, keys, values, children, childrenPages,
                 counts, totalCount,
@@ -541,14 +541,14 @@ public class Page {
                     long c = children[i];
                     int type = DataUtils.getPageType(c);
                     if (type == DataUtils.PAGE_TYPE_LEAF) {
-                        map.getStore().removePage(c);
+                        map.removePage(c);
                     } else {
                         map.readPage(c).removeAllRecursive();
                     }
                 }
             }
         }
-        map.getStore().removePage(pos);
+        map.removePage(pos);
     }
 
     /**

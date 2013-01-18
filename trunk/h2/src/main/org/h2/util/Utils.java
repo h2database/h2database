@@ -436,60 +436,67 @@ public class Utils {
     }
 
     /**
-     * Will find top limit values in array using given comparator and place them on positions like if
-     * full array sort occur. Does not guarantee any sort order of these top elements.
+     * Find the top limit values using given comparator and place them as in a
+     * full array sort, in descending order.
      *
      * @param array the array.
      * @param offset the offset.
      * @param limit the limit.
-     * @param cmp the comparator.
+     * @param comp the comparator.
      */
-    public static <X> void topN(X[] array, int offset, int limit, Comparator<? super X> cmp) {
-        partialQuickSort(array, 0, array.length - 1, cmp, offset, offset + limit - 1);
+    public static <X> void sortTopN(X[] array, int offset, int limit,
+            Comparator<? super X> comp) {
+        partitionTopN(array, offset, limit, comp);
+        Arrays.sort(array, offset, Math.min(offset + limit, array.length), comp);
     }
 
     /**
-     * The same as {@link #topN(Object[], int, int, Comparator)}} but guarantees sort order of
-     * found top elements.
+     * Find the top limit values using given comparator and place them as in a
+     * full array sort. This method does not sort the top elements themselves.
      *
-     * @param array the array.
-     * @param offset the offset.
-     * @param limit the limit.
-     * @param cmp the comparator.
+     * @param array the array
+     * @param offset the offset
+     * @param limit the limit
+     * @param comp the comparator
      */
-    public static <X> void topNSorted(X[] array, int offset, int limit, Comparator<? super X> cmp) {
-        topN(array, offset, limit, cmp);
-        Arrays.sort(array, offset, Math.min(offset + limit, array.length), cmp);
+    private static <X> void partitionTopN(X[] array, int offset, int limit,
+            Comparator<? super X> comp) {
+        partialQuickSort(array, 0, array.length - 1, comp, offset, offset + limit - 1);
     }
 
-    private static <X> void partialQuickSort(X[] array, int low, int high, Comparator<? super X> cmp, int start, int end) {
-        if (low > end || high < start || (low > start && high < end))
+    private static <X> void partialQuickSort(X[] array, int low, int high,
+            Comparator<? super X> comp, int start, int end) {
+        if (low > end || high < start || (low > start && high < end)) {
             return;
-
+        }
         int i = low, j = high;
-        X pivot = array[low + (high - low) / 2];
-
+        // use a random pivot to protect against
+        // the worst case order
+        int p = low + MathUtils.randomInt(high - low);
+        X pivot = array[p];
+        int m = (low + high) >>> 1;
+        X temp = array[m];
+        array[m] = pivot;
+        array[p] = temp;
         while (i <= j) {
-            while (cmp.compare(array[i], pivot) < 0) {
+            while (comp.compare(array[i], pivot) < 0) {
                 i++;
             }
-            while (cmp.compare(array[j], pivot) > 0) {
+            while (comp.compare(array[j], pivot) > 0) {
                 j--;
             }
             if (i <= j) {
-                X x = array[i];
-                array[i] = array[j];
-                array[j] = x;
-
-                i++;
-                j--;
+                temp = array[i];
+                array[i++] = array[j];
+                array[j--] = temp;
             }
         }
-
-        if (low < j)
-            partialQuickSort(array, low, j, cmp, start, end);
-        if (i < high)
-            partialQuickSort(array, i, high, cmp, start, end);
+        if (low < j) {
+            partialQuickSort(array, low, j, comp, start, end);
+        }
+        if (i < high) {
+            partialQuickSort(array, i, high, comp, start, end);
+        }
     }
 
     /**

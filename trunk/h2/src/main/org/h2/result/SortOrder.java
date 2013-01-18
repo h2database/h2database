@@ -163,16 +163,15 @@ public class SortOrder implements Comparator<Value[]> {
      * @param limit the limit
      */
     public void sort(ArrayList<Value[]> rows, int offset, int limit) {
-        if (rows.isEmpty())
+        if (rows.isEmpty()) {
             return;
-
+        }
         if (limit == 1 && offset == 0) {
              rows.set(0, Collections.min(rows, this));
              return;
         }
-
         Value[][] arr = rows.toArray(new Value[rows.size()][]);
-        Utils.topNSorted(arr, offset, limit, this);
+        Utils.sortTopN(arr, offset, limit, this);
         for (int i = 0, end = Math.min(offset + limit, arr.length); i < end; i++) {
             rows.set(i, arr[i]);
         }

@@ -42,7 +42,7 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testReflectionUtils();
-        testTopN();
+        testSortTopN();
     }
 
     private void testWriteReadLong() {
@@ -62,37 +62,27 @@ public class TestUtils extends TestBase {
         }
     }
 
-    private void testTopN() {
+    private void testSortTopN() {
         Random rnd = new Random();
-
-        Comparator<Integer> cmp = new Comparator<Integer>() {
+        Comparator<Integer> comp = new Comparator<Integer>() {
             @Override
             public int compare(Integer o1, Integer o2) {
                 return o1.compareTo(o2);
             }
         };
-
         for (int z = 0; z < 10000; z++) {
             Integer[] arr = new Integer[1 + rnd.nextInt(500)];
-
             for (int i = 0; i < arr.length; i++) {
                 arr[i] = rnd.nextInt(50);
             }
-
             Integer[] arr2 = Arrays.copyOf(arr, arr.length);
-
             int offset = rnd.nextInt(arr.length);
             int limit = rnd.nextInt(arr.length);
-
-            Utils.topNSorted(arr, offset, limit, cmp);
-            Arrays.sort(arr2, cmp);
-
+            Utils.sortTopN(arr, offset, limit, comp);
+            Arrays.sort(arr2, comp);
             for (int i = offset, end = Math.min(offset + limit, arr.length); i < end; i++) {
                 if (!arr[i].equals(arr2[i])) {
-                    System.out.println(offset + " " + end);
-                    System.out.println(Arrays.toString(arr));
-                    System.out.println(Arrays.toString(arr2));
-                    fail();
+                    fail(offset + " " + end + "\n" + Arrays.toString(arr) + "\n" + Arrays.toString(arr2));
                 }
             }
         }

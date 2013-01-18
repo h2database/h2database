@@ -150,7 +150,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     result = p.getValue(i);
                     p.remove(i);
                     if (p.getKeyCount() == 0) {
-                        removePage(p);
+                        removePage(p.getPos());
                     }
                     break;
                 }
@@ -170,7 +170,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     // this child was deleted
                     p.remove(i);
                     if (p.getKeyCount() == 0) {
-                        removePage(p);
+                        removePage(p.getPos());
                     }
                     break;
                 }
@@ -211,34 +211,38 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     private Object putOrAdd(SpatialKey key, V value, boolean alwaysAdd) {
-        checkWrite();
-        long writeVersion = store.getCurrentVersion();
-        Page p = copyOnWrite(root, writeVersion);
-        Object result;
-        if (alwaysAdd || get(key) == null) {
-            if (p.getMemory() > store.getPageSize() && p.getKeyCount() > 1) {
-                // only possible if this is the root, else we would have split earlier
-                // (this requires maxPageSize is fixed)
-                long totalCount = p.getTotalCount();
-                Page split = split(p, writeVersion);
-                Object k1 = getBounds(p);
-                Object k2 = getBounds(split);
-                Object[] keys = { k1, k2 };
-                long[] children = { p.getPos(), split.getPos(), 0 };
-                Page[] childrenPages = { p, split, null };
-                long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
-                p = Page.create(this, writeVersion, 2,
-                        keys, null, children, childrenPages, counts,
-                        totalCount, 0, 0);
-                // now p is a node; continues
+        beforeWrite();
+        try {
+            long writeVersion = store.getCurrentVersion();
+            Page p = copyOnWrite(root, writeVersion);
+            Object result;
+            if (alwaysAdd || get(key) == null) {
+                if (p.getMemory() > store.getPageSize() && p.getKeyCount() > 1) {
+                    // only possible if this is the root, else we would have split earlier
+                    // (this requires maxPageSize is fixed)
+                    long totalCount = p.getTotalCount();
+                    Page split = split(p, writeVersion);
+                    Object k1 = getBounds(p);
+                    Object k2 = getBounds(split);
+                    Object[] keys = { k1, k2 };
+                    long[] children = { p.getPos(), split.getPos(), 0 };
+                    Page[] childrenPages = { p, split, null };
+                    long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
+                    p = Page.create(this, writeVersion, 2,
+                            keys, null, children, childrenPages, counts,
+                            totalCount, 0, 0);
+                    // now p is a node; continues
+                }
+                add(p, writeVersion, key, value);
+                result = null;
+            } else {
+                result = set(p, writeVersion, key, value);
             }
-            add(p, writeVersion, key, value);
-            result = null;
-        } else {
-            result = set(p, writeVersion, key, value);
+            newRoot(p);
+            return result;
+        } finally {
+            afterWrite();
         }
-        newRoot(p);
-        return result;
     }
 
     /**

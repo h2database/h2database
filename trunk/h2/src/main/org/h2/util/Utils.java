@@ -447,7 +447,7 @@ public class Utils {
     public static <X> void sortTopN(X[] array, int offset, int limit,
             Comparator<? super X> comp) {
         partitionTopN(array, offset, limit, comp);
-        Arrays.sort(array, offset, Math.min(offset + limit, array.length), comp);
+        Arrays.sort(array, offset, (int) Math.min((long) offset + limit, array.length), comp);
     }
 
     /**

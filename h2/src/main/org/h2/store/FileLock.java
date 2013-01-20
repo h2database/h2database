@@ -148,6 +148,14 @@ public class FileLock implements Runnable {
         if (!locked) {
             return;
         }
+        locked = false;
+        try {
+            if (watchdog != null) {
+                watchdog.interrupt();
+            }
+        } catch (Exception e) {
+            trace.debug(e, "unlock");
+        }
         try {
             if (fileName != null) {
                 if (load().equals(properties)) {
@@ -162,14 +170,6 @@ public class FileLock implements Runnable {
         } finally {
             fileName = null;
             serverSocket = null;
-            locked = false;
-        }
-        try {
-            if (watchdog != null) {
-                watchdog.interrupt();
-            }
-        } catch (Exception e) {
-            trace.debug(e, "unlock");
         }
     }
 

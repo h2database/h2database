@@ -259,6 +259,7 @@ public class TestScript extends TestBase {
         if (s == null) {
             return "null";
         }
+        s = StringUtils.replaceAll(s, "\r\n", "\n");
         s = s.replace('\n', ' ');
         s = StringUtils.replaceAll(s, "    ", " ");
         while (true) {

@@ -167,8 +167,8 @@ public class SortOrder implements Comparator<Value[]> {
             return;
         }
         if (limit == 1 && offset == 0) {
-             rows.set(0, Collections.min(rows, this));
-             return;
+            rows.set(0, Collections.min(rows, this));
+            return;
         }
         Value[][] arr = rows.toArray(new Value[rows.size()][]);
         Utils.sortTopN(arr, offset, limit, this);

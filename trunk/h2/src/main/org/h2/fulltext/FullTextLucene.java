@@ -149,7 +149,7 @@ public class FullTextLucene extends FullText {
      */
     public static void dropIndex(Connection conn, String schema, String table) throws SQLException {
         init(conn);
-        
+
         PreparedStatement prep = conn.prepareStatement("DELETE FROM " + SCHEMA
                 + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
         prep.setString(1, schema);
@@ -161,7 +161,7 @@ public class FullTextLucene extends FullText {
 
         reindex(conn);
     }
-    
+
     /**
      * Re-creates the full text index for this database. Calling this method is
      * usually not needed, as the index is kept up-to-date automatically.
@@ -259,7 +259,7 @@ public class FullTextLucene extends FullText {
     protected static void createTrigger(Connection conn, String schema, String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
-    
+
     private static void createOrDropTrigger(Connection conn,
             String schema, String table, boolean create) throws SQLException {
         Statement stat = conn.createStatement();

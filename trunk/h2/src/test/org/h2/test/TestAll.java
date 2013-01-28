@@ -112,6 +112,7 @@ import org.h2.test.store.TestMVStore;
 import org.h2.test.store.TestMVRTree;
 import org.h2.test.store.TestMVTableEngine;
 import org.h2.test.store.TestObjectDataType;
+import org.h2.test.store.TestSpinLock;
 import org.h2.test.store.TestStreamStore;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
@@ -688,6 +689,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMVStore().runTest(this);
         new TestMVTableEngine().runTest(this);
         new TestObjectDataType().runTest(this);
+        new TestSpinLock().runTest(this);
         new TestStreamStore().runTest(this);
 
         // unit

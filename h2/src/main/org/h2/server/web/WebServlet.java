@@ -91,7 +91,7 @@ public class WebServlet extends HttpServlet {
             file = file.substring(1);
         }
         file = getAllowedFile(req, file);
-        
+
         // extract the request attributes
         Properties attributes = new Properties();
         Enumeration<?> en = req.getAttributeNames();
@@ -106,7 +106,7 @@ public class WebServlet extends HttpServlet {
             String value = req.getParameter(name);
             attributes.put(name, value);
         }
-        
+
         WebSession session = null;
         String sessionId = attributes.getProperty("jsessionid");
         if (sessionId != null) {

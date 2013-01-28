@@ -401,9 +401,9 @@ public class WebApp {
         return "tools.jsp";
     }
 
-    @SuppressWarnings("unchecked")
     private String adminStartTranslate() {
-        Map<Object, Object> p = (Map<Object, Object>) session.map.get("text");
+        @SuppressWarnings("unchecked")
+        Map<Object, Object> p = Map.class.cast(session.map.get("text"));
         String file = server.startTranslate(p);
         session.put("translationFile", file);
         return "helpTranslate.jsp";

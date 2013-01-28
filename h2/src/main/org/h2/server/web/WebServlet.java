@@ -91,7 +91,8 @@ public class WebServlet extends HttpServlet {
             file = file.substring(1);
         }
         file = getAllowedFile(req, file);
-        byte[] bytes = null;
+        
+        // extract the request attributes
         Properties attributes = new Properties();
         Enumeration<?> en = req.getAttributeNames();
         while (en.hasMoreElements()) {
@@ -105,6 +106,7 @@ public class WebServlet extends HttpServlet {
             String value = req.getParameter(name);
             attributes.put(name, value);
         }
+        
         WebSession session = null;
         String sessionId = attributes.getProperty("jsessionid");
         if (sessionId != null) {
@@ -125,7 +127,7 @@ public class WebServlet extends HttpServlet {
             resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
             return;
         }
-        bytes = server.getFile(file);
+        byte[] bytes = server.getFile(file);
         if (bytes == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             bytes = StringUtils.utf8Encode("File not found: " + file);

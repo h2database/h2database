@@ -72,7 +72,7 @@ public class Chunk {
     long version;
 
     /**
-     * When this chunk was created, in seconds after the store was created.
+     * When this chunk was created, in milliseconds after the store was created.
      */
     long time;
 

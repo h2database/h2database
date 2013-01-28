@@ -48,8 +48,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private boolean closed;
     private boolean readOnly;
 
+    /**
+     * This flag is set during a write operation to the tree.
+     */
     private volatile boolean writing;
-    private volatile int writeCount;
 
     protected MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
@@ -918,26 +920,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * This method is called after writing to the map.
+     * This method is called after writing to the map (whether or not the write
+     * operation was successful).
      */
     protected void afterWrite() {
-        writeCount++;
         writing = false;
     }
 
-    void waitUntilWritten(long version) {
-        if (root.getVersion() < version) {
-            // a write will create a new version
-            return;
-        }
-        // wait until writing is done,
-        // but only for the current write operation
-        // a bit like a spin lock
-        int w = writeCount;
-        while (writing) {
-            if (writeCount > w) {
-                return;
-            }
+    /**
+     * If there is a concurrent update to the given version, wait until it is
+     * finished.
+     *
+     * @param root the root page
+     */
+    protected void waitUntilWritten(Page root) {
+        while (writing && root == this.root) {
             Thread.yield();
         }
     }
@@ -967,7 +964,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     /**
      * Remove the given page (make the space available).
      *
-     * @param p the page
+     * @param pos the position of the page to remove
      */
     protected void removePage(long pos) {
         store.removePage(this, pos);

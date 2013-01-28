@@ -2386,7 +2386,8 @@ SUM( [ DISTINCT ] { numeric } )
 The sum of all values.
 If no rows are selected, the result is NULL.
 Aggregates are only allowed in select statements.
-The returned value is of the same data type as the parameter.
+The data type of the returned value depends on the parameter data type like this:
+TINYINT->BIGINT, SMALLINT->BIGINT, INT->BIGINT, BIGINT->DECIMAL, DECIMAL->DECIMAL, FLOAT->DOUBLE, DOUBLE->DOUBLE
 ","
 SUM(X)
 "

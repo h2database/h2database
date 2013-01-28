@@ -118,6 +118,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
             File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
         exec("java", args("-Xmx128m", "-cp", cp, "emma", "run",
+                "-XX:-UseSplitVerifier",
                 "-cp", "temp",
                 "-sp", "src/main",
                 "-r", "html,txt",

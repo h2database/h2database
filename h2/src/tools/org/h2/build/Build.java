@@ -117,8 +117,11 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
             File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
-        exec("java", args("-Xmx128m", "-cp", cp, "emma", "run",
+        // -XX:-UseSplitVerifier is for Java 7 compatibility
+        exec("java", args(
+                "-Xmx128m",
                 "-XX:-UseSplitVerifier",
+                "-cp", cp, "emma", "run",
                 "-cp", "temp",
                 "-sp", "src/main",
                 "-r", "html,txt",

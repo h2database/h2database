@@ -42,6 +42,8 @@ public class TestMVStore extends TestBase {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testWriteBuffer();
+        testWriteDelay();
         testEncryptedFile();
         testFileFormatChange();
         testRecreateMap();
@@ -75,6 +77,107 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+
+    private void testWriteBuffer() throws IOException {
+        String fileName = getBaseDir() + "/testAutoStoreBuffer.h3";
+        FileUtils.delete(fileName);
+        MVStore s;
+        MVMap<Integer, byte[]> m;
+        byte[] data = new byte[1000];
+        long lastSize = 0;
+        int len = 1000;
+        for (int bs = 0; bs <= 1; bs++) {
+            s = new MVStore.Builder().
+                    fileName(fileName).
+                    writeBufferSize(bs).
+                    open();
+            m = s.openMap("data");
+            for (int i = 0; i < len; i++) {
+                m.put(i, data);
+            }
+            long size = s.getFile().size();
+            assertTrue("last:" + lastSize + " now: " + size, size > lastSize);
+            lastSize = size;
+            s.close();
+        }
+
+        s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        m = s.openMap("data");
+        assertFalse(m.containsKey(1));
+
+        m.put(1, data);
+        s.commit();
+        m.put(2, data);
+        s.close();
+
+        s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        m = s.openMap("data");
+        assertTrue(m.containsKey(1));
+        assertFalse(m.containsKey(2));
+
+        s.close();
+        FileUtils.delete(fileName);
+    }
+
+    private void testWriteDelay() throws InterruptedException {
+        String fileName = getBaseDir() + "/testUndoTempStore.h3";
+        FileUtils.delete(fileName);
+        MVStore s;
+        MVMap<Integer, String> m;
+        s = new MVStore.Builder().
+                writeDelay(1).
+                fileName(fileName).
+                open();
+        m = s.openMap("data");
+        m.put(1, "Hello");
+        s.store();
+        long v = s.getCurrentVersion();
+        m.put(2, "World");
+        Thread.sleep(5);
+        // must not store, as nothing has been committed yet
+        assertEquals(v, s.getCurrentVersion());
+        s.commit();
+        m.put(3, "!");
+
+        for (int i = 100; i > 0; i--) {
+            if (s.getCurrentVersion() > v) {
+                break;
+            }
+            if (i < 10) {
+                fail();
+            }
+            Thread.sleep(1);
+        }
+        s.close();
+        s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        m = s.openMap("data");
+        assertEquals("Hello", m.get(1));
+        assertEquals("World", m.get(2));
+        assertFalse(m.containsKey(3));
+
+        String data = new String(new char[1000]).replace((char) 0, 'x');
+        for (int i = 0; i < 1000; i++) {
+            m.put(i, data);
+        }
+        s.close();
+
+        s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        m = s.openMap("data");
+        assertEquals("Hello", m.get(1));
+        assertEquals("World", m.get(2));
+        assertFalse(m.containsKey(3));
+        s.close();
+
+        FileUtils.delete(fileName);
     }
 
     private void testEncryptedFile() {
@@ -175,6 +278,8 @@ public class TestMVStore extends TestBase {
         assertEquals("world", map.getName());
         s.rollbackTo(old);
         assertEquals("hello", map.getName());
+        s.rollbackTo(0);
+        assertTrue(map.isClosed());
         s.close();
     }
 
@@ -211,7 +316,7 @@ public class TestMVStore extends TestBase {
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = new MVStore.Builder().
                     fileName(fileName).
-                    cacheSizeMB(1 + 3 * cacheSize).open();
+                    cacheSize(1 + 3 * cacheSize).open();
             map = s.openMap("test");
             for (int i = 0; i < 1024; i += 128) {
                 for (int j = 0; j < i; j++) {
@@ -253,11 +358,11 @@ public class TestMVStore extends TestBase {
     private void testFileHeader() {
         String fileName = getBaseDir() + "/testFileHeader.h3";
         MVStore s = openStore(fileName);
-        long time = System.currentTimeMillis() / 1000;
+        long time = System.currentTimeMillis();
         assertEquals("3", s.getFileHeader().get("H"));
         long creationTime = Long.parseLong(s.getFileHeader()
                 .get("creationTime"));
-        assertTrue(Math.abs(time - creationTime) < 5);
+        assertTrue(Math.abs(time - creationTime) < 100);
         s.getFileHeader().put("test", "123");
         MVMap<Integer, Integer> map = s.openMap("test");
         map.put(10, 100);
@@ -274,6 +379,7 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, Integer> map = s.openMap("test");
         map.put(10, 100);
         FilePath f = FilePath.get(s.getFileName());
+        s.store();
         s.close();
         int blockSize = 4 * 1024;
         // test corrupt file headers
@@ -299,6 +405,7 @@ public class TestMVStore extends TestBase {
                 // header should be used
                 s = openStore(fileName);
                 map = s.openMap("test");
+                assertEquals(100, map.get(10).intValue());
                 s.close();
             } else {
                 // both headers are corrupt
@@ -710,11 +817,11 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVMap<String, String> meta;
         MVStore s = openStore(fileName);
-        assertEquals(45, s.getRetentionTime());
+        assertEquals(45000, s.getRetentionTime());
         s.setRetentionTime(0);
         assertEquals(0, s.getRetentionTime());
-        s.setRetentionTime(45);
-        assertEquals(45, s.getRetentionTime());
+        s.setRetentionTime(45000);
+        assertEquals(45000, s.getRetentionTime());
         assertEquals(0, s.getCurrentVersion());
         assertFalse(s.hasUnsavedChanges());
         MVMap<String, String> m = s.openMap("data");

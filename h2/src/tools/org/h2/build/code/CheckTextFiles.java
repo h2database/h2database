@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -19,7 +19,7 @@ import java.util.Arrays;
 public class CheckTextFiles {
 
     // must contain "+" otherwise this here counts as well
-    private static final String COPYRIGHT = "Copyright 2004-2011 " + "H2 Group.";
+    private static final String COPYRIGHT = "Copyright 2004-2013 " + "H2 Group.";
     private static final String LICENSE = "Multiple-Licensed " + "under the H2 License";
 
     private static final String[] SUFFIX_CHECK = { "html", "jsp", "js", "css", "bat", "nsi",

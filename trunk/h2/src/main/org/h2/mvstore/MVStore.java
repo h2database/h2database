@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License,
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
@@ -43,6 +43,8 @@ H:3,...
 
 TODO:
 
+- rolling docs review: at convert "Features" to top-level (linked) entries
+- background thread: async store when the write buffer is almost full
 - test new write / read algorithm for speed and errors
 - detect concurrent writes / reads in the MVMap
 - maybe rename store to write
@@ -51,7 +53,6 @@ TODO:
 - store() should probably be store(false), and maybe rename to write
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
     and settings that are persistent (setStoreVersion)
-- update copyright
 - test meta table rollback: it is changed after save; could rollback break it?
 - automated 'kill process' and 'power failure' test
 - mvcc with multiple transactions
@@ -96,6 +97,8 @@ TODO:
 - support pluggable logging or remove log
 - maybe add an optional finalizer and exit hook
     to store committed changes
+- to save space when persisting very small transactions, 
+-- use a transaction log where only the deltas are stored
 
 */
 
@@ -1780,9 +1783,13 @@ public class MVStore {
         }
 
         /**
-         * Compress data before writing using the LZF algorithm. This setting only
-         * affects writes; it is not necessary to enable compression when reading,
-         * even if compression was enabled when writing.
+         * Compress data before writing using the LZF algorithm. This will save
+         * about 50% of the disk space, but will slow down read and write
+         * operations slightly.
+         * <p>
+         * This setting only affects writes; it is not necessary to enable
+         * compression when reading, even if compression was enabled when
+         * writing.
          *
          * @return this
          */

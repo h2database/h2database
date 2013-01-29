@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
+Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 (http://h2database.com/html/license.html).
 Initial Developer: H2 Group
@@ -101,16 +101,29 @@ s.close();
 <h3>Store Builder</h3>
 <p>
 The <code>MVStore.Builder</code> provides a fluid interface
-to build a store if more complex configuration options are used:
+to build a store if more complex configuration options are used.
+The following code contains all supported configuration options:
 </p>
 <pre>
 MVStore s = new MVStore.Builder().
-    fileName(fileName).
+    cacheSize(10).
+    compressData().
     encryptionKey("007".toCharArray()).
-    cacheSizeMB(10).
+    fileName(fileName).
     readOnly().
+    writeBufferSize(8).
+    writeDelay(100).
     open();
 </pre>
+<ul><li>cacheSizeMB: the cache size in MB.
+</li><li>compressData: compress the data when storing.
+</li><li>encryptionKey: the encryption key for file encryption.
+</li><li>fileName: the name of the file, for file based stores.
+</li><li>readOnly: open the file in read-only mode.
+</li><li>writeBufferSize: the size of the write buffer in MB.
+</li><li>writeDelay: the maximum delay until committed
+    changes are stored (unless stored explicitly).
+</li></ul>
 
 <h3>R-Tree</h3>
 <p>
@@ -140,7 +153,11 @@ for (SpatialKey k; it.hasNext();) {
 }
 s.close();
 </pre>
-
+<p>
+The default number of dimensions is 2. To use a different number of dimensions,
+use <code>new MVRTreeMap.Builder&lt;String&gt;().dimensions(3)</code>.
+The minimum number of dimensions is 1, the maximum is 255.
+</p>
 
 <h2 id="features">Features</h2>
 

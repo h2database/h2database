@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2011 H2 Group. Multiple-Licensed under the H2 License, Version
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
  * 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
@@ -88,7 +88,8 @@ public class TestMVStore extends TestBase {
         long lastSize = 0;
         int len = 1000;
         for (int bs = 0; bs <= 1; bs++) {
-            s = new MVStore.Builder().
+            int tes;
+            s = new MVStore.Builder().compressData().writeBufferSize(1).writeDelay(10).
                     fileName(fileName).
                     writeBufferSize(bs).
                     open();

@@ -88,8 +88,7 @@ public class TestMVStore extends TestBase {
         long lastSize = 0;
         int len = 1000;
         for (int bs = 0; bs <= 1; bs++) {
-            int tes;
-            s = new MVStore.Builder().compressData().writeBufferSize(1).writeDelay(10).
+            s = new MVStore.Builder().
                     fileName(fileName).
                     writeBufferSize(bs).
                     open();
@@ -625,8 +624,8 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, String> oldMap =
                 map.openVersion(oldVersion);
 
-        // store the newest data to disk
-        s.store();
+        // mark the changes as committed
+        s.commit();
 
         // print the old version (can be done
         // concurrently with further modifications)

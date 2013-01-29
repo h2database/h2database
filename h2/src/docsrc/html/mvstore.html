@@ -20,6 +20,12 @@ MVStore
     Overview</a><br />
 <a href="#example_code">
     Example Code</a><br />
+<a href="#store_builder">
+    Store Builder</a><br />
+<a href="#r_tree">
+    R-Tree</a><br />
+    
+    
 <a href="#features">
     Features</a><br />
 <a href="#differences">
@@ -47,7 +53,6 @@ and a file system abstraction to support encrypted files and zip files.
 </li></ul>
 
 <h2 id="example_code">Example Code</h2>
-<h3>Map Operations and Versioning</h3>
 <p>
 The following sample code show how to create a store,
 open a map, add some data, and access the current and an old version:
@@ -81,8 +86,8 @@ map.remove(2);
 MVMap&lt;Integer, String&gt; oldMap =
         map.openVersion(oldVersion);
 
-// store the newest data to disk
-s.store();
+// mark the changes as committed
+s.commit();
 
 // print the old version (can be done
 // concurrently with further modifications)
@@ -98,7 +103,7 @@ System.out.println(map.get(1));
 s.close();
 </pre>
 
-<h3>Store Builder</h3>
+<h2 id="store_builder">Store Builder</h2>
 <p>
 The <code>MVStore.Builder</code> provides a fluid interface
 to build a store if more complex configuration options are used.
@@ -125,7 +130,7 @@ MVStore s = new MVStore.Builder().
     changes are stored (unless stored explicitly).
 </li></ul>
 
-<h3>R-Tree</h3>
+<h2 id="r_tree">R-Tree</h2>
 <p>
 The <code>MVRTreeMap</code> is an R-tree implementation
 that supports fast spatial queries. It can be used as follows:
@@ -155,7 +160,7 @@ s.close();
 </pre>
 <p>
 The default number of dimensions is 2. To use a different number of dimensions,
-use <code>new MVRTreeMap.Builder&lt;String&gt;().dimensions(3)</code>.
+call <code>new MVRTreeMap.Builder&lt;String&gt;().dimensions(3)</code>.
 The minimum number of dimensions is 1, the maximum is 255.
 </p>
 
@@ -167,11 +172,11 @@ Each store supports a set of named maps.
 A map is sorted by key, and supports the common lookup operations,
 including access to the first and last key, iterate over some or all keys, and so on.
 </p><p>
-Also supported, and very uncommon for maps, is fast index lookup.
-The keys of the map can be accessed like a list
+Also supported, and very uncommon for maps, is fast index lookup:
+the keys of the map can be accessed like a list
 (get the key at the given index, get the index of a certain key).
 That means getting the median of two keys is trivial,
-and it allows to very quickly count ranges.
+and range of keys can be counted very quickly.
 The iterator supports fast skipping.
 This is possible because internally, each map is organized in the form of a counted B+-tree.
 </p><p>
@@ -193,7 +198,7 @@ so that it can still be read.
 </p><p>
 Old persisted versions are readable until the old data was explicitly overwritten.
 Creating a snapshot is fast: only the pages that are changed after a snapshot are copied.
-This behavior also called COW (copy on write).
+This behavior is also called COW (copy on write).
 </p><p>
 Rollback is supported (rollback to any old in-memory version or an old persisted version).
 </p>
@@ -220,8 +225,7 @@ performance characteristics) until data is persisted.
 Serialization is pluggable. The default serialization currently supports many common data types,
 and uses Java serialization for other objects. The following classes are currently directly supported:
 <code>Boolean, Byte, Short, Character, Integer, Long, Float, Double, BigInteger, BigDecimal,
-byte[], char[], int[], long[], String, UUID</code>.
-The plan is to add more common classes (date, time, timestamp, object array).
+String, UUID, Date</code> and arrays (both primitive arrays and object arrays).
 </p><p>
 Parameterized data types are supported
 (for example one could build a string data type that limits the length for some reason).
@@ -243,7 +247,7 @@ This tool is written on top of the store (only using the map interface).
 <h3>R-Tree and Pluggable Map Implementations</h3>
 <p>
 The map implementation is pluggable.
-In addition to the default MVMap (multi-version map),
+In addition to the default <code>MVMap</code> (multi-version map),
 there is a multi-version R-tree map implementation
 for spatial operations (contain and intersection; nearest neighbor is not yet implemented).
 </p>
@@ -254,8 +258,7 @@ The default map implementation supports concurrent reads on old versions of the 
 All such read operations can occur in parallel. Concurrent reads from the page cache,
 as well as concurrent reads from the file system are supported.
 </p><p>
-Storing changes can occur concurrently to modifying the data,
-as <code>store()</code> operates on a snapshot.
+Storing changes can occur concurrently to modifying the data, as it operates on a snapshot.
 </p><p>
 Caching is done on the page level.
 The page cache is a concurrent LIRS cache, which should be resistant against scan operations.
@@ -279,14 +282,16 @@ The plan is to add such a mechanism later when needed.
 
 <h3>Log Structured Storage</h3>
 <p>
-Currently, <code>store()</code> needs to be called explicitly to save changes.
-Changes are buffered in memory, and once enough changes have accumulated
-(for example 2 MB), all changes are written in one continuous disk write operation.
+Changes are buffered in memory, and once enough changes have accumulated, 
+they are written in one continuous disk write operation.
 (According to a test, write throughput of a common SSD gets higher the larger the block size,
 until a block size of 2 MB, and then does not further increase.)
-But of course, if needed, changes can also be persisted if only little data was changed.
-The estimated amount of unsaved changes is tracked.
-The plan is to automatically store in a background thread once there are enough changes.
+By default, committed changes are automatically written once every second 
+in a background thread, even if only little data was changed.
+Changes can also be written explicitly by calling <code>store()</code>.
+To avoid out of memory, uncommitted changes are also written when needed, 
+however they are rolled back when closing the store,
+or at the latest (when the store was not correctly closed) when opening the store.
 </p><p>
 When storing, all changed pages are serialized,
 optionally compressed using the LZF algorithm,
@@ -296,17 +301,15 @@ All parent pages of the changed B-trees are stored in this chunk as well,
 so that each chunk also contains the root of each changed map
 (which is the entry point to read this version of the data).
 There is no separate index: all data is stored as a list of pages.
-Per store, the is one additional map that contains the metadata (the list of
+Per store, there is one additional map that contains the metadata (the list of
 maps, where the root page of each map is stored, and the list of chunks).
 </p><p>
 There are usually two write operations per chunk:
 one to store the chunk data (the pages), and one to update the file header (so it points to the latest chunk).
 If the chunk is appended at the end of the file, the file header is only written at the end of the chunk.
 </p><p>
-There is currently no transaction log, no undo log,
-and there are no in-place updates (however unused chunks are overwritten).
-To save space when persisting very small transactions, the plan is to use a transaction log
-where only the deltas are stored, until enough changes have accumulated to persist a chunk.
+There is no transaction log, no undo log,
+and there are no in-place updates (however unused chunks are overwritten by default).
 </p><p>
 Old data is kept for at least 45 seconds (configurable),
 so that there are no explicit sync operations required to guarantee data consistency,
@@ -315,7 +318,7 @@ To reuse disk space, the chunks with the lowest amount of live data are compacte
 (the live data is simply stored again in the next chunk).
 To improve data locality and disk space usage, the plan is to automatically defragment and compact data.
 </p><p>
-Compared to regular databases (that use a transaction log, undo log, and main storage area),
+Compared to traditional storage engines (that use a transaction log, undo log, and main storage area),
 the log structured storage is simpler, more flexible, and typically needs less disk operations per change,
 as data is only written once instead of twice or 3 times, and because the B-tree pages are
 always full (they are stored next to each other) and can be easily compressed.
@@ -326,8 +329,8 @@ as disk space is not immediately re-used (there are no in-place updates).
 <h3>File System Abstraction, File Locking and Online Backup</h3>
 <p>
 The file system is pluggable (the same file system abstraction is used as H2 uses).
-Support for encryption is planned using an encrypting file system.
-Other file system implementations support reading from a compressed zip or tar file.
+The file can be encrypted using an encrypting file system.
+Other file system implementations support reading from a compressed zip or jar file.
 </p>
 <p>
 Each store may only be opened once within a JVM.
@@ -418,8 +421,8 @@ The MVStore does not have a record size limit.
 
 <h2 id="current_state">Current State</h2>
 <p>
-The code is still very experimental at this stage.
-The API as well as the behavior will probably change.
+The code is still experimental at this stage.
+The API as well as the behavior may partially change.
 Features may be added and removed (even thought the main features will stay).
 </p>
 

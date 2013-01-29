@@ -1637,7 +1637,7 @@ Centralリポジトリの利用
 #Next Version (unreleased)
 
 @changelog_1002_li
-#Issue 434: H2 Console doesn't work in the Chrome browser due to a wrong viewport argument. 
+#Issue 434: H2 Console didn't work in the Chrome browser due to a wrong viewport argument. 
 
 @changelog_1003_li
 #There was a possibility that the .lock.db file was not deleted when the database was closed, which could slow down opening the database. 

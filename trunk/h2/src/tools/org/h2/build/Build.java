@@ -840,7 +840,7 @@ public class Build extends BuildBase {
         javac(args, files);
         String cp = "bin" + File.pathSeparator + "temp" +
                 File.pathSeparator + "ext/h2mig_pagestore_addon.jar";
-        exec("java", args("-Xmx128m", "-cp", cp,
+        exec("java", args("-Xmx256m", "-cp", cp,
                 "-Dh2.ftpPassword=" + password,
                 "org.h2.build.doc.UploadBuild"));
     }

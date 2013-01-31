@@ -14,6 +14,7 @@ import java.nio.channels.FileChannel;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import org.h2.engine.Constants;
 import org.h2.util.New;
@@ -590,7 +591,7 @@ public class DataUtils {
     public static IllegalArgumentException newIllegalArgumentException(
             String message, Object... arguments) {
         return initCause(new IllegalArgumentException(
-                MessageFormat.format(message, arguments) + getVersion()),
+                MessageFormat.format(message, arguments) + " " + getVersion()),
                 arguments);
     }
 
@@ -602,7 +603,16 @@ public class DataUtils {
      */
     public static UnsupportedOperationException newUnsupportedOperationException(
             String message) {
-        return new UnsupportedOperationException(message + getVersion());
+        return new UnsupportedOperationException(message + " " + getVersion());
+    }
+    
+    /**
+     * Create a new ConcurrentModificationException.
+     *
+     * @return the exception
+     */
+    public static ConcurrentModificationException newConcurrentModificationException() {
+        return new ConcurrentModificationException(getVersion());
     }
 
     /**
@@ -615,7 +625,7 @@ public class DataUtils {
     public static IllegalStateException newIllegalStateException(
             String message, Object... arguments) {
         return initCause(new IllegalStateException(
-                MessageFormat.format(message, arguments) + getVersion()),
+                MessageFormat.format(message, arguments) + " " + getVersion()),
                 arguments);
     }
 
@@ -631,7 +641,7 @@ public class DataUtils {
     }
 
     private static String getVersion() {
-        return " [" + Constants.VERSION_MAJOR + "." +
+        return "[" + Constants.VERSION_MAJOR + "." +
                 Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "]";
     }
 

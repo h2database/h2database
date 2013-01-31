@@ -49,7 +49,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private boolean readOnly;
 
     /**
-     * This flag is set during a write operation to the tree.
+     * This flag is set during a write operation.
      */
     private volatile boolean writing;
 
@@ -905,9 +905,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * This method is called before writing to the map. The default
-     * implementation checks whether writing is allowed.
+     * implementation checks whether writing is allowed, and tries
+     * to detect concurrent modification.
      *
-     * @throws UnsupportedOperationException if the map is read-only
+     * @throws UnsupportedOperationException if the map is read-only,
+     *      or if another thread is concurrently writing
      */
     protected void beforeWrite() {
         if (readOnly) {
@@ -915,8 +917,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             throw DataUtils.newUnsupportedOperationException(
                     "This map is read-only");
         }
+        checkConcurrentWrite();
         writing = true;
         store.beforeWrite();
+    }
+    
+    /**
+     * Check that no write operation is in progress.
+     */
+    protected void checkConcurrentWrite() {
+        if (writing) {
+            // try to detect concurrent modification
+            // on a best-effort basis
+            throw DataUtils.newConcurrentModificationException();
+        }
     }
 
     /**

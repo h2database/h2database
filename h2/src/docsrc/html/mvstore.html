@@ -265,6 +265,7 @@ The page cache is a concurrent LIRS cache, which should be resistant against sca
 </p><p>
 The default map implementation does not support concurrent modification
 operations on a map (the same as <code>HashMap</code> and <code>TreeMap</code>).
+Similar to those classes, the map tries to detect concurrent modification.
 </p><p>
 With the <code>MVMapConcurrent</code> implementation,
 read operations even on the newest version can happen concurrently with all other
@@ -396,6 +397,7 @@ The following exceptions can occur:
 </li><li><code>IllegalArgumentException</code> if a method was called with an illegal argument.
 </li><li><code>UnsupportedOperationException</code> if a method was called that is not supported,
     for example trying to modify a read-only map or view.
+</li><li><code>ConcurrentModificationException</code> if the object is modified concurrently.
 </li></ul>
 
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>

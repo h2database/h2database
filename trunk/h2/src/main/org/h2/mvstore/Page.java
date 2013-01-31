@@ -764,6 +764,7 @@ public class Page {
      * @return the target buffer
      */
     private ByteBuffer write(Chunk chunk, ByteBuffer buff) {
+        buff = DataUtils.ensureCapacity(buff, 1024);
         int start = buff.position();
         buff.putInt(0);
         buff.putShort((byte) 0);

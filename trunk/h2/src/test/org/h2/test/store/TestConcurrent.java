@@ -11,9 +11,12 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMapConcurrent;
 import org.h2.mvstore.MVStore;
@@ -209,6 +212,16 @@ public class TestConcurrent extends TestMVStore {
      * map, so that keys and values may become null.
      */
     private void testConcurrentWrite() throws InterruptedException {
+        final AtomicInteger detected = new AtomicInteger();
+        final AtomicInteger notDetected = new AtomicInteger();
+        for (int i = 0; i < 10; i++) {
+            testConcurrentWrite(detected, notDetected);
+        }
+        // in most cases, it should be detected
+        assertTrue(notDetected.get() * 10 <= detected.get());
+    }
+    
+    private void testConcurrentWrite(final AtomicInteger detected, final AtomicInteger notDetected) throws InterruptedException {
         final MVStore s = openStore(null);
         final MVMap<Integer, Integer> m = s.openMap("data");
         final int size = 20;
@@ -223,14 +236,16 @@ public class TestConcurrent extends TestMVStore {
                             m.remove(rand.nextInt(size));
                         }
                         m.get(rand.nextInt(size));
+                    } catch (ConcurrentModificationException e) {
+                        detected.incrementAndGet();
                     } catch (NegativeArraySizeException e) {
-                        // ignore
+                        notDetected.incrementAndGet();
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        // ignore
+                        notDetected.incrementAndGet();
                     } catch (IllegalArgumentException e) {
-                        // ignore
+                        notDetected.incrementAndGet();
                     } catch (NullPointerException e) {
-                        // ignore
+                        notDetected.incrementAndGet();
                     }
                 }
             }
@@ -246,14 +261,16 @@ public class TestConcurrent extends TestMVStore {
                         m.remove(rand.nextInt(size));
                     }
                     m.get(rand.nextInt(size));
+                } catch (ConcurrentModificationException e) {
+                    detected.incrementAndGet();
                 } catch (NegativeArraySizeException e) {
-                    // ignore
+                    notDetected.incrementAndGet();
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    // ignore
+                    notDetected.incrementAndGet();
                 } catch (IllegalArgumentException e) {
-                    // ignore
+                    notDetected.incrementAndGet();
                 } catch (NullPointerException e) {
-                    // ignore
+                    notDetected.incrementAndGet();
                 }
             }
             s.incrementVersion();

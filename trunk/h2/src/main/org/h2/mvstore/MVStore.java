@@ -44,18 +44,13 @@ H:3,...
 TODO:
 
 - rolling docs review: at convert "Features" to top-level (linked) entries
-- background thread: async store when the write buffer is almost full
-- test new write / read algorithm for speed and errors
-- detect concurrent writes / reads in the MVMap
-- maybe rename store to write
-- document how committing, storing, and closing is coupled
-- document temporary writes (to avoid out-of-memory)
-- store() should probably be store(false), and maybe rename to write
+
+- mvcc with multiple transactions
+- additional test async write / read algorithm for speed and errors
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
     and settings that are persistent (setStoreVersion)
-- test meta table rollback: it is changed after save; could rollback break it?
+- test & document meta table rollback: it is changed after save; could rollback break it?
 - automated 'kill process' and 'power failure' test
-- mvcc with multiple transactions
 - update checkstyle
 - maybe split database into multiple files, to speed up compact
 - auto-compact from time to time and on close
@@ -786,7 +781,6 @@ public class MVStore {
         }
         long time = getTime();
         lastStoreTime = time;
-
         if (temp) {
             meta.put("rollbackOnOpen", Long.toString(lastCommittedVersion));
             // find the oldest chunk to retain
@@ -896,6 +890,9 @@ public class MVStore {
         int chunkLength = buff.position();
 
         int length = MathUtils.roundUpInt(chunkLength, BLOCK_SIZE) + BLOCK_SIZE;
+        if (length > buff.capacity()) {
+            buff = DataUtils.ensureCapacity(buff, length - buff.capacity());
+        }
         buff.limit(length);
 
         long fileLength = getFileLengthUsed();
@@ -1437,6 +1434,10 @@ public class MVStore {
      * This method is called before writing to a map.
      */
     void beforeWrite() {
+        if (currentStoreVersion >= 0) {
+            // store is possibly called within store, if the meta map changed
+            return;
+        }
         if (unsavedPageCount > maxUnsavedPages && maxUnsavedPages > 0) {
             store(true);
         }
@@ -1675,10 +1676,12 @@ public class MVStore {
     /**
      * Store all unsaved changes, if there are any that are committed.
      */
-    void storeUnsaved() {
+    void storeInBackground() {
         if (closed || unsavedPageCount == 0) {
             return;
         }
+        // could also store when there are many unstored pages,
+        // but according to a test it doesn't really help
         if (lastCommittedVersion >= currentVersion) {
             return;
         }
@@ -1712,7 +1715,7 @@ public class MVStore {
                         // ignore
                     }
                 }
-                store.storeUnsaved();
+                store.storeInBackground();
             }
         }
 

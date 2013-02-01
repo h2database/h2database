@@ -70,7 +70,9 @@ public class TestFileSystem extends TestBase {
         FileUtils.toRealPath(f);
         testFileSystem(getBaseDir() + "/fs");
         testFileSystem("memFS:");
+        testFileSystem("nioMemFS:");
         testFileSystem("memLZF:");
+        testFileSystem("nioMemLZF:");
         testUserHome();
         try {
             testFileSystem("nio:" + getBaseDir() + "/fs");
@@ -448,7 +450,8 @@ public class TestFileSystem extends TestBase {
 
         assertTrue(FileUtils.tryDelete(fsBase + "/test2"));
         FileUtils.delete(fsBase + "/test");
-        if (fsBase.indexOf("memFS:") < 0 && fsBase.indexOf("memLZF:") < 0) {
+        if (fsBase.indexOf("memFS:") < 0 && fsBase.indexOf("memLZF:") < 0
+            && fsBase.indexOf("nioMemFS:") < 0 && fsBase.indexOf("nioMemLZF:") < 0) {
             FileUtils.createDirectories(fsBase + "/testDir");
             assertTrue(FileUtils.isDirectory(fsBase + "/testDir"));
             if (!fsBase.startsWith("jdbc:")) {

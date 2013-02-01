@@ -152,7 +152,9 @@ public abstract class TestBase {
         } finally {
             try {
                 FileUtils.deleteRecursive("memFS:", false);
+                FileUtils.deleteRecursive("nioMemFS:", false);
                 FileUtils.deleteRecursive("memLZF:", false);
+                FileUtils.deleteRecursive("nioMemLZF:", false);
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }

@@ -31,17 +31,19 @@ public class TestFile extends TestBase implements DataHandler {
     }
 
     public void test() throws Exception {
-        doTest(false);
-        doTest(true);
+        doTest(false, false);
+        doTest(false, true);
+        doTest(true, false);
+        doTest(true, true);
     }
 
-    private void doTest(boolean compress) throws Exception {
+    private void doTest(boolean nioMem, boolean compress) throws Exception {
         int len = getSize(1000, 10000);
         Random random = new Random();
         FileStore mem = null, file = null;
         byte[] buffMem = null;
         byte[] buffFile = null;
-        String prefix = compress ? "memLZF:" : "memFS:";
+        String prefix = nioMem ? (compress ? "nioMemLZF:" : "nioMemFS:") : (compress ? "memLZF:" : "memFS:");
         FileUtils.delete(prefix + "test");
         FileUtils.delete("~/testFile");
 

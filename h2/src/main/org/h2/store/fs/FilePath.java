@@ -72,6 +72,8 @@ public abstract class FilePath {
                     "org.h2.store.fs.FilePathDisk",
                     "org.h2.store.fs.FilePathMem",
                     "org.h2.store.fs.FilePathMemLZF",
+                    "org.h2.store.fs.FilePathNioMem",
+                    "org.h2.store.fs.FilePathNioMemLZF",
                     "org.h2.store.fs.FilePathSplit",
                     "org.h2.store.fs.FilePathNio",
                     "org.h2.store.fs.FilePathNioMapped",

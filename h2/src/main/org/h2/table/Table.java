@@ -623,7 +623,8 @@ public abstract class Table extends SchemaObjectBase {
      * Get the best plan for the given search mask.
      *
      * @param session the session
-     * @param masks null means 'always false'
+     * @param masks per-column comparison bit masks, null means 'always false',
+     *              see constants in IndexCondition
      * @return the plan item
      */
     public PlanItem getBestPlanItem(Session session, int[] masks) {

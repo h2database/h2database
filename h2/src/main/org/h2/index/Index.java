@@ -77,7 +77,8 @@ public interface Index extends SchemaObject {
      * For possible search masks, see IndexCondition.
      *
      * @param session the session
-     * @param masks the search mask
+     * @param masks per-column comparison bit masks, null means 'always false',
+     *              see constants in IndexCondition
      * @return the estimated cost
      */
     double getCost(Session session, int[] masks);

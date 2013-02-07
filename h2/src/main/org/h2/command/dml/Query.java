@@ -211,6 +211,13 @@ public abstract class Query extends Prepared {
     }
 
     /**
+     * Exposed for external TableEngine implementations.
+     */
+    public boolean isDistinct() {
+        return this.distinct;
+    }
+    
+    /**
      * Whether results need to support random access.
      *
      * @param b the new value
@@ -479,10 +486,24 @@ public abstract class Query extends Prepared {
         this.offsetExpr = offset;
     }
 
+    /**
+     * Exposed for external TableEngine implementations.
+     */
+    public Expression getOffset() {
+        return this.offsetExpr;
+    }
+    
     public void setLimit(Expression limit) {
         this.limitExpr = limit;
     }
 
+    /**
+     * Exposed for external TableEngine implementations.
+     */
+    public Expression getLimit() {
+        return this.limitExpr;
+    }
+    
     /**
      * Add a parameter to the parameter list.
      *

@@ -882,7 +882,13 @@ public class Parser {
             // for MySQL compatibility
             buff.append("SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA");
         }
-        return prepare(session, buff.toString(), paramValues);
+        try {
+            // need to temporarily turn this on, in case we are in ALLOW_LITERALS_NUMBERS mode
+            session.setAllowLiterals(true);
+            return prepare(session, buff.toString(), paramValues);
+        } finally {
+            session.setAllowLiterals(false);
+        }
     }
 
     private static Prepared prepare(Session s, String sql, ArrayList<Value> paramValues) {

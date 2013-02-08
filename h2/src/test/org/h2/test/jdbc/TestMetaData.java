@@ -75,6 +75,18 @@ public class TestMetaData extends TestBase {
         assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
         assertFalse(rs.next());
 
+        rs = meta.getSchemas(null, null);
+        rs.next();
+        assertEquals("INFORMATION_SCHEMA", rs.getString("TABLE_SCHEM"));
+        rs.next();
+        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
+        assertFalse(rs.next());
+        
+        rs = meta.getSchemas(null, "PUBLIC");
+        rs.next();
+        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
+        assertFalse(rs.next());
+        
         rs = meta.getTableTypes();
         rs.next();
         assertEquals("SYSTEM TABLE", rs.getString("TABLE_TYPE"));
@@ -872,6 +884,15 @@ public class TestMetaData extends TestBase {
         assertEquals("PUBLIC", rs.getString(1));
         assertFalse(rs.next());
 
+        rs = meta.getSchemas(null, null);
+        assertResultSetMeta(rs, 3, new String[] { "TABLE_SCHEM", "TABLE_CATALOG", "IS_DEFAULT" }, new int[] {
+                Types.VARCHAR, Types.VARCHAR, Types.BOOLEAN }, null, null);
+        assertTrue(rs.next());
+        assertEquals("INFORMATION_SCHEMA", rs.getString(1));
+        assertTrue(rs.next());
+        assertEquals("PUBLIC", rs.getString(1));
+        assertFalse(rs.next());
+        
         rs = meta.getCatalogs();
         assertResultSetMeta(rs, 1, new String[] { "TABLE_CAT" }, new int[] { Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs, new String[][] { { CATALOG } });
@@ -926,7 +947,7 @@ public class TestMetaData extends TestBase {
         meta.getProcedureColumns(null, null, null, null);
         meta.getProcedures(null, null, null);
         meta.getSchemas();
-        // meta.getSchemas(null, null);
+        meta.getSchemas(null, null);
         meta.getSuperTables(null, null, null);
         // meta.getSuperTypes(null, null, null);
         meta.getTablePrivileges(null, null, null);

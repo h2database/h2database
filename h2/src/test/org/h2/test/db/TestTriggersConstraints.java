@@ -42,6 +42,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testTriggerDeadlock();
         testDeleteInTrigger();
         testTriggerAdapter();
+        testTriggerSelectEachRow();
         testViewTrigger();
         testTriggerBeforeSelect();
         testTriggerAlterTable();
@@ -146,6 +147,23 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn.close();
     }
 
+    private void testTriggerSelectEachRow() throws SQLException {
+        Connection conn;
+        Statement stat;
+        conn = getConnection("trigger");
+        stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id int)");
+        try {
+            stat.execute("create trigger test_insert before select on test " +
+                    "for each row call \"" + TestTriggerAdapter.class.getName() + "\"");
+            fail();
+        } catch (SQLException ex) {
+            assertEquals(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED, ex.getErrorCode());
+        }
+        conn.close();
+    }
+    
     private void testViewTrigger() throws SQLException {
         Connection conn;
         Statement stat;

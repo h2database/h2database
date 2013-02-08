@@ -65,6 +65,7 @@ Change Log
 </li><li>Fix issue #438:JdbcDatabaseMetaData#getSchemas() no longer supported as of 1.3.169
 </li><li>MySQL compatibility: support for ALTER TABLE tbl_name MODIFY [COLUMN] col_name column_definition, patch from Ville Koskela.
 </li><li>Fix issue #404:SHOW COLUMNS FROM table_name does not work with ALLOW_LITERALS=NUMBERS
+</li><li>Throw an explicit error to make it clear we don't support the TRIGGER combination of SELECT and FOR EACH ROW
 </li></ul>
 
 <h2>Version 1.3.170 (2012-11-30)</h2>

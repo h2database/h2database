@@ -45,6 +45,7 @@ public class TestAlter extends TestBase {
         testAlterTableAlterColumn2();
         testAlterTableAddColumnBefore();
         testAlterTableAddColumnAfter();
+        testAlterTableModifyColumn();
         conn.close();
         deleteDb("alter");
     }
@@ -186,4 +187,10 @@ public class TestAlter extends TestBase {
         stat.execute("drop table t");
     }
 
+    private void testAlterTableModifyColumn() throws SQLException {
+        stat.execute("create table t(x int)");
+        stat.execute("alter table t modify column x varchar(20)");
+        stat.execute("insert into t values('Hello')");
+        stat.execute("drop table t");
+    }
 }

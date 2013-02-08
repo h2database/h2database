@@ -77,6 +77,7 @@ public class Session extends SessionWithState {
     private int throttle;
     private long lastThrottle;
     private Command currentCommand;
+    /** A temporary override we use during database startup */
     private boolean allowLiterals;
     private String currentSchemaName;
     private String[] schemaSearchPath;
@@ -909,6 +910,9 @@ public class Session extends SessionWithState {
         return currentCommandStart;
     }
 
+    /**
+     * A temporary override we use during database startup
+     */
     public boolean getAllowLiterals() {
         return allowLiterals;
     }

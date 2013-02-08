@@ -6,6 +6,7 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
@@ -87,6 +88,9 @@ public class CreateTrigger extends SchemaCommand {
                 return 0;
             }
             throw DbException.get(ErrorCode.TRIGGER_ALREADY_EXISTS_1, triggerName);
+        }
+        if ((typeMask & Trigger.SELECT) == Trigger.SELECT && rowBased) {
+            throw DbException.get(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED, triggerName);
         }
         int id = getObjectId();
         Table table = getSchema().getTableOrView(session, tableName);

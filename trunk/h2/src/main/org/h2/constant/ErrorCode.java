@@ -797,7 +797,7 @@ public class ErrorCode {
      * See the root cause for details.
      */
     public static final int ERROR_EXECUTING_TRIGGER_3 = 90044;
-
+    
     /**
      * The error with code <code>90045</code> is thrown when
      * trying to create a constraint  if an object with this name already exists.
@@ -1849,7 +1849,14 @@ public class ErrorCode {
      */
     public static final int RESULT_SET_READONLY = 90140;
 
-    // next are 90005, 90006, 90009, 90010, 90011, 90021, 90039,
+    /**
+     * The error with code <code>90005</code> is thrown when
+     * trying to create a trigger and using the combination of SELECT and FOR EACH ROW,
+     * which we do not support.
+     */
+    public static final int TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED = 90005;
+
+    // next are 90006, 90009, 90010, 90011, 90021, 90039,
     // 90051, 90056, 90110, 90122, 90141
 
     private ErrorCode() {

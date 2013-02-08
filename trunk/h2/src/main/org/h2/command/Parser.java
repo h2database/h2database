@@ -4878,6 +4878,12 @@ public class Parser {
                 command.setOldColumn(table.getColumn(columnName));
                 return command;
             }
+        } else if (readIf("MODIFY")) {
+            // MySQL compatibility
+            readIf("COLUMN");
+            String columnName = readColumnIdentifier();
+            Column column = table.getColumn(columnName);
+            return parseAlterTableAlterColumnType(table, columnName, column);
         } else if (readIf("ALTER")) {
             readIf("COLUMN");
             String columnName = readColumnIdentifier();

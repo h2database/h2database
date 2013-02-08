@@ -2807,12 +2807,44 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     //*/
 
     /**
-     * [Not supported] Gets the list of schemas.
+     * Gets the list of schemas in the database.
+     * The result set is sorted by TABLE_SCHEM.
+     *
+     * <ul>
+     * <li>1 TABLE_SCHEM (String) schema name
+     * </li><li>2 TABLE_CATALOG (String) catalog name
+     * </li><li>3 IS_DEFAULT (boolean) if this is the default schema
+     * </li></ul>
+     *
+     * @param catalogPattern null (to get all objects) or the catalog name
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
+     * @return the schema list
+     * @throws SQLException if the connection is closed
      */
     //## Java 1.6 ##
-    public ResultSet getSchemas(String catalog, String schemaPattern)
+    public ResultSet getSchemas(String catalogPattern, String schemaPattern)
             throws SQLException {
-        throw unsupported("getSchemas(., .)");
+        try {
+            debugCodeCall("getSchemas(String,String)");
+            checkClosed();
+            PreparedStatement prep = conn
+                    .prepareAutoCloseStatement("SELECT "
+                            + "SCHEMA_NAME TABLE_SCHEM, "
+                            + "CATALOG_NAME TABLE_CATALOG, "
+                            +" IS_DEFAULT "
+                            + "FROM INFORMATION_SCHEMA.SCHEMATA "
+                            + "WHERE CATALOG_NAME LIKE ? ESCAPE ? "
+                            + "AND SCHEMA_NAME LIKE ? ESCAPE ? "
+                            + "ORDER BY SCHEMA_NAME");
+            prep.setString(1, getCatalogPattern(catalogPattern));
+            prep.setString(2, "\\");
+            prep.setString(3, getSchemaPattern(schemaPattern));
+            prep.setString(4, "\\");
+            return prep.executeQuery();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
     //*/
 

@@ -298,9 +298,6 @@ public class IndexCondition {
         }
     }
 
-    /**
-     * The comparison type, see constants in {@link Comparison}
-     */
     public int getCompareType() {
         return compareType;
     }

@@ -210,11 +210,8 @@ public abstract class Query extends Prepared {
         distinct = b;
     }
 
-    /**
-     * Exposed for external TableEngine implementations.
-     */
     public boolean isDistinct() {
-        return this.distinct;
+        return distinct;
     }
     
     /**
@@ -486,22 +483,16 @@ public abstract class Query extends Prepared {
         this.offsetExpr = offset;
     }
 
-    /**
-     * Exposed for external TableEngine implementations.
-     */
     public Expression getOffset() {
-        return this.offsetExpr;
+        return offsetExpr;
     }
     
     public void setLimit(Expression limit) {
         this.limitExpr = limit;
     }
 
-    /**
-     * Exposed for external TableEngine implementations.
-     */
     public Expression getLimit() {
-        return this.limitExpr;
+        return limitExpr;
     }
     
     /**

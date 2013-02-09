@@ -127,11 +127,8 @@ public class Select extends Query {
         this.group = group;
     }
 
-    /**
-     * Exposed for external TableEngine implementations.
-     */
     public ArrayList<Expression> getGroupBy() {
-        return this.group;
+        return group;
     }
     
     public HashMap<Expression, Object> getCurrentGroup() {
@@ -1093,11 +1090,8 @@ public class Select extends Query {
         this.having = having;
     }
 
-    /**
-     * Exposed for external TableEngine implementations.
-     */
     public Expression getHaving() {
-        return this.having;
+        return having;
     }
     
     public int getColumnCount() {

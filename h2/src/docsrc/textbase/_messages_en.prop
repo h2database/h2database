@@ -32,7 +32,7 @@
 90002=Method is only allowed for a query. Use execute or executeUpdate instead of executeQuery
 90003=Hexadecimal string with odd number of characters: {0}
 90004=Hexadecimal string contains non-hex character: {0}
-90005=Trigger {0}, we do not support the combination of SELECT and FOR EACH ROW
+90005=Trigger {0}, the combination of SELECT and FOR EACH ROW is not supported
 90007=The object is already closed
 90008=Invalid value {0} for parameter {1}
 90012=Parameter {0} is not set

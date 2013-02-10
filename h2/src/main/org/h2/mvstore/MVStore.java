@@ -49,7 +49,7 @@ TODO:
 - additional test async write / read algorithm for speed and errors
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
     and settings that are persistent (setStoreVersion)
-- test & document meta table rollback: it is changed after save; could rollback break it?
+- test meta rollback: it is changed after save; could rollback break it?
 - automated 'kill process' and 'power failure' test
 - update checkstyle
 - maybe split database into multiple files, to speed up compact
@@ -92,8 +92,9 @@ TODO:
 - support pluggable logging or remove log
 - maybe add an optional finalizer and exit hook
     to store committed changes
-- to save space when persisting very small transactions, 
+- to save space when persisting very small transactions,
 -- use a transaction log where only the deltas are stored
+- serialization for lists, sets, sets, sorted sets, maps, sorted maps
 
 */
 
@@ -1680,7 +1681,7 @@ public class MVStore {
         if (closed || unsavedPageCount == 0) {
             return;
         }
-        // could also store when there are many unstored pages,
+        // could also store when there are many unsaved pages,
         // but according to a test it doesn't really help
         if (lastCommittedVersion >= currentVersion) {
             return;

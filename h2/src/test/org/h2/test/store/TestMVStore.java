@@ -42,6 +42,7 @@ public class TestMVStore extends TestBase {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testAtomicOperations();
         testWriteBuffer();
         testWriteDelay();
         testEncryptedFile();
@@ -77,6 +78,41 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+    }
+    
+    private void testAtomicOperations() {
+        String fileName = getBaseDir() + "/testAtomicOperations.h3";
+        FileUtils.delete(fileName);
+        MVStore s;
+        MVMap<Integer, byte[]> m;
+        s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        m = s.openMap("data");
+        
+        // putIfAbsent
+        assertNull(m.putIfAbsent(1, new byte[1]));
+        assertEquals(1, m.putIfAbsent(1, new byte[2]).length);
+        assertEquals(1, m.get(1).length);
+        
+        // replace
+        assertNull(m.replace(2, new byte[2]));
+        assertNull(m.get(2));
+        assertEquals(1, m.replace(1, new byte[2]).length);
+        assertEquals(2, m.replace(1, new byte[3]).length);
+        assertEquals(3, m.replace(1, new byte[1]).length);
+        
+        // replace with oldValue
+        assertFalse(m.replace(1, new byte[2], new byte[10]));
+        assertTrue(m.replace(1, new byte[1], new byte[2]));
+        assertTrue(m.replace(1, new byte[2], new byte[1]));
+        
+        // remove
+        assertFalse(m.remove(1, new byte[2]));
+        assertTrue(m.remove(1, new byte[1]));
+                
+        s.close();
+        FileUtils.delete(fileName);        
     }
 
     private void testWriteBuffer() throws IOException {

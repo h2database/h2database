@@ -469,6 +469,9 @@ public class Utils {
         if (low > end || high < start || (low > start && high < end)) {
             return;
         }
+        if (low == high) {
+            return;
+        }
         int i = low, j = high;
         // use a random pivot to protect against
         // the worst case order

@@ -16,6 +16,7 @@ import java.util.Date;
 import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
+import org.junit.Test;
 
 /**
  * Tests reflection utilities.
@@ -36,13 +37,15 @@ public class TestUtils extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Test
     public void test() throws Exception {
+        testSortTopN();
+        testSortTopNRandom();
         testWriteReadLong();
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testReflectionUtils();
-        testSortTopN();
     }
 
     private void testWriteReadLong() {
@@ -61,8 +64,27 @@ public class TestUtils extends TestBase {
             assertEquals(x, y);
         }
     }
-
+    
     private void testSortTopN() {
+        Comparator<Integer> comp = new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return o1.compareTo(o2);
+            }
+        };
+        Integer[] arr = new Integer[] {};
+        Utils.sortTopN(arr, 0, 5, comp);
+
+        arr = new Integer[] { 1 };
+        Utils.sortTopN(arr, 0, 5, comp);
+
+        arr = new Integer[] { 3, 5, 1, 4, 2 };
+        Utils.sortTopN(arr, 0, 2, comp);
+        assertEquals(arr[0].intValue(), 1);
+        assertEquals(arr[1].intValue(), 2);
+    }
+
+    private void testSortTopNRandom() {
         Random rnd = new Random();
         Comparator<Integer> comp = new Comparator<Integer>() {
             @Override

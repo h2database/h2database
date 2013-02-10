@@ -16,19 +16,23 @@ public class StringDataType implements DataType {
 
     public static final StringDataType INSTANCE = new StringDataType();
 
+    @Override
     public int compare(Object a, Object b) {
         return a.toString().compareTo(b.toString());
     }
 
+    @Override
     public int getMemory(Object obj) {
         return 24 + 2 * obj.toString().length();
     }
 
+    @Override
     public String read(ByteBuffer buff) {
         int len = DataUtils.readVarInt(buff);
         return DataUtils.readString(buff, len);
     }
 
+    @Override
     public ByteBuffer write(ByteBuffer buff, Object obj) {
         String s = obj.toString();
         int len = s.length();

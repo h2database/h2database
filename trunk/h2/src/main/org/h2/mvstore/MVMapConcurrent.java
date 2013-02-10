@@ -31,7 +31,7 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
     protected Page copyOnWrite(Page p, long writeVersion) {
         return p.copy(writeVersion);
     }
-    
+
     protected void checkConcurrentWrite() {
         // ignore (writes are synchronized)
     }

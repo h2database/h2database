@@ -220,8 +220,9 @@ public class TestConcurrent extends TestMVStore {
         // in most cases, it should be detected
         assertTrue(notDetected.get() * 10 <= detected.get());
     }
-    
-    private void testConcurrentWrite(final AtomicInteger detected, final AtomicInteger notDetected) throws InterruptedException {
+
+    private void testConcurrentWrite(final AtomicInteger detected,
+            final AtomicInteger notDetected) throws InterruptedException {
         final MVStore s = openStore(null);
         final MVMap<Integer, Integer> m = s.openMap("data");
         final int size = 20;

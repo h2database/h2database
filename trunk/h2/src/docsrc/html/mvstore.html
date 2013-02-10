@@ -24,8 +24,8 @@ MVStore
     Store Builder</a><br />
 <a href="#r_tree">
     R-Tree</a><br />
-    
-    
+
+
 <a href="#features">
     Features</a><br />
 <a href="#differences">
@@ -283,14 +283,14 @@ The plan is to add such a mechanism later when needed.
 
 <h3>Log Structured Storage</h3>
 <p>
-Changes are buffered in memory, and once enough changes have accumulated, 
+Changes are buffered in memory, and once enough changes have accumulated,
 they are written in one continuous disk write operation.
 (According to a test, write throughput of a common SSD gets higher the larger the block size,
 until a block size of 2 MB, and then does not further increase.)
-By default, committed changes are automatically written once every second 
+By default, committed changes are automatically written once every second
 in a background thread, even if only little data was changed.
 Changes can also be written explicitly by calling <code>store()</code>.
-To avoid out of memory, uncommitted changes are also written when needed, 
+To avoid out of memory, uncommitted changes are also written when needed,
 however they are rolled back when closing the store,
 or at the latest (when the store was not correctly closed) when opening the store.
 </p><p>

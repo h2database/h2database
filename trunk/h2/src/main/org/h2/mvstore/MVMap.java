@@ -582,11 +582,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public synchronized boolean remove(Object key, Object value) {
         V old = get(key);
-        if (old.equals(value)) {
+        if (equalsValue(old, value)) {
             remove(key);
             return true;
         }
         return false;
+    }
+    
+    private boolean equalsValue(Object a, Object b) {
+        if (a == b) {
+            return true;
+        } else if (a == null || b == null) {
+            return false;
+        }
+        return valueType.compare(a, b) == 0;
     }
 
     /**
@@ -599,7 +608,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public synchronized boolean replace(K key, V oldValue, V newValue) {
         V old = get(key);
-        if (old.equals(oldValue)) {
+        if (equalsValue(old, oldValue)) {
             put(key, newValue);
             return true;
         }
@@ -611,7 +620,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param key the key (may not be null)
      * @param value the new value
-     * @return true if the value was replaced
+     * @return the old value, if the value was replaced, or null
      */
     public synchronized V replace(K key, V value) {
         V old = get(key);
@@ -921,7 +930,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         writing = true;
         store.beforeWrite();
     }
-    
+
     /**
      * Check that no write operation is in progress.
      */

@@ -605,7 +605,7 @@ public class DataUtils {
             String message) {
         return new UnsupportedOperationException(message + " " + getVersion());
     }
-    
+
     /**
      * Create a new ConcurrentModificationException.
      *

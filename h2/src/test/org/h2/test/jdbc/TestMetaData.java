@@ -81,12 +81,12 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
         assertFalse(rs.next());
-        
+
         rs = meta.getSchemas(null, "PUBLIC");
         rs.next();
         assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
         assertFalse(rs.next());
-        
+
         rs = meta.getTableTypes();
         rs.next();
         assertEquals("SYSTEM TABLE", rs.getString("TABLE_TYPE"));
@@ -892,7 +892,7 @@ public class TestMetaData extends TestBase {
         assertTrue(rs.next());
         assertEquals("PUBLIC", rs.getString(1));
         assertFalse(rs.next());
-        
+
         rs = meta.getCatalogs();
         assertResultSetMeta(rs, 1, new String[] { "TABLE_CAT" }, new int[] { Types.VARCHAR }, null, null);
         assertResultSetOrdered(rs, new String[][] { { CATALOG } });

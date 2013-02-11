@@ -884,7 +884,8 @@ public class Parser {
         }
         boolean b = session.getAllowLiterals();
         try {
-            // need to temporarily turn this on, in case we are in ALLOW_LITERALS_NUMBERS mode
+            // need to temporarily enable it, in case we are in
+            // ALLOW_LITERALS_NUMBERS mode
             session.setAllowLiterals(true);
             return prepare(session, buff.toString(), paramValues);
         } finally {

@@ -130,7 +130,7 @@ public final class CompressLZF implements Compressor {
     private static int first(ByteBuffer in, int inPos) {
         return (in.get(inPos) << 8) | (in.get(inPos + 1) & 255);
     }
-    
+
     /**
      * Shift v 1 byte left, add value at index inPos+2.
      */
@@ -144,7 +144,7 @@ public final class CompressLZF implements Compressor {
     private static int next(int v, ByteBuffer in, int inPos) {
         return (v << 8) | (in.get(inPos + 2) & 255);
     }
-    
+
     /**
      * Compute the address in the hash table.
      */
@@ -251,8 +251,17 @@ public final class CompressLZF implements Compressor {
         return outPos;
     }
 
-    public int compress(ByteBuffer in, int inLen, byte[] out, int outPos) {
-        int inPos = 0;
+    /**
+     * Compress a number of bytes.
+     *
+     * @param in the input data
+     * @param out the output area
+     * @param outPos the offset at the output array
+     * @return the end position
+     */
+    public int compress(ByteBuffer in, byte[] out, int outPos) {
+        int inPos = in.position();
+        int inLen = in.capacity() - inPos;
         if (cachedHashTable == null) {
             cachedHashTable = new int[HASH_SIZE];
         }
@@ -349,7 +358,7 @@ public final class CompressLZF implements Compressor {
         }
         return outPos;
     }
-    
+
     public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) {
         // if ((inPos | outPos | outLen) < 0) {
         if (inPos < 0 || outPos < 0 || outLen < 0) {
@@ -397,7 +406,16 @@ public final class CompressLZF implements Compressor {
         } while (outPos < outLen);
     }
 
-    public void expand(ByteBuffer in, int inPos, int inLen, ByteBuffer out, int outPos, int outLen) {
+    /**
+     * Expand a number of compressed bytes.
+     *
+     * @param in the compressed data
+     * @param out the output area
+     */
+    public static void expand(ByteBuffer in, ByteBuffer out) {
+        int inPos = in.position();
+        int outPos = out.position();
+        int outLen = out.capacity() - outPos;
         // if ((inPos | outPos | outLen) < 0) {
         if (inPos < 0 || outPos < 0 || outLen < 0) {
             throw new IllegalArgumentException();
@@ -443,7 +461,7 @@ public final class CompressLZF implements Compressor {
             }
         } while (outPos < outLen);
     }
-    
+
     public int getAlgorithm() {
         return Compressor.LZF;
     }

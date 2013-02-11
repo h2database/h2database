@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
-import org.junit.Test;
 
 /**
  * Tests reflection utilities.
@@ -37,7 +36,6 @@ public class TestUtils extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    @Test
     public void test() throws Exception {
         testSortTopN();
         testSortTopNRandom();
@@ -64,7 +62,7 @@ public class TestUtils extends TestBase {
             assertEquals(x, y);
         }
     }
-    
+
     private void testSortTopN() {
         Comparator<Integer> comp = new Comparator<Integer>() {
             @Override

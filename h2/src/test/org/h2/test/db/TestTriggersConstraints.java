@@ -163,7 +163,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
         conn.close();
     }
-    
+
     private void testViewTrigger() throws SQLException {
         Connection conn;
         Statement stat;

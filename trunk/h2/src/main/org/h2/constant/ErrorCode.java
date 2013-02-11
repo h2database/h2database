@@ -444,11 +444,11 @@ public class ErrorCode {
      * represent the hexadecimal encoded bytes.
      */
     public static final int HEX_STRING_WRONG_1 = 90004;
-    
+
     /**
      * The error with code <code>90005</code> is thrown when
-     * trying to create a trigger and using the combination of SELECT and FOR EACH ROW,
-     * which we do not support.
+     * trying to create a trigger and using the combination of SELECT
+     * and FOR EACH ROW, which we do not support.
      */
     public static final int TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED = 90005;
 

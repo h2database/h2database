@@ -355,7 +355,8 @@ public class MVStore {
      * It contains the following entries:
      *
      * <pre>
-     * map.{name} = {map metadata}
+     * name.{name} = {mapId}
+     * map.{mapId} = {map metadata}
      * root.{mapId} = {root position}
      * chunk.{chunkId} = {chunk metadata}
      * </pre>

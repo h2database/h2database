@@ -460,7 +460,7 @@ class FileNioMemData {
         ByteBuffer out = ByteBuffer.allocateDirect(BLOCK_SIZE);
         if (d != COMPRESSED_EMPTY_BLOCK) {
             synchronized (LZF) {
-                LZF.expand(d, 0, d.capacity(), out, 0, BLOCK_SIZE);
+                CompressLZF.expand(d, out);
             }
         }
         data[page] = out;
@@ -475,7 +475,7 @@ class FileNioMemData {
     static void compress(ByteBuffer[] data, int page) {
         ByteBuffer d = data[page];
         synchronized (LZF) {
-            int len = LZF.compress(d, BLOCK_SIZE, BUFFER, 0);
+            int len = LZF.compress(d, BUFFER, 0);
             d = ByteBuffer.allocateDirect(len);
             d.put(BUFFER, 0, len);
             data[page] = d;
@@ -516,7 +516,7 @@ class FileNioMemData {
             expand(data, lastPage);
             ByteBuffer d = data[lastPage];
             for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
-                d.put(i, (byte)0);
+                d.put(i, (byte) 0);
             }
             if (compress) {
                 compressLater(data, lastPage);

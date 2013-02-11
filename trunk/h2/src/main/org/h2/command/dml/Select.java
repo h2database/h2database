@@ -130,7 +130,7 @@ public class Select extends Query {
     public ArrayList<Expression> getGroupBy() {
         return group;
     }
-    
+
     public HashMap<Expression, Object> getCurrentGroup() {
         return currentGroup;
     }
@@ -1093,7 +1093,7 @@ public class Select extends Query {
     public Expression getHaving() {
         return having;
     }
-    
+
     public int getColumnCount() {
         return visibleColumnCount;
     }

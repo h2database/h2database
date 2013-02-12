@@ -42,6 +42,7 @@ public class TestMVStore extends TestBase {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testOldVersion();
         testAtomicOperations();
         testWriteBuffer();
         testWriteDelay();
@@ -731,6 +732,31 @@ public class TestMVStore extends TestBase {
         }
         assertEquals("[10, 11, 12, 13, 14, 50, 100, 90, 91, 92]", list.toString());
         s.close();
+    }
+    
+    private void testOldVersion() {
+        MVStore s;
+        for (int op = 0; op <= 1; op++) {
+            for (int i = 0; i < 5; i++) {
+                s = openStore(null);
+                s.setRetainVersion(0);
+                MVMap<String, String> m;
+                m = s.openMap("data");
+                for (int j = 0; j < 5; j++) {
+                    if (op == 1) {
+                        m.put("1", "" + s.getCurrentVersion());
+                    }
+                    s.incrementVersion();
+                }
+                for (int j = 0; j < s.getCurrentVersion(); j++) {
+                    MVMap<String, String> old = m.openVersion(j);
+                    if (op == 1) {
+                        assertEquals("" + j, old.get("1"));
+                    }
+                }
+                s.close();
+            }
+        }
     }
 
     private void testVersion() {

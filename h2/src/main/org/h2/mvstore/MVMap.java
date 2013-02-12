@@ -831,7 +831,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return store;
     }
 
-    int getId() {
+    public int getId() {
         return id;
     }
 
@@ -980,7 +980,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return root.getTotalCount();
     }
 
-    long getCreateVersion() {
+    public long getCreateVersion() {
         return createVersion;
     }
 
@@ -1010,7 +1010,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Page newest = null;
         // need to copy because it can change
         Page r = root;
-        if (r.getVersion() <= version && r.getVersion() >= 0) {
+        if (version >= r.getVersion() && 
+                (r.getVersion() >= 0 || 
+                version <= createVersion || 
+                store.getFile() == null)) {
             newest = r;
         } else {
             // find the newest page that has a getVersion() <= version

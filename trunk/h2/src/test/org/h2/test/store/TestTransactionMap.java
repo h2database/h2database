@@ -18,7 +18,7 @@ import org.h2.test.TestBase;
 /**
  * Test concurrent transactions.
  */
-public class TestTransaction extends TestBase {
+public class TestTransactionMap extends TestBase {
 
     /**
      * Run just this test.

@@ -114,6 +114,7 @@ import org.h2.test.store.TestMVTableEngine;
 import org.h2.test.store.TestObjectDataType;
 import org.h2.test.store.TestSpinLock;
 import org.h2.test.store.TestStreamStore;
+import org.h2.test.store.TestTransactionMap;
 import org.h2.test.synth.TestBtreeIndex;
 import org.h2.test.synth.TestCrashAPI;
 import org.h2.test.synth.TestDiskFull;
@@ -583,7 +584,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestLargeBlob().runTest(this);
         new TestLinkedTable().runTest(this);
         new TestListener().runTest(this);
-        // verify
         new TestLob().runTest(this);
         new TestMemoryUsage().runTest(this);
         new TestMultiConn().runTest(this);
@@ -598,10 +598,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestReadOnly().runTest(this);
         new TestRecursiveQueries().runTest(this);
         new TestRights().runTest(this);
-        // verify
         new TestRunscript().runTest(this);
         new TestSQLInjection().runTest(this);
-        // verify
         new TestSessionsLocks().runTest(this);
         new TestSelectCountNonNullColumn().runTest(this);
         new TestSequence().runTest(this);
@@ -691,6 +689,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestObjectDataType().runTest(this);
         new TestSpinLock().runTest(this);
         new TestStreamStore().runTest(this);
+        new TestTransactionMap().runTest(this);
 
         // unit
         new TestAutoReconnect().runTest(this);

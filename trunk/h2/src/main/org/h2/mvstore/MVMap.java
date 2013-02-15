@@ -96,6 +96,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @SuppressWarnings("unchecked")
     public V put(K key, V value) {
+        DataUtils.checkArgument(value != null, "The value may not be null");
         beforeWrite();
         try {
             long writeVersion = store.getCurrentVersion();

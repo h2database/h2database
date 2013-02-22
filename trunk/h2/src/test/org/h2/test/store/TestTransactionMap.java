@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 
@@ -39,12 +38,45 @@ public class TestTransactionMap extends TestBase {
     }
 
     public void test() throws Exception {
+        testSavepoint();
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
     }
     
-    public void testCompareWithPostgreSQL() throws Exception {
+    private void testSavepoint() throws Exception {
+        MVStore s = MVStore.open(null);
+        TransactionalStore ts = new TransactionalStore(s);
+        Transaction tx;
+        TransactionalMap<String, String> m;
+        
+        tx = ts.begin();
+        m = tx.openMap("test");
+        m.put("1", "Hello");
+        m.put("2", "World");
+        m.put("1", "Hallo");
+        m.put("2", null);
+        m.put("3", "!");
+        long logId = tx.setSavepoint();
+        m.put("1", "Hi");
+        m.put("2", ".");
+        m.put("3", null);
+        tx.rollbackTo(logId);
+        assertEquals("Hallo", m.get("1"));
+        assertNull(m.get("2"));
+        assertEquals("!", m.get("3"));
+        tx.rollback();
+        
+        tx = ts.begin();
+        m = tx.openMap("test");
+        assertNull(m.get("1"));
+        assertNull(m.get("2"));
+        assertNull(m.get("3"));
+
+        s.close();
+    }
+    
+    private void testCompareWithPostgreSQL() throws Exception {
         ArrayList<Statement> statements = New.arrayList();
         ArrayList<Transaction> transactions = New.arrayList();
         ArrayList<TransactionalMap<Integer, String>> maps = New.arrayList();
@@ -246,8 +278,21 @@ public class TestTransactionMap extends TestBase {
 
         tx2 = ts.begin();
         m2 = tx2.openMap("test");
+        assertNull(m2.get("2"));
         m1.put("2", null);
         assertNull(m2.get("2"));
+        tx1.commit();
+        
+        tx1 = ts.begin();
+        m1 = tx1.openMap("test");
+        assertNull(m1.get("2"));
+        m1.put("2", "World");        
+        m1.put("2", "Welt");        
+        tx1.rollback();
+
+        tx1 = ts.begin();
+        m1 = tx1.openMap("test");
+        assertNull(m1.get("2"));
 
         s.close();
     }
@@ -386,21 +431,12 @@ public class TestTransactionMap extends TestBase {
             return new Transaction(this, transactionId);
         }
 
-        // TODO rollback in reverse order, 
-        // to support delete & add of the same key
-        // with different baseVersions
-        // TODO return the undo operations instead,
-        // so that index changed can be undone
-        public void endTransaction(boolean success, long transactionId) {
-            Iterator<long[]> it = undoLog.keyIterator(new long[] {
-                    transactionId, 0 });
+        public void commit(long transactionId, long maxLogId) {
+            // TODO commit should be much faster
             store.incrementVersion();
-            while (it.hasNext()) {
-                long[] k = it.next();
-                if (k[0] != transactionId) {
-                    break;
-                }
-                Object[] op = undoLog.get(k);
+            for (long logId = 0; logId < maxLogId; logId++) {
+                Object[] op = undoLog.get(new long[] {
+                        transactionId, logId });
                 int mapId = ((Integer) op[1]).intValue();
                 Map<String, String> meta = store.getMetaMap();
                 String m = meta.get("map." + mapId);
@@ -408,30 +444,57 @@ public class TestTransactionMap extends TestBase {
                 MVMap<Object, Object[]> map = store.openMap(mapName);
                 Object key = op[2];
                 Object[] value = map.get(key);
-                if (success) {
-                    if (value[2] == null) {
-                        // remove the value
-                        map.remove(key);
-                    }
-                } else if (value == null) {
-                    // the value was deleted afterwards
-                    // TODO how can this happen?
-                } else {
+                if (value == null) {
+                    // already removed
+                } else if (value[2] == null) {
+                    // remove the value
+                    map.remove(key);
+                }
+                undoLog.remove(logId);
+            }
+            openTransactions.remove(transactionId);
+            store.commit();
+        }
+
+        public void rollback(long transactionId, long maxLogId) {
+            rollbackTo(transactionId, maxLogId, 0);
+            openTransactions.remove(transactionId);
+            store.commit();
+        }
+        
+        public void rollbackTo(long transactionId, long maxLogId, long toLogId) {
+            store.incrementVersion();
+            for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
+                Object[] op = undoLog.get(new long[] {
+                        transactionId, logId });
+                int mapId = ((Integer) op[1]).intValue();
+                Map<String, String> meta = store.getMetaMap();
+                String m = meta.get("map." + mapId);
+                String mapName = DataUtils.parseMap(m).get("name");
+                MVMap<Object, Object[]> map = store.openMap(mapName);
+                Object key = op[2];
+                Object[] value = map.get(key);
+                if (value != null) {
                     Long oldVersion = (Long) value[1];
                     if (oldVersion == null) {
                         // this transaction added the value
                         map.remove(key);
-                    } else {
+                    } else if (oldVersion < map.getCreateVersion()) {
+                        map.remove(key);
+                    } else { 
                         // this transaction updated the value
                         MVMap<Object, Object[]> mapOld = map
                                 .openVersion(oldVersion);
                         Object[] old = mapOld.get(key);
-                        map.put(key, old);
+                        if (old == null) {
+                            map.remove(key);
+                        } else {
+                            map.put(key, old);
+                        }
                     }
                 }
-                undoLog.remove(k);
+                undoLog.remove(logId);
             }
-            openTransactions.remove(transactionId);
             store.commit();
         }
 
@@ -451,6 +514,11 @@ public class TestTransactionMap extends TestBase {
             this.transactionId = transactionId;
         }
 
+        public long setSavepoint() {
+            store.store.incrementVersion();
+            return logId;
+        }
+
         void log(long baseVersion, int mapId, Object key) {
             long[] undoKey = { transactionId, logId++ };
             Object[] log = new Object[] { baseVersion, mapId, key };
@@ -463,12 +531,17 @@ public class TestTransactionMap extends TestBase {
 
         void commit() {
             closed = true;
-            store.endTransaction(true, transactionId);
+            store.commit(transactionId, logId);
         }
 
         void rollback() {
             closed = true;
-            store.endTransaction(false, transactionId);
+            store.rollback(transactionId, logId);
+        }
+        
+        public void rollbackTo(long logId) {
+            store.rollbackTo(transactionId, this.logId, logId);
+            this.logId = logId;
         }
 
         void checkOpen() {
@@ -567,12 +640,15 @@ public class TestTransactionMap extends TestBase {
             long tx = ((Long) current[0]).longValue();
             if (tx == transaction.transactionId) {
                 // added or updated by this transaction
-                // use the previous oldVersion
-                newValue[1] = current[1];
                 if (map.replace(key, current, newValue)) {
-                    // we already have a log entry, so don't log
-                    // TODO does not work when using savepoints
-                    // transaction.log(oldVersion, mapId, key);
+                    if (current[1] == null) {
+                        transaction.log(oldVersion, mapId, key);
+                    } else {
+                        long c = (Long) current[1];
+                        if (c != oldVersion) {
+                            transaction.log(oldVersion, mapId, key);
+                        }
+                    }
                     return true;
                 }
                 // strange, somebody overwrite the value
@@ -598,38 +674,34 @@ public class TestTransactionMap extends TestBase {
         @SuppressWarnings("unchecked")
         V get(K key) {
             checkOpen();
-            Object[] current = map.get(key);
-            long tx;
-            if (current == null) {
-                // doesn't exist or deleted by a committed transaction
-                return null;
+            MVMap<K, Object[]> m = map;
+            while (true) {
+                Object[] data = m.get(key);
+                long tx;
+                if (data == null) {
+                    // doesn't exist or deleted by a committed transaction
+                    return null;
+                }
+                tx = ((Long) data[0]).longValue();
+                if (tx == transaction.transactionId) {
+                    // added by this transaction
+                    return (V) data[2];
+                }
+                // added or updated by another transaction
+                Long base = transaction.store.openTransactions.get(tx);
+                if (base == null) {
+                    // it is committed
+                    return (V) data[2];
+                }                
+                tx = ((Long) data[0]).longValue();
+                // get the value before the uncommitted transaction
+                if (data[1] == null) {
+                    // a new entry
+                    return null;
+                }
+                long oldVersion = (Long) data[1];
+                m = map.openVersion(oldVersion);
             }
-            tx = ((Long) current[0]).longValue();
-            if (tx == transaction.transactionId) {
-                // added by this transaction
-                return (V) current[2];
-            }
-            // added or updated by another transaction
-            Long base = transaction.store.openTransactions.get(tx);
-            if (base == null) {
-                // it is committed
-                return (V) current[2];
-            }                
-            tx = ((Long) current[0]).longValue();
-            // get the value before the uncommitted transaction
-            if (current[1] == null) {
-                // a new entry
-                return null;
-            }
-            long oldVersion = (Long) current[1];
-            MVMap<K, Object[]> oldMap = map.openVersion(oldVersion);
-            Object[] old = oldMap.get(key);
-            if (old == null) {
-                // there was none
-                return null;
-            }
-            // the previous committed value
-            return (V) old[2];
         }
 
     }

@@ -1011,9 +1011,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Page newest = null;
         // need to copy because it can change
         Page r = root;
-        if (version >= r.getVersion() && 
-                (r.getVersion() >= 0 || 
-                version <= createVersion || 
+        if (version >= r.getVersion() &&
+                (r.getVersion() >= 0 ||
+                version <= createVersion ||
                 store.getFile() == null)) {
             newest = r;
         } else {

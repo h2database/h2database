@@ -28,6 +28,7 @@ import org.h2.util.StringUtils;
 public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaData {
 
     private final JdbcConnection conn;
+    private String mode;
 
     JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);
@@ -2307,10 +2308,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Checks if a table created with CREATE TABLE "Test"(ID INT) is a different
      * table than a table created with CREATE TABLE TEST(ID INT).
      *
-     * @return true
+     * @return true usually, and false in MySQL mode
      */
-    public boolean supportsMixedCaseQuotedIdentifiers() {
+    public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("supportsMixedCaseQuotedIdentifiers");
+        String m = getMode();
+        if (m.equals("MySQL")) {
+            return false;
+        }
         return true;
     }
 
@@ -2318,10 +2323,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Checks if for CREATE TABLE Test(ID INT), getTables returns TEST as the
      * table name.
      *
-     * @return true
+     * @return true usually, and false in MySQL mode
      */
-    public boolean storesUpperCaseIdentifiers() {
+    public boolean storesUpperCaseIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseIdentifiers");
+        String m = getMode();
+        if (m.equals("MySQL")) {
+            return false;
+        }
         return true;
     }
 
@@ -2329,10 +2338,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Checks if for CREATE TABLE Test(ID INT), getTables returns test as the
      * table name.
      *
-     * @return false
+     * @return false usually, and true in MySQL mode
      */
-    public boolean storesLowerCaseIdentifiers() {
+    public boolean storesLowerCaseIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseIdentifiers");
+        String m = getMode();
+        if (m.equals("MySQL")) {
+            return true;
+        }            
         return false;
     }
 
@@ -2351,10 +2364,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns TEST as the
      * table name.
      *
-     * @return false
+     * @return false usually, and true in MySQL mode
      */
-    public boolean storesUpperCaseQuotedIdentifiers() {
+    public boolean storesUpperCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseQuotedIdentifiers");
+        String m = getMode();
+        if (m.equals("MySQL")) {
+            return true;
+        }
         return false;
     }
 
@@ -2362,10 +2379,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns test as the
      * table name.
      *
-     * @return false
+     * @return false usually, and true in MySQL mode
      */
-    public boolean storesLowerCaseQuotedIdentifiers() {
+    public boolean storesLowerCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseQuotedIdentifiers");
+        String m = getMode();
+        if (m.equals("MySQL")) {
+            return true;
+        }  
         return false;
     }
 
@@ -2373,10 +2394,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      * Checks if for CREATE TABLE "Test"(ID INT), getTables returns Test as the
      * table name.
      *
-     * @return true
+     * @return true usually, and false in MySQL mode
      */
-    public boolean storesMixedCaseQuotedIdentifiers() {
+    public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseQuotedIdentifiers");
+        String m = getMode();
+        if (m.equals("MySQL")) {
+            return false;
+        }        
         return true;
     }
 
@@ -2946,6 +2971,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     public String toString() {
         return getTraceObjectName() + ": " + conn;
+    }
+    
+    private String getMode() throws SQLException {
+        if (mode == null) {
+            PreparedStatement prep = conn.prepareStatement(
+                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
+            prep.setString(1, "MODE");
+            ResultSet rs = prep.executeQuery();
+            rs.next();
+            mode = rs.getString(1);
+            prep.close();
+        }
+        return mode;
     }
 
 }

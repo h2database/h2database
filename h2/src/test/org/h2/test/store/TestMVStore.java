@@ -733,7 +733,7 @@ public class TestMVStore extends TestBase {
         assertEquals("[10, 11, 12, 13, 14, 50, 100, 90, 91, 92]", list.toString());
         s.close();
     }
-    
+
     private void testOldVersion() {
         MVStore s;
         for (int op = 0; op <= 1; op++) {

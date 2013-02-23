@@ -24,10 +24,21 @@ MVStore
     Store Builder</a><br />
 <a href="#r_tree">
     R-Tree</a><br />
-
-
 <a href="#features">
     Features</a><br />
+    - <a href="#maps">Maps</a><br />
+    - <a href="#versions">Versions</a><br />
+    - <a href="#transactions">Transactions</a><br />
+    - <a href="#inMemory">In-Memory Performance and Usage</a><br />
+    - <a href="#dataTypes">Pluggable Data Types</a><br />
+    - <a href="#blob">BLOB Support</a><br />
+    - <a href="#pluggableMap">R-Tree and Pluggable Map Implementations</a><br />
+    - <a href="#caching">Concurrent Operations and Caching</a><br />
+    - <a href="#logStructured">Log Structured Storage</a><br />
+    - <a href="#fileSystem">File System Abstraction, File Locking and Online Backup</a><br />
+    - <a href="#encryption">Encrypted Files</a><br />
+    - <a href="#tools">Tools</a><br />
+    - <a href="#exceptionHandling">Exception Handling</a><br />
 <a href="#differences">
     Similar Projects and Differences to Other Storage Engines</a><br />
 <a href="#current_state">
@@ -45,8 +56,7 @@ But it can be also directly within an application, without using JDBC or SQL.
 </li><li>Both file-based persistence and in-memory operation are supported.
 </li><li>It is intended to be fast, simple to use, and small.
 </li><li>Old versions of the data can be read concurrently with all other operations.
-</li><li>Transaction are supported (currently only one transaction at a time).
-</li><li>Transactions (even if they are persisted) can be rolled back.
+</li><li>Transaction are supported.
 </li><li>The tool is very modular. It supports pluggable data types / serialization,
 pluggable map implementations (B-tree, R-tree, concurrent B-tree currently), BLOB storage,
 and a file system abstraction to support encrypted files and zip files.
@@ -166,7 +176,7 @@ The minimum number of dimensions is 1, the maximum is 255.
 
 <h2 id="features">Features</h2>
 
-<h3>Maps</h3>
+<h3 id="maps">Maps</h3>
 <p>
 Each store supports a set of named maps.
 A map is sorted by key, and supports the common lookup operations,
@@ -186,13 +196,13 @@ of the index, and the value of the map is the primary key of the table (for non-
 the key of the map must also contain the primary key).
 </p>
 
-<h3>Versions / Transactions</h3>
+<h3 id="versions">Versions</h3>
 <p>
 Multiple versions are supported.
 A version is a snapshot of all the data of all maps at a given point in time.
 A transaction is a number of actions between two versions.
 </p><p>
-Versions / transactions are not immediately persisted; instead, only the version counter is incremented.
+Versions are not immediately persisted; instead, only the version counter is incremented.
 If there is a change after switching to a new version, a snapshot of the old version is kept in memory,
 so that it can still be read.
 </p><p>
@@ -203,7 +213,23 @@ This behavior is also called COW (copy on write).
 Rollback is supported (rollback to any old in-memory version or an old persisted version).
 </p>
 
-<h3>In-Memory Performance and Usage</h3>
+<h3 id="transactions">Transactions</h3>
+<p>
+The multi-version support is the basis for the transaction support.
+In the simple case, when only one transaction is open at a time,
+rolling back the transaction only requires to revert to an old version.
+</p><p>
+To support multiple concurrent open transactions, a transaction utility is included,
+the <code>TransactionStore</code>.
+This utility stores the changed entries in a separate map, similar to a transaction log
+(except that only the key of a changed row is stored,
+and the entries of a transaction are removed when the transaction is committed).
+The storage overhead of this utility is very small compared to the overhead of a regular transaction log.
+The tool supports PostgreSQL style "read committed" transaction isolation.
+There is no limit on the size of a transaction (the log is not kept in memory).
+</p>
+
+<h3 id="inMemory">In-Memory Performance and Usage</h3>
 <p>
 Performance of in-memory operations is comparable with <code>java.util.TreeMap</code>
 (many operations are actually faster), but usually slower than <code>java.util.HashMap</code>.
@@ -220,7 +246,7 @@ If a file name is specified, all operations occur in memory (with the same
 performance characteristics) until data is persisted.
 </p>
 
-<h3>Pluggable Data Types</h3>
+<h3 id="dataTypes">Pluggable Data Types</h3>
 <p>
 Serialization is pluggable. The default serialization currently supports many common data types,
 and uses Java serialization for other objects. The following classes are currently directly supported:
@@ -236,7 +262,7 @@ Also, there is no inherent limit to the number of maps and chunks.
 Due to using a log structured storage, there is no special case handling for large keys or pages.
 </p>
 
-<h3>BLOB Support</h3>
+<h3 id="blob">BLOB Support</h3>
 <p>
 There is a mechanism that stores large binary objects by splitting them into smaller blocks.
 This allows to store objects that don't fit in memory.
@@ -244,7 +270,7 @@ Streaming as well as random access reads on such objects are supported.
 This tool is written on top of the store (only using the map interface).
 </p>
 
-<h3>R-Tree and Pluggable Map Implementations</h3>
+<h3 id="pluggableMap">R-Tree and Pluggable Map Implementations</h3>
 <p>
 The map implementation is pluggable.
 In addition to the default <code>MVMap</code> (multi-version map),
@@ -252,7 +278,7 @@ there is a multi-version R-tree map implementation
 for spatial operations (contain and intersection; nearest neighbor is not yet implemented).
 </p>
 
-<h3>Concurrent Operations and Caching</h3>
+<h3 id="caching">Concurrent Operations and Caching</h3>
 <p>
 The default map implementation supports concurrent reads on old versions of the data.
 All such read operations can occur in parallel. Concurrent reads from the page cache,
@@ -281,7 +307,7 @@ the map could be split into multiple maps in different stores ('sharding').
 The plan is to add such a mechanism later when needed.
 </p>
 
-<h3>Log Structured Storage</h3>
+<h3 id="logStructured">Log Structured Storage</h3>
 <p>
 Changes are buffered in memory, and once enough changes have accumulated,
 they are written in one continuous disk write operation.
@@ -327,7 +353,7 @@ But temporarily, disk space usage might actually be a bit higher than for a regu
 as disk space is not immediately re-used (there are no in-place updates).
 </p>
 
-<h3>File System Abstraction, File Locking and Online Backup</h3>
+<h3 id="fileSystem">File System Abstraction, File Locking and Online Backup</h3>
 <p>
 The file system is pluggable (the same file system abstraction is used as H2 uses).
 The file can be encrypted using an encrypting file system.
@@ -347,7 +373,7 @@ new data is always appended at the end of the file.
 Then, the file can be copied (the file handle is available to the application).
 </p>
 
-<h3>Encrypted Files</h3>
+<h3 id="encryption">Encrypted Files</h3>
 <p>
 File encryption ensures the data can only be read with the correct password.
 Data can be encrypted as follows:
@@ -378,12 +404,12 @@ The following algorithms and settings are used:
     Only little more than one AES-128 round per block is needed.
 </li></ul>
 
-<h3>Tools</h3>
+<h3 id="tools">Tools</h3>
 <p>
 There is a tool (<code>MVStoreTool</code>) to dump the contents of a file.
 </p>
 
-<h3>Exception Handling</h3>
+<h3 id="exceptionHandling">Exception Handling</h3>
 <p>
 This tool does not throw checked exceptions.
 Instead, unchecked exceptions are thrown if needed.

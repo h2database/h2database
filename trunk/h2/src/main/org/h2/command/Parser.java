@@ -5291,9 +5291,23 @@ public class Parser {
             }
         }
         if (readIf("ENGINE")) {
-            command.setTableEngine(readUniqueIdentifier());
+            if (readIf("=")) {
+                // map MySQL engine types onto H2 behavior
+                String tableEngine = readUniqueIdentifier();
+                if ("InnoDb".equalsIgnoreCase(tableEngine)) {
+                    // ok
+                } else if (!"MyISAM".equalsIgnoreCase(tableEngine)) {
+                    throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, tableEngine);
+                }
+            } else {
+                command.setTableEngine(readUniqueIdentifier());
+            }
         } else if (database.getSettings().defaultTableEngine != null) {
             command.setTableEngine(database.getSettings().defaultTableEngine);
+        }
+        if (readIf("CHARSET")) {
+            read("=");
+            read("UTF8");
         }
         if (temp) {
             if (readIf("ON")) {

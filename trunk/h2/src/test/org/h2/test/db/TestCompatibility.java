@@ -252,6 +252,11 @@ public class TestCompatibility extends TestBase {
         rs.updateString(2, "Hallo");
         rs.updateRow();
 
+        stat.execute("CREATE TABLE TEST_1(ID INT PRIMARY KEY) ENGINE=InnoDb");
+        stat.execute("CREATE TABLE TEST_2(ID INT PRIMARY KEY) ENGINE=MyISAM");
+        stat.execute("CREATE TABLE TEST_3(ID INT PRIMARY KEY) ENGINE=InnoDb charset=UTF8");
+        stat.execute("CREATE TABLE TEST_4(ID INT PRIMARY KEY) charset=UTF8");
+
         conn.close();
         conn = getConnection("compatibility");
     }

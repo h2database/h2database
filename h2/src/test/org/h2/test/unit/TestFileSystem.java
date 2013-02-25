@@ -70,8 +70,8 @@ public class TestFileSystem extends TestBase {
         FileUtils.toRealPath(f);
         testFileSystem(getBaseDir() + "/fs");
         testFileSystem("memFS:");
-        testFileSystem("nioMemFS:");
         testFileSystem("memLZF:");
+        testFileSystem("nioMemFS:");
         testFileSystem("nioMemLZF:");
         testUserHome();
         try {

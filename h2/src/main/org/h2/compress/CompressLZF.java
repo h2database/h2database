@@ -413,29 +413,23 @@ public final class CompressLZF implements Compressor {
      * @param out the output area
      */
     public static void expand(ByteBuffer in, ByteBuffer out) {
-        int inPos = in.position();
-        int outPos = out.position();
-        int outLen = out.capacity() - outPos;
-        // if ((inPos | outPos | outLen) < 0) {
-        if (inPos < 0 || outPos < 0 || outLen < 0) {
-            throw new IllegalArgumentException();
-        }
         do {
-            int ctrl = in.get(inPos++) & 255;
+            int ctrl = in.get() & 255;
             if (ctrl < MAX_LITERAL) {
                 // literal run of length = ctrl + 1,
                 ctrl++;
                 // copy to output and move forward this many bytes
-                System.arraycopy(in, inPos, out, outPos, ctrl);
-                outPos += ctrl;
-                inPos += ctrl;
+                // (maybe slice would be faster)
+                for (int i = 0; i < ctrl; i++) {
+                    out.put(in.get());
+                }
             } else {
                 // back reference
                 // the highest 3 bits are the match length
                 int len = ctrl >> 5;
                 // if the length is maxed, add the next byte to the length
                 if (len == 7) {
-                    len += in.get(inPos++) & 255;
+                    len += in.get() & 255;
                 }
                 // minimum back-reference is 3 bytes,
                 // so 2 was subtracted before storing size
@@ -446,20 +440,17 @@ public final class CompressLZF implements Compressor {
                 ctrl = -((ctrl & 0x1f) << 8) - 1;
 
                 // the next byte augments/increases the offset
-                ctrl -= in.get(inPos++) & 255;
+                ctrl -= in.get() & 255;
 
                 // copy the back-reference bytes from the given
                 // location in output to current position
-                ctrl += outPos;
-                if (outPos + len >= out.capacity()) {
-                    // reduce array bounds checking
-                    throw new ArrayIndexOutOfBoundsException();
-                }
+                // (maybe slice would be faster)
+                ctrl += out.position();
                 for (int i = 0; i < len; i++) {
-                    out.put(outPos++, out.get(ctrl++));
+                    out.put(out.get(ctrl++));
                 }
             }
-        } while (outPos < outLen);
+        } while (out.position() < out.capacity());
     }
 
     public int getAlgorithm() {

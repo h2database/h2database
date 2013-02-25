@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -198,6 +199,11 @@ public class TestCompress extends TestBase {
     }
 
     private void test(int len) throws IOException {
+        testByteArray(len);
+        testByteBuffer(len);
+    }
+    
+    private void testByteArray(int len) throws IOException {
         Random r = new Random(len);
         for (int pattern = 0; pattern < 4; pattern++) {
             byte[] b = new byte[len];
@@ -256,6 +262,53 @@ public class TestCompress extends TestBase {
                 IOUtils.copy(in, out);
                 assertEquals(b, out.toByteArray());
             }
+        }
+    }
+    
+    private void testByteBuffer(int len) {
+        if (len < 4) {
+            return;
+        }
+        Random r = new Random(len);
+        CompressLZF comp = new CompressLZF();
+        for (int pattern = 0; pattern < 4; pattern++) {
+            byte[] b = new byte[len];
+            switch (pattern) {
+            case 0:
+                // leave empty
+                break;
+            case 1: {
+                r.nextBytes(b);
+                break;
+            }
+            case 2: {
+                for (int x = 0; x < len; x++) {
+                    b[x] = (byte) (x & 10);
+                }
+                break;
+            }
+            case 3: {
+                for (int x = 0; x < len; x++) {
+                    b[x] = (byte) (x / 10);
+                }
+                break;
+            }
+            default:
+            }
+            if (r.nextInt(2) < 1) {
+                for (int x = 0; x < len; x++) {
+                    if (r.nextInt(20) < 1) {
+                        b[x] = (byte) (r.nextInt(255));
+                    }
+                }
+            }
+            ByteBuffer buff = ByteBuffer.wrap(b);
+            byte[] temp = new byte[100 + b.length * 2];
+            int compLen = comp.compress(buff, temp, 0);
+            ByteBuffer test = ByteBuffer.wrap(temp, 0, compLen);
+            byte[] exp = new byte[b.length];
+            CompressLZF.expand(test, ByteBuffer.wrap(exp));
+            assertEquals(b, exp);
         }
     }
 

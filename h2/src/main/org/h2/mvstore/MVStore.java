@@ -44,8 +44,8 @@ H:3,...
 TODO:
 
 - rolling docs review: at convert "Features" to top-level (linked) entries
-
 - mvcc with multiple transactions
+- test LZ4
 - additional test async write / read algorithm for speed and errors
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
     and settings that are persistent (setStoreVersion)

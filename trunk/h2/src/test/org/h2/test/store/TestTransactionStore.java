@@ -12,12 +12,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.TransactionStore;
 import org.h2.mvstore.TransactionStore.Transaction;
 import org.h2.mvstore.TransactionStore.TransactionMap;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
 
@@ -36,10 +38,141 @@ public class TestTransactionStore extends TestBase {
     }
 
     public void test() throws Exception {
+//        testMultiStatement();
+        testTwoPhaseCommit();
         testSavepoint();
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+    }
+    
+    /**
+     * Tests behavior when used for a sequence of SQL statements. Each statement
+     * uses a savepoint. Within a statement, a change by the statement itself is
+     * not seen; the change is only seen when the statement finished.
+     */
+//    private void testMultiStatement() {
+//        MVStore s = MVStore.open(null);
+//        TransactionStore ts = new TransactionStore(s);
+//        Transaction tx;
+//        TransactionMap<String, String> m;
+//        long startUpdate;
+//        
+//        tx = ts.begin();
+//        
+//        // start of statement
+//        // insert into test(id, name) values(1, 'Hello'), (2, 'World')
+//        startUpdate = tx.setSavepoint();
+//        m = tx.openMap("test", startUpdate);
+    // TODO putIfAbsent
+//        m.put("1", "Hello");
+//        m.put("2", "World");
+//        // not seen yet
+//        assertNull(m.get("1"));
+//        
+//        // start of statement
+//        startUpdate = tx.setSavepoint();
+//        // update test set primaryKey = primaryKey + 1
+//        m = tx.openMap("test", startUpdate);
+//        
+//        for (Cursor)
+//
+//        tx.commit();
+//        
+//        
+//        
+//        m.put("2", "World");
+//        m.put("1", "Hallo");
+//        m.remove("2");
+//        m.put("3", "!");
+//        long logId = tx.setSavepoint();
+//        m.put("1", "Hi");
+//        m.put("2", ".");
+//        m.remove("3");
+//        tx.rollbackToSavepoint(logId);
+//        assertEquals("Hallo", m.get("1"));
+//        assertNull(m.get("2"));
+//        assertEquals("!", m.get("3"));
+//        tx.rollback();
+//
+//        tx = ts.begin();
+//        m = tx.openMap("test");
+//        assertNull(m.get("1"));
+//        assertNull(m.get("2"));
+//        assertNull(m.get("3"));
+//
+//        ts.close();
+//        s.close();
+//    }   
+    
+    private void testTwoPhaseCommit() throws Exception {
+        String fileName = getBaseDir() + "/testTwoPhaseCommit.h3";
+        FileUtils.delete(fileName);
+        
+        MVStore s;
+        TransactionStore ts;
+        Transaction tx;
+        Transaction txOld;
+        TransactionMap<String, String> m;
+        List<Transaction> list;
+        
+        s = MVStore.open(fileName);
+        ts = new TransactionStore(s);
+        tx = ts.begin();
+        assertEquals(null, tx.getName());
+        tx.setName("first transaction");
+        assertEquals("first transaction", tx.getName());
+        assertEquals(0, tx.getId());
+        assertEquals(Transaction.STATUS_OPEN, tx.getStatus());
+        m = tx.openMap("test");
+        m.put("1", "Hello");
+        list = ts.getOpenTransactions();
+        assertEquals(1, list.size());
+        txOld = list.get(0);
+        assertTrue(tx == txOld);
+        s.commit();
+        ts.close();
+        s.close();
+        
+        s = MVStore.open(fileName);
+        ts = new TransactionStore(s);
+        tx = ts.begin();
+        assertEquals(1, tx.getId());
+        m = tx.openMap("test");
+        assertEquals(null, m.get("1"));
+        list = ts.getOpenTransactions();
+        assertEquals(2, list.size());
+        txOld = list.get(0);
+        assertEquals(0, txOld.getId());
+        assertEquals(Transaction.STATUS_OPEN, txOld.getStatus());
+        assertEquals("first transaction", txOld.getName());
+        txOld.prepare();
+        assertEquals(Transaction.STATUS_PREPARED, txOld.getStatus());
+        txOld = list.get(1);
+        assertEquals(1, txOld.getId());
+        assertNull(txOld.getName());
+        assertEquals(Transaction.STATUS_OPEN, txOld.getStatus());
+        txOld.rollback();
+        s.commit();
+        s.close();
+        
+        s = MVStore.open(fileName);
+        ts = new TransactionStore(s);
+        tx = ts.begin();
+        m = tx.openMap("test");
+        // TransactionStore was not closed, so we lost some ids
+        assertEquals(33, tx.getId());
+        list = ts.getOpenTransactions();
+        assertEquals(2, list.size());
+        txOld = list.get(0);
+        assertEquals(0, txOld.getId());
+        assertEquals(Transaction.STATUS_PREPARED, txOld.getStatus());
+        assertEquals("first transaction", txOld.getName());
+        txOld.commit();
+        assertEquals("Hello", m.get("1"));
+        s.close();
+
+        FileUtils.delete(fileName);
     }
 
     private void testSavepoint() throws Exception {
@@ -53,12 +186,12 @@ public class TestTransactionStore extends TestBase {
         m.put("1", "Hello");
         m.put("2", "World");
         m.put("1", "Hallo");
-        m.put("2", null);
+        m.remove("2");
         m.put("3", "!");
         long logId = tx.setSavepoint();
         m.put("1", "Hi");
         m.put("2", ".");
-        m.put("3", null);
+        m.remove("3");
         tx.rollbackToSavepoint(logId);
         assertEquals("Hallo", m.get("1"));
         assertNull(m.get("2"));
@@ -140,8 +273,8 @@ public class TestTransactionStore extends TestBase {
                         size++;
                     }
                     buff.append('\n');
-                    if (size != map.size()) {
-                        assertEquals(size, map.size());
+                    if (size != map.getSize()) {
+                        assertEquals(size, map.getSize());
                     }
                 }
                 int x = r.nextInt(rowCount);
@@ -191,13 +324,13 @@ public class TestTransactionStore extends TestBase {
                     try {
                         int c = stat.executeUpdate("delete from test where id = " + x);
                         if (c == 1) {
-                            map.put(x, null);
+                            map.remove(x);
                         } else {
                             assertNull(map.get(x));
                         }
                     } catch (SQLException e) {
                         assertTrue(map.get(x) != null);
-                        assertFalse(map.tryPut(x, null));
+                        assertFalse(map.tryRemove(x));
                         // PostgreSQL needs to rollback
                         buff.append(" -> rollback");
                         stat.getConnection().rollback();
@@ -245,7 +378,7 @@ public class TestTransactionStore extends TestBase {
         m1 = tx1.openMap("test");
         m1.put("1", "Hello");
         m1.put("2", "World");
-        m1.put("3", null);
+        m1.remove("3");
         tx1.commit();
 
         // start new transaction to read old data
@@ -256,7 +389,7 @@ public class TestTransactionStore extends TestBase {
         tx1 = ts.begin();
         m1 = tx1.openMap("test");
         m1.put("1", "Hallo");
-        m1.put("2", null);
+        m1.remove("2");
         m1.put("3", "!");
 
         assertEquals("Hello", m2.get("1"));
@@ -274,13 +407,13 @@ public class TestTransactionStore extends TestBase {
         m1.put("2", "World");
 
         assertNull(m2.get("2"));
-        assertFalse(m2.tryPut("2", null));
+        assertFalse(m2.tryRemove("2"));
         assertFalse(m2.tryPut("2", "Welt"));
 
         tx2 = ts.begin();
         m2 = tx2.openMap("test");
         assertNull(m2.get("2"));
-        m1.put("2", null);
+        m1.remove("2");
         assertNull(m2.get("2"));
         tx1.commit();
 
@@ -337,7 +470,7 @@ public class TestTransactionStore extends TestBase {
         tx = ts.begin();
         m = tx.openMap("test");
         m.put("1", "Hallo");
-        m.put("2", null);
+        m.remove("2");
         m.put("3", "!");
         assertEquals("Hallo", m.get("1"));
         assertNull(m.get("2"));
@@ -353,7 +486,7 @@ public class TestTransactionStore extends TestBase {
         tx = ts.begin();
         m = tx.openMap("test");
         m.put("1", "Hallo");
-        m.put("2", null);
+        m.remove("2");
         m.put("3", "!");
         assertEquals("Hallo", m.get("1"));
         assertNull(m.get("2"));

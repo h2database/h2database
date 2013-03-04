@@ -99,9 +99,9 @@ public class WebServer implements Service {
     private static int ticker;
 
     /**
-     * The session timeout is 30 min.
+     * The session timeout (the default is 30 minutes).
      */
-    private static final long SESSION_TIMEOUT = 30 * 60 * 1000;
+    private static final long SESSION_TIMEOUT = SysProperties.CONSOLE_TIMEOUT;
 
 //    public static void main(String... args) throws IOException {
 //        String s = IOUtils.readStringAndClose(new java.io.FileReader(

@@ -145,6 +145,12 @@ public class SysProperties {
     public static final boolean CONSOLE_STREAM = Utils.getProperty("h2.consoleStream", true);
 
     /**
+     * System property <code>h2.consoleTimeout</code> (default: 1800000).<br />
+     * H2 Console: session timeout in milliseconds. The default is 30 minutes.
+     */
+    public static final int CONSOLE_TIMEOUT = Utils.getProperty("h2.consoleTimeout", 30 * 60 * 1000);
+    
+    /**
      * System property <code>h2.dataSourceTraceLevel</code> (default: 1).<br />
      * The trace level of the data source implementation. Default is 1 for
      * error.

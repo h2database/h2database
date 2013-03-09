@@ -36,7 +36,6 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
-import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -847,8 +846,8 @@ public class FullText {
             ArrayList<String> keyList = New.arrayList();
             DatabaseMetaData meta = conn.getMetaData();
             ResultSet rs = meta.getColumns(null,
-                    JdbcUtils.escapeMetaDataPattern(schemaName),
-                    JdbcUtils.escapeMetaDataPattern(tableName),
+                    StringUtils.escapeMetaDataPattern(schemaName),
+                    StringUtils.escapeMetaDataPattern(tableName),
                     null);
             ArrayList<String> columnList = New.arrayList();
             while (rs.next()) {
@@ -861,15 +860,15 @@ public class FullText {
             index.columns = new String[columnList.size()];
             columnList.toArray(index.columns);
             rs = meta.getColumns(null,
-                    JdbcUtils.escapeMetaDataPattern(schemaName),
-                    JdbcUtils.escapeMetaDataPattern(tableName),
+                    StringUtils.escapeMetaDataPattern(schemaName),
+                    StringUtils.escapeMetaDataPattern(tableName),
                     null);
             for (int i = 0; rs.next(); i++) {
                 columnTypes[i] = rs.getInt("DATA_TYPE");
             }
             if (keyList.size() == 0) {
                 rs = meta.getPrimaryKeys(null,
-                        JdbcUtils.escapeMetaDataPattern(schemaName),
+                        StringUtils.escapeMetaDataPattern(schemaName),
                         tableName);
                 while (rs.next()) {
                     keyList.add(rs.getString("COLUMN_NAME"));

@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -66,8 +65,8 @@ public class UpdatableRow {
         }
         final DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getTables(null,
-                JdbcUtils.escapeMetaDataPattern(schemaName),
-                JdbcUtils.escapeMetaDataPattern(tableName),
+                StringUtils.escapeMetaDataPattern(schemaName),
+                StringUtils.escapeMetaDataPattern(tableName),
                 new String[] { "TABLE" });
         if (!rs.next()) {
             return;
@@ -83,7 +82,7 @@ public class UpdatableRow {
         boolean toUpper = !table.equals(tableName) && table.equalsIgnoreCase(tableName);
         key = New.arrayList();
         rs = meta.getPrimaryKeys(null,
-                JdbcUtils.escapeMetaDataPattern(schemaName),
+                StringUtils.escapeMetaDataPattern(schemaName),
                 tableName);
         while (rs.next()) {
             String c = rs.getString("COLUMN_NAME");
@@ -95,7 +94,7 @@ public class UpdatableRow {
         }
         key.clear();
         rs = meta.getIndexInfo(null,
-                JdbcUtils.escapeMetaDataPattern(schemaName),
+                StringUtils.escapeMetaDataPattern(schemaName),
                 tableName, true, true);
         while (rs.next()) {
             int pos = rs.getShort("ORDINAL_POSITION");

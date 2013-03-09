@@ -1078,4 +1078,17 @@ public class StringUtils {
         }
     }
 
+    /**
+     * Escape table or schema patterns used for DatabaseMetaData functions.
+     *
+     * @param pattern the pattern
+     * @return the escaped pattern
+     */
+    public static String escapeMetaDataPattern(String pattern) {
+        if (pattern == null || pattern.length() == 0) {
+            return pattern;
+        }
+        return replaceAll(pattern, "\\", "\\\\");
+    }
+
 }

@@ -118,28 +118,30 @@ public final class CompressLZF implements Compressor {
     }
 
     /**
-     * Return byte with lower 2 bytes being byte at index, then index+1.
+     * Return the integer with the first two bytes 0, then the bytes at the
+     * index, then at index+1.
      */
     private static int first(byte[] in, int inPos) {
         return (in[inPos] << 8) | (in[inPos + 1] & 255);
     }
 
     /**
-     * Return byte with lower 2 bytes being byte at index, then index+1.
+     * Return the integer with the first two bytes 0, then the bytes at the
+     * index, then at index+1.
      */
     private static int first(ByteBuffer in, int inPos) {
         return (in.get(inPos) << 8) | (in.get(inPos + 1) & 255);
     }
 
     /**
-     * Shift v 1 byte left, add value at index inPos+2.
+     * Shift the value 1 byte left, and add the byte at index inPos+2.
      */
     private static int next(int v, byte[] in, int inPos) {
         return (v << 8) | (in[inPos + 2] & 255);
     }
 
     /**
-     * Shift v 1 byte left, add value at index inPos+2.
+     * Shift the value 1 byte left, and add the byte at index inPos+2.
      */
     private static int next(int v, ByteBuffer in, int inPos) {
         return (v << 8) | (in.get(inPos + 2) & 255);
@@ -370,6 +372,9 @@ public final class CompressLZF implements Compressor {
                 // literal run of length = ctrl + 1,
                 ctrl++;
                 // copy to output and move forward this many bytes
+                // while (ctrl-- > 0) {
+                //     out[outPos++] = in[inPos++];
+                // }
                 System.arraycopy(in, inPos, out, outPos, ctrl);
                 outPos += ctrl;
                 inPos += ctrl;

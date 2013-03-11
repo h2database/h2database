@@ -583,14 +583,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public synchronized boolean remove(Object key, Object value) {
         V old = get(key);
-        if (equalsValue(old, value)) {
+        if (areValuesEqual(old, value)) {
             remove(key);
             return true;
         }
         return false;
     }
 
-    private boolean equalsValue(Object a, Object b) {
+    /**
+     * Check whether the two values are equal.
+     * 
+     * @param a the first value
+     * @param b the second value
+     * @return true if they are equal
+     */
+    public boolean areValuesEqual(Object a, Object b) {
         if (a == b) {
             return true;
         } else if (a == null || b == null) {
@@ -609,7 +616,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     public synchronized boolean replace(K key, V oldValue, V newValue) {
         V old = get(key);
-        if (equalsValue(old, oldValue)) {
+        if (areValuesEqual(old, oldValue)) {
             put(key, newValue);
             return true;
         }

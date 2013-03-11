@@ -391,8 +391,6 @@ public class TransactionStore {
          */
         public <K, V> TransactionMap<K, V> openMap(String name, long readVersion) {
             checkOpen();
-            // TODO read from a stable version of the data within
-            // one 'statement'
             return new TransactionMap<K, V>(this, name, readVersion);
         }
 
@@ -463,14 +461,19 @@ public class TransactionStore {
         
         /**
          * The map used for writing (the latest version).
+         * <p>
          * Key: key the key of the data.
          * Value: { transactionId, oldVersion, value }
          */
         private final MVMap<K, Object[]> mapWrite;
         
         /**
-         * The map used for reading (possibly an older version).
-         * Key: key the key of the data.
+         * The map used for reading (possibly an older version). Reading is done
+         * on an older version so that changes are not immediately visible, to
+         * support statement processing (for example
+         * "update test set id = id + 1").
+         * <p>
+         * Key: key the key of the data. 
          * Value: { transactionId, oldVersion, value }
          */
         private final MVMap<K, Object[]> mapRead;
@@ -511,8 +514,8 @@ public class TransactionStore {
         /**
          * Remove an entry.
          * <p>
-         * If the row is locked, this method
-         * will retry until the row could be updated or until a lock timeout.
+         * If the row is locked, this method will retry until the row could be
+         * updated or until a lock timeout.
          *
          * @param key the key
          * @throws IllegalStateException if a lock timeout occurs
@@ -524,11 +527,11 @@ public class TransactionStore {
         /**
          * Update the value for the given key.
          * <p>
-         * If the row is locked, this method
-         * will retry until the row could be updated or until a lock timeout.
-         *
+         * If the row is locked, this method will retry until the row could be
+         * updated or until a lock timeout.
+         * 
          * @param key the key
-         * @param value the new value (null to remove the row)
+         * @param value the new value (not null)
          * @throws IllegalStateException if a lock timeout occurs
          */
         public V put(K key, V value) {
@@ -536,12 +539,12 @@ public class TransactionStore {
             return set(key, value);
         }
         
-        public V set(K key, V value) {
+        private V set(K key, V value) {
             checkOpen();
             long start = 0;
             while (true) {
                 V old = get(key);
-                boolean ok = trySet(key, value);
+                boolean ok = trySet(key, value, false);
                 if (ok) {
                     return old;
                 }
@@ -578,7 +581,7 @@ public class TransactionStore {
          * @return whether the entry could be removed
          */
         public boolean tryRemove(K key) {
-            return trySet(key, null);
+            return trySet(key, null, false);
         }
 
         /**
@@ -593,11 +596,29 @@ public class TransactionStore {
          */
         public boolean tryPut(K key, V value) {
             DataUtils.checkArgument(value != null, "The value may not be null");
-            return trySet(key, value);
+            return trySet(key, value, false);
         }
         
-        private boolean trySet(K key, V value) {
+        /**
+         * Try to set or remove the value. When updating only unchanged entries,
+         * then the value is only changed if it was not changed after opening
+         * the map.
+         * 
+         * @param key the key
+         * @param value the new value (null to remove the value)
+         * @param onlyIfUnchanged only set the value if it was not changed (by
+         *            this or another transaction) since the map was opened
+         * @return true if the value was set
+         */
+        public boolean trySet(K key, V value, boolean onlyIfUnchanged) {
+            MVMap<K, Object[]> m = mapRead;
             Object[] current = mapWrite.get(key);
+            if (onlyIfUnchanged) {
+                Object[] old = m.get(key);
+                if (!mapWrite.areValuesEqual(old, current)) {
+                    return false;
+                }
+            }
             long oldVersion = transaction.store.store.getCurrentVersion() - 1;
             int opType;
             if (current == null || current[2] == null) {
@@ -625,7 +646,7 @@ public class TransactionStore {
                 }
                 return false;
             }
-            long tx = ((Long) current[0]).longValue();
+            long tx = (Long) current[0];
             if (tx == transaction.transactionId) {
                 // added or updated by this transaction
                 if (mapWrite.replace(key, current, newValue)) {
@@ -660,16 +681,34 @@ public class TransactionStore {
         }
 
         /**
+         * Get the value for the given key at the time when this map was opened.
+         * 
+         * @param key the key
+         * @return the value or null
+         */
+        public V get(K key) {
+            return get(key, mapRead);
+        }
+
+        /**
+         * Get the most recent value for the given key.
+         *
+         * @param key the key
+         * @return the value or null
+         */
+        public V getLatest(K key) {
+            return get(key, mapWrite);
+        }
+        
+        /**
          * Get the value for the given key.
          *
          * @param key the key
          * @return the value or null
          */
         @SuppressWarnings("unchecked")
-        public
-        V get(K key) {
+        public V get(K key, MVMap<K, Object[]> m) {
             checkOpen();
-            MVMap<K, Object[]> m = mapRead;
             while (true) {
                 Object[] data = m.get(key);
                 long tx;
@@ -677,7 +716,7 @@ public class TransactionStore {
                     // doesn't exist or deleted by a committed transaction
                     return null;
                 }
-                tx = ((Long) data[0]).longValue();
+                tx = (Long) data[0];
                 if (tx == transaction.transactionId) {
                     // added by this transaction
                     return (V) data[2];
@@ -688,7 +727,7 @@ public class TransactionStore {
                     // it is committed
                     return (V) data[2];
                 }
-                tx = ((Long) data[0]).longValue();
+                tx = (Long) data[0];
                 // get the value before the uncommitted transaction
                 if (data[1] == null) {
                     // a new entry
@@ -698,7 +737,6 @@ public class TransactionStore {
                 m = mapWrite.openVersion(oldVersion);
             }
         }
-
     }
 
 }

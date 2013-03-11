@@ -38,7 +38,7 @@ public class TestTransactionStore extends TestBase {
     }
 
     public void test() throws Exception {
-//        testMultiStatement();
+        testMultiStatement();
         testTwoPhaseCommit();
         testSavepoint();
         testConcurrentTransactionsReadCommitted();
@@ -51,59 +51,77 @@ public class TestTransactionStore extends TestBase {
      * uses a savepoint. Within a statement, a change by the statement itself is
      * not seen; the change is only seen when the statement finished.
      */
-//    private void testMultiStatement() {
-//        MVStore s = MVStore.open(null);
-//        TransactionStore ts = new TransactionStore(s);
-//        Transaction tx;
-//        TransactionMap<String, String> m;
-//        long startUpdate;
-//        
-//        tx = ts.begin();
-//        
-//        // start of statement
-//        // insert into test(id, name) values(1, 'Hello'), (2, 'World')
-//        startUpdate = tx.setSavepoint();
-//        m = tx.openMap("test", startUpdate);
-    // TODO putIfAbsent
-//        m.put("1", "Hello");
-//        m.put("2", "World");
-//        // not seen yet
-//        assertNull(m.get("1"));
-//        
-//        // start of statement
-//        startUpdate = tx.setSavepoint();
-//        // update test set primaryKey = primaryKey + 1
-//        m = tx.openMap("test", startUpdate);
-//        
-//        for (Cursor)
-//
-//        tx.commit();
-//        
-//        
-//        
-//        m.put("2", "World");
-//        m.put("1", "Hallo");
-//        m.remove("2");
-//        m.put("3", "!");
-//        long logId = tx.setSavepoint();
-//        m.put("1", "Hi");
-//        m.put("2", ".");
-//        m.remove("3");
-//        tx.rollbackToSavepoint(logId);
-//        assertEquals("Hallo", m.get("1"));
-//        assertNull(m.get("2"));
-//        assertEquals("!", m.get("3"));
-//        tx.rollback();
-//
-//        tx = ts.begin();
-//        m = tx.openMap("test");
-//        assertNull(m.get("1"));
-//        assertNull(m.get("2"));
-//        assertNull(m.get("3"));
-//
-//        ts.close();
-//        s.close();
-//    }   
+    private void testMultiStatement() {
+        MVStore s = MVStore.open(null);
+        TransactionStore ts = new TransactionStore(s);
+        Transaction tx;
+        TransactionMap<String, String> m;
+        long startUpdate;
+        long version;
+        
+        tx = ts.begin();
+        
+        // TODO support and test rollback of table creation / removal
+        
+        // start of statement
+        // create table test
+        startUpdate = tx.setSavepoint();
+        tx.openMap("test");
+        
+        // start of statement
+        // insert into test(id, name) values(1, 'Hello'), (2, 'World')
+        startUpdate = tx.setSavepoint();
+        version = s.getCurrentVersion();
+        m = tx.openMap("test", version);
+        assertTrue(m.trySet("1", "Hello", true));
+        assertTrue(m.trySet("2", "World", true));
+        // not seen yet (within the same statement)
+        assertNull(m.get("1"));
+        assertNull(m.get("2"));
+        
+        // start of statement
+        startUpdate = tx.setSavepoint();
+        version = s.getCurrentVersion();        
+        // now we see the newest version
+        m = tx.openMap("test", version);
+        assertEquals("Hello", m.get("1"));
+        assertEquals("World", m.get("2"));
+        // update test set primaryKey = primaryKey + 1
+        // (this is usually a tricky cases)
+        assertEquals("Hello", m.get("1"));
+        assertTrue(m.trySet("1", null, true));
+        assertTrue(m.trySet("2", "Hello", true));
+        // already updated by this statement, so it has no effect
+        // but still returns true because it was changed by this transaction
+        assertEquals("World", m.get("2"));
+        assertTrue(m.trySet("2", null, true));
+        assertTrue(m.trySet("3", "World", true));
+        // not seen within this statement
+        assertEquals("Hello", m.get("1"));
+        assertEquals("World", m.get("2"));
+        assertNull(m.get("3"));
+        
+        // start of statement
+        startUpdate = tx.setSavepoint();
+        version = s.getCurrentVersion();        
+        m = tx.openMap("test", version);
+        // select * from test
+        assertNull(m.get("1"));
+        assertEquals("Hello", m.get("2"));
+        assertEquals("World", m.get("3"));
+        
+        // start of statement
+        startUpdate = tx.setSavepoint();
+        version = s.getCurrentVersion();        
+        m = tx.openMap("test", version);
+        // update test set id = 1
+        // TODO should fail: duplicate key
+        
+        tx.commit();
+
+        ts.close();
+        s.close();
+    }   
     
     private void testTwoPhaseCommit() throws Exception {
         String fileName = getBaseDir() + "/testTwoPhaseCommit.h3";

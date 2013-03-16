@@ -23,6 +23,8 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.mvstore.TransactionStore;
+import org.h2.mvstore.TransactionStore.Transaction;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -102,6 +104,7 @@ public class Session extends SessionWithState {
     private int objectId;
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
+    private Transaction transaction;
 
     public Session(Database database, User user, int id) {
         this.database = database;
@@ -1229,6 +1232,13 @@ public class Session extends SessionWithState {
 
     public boolean isRedoLogBinaryEnabled() {
         return redoLogBinary;
+    }
+
+    public Transaction getTransaction(TransactionStore store) {
+        if (transaction == null) {
+            transaction = store.begin();
+        }
+        return transaction;
     }
 
 }

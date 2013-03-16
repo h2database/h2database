@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.h2.mvstore.MVMap.Builder;
 import org.h2.util.New;
 
 /**
@@ -616,7 +617,22 @@ public class TransactionStore {
             if (onlyIfUnchanged) {
                 Object[] old = m.get(key);
                 if (!mapWrite.areValuesEqual(old, current)) {
-                    return false;
+                    long tx = (Long) current[0];
+                    if (tx == transaction.transactionId) {
+                        if (value == null) {
+                            // ignore removing an entry 
+                            // if it was added or changed
+                            // in the same statement
+                            return true;
+                        } else if (current[2] == null) {
+                            // add an entry that was removed
+                            // in the same statement
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
                 }
             }
             long oldVersion = transaction.store.store.getCurrentVersion() - 1;
@@ -737,6 +753,11 @@ public class TransactionStore {
                 m = mapWrite.openVersion(oldVersion);
             }
         }
+    }
+
+    public <A, B> MVMap<A, B> openMap(String name, Builder<A, B> builder) {
+        int todo;
+        return store.openMap(name, builder);
     }
 
 }

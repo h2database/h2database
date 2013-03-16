@@ -673,6 +673,12 @@ public class MVTable extends TableBase {
         // ok
     }
     
+    /**
+     * Get the transaction to use for this session.
+     * 
+     * @param session the session
+     * @return the transaction
+     */
     Transaction getTransaction(Session session) {
         return session.getTransaction(store);
     }

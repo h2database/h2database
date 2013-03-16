@@ -28,7 +28,7 @@ public class TransactionStore {
 
     /**
      * The persisted map of open transaction.
-     * Key: transactionId, value: [ status, name ].
+     * Key: transactionId, value: [ status, name ].
      */
     final MVMap<Long, Object[]> openTransactions;
 
@@ -117,7 +117,7 @@ public class TransactionStore {
      * Close the transaction store.
      */
     public synchronized void close() {
-        // to avoid losing transaction ids (so just cosmetic)
+        // to avoid losing transaction ids
         settings.put(LAST_TRANSACTION_ID, "" + lastTransactionId);
         store.commit();
     }
@@ -720,6 +720,7 @@ public class TransactionStore {
          * Get the value for the given key.
          *
          * @param key the key
+         * @param m the map
          * @return the value or null
          */
         @SuppressWarnings("unchecked")
@@ -755,6 +756,15 @@ public class TransactionStore {
         }
     }
 
+    /**
+     * Open the map to store the data.
+     * 
+     * @param <A> the key type
+     * @param <B> the value type
+     * @param name the map name
+     * @param builder the builder
+     * @return the map
+     */
     public <A, B> MVMap<A, B> openMap(String name, Builder<A, B> builder) {
         int todo;
         return store.openMap(name, builder);

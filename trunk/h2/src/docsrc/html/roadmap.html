@@ -186,7 +186,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Support dynamic linked schema (automatically adding/updating/removing tables)
 </li><li>Clustering: adding a node should be very fast and without interrupting clients (very short lock)
 </li><li>Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific
-</li><li>Run benchmarks with JDK 1.5, JDK 1.6, java -server
+</li><li>Run benchmarks with Android, Java 7, java -server
 </li><li>Optimizations: faster hash function for strings.
 </li><li>DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality
 </li><li>Benchmark: add a graph to show how databases scale (performance/database size)
@@ -213,7 +213,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Trace: write OS, file system, JVM,... when opening the database
 </li><li>Support indexes for views (probably requires materialized views)
 </li><li>Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters
-</li><li>Browser: use Desktop.isDesktopSupported and browse when using JDK 1.6
 </li><li>Server: use one listener (detect if the request comes from an PG or TCP client)
 </li><li>Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200
 </li><li>Sequence: PostgreSQL compatibility (rename, create) http://www.postgresql.org/docs/8.2/static/sql-altersequence.html

@@ -872,18 +872,30 @@ public class TestTools extends TestBase {
                         "-tcpAllowOthers").start();
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
+        // must not be able to use a different base dir
+        new AssertThrows(ErrorCode.IO_EXCEPTION_1) {
+            public void test() throws SQLException {
+                getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
+        }};
+        new AssertThrows(ErrorCode.IO_EXCEPTION_1) {
+            public void test() throws SQLException {
+                getConnection("jdbc:h2:tcp://localhost:9192/../test2/test", "sa", "");
+        }};
         tcpServer.stop();
         Server.createTcpServer(
                         "-ifExists",
                         "-tcpPassword", "abc",
                         "-baseDir", getBaseDir(),
                         "-tcpPort", "9192").start();
-        // should not be able to create new db
-        try {
-            getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
-        } catch (SQLException e) {
-            assertKnownException(e);
-        }
+        // must not be able to create new db
+        new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
+            public void test() throws SQLException {
+                getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
+        }};        
+        new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
+            public void test() throws SQLException {
+                getConnection("jdbc:h2:tcp://localhost:9192/test2;ifexists=false", "sa", "");
+        }};        
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         new AssertThrows(ErrorCode.WRONG_USER_OR_PASSWORD) {

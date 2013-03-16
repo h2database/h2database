@@ -792,7 +792,7 @@ Calling <code>fsync</code> flushes the buffers. There are two ways to do that in
 buffers to synchronize with the underlying device.
 This method is supposed to return after all in-memory modified copies of buffers associated with this file descriptor
 have been written to the physical medium.
-</li><li><code>FileChannel.force()</code> (since JDK 1.4). This method is supposed
+</li><li><code>FileChannel.force()</code>. This method is supposed
 to force any updates to this channel's file to be written to the storage device that contains it.
 </li></ul>
 <p>

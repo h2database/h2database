@@ -296,6 +296,12 @@ public class MVSecondaryIndex extends BaseIndex {
 
     }
     
+    /**
+     * Get the map to store the data.
+     *
+     * @param session the session
+     * @return the map
+     */
     MVMap<Value[], Long> getMap(Session session) {
         return map2;
     }

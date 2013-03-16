@@ -323,6 +323,12 @@ public class MVPrimaryIndex extends BaseIndex {
         return true;
     }
     
+    /**
+     * Get the map to store the data.
+     *
+     * @param session the session
+     * @return the map
+     */
     MVMap<Long, Value[]> getMap(Session session) {
         // return mvTable.getTransaction(session).openMap(name)
         return map;

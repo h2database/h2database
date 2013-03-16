@@ -1234,6 +1234,12 @@ public class Session extends SessionWithState {
         return redoLogBinary;
     }
 
+    /**
+     * Get the transaction to use for this session.
+     * 
+     * @param store the store
+     * @return the transaction
+     */
     public Transaction getTransaction(TransactionStore store) {
         if (transaction == null) {
             transaction = store.begin();

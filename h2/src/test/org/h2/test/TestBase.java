@@ -180,7 +180,7 @@ public abstract class TestBase {
      * @param password the password to use
      * @return the connection
      */
-    protected Connection getConnection(String name, String user, String password) throws SQLException {
+    public Connection getConnection(String name, String user, String password) throws SQLException {
         return getConnectionInternal(getURL(name, false), user, password);
     }
 

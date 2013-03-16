@@ -38,7 +38,7 @@ public class MVSecondaryIndex extends BaseIndex {
     final MVTable mvTable;
 
     private final int keyColumns;
-    private MVMap<Value[], Long> map;
+    private MVMap<Value[], Long> map2;
 
     public MVSecondaryIndex(Database db, MVTable table, int id, String indexName,
                 IndexColumn[] columns, IndexType indexType) {
@@ -58,7 +58,7 @@ public class MVSecondaryIndex extends BaseIndex {
         String name = getName() + "_" + getId();
         ValueArrayDataType t = new ValueArrayDataType(
                 db.getCompareMode(), db, sortTypes);
-        map = table.getStore().openMap(name,
+        map2 = table.getStore().openMap(name,
                 new MVMap.Builder<Value[], Long>().keyType(t));
 
     }
@@ -78,12 +78,14 @@ public class MVSecondaryIndex extends BaseIndex {
     }
 
     public void rename(String newName) {
+        MVMap<Value[], Long> map = getMap(null);
         map.renameMap(newName + "_" + getId());
         super.rename(newName);
     }
 
     @Override
     public void add(Session session, Row row) {
+        MVMap<Value[], Long> map = getMap(session);
         Value[] array = getKey(row);
         if (indexType.isUnique()) {
             array[keyColumns - 1] = ValueLong.get(0);
@@ -104,6 +106,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public void remove(Session session, Row row) {
         Value[] array = getKey(row);
+        MVMap<Value[], Long> map = getMap(session);
         Long old = map.remove(array);
         if (old == null) {
             if (old == null) {
@@ -116,6 +119,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         Value[] min = getKey(first);
+        MVMap<Value[], Long> map = getMap(session);
         return new MVStoreCursor(session, map.keyIterator(min), last);
     }
 
@@ -160,11 +164,13 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public double getCost(Session session, int[] masks) {
+        MVMap<Value[], Long> map = getMap(session);
         return 10 * getCostRangeIndex(masks, map.getSize());
     }
 
     @Override
     public void remove(Session session) {
+        MVMap<Value[], Long> map = getMap(session);
         if (!map.isClosed()) {
             map.removeMap();
         }
@@ -172,6 +178,7 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public void truncate(Session session) {
+        MVMap<Value[], Long> map = getMap(session);
         map.clear();
     }
 
@@ -182,6 +189,7 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
+        MVMap<Value[], Long> map = getMap(session);
         Value[] key = first ? map.firstKey() : map.lastKey();
         while (true) {
             if (key == null) {
@@ -201,16 +209,19 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public boolean needRebuild() {
+        MVMap<Value[], Long> map = getMap(null);
         return map.getSize() == 0;
     }
 
     @Override
     public long getRowCount(Session session) {
+        MVMap<Value[], Long> map = getMap(session);
         return map.getSize();
     }
 
     @Override
     public long getRowCountApproximation() {
+        MVMap<Value[], Long> map = getMap(null);
         return map.getSize();
     }
 
@@ -283,6 +294,10 @@ public class MVSecondaryIndex extends BaseIndex {
             return false;
         }
 
+    }
+    
+    MVMap<Value[], Long> getMap(Session session) {
+        return map2;
     }
 
 }

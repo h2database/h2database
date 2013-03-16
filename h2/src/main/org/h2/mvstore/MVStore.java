@@ -96,6 +96,7 @@ TODO:
 -- use a transaction log where only the deltas are stored
 - serialization for lists, sets, sets, sorted sets, maps, sorted maps
 - maybe rename 'rollback' to 'revert'
+- support other compression algorithms (deflate,...)
 
 */
 

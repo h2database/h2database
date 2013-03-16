@@ -48,8 +48,13 @@ public class TestTransactionStore extends TestBase {
     
     /**
      * Tests behavior when used for a sequence of SQL statements. Each statement
-     * uses a savepoint. Within a statement, a change by the statement itself is
+     * uses a savepoint. Within a statement, changes by the statement itself are
      * not seen; the change is only seen when the statement finished.
+     * <p>
+     * Update statements that change the key of multiple rows may use delete/add
+     * pairs to do so (they don't need to first delete all entries and then
+     * re-add them). Trying to add multiple values for the same key is not
+     * allowed (an update statement that would result in a duplicate key).
      */
     private void testMultiStatement() {
         MVStore s = MVStore.open(null);
@@ -60,8 +65,6 @@ public class TestTransactionStore extends TestBase {
         long version;
         
         tx = ts.begin();
-        
-        // TODO support and test rollback of table creation / removal
         
         // start of statement
         // create table test
@@ -94,9 +97,7 @@ public class TestTransactionStore extends TestBase {
         assertEquals("World", m.get("2"));
         // already updated by this statement, so it has no effect
         // but still returns true because it was changed by this transaction
-        
-        int TODO;
-        // assertTrue(m.trySet("2", null, true));
+        assertTrue(m.trySet("2", null, true));
         
         assertTrue(m.trySet("3", "World", true));
         // not seen within this statement
@@ -118,7 +119,18 @@ public class TestTransactionStore extends TestBase {
         version = s.getCurrentVersion();        
         m = tx.openMap("test", version);
         // update test set id = 1
-        // TODO should fail: duplicate key
+        // should fail: duplicate key
+        assertTrue(m.trySet("2", null, true));
+        assertTrue(m.trySet("1", "Hello", true));
+        assertTrue(m.trySet("3", null, true));
+        assertFalse(m.trySet("1", "World", true));
+        tx.rollbackToSavepoint(startUpdate);
+        
+        version = s.getCurrentVersion();        
+        m = tx.openMap("test", version);
+        assertNull(m.get("1"));
+        assertEquals("Hello", m.get("2"));
+        assertEquals("World", m.get("3"));
         
         tx.commit();
 

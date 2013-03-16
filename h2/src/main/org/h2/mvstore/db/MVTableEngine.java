@@ -17,6 +17,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.TransactionStore;
 import org.h2.table.TableBase;
 import org.h2.util.New;
 
@@ -82,7 +83,7 @@ public class MVTableEngine implements TableEngine {
                 }
             }
         }
-        MVTable table = new MVTable(data, storeName, store.getStore());
+        MVTable table = new MVTable(data, storeName, store.getTransactionStore());
         store.openTables.add(table);
         table.init(data.session);
         return table;
@@ -138,14 +139,24 @@ public class MVTableEngine implements TableEngine {
          * The store.
          */
         private final MVStore store;
+        
+        /**
+         * The transaction store.
+         */
+        private final TransactionStore transactionStore;
 
         public Store(Database db, MVStore store) {
             this.db = db;
             this.store = store;
+            this.transactionStore = new TransactionStore(store);
         }
 
         public MVStore getStore() {
             return store;
+        }
+
+        public TransactionStore getTransactionStore() {
+            return transactionStore;
         }
 
     }

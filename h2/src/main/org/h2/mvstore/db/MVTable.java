@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.ddl.Analyze;
 import org.h2.command.ddl.CreateTableData;
@@ -27,7 +28,8 @@ import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.mvstore.MVStore;
+import org.h2.mvstore.TransactionStore;
+import org.h2.mvstore.TransactionStore.Transaction;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
@@ -47,7 +49,7 @@ import org.h2.value.Value;
 public class MVTable extends TableBase {
 
     private final String storeName;
-    private final MVStore store;
+    private final TransactionStore store;
     private MVPrimaryIndex primaryIndex;
     private ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
@@ -67,7 +69,7 @@ public class MVTable extends TableBase {
      */
     private boolean waitForLock;
 
-    public MVTable(CreateTableData data, String storeName, MVStore store) {
+    public MVTable(CreateTableData data, String storeName, TransactionStore store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
         this.storeName = storeName;
@@ -468,7 +470,7 @@ public class MVTable extends TableBase {
         return first.column.getColumnId();
     }
 
-    private void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
+    private static void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
         final Index idx = index;
         Collections.sort(list, new Comparator<Row>() {
             public int compare(Row r1, Row r2) {
@@ -479,7 +481,6 @@ public class MVTable extends TableBase {
             index.add(session, row);
         }
         list.clear();
-        storeIfRequired();
     }
 
     @Override
@@ -508,7 +509,6 @@ public class MVTable extends TableBase {
             throw DbException.convert(e);
         }
         analyzeIfRequired(session);
-        storeIfRequired();
     }
 
     @Override
@@ -520,7 +520,6 @@ public class MVTable extends TableBase {
         }
         rowCount = 0;
         changesSinceAnalyze = 0;
-        storeIfRequired();
     }
 
     @Override
@@ -561,7 +560,6 @@ public class MVTable extends TableBase {
             throw de;
         }
         analyzeIfRequired(session);
-        storeIfRequired();
     }
 
     private void analyzeIfRequired(Session session) {
@@ -674,14 +672,12 @@ public class MVTable extends TableBase {
     public void checkRename() {
         // ok
     }
-
-    private void storeIfRequired() {
-        if (store.getUnsavedPageCount() > 1000) {
-            MVTableEngine.store(store);
-        }
+    
+    Transaction getTransaction(Session session) {
+        return session.getTransaction(store);
     }
-
-    public MVStore getStore() {
+    
+    public TransactionStore getStore() {
         return store;
     }
 

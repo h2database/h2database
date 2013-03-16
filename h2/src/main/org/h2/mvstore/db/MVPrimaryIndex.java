@@ -58,6 +58,7 @@ public class MVPrimaryIndex extends BaseIndex {
      * @param newName the new name
      */
     public void renameTable(String newName) {
+        MVMap<Long, Value[]> map = getMap(null);
         rename(newName + "_DATA");
         map.renameMap(newName + "_DATA_" + getId());
     }
@@ -97,6 +98,7 @@ public class MVPrimaryIndex extends BaseIndex {
         for (int i = 0; i < array.length; i++) {
             array[i] = row.getValue(i);
         }
+        MVMap<Long, Value[]> map = getMap(session);
         if (map.containsKey(row.getKey())) {
             String sql = "PRIMARY KEY ON " + table.getSQL();
             if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
@@ -112,6 +114,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public void remove(Session session, Row row) {
+        MVMap<Long, Value[]> map = getMap(session);
         Value[] old = map.remove(row.getKey());
         if (old == null) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
@@ -142,6 +145,7 @@ public class MVPrimaryIndex extends BaseIndex {
                 max = v.getLong();
             }
         }
+        MVMap<Long, Value[]> map = getMap(session);
         return new MVStoreCursor(session, map.keyIterator(min), max);
     }
 
@@ -150,6 +154,7 @@ public class MVPrimaryIndex extends BaseIndex {
     }
 
     public Row getRow(Session session, long key) {
+        MVMap<Long, Value[]> map = getMap(session);
         Value[] array = map.get(key);
         Row row = new Row(array, 0);
         row.setKey(key);
@@ -158,6 +163,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public double getCost(Session session, int[] masks) {
+        MVMap<Long, Value[]> map = getMap(session);
         long cost = 10 * (map.getSize() + Constants.COST_ROW_OFFSET);
         return cost;
     }
@@ -170,6 +176,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public void remove(Session session) {
+        MVMap<Long, Value[]> map = getMap(session);
         if (!map.isClosed()) {
             map.removeMap();
         }
@@ -177,6 +184,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public void truncate(Session session) {
+        MVMap<Long, Value[]> map = getMap(session);
         if (mvTable.getContainsLargeObject()) {
             database.getLobStorage().removeAllForTable(table.getId());
         }
@@ -190,6 +198,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
+        MVMap<Long, Value[]> map = getMap(session);
         if (map.getSize() == 0) {
             return new MVStoreCursor(session, Collections.<Long>emptyList().iterator(), 0);
         }
@@ -206,11 +215,13 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public long getRowCount(Session session) {
+        MVMap<Long, Value[]> map = getMap(session);
         return map.getSize();
     }
 
     @Override
     public long getRowCountApproximation() {
+        MVMap<Long, Value[]> map = getMap(null);
         return map.getSize();
     }
 
@@ -254,6 +265,7 @@ public class MVPrimaryIndex extends BaseIndex {
      * @return the cursor
      */
     Cursor find(Session session, long first, long last) {
+        MVMap<Long, Value[]> map = getMap(session);
         return new MVStoreCursor(session, map.keyIterator(first), last);
     }
 
@@ -309,6 +321,11 @@ public class MVPrimaryIndex extends BaseIndex {
 
     public boolean isRowIdIndex() {
         return true;
+    }
+    
+    MVMap<Long, Value[]> getMap(Session session) {
+        // return mvTable.getTransaction(session).openMap(name)
+        return map;
     }
 
 }

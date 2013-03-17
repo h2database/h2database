@@ -18,9 +18,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.171 (2013-03-17)</h2>
+<ul><li>Security: the TCP server did not correctly restrict access rights of clients in some cases.
+    This was specially a problem when using the flag "tcpAllowOthers".
 </li><li>H2 Console: the session timeout can now be configured using the system property "h2.consoleTimeout".
-</li><li>Issue 431: Improved compatibility with MySQL: support for 
+</li><li>Issue 431: Improved compatibility with MySQL: support for
     "ENGINE=InnoDB charset=UTF8" when creating a table.
 </li><li>Issue 249: Improved compatibility with MySQL in the MySQL mode:
     now the methods DatabaseMetaData methods stores*Case*Identifiers return the same as MySQL
@@ -302,63 +307,6 @@ Change Log
     was aliased in the select list.
 </li><li>Issue 326: improved support for case sensitive (mixed case) identifiers
     without quotes when using DATABASE_TO_UPPER=FALSE.
-</li></ul>
-
-<h2>Version 1.3.161 (2011-10-28)</h2>
-<ul><li>Issue 351: MySQL mode: can not create a table with the column "KEY",
-    and can not open databases where such a table already exists.
-</li><li>TCP server: when using the trace option ("-trace"), the trace output contained
-    unnecessary stack traces when stopping the server.
-</li><li>Issue 354: when using the multi-threaded kernel option,
-    and multiple threads concurrently prepared SQL statements that use the same view
-    or the same index of a view, then in some cases an infinite loop could occur.
-</li><li>Issue 350: when using instead of triggers, executeUpdate for delete operations always returned 0.
-</li><li>Some timestamps with timezone were not converted correctly.
-    For example, in the PST timezone, the timestamp 2011-10-26 08:00:00Z was converted to
-    2011-10-25 25:00:00 instead of 2011-10-26 01:00:00.
-    Depending on the database operation, this caused subsequent error.
-</li><li>Sequences with cache size smaller than 0 did not work correctly.
-</li><li>Issue 356: for Blob objects, InputStream.skip() returned 0,
-    causing EOFException in Blob.getBytes(.., ..).
-</li><li>Updatable result sets: if the value is not set when inserting a new row,
-    the default value is now used (the same behavior as MySQL, PostgreSQL, and Apache Derby)
-    instead of NULL.
-</li><li>Conditions of the form IN(SELECT ...) where slow and increased the database size
-    if the subquery result size was larger then the configured MAX_MEMORY_ROWS.
-</li><li>Issue 347: the RunScript and Shell tools now ignore empty statements.
-</li><li>Issue 246: improved error message for data conversion problems.
-</li><li>Issue 344: the build now supports a custom Maven repository location.
-</li><li>Issue 334: Java functions that return CLOB or BLOB objects could not be used as tables.
-</li><li>SimpleResultSet now supports getColumnTypeName and getColumnClassName.
-</li><li>SimpleResultSet now has minimal BLOB and CLOB support.
-</li><li>Improved performance for large databases (many GB), and databases with a small page size.
-</li><li>The Polish translation has been improved by Jaros&#322;aw Kokoci&#324;ski.
-</li><li>When using the built-in connection pool, after calling the "shutdown" SQL statement,
-    a warning was written to the .trace.db file about an unclosed connection.
-</li><li>Improved compatibility for "fetch first / next row(s)". Thanks a lot to litailang for the patch!
-</li><li>Improved compatibility with the Java 7 FileSystem abstraction.
-</li></ul>
-
-<h2>Version 1.3.160 (2011-09-11)</h2>
-<ul><li>Computed columns could not refer to itself.
-</li><li>Issue 340: Comparison with "x = all(select ...)" or similar in a view or
-    subquery that was used as a table returned the wrong result.
-</li><li>Comparison with "x = all(select ...)" or similar returned the wrong result for some cases
-    (for example if the subquery returned no rows, or multiple rows with the same value, or null, or if x was null).
-</li><li>Issue 335: Could not run DROP ALL OBJECTS DELETE FILES on older databases with CLOB or BLOB data.
-    The problem was that the metadata table was not locked in some cases, so that
-    a rollback could result in a corrupt database in a database if the lob storage was upgraded.
-</li><li>Source code switching using //## has been simplified.
-    The Java 1.5 tag has been removed because is no longer needed.
-</li><li>The JDBC methods PreparedStatement.setTimestamp, setTime, and setDate with a calendar,
-    and the methods ResultSet.getTimestamp, getTime, and getDate with a calendar converted
-    the value in the wrong way, so that for some timestamps the converted value was wrong
-    (where summertime starts, one hour per year).
-</li><li>Invalid tables names in 'order by' columns were not detected in some cases. Example:
-    select x from dual order by y.x
-</li><li>Issue 329: CASE expression: data type problem is not detected.
-</li><li>Issue 311: File lock mode serialized: selecting the next value from a sequence didn't work
-    after a pause, because the database thought this is a read-only operation.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

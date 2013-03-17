@@ -1236,7 +1236,7 @@ public class Session extends SessionWithState {
 
     /**
      * Get the transaction to use for this session.
-     * 
+     *
      * @param store the store
      * @return the transaction
      */

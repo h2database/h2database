@@ -891,11 +891,11 @@ public class TestTools extends TestBase {
         new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
             public void test() throws SQLException {
                 getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
-        }};        
+        }};
         new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
             public void test() throws SQLException {
                 getConnection("jdbc:h2:tcp://localhost:9192/test2;ifexists=false", "sa", "");
-        }};        
+        }};
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         new AssertThrows(ErrorCode.WRONG_USER_OR_PASSWORD) {

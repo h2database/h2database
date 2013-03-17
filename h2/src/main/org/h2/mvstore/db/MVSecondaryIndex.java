@@ -295,7 +295,7 @@ public class MVSecondaryIndex extends BaseIndex {
         }
 
     }
-    
+
     /**
      * Get the map to store the data.
      *

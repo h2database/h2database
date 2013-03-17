@@ -322,7 +322,7 @@ public class MVPrimaryIndex extends BaseIndex {
     public boolean isRowIdIndex() {
         return true;
     }
-    
+
     /**
      * Get the map to store the data.
      *

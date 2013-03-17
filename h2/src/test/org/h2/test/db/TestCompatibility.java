@@ -236,7 +236,7 @@ public class TestCompatibility extends TestBase {
         conn = getConnection("compatibility;MODE=MYSQL");
         stat = conn.createStatement();
         testLog(Math.log(10), stat);
-        
+
         DatabaseMetaData meta = conn.getMetaData();
         assertTrue(meta.storesLowerCaseIdentifiers());
         assertTrue(meta.storesLowerCaseQuotedIdentifiers());

@@ -18,7 +18,7 @@ import org.h2.util.New;
  * A store that supports concurrent transactions.
  */
 public class TransactionStore {
-    
+
     private static final String LAST_TRANSACTION_ID = "lastTransactionId";
 
     /**
@@ -101,10 +101,10 @@ public class TransactionStore {
             }
         }
     }
-    
+
     /**
      * Get the list of currently open transactions.
-     * 
+     *
      * @return the list of transactions
      */
     public synchronized List<Transaction> getOpenTransactions() {
@@ -141,10 +141,10 @@ public class TransactionStore {
         openTransactionMap.put(transactionId, t);
         return t;
     }
-    
+
     /**
      * Prepare a transaction.
-     * 
+     *
      * @param transactionId the transaction id
      */
     void prepare(long transactionId) {
@@ -152,11 +152,11 @@ public class TransactionStore {
         Object[] v = { Transaction.STATUS_PREPARED, old[1] };
         openTransactions.put(transactionId, v);
         store.commit();
-    }    
+    }
 
     /**
      * Set the name of a transaction.
-     * 
+     *
      * @param transactionId the transaction id
      * @param name the new name
      */
@@ -165,7 +165,7 @@ public class TransactionStore {
         Object[] v = { old[0], name };
         openTransactions.put(transactionId, v);
         store.commit();
-    }    
+    }
 
     /**
      * Commit a transaction.
@@ -261,7 +261,7 @@ public class TransactionStore {
      * A transaction.
      */
     public static class Transaction {
-        
+
         /**
          * The status of an open transaction.
          */
@@ -291,9 +291,9 @@ public class TransactionStore {
          * The transaction id.
          */
         final long transactionId;
-        
+
         private int status;
-        
+
         private String name;
 
         private long logId;
@@ -305,39 +305,39 @@ public class TransactionStore {
             this.name = name;
             this.logId = logId;
         }
-        
+
         /**
          * Get the transaction id.
-         * 
+         *
          * @return the transaction id
          */
         public long getId() {
             return transactionId;
         }
-        
+
         /**
          * Get the transaction status.
-         * 
+         *
          * @return the status
          */
         public int getStatus() {
             return status;
         }
-        
+
         /**
          * Set the name of the transaction.
-         * 
+         *
          * @param name the new name
          */
         public void setName(String name) {
-            checkOpen();            
+            checkOpen();
             store.setTransactionName(transactionId, name);
             this.name = name;
         }
 
         /**
          * Get the name of the transaction.
-         * 
+         *
          * @return name the name
          */
         public String getName() {
@@ -398,7 +398,7 @@ public class TransactionStore {
         /**
          * Roll back to the given savepoint. This is only allowed if the
          * transaction is open.
-         * 
+         *
          * @param savepointId the savepoint id
          */
         public void rollbackToSavepoint(long savepointId) {
@@ -426,7 +426,7 @@ public class TransactionStore {
                 status = STATUS_CLOSED;
             }
         }
-        
+
         /**
          * Roll the transaction back. Afterwards, this transaction is closed.
          */
@@ -459,7 +459,7 @@ public class TransactionStore {
         private Transaction transaction;
 
         private final int mapId;
-        
+
         /**
          * The map used for writing (the latest version).
          * <p>
@@ -467,14 +467,14 @@ public class TransactionStore {
          * Value: { transactionId, oldVersion, value }
          */
         private final MVMap<K, Object[]> mapWrite;
-        
+
         /**
          * The map used for reading (possibly an older version). Reading is done
          * on an older version so that changes are not immediately visible, to
          * support statement processing (for example
          * "update test set id = id + 1").
          * <p>
-         * Key: key the key of the data. 
+         * Key: key the key of the data.
          * Value: { transactionId, oldVersion, value }
          */
         private final MVMap<K, Object[]> mapRead;
@@ -489,7 +489,7 @@ public class TransactionStore {
                 mapRead = mapWrite;
             }
         }
-        
+
         /**
          * Get the size of the map as seen by this transaction.
          *
@@ -530,7 +530,7 @@ public class TransactionStore {
          * <p>
          * If the row is locked, this method will retry until the row could be
          * updated or until a lock timeout.
-         * 
+         *
          * @param key the key
          * @param value the new value (not null)
          * @throws IllegalStateException if a lock timeout occurs
@@ -539,7 +539,7 @@ public class TransactionStore {
             DataUtils.checkArgument(value != null, "The value may not be null");
             return set(key, value);
         }
-        
+
         private V set(K key, V value) {
             checkOpen();
             long start = 0;
@@ -571,13 +571,13 @@ public class TransactionStore {
                 }
             }
         }
-        
+
         /**
          * Try to remove the value for the given key.
          * <p>
          * This will fail if the row is locked by another transaction (that
          * means, if another open transaction changed the row).
-         * 
+         *
          * @param key the key
          * @return whether the entry could be removed
          */
@@ -599,12 +599,12 @@ public class TransactionStore {
             DataUtils.checkArgument(value != null, "The value may not be null");
             return trySet(key, value, false);
         }
-        
+
         /**
          * Try to set or remove the value. When updating only unchanged entries,
          * then the value is only changed if it was not changed after opening
          * the map.
-         * 
+         *
          * @param key the key
          * @param value the new value (null to remove the value)
          * @param onlyIfUnchanged only set the value if it was not changed (by
@@ -620,7 +620,7 @@ public class TransactionStore {
                     long tx = (Long) current[0];
                     if (tx == transaction.transactionId) {
                         if (value == null) {
-                            // ignore removing an entry 
+                            // ignore removing an entry
                             // if it was added or changed
                             // in the same statement
                             return true;
@@ -698,7 +698,7 @@ public class TransactionStore {
 
         /**
          * Get the value for the given key at the time when this map was opened.
-         * 
+         *
          * @param key the key
          * @return the value or null
          */
@@ -715,7 +715,7 @@ public class TransactionStore {
         public V getLatest(K key) {
             return get(key, mapWrite);
         }
-        
+
         /**
          * Get the value for the given key.
          *
@@ -758,7 +758,7 @@ public class TransactionStore {
 
     /**
      * Open the map to store the data.
-     * 
+     *
      * @param <A> the key type
      * @param <B> the value type
      * @param name the map name

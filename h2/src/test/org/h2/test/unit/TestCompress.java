@@ -202,7 +202,7 @@ public class TestCompress extends TestBase {
         testByteArray(len);
         testByteBuffer(len);
     }
-    
+
     private void testByteArray(int len) throws IOException {
         Random r = new Random(len);
         for (int pattern = 0; pattern < 4; pattern++) {
@@ -264,7 +264,7 @@ public class TestCompress extends TestBase {
             }
         }
     }
-    
+
     private void testByteBuffer(int len) {
         if (len < 4) {
             return;

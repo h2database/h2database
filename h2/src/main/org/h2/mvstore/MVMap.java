@@ -592,7 +592,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Check whether the two values are equal.
-     * 
+     *
      * @param a the first value
      * @param b the second value
      * @return true if they are equal

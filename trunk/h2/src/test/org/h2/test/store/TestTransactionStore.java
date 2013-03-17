@@ -45,7 +45,7 @@ public class TestTransactionStore extends TestBase {
         testSingleConnection();
         testCompareWithPostgreSQL();
     }
-    
+
     /**
      * Tests behavior when used for a sequence of SQL statements. Each statement
      * uses a savepoint. Within a statement, changes by the statement itself are
@@ -63,14 +63,14 @@ public class TestTransactionStore extends TestBase {
         TransactionMap<String, String> m;
         long startUpdate;
         long version;
-        
+
         tx = ts.begin();
-        
+
         // start of statement
         // create table test
         startUpdate = tx.setSavepoint();
         tx.openMap("test");
-        
+
         // start of statement
         // insert into test(id, name) values(1, 'Hello'), (2, 'World')
         startUpdate = tx.setSavepoint();
@@ -81,10 +81,10 @@ public class TestTransactionStore extends TestBase {
         // not seen yet (within the same statement)
         assertNull(m.get("1"));
         assertNull(m.get("2"));
-        
+
         // start of statement
         startUpdate = tx.setSavepoint();
-        version = s.getCurrentVersion();        
+        version = s.getCurrentVersion();
         // now we see the newest version
         m = tx.openMap("test", version);
         assertEquals("Hello", m.get("1"));
@@ -98,25 +98,25 @@ public class TestTransactionStore extends TestBase {
         // already updated by this statement, so it has no effect
         // but still returns true because it was changed by this transaction
         assertTrue(m.trySet("2", null, true));
-        
+
         assertTrue(m.trySet("3", "World", true));
         // not seen within this statement
         assertEquals("Hello", m.get("1"));
         assertEquals("World", m.get("2"));
         assertNull(m.get("3"));
-        
+
         // start of statement
         startUpdate = tx.setSavepoint();
-        version = s.getCurrentVersion();        
+        version = s.getCurrentVersion();
         m = tx.openMap("test", version);
         // select * from test
         assertNull(m.get("1"));
         assertEquals("Hello", m.get("2"));
         assertEquals("World", m.get("3"));
-        
+
         // start of statement
         startUpdate = tx.setSavepoint();
-        version = s.getCurrentVersion();        
+        version = s.getCurrentVersion();
         m = tx.openMap("test", version);
         // update test set id = 1
         // should fail: duplicate key
@@ -125,30 +125,30 @@ public class TestTransactionStore extends TestBase {
         assertTrue(m.trySet("3", null, true));
         assertFalse(m.trySet("1", "World", true));
         tx.rollbackToSavepoint(startUpdate);
-        
-        version = s.getCurrentVersion();        
+
+        version = s.getCurrentVersion();
         m = tx.openMap("test", version);
         assertNull(m.get("1"));
         assertEquals("Hello", m.get("2"));
         assertEquals("World", m.get("3"));
-        
+
         tx.commit();
 
         ts.close();
         s.close();
-    }   
-    
+    }
+
     private void testTwoPhaseCommit() throws Exception {
         String fileName = getBaseDir() + "/testTwoPhaseCommit.h3";
         FileUtils.delete(fileName);
-        
+
         MVStore s;
         TransactionStore ts;
         Transaction tx;
         Transaction txOld;
         TransactionMap<String, String> m;
         List<Transaction> list;
-        
+
         s = MVStore.open(fileName);
         ts = new TransactionStore(s);
         tx = ts.begin();
@@ -166,7 +166,7 @@ public class TestTransactionStore extends TestBase {
         s.commit();
         ts.close();
         s.close();
-        
+
         s = MVStore.open(fileName);
         ts = new TransactionStore(s);
         tx = ts.begin();
@@ -188,7 +188,7 @@ public class TestTransactionStore extends TestBase {
         txOld.rollback();
         s.commit();
         s.close();
-        
+
         s = MVStore.open(fileName);
         ts = new TransactionStore(s);
         tx = ts.begin();

@@ -139,7 +139,7 @@ public class MVTableEngine implements TableEngine {
          * The store.
          */
         private final MVStore store;
-        
+
         /**
          * The transaction store.
          */

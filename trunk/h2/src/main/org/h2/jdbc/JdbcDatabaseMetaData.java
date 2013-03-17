@@ -2345,7 +2345,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         String m = getMode();
         if (m.equals("MySQL")) {
             return true;
-        }            
+        }
         return false;
     }
 
@@ -2386,7 +2386,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         String m = getMode();
         if (m.equals("MySQL")) {
             return true;
-        }  
+        }
         return false;
     }
 
@@ -2401,7 +2401,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
         String m = getMode();
         if (m.equals("MySQL")) {
             return false;
-        }        
+        }
         return true;
     }
 
@@ -2972,7 +2972,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
     public String toString() {
         return getTraceObjectName() + ": " + conn;
     }
-    
+
     private String getMode() throws SQLException {
         if (mode == null) {
             PreparedStatement prep = conn.prepareStatement(

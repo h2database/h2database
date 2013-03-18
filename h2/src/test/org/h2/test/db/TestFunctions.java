@@ -17,6 +17,7 @@ import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Properties;
 import java.util.UUID;
 import org.h2.api.AggregateFunction;
@@ -75,6 +77,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testValue();
         testNvl2();
         testConcatWs();
+        testTruncate();
         deleteDb("functions");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
@@ -860,6 +863,46 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
+    private void testTruncate() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        
+        ResultSet rs = stat.executeQuery("SELECT TRUNCATE(1.234, 2) FROM dual");
+        rs.next();
+        assertEquals(1.23d, rs.getDouble(1));
+        
+        rs = stat.executeQuery("SELECT CURRENT_TIMESTAMP(), TRUNCATE(CURRENT_TIMESTAMP()) FROM dual");
+        rs.next();
+        Calendar c = Calendar.getInstance();
+        c.setTime(rs.getTimestamp(1));
+        c.set(Calendar.HOUR, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        java.util.Date nowDate = c.getTime();
+        assertEquals(nowDate, rs.getTimestamp(2));
+        
+        try {
+            rs = stat.executeQuery("SELECT TRUNCATE('bad', 1) FROM dual");
+            fail("expected exception");
+        } catch (SQLException ex) {}
+        
+        // check for passing wrong data type
+        try {
+            rs = stat.executeQuery("SELECT TRUNCATE('bad') FROM dual");
+            fail("expected exception");
+        } catch (SQLException ex) {}
+        
+        // check for too many parameters
+        try {
+            rs = stat.executeQuery("SELECT TRUNCATE(1,2,3) FROM dual");
+            fail("expected exception");
+        } catch (SQLException ex) {}
+        
+        conn.close();
+    }
+    
     private void assertCallResult(String expected, Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();

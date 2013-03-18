@@ -25,9 +25,11 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.SimpleTimeZone;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
@@ -589,6 +591,22 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Check if two values are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    public void assertEquals(java.util.Date expected, java.util.Date actual) {
+        if (expected != actual && !expected.equals(actual)) {
+            final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            final SimpleTimeZone GMT_TIMEZONE = new SimpleTimeZone(0, "Z");
+            df.setTimeZone(GMT_TIMEZONE);
+            fail("Expected: " + df.format(expected) + " actual: " + df.format(actual));
+        }
+    }
+    
     /**
      * Check if two values are equal, and if not throw an exception.
      *

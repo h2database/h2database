@@ -29,7 +29,7 @@ public class ValueDate extends Value {
      * The display size of the textual representation of a date.
      * Example: 2000-01-02
      */
-    static final int DISPLAY_SIZE = 10;
+    public static final int DISPLAY_SIZE = 10;
 
     private final long dateValue;
 

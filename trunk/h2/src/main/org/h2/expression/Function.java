@@ -204,9 +204,9 @@ public class Function extends Expression implements FunctionCall {
         addFunction("SQRT", SQRT, 1, Value.DOUBLE);
         addFunction("TAN", TAN, 1, Value.DOUBLE);
         addFunction("TANH", TANH, 1, Value.DOUBLE);
-        addFunction("TRUNCATE", TRUNCATE, 2, Value.DOUBLE);
+        addFunction("TRUNCATE", TRUNCATE, VAR_ARGS, Value.NULL);
         // same as TRUNCATE
-        addFunction("TRUNC", TRUNCATE, 2, Value.DOUBLE);
+        addFunction("TRUNC", TRUNCATE, VAR_ARGS, Value.NULL);
         addFunction("HASH", HASH, 3, Value.BYTES);
         addFunction("ENCRYPT", ENCRYPT, 3, Value.BYTES);
         addFunction("DECRYPT", DECRYPT, 3, Value.BYTES);
@@ -1016,11 +1016,22 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case TRUNCATE: {
-            double d = v0.getDouble();
-            int p = v1.getInt();
-            double f = Math.pow(10., p);
-            double g = d * f;
-            result = ValueDouble.get(((d < 0) ? Math.ceil(g) : Math.floor(g)) / f);
+            if (v0.getType() == Value.TIMESTAMP) {
+                java.sql.Timestamp d = v0.getTimestamp();
+                Calendar c = Calendar.getInstance();
+                c.setTime(d);
+                c.set(Calendar.HOUR, 0);
+                c.set(Calendar.MINUTE, 0);
+                c.set(Calendar.SECOND, 0);
+                c.set(Calendar.MILLISECOND, 0);
+                result = ValueTimestamp.get(new java.sql.Timestamp(c.getTimeInMillis()));
+            } else {
+                double d = v0.getDouble();
+                int p = v1.getInt();
+                double f = Math.pow(10., p);
+                double g = d * f;
+                result = ValueDouble.get(((d < 0) ? Math.ceil(g) : Math.floor(g)) / f);
+            }
             break;
         }
         case HASH:
@@ -1699,6 +1710,7 @@ public class Function extends Expression implements FunctionCall {
         case FILE_READ:
         case ROUND:
         case XMLTEXT:
+        case TRUNCATE:
             min = 1;
             max = 2;
             break;
@@ -1858,11 +1870,27 @@ public class Function extends Expression implements FunctionCall {
             s = scale;
             d = displaySize;
             break;
+        case TRUNCATE:
+            t = p0.getType();
+            s = p0.getScale();
+            p = p0.getPrecision();
+            d = p0.getDisplaySize();
+            if (t == Value.NULL) {
+                t = Value.INT;
+                p = ValueInt.PRECISION;
+                d = ValueInt.DISPLAY_SIZE;
+                s = 0;
+            } else if (t == Value.TIMESTAMP) {
+                t = Value.DATE;
+                p = ValueDate.PRECISION;
+                s = 0;
+                d = ValueDate.DISPLAY_SIZE;
+            }
+            break;
         case ABS:
         case FLOOR:
         case RADIANS:
         case ROUND:
-        case TRUNCATE:
         case POWER:
             t = p0.getType();
             s = p0.getScale();
@@ -2004,6 +2032,7 @@ public class Function extends Expression implements FunctionCall {
         case TRIM:
         case STRINGDECODE:
         case UTF8TOSTRING:
+        case TRUNCATE:
             precision = args[0].getPrecision();
             displaySize = args[0].getDisplaySize();
             break;

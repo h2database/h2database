@@ -1223,6 +1223,10 @@ Returns the quarter (1-4) from a timestamp."
 SECOND(timestamp)
 ","
 Returns the second (0-59) from a timestamp."
+"Functions (Time and Date)","TRUNCATE","
+TRUNCATE(timestamp)
+","
+Truncates a timestamp to a date (day) value."
 "Functions (Time and Date)","WEEK","
 WEEK(timestamp)
 ","

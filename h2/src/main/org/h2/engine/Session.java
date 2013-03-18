@@ -681,6 +681,11 @@ public class Session extends SessionWithState {
                         table.setModified();
                         localTempTables.remove(table.getName());
                         table.removeChildrenAndResources(this);
+                        if (closeSession) {
+                            // need to commit, otherwise recovery might
+                            // ignore the table removal
+                            database.commit(this);
+                        }
                     } else if (table.getOnCommitTruncate()) {
                         table.truncate(this);
                     }

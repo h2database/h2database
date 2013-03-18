@@ -46,6 +46,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        testDropTempTable();
         testLogLimitFalsePositive();
         testLogLimit();
         testRecoverLobInDatabase();
@@ -76,6 +77,33 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testCreateIndexLater();
         testFuzzOperations();
         deleteDb("pageStore");
+    }
+    
+    private void testDropTempTable() throws SQLException {
+        deleteDb("pageStoreDropTemp");
+        Connection c1 = getConnection("pageStoreDropTemp");
+        Connection c2 = getConnection("pageStoreDropTemp");
+        c1.setAutoCommit(false);
+        c2.setAutoCommit(false);
+        Statement s1 = c1.createStatement();
+        Statement s2 = c2.createStatement();
+        s1.execute("create local temporary table a(id int primary key)");
+        s1.execute("insert into a values(1)");
+        c1.commit();
+        c1.close();
+        s2.execute("create table b(id int primary key)");
+        s2.execute("insert into b values(1)");
+        c2.commit();
+        s2.execute("checkpoint sync");
+        s2.execute("shutdown immediately");
+        try {
+            c2.close();
+        } catch (SQLException e) {
+            // ignore
+        }
+        c1 = getConnection("pageStoreDropTemp");
+        c1.close();
+        deleteDb("pageStoreDropTemp");
     }
 
     private void testLogLimit() throws Exception {

@@ -242,6 +242,12 @@ public class DataType {
                 // in many cases the value is in the cache
                 20
         );
+        add(Value.INT, Types.INTEGER, "Int",
+                createDecimal(ValueInt.PRECISION, ValueInt.PRECISION, 0,
+                        ValueInt.DISPLAY_SIZE, false, true),
+                new String[]{"SERIAL"},
+                20
+        );
         add(Value.LONG, Types.BIGINT, "Long",
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
                         ValueLong.DISPLAY_SIZE, false, false),
@@ -251,7 +257,7 @@ public class DataType {
         add(Value.LONG, Types.BIGINT, "Long",
                 createDecimal(ValueLong.PRECISION, ValueLong.PRECISION, 0,
                         ValueLong.DISPLAY_SIZE, false, true),
-                new String[]{"IDENTITY", "SERIAL"},
+                new String[]{"IDENTITY", "BIGSERIAL"},
                 24
         );
         add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",

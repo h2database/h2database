@@ -2795,11 +2795,11 @@ CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
 "
 
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } (numeric, digitsInt)
+{ TRUNC | TRUNCATE } ({numeric, digitsInt} | timestamp)
 ","
 Truncates to a number of digits (to the next value closer to 0).
 This method returns a double.
-There is also a TRUNCATE function that operates on timestamps.
+When used with a timestamp, truncates a timestamp to a date (day) value.
 ","
 TRUNCATE(VALUE, 2)
 "
@@ -3365,16 +3365,6 @@ SECOND(timestamp)
 Returns the second (0-59) from a timestamp.
 ","
 SECOND(CREATED)
-"
-
-"Functions (Time and Date)","TRUNCATE","
-{ TRUNC | TRUNCATE } (timestamp)
-","
-Truncates a timestamp to a date (day) value.
-This method returns a date.
-There is also a TRUNCATE function that operates on numbers.
-","
-TRUNCATE(CREATED)
 "
 
 "Functions (Time and Date)","WEEK","

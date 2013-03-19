@@ -1169,6 +1169,18 @@ CREATE TABLE test (id int(25) NOT NULL auto_increment, name varchar NOT NULL, PR
 drop table test;
 > ok
 
+CREATE TABLE test (id bigserial NOT NULL primary key);
+> ok
+
+drop table test;
+> ok
+
+CREATE TABLE test (id serial NOT NULL primary key);
+> ok
+
+drop table test;
+> ok
+
 CREATE MEMORY TABLE TEST(ID INT, D DOUBLE, F FLOAT);
 > ok
 

@@ -355,6 +355,8 @@ public class Column {
         }
         if ("IDENTITY".equals(originalSQL)) {
             originalSQL = "BIGINT";
+        } else if ("SERIAL".equals(originalSQL)) {
+            originalSQL = "INT";
         }
         String sequenceName;
         while (true) {

@@ -3515,9 +3515,14 @@ public class Parser {
     private Column parseColumnForTable(String columnName, boolean defaultNullable) {
         Column column;
         boolean isIdentity = false;
-        if (readIf("IDENTITY") || readIf("SERIAL")) {
+        if (readIf("IDENTITY") || readIf("BIGSERIAL")) {
             column = new Column(columnName, Value.LONG);
             column.setOriginalSQL("IDENTITY");
+            parseAutoIncrement(column);
+            column.setPrimaryKey(true);
+        } else if (readIf("SERIAL")) {
+            column = new Column(columnName, Value.INT);
+            column.setOriginalSQL("SERIAL");
             parseAutoIncrement(column);
             column.setPrimaryKey(true);
         } else {

@@ -38,6 +38,8 @@ public class TestTransactionStore extends TestBase {
     }
 
     public void test() throws Exception {
+        FileUtils.createDirectories(getBaseDir());
+        
         testMultiStatement();
         testTwoPhaseCommit();
         testSavepoint();
@@ -69,7 +71,8 @@ public class TestTransactionStore extends TestBase {
         // start of statement
         // create table test
         startUpdate = tx.setSavepoint();
-        tx.openMap("test");
+        version = s.getCurrentVersion();
+        tx.openMap("test", version);
 
         // start of statement
         // insert into test(id, name) values(1, 'Hello'), (2, 'World')
@@ -174,18 +177,14 @@ public class TestTransactionStore extends TestBase {
         m = tx.openMap("test");
         assertEquals(null, m.get("1"));
         list = ts.getOpenTransactions();
-        assertEquals(2, list.size());
+        // only one was writing
+        assertEquals(1, list.size());
         txOld = list.get(0);
         assertEquals(0, txOld.getId());
         assertEquals(Transaction.STATUS_OPEN, txOld.getStatus());
         assertEquals("first transaction", txOld.getName());
         txOld.prepare();
         assertEquals(Transaction.STATUS_PREPARED, txOld.getStatus());
-        txOld = list.get(1);
-        assertEquals(1, txOld.getId());
-        assertNull(txOld.getName());
-        assertEquals(Transaction.STATUS_OPEN, txOld.getStatus());
-        txOld.rollback();
         s.commit();
         s.close();
 
@@ -196,7 +195,7 @@ public class TestTransactionStore extends TestBase {
         // TransactionStore was not closed, so we lost some ids
         assertEquals(33, tx.getId());
         list = ts.getOpenTransactions();
-        assertEquals(2, list.size());
+        assertEquals(1, list.size());
         txOld = list.get(0);
         assertEquals(0, txOld.getId());
         assertEquals(Transaction.STATUS_PREPARED, txOld.getStatus());

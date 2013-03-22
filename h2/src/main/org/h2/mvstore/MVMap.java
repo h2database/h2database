@@ -892,6 +892,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         int i = searchRoot(oldest);
         if (i < 0) {
+            i = -i - 1;
+        }
+        i--;
+        if (i <= 0) {
             return;
         }
         // create a new instance
@@ -1019,7 +1023,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         // need to copy because it can change
         Page r = root;
         if (version >= r.getVersion() &&
-                (r.getVersion() >= 0 ||
+                (version == store.getCurrentVersion() ||
+                r.getVersion() >= 0 ||
                 version <= createVersion ||
                 store.getFile() == null)) {
             newest = r;
@@ -1182,6 +1187,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         public Builder<K, V> keyType(DataType keyType) {
             this.keyType = keyType;
             return this;
+        }
+        
+        public DataType getKeyType() {
+            return keyType;
+        }
+
+        public DataType getValueType() {
+            return valueType;
         }
 
         /**

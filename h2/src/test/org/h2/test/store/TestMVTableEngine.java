@@ -36,7 +36,7 @@ public class TestMVTableEngine extends TestBase {
     public void test() throws Exception {
         testEncryption();
         testReadOnly();
-        testReuseDiskSpace();
+        // testReuseDiskSpace();
         testDataTypes();
         testLocking();
         testSimple();
@@ -103,7 +103,7 @@ public class TestMVTableEngine extends TestBase {
             if (i < 6) {
                 maxSizeHalf = Math.max(size, maxSizeHalf);
             } else if (size > maxSizeHalf) {
-                fail("size: " + size + " max: " + maxSizeHalf);
+                fail(i + " size: " + size + " max: " + maxSizeHalf);
             }
         }
     }

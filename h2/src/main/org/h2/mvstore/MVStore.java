@@ -776,6 +776,9 @@ public class MVStore {
         if (!hasUnsavedChanges()) {
             return currentVersion;
         }
+        if (readOnly) {
+            throw DataUtils.newIllegalStateException("This store is read-only");
+        }
         int currentUnsavedPageCount = unsavedPageCount;
         long storeVersion = currentStoreVersion = currentVersion;
         long version = incrementVersion();
@@ -938,6 +941,15 @@ public class MVStore {
             writeFileHeader();
             shrinkFileIfPossible(1);
         }
+        
+        for (MVMap<?, ?> m : changed) {
+            Page p = m.getRoot();
+            if (p.getTotalCount() > 0) {
+                p.writeEnd();
+            }
+        }
+        meta.getRoot().writeEnd();        
+        
         // some pages might have been changed in the meantime (in the newest version)
         unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
         currentStoreVersion = -1;

@@ -105,6 +105,8 @@ public class Session extends SessionWithState {
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
     private Transaction transaction;
+    private long startStatement = -1;
+    private long statementVersion;
 
     public Session(Database database, User user, int id) {
         this.database = database;
@@ -446,6 +448,10 @@ public class Session extends SessionWithState {
         checkCommitRollback();
         currentTransactionName = null;
         transactionStart = 0;
+        if (transaction != null) {
+            transaction.commit();
+            transaction = null;
+        }
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible
             // (create/drop table and so on)
@@ -503,6 +509,10 @@ public class Session extends SessionWithState {
      */
     public void rollback() {
         checkCommitRollback();
+        if (transaction != null) {
+            transaction.rollback();
+            transaction = null;
+        }
         currentTransactionName = null;
         boolean needCommit = false;
         if (undoLog.size() > 0) {
@@ -592,6 +602,9 @@ public class Session extends SessionWithState {
      * @param row the row
      */
     public void log(Table table, short operation, Row row) {
+        if (table.isMVStore()) {
+            return;
+        }
         if (undoLogEnabled) {
             UndoLogRecord log = new UndoLogRecord(table, operation, row);
             // called _after_ the row was inserted successfully into the table,
@@ -1248,8 +1261,17 @@ public class Session extends SessionWithState {
     public Transaction getTransaction(TransactionStore store) {
         if (transaction == null) {
             transaction = store.begin();
+            statementVersion = -1;
         }
         return transaction;
+    }
+
+    public long getStatementVersion() {
+        if (startStatement == -1) {
+            startStatement = transaction.setSavepoint();
+            statementVersion = transaction.getCurrentVersion();
+        }
+        return statementVersion;
     }
 
 }

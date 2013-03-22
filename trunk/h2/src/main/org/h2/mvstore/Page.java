@@ -838,11 +838,26 @@ public class Page {
                 if (p != null) {
                     buff = p.writeUnsavedRecursive(chunk, buff);
                     children[i] = p.getPos();
-                    childrenPages[i] = null;
                 }
             }
         }
         return write(chunk, buff);
+    }
+    
+    /**
+     * Unlink the children recursively after all data is written.
+     */
+    void writeEnd() {
+        if (!isLeaf()) {
+            int len = children.length;
+            for (int i = 0; i < len; i++) {
+                Page p = childrenPages[i];
+                if (p != null) {
+                    p.writeEnd();
+                    childrenPages[i] = null;
+                }
+            }
+        }
     }
 
     long getVersion() {

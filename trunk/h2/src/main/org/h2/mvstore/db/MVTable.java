@@ -680,6 +680,10 @@ public class MVTable extends TableBase {
      * @return the transaction
      */
     Transaction getTransaction(Session session) {
+        if (session == null) {
+            // TODO need to commit/rollback the transaction
+            return store.begin();
+        }
         return session.getTransaction(store);
     }
 
@@ -697,6 +701,10 @@ public class MVTable extends TableBase {
 
     public String toString() {
         return getSQL();
+    }
+    
+    public boolean isMVStore() {
+        return true;
     }
 
 }

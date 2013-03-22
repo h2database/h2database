@@ -976,7 +976,7 @@ HASH(algorithmString, dataBytes, iterationInt)
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations."
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } (numeric, digitsInt)
+{ TRUNC | TRUNCATE } ({numeric, digitsInt} | timestamp)
 ","
 Truncates to a number of digits (to the next value closer to 0)."
 "Functions (Numeric)","COMPRESS","
@@ -1223,10 +1223,6 @@ Returns the quarter (1-4) from a timestamp."
 SECOND(timestamp)
 ","
 Returns the second (0-59) from a timestamp."
-"Functions (Time and Date)","TRUNCATE","
-TRUNCATE(timestamp)
-","
-Truncates a timestamp to a date (day) value."
 "Functions (Time and Date)","WEEK","
 WEEK(timestamp)
 ","

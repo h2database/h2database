@@ -6,12 +6,16 @@
  */
 package org.h2.mvstore;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.h2.mvstore.MVMap.Builder;
+import org.h2.mvstore.type.DataType;
+import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.New;
 
 /**
@@ -64,14 +68,29 @@ public class TransactionStore {
      * @param store the store
      */
     public TransactionStore(MVStore store) {
+        this(store, new ObjectDataType());
+    }
+    
+    /**
+     * Create a new transaction store.
+     *
+     * @param store the store
+     * @param keyType the data type for map keys
+     */
+    public TransactionStore(MVStore store, DataType keyType) {
         this.store = store;
         settings = store.openMap("settings");
         openTransactions = store.openMap("openTransactions",
                 new MVMapConcurrent.Builder<Long, Object[]>());
         // commit could be faster if we have one undo log per transaction,
         // or a range delete operation for maps
-        undoLog = store.openMap("undoLog",
-                new MVMapConcurrent.Builder<long[], Object[]>());
+        ArrayType valueType = new ArrayType(new DataType[]{
+                new ObjectDataType(), new ObjectDataType(), keyType
+        });
+        MVMapConcurrent.Builder<long[], Object[]> builder = 
+                new MVMapConcurrent.Builder<long[], Object[]>().
+                valueType(valueType);
+        undoLog = store.openMap("undoLog", builder);
         init();
     }
 
@@ -103,8 +122,8 @@ public class TransactionStore {
     }
 
     /**
-     * Get the list of currently open transactions.
-     *
+     * Get the list of currently open transactions that have pending writes.
+     * 
      * @return the list of transactions
      */
     public synchronized List<Transaction> getOpenTransactions() {
@@ -130,16 +149,22 @@ public class TransactionStore {
     public synchronized Transaction begin() {
         store.incrementVersion();
         long transactionId = lastTransactionId++;
+        int status = Transaction.STATUS_OPEN;
+        return new Transaction(this, transactionId, status, null, 0);
+    }
+    
+    void storeTransaction(Transaction t) {
+        long transactionId = t.getId();
+        if (openTransactions.containsKey(transactionId)) {
+            return;
+        }
+        Object[] v = { t.getStatus(), null };
+        openTransactions.put(transactionId, v);
+        openTransactionMap.put(transactionId, t);
         if (lastTransactionId > lastTransactionIdStored) {
             lastTransactionIdStored += 32;
             settings.put(LAST_TRANSACTION_ID, "" + lastTransactionIdStored);
         }
-        int status = Transaction.STATUS_OPEN;
-        Object[] v = { status, null };
-        openTransactions.put(transactionId, v);
-        Transaction t = new Transaction(this, transactionId, status, null, 0);
-        openTransactionMap.put(transactionId, t);
-        return t;
     }
 
     /**
@@ -147,37 +172,56 @@ public class TransactionStore {
      *
      * @param transactionId the transaction id
      */
-    void prepare(long transactionId) {
-        Object[] old = openTransactions.get(transactionId);
+    void prepare(Transaction t) {
+        storeTransaction(t);
+        Object[] old = openTransactions.get(t.getId());
         Object[] v = { Transaction.STATUS_PREPARED, old[1] };
-        openTransactions.put(transactionId, v);
+        openTransactions.put(t.getId(), v);
         store.commit();
+    }
+    
+    /**
+     * Log an entry.
+     * 
+     * @param t the transaction
+     * @param logId the log id
+     * @param opType the operation type
+     * @param mapId the map id
+     * @param key the key
+     */
+    void log(Transaction t, long logId, int opType, int mapId,
+            Object key) {
+        storeTransaction(t);
+        long[] undoKey = { t.getId(), logId };
+        Object[] log = new Object[] { opType, mapId, key };
+        undoLog.put(undoKey, log);
     }
 
     /**
      * Set the name of a transaction.
      *
-     * @param transactionId the transaction id
+     * @param t the transaction
      * @param name the new name
      */
-    void setTransactionName(long transactionId, String name) {
-        Object[] old = openTransactions.get(transactionId);
+    void setTransactionName(Transaction t, String name) {
+        storeTransaction(t);
+        Object[] old = openTransactions.get(t.getId());
         Object[] v = { old[0], name };
-        openTransactions.put(transactionId, v);
+        openTransactions.put(t.getId(), v);
         store.commit();
     }
 
     /**
      * Commit a transaction.
      *
-     * @param transactionId the transaction id
+     * @param t the transaction
      * @param maxLogId the last log id
      */
-    void commit(long transactionId, long maxLogId) {
+    void commit(Transaction t, long maxLogId) {
         store.incrementVersion();
         for (long logId = 0; logId < maxLogId; logId++) {
             Object[] op = undoLog.get(new long[] {
-                    transactionId, logId });
+                    t.getId(), logId });
             int opType = (Integer) op[0];
             if (opType == Transaction.OP_REMOVE) {
                 int mapId = (Integer) op[1];
@@ -196,36 +240,44 @@ public class TransactionStore {
             }
             undoLog.remove(logId);
         }
-        openTransactions.remove(transactionId);
-        openTransactionMap.remove(transactionId);
+        openTransactions.remove(t.getId());
+        openTransactionMap.remove(t.getId());
         store.commit();
+        long oldestVersion = store.getCurrentVersion();
+        for (Transaction u : openTransactionMap.values()) {
+            long v = u.startVersion;
+            if (v < oldestVersion) {
+                oldestVersion = v;
+            }
+        }
+        store.setRetainVersion(oldestVersion);
     }
 
     /**
      * Roll a transaction back.
      *
-     * @param transactionId the transaction id
+     * @param t the transaction
      * @param maxLogId the last log id
      */
-    void rollback(long transactionId, long maxLogId) {
-        rollbackTo(transactionId, maxLogId, 0);
-        openTransactions.remove(transactionId);
-        openTransactionMap.remove(transactionId);
+    void rollback(Transaction t, long maxLogId) {
+        rollbackTo(t, maxLogId, 0);
+        openTransactions.remove(t.getId());
+        openTransactionMap.remove(t.getId());
         store.commit();
     }
 
     /**
      * Rollback to an old savepoint.
      *
-     * @param transactionId the transaction id
+     * @param t the transaction
      * @param maxLogId the last log id
      * @param toLogId the log id to roll back to
      */
-    void rollbackTo(long transactionId, long maxLogId, long toLogId) {
+    void rollbackTo(Transaction t, long maxLogId, long toLogId) {
         store.incrementVersion();
         for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
             Object[] op = undoLog.get(new long[] {
-                    transactionId, logId });
+                    t.getId(), logId });
             int mapId = ((Integer) op[1]).intValue();
             Map<String, String> meta = store.getMetaMap();
             String m = meta.get("map." + mapId);
@@ -286,6 +338,11 @@ public class TransactionStore {
          * The transaction store.
          */
         final TransactionStore store;
+        
+        /**
+         * The version of the store at the time the transaction was started.
+         */
+        final long startVersion;
 
         /**
          * The transaction id.
@@ -300,6 +357,7 @@ public class TransactionStore {
 
         Transaction(TransactionStore store, long transactionId, int status, String name, long logId) {
             this.store = store;
+            this.startVersion = store.store.getCurrentVersion();
             this.transactionId = transactionId;
             this.status = status;
             this.name = name;
@@ -331,7 +389,7 @@ public class TransactionStore {
          */
         public void setName(String name) {
             checkOpen();
-            store.setTransactionName(transactionId, name);
+            store.setTransactionName(this, name);
             this.name = name;
         }
 
@@ -363,9 +421,7 @@ public class TransactionStore {
          * @param key the key
          */
         void log(int opType, int mapId, Object key) {
-            long[] undoKey = { transactionId, logId++ };
-            Object[] log = new Object[] { opType, mapId, key };
-            store.undoLog.put(undoKey, log);
+            store.log(this, logId++, opType, mapId, key);
         }
 
         /**
@@ -377,8 +433,7 @@ public class TransactionStore {
          * @return the transaction map
          */
         public <K, V> TransactionMap<K, V> openMap(String name) {
-            checkOpen();
-            return new TransactionMap<K, V>(this, name, -1);
+            return openMap(name, -1);
         }
 
         /**
@@ -392,7 +447,31 @@ public class TransactionStore {
          */
         public <K, V> TransactionMap<K, V> openMap(String name, long readVersion) {
             checkOpen();
-            return new TransactionMap<K, V>(this, name, readVersion);
+            return new TransactionMap<K, V>(this, name, new ObjectDataType(), 
+                    new ObjectDataType(), readVersion);
+        }
+
+        /**
+         * Open the map to store the data.
+         *
+         * @param <K> the key type
+         * @param <V> the value type
+         * @param name the name of the map
+         * @param readVersion the version used for reading
+         * @param builder the builder
+         * @return the transaction map
+         */
+        public <K, V> TransactionMap<K, V> openMap(String name, long readVersion, Builder<K, V> builder) {
+            checkOpen();
+            DataType keyType = builder.getKeyType();
+            if (keyType == null) {
+                keyType = new ObjectDataType();
+            }
+            DataType valueType = builder.getValueType();
+            if (valueType == null) {
+                valueType = new ObjectDataType();
+            }
+            return new TransactionMap<K, V>(this, name, keyType, valueType, readVersion);
         }
 
         /**
@@ -403,7 +482,7 @@ public class TransactionStore {
          */
         public void rollbackToSavepoint(long savepointId) {
             checkOpen();
-            store.rollbackTo(transactionId, this.logId, savepointId);
+            store.rollbackTo(this, this.logId, savepointId);
             this.logId = savepointId;
         }
 
@@ -413,7 +492,7 @@ public class TransactionStore {
          */
         public void prepare() {
             checkOpen();
-            store.prepare(transactionId);
+            store.prepare(this);
             status = STATUS_PREPARED;
         }
 
@@ -422,7 +501,7 @@ public class TransactionStore {
          */
         public void commit() {
             if (status != STATUS_CLOSED) {
-                store.commit(transactionId, logId);
+                store.commit(this, logId);
                 status = STATUS_CLOSED;
             }
         }
@@ -432,7 +511,7 @@ public class TransactionStore {
          */
         public void rollback() {
             if (status != STATUS_CLOSED) {
-                store.rollback(transactionId, logId);
+                store.rollback(this, logId);
                 status = STATUS_CLOSED;
             }
         }
@@ -444,6 +523,10 @@ public class TransactionStore {
             if (status != STATUS_OPEN) {
                 throw DataUtils.newIllegalStateException("Transaction is closed");
             }
+        }
+
+        public long getCurrentVersion() {
+            return store.store.getCurrentVersion();
         }
 
     }
@@ -479,9 +562,15 @@ public class TransactionStore {
          */
         private final MVMap<K, Object[]> mapRead;
 
-        TransactionMap(Transaction transaction, String name, long readVersion) {
+        TransactionMap(Transaction transaction, String name, DataType keyType, 
+                DataType valueType, long readVersion) {
             this.transaction = transaction;
-            mapWrite = transaction.store.store.openMap(name);
+            ArrayType arrayType = new ArrayType(new DataType[] {
+                    new ObjectDataType(), new ObjectDataType(), valueType
+            });
+            MVMap.Builder<K, Object[]> builder = new MVMap.Builder<K, Object[]>()
+                    .keyType(keyType).valueType(arrayType);
+            mapWrite = transaction.store.store.openMap(name, builder);
             mapId = mapWrite.getId();
             if (readVersion >= 0) {
                 mapRead = mapWrite.openVersion(readVersion);
@@ -715,6 +804,10 @@ public class TransactionStore {
         public V getLatest(K key) {
             return get(key, mapWrite);
         }
+        
+        public boolean containsKey(K key) {
+            return get(key) != null;
+        }
 
         /**
          * Get the value for the given key.
@@ -754,20 +847,123 @@ public class TransactionStore {
                 m = mapWrite.openVersion(oldVersion);
             }
         }
-    }
 
+        public void renameMap(String newMapName) {
+            // TODO rename maps transactionally
+            mapWrite.renameMap(newMapName);
+        }
+
+        public boolean isClosed() {
+            return mapWrite.isClosed();
+        }
+
+        public void removeMap() {
+            mapWrite.removeMap();
+        }
+
+        public void clear() {
+            // TODO truncate transactionally
+            mapWrite.clear();
+        }
+
+        public K firstKey() {
+            // TODO transactional firstKey
+            return mapRead.firstKey();
+        }
+
+        public K lastKey() {
+            // TODO transactional lastKey
+            return mapRead.lastKey();
+        }
+
+        public Iterator<K> keyIterator(K from) {
+            // TODO transactional keyIterator
+            return mapRead.keyIterator(from);
+        }
+
+        public K ceilingKey(K key) {
+            // TODO transactional ceilingKey
+            return mapRead.ceilingKey(key);
+        }
+
+        public K higherKey(K key) {
+            // TODO transactional higherKey
+            return mapRead.higherKey(key);
+        }
+
+        public K lowerKey(K key) {
+            // TODO Auto-generated method stub
+            return mapRead.lowerKey(key);
+        }
+
+        public Transaction getTransaction() {
+            return transaction;
+        }
+
+    }
+    
     /**
-     * Open the map to store the data.
-     *
-     * @param <A> the key type
-     * @param <B> the value type
-     * @param name the map name
-     * @param builder the builder
-     * @return the map
+     * A data type that contains an array of objects with the specified data
+     * types.
      */
-    public <A, B> MVMap<A, B> openMap(String name, Builder<A, B> builder) {
-        int todo;
-        return store.openMap(name, builder);
+    public static class ArrayType implements DataType {
+
+        private final int arrayLength;
+        private final DataType[] elementTypes;
+
+        ArrayType(DataType[] elementTypes) {
+            this.arrayLength = elementTypes.length;
+            this.elementTypes = elementTypes;
+        }
+
+        @Override
+        public int getMemory(Object obj) {
+            Object[] array = (Object[]) obj;
+            int size = 0;
+            for (int i = 0; i < arrayLength; i++) {
+                DataType t = elementTypes[i];
+                size += t.getMemory(array[i]);
+            }
+            return size;
+        }
+
+        @Override
+        public int compare(Object aObj, Object bObj) {
+            if (aObj == bObj) {
+                return 0;
+            }
+            Object[] a = (Object[]) aObj;
+            Object[] b = (Object[]) bObj;
+            for (int i = 0; i < arrayLength; i++) {
+                DataType t = elementTypes[i];
+                int comp = t.compare(a[i], b[i]);
+                if (comp != 0) {
+                    return comp;
+                }
+            }
+            return 0;
+        }
+
+        @Override
+        public ByteBuffer write(ByteBuffer buff, Object obj) {
+            Object[] array = (Object[]) obj;
+            for (int i = 0; i < arrayLength; i++) {
+                DataType t = elementTypes[i];
+                t.write(buff, array[i]);
+            }
+            return buff;
+        }
+
+        @Override
+        public Object read(ByteBuffer buff) {
+            Object[] array = new Object[arrayLength];
+            for (int i = 0; i < arrayLength; i++) {
+                DataType t = elementTypes[i];
+                array[i] = t.read(buff);
+            }
+            return array;
+        }   
+        
     }
 
 }

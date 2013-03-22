@@ -1087,4 +1087,8 @@ public abstract class Table extends SchemaObjectBase {
         this.isHidden = hidden;
     }
 
+    public boolean isMVStore() {
+        return false;
+    }
+
 }

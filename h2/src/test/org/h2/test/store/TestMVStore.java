@@ -79,6 +79,10 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
+        // this test will run out of memory on a 32-bit VM before it gets to the part we need it to test
+        if ("64".equals(System.getProperty("sun.arch.data.model"))) { 
+            testLargerThan2G();
+        }
     }
 
     private void testAtomicOperations() {
@@ -1391,6 +1395,32 @@ public class TestMVStore extends TestBase {
             assertEquals("hello " + i, m.get(i));
         }
         s.close();
+    }
+    
+    private void testLargerThan2G() {
+        String fileName = getBaseDir() + "/testLargerThan2G.h3";
+        FileUtils.delete(fileName);
+        
+        MVStore store = new MVStore.Builder().cacheSize(800).fileName(fileName).writeBufferSize(0).writeDelay(-1)
+                .open();
+
+        MVMap<String, String> map = store.openMap("test");
+        int totalWrite = 15000000;
+        int lineStored = 0;
+        while (lineStored <= totalWrite) {
+            lineStored++;
+            String actualKey = lineStored + " just for length length length    " + lineStored;
+            String value = "Just a a string that is kinda long long long but not too much much much much much much much much much   "
+                    + lineStored;
+
+            map.put(actualKey, value);
+
+            if (lineStored % 1000000 == 0) {
+                store.store();
+            }
+        }
+        store.store();
+        store.close();
     }
 
     /**

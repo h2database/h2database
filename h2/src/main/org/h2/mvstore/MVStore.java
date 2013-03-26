@@ -12,12 +12,12 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
@@ -148,6 +148,11 @@ public class MVStore {
      */
     private final ConcurrentHashMap<Integer, Chunk> chunks =
             new ConcurrentHashMap<Integer, Chunk>();
+    /**
+     * The list of free spaces between the chunks.
+     */
+    private FreeSpaceList freeSpaceList = new FreeSpaceList();
+
 
     /**
      * The map of temporarily freed entries in the chunks. The key is the
@@ -564,6 +569,14 @@ public class MVStore {
             lastChunkId = Math.max(c.id, lastChunkId);
             chunks.put(c.id, c);
         }
+        // rebuild the free space list
+        freeSpaceList.clear();
+        for (Chunk c : chunks.values()) {
+            if (c.start == Long.MAX_VALUE) {
+                continue;
+            }
+            freeSpaceList.markUsed(c);
+        }
     }
 
     private void readFileHeader() {
@@ -694,6 +707,7 @@ public class MVStore {
                 }
                 meta = null;
                 chunks.clear();
+                freeSpaceList.clear();
                 cache.clear();
                 maps.clear();
             } catch (Exception e) {
@@ -848,7 +862,7 @@ public class MVStore {
         }
 
         applyFreedChunks(storeVersion);
-        ArrayList<Integer> removedChunks = New.arrayList();
+        Set<Integer> removedChunks = New.hashSet();
         // do it twice, because changing the meta table
         // could cause a chunk to become empty
         for (int i = 0; i < 2; i++) {
@@ -911,11 +925,13 @@ public class MVStore {
         // by an old version
         // so empty space is not reused too early
         for (int x : removedChunks) {
+            freeSpaceList.markFree(chunks.get(x));
             chunks.remove(x);
         }
 
         c.start = filePos;
         c.length = chunkLength;
+        freeSpaceList.markUsed(c);
         c.metaRootPos = meta.getRoot().getPos();
         buff.position(0);
         c.writeHeader(buff);
@@ -1036,33 +1052,7 @@ public class MVStore {
     }
 
     private long allocateChunk(long length) {
-        BitSet set = new BitSet();
-        set.set(0);
-        set.set(1);
-        for (Chunk c : chunks.values()) {
-            if (c.start == Long.MAX_VALUE) {
-                continue;
-            }
-            int first = (int) (c.start / BLOCK_SIZE);
-            int last = (int) ((c.start + c.length) / BLOCK_SIZE);
-            set.set(first, last + 2);
-        }
-        int required = (int) (length / BLOCK_SIZE) + 1;
-        for (int i = 0; i < set.size(); i++) {
-            if (!set.get(i)) {
-                boolean ok = true;
-                for (int j = 0; j < required; j++) {
-                    if (set.get(i + j)) {
-                        ok = false;
-                        break;
-                    }
-                }
-                if (ok) {
-                    return i * BLOCK_SIZE;
-                }
-            }
-        }
-        return set.size() * BLOCK_SIZE;
+        return ((long) freeSpaceList.allocatePages(length)) * BLOCK_SIZE;
     }
 
     /**
@@ -1500,6 +1490,7 @@ public class MVStore {
             }
             meta.clear();
             chunks.clear();
+            freeSpaceList.clear();
             maps.clear();
             synchronized (freedChunks) {
                 freedChunks.clear();
@@ -1530,6 +1521,7 @@ public class MVStore {
                 loadFromFile = true;
                 do {
                     last = chunks.remove(lastChunkId);
+                    freeSpaceList.markFree(last);
                     lastChunkId--;
                 } while (last.version > version && chunks.size() > 0);
                 rootChunkStart = last.start;

@@ -1041,6 +1041,20 @@ This command is effective immediately, but does not commit an open transaction.
 SET CLUSTER ''
 "
 
+"Commands (Other)","SET BINARY_COLLATION","
+SET BINARY_COLLATION
+{ UNSIGNED | SIGNED } ] }
+","
+Sets the collation used for comparing BINARY columns, the default is SIGNED.
+This command can only be executed if there are no tables defined.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
+","
+SET BINARY_COLLATION SIGNED
+"
+
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
 { OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }

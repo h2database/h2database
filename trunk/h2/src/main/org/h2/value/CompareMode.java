@@ -82,10 +82,10 @@ public class CompareMode {
      */
     public static synchronized CompareMode getInstance(String name, int strength, boolean binaryUnsigned) {
         if (lastUsed != null) {
-            if (StringUtils.equals(lastUsed.name, name)) {
-                if (lastUsed.strength == strength) {
-                    return lastUsed;
-                }
+            if (StringUtils.equals(lastUsed.name, name) &&
+                    lastUsed.strength == strength && 
+                    lastUsed.binaryUnsigned == binaryUnsigned) {
+                return lastUsed;
             }
         }
         if (name == null || name.equals(OFF)) {

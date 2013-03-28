@@ -4513,6 +4513,9 @@ public class Parser {
         } else if (readIf("COLLATION")) {
             readIfEqualOrTo();
             return parseSetCollation();
+        } else if (readIf("BINARY_COLLATION")) {
+            readIfEqualOrTo();
+            return parseSetBinaryCollation();
         } else if (readIf("CLUSTER")) {
             readIfEqualOrTo();
             Set command = new Set(session, SetTypes.CLUSTER);
@@ -4684,6 +4687,17 @@ public class Parser {
         return command;
     }
 
+    private Set parseSetBinaryCollation() {
+        Set command = new Set(session, SetTypes.BINARY_COLLATION);
+        String name = readAliasIdentifier();
+        command.setString(name);
+        if (equalsToken(name, CompareMode.UNSIGNED)
+            || equalsToken(name, CompareMode.SIGNED)) {
+            return command;
+        }
+        throw DbException.getInvalidValueException("BINARY_COLLATION", name);
+    }
+    
     private RunScriptCommand parseRunScript() {
         RunScriptCommand command = new RunScriptCommand(session);
         read("FROM");

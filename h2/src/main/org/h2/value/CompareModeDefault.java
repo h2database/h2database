@@ -20,8 +20,8 @@ public class CompareModeDefault extends CompareMode {
     private final Collator collator;
     private final SmallLRUCache<String, CollationKey> collationKeys;
 
-    protected CompareModeDefault(String name, int strength) {
-        super(name, strength);
+    protected CompareModeDefault(String name, int strength, boolean binaryUnsigned) {
+        super(name, strength, binaryUnsigned);
         collator = CompareMode.getCollator(name);
         if (collator == null) {
             throw DbException.throwInternalError(name);

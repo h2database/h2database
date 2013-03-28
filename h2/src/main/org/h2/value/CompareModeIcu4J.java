@@ -20,8 +20,8 @@ public class CompareModeIcu4J extends CompareMode {
 
     private final Comparator<String> collator;
 
-    protected CompareModeIcu4J(String name, int strength) {
-        super(name, strength);
+    protected CompareModeIcu4J(String name, int strength, boolean binaryUnsigned) {
+        super(name, strength, binaryUnsigned);
         collator = getIcu4jCollator(name, strength);
     }
 

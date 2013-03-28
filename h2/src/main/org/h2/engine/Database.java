@@ -178,7 +178,7 @@ public class Database implements DataHandler {
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
         this.reconnectCheckDelay = dbSettings.reconnectCheckDelay;
-        this.compareMode = CompareMode.getInstance(null, 0);
+        this.compareMode = CompareMode.getInstance(null, 0, false);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
         this.databaseName = name;

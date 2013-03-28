@@ -82,7 +82,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private int savepointId;
     private String catalog;
     private Statement executingStatement;
-    private final CompareMode compareMode = CompareMode.getInstance(null, 0);
+    private final CompareMode compareMode = CompareMode.getInstance(null, 0, false);
     private final CloseWatcher watcher;
     private int queryTimeoutCache = -1;
 

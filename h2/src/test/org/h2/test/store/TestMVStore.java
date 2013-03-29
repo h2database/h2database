@@ -8,7 +8,6 @@ package org.h2.test.store;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
@@ -22,7 +21,6 @@ import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests the MVStore.
@@ -35,7 +33,10 @@ public class TestMVStore extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.traceTest = true;
+        test.config.big = true;
+        test.test();
     }
 
     public void test() throws Exception {
@@ -61,7 +62,6 @@ public class TestMVStore extends TestBase {
         testIterateOldVersion();
         testObjects();
         testExample();
-        testIterateOverChanges();
         testOpenStoreCloseLoop();
         testVersion();
         testTruncateFile();
@@ -79,10 +79,10 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
-        // this test will run out of memory on a 32-bit VM before it gets to the part we need it to test
-        if ("64".equals(System.getProperty("sun.arch.data.model"))) { 
-            testLargerThan2G();
-        }
+        
+        // longer running tests
+        
+        testLargerThan2G();
     }
 
     private void testAtomicOperations() {
@@ -705,39 +705,6 @@ public class TestMVStore extends TestBase {
         }
     }
 
-    private void testIterateOverChanges() {
-        String fileName = getBaseDir() + "/testIterate.h3";
-        FileUtils.delete(fileName);
-        MVStore s = openStore(fileName);
-        s.setPageSize(6);
-        MVMap<Integer, String> m = s.openMap("data");
-        for (int i = 0; i < 100; i++) {
-            m.put(i, "Hi");
-        }
-        s.incrementVersion();
-        s.store();
-        for (int i = 20; i < 40; i++) {
-            assertEquals("Hi", m.put(i, "Hello"));
-        }
-        long old = s.getCurrentVersion();
-        s.incrementVersion();
-        for (int i = 10; i < 15; i++) {
-            m.put(i, "Hallo");
-        }
-        m.put(50, "Hallo");
-        for (int i = 90; i < 93; i++) {
-            assertEquals("Hi", m.remove(i));
-        }
-        assertEquals(null, m.put(100, "Hallo"));
-        Iterator<Integer> it = m.changeIterator(old);
-        ArrayList<Integer> list = New.arrayList();
-        while (it.hasNext()) {
-            list.add(it.next());
-        }
-        assertEquals("[10, 11, 12, 13, 14, 50, 100, 90, 91, 92]", list.toString());
-        s.close();
-    }
-
     private void testOldVersion() {
         MVStore s;
         for (int op = 0; op <= 1; op++) {
@@ -1031,8 +998,8 @@ public class TestMVStore extends TestBase {
         assertEquals("name:data", m.get("map." + id));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
-        assertEquals("id:1,length:246,maxLength:224,maxLengthLive:0," +
-                "metaRoot:274877910922,pageCount:2," +
+        assertEquals("id:1,length:263,maxLength:288,maxLengthLive:288," +
+                "metaRoot:274877910924,pageCount:2,pageCountLive:2," +
                 "start:8192,time:0,version:1", m.get("chunk.1"));
 
         assertTrue(m.containsKey("chunk.2"));
@@ -1397,30 +1364,36 @@ public class TestMVStore extends TestBase {
         s.close();
     }
     
-    private void testLargerThan2G() {
+    private void testLargerThan2G() throws IOException {
+        if (!config.big) {
+            return;
+        }
         String fileName = getBaseDir() + "/testLargerThan2G.h3";
         FileUtils.delete(fileName);
-        
-        MVStore store = new MVStore.Builder().cacheSize(800).fileName(fileName).writeBufferSize(0).writeDelay(-1)
-                .open();
-
-        MVMap<String, String> map = store.openMap("test");
-        int totalWrite = 15000000;
-        int lineStored = 0;
-        while (lineStored <= totalWrite) {
-            lineStored++;
-            String actualKey = lineStored + " just for length length length    " + lineStored;
-            String value = "Just a a string that is kinda long long long but not too much much much much much much much much much   "
-                    + lineStored;
-
-            map.put(actualKey, value);
-
-            if (lineStored % 1000000 == 0) {
-                store.store();
+        MVStore store = new MVStore.Builder().cacheSize(16).
+                fileName(fileName).open();
+        MVMap<Integer, String> map = store.openMap("test");
+        long last = System.currentTimeMillis();
+        String data = new String(new char[2500]).replace((char) 0, 'x');
+        for (int i = 0;; i++) {
+            map.put(i, data);
+            if (i % 10000 == 0) {
+                long version = store.commit();
+                store.setRetainVersion(version);
+                long time = System.currentTimeMillis();
+                if (time - last > 2000) {
+                    long mb = store.getFile().size() / 1024 / 1024;
+                    trace(mb + "/4500");
+                    if (mb > 4500) {
+                        break;
+                    }
+                    last = time;
+                }
             }
         }
-        store.store();
+        store.commit();
         store.close();
+        FileUtils.delete(fileName);
     }
 
     /**

@@ -116,7 +116,8 @@ public class MVTableEngine implements TableEngine {
      * @param store the store
      */
     static void store(MVStore store) {
-        store.compact(50);
+        int test;
+//        store.compact(50);
         store.store();
     }
 

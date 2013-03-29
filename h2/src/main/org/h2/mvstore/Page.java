@@ -814,11 +814,15 @@ public class Page {
                 ^ DataUtils.getCheckValue(start)
                 ^ DataUtils.getCheckValue(pageLength);
         buff.putShort(start + 4, (short) check);
-        this.pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
+        if (pos != 0) {
+            throw DataUtils.newIllegalStateException("Page already stored");
+        }
+        pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
         long max = DataUtils.getPageMaxLength(pos);
         chunk.maxLength += max;
         chunk.maxLengthLive += max;
         chunk.pageCount++;
+        chunk.pageCountLive++;
         return buff;
     }
 

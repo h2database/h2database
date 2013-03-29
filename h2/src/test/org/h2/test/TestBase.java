@@ -600,9 +600,9 @@ public abstract class TestBase {
      */
     public void assertEquals(java.util.Date expected, java.util.Date actual) {
         if (expected != actual && !expected.equals(actual)) {
-            final DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-            final SimpleTimeZone GMT_TIMEZONE = new SimpleTimeZone(0, "Z");
-            df.setTimeZone(GMT_TIMEZONE);
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            SimpleTimeZone gmt = new SimpleTimeZone(0, "Z");
+            df.setTimeZone(gmt);
             fail("Expected: " + df.format(expected) + " actual: " + df.format(actual));
         }
     }

@@ -1,40 +1,49 @@
+/*
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.mvstore;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A list that maintains ranges of free space (in pages) in a file.
+ */
 public class FreeSpaceList {
 
-    /** the first 2 pages are occupied by the file header. */
+    /** 
+     * The first 2 pages are occupied by the file header. 
+     */
     private static final int FIRST_FREE_PAGE = 2;
-    /** I use max_value/2 to avoid overflow errors during arithmetic. */
-    private static final int MAX_NO_PAGES = Integer.MAX_VALUE / 2;
+    
+    /**
+     * The maximum number of pages. Smaller than than MAX_VALUE to avoid
+     * overflow errors during arithmetic operations.
+     */
+    private static final int MAX_PAGE_COUNT = Integer.MAX_VALUE / 2;
 
     private List<PageRange> freeSpaceList = new ArrayList<PageRange>();
 
     public FreeSpaceList() {
-        freeSpaceList.add(new PageRange(FIRST_FREE_PAGE, MAX_NO_PAGES));
+        clear();
     }
-
-    private static final class PageRange {
-        /** the start point, in pages */
-        public int start;
-        /** the length, in pages */
-        public int length;
-
-        public PageRange(int start, int length) {
-            this.start = start;
-            this.length = length;
-        }
-
-        @Override
-        public String toString() {
-            return "start:" + start + " length:" + length;
-        }
+    
+    /**
+     * Reset the list.
+     */
+    public synchronized void clear() {
+        freeSpaceList.clear();
+        freeSpaceList.add(new PageRange(FIRST_FREE_PAGE, MAX_PAGE_COUNT));
     }
 
     /**
-     * @return position in pages
+     * Allocate a number of pages.
+     * 
+     * @param length the number of bytes to allocate
+     * @return the position in pages
      */
     public synchronized int allocatePages(long length) {
         int required = (int) (length / MVStore.BLOCK_SIZE) + 1;
@@ -43,9 +52,15 @@ public class FreeSpaceList {
                 return pr.start;
             }
         }
-        throw DataUtils.newIllegalStateException("could not find a free page to allocate");
+        throw DataUtils.newIllegalStateException(
+                "Could not find a free page to allocate");
     }
 
+    /**
+     * Mark a chunk as used.
+     * 
+     * @param c the chunk
+     */
     public synchronized void markUsed(Chunk c) {
         int chunkStart = (int) (c.start / MVStore.BLOCK_SIZE);
         int required = (int) ((c.start + c.length) / MVStore.BLOCK_SIZE) + 2 - chunkStart;
@@ -59,11 +74,12 @@ public class FreeSpaceList {
             i++;
         }
         if (found == null) {
-            throw DataUtils.newIllegalStateException("cannot find spot to mark chunk as used in free list, "
-                    + c.toString());
+            throw DataUtils.newIllegalStateException(
+                    "Cannot find spot to mark chunk as used in free list: {0}", c);
         }
         if (chunkStart + required > found.start + found.length) {
-            throw DataUtils.newIllegalStateException("chunk runs over edge of free space, " + c.toString());
+            throw DataUtils.newIllegalStateException(
+                    "Chunk runs over edge of free space: {0}", c);
         }
         if (found.start == chunkStart) {
             // if the used-chunk is at the beginning of a free-space-range
@@ -92,6 +108,11 @@ public class FreeSpaceList {
         }
     }
 
+    /**
+     * Mark the chunk as free.
+     * 
+     * @param c the chunk
+     */
     public synchronized void markFree(Chunk c) {
         int chunkStart = (int) (c.start / MVStore.BLOCK_SIZE);
         int required = (c.length / MVStore.BLOCK_SIZE) + 1;
@@ -105,15 +126,15 @@ public class FreeSpaceList {
             i++;
         }
         if (found == null) {
-            throw DataUtils.newIllegalStateException("cannot find spot to mark chunk as unused in free list, "
-                    + c.toString());
+            throw DataUtils.newIllegalStateException(
+                    "Cannot find spot to mark chunk as unused in free list: {0}", c);
         }
         if (chunkStart + required + 1 == found.start) {
             // if the used-chunk is adjacent to the beginning of a
             // free-space-range
             found.start = chunkStart;
             found.length += required;
-            // compactify-free-list: merge the previous entry into this one if
+            // compact: merge the previous entry into this one if
             // they are now adjacent
             if (i > 0) {
                 PageRange previous = freeSpaceList.get(i - 1);
@@ -129,7 +150,7 @@ public class FreeSpaceList {
             PageRange previous = freeSpaceList.get(i - 1);
             if (previous.start + previous.length + 1 == chunkStart) {
                 previous.length += required;
-                // compactify-free-list: merge the next entry into this one if
+                // compact: merge the next entry into this one if
                 // they are now adjacent
                 if (previous.start + previous.length + 1 == found.start) {
                     previous.length += found.length;
@@ -144,23 +165,44 @@ public class FreeSpaceList {
         freeSpaceList.add(i, newRange);
     }
 
-    public synchronized void clear() {
-        freeSpaceList.clear();
-        freeSpaceList.add(new PageRange(FIRST_FREE_PAGE, MAX_NO_PAGES));
-    }
-
-    /** debug method */
-    public void dumpFreeList() {
-        StringBuilder buf = new StringBuilder("free list : ");
+    public String toString() {
+        StringBuilder buff = new StringBuilder();
         boolean first = true;
-        for (PageRange pr : freeSpaceList) {
+        for (PageRange r : freeSpaceList) {
             if (first) {
                 first = false;
             } else {
-                buf.append(", ");
+                buff.append(", ");
             }
-            buf.append(pr.start + "-" + (pr.start + pr.length - 1));
+            buff.append(r.start + "-" + (r.start + r.length - 1));
         }
-        System.out.println(buf.toString());
+        return buff.toString();
     }
+    
+    /**
+     * A range of free pages.
+     */
+    private static final class PageRange {
+        
+        /** 
+         * The starting point, in pages.
+         */
+        public int start;
+        
+        /** 
+         * The length, in pages.
+         */
+        public int length;
+
+        public PageRange(int start, int length) {
+            this.start = start;
+            this.length = length;
+        }
+
+        @Override
+        public String toString() {
+            return "start:" + start + " length:" + length;
+        }
+    }
+
 }

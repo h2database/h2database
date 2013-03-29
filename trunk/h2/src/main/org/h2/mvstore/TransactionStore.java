@@ -90,6 +90,7 @@ public class TransactionStore {
         MVMapConcurrent.Builder<long[], Object[]> builder = 
                 new MVMapConcurrent.Builder<long[], Object[]>().
                 valueType(valueType);
+        // TODO escape other map names, to avoid conflicts
         undoLog = store.openMap("undoLog", builder);
         init();
     }
@@ -220,8 +221,9 @@ public class TransactionStore {
     void commit(Transaction t, long maxLogId) {
         store.incrementVersion();
         for (long logId = 0; logId < maxLogId; logId++) {
-            Object[] op = undoLog.get(new long[] {
-                    t.getId(), logId });
+            long[] undoKey = new long[] {
+                    t.getId(), logId };
+            Object[] op = undoLog.get(undoKey);
             int opType = (Integer) op[0];
             if (opType == Transaction.OP_REMOVE) {
                 int mapId = (Integer) op[1];
@@ -238,7 +240,7 @@ public class TransactionStore {
                     map.remove(key);
                 }
             }
-            undoLog.remove(logId);
+            undoLog.remove(undoKey);
         }
         openTransactions.remove(t.getId());
         openTransactionMap.remove(t.getId());
@@ -858,6 +860,7 @@ public class TransactionStore {
         }
 
         public void removeMap() {
+            // TODO remove in a transaction
             mapWrite.removeMap();
         }
 

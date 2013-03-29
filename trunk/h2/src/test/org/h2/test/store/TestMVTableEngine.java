@@ -36,7 +36,7 @@ public class TestMVTableEngine extends TestBase {
     public void test() throws Exception {
         testEncryption();
         testReadOnly();
-        // testReuseDiskSpace();
+        testReuseDiskSpace();
         testDataTypes();
         testLocking();
         testSimple();
@@ -87,8 +87,8 @@ public class TestMVTableEngine extends TestBase {
                 ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
         Connection conn;
         Statement stat;
-        long maxSizeHalf = 0;
-        for (int i = 0; i < 10; i++) {
+        long maxSize = 0;
+        for (int i = 0; i < 20; i++) {
             conn = getConnection(dbName);
             for (MVTableEngine.Store s : MVTableEngine.getStores()) {
                 s.getStore().setRetentionTime(0);
@@ -100,10 +100,10 @@ public class TestMVTableEngine extends TestBase {
             conn.close();
             long size = FileUtils.size(getBaseDir() + "/mvstore"
                     + Constants.SUFFIX_MV_FILE);
-            if (i < 6) {
-                maxSizeHalf = Math.max(size, maxSizeHalf);
-            } else if (size > maxSizeHalf) {
-                fail(i + " size: " + size + " max: " + maxSizeHalf);
+            if (i < 10) {
+                maxSize = (int) (Math.max(size, maxSize) * 1.1);
+            } else if (size > maxSize) {
+                fail(i + " size: " + size + " max: " + maxSize);
             }
         }
     }

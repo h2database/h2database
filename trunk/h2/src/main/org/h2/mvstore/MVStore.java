@@ -44,8 +44,6 @@ H:3,...
 TODO:
 
 - rolling docs review: at convert "Features" to top-level (linked) entries
-- mvcc with multiple transactions
-- test LZ4
 - additional test async write / read algorithm for speed and errors
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
     and settings that are persistent (setStoreVersion)
@@ -96,7 +94,9 @@ TODO:
 -- use a transaction log where only the deltas are stored
 - serialization for lists, sets, sets, sorted sets, maps, sorted maps
 - maybe rename 'rollback' to 'revert'
-- support other compression algorithms (deflate,...)
+- support other compression algorithms (deflate, LZ4,...)
+- only retain the last version, unless explicitly set (setRetainVersion)
+- unit test for the FreeSpaceList; maybe find a simpler implementation
 
 */
 
@@ -155,12 +155,11 @@ public class MVStore {
 
 
     /**
-     * The map of temporarily freed entries in the chunks. The key is the
-     * unsaved version, the value is the map of chunks. The maps of chunks
-     * contains the number of freed entries per chunk.
-     * Access is synchronized.
+     * The map of temporarily removed pages. The key is the unsaved version, the
+     * value is the map of chunks. The maps of chunks contains the number of
+     * freed entries per chunk. Access is synchronized.
      */
-    private final HashMap<Long, HashMap<Integer, Chunk>> freedChunks = New.hashMap();
+    private final HashMap<Long, HashMap<Integer, Chunk>> freedPages = New.hashMap();
 
     private MVMapConcurrent<String, String> meta;
 
@@ -227,8 +226,8 @@ public class MVStore {
 
     MVStore(HashMap<String, Object> config) {
         String f = (String) config.get("fileName");
-        if (f != null && !f.startsWith("nio:")) {
-            // NIO is used by default
+        if (f != null && f.indexOf(':') < 0) {
+            // NIO is used, unless a different file system is specified
             // the following line is to ensure the NIO file system is compiled
             FilePathNio.class.getName();
             f = "nio:" + f;
@@ -551,23 +550,32 @@ public class MVStore {
         lastChunkId = header.id;
         chunks.put(header.id, header);
         meta.setRootPos(header.metaRootPos, -1);
-        Iterator<String> it = meta.keyIterator("chunk.");
-        while (it.hasNext()) {
-            String s = it.next();
-            if (!s.startsWith("chunk.")) {
-                break;
+        // load chunks in reverse order, because data about previous chunks
+        // might only be available in later chunks
+        // if this is a performance problem when there are many
+        // chunks, the id of the previous / next chunk might need to
+        // be maintained
+        for (int id = lastChunkId; id >= 0; id--) {
+            String s = meta.get("chunk." + id);
+            if (s == null) {
+                continue;
             }
-            Chunk c = Chunk.fromString(meta.get(s));
+            Chunk c = Chunk.fromString(s);
             if (c.id == header.id) {
                 c.start = header.start;
                 c.length = header.length;
                 c.metaRootPos = header.metaRootPos;
-                c.maxLengthLive = header.maxLengthLive;
                 c.pageCount = header.pageCount;
+                c.pageCountLive = header.pageCountLive;
                 c.maxLength = header.maxLength;
+                c.maxLengthLive = header.maxLengthLive;
             }
             lastChunkId = Math.max(c.id, lastChunkId);
             chunks.put(c.id, c);
+            if (c.pageCountLive == 0) {
+                // remove this chunk in the next save operation
+                registerFreePage(currentVersion, c.id, 0, 0);
+            }
         }
         // rebuild the free space list
         freeSpaceList.clear();
@@ -835,7 +843,6 @@ public class MVStore {
         c.maxLengthLive = Long.MAX_VALUE;
         c.start = Long.MAX_VALUE;
         c.length = Integer.MAX_VALUE;
-        time = Math.max(0, time - creationTime);
         c.time = time;
         c.version = version;
         chunks.put(c.id, c);
@@ -848,7 +855,9 @@ public class MVStore {
                 if (v >= 0 && m.getVersion() >= lastStoredVersion) {
                     MVMap<?, ?> r = m.openVersion(storeVersion);
                     r.waitUntilWritten(r.getRoot());
-                    changed.add(r);
+                    if (r.getRoot().getPos() == 0) {
+                        changed.add(r);
+                    }
                 }
             }
         }
@@ -859,23 +868,8 @@ public class MVStore {
             } else {
                 meta.put("root." + m.getId(), String.valueOf(Integer.MAX_VALUE));
             }
-        }
-
-        applyFreedChunks(storeVersion);
-        Set<Integer> removedChunks = New.hashSet();
-        // do it twice, because changing the meta table
-        // could cause a chunk to become empty
-        for (int i = 0; i < 2; i++) {
-            for (Chunk x : chunks.values()) {
-                if (x.maxLengthLive == 0 && canOverwriteChunk(x, time)) {
-                    meta.remove("chunk." + x.id);
-                    removedChunks.add(x.id);
-                } else {
-                    meta.put("chunk." + x.id, x.asString());
-                }
-                applyFreedChunks(storeVersion);
-            }
-        }
+        }   
+        Set<Chunk> removedChunks = applyFreedPages(storeVersion, time);
         ByteBuffer buff;
         if (writeBuffer != null) {
             buff = writeBuffer;
@@ -899,7 +893,7 @@ public class MVStore {
         meta.put("chunk." + c.id, c.asString());
 
         if (ASSERT) {
-            if (freedChunks.size() > 0) {
+            if (freedPages.size() > 0) {
                 throw DataUtils.newIllegalStateException("Temporary freed chunks");
             }
         }
@@ -920,13 +914,9 @@ public class MVStore {
         long filePos = reuseSpace ? allocateChunk(length) : fileLength;
         boolean storeAtEndOfFile = filePos + length >= fileLength;
 
-        // need to keep old chunks
-        // until they are are no longer referenced
-        // by an old version
-        // so empty space is not reused too early
-        for (int x : removedChunks) {
-            freeSpaceList.markFree(chunks.get(x));
-            chunks.remove(x);
+        // free up the space of unused chunks now
+        for (Chunk x : removedChunks) {
+            freeSpaceList.markFree(x);
         }
 
         c.start = filePos;
@@ -971,7 +961,6 @@ public class MVStore {
         currentStoreVersion = -1;
         metaChanged = false;
         lastStoredVersion = storeVersion;
-
         return version;
     }
 
@@ -990,25 +979,64 @@ public class MVStore {
         return System.currentTimeMillis() - creationTime;
     }
 
-    private void applyFreedChunks(long storeVersion) {
-        synchronized (freedChunks) {
-            for (Iterator<Long> it = freedChunks.keySet().iterator(); it.hasNext();) {
-                long v = it.next();
-                if (v > storeVersion) {
-                    continue;
+    /**
+     * Apply the freed pages to the chunk metadata. The metadata is updated, but
+     * freed chunks are not removed yet.
+     *
+     * @param storeVersion apply up to the given version
+     * @return the set of freed chunks (might be empty)
+     */
+    private Set<Chunk> applyFreedPages(long storeVersion, long time) {
+        Set<Chunk> removedChunks = New.hashSet();
+        synchronized (freedPages) {
+            while (true) {
+                ArrayList<Chunk> modified = New.arrayList();
+                for (Iterator<Long> it = freedPages.keySet().iterator(); it.hasNext();) {
+                    long v = it.next();
+                    if (v > storeVersion) {
+                        continue;
+                    }
+                    Map<Integer, Chunk> freed = freedPages.get(v);
+                    for (Chunk f : freed.values()) {
+                        Chunk c = chunks.get(f.id);
+                        c.maxLengthLive += f.maxLengthLive;
+                        c.pageCountLive += f.pageCountLive;
+                        if (c.pageCountLive < 0) {
+                            throw DataUtils.newIllegalStateException(
+                                    "Corrupt page count {0}", c.pageCountLive);
+                        }
+                        if (c.maxLengthLive < 0) {
+                            throw DataUtils.newIllegalStateException(
+                                    "Corrupt max length {0}", c.maxLengthLive);
+                        }
+                        if (c.pageCount == 0 && c.maxLengthLive > 0) {
+                            throw DataUtils.newIllegalStateException(
+                                    "Corrupt max length {0}", c.maxLengthLive);
+                        }
+                        modified.add(c);
+                    }
+                    it.remove();
                 }
-                Map<Integer, Chunk> freed = freedChunks.get(v);
-                for (Chunk f : freed.values()) {
-                    Chunk c = chunks.get(f.id);
-                    c.maxLengthLive += f.maxLengthLive;
-                    if (c.maxLengthLive < 0) {
-                        throw DataUtils.newIllegalStateException(
-                                "Corrupt max length {0}", c.maxLengthLive);
+                for (Chunk c : modified) {
+                    if (c.maxLengthLive == 0) {
+                        if (canOverwriteChunk(c, time)) {
+                            removedChunks.add(c);
+                            chunks.remove(c.id);
+                            meta.remove("chunk." + c.id);
+                        } else {
+                            // remove this chunk in the next save operation
+                            registerFreePage(storeVersion + 1, c.id, 0, 0);
+                        }
+                    } else {
+                        meta.put("chunk." + c.id, c.asString());
                     }
                 }
-                it.remove();
+                if (modified.size() == 0) {
+                    break;
+                }
             }
         }
+        return removedChunks;
     }
 
     /**
@@ -1267,18 +1295,23 @@ public class MVStore {
             // can be re-used
             version = currentStoreVersion;
         }
-        synchronized (freedChunks) {
-            HashMap<Integer, Chunk>freed = freedChunks.get(version);
+        registerFreePage(version, c.id, DataUtils.getPageMaxLength(pos), 1);
+    }
+    
+    private void registerFreePage(long version, int chunkId, long maxLengthLive, int pageCount) {
+        synchronized (freedPages) {
+            HashMap<Integer, Chunk>freed = freedPages.get(version);
             if (freed == null) {
                 freed = New.hashMap();
-                freedChunks.put(version, freed);
+                freedPages.put(version, freed);
             }
-            Chunk f = freed.get(c.id);
+            Chunk f = freed.get(chunkId);
             if (f == null) {
-                f = new Chunk(c.id);
-                freed.put(c.id, f);
+                f = new Chunk(chunkId);
+                freed.put(chunkId, f);
             }
-            f.maxLengthLive -= DataUtils.getPageMaxLength(pos);
+            f.maxLengthLive -= maxLengthLive;
+            f.pageCountLive -= pageCount;
         }
     }
 
@@ -1492,8 +1525,8 @@ public class MVStore {
             chunks.clear();
             freeSpaceList.clear();
             maps.clear();
-            synchronized (freedChunks) {
-                freedChunks.clear();
+            synchronized (freedPages) {
+                freedPages.clear();
             }
             currentVersion = version;
             metaChanged = false;
@@ -1506,10 +1539,10 @@ public class MVStore {
             m.rollbackTo(version);
         }
         for (long v = currentVersion; v >= version; v--) {
-            if (freedChunks.size() == 0) {
+            if (freedPages.size() == 0) {
                 break;
             }
-            freedChunks.remove(v);
+            freedPages.remove(v);
         }
         meta.rollbackTo(version);
         metaChanged = false;
@@ -1556,8 +1589,8 @@ public class MVStore {
     }
 
     private void revertTemp(long storeVersion) {
-        synchronized (freedChunks) {
-            for (Iterator<Long> it = freedChunks.keySet().iterator(); it.hasNext();) {
+        synchronized (freedPages) {
+            for (Iterator<Long> it = freedPages.keySet().iterator(); it.hasNext();) {
                 long v = it.next();
                 if (v > storeVersion) {
                     continue;

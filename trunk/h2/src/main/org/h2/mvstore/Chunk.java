@@ -42,9 +42,14 @@ public class Chunk {
     int length;
 
     /**
-     * The number of pages.
+     * The total number of pages in this chunk.
      */
     int pageCount;
+    
+    /**
+     * The number of pages still alive.
+     */
+    int pageCountLive;
 
     /**
      * The sum of the max length of all pages.
@@ -101,6 +106,7 @@ public class Chunk {
         Chunk c = new Chunk(chunkId);
         c.length = length;
         c.pageCount = pageCount;
+        c.pageCountLive = pageCount;
         c.start = start;
         c.metaRootPos = metaRootPos;
         c.maxLength = maxLength;
@@ -136,6 +142,7 @@ public class Chunk {
         c.start = Long.parseLong(map.get("start"));
         c.length = Integer.parseInt(map.get("length"));
         c.pageCount = Integer.parseInt(map.get("pageCount"));
+        c.pageCountLive = Integer.parseInt(map.get("pageCountLive"));
         c.maxLength = Long.parseLong(map.get("maxLength"));
         c.maxLengthLive = Long.parseLong(map.get("maxLengthLive"));
         c.metaRootPos = Long.parseLong(map.get("metaRoot"));
@@ -169,6 +176,7 @@ public class Chunk {
                 "maxLengthLive:" + maxLengthLive + "," +
                 "metaRoot:" + metaRootPos + "," +
                 "pageCount:" + pageCount + "," +
+                "pageCountLive:" + pageCountLive + "," +
                 "start:" + start + "," +
                 "time:" + time + "," +
                 "version:" + version;

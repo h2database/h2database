@@ -203,6 +203,9 @@ java org.pitest.mutationtest.MutationCoverageReport
 --targetTests org.h2.test.store.TestStreamStore
 --sourceDirs src/test,src/tools
 
+Dump heap on out of memory:
+-XX:+HeapDumpOnOutOfMemoryError
+
 Random test:
 java15
 cd h2database/h2/bin
@@ -536,6 +539,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         ssl = false;
         traceLevelFile = 0;
         test();
+        testUnit();
 
         big = false;
         cipher = "AES";

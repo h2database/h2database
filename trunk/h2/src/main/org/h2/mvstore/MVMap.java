@@ -773,18 +773,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return new Cursor<K>(this, root, from);
     }
 
-    /**
-     * Iterate over all keys in changed pages.
-     *
-     * @param version the old version
-     * @return the iterator
-     */
-    public Iterator<K> changeIterator(long version) {
-        checkOpen();
-        MVMap<K, V> old = openVersion(version);
-        return new ChangeCursor<K, V>(this, root, old.root);
-    }
-
     public Set<Map.Entry<K, V>> entrySet() {
         HashMap<K, V> map = new HashMap<K, V>();
         for (K k : keySet()) {

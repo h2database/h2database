@@ -125,7 +125,9 @@ Connection conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
 <p>
 When using database URLs like <code>jdbc:h2:~/test</code>,
 the database is stored in the user directory.
-For Windows, this is usually <code>C:\Documents and Settings\&lt;userName&gt;</code>.
+For Windows, this is usually 
+<code>C:\Documents and Settings\&lt;userName&gt;</code> or
+<code>C:\Users\&lt;userName&gt;</code>.
 If the base directory is not set (as in <code>jdbc:h2:test</code>),
 the database files are stored in the directory where the application is started
 (the current working directory). When using the H2 Console application from the start menu,

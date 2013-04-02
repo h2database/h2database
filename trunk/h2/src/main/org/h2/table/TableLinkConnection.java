@@ -71,20 +71,15 @@ public class TableLinkConnection {
             return t;
         }
         synchronized (map) {
-            TableLinkConnection result;
-            result = map.get(t);
+            TableLinkConnection result = map.get(t);
             if (result == null) {
-                synchronized (t) {
-                    t.open();
-                }
+                t.open();
                 // put the connection in the map after is has been opened,
-                // so we know it works
+                // when we know it works
                 map.put(t, t);
                 result = t;
             }
-            synchronized (result) {
-                result.useCounter++;
-            }
+            result.useCounter++;
             return result;
         }
     }
@@ -132,12 +127,16 @@ public class TableLinkConnection {
      * @param force if the connection needs to be closed even if it is still
      *            used elsewhere (for example, because the connection is broken)
      */
-    synchronized void close(boolean force) {
-        if (--useCounter <= 0 || force) {
-            JdbcUtils.closeSilently(conn);
-            synchronized (map) {
+    void close(boolean force) {
+        boolean actuallyClose = false;
+        synchronized (map) {
+            if (--useCounter <= 0 || force) {
+                actuallyClose = true;
                 map.remove(this);
             }
+        }
+        if (actuallyClose) {
+            JdbcUtils.closeSilently(conn);
         }
     }
 

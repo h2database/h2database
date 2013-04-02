@@ -112,6 +112,12 @@ public class Mode {
      * The function LOG() uses base 10 instead of E.
      */
     public boolean logIsLogBase10;
+    
+    /**
+     * SERIAL and BIGSERIAL columns are not automatically primary keys.
+     */
+    public boolean serialColumnIsNotPK;
+
 
     private final String name;
 
@@ -165,6 +171,7 @@ public class Mode {
         mode.supportOffsetFetch = true;
         mode.systemColumns = true;
         mode.logIsLogBase10 = true;
+        mode.serialColumnIsNotPK = true;
         add(mode);
     }
 

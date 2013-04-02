@@ -81,6 +81,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
+import org.h2.engine.Mode;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -3519,12 +3520,18 @@ public class Parser {
             column = new Column(columnName, Value.LONG);
             column.setOriginalSQL("IDENTITY");
             parseAutoIncrement(column);
-            column.setPrimaryKey(true);
+            // PostgreSQL compatibility
+            if (!database.getMode().serialColumnIsNotPK) {
+                column.setPrimaryKey(true);
+            }
         } else if (readIf("SERIAL")) {
             column = new Column(columnName, Value.INT);
             column.setOriginalSQL("SERIAL");
             parseAutoIncrement(column);
-            column.setPrimaryKey(true);
+            // PostgreSQL compatibility
+            if (!database.getMode().serialColumnIsNotPK) {
+                column.setPrimaryKey(true);
+            }
         } else {
             column = parseColumnWithType(columnName);
         }

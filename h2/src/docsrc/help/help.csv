@@ -3837,6 +3837,14 @@ Returns the name of the current user of this session.
 CURRENT_USER()
 "
 
+"Functions (System)","H2VERSION","
+H2VERSION()
+","
+Returns the H2 version as a String.
+","
+H2VERSION()
+"
+
 "System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","

@@ -34,12 +34,50 @@ public class TestMVTableEngine extends TestBase {
     }
 
     public void test() throws Exception {
+        // testSpeed();
         testEncryption();
         testReadOnly();
         testReuseDiskSpace();
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testSpeed() throws Exception {
+        String dbName;
+        for (int i = 0; i < 5; i++) {
+            dbName = "mvstore";
+            dbName += ";LOCK_MODE=0";
+            testSpeed(dbName);
+            // Profiler prof = new Profiler().startCollecting();
+            dbName = "mvstore" +
+                    ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
+            testSpeed(dbName);
+            // System.out.println(prof.getTop(10));
+        }
+    }
+    
+    private void testSpeed(String dbName) throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = getURL(dbName, true);
+        String user = getUser();
+        String password = getPassword();
+        conn = DriverManager.getConnection(url, user, password);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar(255))");
+        PreparedStatement prep = conn
+                .prepareStatement("insert into test values(?, ?)");
+        prep.setString(2, "Hello World");
+        long time = System.currentTimeMillis();
+        for (int i = 0; i < 100000; i++) {
+            prep.setInt(1, i);
+            prep.execute();
+        }
+        System.out.println((System.currentTimeMillis() - time) + " " + dbName);
+        conn.close();
+        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testEncryption() throws Exception {

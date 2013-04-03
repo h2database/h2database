@@ -215,7 +215,7 @@ public class MVStore {
     /**
      * The version of the current store operation (if any).
      */
-    private long currentStoreVersion = -1;
+    private volatile long currentStoreVersion = -1;
 
     private volatile boolean metaChanged;
 
@@ -910,9 +910,9 @@ public class MVStore {
         }
         buff.limit(length);
 
-        long fileLength = getFileLengthUsed();
-        long filePos = reuseSpace ? allocateChunk(length) : fileLength;
-        boolean storeAtEndOfFile = filePos + length >= fileLength;
+        long fileSizeUsed = getFileSizeUsed();
+        long filePos = reuseSpace ? allocateChunk(length) : fileSizeUsed;
+        boolean storeAtEndOfFile = filePos + length >= fileSizeUsed;
 
         // free up the space of unused chunks now
         for (Chunk x : removedChunks) {
@@ -1046,7 +1046,7 @@ public class MVStore {
      * @param minPercent the minimum percentage to save
      */
     private void shrinkFileIfPossible(int minPercent) {
-        long used = getFileLengthUsed();
+        long used = getFileSizeUsed();
         if (used >= fileSize) {
             return;
         }
@@ -1067,7 +1067,7 @@ public class MVStore {
         fileSize = used;
     }
 
-    private long getFileLengthUsed() {
+    private long getFileSizeUsed() {
         long size = 2 * BLOCK_SIZE;
         for (Chunk c : chunks.values()) {
             if (c.start == Long.MAX_VALUE) {
@@ -1409,7 +1409,11 @@ public class MVStore {
     }
 
     public long getRetainVersion() {
-        return retainVersion;
+        long v = retainVersion;
+        if (currentStoreVersion >= -1) {
+            v = Math.min(v, currentStoreVersion);
+        }
+        return v;
     }
 
     /**
@@ -1732,6 +1736,10 @@ public class MVStore {
         }
         store(true);
     }
+    
+    public boolean isReadOnly() {
+        return readOnly;
+    }
 
     /**
      * A background writer to automatically store changes from time to time.
@@ -1907,10 +1915,6 @@ public class MVStore {
             return builder;
         }
 
-    }
-
-    public boolean isReadOnly() {
-        return readOnly;
     }
 
 }

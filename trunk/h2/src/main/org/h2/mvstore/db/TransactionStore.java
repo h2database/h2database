@@ -4,7 +4,7 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.mvstore;
+package org.h2.mvstore.db;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -13,6 +13,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.h2.mvstore.Cursor;
+import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVMapConcurrent;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVMap.Builder;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
@@ -111,7 +116,7 @@ public class TransactionStore {
             Object[] data = openTransactions.get(id);
             int status = (Integer) data[0];
             String name = (String) data[1];
-            long[] next = { id + 1, 0 };
+            long[] next = { id + 1, -1 };
             long[] last = undoLog.floorKey(next);
             if (last == null) {
                 // no entry

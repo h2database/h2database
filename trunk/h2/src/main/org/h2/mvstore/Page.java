@@ -241,6 +241,7 @@ public class Page {
 
     public String toString() {
         StringBuilder buff = new StringBuilder();
+        buff.append("id: ").append(System.identityHashCode(this)).append('\n');
         buff.append("pos: ").append(pos).append("\n");
         for (int i = 0; i <= keyCount; i++) {
             if (i > 0) {
@@ -835,6 +836,10 @@ public class Page {
      * @return the target buffer
      */
     ByteBuffer writeUnsavedRecursive(Chunk chunk, ByteBuffer buff) {
+        if (pos != 0) {
+            // already stored before
+            return buff;
+        }
         if (!isLeaf()) {
             int len = children.length;
             for (int i = 0; i < len; i++) {

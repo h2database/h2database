@@ -28,8 +28,7 @@ import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.mvstore.TransactionStore;
-import org.h2.mvstore.TransactionStore.Transaction;
+import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
@@ -521,7 +520,7 @@ public class MVTable extends TableBase {
         rowCount = 0;
         changesSinceAnalyze = 0;
     }
-
+   
     @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();

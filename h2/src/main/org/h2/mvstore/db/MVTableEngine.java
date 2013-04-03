@@ -17,7 +17,6 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.TransactionStore;
 import org.h2.table.TableBase;
 import org.h2.util.New;
 
@@ -116,8 +115,7 @@ public class MVTableEngine implements TableEngine {
      * @param store the store
      */
     static void store(MVStore store) {
-        int test;
-//        store.compact(50);
+        store.compact(50);
         store.store();
     }
 

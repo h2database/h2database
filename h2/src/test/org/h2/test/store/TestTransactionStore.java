@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Random;
 
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.TransactionStore;
-import org.h2.mvstore.TransactionStore.Transaction;
-import org.h2.mvstore.TransactionStore.TransactionMap;
+import org.h2.mvstore.db.TransactionStore;
+import org.h2.mvstore.db.TransactionStore.Transaction;
+import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -176,9 +176,9 @@ public class TestTransactionStore extends TestBase {
         assertEquals(1, tx.getId());
         m = tx.openMap("test");
         assertEquals(null, m.get("1"));
+        m.put("2", "Hello");
         list = ts.getOpenTransactions();
-        // only one was writing
-        assertEquals(1, list.size());
+        assertEquals(2, list.size());
         txOld = list.get(0);
         assertEquals(0, txOld.getId());
         assertEquals(Transaction.STATUS_OPEN, txOld.getStatus());
@@ -195,7 +195,12 @@ public class TestTransactionStore extends TestBase {
         // TransactionStore was not closed, so we lost some ids
         assertEquals(33, tx.getId());
         list = ts.getOpenTransactions();
-        assertEquals(1, list.size());
+        assertEquals(2, list.size());
+        txOld = list.get(1);
+        assertEquals(1, txOld.getId());
+        assertEquals(Transaction.STATUS_OPEN, txOld.getStatus());
+        assertEquals(null, txOld.getName());
+        txOld.rollback();
         txOld = list.get(0);
         assertEquals(0, txOld.getId());
         assertEquals(Transaction.STATUS_PREPARED, txOld.getStatus());

@@ -998,9 +998,6 @@ public class TestMVStore extends TestBase {
         assertEquals("name:data", m.get("map." + id));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
-        assertEquals("id:1,length:263,maxLength:288,maxLengthLive:288," +
-                "metaRoot:274877910924,pageCount:2,pageCountLive:2," +
-                "start:8192,time:0,version:1", m.get("chunk.1"));
 
         assertTrue(m.containsKey("chunk.2"));
         assertEquals(2, s.getCurrentVersion());

@@ -11,6 +11,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
@@ -308,8 +309,8 @@ public class TreeIndex extends BaseIndex {
         return new TreeCursor(this, x, first, last);
     }
 
-    public double getCost(Session session, int[] masks) {
-        return getCostRangeIndex(masks, tableData.getRowCountApproximation());
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+        return getCostRangeIndex(masks, tableData.getRowCountApproximation(), sortOrder);
     }
 
     public void remove(Session session) {

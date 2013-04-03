@@ -19,6 +19,7 @@ import org.h2.engine.UndoLogRecord;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
 import org.h2.table.Column;
@@ -300,7 +301,7 @@ public class PageDataIndex extends PageIndex {
         return root.getLastKey();
     }
 
-    public double getCost(Session session, int[] masks) {
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         long cost = 10 * (tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET);
         return cost;
     }

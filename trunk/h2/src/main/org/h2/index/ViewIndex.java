@@ -19,6 +19,7 @@ import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableView;
@@ -108,7 +109,7 @@ public class ViewIndex extends BaseIndex {
         double cost;
     }
 
-    public synchronized double getCost(Session session, int[] masks) {
+    public synchronized double getCost(Session session, int[] masks, SortOrder sortOrder) {
         if (recursive) {
             return 1000;
         }

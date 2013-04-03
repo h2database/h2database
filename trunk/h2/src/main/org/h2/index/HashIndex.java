@@ -10,6 +10,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
@@ -93,7 +94,7 @@ public class HashIndex extends BaseIndex {
         // nothing to do
     }
 
-    public double getCost(Session session, int[] masks) {
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         for (Column column : columns) {
             int index = column.getColumnId();
             int mask = masks[index];

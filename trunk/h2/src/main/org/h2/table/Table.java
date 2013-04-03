@@ -29,6 +29,7 @@ import org.h2.result.RowList;
 import org.h2.result.SearchRow;
 import org.h2.result.SimpleRow;
 import org.h2.result.SimpleRowValue;
+import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.schema.Sequence;
@@ -627,15 +628,15 @@ public abstract class Table extends SchemaObjectBase {
      *              see constants in IndexCondition
      * @return the plan item
      */
-    public PlanItem getBestPlanItem(Session session, int[] masks) {
+    public PlanItem getBestPlanItem(Session session, int[] masks, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
-        item.cost = item.getIndex().getCost(session, null);
+        item.cost = item.getIndex().getCost(session, null, null);
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                double cost = index.getCost(session, masks);
+                double cost = index.getCost(session, masks, sortOrder);
                 if (cost < item.cost) {
                     item.cost = cost;
                     item.setIndex(index);

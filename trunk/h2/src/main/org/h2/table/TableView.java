@@ -23,6 +23,7 @@ import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
+import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.util.IntArray;
 import org.h2.util.New;
@@ -200,9 +201,9 @@ public class TableView extends Table {
         return createException != null;
     }
 
-    public synchronized PlanItem getBestPlanItem(Session session, int[] masks) {
+    public synchronized PlanItem getBestPlanItem(Session session, int[] masks, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
-        item.cost = index.getCost(session, masks);
+        item.cost = index.getCost(session, masks, sortOrder);
         IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
         SynchronizedVerifier.check(indexCache);
         ViewIndex i2 = indexCache.get(masksArray);
@@ -352,7 +353,7 @@ public class TableView extends Table {
             String msg = createException.getMessage();
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, createException, getSQL(), msg);
         }
-        PlanItem item = getBestPlanItem(session, null);
+        PlanItem item = getBestPlanItem(session, null, null);
         return item.getIndex();
     }
 

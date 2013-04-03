@@ -171,9 +171,9 @@ public class MVSecondaryIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks) {
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         TransactionMap<Value, Value> map = getMap(session);
-        return 10 * getCostRangeIndex(masks, map.getSize());
+        return 10 * getCostRangeIndex(masks, map.getSize(), sortOrder);
     }
 
     @Override

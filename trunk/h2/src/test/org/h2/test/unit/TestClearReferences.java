@@ -32,6 +32,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.store.fs.FilePath.defaultProvider",
         "org.h2.store.fs.FilePath.providers",
         "org.h2.store.fs.FilePath.tempRandom",
+        "org.h2.store.fs.FilePathRec.recorder",
         "org.h2.tools.CompressTool.cachedBuffer",
         "org.h2.util.CloseWatcher.queue",
         "org.h2.util.CloseWatcher.refs",

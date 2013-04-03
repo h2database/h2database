@@ -1674,7 +1674,7 @@ public class Parser {
                     read("RR");
                 }
                 command.setForUpdate(true);
-            } else if (readIf("READ")) {
+            } else if (readIf("READ") || readIf("FETCH")) {
                 read("ONLY");
                 if (readIf("WITH")) {
                     read("RS");

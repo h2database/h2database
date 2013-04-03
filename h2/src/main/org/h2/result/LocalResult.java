@@ -336,7 +336,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         } else {
             if (sort != null) {
                 if (offset > 0 || limit > 0) {
-                    sort.sort(rows, offset, limit == -1 ? rows.size() : limit);
+                    sort.sort(rows, offset, limit < 0 ? rows.size() : limit);
                 } else {
                     sort.sort(rows);
                 }

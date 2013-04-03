@@ -126,7 +126,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param rowCount the number of rows in the index
      * @return the estimated cost
      */
-    protected long getCostRangeIndex(int[] masks, long rowCount) {
+    protected long getCostRangeIndex(int[] masks, long rowCount, SortOrder sortOrder) {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;
         long rows = rowCount;
@@ -161,6 +161,34 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                 break;
             } else {
                 break;
+            }
+        }
+        // If the query ORDER BY clause matches the ordering of this index, it will be cheaper
+        // than another index, so adjust the cost accordingly.
+        if (sortOrder != null) {
+            int[] columnIndexes = new int[ indexColumns.length ];
+            int[] columnSortTypes = new int[ indexColumns.length ];
+            for (int i = 0, len = indexColumns.length; i < len; i++) {
+                columnIndexes[i] = indexColumns[i].column.getColumnId();
+                columnSortTypes[i] = indexColumns[i].sortType;
+            }
+            boolean sortOrderMatches = true;
+            int[] sortOrderIndexes = sortOrder.getIndexes();
+            int coveringCount = 0;
+            for (int i = 0, len = sortOrderIndexes.length; i < len; i++) {
+                if (i >= columnIndexes.length) {
+                    // we can still use this index if we are sorting by more than it's columns
+                    break;
+                }
+                if (columnIndexes[i] != sortOrderIndexes[i] || columnSortTypes[i] != sortOrder.getSortTypes()[i]) {
+                    sortOrderMatches = false;
+                    break;
+                }
+                coveringCount++;
+            }
+            if (sortOrderMatches) {
+                // "coveringCount" makes sure that when we have two or more covering indexes, we choose the one that covers more
+                cost -= coveringCount;
             }
         }
         return cost;

@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -123,8 +124,8 @@ public class MultiVersionIndex implements Index {
         return cursor;
     }
 
-    public double getCost(Session session, int[] masks) {
-        return base.getCost(session, masks);
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+        return base.getCost(session, masks, sortOrder);
     }
 
     public boolean needRebuild() {

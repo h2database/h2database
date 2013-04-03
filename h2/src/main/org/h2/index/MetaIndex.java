@@ -11,6 +11,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
@@ -46,11 +47,11 @@ public class MetaIndex extends BaseIndex {
         return new MetaCursor(rows);
     }
 
-    public double getCost(Session session, int[] masks) {
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         if (scan) {
             return 10 * MetaTable.ROW_COUNT_APPROXIMATION;
         }
-        return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION);
+        return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION, sortOrder);
     }
 
     public void truncate(Session session) {

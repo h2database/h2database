@@ -177,7 +177,7 @@ public class MVPrimaryIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks) {
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         TransactionMap<Value, Value> map = getMap(session);
         long cost = 10 * (map.getSize() + Constants.COST_ROW_OFFSET);
         return cost;

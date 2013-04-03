@@ -9,6 +9,7 @@ package org.h2.index;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -81,7 +82,7 @@ public interface Index extends SchemaObject {
      *              see constants in IndexCondition
      * @return the estimated cost
      */
-    double getCost(Session session, int[] masks);
+    double getCost(Session session, int[] masks, SortOrder sortOrder);
 
     /**
      * Remove the index.

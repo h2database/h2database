@@ -19,6 +19,7 @@ import org.h2.engine.UndoLogRecord;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
@@ -159,7 +160,7 @@ public class ScanIndex extends BaseIndex {
         return new ScanCursor(session, this, database.isMultiVersion());
     }
 
-    public double getCost(Session session, int[] masks) {
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         return tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
     }
 

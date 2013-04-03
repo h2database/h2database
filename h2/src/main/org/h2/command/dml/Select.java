@@ -1273,4 +1273,8 @@ public class Select extends Query {
         return false;
     }
 
+    public SortOrder prepareOrder() {
+        return sort;
+    }
+    
 }

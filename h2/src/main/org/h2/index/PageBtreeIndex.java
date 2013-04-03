@@ -13,6 +13,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
 import org.h2.store.Data;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
@@ -216,8 +217,8 @@ public class PageBtreeIndex extends PageIndex {
         return cursor;
     }
 
-    public double getCost(Session session, int[] masks) {
-        return 10 * getCostRangeIndex(masks, tableData.getRowCount(session));
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+        return 10 * getCostRangeIndex(masks, tableData.getRowCount(session), sortOrder);
     }
 
     public boolean needRebuild() {

@@ -1065,7 +1065,14 @@ public class Parser {
         } else {
             String tableName = readIdentifierWithSchema(null);
             Schema schema = getSchema();
-            if (readIf("(")) {
+            boolean foundLeftBracket = readIf("(");
+            if (foundLeftBracket && readIf("INDEX")) {
+                // Sybase compatibility with "select * from test (index table1_index)"
+                readIdentifierWithSchema(null);
+                read(")");
+                foundLeftBracket = false;
+            }
+            if (foundLeftBracket) {
                 Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
                 if (equalsToken(tableName, RangeTable.NAME)) {
                     Expression min = readExpression();

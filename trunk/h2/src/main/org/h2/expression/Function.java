@@ -241,6 +241,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("LENGTH", LENGTH, 1, Value.LONG);
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT);
+        addFunction("CHARINDEX", LOCATE, VAR_ARGS, Value.INT); // alias for MSSQLServer
         // same as LOCATE with 2 arguments
         addFunction("POSITION", LOCATE, 2, Value.INT);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INT);
@@ -277,6 +278,7 @@ public class Function extends Expression implements FunctionCall {
         // date
         addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE);
         addFunctionNotDeterministic("CURDATE", CURDATE, 0, Value.DATE);
+        addFunctionNotDeterministic("GETDATE", CURDATE, 0, Value.DATE); // alias for MSSQLServer
         addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME, 0, Value.TIME);
         addFunctionNotDeterministic("CURTIME", CURTIME, 0, Value.TIME);
         addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);

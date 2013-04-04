@@ -48,7 +48,7 @@ public class TestCompatibility extends TestBase {
         testMySQL();
         testDB2();
         testDerby();
-        testPlusSignAsConcatOperator();
+        testSybaseAndMSSQLServer();
 
         conn.close();
         deleteDb("compatibility");
@@ -261,7 +261,7 @@ public class TestCompatibility extends TestBase {
         conn = getConnection("compatibility");
     }
 
-    private void testPlusSignAsConcatOperator() throws SQLException {
+    private void testSybaseAndMSSQLServer() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("SET MODE MSSQLServer");
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -298,12 +298,17 @@ public class TestCompatibility extends TestBase {
 
         prep = conn.prepareStatement("SELECT full_name FROM test WHERE (SUBSTRING(name, 1, 1) + SUBSTRING(surname, 2, 3)) = ?");
         prep.setString(1, "Joe");
-        ResultSet res = prep.executeQuery();
-        assertTrue("Result cannot be empty", res.next());
-        assertEquals("John, Doe", res.getString(1));
-        res.close();
+        ResultSet rs = prep.executeQuery();
+        assertTrue("Result cannot be empty", rs.next());
+        assertEquals("John, Doe", rs.getString(1));
+        rs.close();
         prep.close();
-
+        
+        // CONVERT has it's parameters the other way around from the default mode
+        rs = stat.executeQuery("SELECT CONVERT(INT, '10')");
+        rs.next();
+        assertEquals(10, rs.getInt(1));
+        rs.close();
     }
 
     private void testDB2() throws SQLException {

@@ -2191,11 +2191,19 @@ public class Parser {
             break;
         }
         case Function.CONVERT: {
-            function.setParameter(0, readExpression());
-            read(",");
-            Column type = parseColumnWithType(null);
-            function.setDataType(type);
-            read(")");
+            if (database.getMode().swapConvertFunctionParameters) {
+                Column type = parseColumnWithType(null);
+                function.setDataType(type);
+                read(",");
+                function.setParameter(0, readExpression());
+                read(")");
+            } else {
+                function.setParameter(0, readExpression());
+                read(",");
+                Column type = parseColumnWithType(null);
+                function.setDataType(type);
+                read(")");
+            }
             break;
         }
         case Function.EXTRACT: {

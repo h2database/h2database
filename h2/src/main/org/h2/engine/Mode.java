@@ -117,6 +117,11 @@ public class Mode {
      * SERIAL and BIGSERIAL columns are not automatically primary keys.
      */
     public boolean serialColumnIsNotPK;
+    
+    /**
+     * Swap the parameters of the CONVERT function.
+     */
+    public boolean swapConvertFunctionParameters;
 
 
     private final String name;
@@ -152,6 +157,7 @@ public class Mode {
         mode.squareBracketQuotedNames = true;
         mode.uniqueIndexSingleNull = true;
         mode.allowPlusForStringConcat = true;
+        mode.swapConvertFunctionParameters = true;
         add(mode);
 
         mode = new Mode("MySQL");

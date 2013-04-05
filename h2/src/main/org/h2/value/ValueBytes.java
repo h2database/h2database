@@ -89,9 +89,8 @@ public class ValueBytes extends Value {
         byte[] v2 = ((ValueBytes) v).value;
         if (mode.isBinaryUnsigned()) {
             return Utils.compareNotNullUnsigned(value, v2);
-        } else {
-            return Utils.compareNotNullSigned(value, v2);
         }
+        return Utils.compareNotNullSigned(value, v2);
     }
 
     public String getString() {

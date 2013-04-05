@@ -1,4 +1,9 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from system_range(1,1) order by x limit 3 offset 3;
+> X
+> -
+> rows (ordered): 0
+
 select * from dual where cast('a' || x as varchar_ignorecase) in ('A1', 'B1');
 > X
 > -

@@ -901,19 +901,25 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         try {
             rs = stat.executeQuery("SELECT TRUNCATE('bad', 1) FROM dual");
             fail("expected exception");
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            // expected
+        }
         
         // check for passing wrong data type
         try {
             rs = stat.executeQuery("SELECT TRUNCATE('bad') FROM dual");
             fail("expected exception");
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            // expected
+        }
         
         // check for too many parameters
         try {
             rs = stat.executeQuery("SELECT TRUNCATE(1,2,3) FROM dual");
             fail("expected exception");
-        } catch (SQLException ex) {}
+        } catch (SQLException ex) {
+            // expected
+        }
         
         conn.close();
     }

@@ -303,7 +303,7 @@ public class TestCompatibility extends TestBase {
         assertEquals("John, Doe", rs.getString(1));
         rs.close();
         prep.close();
-        
+
         // CONVERT has it's parameters the other way around from the default mode
         rs = stat.executeQuery("SELECT CONVERT(INT, '10')");
         rs.next();

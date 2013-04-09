@@ -606,7 +606,7 @@ public abstract class TestBase {
             fail("Expected: " + df.format(expected) + " actual: " + df.format(actual));
         }
     }
-    
+
     /**
      * Check if two values are equal, and if not throw an exception.
      *

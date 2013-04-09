@@ -124,6 +124,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *
      * @param masks the search mask
      * @param rowCount the number of rows in the index
+     * @param sortOrder the sort order
      * @return the estimated cost
      */
     protected long getCostRangeIndex(int[] masks, long rowCount, SortOrder sortOrder) {
@@ -163,8 +164,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                 break;
             }
         }
-        // If the query ORDER BY clause matches the ordering of this index, it will be cheaper
-        // than another index, so adjust the cost accordingly.
+        // if the ORDER BY clause matches the ordering of this index,
+        // it will be cheaper than another index, so adjust the cost accordingly
         if (sortOrder != null) {
             int[] columnIndexes = new int[ indexColumns.length ];
             int[] columnSortTypes = new int[ indexColumns.length ];
@@ -187,7 +188,9 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                 coveringCount++;
             }
             if (sortOrderMatches) {
-                // "coveringCount" makes sure that when we have two or more covering indexes, we choose the one that covers more
+                // "coveringCount" makes sure that when we have two
+                // or more covering indexes, we choose the one
+                // that covers more
                 cost -= coveringCount;
             }
         }

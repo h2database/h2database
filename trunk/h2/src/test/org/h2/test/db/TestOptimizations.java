@@ -783,12 +783,15 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    /** Where there are multiple indices, and we have an ORDER BY, select the index that already has the required ordering. */
+    /**
+     * Where there are multiple indices, and we have an ORDER BY, select the
+     * index that already has the required ordering.
+     */
     private void testOrderedIndexes() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        
+
         stat.execute("CREATE TABLE my_table(K1 INT, K2 INT, VAL VARCHAR, PRIMARY KEY(K1,K2))");
         stat.execute("CREATE INDEX my_index ON my_table(K1,VAL);");
         ResultSet rs = stat.executeQuery("EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 ORDER BY K1,VAL");
@@ -796,15 +799,17 @@ public class TestOptimizations extends TestBase {
         assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX: K1 = 7 */");
 
         stat.execute("DROP TABLE my_table");
-        
-        // where we have two covering indexes, make sure we choose the one that covers more
+
+        // where we have two covering indexes, make sure
+        // we choose the one that covers more
         stat.execute("CREATE TABLE my_table(K1 INT, K2 INT, VAL VARCHAR)");
         stat.execute("CREATE INDEX my_index1 ON my_table(K1,K2);");
         stat.execute("CREATE INDEX my_index2 ON my_table(K1,K2,VAL);");
         rs = stat.executeQuery("EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 ORDER BY K1,K2,VAL");
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX2: K1 = 7 */");
-        
+
         conn.close();
     }
+
 }

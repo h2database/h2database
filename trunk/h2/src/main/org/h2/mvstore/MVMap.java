@@ -1176,7 +1176,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             this.keyType = keyType;
             return this;
         }
-        
+
         public DataType getKeyType() {
             return keyType;
         }

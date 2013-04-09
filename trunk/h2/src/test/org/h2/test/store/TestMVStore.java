@@ -79,9 +79,9 @@ public class TestMVStore extends TestBase {
         testIterate();
         testCloseTwice();
         testSimple();
-        
+
         // longer running tests
-        
+
         testLargerThan2G();
     }
 
@@ -1360,7 +1360,7 @@ public class TestMVStore extends TestBase {
         }
         s.close();
     }
-    
+
     private void testLargerThan2G() throws IOException {
         if (!config.big) {
             return;

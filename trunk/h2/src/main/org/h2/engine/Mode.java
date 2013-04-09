@@ -112,12 +112,12 @@ public class Mode {
      * The function LOG() uses base 10 instead of E.
      */
     public boolean logIsLogBase10;
-    
+
     /**
      * SERIAL and BIGSERIAL columns are not automatically primary keys.
      */
     public boolean serialColumnIsNotPK;
-    
+
     /**
      * Swap the parameters of the CONVERT function.
      */

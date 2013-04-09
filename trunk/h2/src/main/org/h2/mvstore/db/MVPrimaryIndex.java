@@ -218,7 +218,7 @@ public class MVPrimaryIndex extends BaseIndex {
             return new MVStoreCursor(session, Collections.<Value>emptyList().iterator(), 0);
         }
         long key = first ? map.firstKey().getLong() : map.lastKey().getLong();
-        MVStoreCursor cursor = new MVStoreCursor(session, 
+        MVStoreCursor cursor = new MVStoreCursor(session,
                 Arrays.asList((Value) ValueLong.get(key)).iterator(), key);
         cursor.next();
         return cursor;

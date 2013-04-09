@@ -23,7 +23,7 @@ Change Log
 </li><li>When using local temporary tables and not dropping them manually before closing the session,
     and then killing the process could result in a database that couldn't be opened (except when using
     the recover tool).
-</li><li>Support TRUNC(timestamp) for improved Oracle compatiblity.
+</li><li>Support TRUNC(timestamp) for improved Oracle compatibility.
 </li><li>Add support for CREATE TABLE TEST (ID BIGSERIAL) for PostgreSQL compatibility. Patch from Jesse Long.
 </li><li>Add new collation command SET BINARY_COLLATION UNSIGNED, helps with people testing BINARY columns in MySQL mode.
 </li><li>Fix issue #453, ABBA race conditions in TABLE LINK connection sharing.

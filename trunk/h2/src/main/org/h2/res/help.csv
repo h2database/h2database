@@ -346,6 +346,11 @@ SET CLUSTER serverListString
 ","
 This command should not be used directly by an application, the statement is
 executed automatically by the system."
+"Commands (Other)","SET BINARY_COLLATION","
+SET BINARY_COLLATION
+{ UNSIGNED | SIGNED } ] }
+","
+Sets the collation used for comparing BINARY columns, the default is SIGNED."
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
 { OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }
@@ -1388,6 +1393,10 @@ Truncate a value to the required precision."
 { USER | CURRENT_USER } ()
 ","
 Returns the name of the current user of this session."
+"Functions (System)","H2VERSION","
+H2VERSION()
+","
+Returns the H2 version as a String."
 "System Tables","Information Schema","
 INFORMATION_SCHEMA
 ","

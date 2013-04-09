@@ -242,7 +242,7 @@ public class Function extends Expression implements FunctionCall {
         // 2 or 3 arguments
         addFunction("LOCATE", LOCATE, VAR_ARGS, Value.INT);
         // alias for MSSQLServer
-        addFunction("CHARINDEX", LOCATE, VAR_ARGS, Value.INT); 
+        addFunction("CHARINDEX", LOCATE, VAR_ARGS, Value.INT);
         // same as LOCATE with 2 arguments
         addFunction("POSITION", LOCATE, 2, Value.INT);
         addFunction("INSTR", INSTR, VAR_ARGS, Value.INT);

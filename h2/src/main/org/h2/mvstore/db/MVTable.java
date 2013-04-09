@@ -520,7 +520,7 @@ public class MVTable extends TableBase {
         rowCount = 0;
         changesSinceAnalyze = 0;
     }
-   
+
     @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
@@ -701,7 +701,7 @@ public class MVTable extends TableBase {
     public String toString() {
         return getSQL();
     }
-    
+
     public boolean isMVStore() {
         return true;
     }

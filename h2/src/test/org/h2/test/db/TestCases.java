@@ -836,7 +836,7 @@ public class TestCases extends TestBase {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        
+
         // test the default (SIGNED)
         stat.execute("create table bin( x binary(1) );");
         stat.execute("insert into bin(x) values (x'09'),(x'0a'),(x'99'),(x'aa');");
@@ -849,7 +849,7 @@ public class TestCases extends TestBase {
         assertEquals("09", rs.getString(1));
         rs.next();
         assertEquals("0a", rs.getString(1));
-        
+
         // test UNSIGNED mode
         stat.execute("drop table bin");
         stat.execute("SET BINARY_COLLATION UNSIGNED");
@@ -864,10 +864,10 @@ public class TestCases extends TestBase {
         assertEquals("99", rs.getString(1));
         rs.next();
         assertEquals("aa", rs.getString(1));
-        
+
         conn.close();
     }
-    
+
     private void testPersistentSettings() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection("cases");

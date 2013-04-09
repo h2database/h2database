@@ -78,7 +78,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testFuzzOperations();
         deleteDb("pageStore");
     }
-    
+
     private void testDropTempTable() throws SQLException {
         deleteDb("pageStoreDropTemp");
         Connection c1 = getConnection("pageStoreDropTemp");

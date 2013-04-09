@@ -42,7 +42,7 @@ public class TestMVTableEngine extends TestBase {
         testLocking();
         testSimple();
     }
-    
+
     private void testSpeed() throws Exception {
         String dbName;
         for (int i = 0; i < 5; i++) {
@@ -56,7 +56,7 @@ public class TestMVTableEngine extends TestBase {
             // System.out.println(prof.getTop(10));
         }
     }
-    
+
     private void testSpeed(String dbName) throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;

@@ -626,6 +626,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param masks per-column comparison bit masks, null means 'always false',
      *              see constants in IndexCondition
+     * @param sortOrder the sort order
      * @return the plan item
      */
     public PlanItem getBestPlanItem(Session session, int[] masks, SortOrder sortOrder) {

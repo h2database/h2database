@@ -203,7 +203,7 @@ public class SetTypes {
      * The type of a SET BINARY_COLLATION  statement.
      */
     public static final int BINARY_COLLATION = 38;
-    
+
     private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {

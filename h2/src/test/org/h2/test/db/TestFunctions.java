@@ -882,11 +882,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        
+
         ResultSet rs = stat.executeQuery("SELECT TRUNCATE(1.234, 2) FROM dual");
         rs.next();
         assertEquals(1.23d, rs.getDouble(1));
-        
+
         rs = stat.executeQuery("SELECT CURRENT_TIMESTAMP(), TRUNCATE(CURRENT_TIMESTAMP()) FROM dual");
         rs.next();
         Calendar c = Calendar.getInstance();
@@ -897,14 +897,14 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         c.set(Calendar.MILLISECOND, 0);
         java.util.Date nowDate = c.getTime();
         assertEquals(nowDate, rs.getTimestamp(2));
-        
+
         try {
             rs = stat.executeQuery("SELECT TRUNCATE('bad', 1) FROM dual");
             fail("expected exception");
         } catch (SQLException ex) {
             // expected
         }
-        
+
         // check for passing wrong data type
         try {
             rs = stat.executeQuery("SELECT TRUNCATE('bad') FROM dual");
@@ -912,7 +912,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         } catch (SQLException ex) {
             // expected
         }
-        
+
         // check for too many parameters
         try {
             rs = stat.executeQuery("SELECT TRUNCATE(1,2,3) FROM dual");
@@ -920,10 +920,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         } catch (SQLException ex) {
             // expected
         }
-        
+
         conn.close();
     }
-    
+
     private void assertCallResult(String expected, Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();

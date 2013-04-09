@@ -178,7 +178,7 @@ public class TableFilter implements ColumnResolver {
             }
             SortOrder sortOrder = null;
             if (select != null) {
-                sortOrder = select.prepareOrder();
+                sortOrder = select.getSortOrder();
             }
             item = table.getBestPlanItem(s, masks, sortOrder);
             // The more index conditions, the earlier the table.

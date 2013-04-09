@@ -868,7 +868,7 @@ public class MVStore {
             } else {
                 meta.put("root." + m.getId(), String.valueOf(Integer.MAX_VALUE));
             }
-        }   
+        }
         Set<Chunk> removedChunks = applyFreedPages(storeVersion, time);
         ByteBuffer buff;
         if (writeBuffer != null) {
@@ -947,15 +947,15 @@ public class MVStore {
             writeFileHeader();
             shrinkFileIfPossible(1);
         }
-        
+
         for (MVMap<?, ?> m : changed) {
             Page p = m.getRoot();
             if (p.getTotalCount() > 0) {
                 p.writeEnd();
             }
         }
-        meta.getRoot().writeEnd();        
-        
+        meta.getRoot().writeEnd();
+
         // some pages might have been changed in the meantime (in the newest version)
         unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
         currentStoreVersion = -1;
@@ -1297,7 +1297,7 @@ public class MVStore {
         }
         registerFreePage(version, c.id, DataUtils.getPageMaxLength(pos), 1);
     }
-    
+
     private void registerFreePage(long version, int chunkId, long maxLengthLive, int pageCount) {
         synchronized (freedPages) {
             HashMap<Integer, Chunk>freed = freedPages.get(version);
@@ -1736,7 +1736,7 @@ public class MVStore {
         }
         store(true);
     }
-    
+
     public boolean isReadOnly() {
         return readOnly;
     }

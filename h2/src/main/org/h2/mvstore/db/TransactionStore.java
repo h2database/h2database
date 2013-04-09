@@ -75,7 +75,7 @@ public class TransactionStore {
     public TransactionStore(MVStore store) {
         this(store, new ObjectDataType());
     }
-    
+
     /**
      * Create a new transaction store.
      *
@@ -92,7 +92,7 @@ public class TransactionStore {
         ArrayType valueType = new ArrayType(new DataType[]{
                 new ObjectDataType(), new ObjectDataType(), keyType
         });
-        MVMapConcurrent.Builder<long[], Object[]> builder = 
+        MVMapConcurrent.Builder<long[], Object[]> builder =
                 new MVMapConcurrent.Builder<long[], Object[]>().
                 valueType(valueType);
         // TODO escape other map names, to avoid conflicts
@@ -129,7 +129,7 @@ public class TransactionStore {
 
     /**
      * Get the list of currently open transactions that have pending writes.
-     * 
+     *
      * @return the list of transactions
      */
     public synchronized List<Transaction> getOpenTransactions() {
@@ -158,8 +158,8 @@ public class TransactionStore {
         int status = Transaction.STATUS_OPEN;
         return new Transaction(this, transactionId, status, null, 0);
     }
-    
-    void storeTransaction(Transaction t) {
+
+    private void storeTransaction(Transaction t) {
         long transactionId = t.getId();
         if (openTransactions.containsKey(transactionId)) {
             return;
@@ -185,10 +185,10 @@ public class TransactionStore {
         openTransactions.put(t.getId(), v);
         store.commit();
     }
-    
+
     /**
      * Log an entry.
-     * 
+     *
      * @param t the transaction
      * @param logId the log id
      * @param opType the operation type
@@ -345,7 +345,7 @@ public class TransactionStore {
          * The transaction store.
          */
         final TransactionStore store;
-        
+
         /**
          * The version of the store at the time the transaction was started.
          */
@@ -454,7 +454,7 @@ public class TransactionStore {
          */
         public <K, V> TransactionMap<K, V> openMap(String name, long readVersion) {
             checkOpen();
-            return new TransactionMap<K, V>(this, name, new ObjectDataType(), 
+            return new TransactionMap<K, V>(this, name, new ObjectDataType(),
                     new ObjectDataType(), readVersion);
         }
 
@@ -569,7 +569,7 @@ public class TransactionStore {
          */
         private final MVMap<K, Object[]> mapRead;
 
-        TransactionMap(Transaction transaction, String name, DataType keyType, 
+        TransactionMap(Transaction transaction, String name, DataType keyType,
                 DataType valueType, long readVersion) {
             this.transaction = transaction;
             ArrayType arrayType = new ArrayType(new DataType[] {
@@ -811,7 +811,13 @@ public class TransactionStore {
         public V getLatest(K key) {
             return get(key, mapWrite);
         }
-        
+
+        /**
+         * Whether the map contains the key.
+         *
+         * @param key the key
+         * @return true if the map contains an entry for this key
+         */
         public boolean containsKey(K key) {
             return get(key) != null;
         }
@@ -855,50 +861,102 @@ public class TransactionStore {
             }
         }
 
+        /**
+         * Rename the map.
+         *
+         * @param newMapName the new map name
+         */
         public void renameMap(String newMapName) {
             // TODO rename maps transactionally
             mapWrite.renameMap(newMapName);
         }
 
+        /**
+         * Check whether this map is closed.
+         *
+         * @return true if closed
+         */
         public boolean isClosed() {
             return mapWrite.isClosed();
         }
 
+        /**
+         * Remove the map.
+         */
         public void removeMap() {
             // TODO remove in a transaction
             mapWrite.removeMap();
         }
 
+        /**
+         * Clear the map.
+         */
         public void clear() {
             // TODO truncate transactionally
             mapWrite.clear();
         }
 
+        /**
+         * Get the first key.
+         *
+         * @return the first key, or null if empty
+         */
         public K firstKey() {
             // TODO transactional firstKey
             return mapRead.firstKey();
         }
 
+        /**
+         * Get the last key.
+         *
+         * @return the last key, or null if empty
+         */
         public K lastKey() {
             // TODO transactional lastKey
             return mapRead.lastKey();
         }
 
+        /**
+         * Iterate over all keys.
+         *
+         * @param from the first key to return
+         * @return the iterator
+         */
         public Iterator<K> keyIterator(K from) {
             // TODO transactional keyIterator
             return mapRead.keyIterator(from);
         }
 
+        /**
+         * Get the smallest key that is larger or equal to this key.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
         public K ceilingKey(K key) {
             // TODO transactional ceilingKey
             return mapRead.ceilingKey(key);
         }
 
+        /**
+         * Get the smallest key that is larger than the given key, or null if no
+         * such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
         public K higherKey(K key) {
             // TODO transactional higherKey
             return mapRead.higherKey(key);
         }
 
+        /**
+         * Get the largest key that is smaller than the given key, or null if no
+         * such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
         public K lowerKey(K key) {
             // TODO Auto-generated method stub
             return mapRead.lowerKey(key);
@@ -909,7 +967,7 @@ public class TransactionStore {
         }
 
     }
-    
+
     /**
      * A data type that contains an array of objects with the specified data
      * types.
@@ -970,8 +1028,8 @@ public class TransactionStore {
                 array[i] = t.read(buff);
             }
             return array;
-        }   
-        
+        }
+
     }
 
 }

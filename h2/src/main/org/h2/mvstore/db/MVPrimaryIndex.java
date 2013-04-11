@@ -18,8 +18,8 @@ import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.db.TransactionStore.Transaction;
-import org.h2.mvstore.db.TransactionStore.TransactionMap;
+import org.h2.mvstore.db.TransactionStore2.Transaction;
+import org.h2.mvstore.db.TransactionStore2.TransactionMap;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -37,7 +37,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     private final MVTable mvTable;
     private String mapName;
-    private MVMap.Builder<Value, Value> mapBuilder;
+    private TransactionMap<Value, Value> dataMap;
     private long lastKey;
     private int mainIndexColumn = -1;
 
@@ -54,12 +54,12 @@ public class MVPrimaryIndex extends BaseIndex {
         ValueDataType valueType = new ValueDataType(
                 db.getCompareMode(), db, sortTypes);
         mapName = getName() + "_" + getId();
-        mapBuilder = new MVMap.Builder<Value, Value>().
+        MVMap.Builder<Value, Value> mapBuilder = new MVMap.Builder<Value, Value>().
                 keyType(keyType).
                 valueType(valueType);
-        TransactionMap<Value, Value> map = getMap(null);
-        Value k = map.lastKey();
-        map.getTransaction().commit();
+        dataMap = mvTable.getTransaction(null).openMap(mapName, mapBuilder);
+        Value k = dataMap.lastKey();
+        dataMap.getTransaction().commit();
         lastKey = k == null ? 0 : k.getLong();
     }
 
@@ -108,10 +108,6 @@ public class MVPrimaryIndex extends BaseIndex {
             Long c = row.getValue(mainIndexColumn).getLong();
             row.setKey(c);
         }
-        Value[] array = new Value[columns.length];
-        for (int i = 0; i < array.length; i++) {
-            array[i] = row.getValue(i);
-        }
         TransactionMap<Value, Value> map = getMap(session);
         if (map.containsKey(ValueLong.get(row.getKey()))) {
             String sql = "PRIMARY KEY ON " + table.getSQL();
@@ -122,7 +118,7 @@ public class MVPrimaryIndex extends BaseIndex {
             e.setSource(this);
             throw e;
         }
-        map.put(ValueLong.get(row.getKey()), ValueArray.get(array));
+        map.put(ValueLong.get(row.getKey()), ValueArray.get(row.getValueList()));
         lastKey = Math.max(lastKey, row.getKey());
     }
 
@@ -286,6 +282,25 @@ public class MVPrimaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         return new MVStoreCursor(session, map.keyIterator(ValueLong.get(first)), last);
     }
+    
+    public boolean isRowIdIndex() {
+        return true;
+    }
+
+    /**
+     * Get the map to store the data.
+     *
+     * @param session the session
+     * @return the map
+     */
+    TransactionMap<Value, Value> getMap(Session session) {
+        if (session == null) {
+            return dataMap;
+        }
+        Transaction t = mvTable.getTransaction(session);
+        long savepoint = session.getStatementSavepoint();
+        return dataMap.getInstance(t, savepoint);
+    }
 
     /**
      * A cursor.
@@ -335,25 +350,6 @@ public class MVPrimaryIndex extends BaseIndex {
             return false;
         }
 
-    }
-
-    public boolean isRowIdIndex() {
-        return true;
-    }
-
-    /**
-     * Get the map to store the data.
-     *
-     * @param session the session
-     * @return the map
-     */
-    TransactionMap<Value, Value> getMap(Session session) {
-        if (session == null) {
-            return mvTable.getTransaction(null).openMap(mapName, -1, mapBuilder);
-        }
-        Transaction t = mvTable.getTransaction(session);
-        long version = session.getStatementVersion();
-        return t.openMap(mapName, version, mapBuilder);
     }
 
 }

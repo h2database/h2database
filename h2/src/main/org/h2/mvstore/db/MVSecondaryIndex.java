@@ -17,8 +17,8 @@ import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.db.TransactionStore.Transaction;
-import org.h2.mvstore.db.TransactionStore.TransactionMap;
+import org.h2.mvstore.db.TransactionStore2.Transaction;
+import org.h2.mvstore.db.TransactionStore2.TransactionMap;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -42,7 +42,7 @@ public class MVSecondaryIndex extends BaseIndex {
 
     private final int keyColumns;
     private String mapName;
-    private MVMap.Builder<Value, Value> mapBuilder;
+    private TransactionMap<Value, Value> dataMap;
 
     public MVSecondaryIndex(Database db, MVTable table, int id, String indexName,
                 IndexColumn[] columns, IndexType indexType) {
@@ -63,9 +63,10 @@ public class MVSecondaryIndex extends BaseIndex {
         ValueDataType keyType = new ValueDataType(
                 db.getCompareMode(), db, sortTypes);
         ValueDataType valueType = new ValueDataType(null, null, null);
-        mapBuilder = new MVMap.Builder<Value, Value>().
+        MVMap.Builder<Value, Value> mapBuilder = new MVMap.Builder<Value, Value>().
                 keyType(keyType).
                 valueType(valueType);
+        dataMap = mvTable.getTransaction(null).openMap(mapName, mapBuilder);
     }
 
     private static void checkIndexColumnTypes(IndexColumn[] columns) {
@@ -246,6 +247,21 @@ public class MVSecondaryIndex extends BaseIndex {
     public void checkRename() {
         // ok
     }
+    
+    /**
+     * Get the map to store the data.
+     *
+     * @param session the session
+     * @return the map
+     */
+    TransactionMap<Value, Value> getMap(Session session) {
+        if (session == null) {
+            return dataMap;
+        }
+        Transaction t = mvTable.getTransaction(session);
+        long savepoint = session.getStatementSavepoint();
+        return dataMap.getInstance(t, savepoint);
+    }
 
     /**
      * A cursor.
@@ -306,21 +322,6 @@ public class MVSecondaryIndex extends BaseIndex {
             return false;
         }
 
-    }
-
-    /**
-     * Get the map to store the data.
-     *
-     * @param session the session
-     * @return the map
-     */
-    TransactionMap<Value, Value> getMap(Session session) {
-        if (session == null) {
-            return mvTable.getTransaction(null).openMap(mapName, -1, mapBuilder);
-        }
-        Transaction t = mvTable.getTransaction(session);
-        long version = session.getStatementVersion();
-        return t.openMap(mapName, version, mapBuilder);
     }
 
 }

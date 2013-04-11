@@ -28,7 +28,7 @@ import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.mvstore.db.TransactionStore.Transaction;
+import org.h2.mvstore.db.TransactionStore2.Transaction;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
@@ -48,7 +48,7 @@ import org.h2.value.Value;
 public class MVTable extends TableBase {
 
     private final String storeName;
-    private final TransactionStore store;
+    private final TransactionStore2 store;
     private MVPrimaryIndex primaryIndex;
     private ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
@@ -68,7 +68,7 @@ public class MVTable extends TableBase {
      */
     private boolean waitForLock;
 
-    public MVTable(CreateTableData data, String storeName, TransactionStore store) {
+    public MVTable(CreateTableData data, String storeName, TransactionStore2 store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
         this.storeName = storeName;
@@ -571,7 +571,8 @@ public class MVTable extends TableBase {
             nextAnalyze = n;
         }
         int rows = session.getDatabase().getSettings().analyzeSample;
-        Analyze.analyzeTable(session, this, rows, false);
+int test;        
+       // Analyze.analyzeTable(session, this, rows, false);
     }
 
     @Override
@@ -686,7 +687,7 @@ public class MVTable extends TableBase {
         return session.getTransaction(store);
     }
 
-    public TransactionStore getStore() {
+    public TransactionStore2 getStore() {
         return store;
     }
 

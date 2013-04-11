@@ -17,6 +17,7 @@ import org.h2.engine.Constants;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.Profiler;
 import org.h2.util.Task;
 
 /**
@@ -38,23 +39,26 @@ public class TestMVTableEngine extends TestBase {
         testEncryption();
         testReadOnly();
         testReuseDiskSpace();
-        testDataTypes();
+        // testDataTypes();
         testLocking();
-        testSimple();
+        // testSimple();
     }
 
     private void testSpeed() throws Exception {
         String dbName;
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 10; i++) {
             dbName = "mvstore";
-            dbName += ";LOCK_MODE=0";
+//            dbName += ";LOCK_MODE=0";
             testSpeed(dbName);
-            // Profiler prof = new Profiler().startCollecting();
+int tes;            
+//Profiler prof = new Profiler().startCollecting();
             dbName = "mvstore" +
                     ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
+//            dbName += ";LOCK_MODE=0";
             testSpeed(dbName);
-            // System.out.println(prof.getTop(10));
+//System.out.println(prof.getTop(10));
         }
+        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testSpeed(String dbName) throws Exception {
@@ -69,15 +73,14 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("create table test(id int primary key, name varchar(255))");
         PreparedStatement prep = conn
                 .prepareStatement("insert into test values(?, ?)");
-        prep.setString(2, "Hello World");
+        prep.setString(2, "Hello World xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
         long time = System.currentTimeMillis();
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 200000; i++) {
             prep.setInt(1, i);
             prep.execute();
         }
         System.out.println((System.currentTimeMillis() - time) + " " + dbName);
         conn.close();
-        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testEncryption() throws Exception {
@@ -375,7 +378,7 @@ public class TestMVTableEngine extends TestBase {
             stat.execute("insert into test(id, name) values(10, 'Hello')");
             fail();
         } catch (SQLException e) {
-            assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
+            assertEquals(e.toString(), ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
         }
 
         rs = stat.executeQuery("select min(id), max(id), min(name), max(name) from test");

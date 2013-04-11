@@ -23,8 +23,8 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
-import org.h2.mvstore.db.TransactionStore;
-import org.h2.mvstore.db.TransactionStore.Transaction;
+import org.h2.mvstore.db.TransactionStore2;
+import org.h2.mvstore.db.TransactionStore2.Transaction;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -106,7 +106,6 @@ public class Session extends SessionWithState {
     private SmallLRUCache<String, Command> queryCache;
     private Transaction transaction;
     private long startStatement = -1;
-    private long statementVersion;
 
     public Session(Database database, User user, int id) {
         this.database = database;
@@ -1258,20 +1257,19 @@ public class Session extends SessionWithState {
      * @param store the store
      * @return the transaction
      */
-    public Transaction getTransaction(TransactionStore store) {
+    public Transaction getTransaction(TransactionStore2 store) {
         if (transaction == null) {
             transaction = store.begin();
-            statementVersion = -1;
+            startStatement = -1;
         }
         return transaction;
     }
 
-    public long getStatementVersion() {
+    public long getStatementSavepoint() {
         if (startStatement == -1) {
             startStatement = transaction.setSavepoint();
-            statementVersion = transaction.getCurrentVersion();
         }
-        return statementVersion;
+        return startStatement;
     }
 
 }

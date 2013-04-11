@@ -142,12 +142,12 @@ public class MVTableEngine implements TableEngine {
         /**
          * The transaction store.
          */
-        private final TransactionStore transactionStore;
+        private final TransactionStore2 transactionStore;
 
         public Store(Database db, MVStore store) {
             this.db = db;
             this.store = store;
-            this.transactionStore = new TransactionStore(store,
+            this.transactionStore = new TransactionStore2(store,
                     new ValueDataType(null, null, null));
         }
 
@@ -155,7 +155,7 @@ public class MVTableEngine implements TableEngine {
             return store;
         }
 
-        public TransactionStore getTransactionStore() {
+        public TransactionStore2 getTransactionStore() {
             return transactionStore;
         }
 

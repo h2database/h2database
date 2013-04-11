@@ -64,21 +64,19 @@ public class TestTransactionStore extends TestBase {
         Transaction tx;
         TransactionMap<String, String> m;
         long startUpdate;
-        long version;
 
         tx = ts.begin();
 
         // start of statement
         // create table test
         startUpdate = tx.setSavepoint();
-        version = s.getCurrentVersion();
-        tx.openMap("test", version);
+        m = tx.openMap("test");
+        m.setSavepoint(startUpdate);
 
         // start of statement
         // insert into test(id, name) values(1, 'Hello'), (2, 'World')
         startUpdate = tx.setSavepoint();
-        version = s.getCurrentVersion();
-        m = tx.openMap("test", version);
+        m.setSavepoint(startUpdate);
         assertTrue(m.trySet("1", "Hello", true));
         assertTrue(m.trySet("2", "World", true));
         // not seen yet (within the same statement)
@@ -87,13 +85,12 @@ public class TestTransactionStore extends TestBase {
 
         // start of statement
         startUpdate = tx.setSavepoint();
-        version = s.getCurrentVersion();
         // now we see the newest version
-        m = tx.openMap("test", version);
+        m.setSavepoint(startUpdate);
         assertEquals("Hello", m.get("1"));
         assertEquals("World", m.get("2"));
         // update test set primaryKey = primaryKey + 1
-        // (this is usually a tricky cases)
+        // (this is usually a tricky case)
         assertEquals("Hello", m.get("1"));
         assertTrue(m.trySet("1", null, true));
         assertTrue(m.trySet("2", "Hello", true));
@@ -110,8 +107,7 @@ public class TestTransactionStore extends TestBase {
 
         // start of statement
         startUpdate = tx.setSavepoint();
-        version = s.getCurrentVersion();
-        m = tx.openMap("test", version);
+        m.setSavepoint(startUpdate);
         // select * from test
         assertNull(m.get("1"));
         assertEquals("Hello", m.get("2"));
@@ -119,8 +115,7 @@ public class TestTransactionStore extends TestBase {
 
         // start of statement
         startUpdate = tx.setSavepoint();
-        version = s.getCurrentVersion();
-        m = tx.openMap("test", version);
+        m.setSavepoint(startUpdate);
         // update test set id = 1
         // should fail: duplicate key
         assertTrue(m.trySet("2", null, true));
@@ -129,8 +124,8 @@ public class TestTransactionStore extends TestBase {
         assertFalse(m.trySet("1", "World", true));
         tx.rollbackToSavepoint(startUpdate);
 
-        version = s.getCurrentVersion();
-        m = tx.openMap("test", version);
+        startUpdate = tx.setSavepoint();
+        m.setSavepoint(startUpdate);
         assertNull(m.get("1"));
         assertEquals("Hello", m.get("2"));
         assertEquals("World", m.get("3"));

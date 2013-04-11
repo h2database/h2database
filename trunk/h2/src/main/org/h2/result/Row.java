@@ -164,4 +164,8 @@ public class Row implements SearchRow {
         return deleted;
     }
 
+    public Value[] getValueList() {
+        return data;
+    }
+
 }

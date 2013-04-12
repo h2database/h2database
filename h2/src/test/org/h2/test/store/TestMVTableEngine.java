@@ -39,22 +39,24 @@ public class TestMVTableEngine extends TestBase {
         testEncryption();
         testReadOnly();
         testReuseDiskSpace();
-        // testDataTypes();
+        testDataTypes();
         testLocking();
-        // testSimple();
+        testSimple();
     }
 
     private void testSpeed() throws Exception {
         String dbName;
         for (int i = 0; i < 10; i++) {
             dbName = "mvstore";
-//            dbName += ";LOCK_MODE=0";
+            dbName += ";LOCK_MODE=0";
+//            dbName += ";LOG=0";
             testSpeed(dbName);
 int tes;            
 //Profiler prof = new Profiler().startCollecting();
             dbName = "mvstore" +
                     ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
-//            dbName += ";LOCK_MODE=0";
+            dbName += ";LOCK_MODE=0";
+//            dbName += ";LOG=0";
             testSpeed(dbName);
 //System.out.println(prof.getTop(10));
         }
@@ -70,17 +72,51 @@ int tes;
         String password = getPassword();
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name varchar(255))");
+        long time = System.currentTimeMillis();
+//        stat.execute(
+//                "create table test(id int primary key, name varchar(255))" +
+//                "as select x, 'Hello World' from system_range(1, 200000)");
+        stat.execute("create table test(id int primary key, name varchar)");
         PreparedStatement prep = conn
                 .prepareStatement("insert into test values(?, ?)");
-        prep.setString(2, "Hello World xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-        long time = System.currentTimeMillis();
-        for (int i = 0; i < 200000; i++) {
+        
+        // -mx4g
+        
+        // 10000 / 8000
+        // 1229 mvstore;LOCK_MODE=0
+        // 1455 mvstore;LOCK_MODE=0
+        // 19 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        // 659 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+
+        // 1000 / 80000
+        // 1383 mvstore;LOCK_MODE=0
+        // 1618 mvstore;LOCK_MODE=0
+        // 244 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        // 965 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        
+        // 100 / 800000
+        // 2061 mvstore;LOCK_MODE=0
+        // 2281 mvstore;LOCK_MODE=0
+        // 1414 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        // 2647 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+
+        // 10 / 8000000
+        // 11453 mvstore;LOCK_MODE=0
+        // 11720 mvstore;LOCK_MODE=0
+        // 13605 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        // 25172 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        
+        prep.setString(2, new String(new char[10]).replace((char) 0, 'x'));
+        for (int i = 0; i < 8000000; i++) {
+            
             prep.setInt(1, i);
             prep.execute();
         }
         System.out.println((System.currentTimeMillis() - time) + " " + dbName);
+//Profiler prof = new Profiler().startCollecting();
         conn.close();
+//System.out.println(prof.getTop(10));        
+        System.out.println((System.currentTimeMillis() - time) + " " + dbName);
     }
 
     private void testEncryption() throws Exception {

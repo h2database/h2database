@@ -35,9 +35,7 @@ public class MVDelegateIndex extends BaseIndex {
         }
     }
 
-    static int count;
     public void add(Session session, Row row) {
-        count++;
         // nothing to do
     }
 

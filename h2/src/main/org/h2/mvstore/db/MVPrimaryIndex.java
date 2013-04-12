@@ -18,8 +18,8 @@ import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.db.TransactionStore2.Transaction;
-import org.h2.mvstore.db.TransactionStore2.TransactionMap;
+import org.h2.mvstore.db.TransactionStore.Transaction;
+import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -59,7 +59,6 @@ public class MVPrimaryIndex extends BaseIndex {
                 valueType(valueType);
         dataMap = mvTable.getTransaction(null).openMap(mapName, mapBuilder);
         Value k = dataMap.lastKey();
-        dataMap.getTransaction().commit();
         lastKey = k == null ? 0 : k.getLong();
     }
 
@@ -73,7 +72,6 @@ public class MVPrimaryIndex extends BaseIndex {
         rename(newName + "_DATA");
         String newMapName = newName + "_DATA_" + getId();
         map.renameMap(newMapName);
-        map.getTransaction().commit();
         mapName = newMapName;
     }
 
@@ -233,10 +231,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     @Override
     public long getRowCountApproximation() {
-        TransactionMap<Value, Value> map = getMap(null);
-        long size = map.getSize();
-        map.getTransaction().commit();
-        return size;
+        return getMap(null).getSize();
     }
 
     public long getDiskSpaceUsed() {

@@ -17,8 +17,8 @@ import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.db.TransactionStore2.Transaction;
-import org.h2.mvstore.db.TransactionStore2.TransactionMap;
+import org.h2.mvstore.db.TransactionStore.Transaction;
+import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -87,7 +87,6 @@ public class MVSecondaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(null);
         String newMapName = newName + "_" + getId();
         map.renameMap(newMapName);
-        map.getTransaction().commit();
         mapName = newMapName;
         super.rename(newName);
     }
@@ -218,10 +217,7 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public boolean needRebuild() {
-        TransactionMap<Value, Value> map = getMap(null);
-        boolean result = map.getSize() == 0;
-        map.getTransaction().commit();
-        return result;
+        return getMap(null).getSize() == 0;
     }
 
     @Override
@@ -232,10 +228,7 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public long getRowCountApproximation() {
-        TransactionMap<Value, Value> map = getMap(null);
-        long size = map.getSize();
-        map.getTransaction().commit();
-        return size;
+        return getMap(null).getSize();
     }
 
     public long getDiskSpaceUsed() {

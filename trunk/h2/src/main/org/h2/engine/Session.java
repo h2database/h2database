@@ -23,8 +23,8 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
-import org.h2.mvstore.db.TransactionStore2;
-import org.h2.mvstore.db.TransactionStore2.Transaction;
+import org.h2.mvstore.db.TransactionStore;
+import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
@@ -1257,7 +1257,7 @@ public class Session extends SessionWithState {
      * @param store the store
      * @return the transaction
      */
-    public Transaction getTransaction(TransactionStore2 store) {
+    public Transaction getTransaction(TransactionStore store) {
         if (transaction == null) {
             transaction = store.begin();
             startStatement = -1;

@@ -28,7 +28,7 @@ import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.mvstore.db.TransactionStore2.Transaction;
+import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
@@ -48,7 +48,7 @@ import org.h2.value.Value;
 public class MVTable extends TableBase {
 
     private final String storeName;
-    private final TransactionStore2 store;
+    private final TransactionStore store;
     private MVPrimaryIndex primaryIndex;
     private ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
@@ -68,7 +68,7 @@ public class MVTable extends TableBase {
      */
     private boolean waitForLock;
 
-    public MVTable(CreateTableData data, String storeName, TransactionStore2 store) {
+    public MVTable(CreateTableData data, String storeName, TransactionStore store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
         this.storeName = storeName;
@@ -485,26 +485,16 @@ public class MVTable extends TableBase {
     @Override
     public void removeRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        int i = indexes.size() - 1;
+        Transaction t = getTransaction(session);
+        long savepoint = t.setSavepoint();
         try {
-            for (; i >= 0; i--) {
+            for (int i = indexes.size() - 1; i >= 0; i--) {
                 Index index = indexes.get(i);
                 index.remove(session, row);
             }
             rowCount--;
         } catch (Throwable e) {
-            try {
-                while (++i < indexes.size()) {
-                    Index index = indexes.get(i);
-                    index.add(session, row);
-                }
-            } catch (DbException e2) {
-                // this could happen, for example on failure in the storage
-                // but if that is not the case it means there is something wrong
-                // with the database
-                trace.error(e2, "could not undo operation");
-                throw e2;
-            }
+            t.rollbackToSavepoint(savepoint);
             throw DbException.convert(e);
         }
         analyzeIfRequired(session);
@@ -524,26 +514,16 @@ public class MVTable extends TableBase {
     @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        int i = 0;
+        Transaction t = getTransaction(session);
+        long savepoint = t.setSavepoint();
         try {
-            for (int size = indexes.size(); i < size; i++) {
+            for (int i = 0, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
                 index.add(session, row);
             }
             rowCount++;
         } catch (Throwable e) {
-            try {
-                while (--i >= 0) {
-                    Index index = indexes.get(i);
-                    index.remove(session, row);
-                }
-            } catch (DbException e2) {
-                // this could happen, for example on failure in the storage
-                // but if that is not the case it means there is something wrong
-                // with the database
-                trace.error(e2, "could not undo operation");
-                throw e2;
-            }
+            t.rollbackToSavepoint(savepoint);
             DbException de = DbException.convert(e);
             if (de.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                 for (int j = 0; j < indexes.size(); j++) {
@@ -572,7 +552,7 @@ public class MVTable extends TableBase {
         }
         int rows = session.getDatabase().getSettings().analyzeSample;
 int test;        
-       // Analyze.analyzeTable(session, this, rows, false);
+//        Analyze.analyzeTable(session, this, rows, false);
     }
 
     @Override
@@ -687,7 +667,7 @@ int test;
         return session.getTransaction(store);
     }
 
-    public TransactionStore2 getStore() {
+    public TransactionStore getStore() {
         return store;
     }
 

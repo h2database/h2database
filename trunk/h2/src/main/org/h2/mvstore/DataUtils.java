@@ -77,6 +77,11 @@ public class DataUtils {
     private static final byte[] EMPTY_BYTES = {};
 
     /**
+     * The maximum byte to grow a buffer at a time.
+     */
+    private static final int MAX_GROW = 16 * 1024 * 1024;
+
+    /**
      * Get the length of the variable size int.
      *
      * @param x the value
@@ -739,8 +744,7 @@ public class DataUtils {
     private static ByteBuffer grow(ByteBuffer buff, int len) {
         len = buff.remaining() + len;
         int capacity = buff.capacity();
-        // grow at most 1 MB at a time
-        len = Math.max(len, Math.min(capacity + 1024 * 1024, capacity * 2));
+        len = Math.max(len, Math.min(capacity + MAX_GROW, capacity * 2));
         ByteBuffer temp = ByteBuffer.allocate(len);
         buff.flip();
         temp.put(buff);

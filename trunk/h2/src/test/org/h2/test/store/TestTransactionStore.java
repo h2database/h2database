@@ -16,9 +16,9 @@ import java.util.List;
 import java.util.Random;
 
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.db.TransactionStore2;
-import org.h2.mvstore.db.TransactionStore2.Transaction;
-import org.h2.mvstore.db.TransactionStore2.TransactionMap;
+import org.h2.mvstore.db.TransactionStore;
+import org.h2.mvstore.db.TransactionStore.Transaction;
+import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -60,7 +60,7 @@ public class TestTransactionStore extends TestBase {
      */
     private void testMultiStatement() {
         MVStore s = MVStore.open(null);
-        TransactionStore2 ts = new TransactionStore2(s);
+        TransactionStore ts = new TransactionStore(s);
         Transaction tx;
         TransactionMap<String, String> m;
         long startUpdate;
@@ -141,14 +141,14 @@ public class TestTransactionStore extends TestBase {
         FileUtils.delete(fileName);
 
         MVStore s;
-        TransactionStore2 ts;
+        TransactionStore ts;
         Transaction tx;
         Transaction txOld;
         TransactionMap<String, String> m;
         List<Transaction> list;
 
         s = MVStore.open(fileName);
-        ts = new TransactionStore2(s);
+        ts = new TransactionStore(s);
         tx = ts.begin();
         assertEquals(null, tx.getName());
         tx.setName("first transaction");
@@ -166,7 +166,7 @@ public class TestTransactionStore extends TestBase {
         s.close();
 
         s = MVStore.open(fileName);
-        ts = new TransactionStore2(s);
+        ts = new TransactionStore(s);
         tx = ts.begin();
         assertEquals(1, tx.getId());
         m = tx.openMap("test");
@@ -184,7 +184,7 @@ public class TestTransactionStore extends TestBase {
         s.close();
 
         s = MVStore.open(fileName);
-        ts = new TransactionStore2(s);
+        ts = new TransactionStore(s);
         tx = ts.begin();
         m = tx.openMap("test");
         // TransactionStore was not closed, so we lost some ids
@@ -209,7 +209,7 @@ public class TestTransactionStore extends TestBase {
 
     private void testSavepoint() throws Exception {
         MVStore s = MVStore.open(null);
-        TransactionStore2 ts = new TransactionStore2(s);
+        TransactionStore ts = new TransactionStore(s);
         Transaction tx;
         TransactionMap<String, String> m;
 
@@ -262,7 +262,7 @@ public class TestTransactionStore extends TestBase {
                 "create table test(id int primary key, name varchar(255))");
 
         MVStore s = MVStore.open(null);
-        TransactionStore2 ts = new TransactionStore2(s);
+        TransactionStore ts = new TransactionStore(s);
         for (int i = 0; i < connectionCount; i++) {
             Statement stat = statements.get(i);
             // 100 ms to avoid blocking (the test is single threaded)
@@ -395,7 +395,7 @@ public class TestTransactionStore extends TestBase {
     private void testConcurrentTransactionsReadCommitted() {
         MVStore s = MVStore.open(null);
 
-        TransactionStore2 ts = new TransactionStore2(s);
+        TransactionStore ts = new TransactionStore(s);
 
         Transaction tx1, tx2;
         TransactionMap<String, String> m1, m2;
@@ -467,7 +467,7 @@ public class TestTransactionStore extends TestBase {
     private void testSingleConnection() {
         MVStore s = MVStore.open(null);
 
-        TransactionStore2 ts = new TransactionStore2(s);
+        TransactionStore ts = new TransactionStore(s);
 
         Transaction tx;
         TransactionMap<String, String> m;

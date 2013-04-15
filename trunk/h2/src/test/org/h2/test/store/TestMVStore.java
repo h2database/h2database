@@ -352,7 +352,7 @@ public class TestMVStore extends TestBase {
         s.store();
         s.close();
         int[] expectedReadsForCacheSize = {
-                3407, 2590, 1924, 1440, 1106, 956, 918
+                3406, 2590, 1924, 1440, 1108, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = new MVStore.Builder().
@@ -829,7 +829,7 @@ public class TestMVStore extends TestBase {
             assertEquals(i + 1, m.size());
         }
         assertEquals(1000, m.size());
-        assertEquals(284, s.getUnsavedPageCount());
+        assertEquals(286, s.getUnsavedPageCount());
         s.store();
         assertEquals(2, s.getFileWriteCount());
         s.close();

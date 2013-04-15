@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
@@ -40,12 +41,56 @@ public class TestTransactionStore extends TestBase {
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
 
+        testKeyIterator();
         testMultiStatement();
         testTwoPhaseCommit();
         testSavepoint();
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+    }
+
+    private void testKeyIterator() {
+        MVStore s = MVStore.open(null);
+        TransactionStore ts = new TransactionStore(s);
+        Transaction tx, tx2;
+        TransactionMap<String, String> m, m2;
+        Iterator<String> it, it2;
+        
+        tx = ts.begin();
+        m = tx.openMap("test");
+        m.put("1", "Hello");
+        m.put("2", "World");
+        m.put("3", ".");
+        tx.commit();
+        
+        tx2 = ts.begin();
+        m2 = tx2.openMap("test");
+        m2.remove("2");
+        m2.put("3", "!");
+        m2.put("4", "?");
+        
+        tx = ts.begin();
+        m = tx.openMap("test");
+        it = m.keyIterator(null);
+        assertTrue(it.hasNext());
+        assertEquals("1", it.next());
+        assertTrue(it.hasNext());
+        assertEquals("2", it.next());
+        assertTrue(it.hasNext());
+        assertEquals("3", it.next());
+        assertFalse(it.hasNext());
+
+        it2 = m2.keyIterator(null);
+        assertTrue(it2.hasNext());
+        assertEquals("1", it2.next());
+        assertTrue(it2.hasNext());
+        assertEquals("3", it2.next());
+        assertTrue(it2.hasNext());
+        assertEquals("4", it2.next());
+        assertFalse(it2.hasNext());
+        
+        s.close();
     }
 
     /**

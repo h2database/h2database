@@ -131,7 +131,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         long[] counts = { p.getTotalCount(), split.getTotalCount() };
         p = Page.create(this, writeVersion, 1,
                 keys, null, children, childrenPages, counts, totalCount, 0, 0);
-        store.registerUnsavedPage();
         return p;
     }
 
@@ -654,9 +653,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (index >= 0) {
                 result = p.getValue(index);
                 p.remove(index);
-                if (p.getKeyCount() == 0) {
-                    removePage(p.getPos());
-                }
             }
             return result;
         }

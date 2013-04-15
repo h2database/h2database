@@ -302,7 +302,11 @@ public class MVTable extends TableBase {
     public boolean isLockedExclusively() {
         return lockExclusive != null;
     }
-
+    
+    public boolean isLockedExclusivelyBy(Session session) {
+        return lockExclusive == session;
+    }
+    
     public void unlock(Session s) {
         if (database != null) {
             traceLock(s, lockExclusive == s, "unlock");
@@ -551,8 +555,7 @@ public class MVTable extends TableBase {
             nextAnalyze = n;
         }
         int rows = session.getDatabase().getSettings().analyzeSample;
-int test;        
-//        Analyze.analyzeTable(session, this, rows, false);
+        Analyze.analyzeTable(session, this, rows, false);
     }
 
     @Override
@@ -665,10 +668,6 @@ int test;
             return store.begin();
         }
         return session.getTransaction(store);
-    }
-
-    public TransactionStore getStore() {
-        return store;
     }
 
     public Column getRowIdColumn() {

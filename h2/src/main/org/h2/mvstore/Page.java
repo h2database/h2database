@@ -146,6 +146,10 @@ public class Page {
         p.totalCount = totalCount;
         p.sharedFlags = sharedFlags;
         p.memory = memory == 0 ? p.calculateMemory() : memory;
+        MVStore store = map.store;
+        if (store != null) {
+            store.registerUnsavedPage();
+        }
         return p;
     }
 
@@ -274,7 +278,6 @@ public class Page {
                 counts, totalCount,
                 SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS,
                 memory);
-        map.getStore().registerUnsavedPage();
         newPage.cachedCompare = cachedCompare;
         return newPage;
     }
@@ -357,7 +360,6 @@ public class Page {
         Page newPage = create(map, version, b,
                 bKeys, bValues, null, null, null,
                 bKeys.length, 0, 0);
-        map.getStore().registerUnsavedPage();
         memory = calculateMemory();
         newPage.memory = newPage.calculateMemory();
         return newPage;
@@ -404,7 +406,6 @@ public class Page {
         Page newPage = create(map, version, b - 1,
                 bKeys, null, bChildren, bChildrenPages,
                 bCounts, t, 0, 0);
-        map.getStore().registerUnsavedPage();
         memory = calculateMemory();
         newPage.memory = newPage.calculateMemory();
         return newPage;

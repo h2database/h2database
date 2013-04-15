@@ -1094,9 +1094,11 @@ public class MVStore {
             return true;
         }
         for (MVMap<?, ?> m : maps.values()) {
-            long v = m.getVersion();
-            if (v >= 0 && v >= lastStoredVersion) {
-                return true;
+            if (!m.isClosed()) {
+                long v = m.getVersion();
+                if (v >= 0 && v >= lastStoredVersion) {
+                    return true;
+                }
             }
         }
         return false;
@@ -1279,7 +1281,9 @@ public class MVStore {
         // we need to keep temporary pages,
         // to support reading old versions and rollback
         if (pos == 0) {
-            unsavedPageCount--;
+            // the value could be smaller than 0 because
+            // in some cases a page is allocated without a store 
+            unsavedPageCount = Math.max(0, unsavedPageCount - 1);
             return;
         }
         // this could result in a cache miss

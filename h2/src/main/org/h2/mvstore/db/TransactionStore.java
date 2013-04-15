@@ -90,9 +90,13 @@ public class TransactionStore {
                 new MVMap.Builder<Long, Object[]>());
         // commit could be faster if we have one undo log per transaction,
         // or a range delete operation for maps
+        ArrayType oldValueType = new ArrayType(new DataType[]{
+                new ObjectDataType(), new ObjectDataType(),
+                keyType
+        });
         ArrayType valueType = new ArrayType(new DataType[]{
                 new ObjectDataType(), new ObjectDataType(), keyType,
-                new ObjectDataType()
+                oldValueType
         });
         MVMap.Builder<long[], Object[]> builder =
                 new MVMap.Builder<long[], Object[]>().
@@ -514,18 +518,18 @@ public class TransactionStore {
      */
     public static class TransactionMap<K, V> {
 
-        private Transaction transaction;
-
-        private final int mapId;
-
         /**
          * The map used for writing (the latest version).
          * <p>
          * Key: key the key of the data.
          * Value: { transactionId, oldVersion, value }
          */
-        private final MVMap<K, Object[]> map;
+        final MVMap<K, Object[]> map;
         
+        private Transaction transaction;
+
+        private final int mapId;
+
         /**
          * If a record was read that was updated by this transaction, and the
          * update occurred before this log id, the older version is read. This
@@ -647,7 +651,7 @@ public class TransactionStore {
                     if (t > timeout) {
                         throw DataUtils.newIllegalStateException("Lock timeout");
                     }
-                    // TODO use wait/notify instead
+                    // TODO use wait/notify instead, or remove the feature
                     try {
                         Thread.sleep(1);
                     } catch (InterruptedException e) {
@@ -908,9 +912,43 @@ public class TransactionStore {
          * @param from the first key to return
          * @return the iterator
          */
-        public Iterator<K> keyIterator(K from) {
-            // TODO transactional keyIterator
-            return map.keyIterator(from);
+        public Iterator<K> keyIterator(final K from) {
+            return new Iterator<K>() {
+                private final Cursor<K> cursor = map.keyIterator(from);
+                private K current;
+                
+                {
+                    fetchNext();
+                }
+                
+                private void fetchNext() {
+                    while (cursor.hasNext()) {
+                        current = cursor.next();
+                        if (containsKey(current)) {
+                            return;
+                        }
+                    }
+                    current = null;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return current != null;
+                }
+
+                @Override
+                public K next() {
+                    K result = current;
+                    fetchNext();
+                    return result;
+                }
+
+                @Override
+                public void remove() {
+                    throw DataUtils.newUnsupportedOperationException(
+                            "Removing is not supported");
+                }
+            };
         }
 
         /**
@@ -974,7 +1012,10 @@ public class TransactionStore {
             int size = 0;
             for (int i = 0; i < arrayLength; i++) {
                 DataType t = elementTypes[i];
-                size += t.getMemory(array[i]);
+                Object o = array[i];
+                if (o != null) {
+                    size += t.getMemory(o);
+                }
             }
             return size;
         }
@@ -1001,7 +1042,13 @@ public class TransactionStore {
             Object[] array = (Object[]) obj;
             for (int i = 0; i < arrayLength; i++) {
                 DataType t = elementTypes[i];
-                t.write(buff, array[i]);
+                Object o = array[i];
+                if (o == null) {
+                    buff.put((byte) 0);
+                } else {
+                    buff.put((byte) 1);
+                    t.write(buff, o);
+                }
             }
             return buff;
         }
@@ -1011,7 +1058,9 @@ public class TransactionStore {
             Object[] array = new Object[arrayLength];
             for (int i = 0; i < arrayLength; i++) {
                 DataType t = elementTypes[i];
-                array[i] = t.read(buff);
+                if (buff.get() == 1) {
+                    array[i] = t.read(buff);
+                }
             }
             return array;
         }

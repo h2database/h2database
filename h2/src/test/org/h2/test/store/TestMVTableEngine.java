@@ -36,6 +36,7 @@ public class TestMVTableEngine extends TestBase {
 
     public void test() throws Exception {
         // testSpeed();
+        testExclusiveLock();
         testEncryption();
         testReadOnly();
         testReuseDiskSpace();
@@ -107,16 +108,16 @@ int tes;
         // 25172 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
         
         prep.setString(2, new String(new char[10]).replace((char) 0, 'x'));
-        for (int i = 0; i < 8000000; i++) {
+        for (int i = 0; i < 800000; i++) {
             
             prep.setInt(1, i);
             prep.execute();
         }
-        System.out.println((System.currentTimeMillis() - time) + " " + dbName);
+        System.out.println((System.currentTimeMillis() - time) + " " + dbName + " before");
 //Profiler prof = new Profiler().startCollecting();
         conn.close();
 //System.out.println(prof.getTop(10));        
-        System.out.println((System.currentTimeMillis() - time) + " " + dbName);
+        System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
     }
 
     private void testEncryption() throws Exception {
@@ -135,6 +136,30 @@ int tes;
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
         stat.execute("select * from test");
+        conn.close();
+        FileUtils.deleteRecursive(getBaseDir(), true);
+    }
+    
+    private void testExclusiveLock() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        String dbName = "mvstore" +
+                ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
+        Connection conn, conn2;
+        Statement stat, stat2;
+        conn = getConnection(dbName);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("insert into test values(1)");
+        conn.setAutoCommit(false);
+        // stat.execute("update test set id = 2");
+        stat.executeQuery("select * from test for update");
+        conn2 = getConnection(dbName);
+        stat2 = conn2.createStatement();
+        ResultSet rs2 = stat2.executeQuery("select * from information_schema.locks");
+        assertTrue(rs2.next());
+        assertEquals("TEST", rs2.getString("table_name"));
+        assertEquals("WRITE", rs2.getString("lock_type"));
+        conn2.close();
         conn.close();
         FileUtils.deleteRecursive(getBaseDir(), true);
     }

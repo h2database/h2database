@@ -21,7 +21,6 @@ class DatabaseCloser extends Thread {
     private final Trace trace;
     private volatile WeakReference<Database> databaseRef;
     private int delayInMillis;
-    private boolean stopImmediately;
 
     DatabaseCloser(Database db, int delayInMillis, boolean shutdownHook) {
         this.databaseRef = new WeakReference<Database>(db);
@@ -38,25 +37,9 @@ class DatabaseCloser extends Thread {
         synchronized (this) {
             databaseRef = null;
         }
-        ThreadGroup threadGroup = getThreadGroup();
-        // the threadGroup could be null if the thread was run in the meantime
-        if (threadGroup != null && threadGroup.activeCount() > 100) {
-            // in JDK 1.4 and below, all Thread objects are added to the ThreadGroup,
-            // and cause a memory leak if never started.
-            // Need to start it, otherwise it leaks memory in JDK 1.4 and below
-            stopImmediately = true;
-            try {
-                start();
-            } catch (Throwable e) {
-                // ignore
-            }
-        }
     }
 
     public void run() {
-        if (stopImmediately) {
-            return;
-        }
         while (delayInMillis > 0) {
             try {
                 int step = 100;

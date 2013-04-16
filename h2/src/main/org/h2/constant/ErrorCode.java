@@ -1357,8 +1357,6 @@ public class ErrorCode {
      * The error with code <code>90092</code> is thrown when
      * the source code is not compiled for the Java platform used.
      * At runtime, the existence of the class java.sql.Savepoint is checked.
-     * To run this database in JDK 1.3, it is first required to switch the
-     * source code to JDK 1.3 using ant switchSourceJdk13.
      */
     public static final int UNSUPPORTED_JAVA_VERSION = 90092;
 

@@ -49,30 +49,6 @@ public class DataType {
     public static final int TYPE_RESULT_SET = -10;
 
     /**
-     * This constant is used for JDK 1.5 compatibility
-     * and equal to java.sql.Types.LONGNVARCHAR
-     */
-    public static final int TYPE_LONGNVARCHAR = -16;
-
-    /**
-     * This constant is used for JDK 1.5 compatibility
-     * and equal to java.sql.Types.NCHAR
-     */
-    public static final int TYPE_NCHAR = -15;
-
-    /**
-     * This constant is used for JDK 1.5 compatibility
-     * and equal to java.sql.Types.NVARCHAR
-     */
-    public static final int TYPE_NVARCHAR = -9;
-
-    /**
-     * This constant is used for JDK 1.5 compatibility
-     * and equal to java.sql.Types.NCLOB
-     */
-    public static final int TYPE_NCLOB = 2011;
-
-    /**
      * The list of types. An ArrayList so that Tomcat doesn't set it to null
      * when clearing references.
      */
@@ -735,12 +711,12 @@ public class DataType {
     public static int convertSQLTypeToValueType(int sqlType) {
         switch(sqlType) {
         case Types.CHAR:
-        case TYPE_NCHAR:
+        case Types.NCHAR:
             return Value.STRING_FIXED;
         case Types.VARCHAR:
         case Types.LONGVARCHAR:
-        case TYPE_NVARCHAR:
-        case TYPE_LONGNVARCHAR:
+        case Types.NVARCHAR:
+        case Types.LONGNVARCHAR:
             return Value.STRING;
         case Types.NUMERIC:
         case Types.DECIMAL:
@@ -777,7 +753,7 @@ public class DataType {
         case Types.BLOB:
             return Value.BLOB;
         case Types.CLOB:
-        case TYPE_NCLOB:
+        case Types.NCLOB:
             return Value.CLOB;
         case Types.NULL:
             return Value.NULL;

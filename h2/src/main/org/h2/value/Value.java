@@ -618,7 +618,6 @@ public abstract class Value {
                 break;
             }
             case DECIMAL: {
-                // convert to string is required for JDK 1.4
                 switch (getType()) {
                 case BOOLEAN:
                     return ValueDecimal.get(BigDecimal.valueOf(getBoolean().booleanValue() ? 1 : 0));
@@ -642,7 +641,7 @@ public abstract class Value {
                     if (Float.isInfinite(f) || Float.isNaN(f)) {
                         throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "" + f);
                     }
-                    return ValueDecimal.get(new BigDecimal(Float.toString(f)));
+                    return ValueDecimal.get(BigDecimal.valueOf(f));
                 }
                 }
                 break;

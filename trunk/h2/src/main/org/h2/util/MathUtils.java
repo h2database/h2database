@@ -135,20 +135,9 @@ public class MathUtils {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(bout);
 
-            // milliseconds
+            // milliseconds and nanoseconds
             out.writeLong(System.currentTimeMillis());
-
-            // nanoseconds if available
-            try {
-                Method m = System.class.getMethod("nanoTime");
-                if (m != null) {
-                    Object o = m.invoke(null);
-                    out.writeUTF(o.toString());
-                }
-            } catch (Exception e) {
-                // nanoTime not found, this is ok (only exists for JDK 1.5 and higher)
-                out.writeUTF(e.toString());
-            }
+            out.writeLong(System.nanoTime());
 
             // memory
             out.writeInt(new Object().hashCode());

@@ -128,6 +128,7 @@ public class TransactionStore {
                 // no entry
             } else if (last[0] == id) {
                 Transaction t = new Transaction(this, id, status, name, last[1]);
+                t.setStored(true);
                 openTransactionMap.put(id, t);
             }
         }
@@ -168,10 +169,11 @@ public class TransactionStore {
         if (store.getUnsavedPageCount() > MAX_UNSAVED_PAGES) {
             store.commit();
         }
-        long transactionId = t.getId();
-        if (openTransactions.containsKey(transactionId)) {
+        if (t.isStored()) {
             return;
         }
+        t.setStored(true);
+        long transactionId = t.getId();
         Object[] v = { t.getStatus(), null };
         openTransactions.put(transactionId, v);
         openTransactionMap.put(transactionId, t);
@@ -347,6 +349,8 @@ public class TransactionStore {
         private int status;
 
         private String name;
+        
+        private boolean stored;
 
         Transaction(TransactionStore store, long transactionId, int status, String name, long logId) {
             this.store = store;
@@ -355,6 +359,14 @@ public class TransactionStore {
             this.status = status;
             this.name = name;
             this.logId = logId;
+        }
+
+        boolean isStored() {
+            return stored;
+        }
+
+        void setStored(boolean stored) {
+            this.stored = stored;
         }
 
         /**
@@ -1047,7 +1059,7 @@ public class TransactionStore {
                     buff.put((byte) 0);
                 } else {
                     buff.put((byte) 1);
-                    t.write(buff, o);
+                    buff = t.write(buff, o);
                 }
             }
             return buff;

@@ -35,7 +35,7 @@ public class TestMVTableEngine extends TestBase {
     }
 
     public void test() throws Exception {
-        // testSpeed();
+        //testSpeed();
         testExclusiveLock();
         testEncryption();
         testReadOnly();
@@ -71,6 +71,11 @@ int tes;
         String url = getURL(dbName, true);
         String user = getUser();
         String password = getPassword();
+        
+//Profiler prof = new Profiler();
+//prof.sumClasses=true;
+//prof.startCollecting();
+        
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
         long time = System.currentTimeMillis();
@@ -82,39 +87,39 @@ int tes;
                 .prepareStatement("insert into test values(?, ?)");
         
         // -mx4g
+        // fast size
         
         // 10000 / 8000
-        // 1229 mvstore;LOCK_MODE=0
-        // 1455 mvstore;LOCK_MODE=0
-        // 19 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
-        // 659 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        // 1278 mvstore;LOCK_MODE=0 before
+        // 1524 mvstore;LOCK_MODE=0 after
+        // 790 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
+        // 834 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
 
         // 1000 / 80000
-        // 1383 mvstore;LOCK_MODE=0
-        // 1618 mvstore;LOCK_MODE=0
-        // 244 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
-        // 965 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        // 1753 mvstore;LOCK_MODE=0 before
+        // 1998 mvstore;LOCK_MODE=0 after
+        // 810 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
+        // 818 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
         
         // 100 / 800000
-        // 2061 mvstore;LOCK_MODE=0
-        // 2281 mvstore;LOCK_MODE=0
-        // 1414 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
-        // 2647 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        // 2270 mvstore;LOCK_MODE=0 before
+        // 2841 mvstore;LOCK_MODE=0 after
+        // 2107 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
+        // 2116 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
 
-        // 10 / 8000000
-        // 11453 mvstore;LOCK_MODE=0
-        // 11720 mvstore;LOCK_MODE=0
-        // 13605 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
-        // 25172 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0
+        // 10 / 800000
+        // 1312 mvstore;LOCK_MODE=0 before
+        // 1500 mvstore;LOCK_MODE=0 after
+        // 1541 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
+        // 1551 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
         
         prep.setString(2, new String(new char[10]).replace((char) 0, 'x'));
-        for (int i = 0; i < 800000; i++) {
+        for (int i = 0; i < 80000; i++) {
             
             prep.setInt(1, i);
             prep.execute();
         }
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " before");
-//Profiler prof = new Profiler().startCollecting();
         conn.close();
 //System.out.println(prof.getTop(10));        
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");

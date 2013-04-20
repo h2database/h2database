@@ -641,7 +641,8 @@ public abstract class Value {
                     if (Float.isInfinite(f) || Float.isNaN(f)) {
                         throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, "" + f);
                     }
-                    return ValueDecimal.get(BigDecimal.valueOf(f));
+                    // better rounding behavior than BigDecimal.valueOf(f)
+                    return ValueDecimal.get(new BigDecimal(Float.toString(f)));
                 }
                 }
                 break;

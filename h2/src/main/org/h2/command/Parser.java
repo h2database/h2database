@@ -8,6 +8,7 @@ package org.h2.command;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -4733,7 +4734,7 @@ public class Parser {
             }
         }
         if (readIf("CHARSET")) {
-            command.setCharset(readString());
+            command.setCharset(Charset.forName(readString()));
         }
         return command;
     }
@@ -4777,7 +4778,7 @@ public class Parser {
                 }
             }
             if (readIf("CHARSET")) {
-                command.setCharset(readString());
+                command.setCharset(Charset.forName(readString()));
             }
         }
         if (readIf("SCHEMA")) {

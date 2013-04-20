@@ -6,6 +6,7 @@
  */
 package org.h2.engine;
 
+import java.nio.charset.Charset;
 import java.sql.ResultSet;
 
 /**
@@ -463,7 +464,7 @@ public class Constants {
     /**
      * Name of the character encoding format.
      */
-    public static final String UTF8 = "UTF8";
+    public static final Charset UTF8 = Charset.forName("UTF-8");
 
     /**
      * The maximum time in milliseconds to keep the cost of a view.

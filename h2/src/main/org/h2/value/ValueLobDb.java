@@ -196,7 +196,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         try {
             if (type == Value.CLOB) {
                 if (small != null) {
-                    return StringUtils.utf8Decode(small);
+                    return new String(small, Constants.UTF8);
                 }
                 return IOUtils.readStringAndClose(getReader(), len);
             }
@@ -407,7 +407,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 len = len < 0 ? 0 : len;
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = StringUtils.utf8Encode(new String(buff, 0, len));
+                byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, len);
             }
             ValueLobDb lob = new ValueLobDb(Value.CLOB, null, 0);
@@ -461,7 +461,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             try {
                 while (true) {
                     precision += len;
-                    byte[] b = StringUtils.utf8Encode(new String(buff, 0, len));
+                    byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
                     out.write(b, 0, b.length);
                     remaining -= len;
                     if (remaining <= 0) {

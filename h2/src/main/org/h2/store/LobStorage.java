@@ -18,6 +18,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -26,7 +27,6 @@ import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
@@ -199,7 +199,7 @@ public class LobStorage {
         if (SysProperties.LOB_IN_DATABASE) {
             int precision;
             if (type == Value.CLOB) {
-                precision = StringUtils.utf8Decode(small).length();
+                precision = new String(small, Constants.UTF8).length();
             } else {
                 precision = small.length;
             }
@@ -834,7 +834,7 @@ public class LobStorage {
             if (len < 0) {
                 buffer = null;
             } else {
-                buffer = StringUtils.utf8Encode(new String(charBuffer, 0, len));
+                buffer = new String(charBuffer, 0, len).getBytes(Constants.UTF8);
                 length += len;
                 remaining -= len;
             }

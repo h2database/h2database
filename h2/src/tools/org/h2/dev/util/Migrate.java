@@ -17,6 +17,7 @@ import java.io.RandomAccessFile;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import org.h2.engine.Constants;
 import org.h2.tools.RunScript;
 
 /**
@@ -89,7 +90,7 @@ public class Migrate {
                 "-password", password
         });
         file.renameTo(new File(file.getAbsoluteFile() + ".backup"));
-        RunScript.execute(url, user, password, TEMP_SCRIPT, "UTF-8", true);
+        RunScript.execute(url, user, password, TEMP_SCRIPT, Constants.UTF8, true);
         new File(TEMP_SCRIPT).delete();
     }
 

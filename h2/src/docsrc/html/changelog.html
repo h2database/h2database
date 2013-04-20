@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Queries with both LIMIT and OFFSET could throw an IllegalArgumentException.
+<ul><li>Issue 454: Use Charset for type-safety.
+</li><li>Queries with both LIMIT and OFFSET could throw an IllegalArgumentException.
 </li><li>MVStore: larger stores (multiple GB) are now much faster.
 </li><li>When using local temporary tables and not dropping them manually before closing the session,
     and then killing the process could result in a database that couldn't be opened (except when using
@@ -26,11 +27,11 @@ Change Log
 </li><li>Support TRUNC(timestamp) for improved Oracle compatibility.
 </li><li>Add support for CREATE TABLE TEST (ID BIGSERIAL) for PostgreSQL compatibility. Patch from Jesse Long.
 </li><li>Add new collation command SET BINARY_COLLATION UNSIGNED, helps with people testing BINARY columns in MySQL mode.
-</li><li>Fix issue #453, ABBA race conditions in TABLE LINK connection sharing.
-</li><li>Fix Issue 449: Postgres Serial data type should not automatically be marked as primary key
-</li><li>Fix Issue 406: support "SELECT h2version()"
-</li><li>Fix Issue 389: When there is a multi-column primary key, H2 does not seem to always pick the right index
-</li><li>Fix Issue 305: Implement SELECT ... FOR FETCH ONLY
+</li><li>Issue 453: ABBA race conditions in TABLE LINK connection sharing.
+</li><li>Issue 449: Postgres Serial data type should not automatically be marked as primary key
+</li><li>Issue 406: support "SELECT h2version()"
+</li><li>Issue 389: When there is a multi-column primary key, H2 does not seem to always pick the right index
+</li><li>Issue 305: Implement SELECT ... FOR FETCH ONLY
 </li><li>Issue 274: Sybase/MSSQLServer compatibility - Add GETDATE and CHARINDEX system functions
 </li><li>Issue 274: Sybase/MSSQLServer compatibility - swap parameters of CONVERT function.
 </li><li>Issue 274: Sybase/MSSQLServer compatibility - support index clause e.g. "select * from test (index table1_index)"

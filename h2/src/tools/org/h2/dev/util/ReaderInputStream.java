@@ -12,10 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+
 import org.h2.engine.Constants;
-import org.h2.message.DbException;
 
 /**
  * The reader input stream wraps a reader and convert the character to the UTF-8
@@ -35,11 +34,7 @@ public class ReaderInputStream extends InputStream {
         chars = new char[Constants.IO_BUFFER_SIZE];
         this.reader = reader;
         out = new ByteArrayOutputStream(Constants.IO_BUFFER_SIZE);
-        try {
-            writer = new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
-        } catch (UnsupportedEncodingException e) {
-            throw DbException.convert(e);
-        }
+        writer = new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
     }
 
     private void fillBuffer() throws IOException {

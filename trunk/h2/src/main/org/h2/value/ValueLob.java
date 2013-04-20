@@ -144,7 +144,7 @@ public class ValueLob extends Value {
         try {
             if (handler == null) {
                 String s = IOUtils.readStringAndClose(in, (int) length);
-                return createSmallLob(Value.CLOB, StringUtils.utf8Encode(s));
+                return createSmallLob(Value.CLOB, s.getBytes(Constants.UTF8));
             }
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
             long remaining = Long.MAX_VALUE;
@@ -163,7 +163,7 @@ public class ValueLob extends Value {
                 len = len < 0 ? 0 : len;
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = StringUtils.utf8Encode(new String(buff, 0, len));
+                byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
                 return ValueLob.createSmallLob(Value.CLOB, small);
             }
             ValueLob lob = new ValueLob(Value.CLOB, null);
@@ -204,7 +204,7 @@ public class ValueLob extends Value {
             try {
                 while (true) {
                     precision += len;
-                    byte[] b = StringUtils.utf8Encode(new String(buff, 0, len));
+                    byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
                     out.write(b, 0, b.length);
                     remaining -= len;
                     if (remaining <= 0) {
@@ -546,7 +546,7 @@ public class ValueLob extends Value {
         try {
             if (type == Value.CLOB) {
                 if (small != null) {
-                    return StringUtils.utf8Decode(small);
+                    return new String(small, Constants.UTF8);
                 }
                 return IOUtils.readStringAndClose(getReader(), len);
             }

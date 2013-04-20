@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
+import org.h2.engine.Constants;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.mvstore.type.StringDataType;
@@ -600,7 +601,7 @@ public class MVStore {
         fileReadCount++;
         DataUtils.readFully(file, 0, buff);
         for (int i = 0; i < 3 * BLOCK_SIZE; i += BLOCK_SIZE) {
-            String s = DataUtils.utf8Decode(buff.array(), i, BLOCK_SIZE)
+            String s = new String(buff.array(), i, BLOCK_SIZE, Constants.UTF8)
                     .trim();
             HashMap<String, String> m = DataUtils.parseMap(s);
             String f = m.remove("fletcher");
@@ -613,8 +614,8 @@ public class MVStore {
             } catch (NumberFormatException e) {
                 check = -1;
             }
-            s = s.substring(0, s.lastIndexOf("fletcher") - 1) + " ";
-            byte[] bytes = DataUtils.utf8Encode(s);
+            s = s.substring(0, s.lastIndexOf("fletcher") - 1);
+            byte[] bytes = s.getBytes(Constants.UTF8);
             int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
             if (check != checksum) {
                 continue;
@@ -640,10 +641,10 @@ public class MVStore {
         fileHeader.put("rootChunk", "" + rootChunkStart);
         fileHeader.put("version", "" + currentVersion);
         DataUtils.appendMap(buff, fileHeader);
-        byte[] bytes = DataUtils.utf8Encode(buff.toString() + " ");
+        byte[] bytes = buff.toString().getBytes(Constants.UTF8);
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
         DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
-        bytes = DataUtils.utf8Encode(buff.toString());
+        bytes = buff.toString().getBytes(Constants.UTF8);
         DataUtils.checkArgument(bytes.length <= BLOCK_SIZE,
                 "File header too large: {0}", buff);
         return bytes;

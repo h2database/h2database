@@ -5,6 +5,9 @@
  */
 package org.h2.test.store;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -36,6 +39,7 @@ public class TestMVTableEngine extends TestBase {
 
     public void test() throws Exception {
         //testSpeed();
+        // testBlob();
         testExclusiveLock();
         testEncryption();
         testReadOnly();
@@ -63,7 +67,7 @@ int tes;
         }
         FileUtils.deleteRecursive(getBaseDir(), true);
     }
-
+    
     private void testSpeed(String dbName) throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -123,6 +127,35 @@ int tes;
         conn.close();
 //System.out.println(prof.getTop(10));        
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
+    }
+    
+    private void testBlob() throws SQLException, IOException {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        String dbName = "mvstore" +
+                ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
+        Connection conn;
+        Statement stat;
+        conn = getConnection(dbName);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int, name blob)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(1, ?)");
+        prep.setBinaryStream(1,  new ByteArrayInputStream(new byte[1000]));
+        prep.execute();
+        conn.close();
+        
+        conn = getConnection(dbName);
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from test");
+        while (rs.next()) {
+            InputStream in = rs.getBinaryStream(2);
+            int len = 0;
+            while (in.read() >= 0) {
+                len++;
+            }
+            assertEquals(10000, len);
+        }
+        conn.close();
+        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testEncryption() throws Exception {

@@ -326,55 +326,6 @@ public class StringUtils {
     }
 
     /**
-     * Convert the text to UTF-8 format. For the Unicode characters
-     * 0xd800-0xdfff only one byte is returned.
-     *
-     * @param s the text
-     * @return the UTF-8 representation
-     */
-    public static byte[] utf8Encode(String s) {
-        try {
-            return s.getBytes(Constants.UTF8);
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
-    }
-
-    /**
-     * Convert a UTF-8 representation of a text to the text.
-     *
-     * @param utf8 the UTF-8 representation
-     * @return the text
-     */
-    public static String utf8Decode(byte[] utf8) {
-        try {
-            return new String(utf8, Constants.UTF8);
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
-    }
-
-    /**
-     * Convert a UTF-8 representation of a text to the text using the given
-     * offset and length.
-     *
-     * @param bytes the UTF-8 representation
-     * @param offset the offset in the bytes array
-     * @param length the number of bytes
-     * @return the text
-     */
-    public static String utf8Decode(byte[] bytes, int offset, int length) {
-        try {
-            return new String(bytes, offset, length, Constants.UTF8);
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
-    }
-
-    /**
      * Convert a string array to the Java source code that represents this
      * array. Null will be converted to 'null'.
      *
@@ -479,7 +430,7 @@ public class StringUtils {
                 buff[j++] = (byte) ch;
             }
         }
-        String s = utf8Decode(buff, 0, j);
+        String s = new String(buff, 0, j, Constants.UTF8);
         return s;
     }
 

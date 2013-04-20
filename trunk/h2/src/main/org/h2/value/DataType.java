@@ -22,8 +22,10 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
@@ -32,7 +34,6 @@ import org.h2.message.DbException;
 import org.h2.store.LobStorage;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
@@ -539,7 +540,7 @@ public class DataType {
             }
             case Value.CLOB: {
                 if (session == null) {
-                    v = LobStorage.createSmallLob(Value.CLOB, StringUtils.utf8Encode(rs.getString(columnIndex)));
+                    v = LobStorage.createSmallLob(Value.CLOB, rs.getString(columnIndex).getBytes(Constants.UTF8));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {

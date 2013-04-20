@@ -18,7 +18,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import org.h2.constant.SysProperties;
@@ -379,13 +378,7 @@ public class IOUtils {
      * @return the reader
      */
     public static Reader getBufferedReader(InputStream in) {
-        try {
-            //
-            return in == null ? null : new BufferedReader(new InputStreamReader(in, Constants.UTF8));
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
+        return in == null ? null : new BufferedReader(new InputStreamReader(in, Constants.UTF8));
     }
 
     /**
@@ -398,13 +391,8 @@ public class IOUtils {
      * @return the reader
      */
     public static Reader getReader(InputStream in) {
-        try {
-            // InputStreamReader may read some more bytes
-            return in == null ? null : new BufferedReader(new InputStreamReader(in, Constants.UTF8));
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
+        // InputStreamReader may read some more bytes
+        return in == null ? null : new BufferedReader(new InputStreamReader(in, Constants.UTF8));
     }
 
     /**
@@ -415,23 +403,7 @@ public class IOUtils {
      * @return the writer
      */
     public static Writer getBufferedWriter(OutputStream out) {
-        try {
-            return out == null ? null : new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
-    }
-
-    /**
-     * Create a reader to read from a string.
-     * If the string is null, this method returns null.
-     *
-     * @param s the string or null
-     * @return the reader
-     */
-    public static Reader getReaderFromString(String s) {
-        return s == null ? null : new StringReader(s);
+        return out == null ? null : new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
     }
 
     /**
@@ -475,7 +447,7 @@ public class IOUtils {
         if (s == null) {
             return null;
         }
-        return new ByteArrayInputStream(StringUtils.utf8Encode(s));
+        return new ByteArrayInputStream(s.getBytes(Constants.UTF8));
     }
 
     /**

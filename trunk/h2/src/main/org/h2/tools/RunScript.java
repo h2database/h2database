@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -177,20 +178,20 @@ public class RunScript extends Tool {
     }
 
     private void process(Connection conn, String fileName,
-            boolean continueOnError, String charsetName) throws SQLException, IOException {
+            boolean continueOnError, Charset charset) throws SQLException, IOException {
         InputStream in = FileUtils.newInputStream(fileName);
         String path = FileUtils.getParent(fileName);
         try {
             in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE);
-            Reader reader = new InputStreamReader(in, charsetName);
-            process(conn, continueOnError, path, reader, charsetName);
+            Reader reader = new InputStreamReader(in, charset);
+            process(conn, continueOnError, path, reader, charset);
         } finally {
             IOUtils.closeSilently(in);
         }
     }
 
     private void process(Connection conn, boolean continueOnError,
-            String path, Reader reader, String charsetName) throws SQLException, IOException {
+            String path, Reader reader, Charset charset) throws SQLException, IOException {
         Statement stat = conn.createStatement();
         ScriptReader r = new ScriptReader(reader);
         while (true) {
@@ -208,7 +209,7 @@ public class RunScript extends Tool {
                 if (!FileUtils.isAbsolute(sql)) {
                     sql = path + SysProperties.FILE_SEPARATOR + sql;
                 }
-                process(conn, sql, continueOnError, charsetName);
+                process(conn, sql, continueOnError, charset);
             } else {
                 try {
                     if (showResults && !trim.startsWith("-->")) {
@@ -286,12 +287,12 @@ public class RunScript extends Tool {
      * @param user the user name
      * @param password the password
      * @param fileName the script file
-     * @param charsetName the character set name or null for UTF-8
+     * @param charset the character set or null for UTF-8
      * @param continueOnError if execution should be continued if an error occurs
      */
     public static void execute(String url, String user, String password,
-            String fileName, String charsetName, boolean continueOnError) throws SQLException {
-        new RunScript().process(url, user, password, fileName, charsetName, continueOnError);
+            String fileName, Charset charset, boolean continueOnError) throws SQLException {
+        new RunScript().process(url, user, password, fileName, charset, continueOnError);
     }
 
     /**
@@ -301,20 +302,20 @@ public class RunScript extends Tool {
      * @param user the user name
      * @param password the password
      * @param fileName the script file
-     * @param charsetName the character set name or null for UTF-8
+     * @param charset the character set or null for UTF-8
      * @param continueOnError if execution should be continued if an error occurs
      */
     void process(String url, String user, String password,
-            String fileName, String charsetName,
+            String fileName, Charset charset,
             boolean continueOnError) throws SQLException {
         try {
             org.h2.Driver.load();
             Connection conn = DriverManager.getConnection(url, user, password);
-            if (charsetName == null) {
-                charsetName = Constants.UTF8;
+            if (charset == null) {
+                charset = Constants.UTF8;
             }
             try {
-                process(conn, fileName, continueOnError, charsetName);
+                process(conn, fileName, continueOnError, charset);
             } finally {
                 conn.close();
             }

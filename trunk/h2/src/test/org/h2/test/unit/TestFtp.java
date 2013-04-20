@@ -34,6 +34,7 @@ public class TestFtp extends TestBase implements FtpEventListener {
         if (getBaseDir().indexOf(':') > 0) {
             return;
         }
+        FileUtils.delete(getBaseDir() + "/test");
         test(getBaseDir());
         FileUtils.delete(getBaseDir() + "/test");
     }

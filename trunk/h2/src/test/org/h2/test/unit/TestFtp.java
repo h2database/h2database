@@ -34,9 +34,9 @@ public class TestFtp extends TestBase implements FtpEventListener {
         if (getBaseDir().indexOf(':') > 0) {
             return;
         }
-        FileUtils.delete(getBaseDir() + "/test");
+        FileUtils.delete(getBaseDir() + "/ftp");
         test(getBaseDir());
-        FileUtils.delete(getBaseDir() + "/test");
+        FileUtils.delete(getBaseDir() + "/ftp");
     }
 
     private void test(String dir) throws Exception {
@@ -45,8 +45,8 @@ public class TestFtp extends TestBase implements FtpEventListener {
         ftp.setEventListener(this);
         FtpClient client = FtpClient.open("localhost:8121");
         client.login("sa", "sa");
-        client.makeDirectory("test");
-        client.changeWorkingDirectory("test");
+        client.makeDirectory("ftp");
+        client.changeWorkingDirectory("ftp");
         assertEquals("CWD", lastEvent.getCommand());
         client.makeDirectory("hello");
         client.changeWorkingDirectory("hello");

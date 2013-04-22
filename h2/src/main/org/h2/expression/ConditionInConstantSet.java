@@ -139,10 +139,11 @@ public class ConditionInConstantSet extends Condition {
      * @param other the second condition
      * @return null if the condition was not added, or the new condition
      */
-    Expression getAdditional(Comparison other) {
+    Expression getAdditional(Session session, Comparison other) {
         Expression add = other.getIfEquals(left);
         if (add != null) {
             valueList.add(add);
+            valueSet.add(add.getValue(session).convertTo(left.getType()));
             return this;
         }
         return null;

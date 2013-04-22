@@ -69,6 +69,7 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         testOrderedIndexes();
+        testConvertOrToIn();
         deleteDb("optimizations");
     }
 
@@ -812,4 +813,20 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
+    private void testConvertOrToIn() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table test(id int primary key, name varchar(255))");
+        stat.execute("insert into test values(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')");
+        
+        ResultSet rs = stat.executeQuery("EXPLAIN PLAN FOR SELECT * FROM test WHERE ID=1 OR ID=2 OR ID=3 OR ID=4 OR ID=5");
+        rs.next();
+        assertContains(rs.getString(1), "ID IN(1, 2, 3, 4, 5)");
+
+        stat.execute("DROP TABLE test");
+
+        conn.close();
+    }
 }

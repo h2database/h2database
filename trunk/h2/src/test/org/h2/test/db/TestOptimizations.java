@@ -825,7 +825,9 @@ public class TestOptimizations extends TestBase {
         rs.next();
         assertContains(rs.getString(1), "ID IN(1, 2, 3, 4, 5)");
 
-        stat.execute("DROP TABLE test");
+        rs = stat.executeQuery("SELECT COUNT(*) FROM test WHERE ID=1 OR ID=2 OR ID=3 OR ID=4 OR ID=5");
+        rs.next();
+        assertEquals(5, rs.getInt(1));
 
         conn.close();
     }

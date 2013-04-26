@@ -24,9 +24,6 @@ import org.h2.value.DataType;
 public class TestMetaData extends TestBase {
 
     private static final String CATALOG = "METADATA";
-    private Connection conn;
-    private DatabaseMetaData meta;
-    private Statement stat;
 
     /**
      * Run just this test.
@@ -41,9 +38,6 @@ public class TestMetaData extends TestBase {
         deleteDb("metaData");
 
         testTempTable();
-
-        conn = getConnection("metaData");
-
         testColumnResultSetMeta();
         testColumnLobMeta();
         testColumnMetaData();
@@ -52,183 +46,14 @@ public class TestMetaData extends TestBase {
         testCrossReferences();
         testProcedureColumns();
         testUDTs();
-
-        stat = conn.createStatement();
-        meta = conn.getMetaData();
         testStatic();
-        // TODO test remaining meta data
-
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-        stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
-
-        ResultSet rs;
-
-        rs = meta.getCatalogs();
-        rs.next();
-        assertEquals(CATALOG, rs.getString(1));
-        assertFalse(rs.next());
-
-        rs = meta.getSchemas();
-        rs.next();
-        assertEquals("INFORMATION_SCHEMA", rs.getString("TABLE_SCHEM"));
-        rs.next();
-        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
-        assertFalse(rs.next());
-
-        rs = meta.getSchemas(null, null);
-        rs.next();
-        assertEquals("INFORMATION_SCHEMA", rs.getString("TABLE_SCHEM"));
-        rs.next();
-        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
-        assertFalse(rs.next());
-
-        rs = meta.getSchemas(null, "PUBLIC");
-        rs.next();
-        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
-        assertFalse(rs.next());
-
-        rs = meta.getTableTypes();
-        rs.next();
-        assertEquals("SYSTEM TABLE", rs.getString("TABLE_TYPE"));
-        rs.next();
-        assertEquals("TABLE", rs.getString("TABLE_TYPE"));
-        rs.next();
-        assertEquals("TABLE LINK", rs.getString("TABLE_TYPE"));
-        rs.next();
-        assertEquals("VIEW", rs.getString("TABLE_TYPE"));
-        assertFalse(rs.next());
-
-        rs = meta.getTables(null, Constants.SCHEMA_MAIN, null, new String[] { "TABLE" });
-        assertTrue(rs.getStatement() == null);
-        rs.next();
-        assertEquals("TEST", rs.getString("TABLE_NAME"));
-        assertFalse(rs.next());
-
-        rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "SYSTEM TABLE" });
-        rs.next();
-        assertEquals("CATALOGS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("COLLATIONS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("COLUMNS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("COLUMN_PRIVILEGES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("CONSTANTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("CONSTRAINTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("CROSS_REFERENCES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("DOMAINS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("FUNCTION_ALIASES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("FUNCTION_COLUMNS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("HELP", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("INDEXES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("IN_DOUBT", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("LOCKS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("RIGHTS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("ROLES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SCHEMATA", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SEQUENCES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SESSIONS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SESSION_STATE", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("SETTINGS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TABLES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TABLE_PRIVILEGES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TABLE_TYPES", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TRIGGERS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("TYPE_INFO", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("USERS", rs.getString("TABLE_NAME"));
-        rs.next();
-        assertEquals("VIEWS", rs.getString("TABLE_NAME"));
-        assertFalse(rs.next());
-
-        rs = meta.getColumns(null, null, "TEST", null);
-        rs.next();
-        assertEquals("ID", rs.getString("COLUMN_NAME"));
-        rs.next();
-        assertEquals("NAME", rs.getString("COLUMN_NAME"));
-        assertFalse(rs.next());
-
-        rs = meta.getPrimaryKeys(null, null, "TEST");
-        rs.next();
-        assertEquals("ID", rs.getString("COLUMN_NAME"));
-        assertFalse(rs.next());
-
-        rs = meta.getBestRowIdentifier(null, null, "TEST", DatabaseMetaData.bestRowSession, false);
-        rs.next();
-        assertEquals("ID", rs.getString("COLUMN_NAME"));
-        assertFalse(rs.next());
-
-        rs = meta.getIndexInfo(null, null, "TEST", false, false);
-        rs.next();
-        String index = rs.getString("INDEX_NAME");
-        assertTrue(index.startsWith("PRIMARY_KEY"));
-        assertEquals("ID", rs.getString("COLUMN_NAME"));
-        rs.next();
-        assertEquals("IDXNAME", rs.getString("INDEX_NAME"));
-        assertEquals("NAME", rs.getString("COLUMN_NAME"));
-        assertFalse(rs.next());
-
-        rs = meta.getIndexInfo(null, null, "TEST", true, false);
-        rs.next();
-        index = rs.getString("INDEX_NAME");
-        assertTrue(index.startsWith("PRIMARY_KEY"));
-        assertEquals("ID", rs.getString("COLUMN_NAME"));
-        assertFalse(rs.next());
-
-        rs = meta.getVersionColumns(null, null, "TEST");
-        assertFalse(rs.next());
-
-        stat.execute("DROP TABLE TEST");
-
-        rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SETTINGS");
-        while (rs.next()) {
-            String name = rs.getString("NAME");
-            String value = rs.getString("VALUE");
-            trace(name + "=" + value);
-        }
-
-        testMore();
-
-        // meta.getTablePrivileges()
-
-        // meta.getAttributes()
-        // meta.getColumnPrivileges()
-        // meta.getSuperTables()
-        // meta.getSuperTypes()
-        // meta.getTypeInfo()
-
+        testGeneral();
         testAllowLiteralsNone();
-
-        conn.close();
-
-        deleteDb("metaData");
-
     }
 
     private void testColumnResultSetMeta() throws SQLException {
-        stat = conn.createStatement();
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
         stat.executeUpdate("create table test(data result_set)");
         stat.execute("create alias x as 'ResultSet x(Connection conn, String sql) " +
                 "throws SQLException { return conn.createStatement(" +
@@ -252,10 +77,12 @@ public class TestMetaData extends TestBase {
         assertEquals("", rsMeta.getSchemaName(1));
         assertEquals("", rsMeta.getTableName(1));
         stat.executeUpdate("drop table test");
+        conn.close();
     }
 
     private void testColumnLobMeta() throws SQLException {
-        stat = conn.createStatement();
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
         stat.executeUpdate("CREATE TABLE t (blob BLOB, clob CLOB)");
         stat.execute("INSERT INTO t VALUES('', '')");
         ResultSet rs = stat.executeQuery("SELECT blob,clob FROM t");
@@ -266,9 +93,11 @@ public class TestMetaData extends TestBase {
         assertTrue(rs.getObject(1) instanceof java.sql.Blob);
         assertTrue(rs.getObject(2) instanceof java.sql.Clob);
         stat.executeUpdate("DROP TABLE t");
+        conn.close();
     }
 
     private void testColumnMetaData() throws SQLException {
+        Connection conn = getConnection("metaData");
         String sql = "select substring('Hello',0,1)";
         ResultSet rs = conn.prepareStatement(sql).executeQuery();
         rs.next();
@@ -277,7 +106,7 @@ public class TestMetaData extends TestBase {
         rs = conn.createStatement().executeQuery("SELECT COUNT(*) C FROM DUAL");
         assertEquals("C", rs.getMetaData().getColumnName(1));
 
-        stat = conn.createStatement();
+        Statement stat = conn.createStatement();
         stat.execute("create table a(x array)");
         stat.execute("insert into a values((1, 2))");
         rs = stat.executeQuery("SELECT x[1] FROM a");
@@ -286,10 +115,12 @@ public class TestMetaData extends TestBase {
         rs.next();
         // assertEquals(String.class.getName(), rs.getObject(1).getClass().getName());
         stat.execute("drop table a");
+        conn.close();
     }
 
     private void testColumnPrecision() throws SQLException {
-        stat = conn.createStatement();
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE ONE(X NUMBER(12,2), Y FLOAT)");
         stat.execute("CREATE TABLE TWO AS SELECT * FROM ONE");
         ResultSet rs;
@@ -307,12 +138,14 @@ public class TestMetaData extends TestBase {
         assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         stat.execute("DROP TABLE ONE, TWO");
+        conn.close();
     }
 
     private void testColumnDefault() throws SQLException {
-        meta = conn.getMetaData();
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
-        stat = conn.createStatement();
+        Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(A INT, B INT DEFAULT NULL)");
         rs = meta.getColumns(null, null, "TEST", null);
         rs.next();
@@ -323,12 +156,14 @@ public class TestMetaData extends TestBase {
         assertEquals("NULL", rs.getString("COLUMN_DEF"));
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
+        conn.close();
     }
 
     private void testProcedureColumns() throws SQLException {
-        meta = conn.getMetaData();
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
-        stat = conn.createStatement();
+        Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS PROP FOR \"java.lang.System.getProperty(java.lang.String)\"");
         stat.execute("CREATE ALIAS EXIT FOR \"java.lang.System.exit\"");
         rs = meta.getProcedures(null, null, "EX%");
@@ -357,10 +192,12 @@ public class TestMetaData extends TestBase {
                         "" + DatabaseMetaData.procedureNullable }, });
         stat.execute("DROP ALIAS EXIT");
         stat.execute("DROP ALIAS PROP");
+        conn.close();
     }
 
     private void testUDTs() throws SQLException {
-        meta = conn.getMetaData();
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
         rs = meta.getUDTs(null, null, null, null);
         assertResultSetMeta(rs, 7, new String[] { "TYPE_CAT", "TYPE_SCHEM", "TYPE_NAME",
@@ -368,12 +205,14 @@ public class TestMetaData extends TestBase {
                 }, new int[] {
                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.SMALLINT, Types.VARCHAR,
                 Types.SMALLINT }, null, null);
+        conn.close();
     }
 
     private void testCrossReferences() throws SQLException {
-        meta = conn.getMetaData();
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
-        stat = conn.createStatement();
+        Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE PARENT(A INT, B INT, PRIMARY KEY(A, B))");
         stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, PA INT, PB INT, " +
                 "CONSTRAINT AB FOREIGN KEY(PA, PB) REFERENCES PARENT(A, B))");
@@ -385,6 +224,7 @@ public class TestMetaData extends TestBase {
         checkCrossRef(rs);
         stat.execute("DROP TABLE PARENT");
         stat.execute("DROP TABLE CHILD");
+        conn.close();
     }
 
     private void checkCrossRef(ResultSet rs) throws SQLException {
@@ -404,8 +244,8 @@ public class TestMetaData extends TestBase {
     }
 
     private void testTempTable() throws SQLException {
-        conn = getConnection("metaData");
-        stat = conn.createStatement();
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST_TEMP");
         stat.execute("CREATE TEMP TABLE TEST_TEMP(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("CREATE INDEX IDX_NAME ON TEST_TEMP(NAME)");
@@ -425,6 +265,8 @@ public class TestMetaData extends TestBase {
 
     private void testStatic() throws SQLException {
         Driver dr = org.h2.Driver.load();
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
 
         assertEquals(dr.getMajorVersion(), meta.getDriverMajorVersion());
         assertEquals(dr.getMinorVersion(), meta.getDriverMinorVersion());
@@ -622,11 +464,13 @@ public class TestMetaData extends TestBase {
         assertFalse(meta.updatesAreDetected(ResultSet.TYPE_SCROLL_SENSITIVE));
         assertFalse(meta.usesLocalFilePerTable());
         assertTrue(meta.usesLocalFiles());
+        conn.close();
     }
 
     private void testMore() throws SQLException {
-        meta = conn.getMetaData();
-        stat = conn.createStatement();
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
+        Statement stat = conn.createStatement();
         ResultSet rs;
 
         conn.setReadOnly(true);
@@ -923,7 +767,178 @@ public class TestMetaData extends TestBase {
         assertTrue(conn.getWarnings() == null);
         conn.clearWarnings();
         assertTrue(conn.getWarnings() == null);
+        conn.close();
+    }
 
+    private void testGeneral() throws SQLException {
+        Connection conn = getConnection("metaData");
+        DatabaseMetaData meta = conn.getMetaData();
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
+
+        ResultSet rs;
+
+        rs = meta.getCatalogs();
+        rs.next();
+        assertEquals(CATALOG, rs.getString(1));
+        assertFalse(rs.next());
+
+        rs = meta.getSchemas();
+        rs.next();
+        assertEquals("INFORMATION_SCHEMA", rs.getString("TABLE_SCHEM"));
+        rs.next();
+        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
+        assertFalse(rs.next());
+
+        rs = meta.getSchemas(null, null);
+        rs.next();
+        assertEquals("INFORMATION_SCHEMA", rs.getString("TABLE_SCHEM"));
+        rs.next();
+        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
+        assertFalse(rs.next());
+
+        rs = meta.getSchemas(null, "PUBLIC");
+        rs.next();
+        assertEquals("PUBLIC", rs.getString("TABLE_SCHEM"));
+        assertFalse(rs.next());
+
+        rs = meta.getTableTypes();
+        rs.next();
+        assertEquals("SYSTEM TABLE", rs.getString("TABLE_TYPE"));
+        rs.next();
+        assertEquals("TABLE", rs.getString("TABLE_TYPE"));
+        rs.next();
+        assertEquals("TABLE LINK", rs.getString("TABLE_TYPE"));
+        rs.next();
+        assertEquals("VIEW", rs.getString("TABLE_TYPE"));
+        assertFalse(rs.next());
+
+        rs = meta.getTables(null, Constants.SCHEMA_MAIN, null, new String[] { "TABLE" });
+        assertTrue(rs.getStatement() == null);
+        rs.next();
+        assertEquals("TEST", rs.getString("TABLE_NAME"));
+        assertFalse(rs.next());
+
+        rs = meta.getTables(null, "INFORMATION_SCHEMA", null, new String[] { "TABLE", "SYSTEM TABLE" });
+        rs.next();
+        assertEquals("CATALOGS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("COLLATIONS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("COLUMNS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("COLUMN_PRIVILEGES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("CONSTANTS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("CONSTRAINTS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("CROSS_REFERENCES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("DOMAINS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("FUNCTION_ALIASES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("FUNCTION_COLUMNS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("HELP", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("INDEXES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("IN_DOUBT", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("LOCKS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("RIGHTS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("ROLES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("SCHEMATA", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("SEQUENCES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("SESSIONS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("SESSION_STATE", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("SETTINGS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("TABLES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("TABLE_PRIVILEGES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("TABLE_TYPES", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("TRIGGERS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("TYPE_INFO", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("USERS", rs.getString("TABLE_NAME"));
+        rs.next();
+        assertEquals("VIEWS", rs.getString("TABLE_NAME"));
+        assertFalse(rs.next());
+
+        rs = meta.getColumns(null, null, "TEST", null);
+        rs.next();
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
+        rs.next();
+        assertEquals("NAME", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+
+        rs = meta.getPrimaryKeys(null, null, "TEST");
+        rs.next();
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+
+        rs = meta.getBestRowIdentifier(null, null, "TEST", DatabaseMetaData.bestRowSession, false);
+        rs.next();
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+
+        rs = meta.getIndexInfo(null, null, "TEST", false, false);
+        rs.next();
+        String index = rs.getString("INDEX_NAME");
+        assertTrue(index.startsWith("PRIMARY_KEY"));
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
+        rs.next();
+        assertEquals("IDXNAME", rs.getString("INDEX_NAME"));
+        assertEquals("NAME", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+
+        rs = meta.getIndexInfo(null, null, "TEST", true, false);
+        rs.next();
+        index = rs.getString("INDEX_NAME");
+        assertTrue(index.startsWith("PRIMARY_KEY"));
+        assertEquals("ID", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+
+        rs = meta.getVersionColumns(null, null, "TEST");
+        assertFalse(rs.next());
+
+        stat.execute("DROP TABLE TEST");
+
+        rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.SETTINGS");
+        while (rs.next()) {
+            String name = rs.getString("NAME");
+            String value = rs.getString("VALUE");
+            trace(name + "=" + value);
+        }
+
+        testMore();
+
+        // meta.getTablePrivileges()
+
+        // meta.getAttributes()
+        // meta.getColumnPrivileges()
+        // meta.getSuperTables()
+        // meta.getSuperTypes()
+        // meta.getTypeInfo()
+
+        conn.close();
+
+        deleteDb("metaData");
     }
 
     private void testAllowLiteralsNone() throws SQLException {
@@ -957,6 +972,7 @@ public class TestMetaData extends TestBase {
         meta.getUDTs(null, null, null, null);
         meta.getVersionColumns(null, null, null);
         conn.close();
+        deleteDb("metaData");
     }
-
+    
 }

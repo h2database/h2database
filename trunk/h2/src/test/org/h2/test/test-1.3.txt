@@ -1,4 +1,9 @@
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from dual where x = x + 1 or x in(2, 0);
+> X
+> -
+> rows: 0
+
 select * from system_range(1,1) order by x limit 3 offset 3;
 > X
 > -

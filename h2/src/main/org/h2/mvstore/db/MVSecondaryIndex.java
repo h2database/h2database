@@ -172,8 +172,7 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
-        TransactionMap<Value, Value> map = getMap(session);
-        return 10 * getCostRangeIndex(masks, map.getSize(), sortOrder);
+        return 10 * getCostRangeIndex(masks, dataMap.map.getSize(), sortOrder);
     }
 
     @Override
@@ -217,7 +216,7 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public boolean needRebuild() {
-        return getMap(null).getSize() == 0;
+        return dataMap.map.getSize() == 0;
     }
 
     @Override
@@ -228,7 +227,7 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public long getRowCountApproximation() {
-        return getMap(null).getSize();
+        return dataMap.map.getSize();
     }
 
     public long getDiskSpaceUsed() {

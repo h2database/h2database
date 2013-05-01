@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -38,8 +39,9 @@ public class TestMVTableEngine extends TestBase {
     }
 
     public void test() throws Exception {
-        //testSpeed();
-        // testBlob();
+//        testSpeed();
+        testReopen();
+        testBlob();
         testExclusiveLock();
         testEncryption();
         testReadOnly();
@@ -61,7 +63,7 @@ int tes;
             dbName = "mvstore" +
                     ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
             dbName += ";LOCK_MODE=0";
-//            dbName += ";LOG=0";
+            dbName += ";LOG=0";
             testSpeed(dbName);
 //System.out.println(prof.getTop(10));
         }
@@ -117,8 +119,8 @@ int tes;
         // 1541 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
         // 1551 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
         
-        prep.setString(2, new String(new char[10]).replace((char) 0, 'x'));
-        for (int i = 0; i < 80000; i++) {
+        prep.setString(2, new String(new char[100]).replace((char) 0, 'x'));
+        for (int i = 0; i < 200000; i++) {
             
             prep.setInt(1, i);
             prep.execute();
@@ -127,6 +129,21 @@ int tes;
         conn.close();
 //System.out.println(prof.getTop(10));        
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
+    }
+
+    private void testReopen() throws SQLException {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        conn = getConnection("mvstore");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int, name varchar) "
+                + "engine \"org.h2.mvstore.db.MVTableEngine\"");
+        conn.close();
+        conn = getConnection("mvstore");
+        stat = conn.createStatement();
+        stat.execute("drop table test");
+        conn.close();
     }
     
     private void testBlob() throws SQLException, IOException {
@@ -139,10 +156,9 @@ int tes;
         stat = conn.createStatement();
         stat.execute("create table test(id int, name blob)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(1, ?)");
-        prep.setBinaryStream(1,  new ByteArrayInputStream(new byte[1000]));
+        prep.setBinaryStream(1,  new ByteArrayInputStream(new byte[129]));
         prep.execute();
         conn.close();
-        
         conn = getConnection(dbName);
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from test");
@@ -152,7 +168,7 @@ int tes;
             while (in.read() >= 0) {
                 len++;
             }
-            assertEquals(10000, len);
+            assertEquals(129, len);
         }
         conn.close();
         FileUtils.deleteRecursive(getBaseDir(), true);
@@ -169,11 +185,12 @@ int tes;
         String password = "123 123";
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
-        stat.execute("create table test(id int)");
+        stat.execute("create table test(id int primary key)");
         conn.close();
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
         stat.execute("select * from test");
+        stat.execute("drop table test");
         conn.close();
         FileUtils.deleteRecursive(getBaseDir(), true);
     }
@@ -450,6 +467,8 @@ int tes;
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertEquals(1, rs.getInt(3));
+        
+        stat.execute("update test set name = 'Hello' where id = 1");
 
         if (!config.memory) {
             conn.close();

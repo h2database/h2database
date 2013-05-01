@@ -234,6 +234,9 @@ public class TransactionStore {
      * @param maxLogId the last log id
      */
     void commit(Transaction t, long maxLogId) {
+        if (store.isClosed()) {
+            return;
+        }
         for (long logId = 0; logId < maxLogId; logId++) {
             long[] undoKey = new long[] {
                     t.getId(), logId };
@@ -634,6 +637,7 @@ public class TransactionStore {
          *
          * @param key the key
          * @param value the new value (not null)
+         * @return the old value
          * @throws IllegalStateException if a lock timeout occurs
          */
         public V put(K key, V value) {

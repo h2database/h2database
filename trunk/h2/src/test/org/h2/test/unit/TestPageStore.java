@@ -46,6 +46,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     public void test() throws Exception {
+        deleteDb(null);
         testDropTempTable();
         testLogLimitFalsePositive();
         testLogLimit();
@@ -76,7 +77,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         testUniqueIndex();
         testCreateIndexLater();
         testFuzzOperations();
-        deleteDb("pageStore");
+        deleteDb(null);
     }
 
     private void testDropTempTable() throws SQLException {
@@ -135,8 +136,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testLogLimitFalsePositive() throws Exception {
-        deleteDb("pageStore");
-        String url = "pageStore;TRACE_LEVEL_FILE=2";
+        deleteDb("pageStoreLogLimitFalsePositive");
+        String url = "pageStoreLogLimitFalsePositive;TRACE_LEVEL_FILE=2";
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("set max_log_size 1");
@@ -145,15 +146,16 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
                 stat.execute("insert into test values (space(2000))");
         }
         stat.execute("checkpoint");
-        InputStream in = FileUtils.newInputStream(getBaseDir() + "/pageStore.trace.db");
+        InputStream in = FileUtils.newInputStream(getBaseDir() + 
+                "/pageStoreLogLimitFalsePositive.trace.db");
         String s = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
         assertFalse(s.indexOf("Transaction log could not be truncated") > 0);
         conn.close();
     }
 
     private void testRecoverLobInDatabase() throws SQLException {
-        deleteDb("pageStore");
-        String url = getURL("pageStore;MVCC=TRUE;CACHE_SIZE=1", true);
+        deleteDb("pageStoreRecoverLobInDatabase");
+        String url = getURL("pageStoreRecoverLobInDatabase;MVCC=TRUE;CACHE_SIZE=1", true);
         Connection conn;
         Statement stat;
         conn = getConnection(url, getUser(), getPassword());
@@ -187,8 +189,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testWriteTransactionLogBeforeData() throws SQLException {
-        deleteDb("pageStore");
-        String url = getURL("pageStore;CACHE_SIZE=16;WRITE_DELAY=1000000", true);
+        deleteDb("pageStoreWriteTransactionLogBeforeData");
+        String url = getURL("pageStoreWriteTransactionLogBeforeData;CACHE_SIZE=16;WRITE_DELAY=1000000", true);
         Connection conn;
         Statement stat;
         conn = getConnection(url, getUser(), getPassword());
@@ -220,8 +222,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.reopen) {
             return;
         }
-        deleteDb("pageStore");
-        Connection conn = getConnection("pageStore;LOG=0;UNDO_LOG=0;LOCK_MODE=0");
+        deleteDb("pageStoreDefrag");
+        Connection conn = getConnection("pageStoreDefrag;LOG=0;UNDO_LOG=0;LOCK_MODE=0");
         Statement stat = conn.createStatement();
         int tableCount = 10;
         int rowCount = getSize(1000, 100000);
@@ -244,9 +246,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testInsertReverse() throws SQLException {
-        deleteDb("pageStore");
+        deleteDb("pageStoreInsertReverse");
         Connection conn;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreInsertReverse");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, data varchar)");
         stat.execute("insert into test select -x, space(100) from system_range(1, 1000)");
@@ -280,9 +282,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testCheckpoint() throws SQLException {
-        deleteDb("pageStore");
+        deleteDb("pageStoreCheckpoint");
         Connection conn;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreCheckpoint");
         Statement stat = conn.createStatement();
         stat.execute("create table test(data varchar)");
         stat.execute("create sequence seq");
@@ -307,9 +309,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreDropRecreate");
         Connection conn;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreDropRecreate");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
         stat.execute("create index idx_test on test(id)");
@@ -319,14 +321,14 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         // which is lower than the object id of test2
         stat.execute("create index idx_test on test2(id)");
         conn.close();
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreDropRecreate");
         conn.close();
     }
 
     private void testDropAll() throws SQLException {
-        deleteDb("pageStore");
+        deleteDb("pageStoreDropAll");
         Connection conn;
-        String url = "pageStore";
+        String url = "pageStoreDropAll";
         conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("CREATE TEMP TABLE A(A INT)");
@@ -340,9 +342,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testCloseTempTable() throws SQLException {
-        deleteDb("pageStore");
+        deleteDb("pageStoreCloseTempTable");
         Connection conn;
-        String url = "pageStore;CACHE_SIZE=0";
+        String url = "pageStoreCloseTempTable;CACHE_SIZE=0";
         conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create local temporary table test(id int)");
@@ -356,9 +358,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testDuplicateKey() throws SQLException {
-        deleteDb("pageStore");
+        deleteDb("pageStoreDuplicateKey");
         Connection conn;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreDuplicateKey");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(0, space(3000))");
@@ -375,18 +377,18 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreTruncateReconnect");
         Connection conn;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreTruncateReconnect");
         conn.createStatement().execute("create table test(id int primary key, name varchar)");
         conn.createStatement().execute("insert into test(id) select x from system_range(1, 390)");
         conn.createStatement().execute("checkpoint");
         conn.createStatement().execute("shutdown immediately");
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreTruncateReconnect");
         conn.createStatement().execute("truncate table test");
         conn.createStatement().execute("insert into test(id) select x from system_range(1, 390)");
         conn.createStatement().execute("shutdown immediately");
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreTruncateReconnect");
         conn.close();
     }
 
@@ -394,19 +396,19 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreUpdateOverflow");
         Connection conn;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreUpdateOverflow");
         conn.createStatement().execute("create table test(id int primary key, name varchar)");
         conn.createStatement().execute("insert into test values(0, space(3000))");
         conn.createStatement().execute("checkpoint");
         conn.createStatement().execute("shutdown immediately");
 
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreUpdateOverflow");
         conn.createStatement().execute("update test set id = 1");
         conn.createStatement().execute("shutdown immediately");
 
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreUpdateOverflow");
         conn.close();
     }
 
@@ -414,8 +416,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
-        Connection conn = getConnection("pageStore");
+        deleteDb("pageStoreReverseIndex");
+        Connection conn = getConnection("pageStoreReverseIndex");
         Statement stat = conn.createStatement();
         stat.execute("create table test(x int, y varchar default space(200))");
         for (int i = 30; i < 100; i++) {
@@ -435,9 +437,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreLargeUpdates");
         Connection conn;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreLargeUpdates");
         Statement stat = conn.createStatement();
         int size = 1500;
         stat.execute("call rand(1)");
@@ -454,7 +456,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             prep.execute();
         }
         conn.close();
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreLargeUpdates");
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from test where test<>123");
         assertFalse(rs.next());
@@ -465,9 +467,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreLargeInserts");
         Connection conn;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreLargeInserts");
         Statement stat = conn.createStatement();
         stat.execute("create table test(data varchar)");
         stat.execute("insert into test values(space(1024 * 1024))");
@@ -479,9 +481,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreLargeDatabaseFastOpen");
         Connection conn;
-        String url = "pageStore";
+        String url = "pageStoreLargeDatabaseFastOpen";
         conn = getConnection(url);
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.createStatement().execute("create unique index idx_test_name on test(name)");
@@ -506,9 +508,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreUniqueIndexReopen");
         Connection conn;
-        String url = "pageStore";
+        String url = "pageStoreUniqueIndexReopen";
         conn = getConnection(url);
         conn.createStatement().execute("CREATE TABLE test(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         conn.createStatement().execute("create unique index idx_test_name on test(name)");
@@ -525,9 +527,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             return;
         }
         Connection conn;
-        deleteDb("pageStore");
+        deleteDb("pageStoreExistingOld");
         String url;
-        url = "jdbc:h2:" + getBaseDir() + "/pageStore";
+        url = "jdbc:h2:" + getBaseDir() + "/pageStoreExistingOld";
         conn = DriverManager.getConnection(url);
         conn.createStatement().execute("create table test(id int) as select 1");
         conn.close();
@@ -550,8 +552,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private void testLargeRows(int seed) throws Exception {
-        deleteDb("pageStore");
-        String url = getURL("pageStore;CACHE_SIZE=16", true);
+        deleteDb("pageStoreLargeRows");
+        String url = getURL("pageStoreLargeRows;CACHE_SIZE=16", true);
         Connection conn = null;
         Statement stat = null;
         int count = 0;
@@ -606,9 +608,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             conn.close();
             conn = DriverManager.getConnection(url);
             stat = conn.createStatement();
-            stat.execute("script to '" + getBaseDir() + "/pageStore.sql'");
+            stat.execute("script to '" + getBaseDir() + "/pageStoreLargeRows.sql'");
             conn.close();
-            FileUtils.delete(getBaseDir() + "/pageStore.sql");
+            FileUtils.delete(getBaseDir() + "/pageStoreLargeRows.sql");
         } catch (Exception e) {
             if (stat != null) {
                 try {
@@ -632,14 +634,14 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
-        Connection conn = getConnection("pageStore");
+        deleteDb("pageStoreRecoverDropIndex");
+        Connection conn = getConnection("pageStoreRecoverDropIndex");
         Statement stat = conn.createStatement();
         stat.execute("set write_delay 0");
         stat.execute("create table test(id int, name varchar) as select x, x from system_range(1, 1400)");
         stat.execute("create index idx_name on test(name)");
         conn.close();
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreRecoverDropIndex");
         stat = conn.createStatement();
         stat.execute("drop index idx_name");
         stat.execute("shutdown immediately");
@@ -648,7 +650,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         } catch (SQLException e) {
             // ignore
         }
-        conn = getConnection("pageStore;cache_size=1");
+        conn = getConnection("pageStoreRecoverDropIndex;cache_size=1");
         conn.close();
     }
 
@@ -656,16 +658,16 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreDropPk");
         Connection conn;
         Statement stat;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreDropPk");
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         stat.execute("insert into test values(" + Integer.MIN_VALUE + "), (" + Integer.MAX_VALUE + ")");
         stat.execute("alter table test drop primary key");
         conn.close();
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreDropPk");
         stat = conn.createStatement();
         stat.execute("insert into test values(" + Integer.MIN_VALUE + "), (" + Integer.MAX_VALUE + ")");
         conn.close();
@@ -675,15 +677,15 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
+        deleteDb("pageStoreCreatePkLater");
         Connection conn;
         Statement stat;
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreCreatePkLater");
         stat = conn.createStatement();
         stat.execute("create table test(id int not null) as select 100");
         stat.execute("create primary key on test(id)");
         conn.close();
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreCreatePkLater");
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from test where id = 100");
         assertTrue(rs.next());
@@ -694,8 +696,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
-        Connection conn = getConnection("pageStore");
+        deleteDb("pageStoreTruncate");
+        Connection conn = getConnection("pageStoreTruncate");
         Statement stat = conn.createStatement();
         stat.execute("set write_delay 0");
         stat.execute("create table test(id int) as select 1");
@@ -707,7 +709,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         } catch (SQLException e) {
             // ignore
         }
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreTruncate");
         conn.close();
     }
 
@@ -715,8 +717,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
-        Connection conn = getConnection("pageStore");
+        deleteDb("pageStoreLargeIndex");
+        Connection conn = getConnection("pageStoreLargeIndex");
         conn.createStatement().execute("create table test(id varchar primary key, d varchar)");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, space(500))");
         for (int i = 0; i < 20000; i++) {
@@ -730,21 +732,21 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         if (config.memory) {
             return;
         }
-        deleteDb("pageStore");
-        Connection conn = getConnection("pageStore");
+        deleteDb("pageStoreUniqueIndex");
+        Connection conn = getConnection("pageStoreUniqueIndex");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT UNIQUE)");
         stat.execute("INSERT INTO TEST VALUES(1)");
         conn.close();
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreUniqueIndex");
         assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).
                 execute("INSERT INTO TEST VALUES(1)");
         conn.close();
     }
 
     private void testCreateIndexLater() throws SQLException {
-        deleteDb("pageStore");
-        Connection conn = getConnection("pageStore");
+        deleteDb("pageStoreCreateIndexLater");
+        Connection conn = getConnection("pageStoreCreateIndexLater");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(NAME VARCHAR) AS SELECT 1");
         stat.execute("CREATE INDEX IDX_N ON TEST(NAME)");
@@ -752,7 +754,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1000, 1100)");
         stat.execute("SHUTDOWN IMMEDIATELY");
         assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
-        conn = getConnection("pageStore");
+        conn = getConnection("pageStoreCreateIndexLater");
         conn.close();
     }
 
@@ -768,8 +770,8 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
     }
 
     private int testFuzzOperationsSeed(int seed, int len) throws SQLException {
-        deleteDb("pageStore");
-        Connection conn = getConnection("pageStore");
+        deleteDb("pageStoreFuzz");
+        Connection conn = getConnection("pageStoreFuzz");
         Statement stat = conn.createStatement();
         log("DROP TABLE IF EXISTS TEST;");
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -797,7 +799,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
                 break;
             case 2:
                 conn.close();
-                conn = getConnection("pageStore");
+                conn = getConnection("pageStoreFuzz");
                 stat = conn.createStatement();
                 ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
                 log("--reconnect");

@@ -25,6 +25,7 @@ import org.h2.store.Page;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 
 /**
@@ -163,14 +164,12 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         stat.execute("create table test(id int primary key, name clob)");
         stat.execute("create index idx_id on test(id)");
         stat.execute("insert into test select x, space(1100+x) from system_range(1, 100)");
-        Connection conn2;
-        Statement stat2;
         Random r = new Random(1);
         ArrayList<Connection> list = New.arrayList();
         for (int i = 0; i < 10; i++) {
-            conn2 = getConnection(url, getUser(), getPassword());
+            Connection conn2 = getConnection(url, getUser(), getPassword());
             list.add(conn2);
-            stat2 = conn.createStatement();
+            Statement stat2 = conn2.createStatement();
             conn2.setAutoCommit(false);
             if (r.nextBoolean()) {
                 stat2.execute("update test set id = id where id = " + r.nextInt(100));
@@ -179,10 +178,9 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             }
         }
         stat.execute("shutdown immediately");
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            // ignore
+        JdbcUtils.closeSilently(conn);
+        for (Connection c : list) {
+            JdbcUtils.closeSilently(c);
         }
         conn = getConnection(url, getUser(), getPassword());
         conn.close();
@@ -384,10 +382,12 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         conn.createStatement().execute("insert into test(id) select x from system_range(1, 390)");
         conn.createStatement().execute("checkpoint");
         conn.createStatement().execute("shutdown immediately");
+        JdbcUtils.closeSilently(conn);
         conn = getConnection("pageStoreTruncateReconnect");
         conn.createStatement().execute("truncate table test");
         conn.createStatement().execute("insert into test(id) select x from system_range(1, 390)");
         conn.createStatement().execute("shutdown immediately");
+        JdbcUtils.closeSilently(conn);
         conn = getConnection("pageStoreTruncateReconnect");
         conn.close();
     }
@@ -404,10 +404,12 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         conn.createStatement().execute("checkpoint");
         conn.createStatement().execute("shutdown immediately");
 
+        JdbcUtils.closeSilently(conn);
         conn = getConnection("pageStoreUpdateOverflow");
         conn.createStatement().execute("update test set id = 1");
         conn.createStatement().execute("shutdown immediately");
 
+        JdbcUtils.closeSilently(conn);
         conn = getConnection("pageStoreUpdateOverflow");
         conn.close();
     }

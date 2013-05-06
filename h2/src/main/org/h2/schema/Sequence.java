@@ -112,30 +112,33 @@ public class Sequence extends SchemaObjectBase {
      * @param session the session
      */
     public synchronized void flush(Session session) {
-        Session sysSession = database.getSystemSession();
         if (session == null || !database.isSysTableLocked()) {
             // this session may not lock the sys table (except if it already has locked it)
             // because it must be committed immediately
             // otherwise other threads can not access the sys table.
-            session = sysSession;
-        }
-        synchronized (session) {
-            // just for this case, use the value with the margin for the script
-            long realValue = value;
-            try {
-                value = valueWithMargin;
-                database.update(session, this);
-            } finally {
-                value = realValue;
-            }
-            if (session == sysSession) {
-                // if the system session is used,
-                // the transaction must be committed immediately
+            Session sysSession = database.getSystemSession();
+            synchronized (sysSession) {
+                flushInternal(sysSession);
                 sysSession.commit(false);
+            }
+        } else {
+            synchronized (session) {
+                flushInternal(session);
             }
         }
     }
 
+    private void flushInternal(Session session) {
+        // just for this case, use the value with the margin for the script
+        long realValue = value;
+        try {
+            value = valueWithMargin;
+            database.update(session, this);
+        } finally {
+            value = realValue;
+        }
+    }
+    
     /**
      * Flush the current value to disk and close this object.
      */

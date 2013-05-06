@@ -51,24 +51,6 @@ public class Db {
     }
 
     /**
-     * Open the database connection. For most databases, it is not required to
-     * load the driver before calling this method.
-     *
-     * @param url the database URL
-     * @param user the user name
-     * @param password the password
-     * @return the database
-     */
-    public static Db open(String url, String user, String password) {
-        try {
-            JdbcUtils.load(url);
-            return new Db(DriverManager.getConnection(url, user, password));
-        } catch (SQLException e) {
-            throw convert(e);
-        }
-    }
-
-    /**
      * Prepare a SQL statement.
      *
      * @param sql the SQL statement

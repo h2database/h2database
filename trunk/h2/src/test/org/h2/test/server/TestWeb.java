@@ -446,6 +446,7 @@ public class TestWeb extends TestBase {
                 // the server stops on logout
             }
             t.get();
+            conn.close();
         } finally {
             if (old != null) {
                 System.setProperty(SysProperties.H2_BROWSER, old);

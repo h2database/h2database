@@ -75,6 +75,7 @@ public class TestPowerOff extends TestBase {
         stat.execute("insert into test values(null, space(11000))");
         int max = Integer.MAX_VALUE - ((JdbcConnection) conn).getPowerOffCount();
         for (int i = 0; i < max + 10; i++) {
+            conn.close();
             conn = getConnection(url);
             stat = conn.createStatement();
             stat.execute("insert into test values(null, space(11000))");
@@ -85,11 +86,7 @@ public class TestPowerOff extends TestBase {
             } catch (SQLException e) {
                 // ignore
             }
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                // ignore
-            }
+            JdbcUtils.closeSilently(conn);
         }
     }
 
@@ -271,8 +268,9 @@ public class TestPowerOff extends TestBase {
             Database.setInitialPowerOffCount(Integer.MAX_VALUE);
         }
         int state = 0;
+        Connection conn = null;
         try {
-            Connection conn = getConnection(url);
+            conn = getConnection(url);
             Statement stat = conn.createStatement();
             stat.execute("SET WRITE_DELAY 0");
             stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
@@ -303,6 +301,7 @@ public class TestPowerOff extends TestBase {
                 throw e;
             }
         }
+        JdbcUtils.closeSilently(conn);
         return state;
     }
 

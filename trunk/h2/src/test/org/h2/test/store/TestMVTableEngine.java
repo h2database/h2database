@@ -550,6 +550,7 @@ int tes;
         } catch (SQLException e) {
             assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
         }
+        conn.close();
     }
 
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import org.h2.constant.ErrorCode;
 import org.h2.jaqu.Db;
 import org.h2.test.TestBase;
+import org.h2.util.JdbcUtils;
 
 /**
  * Test annotation processing.
@@ -148,13 +149,17 @@ public class AnnotationsTest extends TestBase {
 
     private void testCreateTableIfRequiredAnnotation() {
         // tests JQTable.createTableIfRequired=false
+        Db noCreateDb = null;
         try {
-            Db noCreateDb = Db.open("jdbc:h2:mem:", "sa", "sa");
+            noCreateDb = Db.open("jdbc:h2:mem:", "sa", "sa");
             noCreateDb.insertAll(ProductNoCreateTable.getList());
             noCreateDb.close();
         } catch (RuntimeException r) {
             SQLException s = (SQLException) r.getCause();
             assertEquals(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, s.getErrorCode());
+        }
+        if (noCreateDb != null) {
+            JdbcUtils.closeSilently(noCreateDb.getConnection());
         }
     }
 

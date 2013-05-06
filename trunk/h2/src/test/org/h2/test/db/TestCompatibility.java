@@ -316,6 +316,7 @@ public class TestCompatibility extends TestBase {
     }
 
     private void testDB2() throws SQLException {
+        conn.close();
         conn = getConnection("compatibility;MODE=DB2");
         Statement stat = conn.createStatement();
         testLog(Math.log(10), stat);
@@ -334,7 +335,6 @@ public class TestCompatibility extends TestBase {
         stat.execute("create table test(id varchar)");
         stat.execute("insert into test values ('3'),('1'),('2')");
         res = stat.executeQuery("select id from test order by id fetch next 2 rows only");
-        conn = getConnection("compatibility");
         res.next();
         assertEquals("1", res.getString(1));
         res.next();
@@ -343,6 +343,7 @@ public class TestCompatibility extends TestBase {
     }
 
     private void testDerby() throws SQLException {
+        conn.close();
         conn = getConnection("compatibility;MODE=Derby");
         Statement stat = conn.createStatement();
         testLog(Math.log(10), stat);

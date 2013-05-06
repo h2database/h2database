@@ -155,6 +155,9 @@ public class Shell extends Tool implements Runnable {
                 }
                 execute(s);
             }
+            if (conn != null) {
+                conn.close();
+            }
         }
     }
 

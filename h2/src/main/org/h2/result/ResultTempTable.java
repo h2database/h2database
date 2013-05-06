@@ -149,8 +149,8 @@ public class ResultTempTable implements ResultExternal {
             table.truncate(session);
             Database database = session.getDatabase();
             synchronized (database) {
-                Session sysSession = database.getSystemSession();
                 if (!database.isSysTableLocked()) {
+                    Session sysSession = database.getSystemSession();
                     // this session may not lock the sys table (except if it already has locked it)
                     // because it must be committed immediately
                     // otherwise other threads can not access the sys table.

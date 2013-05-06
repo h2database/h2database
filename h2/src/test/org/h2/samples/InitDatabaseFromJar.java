@@ -51,12 +51,12 @@ public class InitDatabaseFromJar {
      */
     void initDb() throws Exception {
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");
         InputStream in = getClass().getResourceAsStream("script.sql");
         if (in == null) {
             System.out.println("Please add the file script.sql to the classpath, package "
                     + getClass().getPackage().getName());
         } else {
+            Connection conn = DriverManager.getConnection("jdbc:h2:mem:test");
             RunScript.execute(conn, new InputStreamReader(in));
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery("SELECT * FROM TEST");

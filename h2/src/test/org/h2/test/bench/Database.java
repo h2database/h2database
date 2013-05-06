@@ -173,15 +173,6 @@ class Database {
     }
 
     /**
-     * Get the database connection. The connection must be opened first.
-     *
-     * @return the connection
-     */
-    Connection getConnection() {
-        return conn;
-    }
-
-    /**
      * Open a new database connection. This connection must be closed
      * by calling conn.close().
      *

@@ -95,9 +95,11 @@ public class TestMultiThreadedKernel extends TestBase {
         ArrayList<Task> list = New.arrayList();
         int size = 2;
         final int count = 1000;
+        final Connection[] connections = new Connection[count];
         String url = getURL("multiThreadedKernel;MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
         for (int i = 0; i < size; i++) {
             final Connection conn = DriverManager.getConnection(url, getUser(), getPassword());
+            connections[i] = conn;
             if (i == 0) {
                 Statement stat = conn.createStatement();
                 stat.execute("drop table test if exists");
@@ -122,15 +124,20 @@ public class TestMultiThreadedKernel extends TestBase {
         for (Task t : list) {
             t.get();
         }
+        for (int i = 0; i < size; i++) {
+            connections[i].close();
+        }
     }
 
     private void testCache() throws Exception {
         ArrayList<Task> list = New.arrayList();
         int size = 3;
         final int count = 100;
+        final Connection[] connections = new Connection[count];
         String url = getURL("multiThreadedKernel;MULTI_THREADED=TRUE;CACHE_SIZE=1", true);
         for (int i = 0; i < size; i++) {
             final Connection conn = DriverManager.getConnection(url, getUser(), getPassword());
+            connections[i] = conn;
             if (i == 0) {
                 Statement stat = conn.createStatement();
                 stat.execute("drop table test if exists");
@@ -154,6 +161,9 @@ public class TestMultiThreadedKernel extends TestBase {
         Thread.sleep(1000);
         for (Task t : list) {
             t.get();
+        }
+        for (int i = 0; i < size; i++) {
+            connections[i].close();
         }
     }
 

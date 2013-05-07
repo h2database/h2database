@@ -30,10 +30,7 @@ import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.PooledConnection;
 import org.h2.util.New;
-
-//## Java 1.6 ##
 import org.h2.message.DbException;
-//*/
 
 /*## Java 1.7 ##
 import java.util.logging.Logger;
@@ -310,22 +307,18 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      *
      * @param iface the class
      */
-//## Java 1.6 ##
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw DbException.getUnsupportedException("unwrap");
     }
-//*/
 
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      *
      * @param iface the class
      */
-//## Java 1.6 ##
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw DbException.getUnsupportedException("isWrapperFor");
     }
-//*/
 
     /**
      * [Not supported]

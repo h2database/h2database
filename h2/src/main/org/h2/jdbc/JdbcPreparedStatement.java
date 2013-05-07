@@ -13,17 +13,19 @@ import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.NClob;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-
 import org.h2.command.CommandInterface;
 import org.h2.constant.ErrorCode;
 import org.h2.expression.ParameterInterface;
@@ -49,12 +51,6 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
-
-//## Java 1.6 ##
-import java.sql.RowId;
-import java.sql.NClob;
-import java.sql.SQLXML;
-//*/
 
 /**
  * Represents a prepared statement.
@@ -1291,11 +1287,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * [Not supported] Sets the value of a parameter as a row id.
      */
-//## Java 1.6 ##
     public void setRowId(int parameterIndex, RowId x) throws SQLException {
         throw unsupported("rowId");
     }
-//*/
 
     /**
      * Sets the value of a parameter.
@@ -1366,7 +1360,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
      * @param x the value
      * @throws SQLException if this object is closed
      */
-//## Java 1.6 ##
     public void setNClob(int parameterIndex, NClob x) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1384,7 +1377,6 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
             throw logAndConvert(e);
         }
     }
-//*/
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1497,11 +1489,9 @@ public class JdbcPreparedStatement extends JdbcStatement implements PreparedStat
     /**
      * [Not supported] Sets the value of a parameter as a SQLXML object.
      */
-//## Java 1.6 ##
     public void setSQLXML(int parameterIndex, SQLXML x) throws SQLException {
         throw unsupported("SQLXML");
     }
-//*/
 
     /**
      * INTERNAL

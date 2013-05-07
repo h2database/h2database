@@ -77,6 +77,13 @@ public class SourceCompiler {
             return compiledClass;
         }
 
+        String source = sources.get(packageAndClassName);
+        if (isGroovySource(source)) {
+            Class<?> clazz = GroovyCompiler.parseClass(source, packageAndClassName);
+            compiled.put(packageAndClassName, clazz);
+            return clazz;
+        }
+        
         ClassLoader classLoader = new ClassLoader(getClass().getClassLoader()) {
             public Class<?> findClass(String name) throws ClassNotFoundException {
                 Class<?> classInstance = compiled.get(name);
@@ -105,6 +112,10 @@ public class SourceCompiler {
         return classLoader.loadClass(packageAndClassName);
     }
 
+    private static boolean isGroovySource(String source) {
+        return source.startsWith("//groovy") || source.startsWith("@groovy");
+    }
+
     /**
      * Get the first public static method of the given class.
      *
@@ -116,8 +127,9 @@ public class SourceCompiler {
         Method[] methods = clazz.getDeclaredMethods();
         for (Method m : methods) {
             int modifiers = m.getModifiers();
-            if (Modifier.isPublic(modifiers)) {
-                if (Modifier.isStatic(modifiers)) {
+            if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
+                String mname = m.getName();
+                if (!mname.startsWith("_") && !m.getName().equals("main")) {
                     return m;
                 }
             }
@@ -246,6 +258,58 @@ public class SourceCompiler {
         } else if (err.length() > 0) {
             err = StringUtils.replaceAll(err, compileDir, "");
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, err);
+        }
+    }
+    
+    
+    /**
+     * Access the groovy compiler using reflection, so that we do not gain a compile-time dependency
+     * unnecessarily.
+     */
+    private static final class GroovyCompiler {
+        private static final Object loader;
+        private static final Throwable initfailException;
+
+        static {
+            Object tmpLoader = null;
+            Throwable tmpInitfailException = null;
+            try {
+                // create an instance of ImportCustomiser
+                Class<?> importCustomizerClass = Class.forName("org.codehaus.groovy.control.customizers.ImportCustomizer");
+                Object importCustomizer = Utils.newInstance("org.codehaus.groovy.control.customizers.ImportCustomizer");
+                // Call the method ImportCustomizer#addImports(String[])
+                String[] importsArray = new String[] { "java.sql.Connection", "java.sql.Types", "java.sql.ResultSet",
+                        "groovy.sql.Sql", "org.h2.tools.SimpleResultSet" };
+                Utils.callMethod(importCustomizer, "addImports", new Object[] { importsArray });
+                
+                // Call the method CompilerConfiguration#addCompilationCustomizers(ImportCustomizer...)
+                Object importCustomizerArray = java.lang.reflect.Array.newInstance(importCustomizerClass, 1);
+                java.lang.reflect.Array.set(importCustomizerArray, 0, importCustomizer);
+                Object configuration = Utils.newInstance("org.codehaus.groovy.control.CompilerConfiguration");
+                Utils.callMethod(configuration, "addCompilationCustomizers", new Object[] { importCustomizerArray });
+                
+                ClassLoader parent = GroovyCompiler.class.getClassLoader();
+                tmpLoader = Utils.newInstance("groovy.lang.GroovyClassLoader", parent, configuration);
+            } catch (Exception ex) {
+                tmpInitfailException = ex;
+            }
+            loader = tmpLoader;
+            initfailException = tmpInitfailException;
+        }
+
+        public static Class<?> parseClass(String source, String packageAndClassName) {
+            if (loader == null) {
+                throw new RuntimeException("compile fail: there is no groovy jar on the classpath?", initfailException);
+            }
+            try {
+                Object codeSource = Utils.newInstance("groovy.lang.GroovyCodeSource", source, packageAndClassName
+                        + ".groovy", "UTF-8");
+                Utils.callMethod(codeSource, "setCachable", false);
+                Class<?> clazz = (Class<?>) Utils.callMethod(loader, "parseClass", codeSource);
+                return clazz;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

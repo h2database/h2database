@@ -441,6 +441,8 @@ parameter count, all methods are mapped.
 
 Admin rights are required to execute this command.
 This command commits an open transaction.
+
+If you have the Groovy jar in your classpath, it is also possible to write methods using Groovy.
 ","
 CREATE ALIAS MY_SQRT FOR ""java.lang.Math.sqrt"";
 CREATE ALIAS GET_SYSTEM_PROPERTY FOR ""java.lang.System.getProperty"";
@@ -448,6 +450,11 @@ CALL GET_SYSTEM_PROPERTY('java.class.path');
 CALL GET_SYSTEM_PROPERTY('com.acme.test', 'true');
 CREATE ALIAS REVERSE AS $$ String reverse(String s) { return new StringBuilder(s).reverse().toString(); } $$;
 CALL REVERSE('Test');
+CREATE ALIAS tr AS $$@groovy.transform.CompileStatic
+    static String tr(String str, String sourceSet, String replacementSet){
+        return str.tr(sourceSet, replacementSet);
+    }
+$$
 "
 
 "Commands (DDL)","CREATE CONSTANT","

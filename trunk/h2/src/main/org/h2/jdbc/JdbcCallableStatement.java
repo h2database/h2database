@@ -15,14 +15,12 @@ import java.sql.Blob;
 import java.sql.CallableStatement;
 import java.sql.Clob;
 import java.sql.Date;
+import java.sql.NClob;
 import java.sql.Ref;
 import java.sql.ResultSetMetaData;
-//## Java 1.6 ##
-import java.sql.NClob;
-import java.sql.SQLXML;
 import java.sql.RowId;
-//*/
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -724,22 +722,18 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      */
-//## Java 1.6 ##
     public RowId getRowId(int parameterIndex) throws SQLException {
         throw unsupported("rowId");
     }
-//*/
 
     /**
      * [Not supported] Returns the value of the specified column as a row id.
      *
      * @param parameterName the parameter name
      */
-//## Java 1.6 ##
     public RowId getRowId(String parameterName) throws SQLException {
         throw unsupported("rowId");
     }
-//*/
 
     /**
      * Returns the value of the specified column as a Clob.
@@ -748,12 +742,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
-//## Java 1.6 ##
     public NClob getNClob(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getNClob(parameterIndex);
     }
-//*/
 
     /**
      * Returns the value of the specified column as a Clob.
@@ -762,29 +754,23 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
-//## Java 1.6 ##
     public NClob getNClob(String parameterName) throws SQLException {
         return getNClob(getIndexForName(parameterName));
     }
-//*/
 
     /**
      * [Not supported] Returns the value of the specified column as a SQLXML object.
      */
-//## Java 1.6 ##
     public SQLXML getSQLXML(int parameterIndex) throws SQLException {
         throw unsupported("SQLXML");
     }
-//*/
 
     /**
      * [Not supported] Returns the value of the specified column as a SQLXML object.
      */
-//## Java 1.6 ##
     public SQLXML getSQLXML(String parameterName) throws SQLException {
         throw unsupported("SQLXML");
     }
-//*/
 
     /**
      * Returns the value of the specified column as a String.
@@ -1166,12 +1152,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported] Sets the value of a parameter as a row id.
      */
-//## Java 1.6 ##
     public void setRowId(String parameterName, RowId x)
             throws SQLException {
         throw unsupported("rowId");
     }
-//*/
 
     /**
      * Sets the value of a parameter.
@@ -1207,12 +1191,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
-//## Java 1.6 ##
     public void setNClob(String parameterName, NClob x)
             throws SQLException {
         setNClob(getIndexForName(parameterName), x);
     }
-//*/
 
     /**
      * Sets the value of a parameter as a Clob.
@@ -1427,12 +1409,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported] Sets the value of a parameter as a SQLXML object.
      */
-//## Java 1.6 ##
     public void setSQLXML(String parameterName, SQLXML x)
             throws SQLException {
         throw unsupported("SQLXML");
     }
-//*/
 
     /**
      * [Not supported]

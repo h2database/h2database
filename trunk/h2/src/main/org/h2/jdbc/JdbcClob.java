@@ -16,25 +16,21 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.sql.Clob;
-//## Java 1.6 ##
 import java.sql.NClob;
-//*/
 import java.sql.SQLException;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
-import org.h2.util.Task;
 import org.h2.util.IOUtils;
+import org.h2.util.Task;
 import org.h2.value.Value;
 
 /**
  * Represents a CLOB value.
  */
 public class JdbcClob extends TraceObject implements Clob
-//## Java 1.6 ##
     , NClob
-//*/
 {
 
     Value value;

@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import javax.sql.ConnectionEvent;
 import javax.sql.ConnectionEventListener;
+import javax.sql.StatementEventListener;
 import javax.sql.XAConnection;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
@@ -25,9 +26,6 @@ import org.h2.util.New;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 
-//## Java 1.6 ##
-import javax.sql.StatementEventListener;
-//*/
 
 /**
  * This class provides support for distributed transactions.
@@ -369,22 +367,18 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param listener the new statement event listener
      */
-//## Java 1.6 ##
     public void addStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
-//*/
 
     /**
      * [Not supported] Remove a statement event listener.
      *
      * @param listener the statement event listener
      */
-//## Java 1.6 ##
     public void removeStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
-//*/
 
     /**
      * INTERNAL

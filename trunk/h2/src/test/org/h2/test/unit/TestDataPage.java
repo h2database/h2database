@@ -15,7 +15,7 @@ import java.sql.Types;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
-import org.h2.store.LobStorage;
+import org.h2.store.LobStorageBackend;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
@@ -315,7 +315,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         return TempFileDeleter.getInstance();
     }
 
-    public LobStorage getLobStorage() {
+    public LobStorageBackend getLobStorage() {
         return null;
     }
 

@@ -787,12 +787,12 @@ public class Data {
             if (smallLen >= 0) {
                 byte[] small = DataUtils.newBytes(smallLen);
                 read(small, 0, smallLen);
-                return LobStorage.createSmallLob(type, small);
+                return LobStorageBackend.createSmallLob(type, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt();
                 long lobId = readVarLong();
                 long precision = readVarLong();
-                LobStorage lobStorage = handler.getLobStorage();
+                LobStorageInterface lobStorage = handler.getLobStorage();
                 ValueLobDb lob = ValueLobDb.create(type, lobStorage, tableId, lobId, null, precision);
                 return lob;
             } else {

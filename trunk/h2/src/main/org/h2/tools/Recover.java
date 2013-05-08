@@ -38,7 +38,8 @@ import org.h2.store.DataReader;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
-import org.h2.store.LobStorage;
+import org.h2.store.LobStorageBackend;
+import org.h2.store.LobStorageInterface;
 import org.h2.store.Page;
 import org.h2.store.PageFreeList;
 import org.h2.store.PageLog;
@@ -192,8 +193,8 @@ public class Recover extends Tool implements DataHandler {
      */
     public static Value.ValueBlob readBlobDb(Connection conn, long lobId, long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
-        LobStorage lobStorage = h.getLobStorage();
-        return ValueLobDb.create(Value.BLOB, lobStorage, LobStorage.TABLE_TEMP, lobId, null, precision);
+        LobStorageInterface lobStorage = h.getLobStorage();
+        return ValueLobDb.create(Value.BLOB, lobStorage, LobStorageBackend.TABLE_TEMP, lobId, null, precision);
     }
 
     /**
@@ -201,8 +202,8 @@ public class Recover extends Tool implements DataHandler {
      */
     public static Value.ValueClob readClobDb(Connection conn, long lobId, long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
-        LobStorage lobStorage = h.getLobStorage();
-        return ValueLobDb.create(Value.CLOB, lobStorage, LobStorage.TABLE_TEMP, lobId, null, precision);
+        LobStorageInterface lobStorage = h.getLobStorage();
+        return ValueLobDb.create(Value.CLOB, lobStorage, LobStorageBackend.TABLE_TEMP, lobId, null, precision);
     }
 
     private void trace(String message) {
@@ -1229,7 +1230,7 @@ public class Recover extends Tool implements DataHandler {
                     writer.println("DELETE FROM " + name + ";");
                     writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
                     if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
-                        writer.println("UPDATE " + name + " SET TABLE = " + LobStorage.TABLE_TEMP + ";");
+                        writer.println("UPDATE " + name + " SET TABLE = " + LobStorageBackend.TABLE_TEMP + ";");
                         deleteLobs = true;
                     }
                 }
@@ -1255,7 +1256,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("DROP ALIAS READ_BLOB_DB;");
         writer.println("DROP ALIAS READ_CLOB_DB;");
         if (deleteLobs) {
-            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " + LobStorage.TABLE_TEMP + ";");
+            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " + LobStorageBackend.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {
             if (isSchemaObjectTypeDelayed(m)) {
@@ -1409,7 +1410,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
-    public LobStorage getLobStorage() {
+    public LobStorageBackend getLobStorage() {
         return null;
     }
 

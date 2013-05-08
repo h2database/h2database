@@ -10,7 +10,7 @@ import java.sql.Connection;
 import java.util.Random;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
-import org.h2.store.LobStorage;
+import org.h2.store.LobStorageBackend;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
@@ -169,7 +169,7 @@ public class TestFile extends TestBase implements DataHandler {
         return TempFileDeleter.getInstance();
     }
 
-    public LobStorage getLobStorage() {
+    public LobStorageBackend getLobStorage() {
         return null;
     }
 

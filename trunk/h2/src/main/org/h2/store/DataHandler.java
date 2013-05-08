@@ -90,7 +90,7 @@ public interface DataHandler {
      *
      * @return the lob storage mechanism
      */
-    LobStorage getLobStorage();
+    LobStorageInterface getLobStorage();
 
     /**
      * Get a database connection to be used for LOB access.

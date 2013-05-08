@@ -103,7 +103,7 @@ public class MVPrimaryIndex extends BaseIndex {
                 row.setKey(++lastKey);
             }
         } else {
-            Long c = row.getValue(mainIndexColumn).getLong();
+            long c = row.getValue(mainIndexColumn).getLong();
             row.setKey(c);
         }
 

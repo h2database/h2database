@@ -40,7 +40,6 @@ public class TestTransactionStore extends TestBase {
 
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
-
         testKeyIterator();
         testMultiStatement();
         testTwoPhaseCommit();
@@ -205,7 +204,7 @@ public class TestTransactionStore extends TestBase {
         list = ts.getOpenTransactions();
         assertEquals(1, list.size());
         txOld = list.get(0);
-        assertTrue(tx == txOld);
+        assertTrue(tx.getId() == txOld.getId());
         s.commit();
         ts.close();
         s.close();
@@ -233,7 +232,7 @@ public class TestTransactionStore extends TestBase {
         tx = ts.begin();
         m = tx.openMap("test");
         // TransactionStore was not closed, so we lost some ids
-        assertEquals(33, tx.getId());
+        assertEquals(65, tx.getId());
         list = ts.getOpenTransactions();
         assertEquals(2, list.size());
         txOld = list.get(1);

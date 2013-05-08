@@ -33,6 +33,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
 import org.h2.util.Utils;
@@ -234,7 +235,6 @@ public class TestLob extends TestBase {
                 assertEquals(t, buff[j] & 0xff);
             }
         }
-        conn.close();
         conn.close();
     }
 
@@ -1086,11 +1086,7 @@ public class TestLob extends TestBase {
     private Connection reconnect(Connection conn) throws SQLException {
         long time = System.currentTimeMillis();
         if (conn != null) {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                // ignore
-            }
+            JdbcUtils.closeSilently(conn);
         }
         conn = getConnection("lob");
         trace("re-connect=" + (System.currentTimeMillis() - time));

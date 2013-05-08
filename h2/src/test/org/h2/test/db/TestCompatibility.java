@@ -331,7 +331,7 @@ public class TestCompatibility extends TestBase {
         conn.close();
         conn = getConnection("compatibility;MODE=DB2");
         stat = conn.createStatement();
-        stat.execute("drop table test");
+        stat.execute("drop table test if exists");
         stat.execute("create table test(id varchar)");
         stat.execute("insert into test values ('3'),('1'),('2')");
         res = stat.executeQuery("select id from test order by id fetch next 2 rows only");

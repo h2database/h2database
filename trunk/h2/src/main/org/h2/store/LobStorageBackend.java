@@ -86,6 +86,10 @@ public class LobStorageBackend implements LobStorageInterface {
             return;
         }
         synchronized (handler) {
+            // have to check this again or we might miss an update on another thread
+            if (init) {
+                return;
+            }
             conn = handler.getLobConnection();
             init = true;
             try {

@@ -6,7 +6,6 @@
  */
 package org.h2.store;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -18,7 +17,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -34,8 +32,9 @@ import org.h2.value.ValueLobDb;
 
 /**
  * This class stores LOB objects in the database.
+ * This is the back-end i.e. the server side of the LOB storage.
  */
-public class LobStorage {
+public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * The table id for session variables (LOBs not assigned to a table).
@@ -75,7 +74,7 @@ public class LobStorage {
     private final DataHandler handler;
     private boolean init;
 
-    public LobStorage(DataHandler handler) {
+    public LobStorageBackend(DataHandler handler) {
         this.handler = handler;
     }
 
@@ -89,9 +88,6 @@ public class LobStorage {
         synchronized (handler) {
             conn = handler.getLobConnection();
             init = true;
-            if (conn == null) {
-                return;
-            }
             try {
                 Statement stat = conn.createStatement();
                 // stat.execute("SET UNDO_LOG 0");
@@ -267,75 +263,6 @@ public class LobStorage {
     }
 
     /**
-     * An input stream that reads from a remote LOB.
-     */
-    public static class RemoteInputStream extends InputStream {
-
-        /**
-         * The data handler.
-         */
-        private final DataHandler handler;
-
-        /**
-         * The lob id.
-         */
-        private final long lob;
-
-        private final byte[] hmac;
-
-        /**
-         * The position.
-         */
-        private long pos;
-
-        /**
-         * The remaining bytes in the lob.
-         */
-        private long remainingBytes;
-
-        public RemoteInputStream(DataHandler handler, long lob, byte[] hmac, long byteCount) {
-            this.handler = handler;
-            this.lob = lob;
-            this.hmac = hmac;
-            remainingBytes = byteCount;
-        }
-
-        public int read() throws IOException {
-            byte[] buff = new byte[1];
-            int len = read(buff, 0, 1);
-            return len < 0 ? len : (buff[0] & 255);
-        }
-
-        public int read(byte[] buff) throws IOException {
-            return read(buff, 0, buff.length);
-        }
-
-        public int read(byte[] buff, int off, int length) throws IOException {
-            if (length == 0) {
-                return 0;
-            }
-            length = (int) Math.min(length, remainingBytes);
-            if (length == 0) {
-                return -1;
-            }
-            length = handler.readLob(lob, hmac, pos, buff, off, length);
-            remainingBytes -= length;
-            if (length == 0) {
-                return -1;
-            }
-            pos += length;
-            return length;
-        }
-
-        public long skip(long n) {
-            remainingBytes -= n;
-            pos += n;
-            return n;
-        }
-
-    }
-
-    /**
      * An input stream that reads from a LOB.
      */
     public class LobInputStream extends InputStream {
@@ -499,9 +426,6 @@ public class LobStorage {
     public void removeLob(long lob) {
         try {
             synchronized (handler) {
-                if (conn == null) {
-                    return;
-                }
                 String sql = "SELECT BLOCK, HASH FROM " + LOB_MAP + " D WHERE D.LOB = ? " +
                         "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " O " +
                         "WHERE O.BLOCK = D.BLOCK AND O.LOB <> ?)";
@@ -552,12 +476,6 @@ public class LobStorage {
      */
     public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
         init();
-        if (conn == null) {
-            if (byteCount < 0) {
-                byteCount = Long.MAX_VALUE;
-            }
-            return new BufferedInputStream(new RemoteInputStream(handler, lobId, hmac, byteCount));
-        }
         if (byteCount == -1) {
             synchronized (handler) {
                 try {
@@ -861,13 +779,6 @@ public class LobStorage {
     public Value createBlob(InputStream in, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
-            if (conn == null) {
-                // remote connections:
-                // need to use a temp file, because the input stream could come from
-                // the same database, which would create a weird situation (trying
-                // to read a block while write something)
-                return ValueLobDb.createTempBlob(in, maxLength, handler);
-            }
             return addLob(in, maxLength, Value.BLOB);
         }
         return ValueLob.createBlob(in, maxLength, handler);
@@ -883,13 +794,6 @@ public class LobStorage {
     public Value createClob(Reader reader, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
-            if (conn == null) {
-                // remote connections:
-                // need to use a temp file, because the input stream could come from
-                // the same database, which would create a weird situation (trying
-                // to read a block while write something)
-                return ValueLobDb.createTempClob(reader, maxLength, handler);
-            }
             long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
             CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
             ValueLobDb lob = addLob(in, Long.MAX_VALUE, Value.CLOB);

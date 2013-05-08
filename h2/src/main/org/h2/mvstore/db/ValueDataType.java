@@ -23,7 +23,8 @@ import org.h2.mvstore.type.DataType;
 import org.h2.result.SortOrder;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
-import org.h2.store.LobStorage;
+import org.h2.store.LobStorageBackend;
+import org.h2.store.LobStorageInterface;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.CompareMode;
@@ -592,12 +593,12 @@ public class ValueDataType implements DataType {
             if (smallLen >= 0) {
                 byte[] small = DataUtils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
-                return LobStorage.createSmallLob(type, small);
+                return LobStorageBackend.createSmallLob(type, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);
                 long precision = readVarLong(buff);
-                LobStorage lobStorage = handler.getLobStorage();
+                LobStorageInterface lobStorage = handler.getLobStorage();
                 ValueLobDb lob = ValueLobDb.create(type, lobStorage, tableId, lobId, null, precision);
                 return lob;
             } else {

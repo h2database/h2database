@@ -25,7 +25,7 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
-import org.h2.store.LobStorage;
+import org.h2.store.LobStorageBackend;
 import org.h2.store.fs.FileUtils;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
@@ -232,7 +232,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         return null;
     }
 
-    public LobStorage getLobStorage() {
+    public LobStorageBackend getLobStorage() {
         return null;
     }
 

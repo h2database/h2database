@@ -40,7 +40,7 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileLock;
 import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
-import org.h2.store.LobStorage;
+import org.h2.store.LobStorageBackend;
 import org.h2.store.PageStore;
 import org.h2.store.WriterThread;
 import org.h2.store.fs.FileUtils;
@@ -167,7 +167,7 @@ public class Database implements DataHandler {
     private SourceCompiler compiler;
     private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
-    private LobStorage lobStorage;
+    private LobStorageBackend lobStorage;
     private final int pageSize;
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
@@ -1102,11 +1102,11 @@ public class Database implements DataHandler {
         }
         // remove all session variables
         if (persistent) {
-            boolean lobStorageIsUsed = infoSchema.findTableOrView(systemSession, LobStorage.LOB_DATA_TABLE) != null;
+            boolean lobStorageIsUsed = infoSchema.findTableOrView(systemSession, LobStorageBackend.LOB_DATA_TABLE) != null;
             if (lobStorageIsUsed) {
                 try {
                     getLobStorage();
-                    lobStorage.removeAllForTable(LobStorage.TABLE_ID_SESSION_VARIABLE);
+                    lobStorage.removeAllForTable(LobStorageBackend.TABLE_ID_SESSION_VARIABLE);
                 } catch (DbException e) {
                     trace.error(e, "close");
                 }
@@ -2314,9 +2314,9 @@ public class Database implements DataHandler {
         return compiler;
     }
 
-    public LobStorage getLobStorage() {
+    public LobStorageBackend getLobStorage() {
         if (lobStorage == null) {
-            lobStorage = new LobStorage(this);
+            lobStorage = new LobStorageBackend(this);
         }
         return lobStorage;
     }

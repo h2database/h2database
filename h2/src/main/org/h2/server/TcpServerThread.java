@@ -30,7 +30,7 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.result.ResultColumn;
 import org.h2.result.ResultInterface;
-import org.h2.store.LobStorage;
+import org.h2.store.LobStorageInterface;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SmallMap;
@@ -427,7 +427,7 @@ public class TcpServerThread implements Runnable {
             }
             long offset = transfer.readLong();
             if (in.getPos() != offset) {
-                LobStorage lobStorage = session.getDataHandler().getLobStorage();
+                LobStorageInterface lobStorage = session.getDataHandler().getLobStorage();
                 InputStream lobIn = lobStorage.getInputStream(lobId, hmac, -1);
                 in = new CachedInputStream(lobIn);
                 lobs.put(lobId, in);

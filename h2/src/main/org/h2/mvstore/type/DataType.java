@@ -15,10 +15,11 @@ public interface DataType {
 
     /**
      * Compare two keys.
-     *
+     * 
      * @param a the first key
      * @param b the second key
      * @return -1 if the first key is smaller, 1 if larger, and 0 if equal
+     * @throws UnsupportedOperationException if the type is not orderable
      */
     int compare(Object a, Object b);
 

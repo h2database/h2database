@@ -8,7 +8,6 @@ package org.h2.test.store;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,12 +15,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.Profiler;
 import org.h2.util.Task;
 
 /**
@@ -39,7 +38,7 @@ public class TestMVTableEngine extends TestBase {
     }
 
     public void test() throws Exception {
-//        testSpeed();
+        // testSpeed();
         testReopen();
         testBlob();
         testExclusiveLock();
@@ -95,32 +94,21 @@ int tes;
         // -mx4g
         // fast size
         
-        // 10000 / 8000
-        // 1278 mvstore;LOCK_MODE=0 before
-        // 1524 mvstore;LOCK_MODE=0 after
-        // 790 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
-        // 834 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
-
-        // 1000 / 80000
-        // 1753 mvstore;LOCK_MODE=0 before
-        // 1998 mvstore;LOCK_MODE=0 after
-        // 810 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
-        // 818 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
-        
-        // 100 / 800000
-        // 2270 mvstore;LOCK_MODE=0 before
-        // 2841 mvstore;LOCK_MODE=0 after
-        // 2107 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
-        // 2116 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
-
         // 10 / 800000
-        // 1312 mvstore;LOCK_MODE=0 before
-        // 1500 mvstore;LOCK_MODE=0 after
-        // 1541 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 before
-        // 1551 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0 after
-        
-        prep.setString(2, new String(new char[100]).replace((char) 0, 'x'));
-        for (int i = 0; i < 200000; i++) {
+        // 1265 mvstore;LOCK_MODE=0 before
+        // 1434 mvstore;LOCK_MODE=0 after
+        // 1126 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 before
+        // 1136 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 after
+
+        // 100 / 800000
+        // 2010 mvstore;LOCK_MODE=0 before
+        // 2261 mvstore;LOCK_MODE=0 after
+        // 1536 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 before
+        // 1546 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 after
+
+        prep.setString(2, new String(new char[10]).replace((char) 0, 'x'));
+//        for (int i = 0; i < 20000; i++) {
+        for (int i = 0; i < 800000; i++) {
             
             prep.setInt(1, i);
             prep.execute();

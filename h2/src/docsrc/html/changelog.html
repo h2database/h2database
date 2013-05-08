@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The optimization for IN(...) queries combined with OR could result
+<ul><li>The auto-analyze feature now only reads 1000 rows per table instead of 10000.
+</li><li>The optimization for IN(...) queries combined with OR could result
     in a strange exception of the type "column x must be included in the group by list".
 </li><li>Issue 454: Use Charset for type-safety.
 </li><li>Queries with both LIMIT and OFFSET could throw an IllegalArgumentException.

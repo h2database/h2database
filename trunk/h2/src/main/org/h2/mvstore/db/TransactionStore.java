@@ -62,6 +62,8 @@ public class TransactionStore {
     private long lastTransactionIdStored;
 
     private long lastTransactionId;
+    
+    private long firstOpenTransaction = -1;
 
     /**
      * Create a new transaction store.
@@ -107,6 +109,10 @@ public class TransactionStore {
         Long lastKey = preparedTransactions.lastKey();
         if (lastKey != null && lastKey.longValue() > lastTransactionId) {
             throw DataUtils.newIllegalStateException("Last transaction not stored");
+        }
+        if (undoLog.size() > 0) {
+            long[] key = undoLog.firstKey();
+            firstOpenTransaction = key[0];
         }
     }
 
@@ -199,6 +205,9 @@ public class TransactionStore {
         long[] undoKey = { t.getId(), logId };
         Object[] log = new Object[] { opType, mapId, key, oldValue };
         undoLog.put(undoKey, log);
+        if (firstOpenTransaction == -1 || t.getId() < firstOpenTransaction) {
+            firstOpenTransaction = t.getId();
+        }
     }
 
     /**
@@ -249,10 +258,19 @@ public class TransactionStore {
     }
     
     boolean isTransactionOpen(long transactionId) {
-        int todoSlow;
-//      if (transactionId < firstOpenTransaction) {
-//          return false;
-//      }
+//        if (transactionId < firstOpenTransaction) {
+//            return false;
+//        }
+        if (firstOpenTransaction == -1) {
+            if (undoLog.size() == 0) {
+                return false;
+            }
+            long[] key = undoLog.firstKey();
+            firstOpenTransaction = key[0];
+        }
+        if (firstOpenTransaction == transactionId) {
+            return true;
+        }
         long[] key = { transactionId, -1 };
         key = undoLog.higherKey(key);
         return key != null && key[0] == transactionId;
@@ -263,6 +281,9 @@ public class TransactionStore {
             preparedTransactions.remove(t.getId());
         }
         t.setStatus(Transaction.STATUS_CLOSED);
+        if (t.getId() == firstOpenTransaction) {
+            firstOpenTransaction = -1;
+        }
     }
 
     /**

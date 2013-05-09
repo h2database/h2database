@@ -95,10 +95,10 @@ int tes;
         // fast size
         
         // 10 / 800000
-        // 1265 mvstore;LOCK_MODE=0 before
-        // 1434 mvstore;LOCK_MODE=0 after
-        // 1126 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 before
-        // 1136 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 after
+        // 1272 mvstore;LOCK_MODE=0 before
+        // 1449 mvstore;LOCK_MODE=0 after
+        // 1076 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 before
+        // 1086 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 after
 
         // 100 / 800000
         // 2010 mvstore;LOCK_MODE=0 before

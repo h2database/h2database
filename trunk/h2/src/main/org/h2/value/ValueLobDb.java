@@ -30,7 +30,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * An alternate LOB implementation.
+ * An alternate LOB implementation, where LOB data is stored inside the database, instead of in external files.
  */
 public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlob {
 

@@ -267,8 +267,8 @@ public class SourceCompiler {
      * unnecessarily.
      */
     private static final class GroovyCompiler {
-        private static final Object loader;
-        private static final Throwable initfailException;
+        private static final Object LOADER;
+        private static final Throwable INIT_FAIL_EXCEPTION;
 
         static {
             Object tmpLoader = null;
@@ -293,19 +293,19 @@ public class SourceCompiler {
             } catch (Exception ex) {
                 tmpInitfailException = ex;
             }
-            loader = tmpLoader;
-            initfailException = tmpInitfailException;
+            LOADER = tmpLoader;
+            INIT_FAIL_EXCEPTION = tmpInitfailException;
         }
 
         public static Class<?> parseClass(String source, String packageAndClassName) {
-            if (loader == null) {
-                throw new RuntimeException("compile fail: there is no groovy jar on the classpath?", initfailException);
+            if (LOADER == null) {
+                throw new RuntimeException("compile fail: there is no groovy jar on the classpath?", INIT_FAIL_EXCEPTION);
             }
             try {
                 Object codeSource = Utils.newInstance("groovy.lang.GroovyCodeSource", source, packageAndClassName
                         + ".groovy", "UTF-8");
                 Utils.callMethod(codeSource, "setCachable", false);
-                Class<?> clazz = (Class<?>) Utils.callMethod(loader, "parseClass", codeSource);
+                Class<?> clazz = (Class<?>) Utils.callMethod(LOADER, "parseClass", codeSource);
                 return clazz;
             } catch (Exception e) {
                 throw new RuntimeException(e);

@@ -456,72 +456,60 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
     }
 
-    private void createTempFromReader(char[] buff, int len, Reader in, long remaining, DataHandler h) {
+    private void createTempFromReader(char[] buff, int len, Reader in, long remaining, DataHandler h) throws IOException {
+        FileStoreOutputStream out = initTemp(h);
         try {
-            FileStoreOutputStream out = initTemp(h);
-            try {
-                while (true) {
-                    precision += len;
-                    byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
-                    out.write(b, 0, b.length);
-                    remaining -= len;
-                    if (remaining <= 0) {
-                        break;
-                    }
-                    len = getBufferSize(h, false, remaining);
-                    len = IOUtils.readFully(in, buff, len);
-                    if (len <= 0) {
-                        break;
-                    }
+            while (true) {
+                precision += len;
+                byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
+                out.write(b, 0, b.length);
+                remaining -= len;
+                if (remaining <= 0) {
+                    break;
                 }
-            } finally {
-                out.close();
+                len = getBufferSize(h, false, remaining);
+                len = IOUtils.readFully(in, buff, len);
+                if (len <= 0) {
+                    break;
+                }
             }
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, null);
+        } finally {
+            out.close();
         }
     }
 
-    private void createTempFromStream(byte[] buff, int len, InputStream in, long remaining, DataHandler h) {
+    private void createTempFromStream(byte[] buff, int len, InputStream in, long remaining, DataHandler h) throws IOException {
+        FileStoreOutputStream out = initTemp(h);
+        boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
         try {
-            FileStoreOutputStream out = initTemp(h);
-            boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
-            try {
-                while (true) {
-                    precision += len;
-                    out.write(buff, 0, len);
-                    remaining -= len;
-                    if (remaining <= 0) {
-                        break;
-                    }
-                    len = getBufferSize(h, compress, remaining);
-                    len = IOUtils.readFully(in, buff, 0, len);
-                    if (len <= 0) {
-                        break;
-                    }
+            while (true) {
+                precision += len;
+                out.write(buff, 0, len);
+                remaining -= len;
+                if (remaining <= 0) {
+                    break;
                 }
-            } finally {
-                out.close();
+                len = getBufferSize(h, compress, remaining);
+                len = IOUtils.readFully(in, buff, 0, len);
+                if (len <= 0) {
+                    break;
+                }
             }
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, null);
+        } finally {
+            out.close();
         }
     }
 
-    private FileStoreOutputStream initTemp(DataHandler h) {
+    private FileStoreOutputStream initTemp(DataHandler h) throws IOException {
         this.precision = 0;
         this.handler = h;
         this.lobStorage = h.getLobStorage();
         this.small = null;
-        try {
-            String path = h.getDatabasePath();
-            if (path.length() == 0) {
-                path = SysProperties.PREFIX_TEMP_FILE;
-            }
-            fileName = FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, null);
+        String path = h.getDatabasePath();
+        if (path.length() == 0) {
+            path = SysProperties.PREFIX_TEMP_FILE;
         }
+        fileName = FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);
         tempFile = h.openFile(fileName, "rw", false);
         tempFile.autoDelete();
         FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);

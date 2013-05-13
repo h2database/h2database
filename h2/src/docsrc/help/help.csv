@@ -1268,9 +1268,13 @@ SET LOCK_TIMEOUT 1000
 "Commands (Other)","SET MAX_LENGTH_INPLACE_LOB","
 SET MAX_LENGTH_INPLACE_LOB int
 ","
-Sets the maximum size of an in-place LOB object. LOB objects larger that this
-size are stored in a separate file, otherwise stored directly in the database
-(in-place). The default max size is 1024.
+Sets the maximum size of an in-place LOB object. 
+
+If the 'h2.lobInDatabase' property is true, this is the maximum length of an LOB that is stored with the record itself,
+and the default value is 128.
+If the 'h2.lobInDatabase' property is false, this is the maximum length of an LOB that is stored in the database file,
+and the default value is 4096.
+
 This setting has no effect for in-memory databases.
 
 Admin rights are required to execute this command, as it affects all connections.

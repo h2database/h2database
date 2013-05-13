@@ -130,7 +130,7 @@ on the client side.
 
 <h3>When to use CLOB/BLOB</h3>
 <p>
-This database stores large LOB (CLOB and BLOB) objects as separate files.
+By default, this database stores large LOB (CLOB and BLOB) objects separate from the main table data.
 Small LOB objects are stored in-place, the threshold can be set using
 <a href="grammar.html#set_max_length_inplace_lob" class="notranslate" >MAX_LENGTH_INPLACE_LOB</a>,
 but there is still an overhead to use CLOB/BLOB. Because of this, BLOB and CLOB
@@ -138,6 +138,9 @@ should never be used for columns with a maximum size below about 200 bytes.
 The best threshold depends on the use case; reading in-place objects is faster
 than reading from separate files, but slows down the performance of operations
 that don't involve this column.
+<p>
+It is possible to configure the database to store LOB objects outside the database file,
+see the <a href="../javadoc/org/h2/constant/SysProperties.html#h2.lobInDatabase">h2.lobInDatase</a> property.
 </p>
 
 <h3>Large Object Compression</h3>

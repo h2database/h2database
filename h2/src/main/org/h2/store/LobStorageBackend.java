@@ -20,6 +20,7 @@ import java.util.HashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
@@ -53,11 +54,13 @@ public class LobStorageBackend implements LobStorageInterface {
     public static final String LOB_DATA_TABLE = "LOB_DATA";
 
     private static final String LOB_SCHEMA = "INFORMATION_SCHEMA";
-
     private static final String LOBS = LOB_SCHEMA + ".LOBS";
     private static final String LOB_MAP = LOB_SCHEMA + ".LOB_MAP";
     private static final String LOB_DATA = LOB_SCHEMA + "." + LOB_DATA_TABLE;
 
+    /**
+     * The size of the chunks we use when storing LOBs inside the database file.
+     */
     private static final int BLOCK_LENGTH = 20000;
 
     /**
@@ -65,17 +68,18 @@ public class LobStorageBackend implements LobStorageInterface {
      * bytes), therefore, the size 4096 means 64 KB.
      */
     private static final int HASH_CACHE_SIZE = 4 * 1024;
+    
     private Connection conn;
     private final HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
     private final CompressTool compress = CompressTool.getInstance();
     private long[] hashBlocks;
 
-    private final DataHandler handler;
+    private final Database database;
     private boolean init;
 
-    public LobStorageBackend(DataHandler handler) {
-        this.handler = handler;
+    public LobStorageBackend(Database database) {
+        this.database = database;
     }
 
     /**
@@ -85,12 +89,12 @@ public class LobStorageBackend implements LobStorageInterface {
         if (init) {
             return;
         }
-        synchronized (handler) {
+        synchronized (database) {
             // have to check this again or we might miss an update on another thread
             if (init) {
                 return;
             }
-            conn = handler.getLobConnection();
+            conn = database.getLobConnection();
             init = true;
             try {
                 Statement stat = conn.createStatement();
@@ -185,7 +189,7 @@ public class LobStorageBackend implements LobStorageInterface {
             // remove both lobs in the database as well as in the file system
             // (compatibility)
         }
-        ValueLob.removeAllForTable(handler, tableId);
+        ValueLob.removeAllForTable(database, tableId);
     }
 
     /**
@@ -216,7 +220,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * @return the block (expanded if stored compressed)
      */
     byte[] readBlock(long lob, int seq) throws SQLException {
-        synchronized (handler) {
+        synchronized (database) {
             String sql = "SELECT COMPRESSED, DATA FROM " + LOB_MAP + " M " +
                     "INNER JOIN " + LOB_DATA + " D ON M.BLOCK = D.BLOCK " +
                     "WHERE M.LOB = ? AND M.SEQ = ?";
@@ -248,7 +252,7 @@ public class LobStorageBackend implements LobStorageInterface {
      *         the sequence, and the offset
      */
     long[] skipBuffer(long lob, long pos) throws SQLException {
-        synchronized (handler) {
+        synchronized (database) {
             String sql = "SELECT MAX(SEQ), MAX(POS) FROM " + LOB_MAP +
                     " WHERE LOB = ? AND POS < ?";
             PreparedStatement prep = prepare(sql);
@@ -402,7 +406,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     private PreparedStatement prepare(String sql) throws SQLException {
         if (SysProperties.CHECK2) {
-            if (!Thread.holdsLock(handler)) {
+            if (!Thread.holdsLock(database)) {
                 throw DbException.throwInternalError();
             }
         }
@@ -415,7 +419,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     private void reuse(String sql, PreparedStatement prep) {
         if (SysProperties.CHECK2) {
-            if (!Thread.holdsLock(handler)) {
+            if (!Thread.holdsLock(database)) {
                 throw DbException.throwInternalError();
             }
         }
@@ -429,7 +433,7 @@ public class LobStorageBackend implements LobStorageInterface {
      */
     public void removeLob(long lob) {
         try {
-            synchronized (handler) {
+            synchronized (database) {
                 String sql = "SELECT BLOCK, HASH FROM " + LOB_MAP + " D WHERE D.LOB = ? " +
                         "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " O " +
                         "WHERE O.BLOCK = D.BLOCK AND O.LOB <> ?)";
@@ -481,7 +485,7 @@ public class LobStorageBackend implements LobStorageInterface {
     public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
         init();
         if (byteCount == -1) {
-            synchronized (handler) {
+            synchronized (database) {
                 try {
                     String sql = "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?";
                     PreparedStatement prep = prepare(sql);
@@ -508,8 +512,8 @@ public class LobStorageBackend implements LobStorageInterface {
             }
             long length = 0;
             long lobId = -1;
-            int maxLengthInPlaceLob = handler.getMaxLengthInplaceLob();
-            String compressAlgorithm = handler.getLobCompressionAlgorithm(type);
+            int maxLengthInPlaceLob = database.getMaxLengthInplaceLob();
+            String compressAlgorithm = database.getLobCompressionAlgorithm(type);
             try {
                 byte[] small = null;
                 for (int seq = 0; maxLength > 0; seq++) {
@@ -530,7 +534,7 @@ public class LobStorageBackend implements LobStorageInterface {
                         small = b;
                         break;
                     }
-                    synchronized (handler) {
+                    synchronized (database) {
                         if (seq == 0) {
                             lobId = getNextLobId();
                         }
@@ -560,7 +564,7 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     private ValueLobDb registerLob(int type, long lobId, int tableId, long byteCount) {
-        synchronized (handler) {
+        synchronized (database) {
             try {
                 String sql = "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)";
                 PreparedStatement prep = prepare(sql);
@@ -587,7 +591,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * @return the new lob
      */
     public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
-        synchronized (handler) {
+        synchronized (database) {
             try {
                 init();
                 long lobId = getNextLobId();
@@ -659,7 +663,7 @@ public class LobStorageBackend implements LobStorageInterface {
             b = compress.compress(b, compressAlgorithm);
         }
         int hash = Arrays.hashCode(b);
-        synchronized (handler) {
+        synchronized (database) {
             block = getHashCacheBlock(hash);
             if (block != -1) {
                 String sql =  "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
@@ -785,7 +789,7 @@ public class LobStorageBackend implements LobStorageInterface {
             init();
             return addLob(in, maxLength, Value.BLOB);
         }
-        return ValueLob.createBlob(in, maxLength, handler);
+        return ValueLob.createBlob(in, maxLength, database);
     }
 
     /**
@@ -804,7 +808,7 @@ public class LobStorageBackend implements LobStorageInterface {
             lob.setPrecision(in.getLength());
             return lob;
         }
-        return ValueLob.createClob(reader, maxLength, handler);
+        return ValueLob.createClob(reader, maxLength, database);
     }
 
     /**
@@ -814,7 +818,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * @param table the table
      */
     public void setTable(long lobId, int table) {
-        synchronized (handler) {
+        synchronized (database) {
             try {
                 init();
                 String sql = "UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?";

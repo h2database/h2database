@@ -17,7 +17,6 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.security.SecureFileStore;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.TempFileDeleter;
 
 /**
  * This class is an abstraction of a random access file.
@@ -53,7 +52,6 @@ public class FileStore {
     private Reference<?> autoDeleteReference;
     private boolean checkedWriting = true;
     private final String mode;
-    private final TempFileDeleter tempFileDeleter;
     private java.nio.channels.FileLock lock;
 
     /**
@@ -66,11 +64,6 @@ public class FileStore {
     protected FileStore(DataHandler handler, String name, String mode) {
         this.handler = handler;
         this.name = name;
-        if (handler != null) {
-            tempFileDeleter = handler.getTempFileDeleter();
-        } else {
-            tempFileDeleter = null;
-        }
         try {
             boolean exists = FileUtils.exists(name);
             if (exists && !FileUtils.canWrite(name)) {
@@ -241,7 +234,7 @@ public class FileStore {
     public void closeAndDeleteSilently() {
         if (file != null) {
             closeSilently();
-            tempFileDeleter.deleteFile(autoDeleteReference, name);
+            handler.getTempFileDeleter().deleteFile(autoDeleteReference, name);
             name = null;
         }
     }
@@ -419,7 +412,7 @@ public class FileStore {
      */
     public void autoDelete() {
         if (autoDeleteReference == null) {
-            autoDeleteReference = tempFileDeleter.addFile(name, this);
+            autoDeleteReference = handler.getTempFileDeleter().addFile(name, this);
         }
     }
 
@@ -427,7 +420,7 @@ public class FileStore {
      * No longer automatically delete the file once it is no longer in use.
      */
     public void stopAutoDelete() {
-        tempFileDeleter.stopAutoDelete(autoDeleteReference, name);
+        handler.getTempFileDeleter().stopAutoDelete(autoDeleteReference, name);
         autoDeleteReference = null;
     }
 

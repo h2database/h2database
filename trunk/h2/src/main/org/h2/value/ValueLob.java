@@ -16,6 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.store.DataHandler;
@@ -707,21 +708,21 @@ public class ValueLob extends Value {
     /**
      * Remove all lobs for a given table id.
      *
-     * @param handler the data handler
+     * @param database the database
      * @param tableId the table id
      */
-    public static void removeAllForTable(DataHandler handler, int tableId) {
-        String dir = getFileNamePrefix(handler.getDatabasePath(), 0);
-        removeAllForTable(handler, dir, tableId);
+    public static void removeAllForTable(Database database, int tableId) {
+        String dir = getFileNamePrefix(database.getDatabasePath(), 0);
+        removeAllForTable(database, dir, tableId);
     }
 
-    private static void removeAllForTable(DataHandler handler, String dir, int tableId) {
+    private static void removeAllForTable(Database database, String dir, int tableId) {
         for (String name : FileUtils.newDirectoryStream(dir)) {
             if (FileUtils.isDirectory(name)) {
-                removeAllForTable(handler, name, tableId);
+                removeAllForTable(database, name, tableId);
             } else {
                 if (name.endsWith(".t" + tableId + Constants.SUFFIX_LOB_FILE)) {
-                    deleteFile(handler, name);
+                    deleteFile(database, name);
                 }
             }
         }

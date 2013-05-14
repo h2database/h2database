@@ -29,26 +29,6 @@ public class LobStorageFrontend implements LobStorageInterface {
     }
 
     /**
-     * Create a LOB object that fits in memory.
-     *
-     * @param type the value type
-     * @param small the byte array
-     * @return the LOB
-     */
-    public static Value createSmallLob(int type, byte[] small) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            int precision;
-            if (type == Value.CLOB) {
-                precision = new String(small, Constants.UTF8).length();
-            } else {
-                precision = small.length;
-            }
-            return ValueLobDb.createSmallLob(type, small, precision);
-        }
-        return ValueLob.createSmallLob(type, small);
-    }
-
-    /**
      * Delete a LOB from the database.
      *
      * @param lob the lob id

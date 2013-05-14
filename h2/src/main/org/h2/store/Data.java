@@ -806,11 +806,14 @@ public class Data {
                     precision = readVarLong();
                     compression = readByte() == 1;
                 }
-                ValueLob lob = ValueLob.open(type, handler, tableId, objectId, precision, compression);
                 if (smallLen == -2) {
-                    lob.setFileName(readString(), false);
+                    String filename = readString();
+                    ValueLob lob = ValueLob.openUnlinked(type, handler, tableId, objectId, precision, compression, filename);
+                    return lob;
+                } else {
+                    ValueLob lob = ValueLob.openLinked(type, handler, tableId, objectId, precision, compression);
+                    return lob;
                 }
-                return lob;
             }
         }
         case Value.ARRAY: {

@@ -127,12 +127,28 @@ public class ValueLob extends Value {
      * @param compression if compression is used
      * @return the value object
      */
-    public static ValueLob open(int type, DataHandler handler,
+    public static ValueLob openLinked(int type, DataHandler handler,
             int tableId, int objectId, long precision, boolean compression) {
         String fileName = getFileName(handler, tableId, objectId);
-        return new ValueLob(type, handler, fileName, tableId, objectId, true, precision, compression);
+        return new ValueLob(type, handler, fileName, tableId, objectId, true/*linked*/, precision, compression);
     }
 
+    /**
+     * Create a LOB value with the given parameters.
+     *
+     * @param type the data type
+     * @param handler the file handler
+     * @param tableId the table object id
+     * @param objectId the object id
+     * @param precision the precision (length in elements)
+     * @param compression if compression is used
+     * @return the value object
+     */
+    public static ValueLob openUnlinked(int type, DataHandler handler,
+            int tableId, int objectId, long precision, boolean compression, String fileName) {
+        return new ValueLob(type, handler, fileName, tableId, objectId, false/*linked*/, precision, compression);
+    }
+    
     /**
      * Create a CLOB value from a stream.
      *
@@ -760,17 +776,6 @@ public class ValueLob extends Value {
                 throw DbException.convertIOException(e, null);
             }
         }
-    }
-
-    /**
-     * Set the file name of this lob value.
-     *
-     * @param fileName the file name
-     * @param linked if the lob is linked
-     */
-    public void setFileName(String fileName, boolean linked) {
-        this.fileName = fileName;
-        this.linked = linked;
     }
 
     public int getMemory() {

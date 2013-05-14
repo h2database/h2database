@@ -179,7 +179,6 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
 
     /**
      * Checks if this an autoincrement column.
-     * It always returns false.
      *
      * @param column the column index (1,2,...)
      * @return false
@@ -363,7 +362,6 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
 
     /**
      * Gets the precision for this column.
-     * This method always returns 0.
      *
      * @param column the column index (1,2,...)
      * @return the precision
@@ -382,7 +380,6 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
 
     /**
      * Gets the scale for this column.
-     * This method always returns 0.
      *
      * @param column the column index (1,2,...)
      * @return the scale

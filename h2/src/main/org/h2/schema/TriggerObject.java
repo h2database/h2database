@@ -64,8 +64,8 @@ public class TriggerObject extends SchemaObjectBase {
             return;
         }
         try {
-            Session session = database.getSystemSession();
-            Connection c2 = session.createConnection(false);
+            Session sysSession = database.getSystemSession();
+            Connection c2 = sysSession.createConnection(false);
             Object obj = Utils.loadUserClass(triggerClassName).newInstance();
             triggerCallback = (Trigger) obj;
             triggerCallback.init(c2, getSchema().getName(), getName(), table.getName(), before, typeMask);

@@ -109,9 +109,9 @@ public class RecoverTester implements Recorder {
             ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase + ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0", p);
             Database database = new Database(ci, null);
             // close the database
-            Session session = database.getSystemSession();
-            session.prepare("script to '" + testDatabase + ".sql'").query(0);
-            session.prepare("shutdown immediately").update();
+            Session sysSession = database.getSystemSession();
+            sysSession.prepare("script to '" + testDatabase + ".sql'").query(0);
+            sysSession.prepare("shutdown immediately").update();
             database.removeSession(null);
             // everything OK - return
             return;

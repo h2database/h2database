@@ -545,17 +545,17 @@ public class PageStore implements CacheWriter {
             recordedPagesList = New.arrayList();
             recordedPagesIndex = new IntIntHashMap();
             recordPageReads = true;
-            Session s = database.getSystemSession();
+            Session sysSession = database.getSystemSession();
             for (Table table : tables) {
                 if (!table.isTemporary() && Table.TABLE.equals(table.getTableType())) {
-                    Index scanIndex = table.getScanIndex(s);
-                    Cursor cursor = scanIndex.find(s, null, null);
+                    Index scanIndex = table.getScanIndex(sysSession);
+                    Cursor cursor = scanIndex.find(sysSession, null, null);
                     while (cursor.next()) {
                         cursor.get();
                     }
                     for (Index index : table.getIndexes()) {
                         if (index != scanIndex && index.canScan()) {
-                            cursor = index.find(s, null, null);
+                            cursor = index.find(sysSession, null, null);
                             while (cursor.next()) {
                                 // the data is already read
                             }

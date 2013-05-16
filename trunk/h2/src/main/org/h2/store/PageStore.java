@@ -174,7 +174,7 @@ public class PageStore implements CacheWriter {
     private HashMap<Integer, Integer> reservedPages;
     private boolean isNew;
     private long maxLogSize = Constants.DEFAULT_MAX_LOG_SIZE;
-    private final Session systemSession;
+    private final Session pageStoreSession;
 
     /**
      * Each free page is marked with a set bit.
@@ -220,7 +220,7 @@ public class PageStore implements CacheWriter {
         // trace.setLevel(TraceSystem.DEBUG);
         String cacheType = database.getCacheType();
         this.cache = CacheLRU.getCache(this, cacheType, cacheSizeDefault);
-        systemSession = new Session(database, null, 0);
+        pageStoreSession = new Session(database, null, 0);
     }
 
     /**
@@ -388,11 +388,11 @@ public class PageStore implements CacheWriter {
             metaObjects.putAll(tempObjects);
             for (PageIndex index: tempObjects.values()) {
                 if (index.getTable().isTemporary()) {
-                    index.truncate(systemSession);
-                    index.remove(systemSession);
+                    index.truncate(pageStoreSession);
+                    index.remove(pageStoreSession);
                 }
             }
-            systemSession.commit(true);
+            pageStoreSession.commit(true);
             tempObjects = null;
         }
         metaObjects.clear();
@@ -606,7 +606,7 @@ public class PageStore implements CacheWriter {
         writeIndexRowCounts();
         log.checkpoint();
         writeBack();
-        commit(systemSession);
+        commit(pageStoreSession);
         writeBack();
         log.checkpoint();
 
@@ -667,7 +667,7 @@ public class PageStore implements CacheWriter {
         if (isUsed(a)) {
             pageA = getPage(a);
             if (pageA != null) {
-                pageA.moveTo(systemSession, free);
+                pageA.moveTo(pageStoreSession, free);
             }
             free(a);
         }
@@ -675,14 +675,14 @@ public class PageStore implements CacheWriter {
             if (isUsed(b)) {
                 Page pageB = getPage(b);
                 if (pageB != null) {
-                    pageB.moveTo(systemSession, a);
+                    pageB.moveTo(pageStoreSession, a);
                 }
                 free(b);
             }
             if (pageA != null) {
                 f = getPage(free);
                 if (f != null) {
-                    f.moveTo(systemSession, b);
+                    f.moveTo(pageStoreSession, b);
                 }
                 free(free);
             }
@@ -711,7 +711,7 @@ public class PageStore implements CacheWriter {
                 trace.debug("move " + p.getPos() + " to " + free);
             }
             try {
-                p.moveTo(systemSession, free);
+                p.moveTo(pageStoreSession, free);
             } finally {
                 changeCount++;
             }
@@ -1383,7 +1383,7 @@ public class PageStore implements CacheWriter {
                 }
                 tempObjects.put(index.getId(), index);
             } else {
-                index.close(systemSession);
+                index.close(pageStoreSession);
             }
         }
 
@@ -1515,7 +1515,7 @@ public class PageStore implements CacheWriter {
     void redo(int tableId, Row row, boolean add) {
         if (tableId == META_TABLE_ID) {
             if (add) {
-                addMeta(row, systemSession, true);
+                addMeta(row, pageStoreSession, true);
             } else {
                 removeMeta(row);
             }
@@ -1526,9 +1526,9 @@ public class PageStore implements CacheWriter {
         }
         Table table = index.getTable();
         if (add) {
-            table.addRow(systemSession, row);
+            table.addRow(pageStoreSession, row);
         } else {
-            table.removeRow(systemSession, row);
+            table.removeRow(pageStoreSession, row);
         }
     }
 
@@ -1540,7 +1540,7 @@ public class PageStore implements CacheWriter {
     void redoTruncate(int tableId) {
         Index index = metaObjects.get(tableId);
         Table table = index.getTable();
-        table.truncate(systemSession);
+        table.truncate(pageStoreSession);
     }
 
     private void openMetaIndex() {
@@ -1560,32 +1560,32 @@ public class PageStore implements CacheWriter {
         data.persistData = true;
         data.persistIndexes = true;
         data.create = false;
-        data.session = systemSession;
+        data.session = pageStoreSession;
         metaTable = new RegularTable(data);
         metaIndex = (PageDataIndex) metaTable.getScanIndex(
-                systemSession);
+                pageStoreSession);
         metaObjects.clear();
         metaObjects.put(-1, metaIndex);
     }
 
     private void readMetaData() {
-        Cursor cursor = metaIndex.find(systemSession, null, null);
+        Cursor cursor = metaIndex.find(pageStoreSession, null, null);
         // first, create all tables
         while (cursor.next()) {
             Row row = cursor.get();
             int type = row.getValue(1).getInt();
             if (type == META_TYPE_DATA_INDEX) {
-                addMeta(row, systemSession, false);
+                addMeta(row, pageStoreSession, false);
             }
         }
         // now create all secondary indexes
         // otherwise the table might not be created yet
-        cursor = metaIndex.find(systemSession, null, null);
+        cursor = metaIndex.find(pageStoreSession, null, null);
         while (cursor.next()) {
             Row row = cursor.get();
             int type = row.getValue(1).getInt();
             if (type != META_TYPE_DATA_INDEX) {
-                addMeta(row, systemSession, false);
+                addMeta(row, pageStoreSession, false);
             }
         }
     }
@@ -1596,12 +1596,12 @@ public class PageStore implements CacheWriter {
         index.getTable().removeIndex(index);
         if (index instanceof PageBtreeIndex || index instanceof PageDelegateIndex) {
             if (index.isTemporary()) {
-                systemSession.removeLocalTempTableIndex(index);
+                pageStoreSession.removeLocalTempTableIndex(index);
             } else {
                 index.getSchema().remove(index);
             }
         }
-        index.remove(systemSession);
+        index.remove(pageStoreSession);
         metaObjects.remove(id);
     }
 
@@ -1969,7 +1969,7 @@ public class PageStore implements CacheWriter {
 
     public BitField getObjectIds() {
         BitField f = new BitField();
-        Cursor cursor = metaIndex.find(systemSession, null, null);
+        Cursor cursor = metaIndex.find(pageStoreSession, null, null);
         while (cursor.next()) {
             Row row = cursor.get();
             int id = row.getValue(0).getInt();
@@ -1980,8 +1980,8 @@ public class PageStore implements CacheWriter {
         return f;
     }
 
-    public Session getSystemSession() {
-        return systemSession;
+    public Session getPageStoreSession() {
+        return pageStoreSession;
     }
 
     public synchronized void setBackup(boolean start) {

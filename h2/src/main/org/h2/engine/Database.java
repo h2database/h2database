@@ -1194,7 +1194,7 @@ public class Database implements DataHandler {
                 try {
                     pageStore.checkpoint();
                     if (!readOnly) {
-                        lockMeta(pageStore.getSystemSession());
+                        lockMeta(pageStore.getPageStoreSession());
                         pageStore.compact(compactMode);
                     }
                 } catch (DbException e) {

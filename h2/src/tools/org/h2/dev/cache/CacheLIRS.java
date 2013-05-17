@@ -43,7 +43,7 @@ import java.util.Set;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class CacheLIRS<K, V> extends AbstractMap<K, V> implements Map<K, V> {
+public class CacheLIRS<K, V> extends AbstractMap<K, V> {
 
     /**
      * The maximum memory this cache should use.

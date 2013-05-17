@@ -29,8 +29,7 @@ import org.h2.value.Value;
 /**
  * Represents a CLOB value.
  */
-public class JdbcClob extends TraceObject implements Clob
-    , NClob
+public class JdbcClob extends TraceObject implements NClob
 {
 
     Value value;

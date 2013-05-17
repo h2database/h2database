@@ -180,7 +180,7 @@ public class TestTransactionStore extends TestBase {
         s.close();
     }
 
-    private void testTwoPhaseCommit() throws Exception {
+    private void testTwoPhaseCommit() {
         String fileName = getBaseDir() + "/testTwoPhaseCommit.h3";
         FileUtils.delete(fileName);
 
@@ -251,7 +251,7 @@ public class TestTransactionStore extends TestBase {
         FileUtils.delete(fileName);
     }
 
-    private void testSavepoint() throws Exception {
+    private void testSavepoint() {
         MVStore s = MVStore.open(null);
         TransactionStore ts = new TransactionStore(s);
         Transaction tx;

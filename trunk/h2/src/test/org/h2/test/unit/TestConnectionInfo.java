@@ -41,7 +41,7 @@ public class TestConnectionInfo extends TestBase {
                 getConnection("jdbc:h2:mem:;init=runscript from 'wrong.file'");
     }
 
-    private void testConnectionInfo() throws Exception {
+    private void testConnectionInfo() {
         Properties info = new Properties();
         ConnectionInfo connectionInfo = new ConnectionInfo(
                 "jdbc:h2:mem:test" +

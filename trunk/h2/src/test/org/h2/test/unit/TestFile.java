@@ -37,7 +37,7 @@ public class TestFile extends TestBase implements DataHandler {
         doTest(true, true);
     }
 
-    private void doTest(boolean nioMem, boolean compress) throws Exception {
+    private void doTest(boolean nioMem, boolean compress) {
         int len = getSize(1000, 10000);
         Random random = new Random();
         FileStore mem = null, file = null;

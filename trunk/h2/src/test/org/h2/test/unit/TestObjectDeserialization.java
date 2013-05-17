@@ -36,11 +36,11 @@ public class TestObjectDeserialization extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws Exception {
+    public void test() {
         testThreadContextClassLoader();
     }
 
-    private void testThreadContextClassLoader() throws Exception {
+    private void testThreadContextClassLoader() {
         usesThreadContextClassLoader = false;
         Thread.currentThread().setContextClassLoader(new TestClassLoader());
         try {

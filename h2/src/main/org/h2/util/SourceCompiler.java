@@ -129,8 +129,8 @@ public class SourceCompiler {
         for (Method m : methods) {
             int modifiers = m.getModifiers();
             if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
-                String mname = m.getName();
-                if (!mname.startsWith("_") && !m.getName().equals("main")) {
+                String name = m.getName();
+                if (!name.startsWith("_") && !m.getName().equals("main")) {
                     return m;
                 }
             }

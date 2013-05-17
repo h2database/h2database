@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
@@ -20,6 +21,16 @@ import org.h2.value.ValueLobDb;
  * This is the front-end i.e. the client side of the LOB storage.
  */
 public class LobStorageFrontend implements LobStorageInterface {
+    
+    /**
+     * The table id for session variables (LOBs not assigned to a table).
+     */
+    public static final int TABLE_ID_SESSION_VARIABLE = -1;
+
+    /**
+     * The table id for temporary objects (not assigned to any object).
+     */
+    public static final int TABLE_TEMP = -2;
 
     private final DataHandler handler;
 
@@ -53,29 +64,16 @@ public class LobStorageFrontend implements LobStorageInterface {
         return new BufferedInputStream(new LobStorageRemoteInputStream(handler, lobId, hmac, byteCount));
     }
 
-    /**
-     * Copy a lob.
-     *
-     * @param type the type
-     * @param oldLobId the old lob id
-     * @param tableId the new table id
-     * @param length the length
-     * @return the new lob
-     */
     @Override
     public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
-        // TODO this should not be called at all, but that's a refactoring for another day
-        // this should never be called
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public void setTable(long lobId, int tableIdSessionVariable) {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Create a BLOB object.
-     *
-     * @param in the input stream
-     * @param maxLength the maximum length (-1 if not known)
-     * @return the LOB
-     */
     @Override
     public Value createBlob(InputStream in, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
@@ -103,6 +101,27 @@ public class LobStorageFrontend implements LobStorageInterface {
             return ValueLobDb.createTempClob(reader, maxLength, handler);
         }
         return ValueLob.createClob(reader, maxLength, handler);
+    }
+    
+
+    /**
+     * Create a LOB object that fits in memory.
+     *
+     * @param type the value type
+     * @param small the byte array
+     * @return the LOB
+     */
+    public static Value createSmallLob(int type, byte[] small) {
+        if (SysProperties.LOB_IN_DATABASE) {
+            int precision;
+            if (type == Value.CLOB) {
+                precision = new String(small, Constants.UTF8).length();
+            } else {
+                precision = small.length;
+            }
+            return ValueLobDb.createSmallLob(type, small, precision);
+        }
+        return ValueLob.createSmallLob(type, small);
     }
 
 }

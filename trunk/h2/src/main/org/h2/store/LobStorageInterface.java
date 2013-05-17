@@ -57,6 +57,14 @@ public interface LobStorageInterface {
     InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException;
     
     /**
+     * Set the table reference of this lob.
+     *
+     * @param lobId the lob
+     * @param table the table
+     */
+    void setTable(long lobId, int tableIdSessionVariable);
+
+    /**
      * Delete a LOB from the database.
      *
      * @param lob the lob id

@@ -13,16 +13,16 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
-import org.h2.store.LobStorageBackend;
+import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
@@ -111,14 +111,14 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 Value copy = lobStorage.createClob(getReader(), -1);
                 return copy;
             } else if (small != null) {
-                return LobStorageBackend.createSmallLob(t, small);
+                return LobStorageFrontend.createSmallLob(t, small);
             }
         } else if (t == Value.BLOB) {
             if (lobStorage != null) {
                 Value copy = lobStorage.createBlob(getInputStream(), -1);
                 return copy;
             } else if (small != null) {
-                return LobStorageBackend.createSmallLob(t, small);
+                return LobStorageFrontend.createSmallLob(t, small);
             }
         }
         return super.convertTo(t);
@@ -126,7 +126,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     @Override
     public boolean isLinked() {
-        return tableId != LobStorageBackend.TABLE_ID_SESSION_VARIABLE && small == null;
+        return tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE && small == null;
     }
 
     public boolean isStored() {
@@ -152,31 +152,31 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     }
 
     @Override
-    public void unlink(Database database) {
-        if (small == null && tableId != LobStorageBackend.TABLE_ID_SESSION_VARIABLE) {
-            database.getLobStorage().setTable(lobId, LobStorageBackend.TABLE_ID_SESSION_VARIABLE);
-            tableId = LobStorageBackend.TABLE_ID_SESSION_VARIABLE;
+    public void unlink(DataHandler database) {
+        if (small == null && tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
+            database.getLobStorage().setTable(lobId, LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+            tableId = LobStorageFrontend.TABLE_ID_SESSION_VARIABLE;
         }
     }
 
     @Override
-    public Value link(Database database, int tabId) {
+    public Value link(DataHandler database, int tabId) {
         if (small == null) {
-            if (tableId == LobStorageBackend.TABLE_TEMP) {
+            if (tableId == LobStorageFrontend.TABLE_TEMP) {
                 database.getLobStorage().setTable(lobId, tabId);
                 this.tableId = tabId;
             } else {
                 return lobStorage.copyLob(type, lobId, tabId, getPrecision());
             }
-        } else if (small.length > database.getMaxLengthInplaceLob()) {
-            LobStorageInterface s = database.getLobStorage();
+        } else if (small.length > handler.getMaxLengthInplaceLob()) {
+            LobStorageInterface s = handler.getLobStorage();
             Value v;
             if (type == Value.BLOB) {
                 v = s.createBlob(getInputStream(), getPrecision());
             } else {
                 v = s.createClob(getReader(), getPrecision());
             }
-            return v.link(database, tabId);
+            return v.link(handler, tabId);
         }
         return this;
     }

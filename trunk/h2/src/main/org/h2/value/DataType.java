@@ -31,7 +31,7 @@ import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.store.LobStorageBackend;
+import org.h2.store.LobStorageFrontend;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
 import org.h2.util.Utils;
@@ -540,7 +540,7 @@ public class DataType {
             }
             case Value.CLOB: {
                 if (session == null) {
-                    v = LobStorageBackend.createSmallLob(Value.CLOB, rs.getString(columnIndex).getBytes(Constants.UTF8));
+                    v = LobStorageFrontend.createSmallLob(Value.CLOB, rs.getString(columnIndex).getBytes(Constants.UTF8));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {
@@ -553,7 +553,7 @@ public class DataType {
             }
             case Value.BLOB: {
                 if (session == null) {
-                    v = LobStorageBackend.createSmallLob(Value.BLOB, rs.getBytes(columnIndex));
+                    v = LobStorageFrontend.createSmallLob(Value.BLOB, rs.getBytes(columnIndex));
                 } else {
                     InputStream in = rs.getBinaryStream(columnIndex);
                     v = (in == null) ? (Value) ValueNull.INSTANCE : session.getDataHandler().getLobStorage().createBlob(in, -1);

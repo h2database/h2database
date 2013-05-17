@@ -27,7 +27,7 @@ public class TestDataUtils extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    public void test() throws Exception {
+    public void test() {
         testEncodeLength();
         testFletcher();
         testMap();
@@ -37,7 +37,7 @@ public class TestDataUtils extends TestBase {
         testPagePos();
     }
 
-    private void testFletcher() throws Exception {
+    private void testFletcher() {
         byte[] data = new byte[10000];
         for (int i = 0; i < 10000; i += 1000) {
             assertEquals(-1, DataUtils.getFletcher32(data, i));

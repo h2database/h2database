@@ -536,7 +536,7 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
     }
 
-    private void testBigDatabase(boolean withCache) throws Exception {
+    private void testBigDatabase(boolean withCache) {
         boolean longRun = false;
         final int howMuchRows = longRun ? 2000000 : 500000;
         deleteDb("fileLockSerialized");

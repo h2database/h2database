@@ -108,7 +108,7 @@ public class TestUtils extends TestBase {
         }
     }
 
-    private void testGetNonPrimitiveClass() throws Exception {
+    private void testGetNonPrimitiveClass() {
         testGetNonPrimitiveClass(BigInteger.class, BigInteger.class);
         testGetNonPrimitiveClass(Boolean.class, boolean.class);
         testGetNonPrimitiveClass(Byte.class, byte.class);

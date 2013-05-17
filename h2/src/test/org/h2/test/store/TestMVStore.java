@@ -1170,7 +1170,7 @@ public class TestMVStore extends TestBase {
         // System.out.println("len2: " + len);
     }
 
-    private void testReuseSpace() throws Exception {
+    private void testReuseSpace() {
         String fileName = getBaseDir() + "/testReuseSpace.h3";
         FileUtils.delete(fileName);
         long initialLength = 0;

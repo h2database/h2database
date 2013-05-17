@@ -119,7 +119,7 @@ public class TestCompress extends TestBase {
         }
     }
 
-    private void testVariableEnd() throws Exception {
+    private void testVariableEnd() {
         CompressTool utils = CompressTool.getInstance();
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < 90; i++) {

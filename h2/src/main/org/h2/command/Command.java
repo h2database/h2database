@@ -144,7 +144,6 @@ public abstract class Command implements CommandInterface {
 
     private void stop() {
         session.endStatement();
-        session.closeTemporaryResults();
         session.setCurrentCommand(null);
         if (!isTransactional()) {
             session.commit(true);

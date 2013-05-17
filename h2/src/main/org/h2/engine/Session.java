@@ -584,6 +584,11 @@ public class Session extends SessionWithState {
         return undoLog.size() > 0;
     }
     
+    /**
+     * Create a savepoint to allow rolling back to this state.
+     * 
+     * @return the savepoint
+     */
     public Savepoint setSavepoint() {
         Savepoint sp = new Savepoint();
         sp.logIndex = undoLog.size();
@@ -1203,11 +1208,7 @@ public class Session extends SessionWithState {
         }
     }
 
-    /**
-     * Close all temporary result set. This also deletes all temporary files
-     * held by the result sets.
-     */
-    public void closeTemporaryResults() {
+    private void closeTemporaryResults() {
         if (temporaryResults != null) {
             for (ResultInterface result : temporaryResults) {
                 result.close();
@@ -1325,8 +1326,13 @@ public class Session extends SessionWithState {
         return startStatement;
     }
 
+    /**
+     * Mark the statement as completed. This also close all temporary result
+     * set, and deletes all temporary files held by the result sets.
+     */
     public void endStatement() {
         startStatement = -1;
+        closeTemporaryResults();
     }
     
     /**
@@ -1334,7 +1340,15 @@ public class Session extends SessionWithState {
      * back to).
      */
     public static class Savepoint {
+        
+        /**
+         * The undo log index.
+         */
         int logIndex;
+        
+        /**
+         * The transaction savepoint id.
+         */
         long transactionSavepoint;
     }
 

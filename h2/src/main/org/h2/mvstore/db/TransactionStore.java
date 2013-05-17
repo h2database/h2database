@@ -248,6 +248,13 @@ public class TransactionStore {
         endTransaction(t);
     }
     
+    /**
+     * Check whether the given transaction id is still open and contains log
+     * entries.
+     * 
+     * @param transactionId the transaction id
+     * @return true if it is open
+     */
     boolean isTransactionOpen(long transactionId) {
         if (transactionId < firstOpenTransaction) {
             return false;
@@ -267,6 +274,11 @@ public class TransactionStore {
         return key != null && key[0] == transactionId;
     }
     
+    /**
+     * End this transaction
+     * 
+     * @param t the transaction
+     */
     void endTransaction(Transaction t) {
         if (t.getStatus() == Transaction.STATUS_PREPARED) {
             preparedTransactions.remove(t.getId());
@@ -308,6 +320,14 @@ public class TransactionStore {
         }
     }
     
+    /**
+     * Get the set of changed maps.
+     * 
+     * @param t the transaction
+     * @param maxLogId the maximum log id
+     * @param toLogId the minimum log id
+     * @return the set of changed maps
+     */
     HashSet<String> getChangedMaps(Transaction t, long maxLogId, long toLogId) {
         HashSet<String> set = New.hashSet();
         for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
@@ -363,6 +383,9 @@ public class TransactionStore {
          */
         final long transactionId;
 
+        /**
+         * The log id of the last entry in the undo log map.
+         */
         long logId;
         
         private int status;
@@ -1012,7 +1035,20 @@ public class TransactionStore {
      * value, and the value itself.
      */
     static class VersionedValue {
-        public long transactionId, logId;
+        
+        /**
+         * The transaction id.
+         */
+        public long transactionId;
+        
+        /**
+         * The log id.
+         */
+        public long logId;
+        
+        /**
+         * The value.
+         */
         public Object value;
     }
     

@@ -203,7 +203,7 @@ public class Doclet {
             String name = field.name();
             String text = field.commentText();
             if (text == null || text.trim().length() == 0) {
-                addError("Undocumented field (" + clazz.name() + ".java:" + field.position().line() + ") " + name);
+                addError("Undocumented field (" + getLink(clazz, field.position().line()) + ") " + name);
             }
             if (text != null && text.startsWith("INTERNAL")) {
                 continue;
@@ -315,7 +315,7 @@ public class Doclet {
             if (hasComment && !method.commentText().startsWith("[")) {
                 // [Not supported] and such are not problematic
                 addError("Undocumented parameter(s) (" +
-                        clazz.name() + ".java:" + method.position().line() + ") " +
+                        getLink(clazz, method.position().line()) + ") " +
                         name + " documented: " + paramTags.length + " params: "+ params.length);
             }
         }
@@ -324,7 +324,7 @@ public class Doclet {
             String comment = paramTags[j].parameterComment();
             if (comment.trim().length() == 0) {
                 addError("Undocumented parameter (" +
-                        clazz.name() + ".java:" + method.position().line() + ") " + name + " " + paramName);
+                        getLink(clazz, method.position().line()) + ") " + name + " " + paramName);
             }
             String p = paramName + " - " + comment;
             if (j == 0) {
@@ -339,7 +339,7 @@ public class Doclet {
             String returnComment = returnTags[0].text();
             if (returnComment.trim().length() == 0) {
                 addError("Undocumented return value (" +
-                        clazz.name() + ".java:" + method.position().line() + ") " + name);
+                        getLink(clazz, method.position().line()) + ") " + name);
             }
             writer.println("<div class=\"item\">" + returnComment + "</div>");
         } else if (returnType != null && !returnType.toString().equals("void")) {
@@ -347,7 +347,7 @@ public class Doclet {
                 // [Not supported] and such are not problematic
                 // also not problematic are methods that always throw an exception
                 addError("Undocumented return value (" +
-                        clazz.name() + ".java:" + method.position().line() + ") " + name + " " + getReturnType(method));
+                        getLink(clazz, method.position().line()) + ") " + name + " " + getReturnType(method));
             }
         }
         if (hasThrowsTag) {
@@ -361,6 +361,15 @@ public class Doclet {
                 writer.println("<div class=\"item\">" + p + "</div>");
             }
         }
+    }
+    
+    private static String getLink(ClassDoc clazz, int line) {
+        String c = clazz.name();
+        int x = c.lastIndexOf('.');
+        if (x >= 0) {
+            c = c.substring(0, x);
+        }
+        return c + ".java:" + line;
     }
 
     private String getFieldLink(String text, String constant, ClassDoc clazz, String name) {
@@ -431,7 +440,7 @@ public class Doclet {
                         returnType.toString().equals("boolean");
                 if (!setterOrGetter) {
                     addError("Undocumented method " +
-                            " (" + clazz.name() + ".java:" + method.position().line() +") " +
+                            " (" + getLink(clazz, method.position().line()) +") " +
                             clazz + "." + name + " " + raw);
                     return true;
                 }

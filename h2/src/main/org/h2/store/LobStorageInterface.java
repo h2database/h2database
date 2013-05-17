@@ -62,7 +62,7 @@ public interface LobStorageInterface {
      * @param lobId the lob
      * @param table the table
      */
-    void setTable(long lobId, int tableIdSessionVariable);
+    void setTable(long lobId, int table);
 
     /**
      * Delete a LOB from the database.

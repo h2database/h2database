@@ -101,6 +101,9 @@ public class MVTableEngine implements TableEngine {
             return openTables;
         }
         
+        /**
+         * Store all pending changes.
+         */
         public void store() {
             if (!store.isReadOnly()) {
                 store.commit();
@@ -109,6 +112,9 @@ public class MVTableEngine implements TableEngine {
             }
         }
         
+        /**
+         * Close the store, without persisting changes.
+         */
         public void closeImmediately() {
             if (store.isClosed()) {
                 return;
@@ -123,6 +129,9 @@ public class MVTableEngine implements TableEngine {
             }
         }
 
+        /**
+         * Close the store. Pending changes are persisted.
+         */
         public void close() {
             if (!store.isReadOnly()) {
                 store.store();

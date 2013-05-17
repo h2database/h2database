@@ -14,9 +14,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.store.DataHandler;
@@ -237,7 +237,7 @@ public class ValueLob extends Value {
         }
     }
 
-    private static String getFileNamePrefix(String path, int objectId) {
+    public static String getFileNamePrefix(String path, int objectId) {
         String name;
         int f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
         if (f > 0) {
@@ -498,6 +498,7 @@ public class ValueLob extends Value {
         }
     }
 
+    @Override
     public Value link(DataHandler h, int tabId) {
         if (fileName == null) {
             this.tableId = tabId;
@@ -742,29 +743,6 @@ public class ValueLob extends Value {
     }
 
     /**
-     * Remove all lobs for a given table id.
-     *
-     * @param database the database
-     * @param tableId the table id
-     */
-    public static void removeAllForTable(Database database, int tableId) {
-        String dir = getFileNamePrefix(database.getDatabasePath(), 0);
-        removeAllForTable(database, dir, tableId);
-    }
-
-    private static void removeAllForTable(Database database, String dir, int tableId) {
-        for (String name : FileUtils.newDirectoryStream(dir)) {
-            if (FileUtils.isDirectory(name)) {
-                removeAllForTable(database, name, tableId);
-            } else {
-                if (name.endsWith(".t" + tableId + Constants.SUFFIX_LOB_FILE)) {
-                    deleteFile(database, name);
-                }
-            }
-        }
-    }
-
-    /**
      * Check if this lob value is compressed.
      *
      * @return true if it is
@@ -773,7 +751,7 @@ public class ValueLob extends Value {
         return compression;
     }
 
-    private static synchronized void deleteFile(DataHandler handler, String fileName) {
+    public static synchronized void deleteFile(DataHandler handler, String fileName) {
         // synchronize on the database, to avoid concurrent temp file creation /
         // deletion / backup
         synchronized (handler.getLobSyncObject()) {
@@ -804,6 +782,29 @@ public class ValueLob extends Value {
             return small.length + 104;
         }
         return 140;
+    }
+    
+    /**
+     * Remove all lobs for a given table id.
+     *
+     * @param handler the data handler
+     * @param tableId the table id
+     */
+    public static void removeAllForTable(DataHandler handler, int tableId) {
+        String dir = ValueLob.getFileNamePrefix(handler.getDatabasePath(), 0);
+        removeAllForTable(handler, dir, tableId);
+    }
+
+    private static void removeAllForTable(DataHandler handler, String dir, int tableId) {
+        for (String name : FileUtils.newDirectoryStream(dir)) {
+            if (FileUtils.isDirectory(name)) {
+                removeAllForTable(handler, name, tableId);
+            } else {
+                if (name.endsWith(".t" + tableId + Constants.SUFFIX_LOB_FILE)) {
+                    ValueLob.deleteFile(handler, name);
+                }
+            }
+        }
     }
 
     /**

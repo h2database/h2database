@@ -42,6 +42,7 @@ import org.h2.store.FileLock;
 import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageBackend;
+import org.h2.store.LobStorageFrontend;
 import org.h2.store.PageStore;
 import org.h2.store.WriterThread;
 import org.h2.store.fs.FileUtils;
@@ -1121,7 +1122,7 @@ public class Database implements DataHandler {
             if (lobStorageIsUsed) {
                 try {
                     getLobStorage();
-                    lobStorage.removeAllForTable(LobStorageBackend.TABLE_ID_SESSION_VARIABLE);
+                    lobStorage.removeAllForTable(LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
                 } catch (DbException e) {
                     trace.error(e, "close");
                 }

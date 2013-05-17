@@ -33,6 +33,7 @@ import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageBackend;
+import org.h2.store.LobStorageFrontend;
 import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
@@ -148,7 +149,7 @@ public class Session extends SessionWithState {
             old = variables.remove(name);
         } else {
             // link LOB values, to make sure we have our own object
-            value = value.link(database, LobStorageBackend.TABLE_ID_SESSION_VARIABLE);
+            value = value.link(database, LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
             old = variables.put(name, value);
         }
         if (old != null) {
@@ -578,6 +579,7 @@ public class Session extends SessionWithState {
         }
     }
     
+    @Override
     public boolean hasPendingTransaction() {
         return undoLog.size() > 0;
     }

@@ -15,6 +15,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
@@ -23,7 +24,7 @@ import org.h2.mvstore.type.DataType;
 import org.h2.result.SortOrder;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
-import org.h2.store.LobStorageBackend;
+import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
@@ -597,7 +598,7 @@ public class ValueDataType implements DataType {
             if (smallLen >= 0) {
                 byte[] small = DataUtils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
-                return LobStorageBackend.createSmallLob(type, small);
+                return LobStorageFrontend.createSmallLob(type, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);

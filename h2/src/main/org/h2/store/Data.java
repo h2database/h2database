@@ -787,7 +787,7 @@ public class Data {
             if (smallLen >= 0) {
                 byte[] small = DataUtils.newBytes(smallLen);
                 read(small, 0, smallLen);
-                return LobStorageBackend.createSmallLob(type, small);
+                return LobStorageFrontend.createSmallLob(type, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt();
                 long lobId = readVarLong();

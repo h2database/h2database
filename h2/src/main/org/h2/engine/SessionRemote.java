@@ -123,6 +123,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         return trans;
     }
 
+    @Override
     public boolean hasPendingTransaction() {
         if (clientVersion < Constants.TCP_PROTOCOL_VERSION_10) {
             return true;

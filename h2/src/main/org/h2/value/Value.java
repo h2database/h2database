@@ -22,9 +22,9 @@ import java.sql.Types;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
-import org.h2.engine.Database;
 import org.h2.message.DbException;
-import org.h2.store.LobStorageBackend;
+import org.h2.store.DataHandler;
+import org.h2.store.LobStorageFrontend;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -771,8 +771,7 @@ public abstract class Value {
             case BLOB: {
                 switch(getType()) {
                 case BYTES:
-
-                    return LobStorageBackend.createSmallLob(Value.BLOB, getBytesNoCopy());
+                    return LobStorageFrontend.createSmallLob(Value.BLOB, getBytesNoCopy());
                 }
                 break;
             }
@@ -835,9 +834,9 @@ public abstract class Value {
             case FLOAT:
                 return ValueFloat.get(Float.parseFloat(s.trim()));
             case CLOB:
-                return LobStorageBackend.createSmallLob(CLOB, s.getBytes(Constants.UTF8));
+                return LobStorageFrontend.createSmallLob(CLOB, s.getBytes(Constants.UTF8));
             case BLOB:
-                return LobStorageBackend.createSmallLob(BLOB, StringUtils.convertHexToBytes(s.trim()));
+                return LobStorageFrontend.createSmallLob(BLOB, StringUtils.convertHexToBytes(s.trim()));
             case ARRAY:
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {
@@ -969,11 +968,11 @@ public abstract class Value {
      * Link a large value to a given table. For values that are kept fully in
      * memory this method has no effect.
      *
-     * @param database the database
+     * @param handler the data handler
      * @param tableId the table to link to
      * @return the new value or itself
      */
-    public Value link(Database database, int tableId) {
+    public Value link(DataHandler handler, int tableId) {
         return this;
     }
 
@@ -990,8 +989,10 @@ public abstract class Value {
     /**
      * Mark any underlying resource as 'not linked to any table'. For values
      * that are kept fully in memory this method has no effect.
+     * 
+     * @param handler the data handler
      */
-    public void unlink(Database database) {
+    public void unlink(DataHandler handler) {
         // nothing to do
     }
 

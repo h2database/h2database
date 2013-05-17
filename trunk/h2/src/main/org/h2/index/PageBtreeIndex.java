@@ -84,6 +84,7 @@ public class PageBtreeIndex extends PageIndex {
         }
     }
 
+    @Override
     public void add(Session session, Row row) {
         if (trace.isDebugEnabled()) {
             trace.debug("{0} add {1}", getName(), row);
@@ -164,14 +165,17 @@ public class PageBtreeIndex extends PageIndex {
         return (PageBtree) p;
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return true;
     }
 
+    @Override
     public Cursor findNext(Session session, SearchRow first, SearchRow last) {
         return find(session, first, true, last);
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         return find(session, first, false, last);
     }
@@ -186,6 +190,7 @@ public class PageBtreeIndex extends PageIndex {
         return cursor;
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         if (first) {
             // TODO optimization: this loops through NULL elements
@@ -217,14 +222,17 @@ public class PageBtreeIndex extends PageIndex {
         return cursor;
     }
 
+    @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount(session), sortOrder);
     }
 
+    @Override
     public boolean needRebuild() {
         return needRebuild;
     }
 
+    @Override
     public void remove(Session session, Row row) {
         if (trace.isDebugEnabled()) {
             trace.debug("{0} remove {1}", getName(), row);
@@ -245,6 +253,7 @@ public class PageBtreeIndex extends PageIndex {
         }
     }
 
+    @Override
     public void remove(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("remove");
@@ -254,6 +263,7 @@ public class PageBtreeIndex extends PageIndex {
         store.removeMeta(this, session);
     }
 
+    @Override
     public void truncate(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("truncate");
@@ -278,6 +288,7 @@ public class PageBtreeIndex extends PageIndex {
         }
     }
 
+    @Override
     public void checkRename() {
         // ok
     }
@@ -289,6 +300,7 @@ public class PageBtreeIndex extends PageIndex {
      * @param key the row key
      * @return the row
      */
+    @Override
     public Row getRow(Session session, long key) {
         return tableData.getRow(session, key);
     }
@@ -297,18 +309,22 @@ public class PageBtreeIndex extends PageIndex {
         return store;
     }
 
+    @Override
     public long getRowCountApproximation() {
         return tableData.getRowCountApproximation();
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return tableData.getDiskSpaceUsed();
     }
 
+    @Override
     public long getRowCount(Session session) {
         return rowCount;
     }
 
+    @Override
     public void close(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("close");
@@ -401,6 +417,7 @@ public class PageBtreeIndex extends PageIndex {
         return rowsize;
     }
 
+    @Override
     public boolean canFindNext() {
         return true;
     }
@@ -423,6 +440,7 @@ public class PageBtreeIndex extends PageIndex {
         root.setRowCountStored(PageData.UNKNOWN_ROWCOUNT);
     }
 
+    @Override
     public void writeRowCount() {
         if (SysProperties.MODIFY_ON_WRITE && rootPageId == 0) {
             // currently creating the index

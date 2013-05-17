@@ -82,6 +82,7 @@ public class LZFInputStream extends InputStream {
         return x;
     }
 
+    @Override
     public int read() throws IOException {
         fillBuffer();
         if (pos >= bufferLength) {
@@ -90,10 +91,12 @@ public class LZFInputStream extends InputStream {
         return buffer[pos++] & 255;
     }
 
+    @Override
     public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
+    @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (len == 0) {
             return 0;
@@ -123,6 +126,7 @@ public class LZFInputStream extends InputStream {
         return max;
     }
 
+    @Override
     public void close() throws IOException {
         in.close();
     }

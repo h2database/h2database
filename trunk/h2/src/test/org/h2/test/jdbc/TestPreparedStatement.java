@@ -48,6 +48,7 @@ public class TestPreparedStatement extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
@@ -407,6 +408,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setInt(1, 1);
         prep.setInt(2, 10000);
         Task t = new Task() {
+            @Override
             public void call() throws SQLException {
                 prep.execute();
             }
@@ -492,20 +494,24 @@ public class TestPreparedStatement extends TestBase {
      */
     public static class SequenceTrigger implements Trigger {
 
+        @Override
         public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
             conn.setAutoCommit(false);
             conn.createStatement().execute("call next value for seq");
         }
 
+        @Override
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
                 int type) {
             // ignore
         }
 
+        @Override
         public void close() {
             // ignore
         }
 
+        @Override
         public void remove() {
             // ignore
         }

@@ -48,6 +48,7 @@ public class TestFileLock extends TestBase implements Runnable {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (!getFile().startsWith(TestBase.BASE_TEST_DIR)) {
             return;
@@ -111,6 +112,7 @@ public class TestFileLock extends TestBase implements Runnable {
         assertEquals(0, locks);
     }
 
+    @Override
     public void run() {
         FileLock lock = null;
         while (!stop) {

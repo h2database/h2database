@@ -57,6 +57,7 @@ abstract class TestMultiThread extends Thread {
      */
     abstract void finalTest() throws SQLException;
 
+    @Override
     public void run() {
         try {
             begin();

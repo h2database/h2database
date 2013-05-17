@@ -29,6 +29,7 @@ public class CompressDeflate implements Compressor {
     private int level = Deflater.DEFAULT_COMPRESSION;
     private int strategy = Deflater.DEFAULT_STRATEGY;
 
+    @Override
     public void setOptions(String options) {
         if (options == null) {
             return;
@@ -50,6 +51,7 @@ public class CompressDeflate implements Compressor {
         }
     }
 
+    @Override
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {
         Deflater deflater = new Deflater(level);
         deflater.setStrategy(strategy);
@@ -68,10 +70,12 @@ public class CompressDeflate implements Compressor {
         return outPos + compressed;
     }
 
+    @Override
     public int getAlgorithm() {
         return Compressor.DEFLATE;
     }
 
+    @Override
     public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) {
         Inflater decompresser = new Inflater();
         decompresser.setInput(in, inPos, inLen);

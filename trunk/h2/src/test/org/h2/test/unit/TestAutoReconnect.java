@@ -51,6 +51,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         }
     }
 
+    @Override
     public void test() throws Exception {
         testWrongUrl();
         autoServer = true;
@@ -175,22 +176,27 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         }
     }
 
+    @Override
     public void closingDatabase() {
         // ignore
     }
 
+    @Override
     public void exceptionThrown(SQLException e, String sql) {
         // ignore
     }
 
+    @Override
     public void init(String u) {
         // ignore
     }
 
+    @Override
     public void opened() {
         // ignore
     }
 
+    @Override
     public void setProgress(int state, String name, int x, int max) {
         // ignore
     }

@@ -59,6 +59,7 @@ public class JdbcXid extends TraceObject implements Xid {
      *
      * @return the format id
      */
+    @Override
     public int getFormatId() {
         debugCodeCall("getFormatId");
         return formatId;
@@ -69,6 +70,7 @@ public class JdbcXid extends TraceObject implements Xid {
      *
      * @return the identifier
      */
+    @Override
     public byte[] getBranchQualifier() {
         debugCodeCall("getBranchQualifier");
         return branchQualifier;
@@ -79,6 +81,7 @@ public class JdbcXid extends TraceObject implements Xid {
      *
      * @return the transaction id
      */
+    @Override
     public byte[] getGlobalTransactionId() {
         debugCodeCall("getGlobalTransactionId");
         return globalTransactionId;

@@ -43,6 +43,7 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
         }
     }
 
+    @Override
     public V get(Object key) {
         processQueue();
         SoftReference<V> o = map.get(key);
@@ -59,6 +60,7 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
      * @param value the value
      * @return null or the old object.
      */
+    @Override
     public V put(K key, V value) {
         processQueue();
         SoftValue<V> old = map.put(key, new SoftValue<V>(value, queue, key));
@@ -71,17 +73,20 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
      * @param key the key
      * @return null or the old object
      */
+    @Override
     public V remove(Object key) {
         processQueue();
         SoftReference<V> ref = map.remove(key);
         return ref == null ? null : ref.get();
     }
 
+    @Override
     public void clear() {
         processQueue();
         map.clear();
     }
 
+    @Override
     public Set<Entry<K, V>> entrySet() {
         throw new UnsupportedOperationException();
     }

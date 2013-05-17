@@ -36,6 +36,7 @@ public class AlterTableSet extends SchemaCommand {
         this.checkExisting = b;
     }
 
+    @Override
     public boolean isTransactional() {
         return true;
     }
@@ -44,6 +45,7 @@ public class AlterTableSet extends SchemaCommand {
         this.tableName = tableName;
     }
 
+    @Override
     public int update() {
         Table table = getSchema().getTableOrView(session, tableName);
         session.getUser().checkRight(table, Right.ALL);
@@ -58,6 +60,7 @@ public class AlterTableSet extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return type;
     }

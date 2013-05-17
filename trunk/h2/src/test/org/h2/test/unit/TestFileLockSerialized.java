@@ -35,6 +35,7 @@ public class TestFileLockSerialized extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         println("testSequence");
         testSequence();
@@ -122,6 +123,7 @@ public class TestFileLockSerialized extends TestBase {
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {
             Thread t = new Thread(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         Connection c = DriverManager.getConnection(url);
@@ -183,6 +185,7 @@ public class TestFileLockSerialized extends TestBase {
         conn.createStatement().execute("create table test(id identity) as select x from system_range(1, 100)");
         conn.close();
         Task task = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     Thread.sleep(10);
@@ -347,6 +350,7 @@ public class TestFileLockSerialized extends TestBase {
         for (int i = 0; i < howManyThreads; i++) {
             final int finalNrOfConnection = i;
             Thread t = new Thread(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         Connection c = DriverManager.getConnection(url);
@@ -419,6 +423,7 @@ public class TestFileLockSerialized extends TestBase {
         for (int i = 0; i < howManyThreads; i++) {
             final int finalNrOfConnection = i;
             Thread t = new Thread(new Runnable() {
+                @Override
                 public void run() {
                     try {
                         Connection c = DriverManager.getConnection(url);
@@ -548,6 +553,7 @@ public class TestFileLockSerialized extends TestBase {
                 ";CACHE_SIZE=" + cacheSizeKb;
         final boolean[] importFinished = { false };
         final Task importUpdate = new Task() {
+            @Override
             public void call() throws Exception {
                 Connection conn = DriverManager.getConnection(url);
                 Statement stat = conn.createStatement();
@@ -565,6 +571,7 @@ public class TestFileLockSerialized extends TestBase {
         importUpdate.execute();
 
         Task select = new Task() {
+            @Override
             public void call() throws Exception {
                 Connection conn = DriverManager.getConnection(url);
                 Statement stat = conn.createStatement();

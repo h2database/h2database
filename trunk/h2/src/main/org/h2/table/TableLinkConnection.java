@@ -92,6 +92,7 @@ public class TableLinkConnection {
         }
     }
 
+    @Override
     public int hashCode() {
         return Utils.hashCode(driver)
                 ^ Utils.hashCode(url)
@@ -99,6 +100,7 @@ public class TableLinkConnection {
                 ^ Utils.hashCode(password);
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o instanceof TableLinkConnection) {
             TableLinkConnection other = (TableLinkConnection) o;

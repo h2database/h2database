@@ -282,6 +282,7 @@ public abstract class Expression {
      *
      * @return the string representation
      */
+    @Override
     public String toString() {
         return getSQL();
     }

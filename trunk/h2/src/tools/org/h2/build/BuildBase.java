@@ -275,6 +275,7 @@ public class BuildBase {
     protected void projectHelp() {
         Method[] methods = getClass().getDeclaredMethods();
         Arrays.sort(methods, new Comparator<Method>() {
+            @Override
             public int compare(Method a, Method b) {
                 return a.getName().compareTo(b.getName());
             }
@@ -341,6 +342,7 @@ public class BuildBase {
 
     private static void copyInThread(final InputStream in, final OutputStream out) {
         new Thread() {
+            @Override
             public void run() {
                 try {
                     while (true) {
@@ -417,10 +419,12 @@ public class BuildBase {
         return new PrintStream(new FilterOutputStream(out) {
             private ByteArrayOutputStream buff = new ByteArrayOutputStream();
 
+            @Override
             public void write(byte[] b) throws IOException {
                 write(b, 0, b.length);
             }
 
+            @Override
             public void write(byte[] b, int off, int len) throws IOException {
                 for (int i = off; i < len; i++) {
                     write(b[i]);
@@ -446,6 +450,7 @@ public class BuildBase {
                 }
             }
 
+            @Override
             public void close() throws IOException {
                 write('\n');
             }
@@ -763,6 +768,7 @@ public class BuildBase {
         if (sortBySuffix) {
             // for better compressibility, sort by suffix, then name
             Collections.sort(files, new Comparator<File>() {
+                @Override
                 public int compare(File f1, File f2) {
                     String p1 = f1.getPath();
                     String p2 = f2.getPath();

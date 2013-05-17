@@ -22,6 +22,7 @@ class Row implements Comparable<Row> {
         }
     }
 
+    @Override
     public String toString() {
         String s = "";
         for (Object o : data) {
@@ -31,6 +32,7 @@ class Row implements Comparable<Row> {
         return s;
     }
 
+    @Override
     public int compareTo(Row r2) {
         int result = 0;
         for (int i = 0; i < data.length && result == 0; i++) {

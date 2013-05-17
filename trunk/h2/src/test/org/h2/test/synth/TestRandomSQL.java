@@ -62,6 +62,7 @@ public class TestRandomSQL extends TestBase {
         }
     }
 
+    @Override
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
         return this;
@@ -105,6 +106,7 @@ public class TestRandomSQL extends TestBase {
         }
     }
 
+    @Override
     public void testCase(int i) throws Exception {
         String old = SysProperties.getScriptDirectory();
         try {
@@ -119,6 +121,7 @@ public class TestRandomSQL extends TestBase {
         deleteDb();
     }
 
+    @Override
     public void test() throws Exception {
         if (config.networked) {
             return;

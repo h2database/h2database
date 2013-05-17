@@ -30,6 +30,7 @@ public class TestLimit extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("limit");
         Connection conn = getConnection("limit");

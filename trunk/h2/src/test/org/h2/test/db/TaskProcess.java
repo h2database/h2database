@@ -80,6 +80,7 @@ public class TaskProcess {
 
     private static void copyInThread(final InputStream in, final OutputStream out) {
         new Task() {
+            @Override
             public void call() throws IOException {
                 while (true) {
                     int x = in.read();

@@ -74,6 +74,7 @@ public class TestTools extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (config.networked) {
             return;
@@ -444,6 +445,7 @@ public class TestTools extends TestBase {
                 getConnection("jdbc:h2:tcp://localhost:9001/test");
         final ServerSocket serverSocket = new ServerSocket(9001);
         Task task = new Task() {
+            @Override
             public void call() throws Exception {
                 Socket socket = serverSocket.accept();
                 byte[] data = new byte[1024];
@@ -826,6 +828,7 @@ public class TestTools extends TestBase {
         assertTrue(rs.next());
         assertFalse(rs.next());
         new AssertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1) {
+            @Override
             public void test() throws SQLException {
                 // must fail when the database is in use
                 Backup.main("-file", fileName, "-dir", getBaseDir(), "-db", "utils");
@@ -853,6 +856,7 @@ public class TestTools extends TestBase {
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         new AssertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1) {
+            @Override
             public void test() throws SQLException {
                 ChangeFileEncryption.main(new String[] {
                     "-dir", dir, "-db", "utils", "-cipher", "AES", "-decrypt", "def", "-quiet" });
@@ -874,10 +878,12 @@ public class TestTools extends TestBase {
         conn.close();
         // must not be able to use a different base dir
         new AssertThrows(ErrorCode.IO_EXCEPTION_1) {
+            @Override
             public void test() throws SQLException {
                 getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
         }};
         new AssertThrows(ErrorCode.IO_EXCEPTION_1) {
+            @Override
             public void test() throws SQLException {
                 getConnection("jdbc:h2:tcp://localhost:9192/../test2/test", "sa", "");
         }};
@@ -889,16 +895,19 @@ public class TestTools extends TestBase {
                         "-tcpPort", "9192").start();
         // must not be able to create new db
         new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
+            @Override
             public void test() throws SQLException {
                 getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
         }};
         new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
+            @Override
             public void test() throws SQLException {
                 getConnection("jdbc:h2:tcp://localhost:9192/test2;ifexists=false", "sa", "");
         }};
         conn = DriverManager.getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
         conn.close();
         new AssertThrows(ErrorCode.WRONG_USER_OR_PASSWORD) {
+            @Override
             public void test() throws SQLException {
                 Server.shutdownTcpServer("tcp://localhost:9192", "", true, false);
         }};
@@ -941,14 +950,17 @@ public class TestTools extends TestBase {
         /**
          * Free the clob.
          */
+        @Override
         public void free() throws SQLException {
             // ignore
         }
 
+        @Override
         public InputStream getAsciiStream() throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public Reader getCharacterStream() throws SQLException {
             throw new UnsupportedOperationException();
         }
@@ -960,42 +972,52 @@ public class TestTools extends TestBase {
          * @param length the length
          * @return the reader
          */
+        @Override
         public Reader getCharacterStream(long pos, long length) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public String getSubString(long pos, int length) throws SQLException {
             return data;
         }
 
+        @Override
         public long length() throws SQLException {
             return data.length();
         }
 
+        @Override
         public long position(String search, long start) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public long position(Clob search, long start) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public OutputStream setAsciiStream(long pos) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public Writer setCharacterStream(long pos) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public int setString(long pos, String str) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public int setString(long pos, String str, int offset, int len) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void truncate(long len) throws SQLException {
             throw new UnsupportedOperationException();
         }
@@ -1016,10 +1038,12 @@ public class TestTools extends TestBase {
         /**
          * Free the blob.
          */
+        @Override
         public void free() throws SQLException {
             // ignore
         }
 
+        @Override
         public InputStream getBinaryStream() throws SQLException {
             throw new UnsupportedOperationException();
         }
@@ -1031,38 +1055,47 @@ public class TestTools extends TestBase {
          * @param length the length
          * @return the input stream
          */
+        @Override
         public InputStream getBinaryStream(long pos, long length) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public byte[] getBytes(long pos, int length) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public long length() throws SQLException {
             return data.length;
         }
 
+        @Override
         public long position(byte[] pattern, long start) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public long position(Blob pattern, long start) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public OutputStream setBinaryStream(long pos) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public int setBytes(long pos, byte[] bytes) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public int setBytes(long pos, byte[] bytes, int offset, int len) throws SQLException {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void truncate(long len) throws SQLException {
             throw new UnsupportedOperationException();
         }

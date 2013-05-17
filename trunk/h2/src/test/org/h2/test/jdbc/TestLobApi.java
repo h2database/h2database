@@ -42,6 +42,7 @@ public class TestLobApi extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("lob");
         testLobStaysOpenUntilCommitted();
@@ -118,6 +119,7 @@ public class TestLobApi extends TestBase {
         assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
                 setCharacterStream(1, new Reader() {
                     int pos;
+                    @Override
                     public int read(char[] buff, int off, int len) throws IOException {
                         pos += len;
                         if (pos > 100001) {
@@ -128,6 +130,7 @@ public class TestLobApi extends TestBase {
                         }
                         return len;
                     }
+                    @Override
                     public void close() throws IOException {
                         // nothing to do
                     }
@@ -141,6 +144,7 @@ public class TestLobApi extends TestBase {
         assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
                 setBinaryStream(2, new InputStream() {
                     int pos;
+                    @Override
                     public int read() throws IOException {
                         pos++;
                         if (pos > 100001) {

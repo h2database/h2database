@@ -753,6 +753,7 @@ public class Build extends BuildBase {
             final ServerSocket accept = serverSocket;
             start = System.currentTimeMillis();
             Thread thread = new Thread() {
+                @Override
                 public void run() {
                     try {
                         System.out.println("server accepting");
@@ -781,6 +782,7 @@ public class Build extends BuildBase {
             System.out.println("client:" + socketAddress);
             try {
                 Thread t = new Thread() {
+                    @Override
                     public void run() {
                         try {
                             socket.connect(socketAddress, 2000);
@@ -857,6 +859,7 @@ public class Build extends BuildBase {
         jar("bin/h2console.war", files, "temp");
     }
 
+    @Override
     protected String getLocalMavenDir() {
         String userHome = System.getProperty("user.home", "");
         File file = new File(userHome, ".m2/settings.xml");

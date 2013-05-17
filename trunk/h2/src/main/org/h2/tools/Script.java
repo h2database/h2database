@@ -53,6 +53,7 @@ public class Script extends Tool {
         new Script().runTool(args);
     }
 
+    @Override
     public void runTool(String... args) throws SQLException {
         String url = null;
         String user = "sa";

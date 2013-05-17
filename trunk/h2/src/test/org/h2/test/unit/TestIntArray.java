@@ -24,6 +24,7 @@ public class TestIntArray extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() {
         testInit();
         testRandom();

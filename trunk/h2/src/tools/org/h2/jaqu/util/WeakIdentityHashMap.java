@@ -34,6 +34,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         reset(2);
     }
 
+    @Override
     public int size() {
         return size;
     }
@@ -73,6 +74,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         values = (V[]) new Object[len];
     }
 
+    @Override
     public V put(K key, V value) {
         checkSizePut();
         int index = getIndex(key);
@@ -111,6 +113,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         throw new RuntimeException("Hashmap is full");
     }
 
+    @Override
     public V remove(Object key) {
         checkSizeRemove();
         int index = getIndex(key);
@@ -163,6 +166,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         }
     }
 
+    @Override
     public V get(Object key) {
         int index = getIndex(key);
         int plus = 1;
@@ -185,14 +189,17 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         return null;
     }
 
+    @Override
     public void clear() {
         reset(2);
     }
 
+    @Override
     public boolean containsKey(Object key) {
         return get(key) != null;
     }
 
+    @Override
     public boolean containsValue(Object value) {
         if (value == null) {
             return false;
@@ -205,22 +212,27 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         return false;
     }
 
+    @Override
     public Set<java.util.Map.Entry<K, V>> entrySet() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isEmpty() {
         return size == 0;
     }
 
+    @Override
     public Set<K> keySet() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void putAll(Map<? extends K, ? extends V> m) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public Collection<V> values() {
         throw new UnsupportedOperationException();
     }

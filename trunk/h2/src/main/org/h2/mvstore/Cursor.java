@@ -28,6 +28,7 @@ public class Cursor<K> implements Iterator<K> {
         this.from = from;
     }
 
+    @Override
     public K next() {
         hasNext();
         K c = current;
@@ -35,6 +36,7 @@ public class Cursor<K> implements Iterator<K> {
         return c;
     }
 
+    @Override
     public boolean hasNext() {
         if (!initialized) {
             min(root, from);
@@ -66,6 +68,7 @@ public class Cursor<K> implements Iterator<K> {
         fetchNext();
     }
 
+    @Override
     public void remove() {
         throw DataUtils.newUnsupportedOperationException(
                 "Removing is not supported");

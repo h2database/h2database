@@ -160,6 +160,7 @@ public class TcpServer implements Service {
         }
     }
 
+    @Override
     public void init(String... args) {
         port = Constants.DEFAULT_TCP_PORT;
         for (int i = 0; args != null && i < args.length; i++) {
@@ -189,10 +190,12 @@ public class TcpServer implements Service {
         org.h2.Driver.load();
     }
 
+    @Override
     public String getURL() {
         return (ssl ? "ssl" : "tcp") + "://" + NetUtils.getLocalAddress() + ":" + port;
     }
 
+    @Override
     public int getPort() {
         return port;
     }
@@ -216,6 +219,7 @@ public class TcpServer implements Service {
         }
     }
 
+    @Override
     public synchronized void start() throws SQLException {
         stop = false;
         try {
@@ -231,6 +235,7 @@ public class TcpServer implements Service {
         initManagementDb();
     }
 
+    @Override
     public void listen() {
         listenerThread = Thread.currentThread();
         String threadName = listenerThread.getName();
@@ -253,6 +258,7 @@ public class TcpServer implements Service {
         stopManagementDb();
     }
 
+    @Override
     public synchronized boolean isRunning(boolean traceError) {
         if (serverSocket == null) {
             return false;
@@ -269,6 +275,7 @@ public class TcpServer implements Service {
         }
     }
 
+    @Override
     public void stop() {
         // TODO server: share code between web and tcp servers
         // need to remove the server first, otherwise the connection is broken
@@ -386,14 +393,17 @@ public class TcpServer implements Service {
         }
     }
 
+    @Override
     public boolean getAllowOthers() {
         return allowOthers;
     }
 
+    @Override
     public String getType() {
         return "TCP";
     }
 
+    @Override
     public String getName() {
         return "H2 TCP Server";
     }
@@ -495,6 +505,7 @@ public class TcpServer implements Service {
         throw DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
     }
 
+    @Override
     public boolean isDaemon() {
         return isDaemon;
     }

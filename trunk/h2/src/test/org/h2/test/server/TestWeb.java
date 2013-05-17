@@ -41,6 +41,7 @@ public class TestWeb extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testWrongParameters();
         testTools();
@@ -53,14 +54,17 @@ public class TestWeb extends TestBase {
 
     private static void testWrongParameters() {
         new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
+            @Override
             public void test() throws SQLException {
                 Server.createPgServer("-pgPort 8182");
         }};
         new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
+            @Override
             public void test() throws SQLException {
                 Server.createTcpServer("-tcpPort 8182");
         }};
         new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
+            @Override
             public void test() throws SQLException {
             Server.createWebServer("-webPort=8182");
         }};
@@ -425,6 +429,7 @@ public class TestWeb extends TestBase {
             String oldUrl = lastUrl;
             final Connection conn = getConnection("testWeb");
             Task t = new Task() {
+                @Override
                 public void call() throws Exception {
                     Server.startWebServer(conn);
                 }

@@ -24,6 +24,7 @@ public class Function implements Token {
         this.x = x;
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         stat.appendSQL(name).appendSQL("(");
         int i = 0;
@@ -59,6 +60,7 @@ public class Function implements Token {
     public static Boolean isNull(Object x) {
         return Db.registerToken(
             ClassUtils.newObject(Boolean.class), new Function("", x) {
+                @Override
                 public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                     query.appendSQL(stat, x[0]);
                     stat.appendSQL(" IS NULL");
@@ -69,6 +71,7 @@ public class Function implements Token {
     public static Boolean isNotNull(Object x) {
         return Db.registerToken(
             ClassUtils.newObject(Boolean.class), new Function("", x) {
+                @Override
                 public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                     query.appendSQL(stat, x[0]);
                     stat.appendSQL(" IS NOT NULL");
@@ -79,6 +82,7 @@ public class Function implements Token {
     public static Boolean not(Boolean x) {
         return Db.registerToken(
             ClassUtils.newObject(Boolean.class), new Function("", x) {
+                @Override
                 public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                     stat.appendSQL("NOT ");
                     query.appendSQL(stat, x[0]);
@@ -90,6 +94,7 @@ public class Function implements Token {
         return Db.registerToken(
                 ClassUtils.newObject(Boolean.class),
                 new Function("", (Object[]) x) {
+            @Override
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 int i = 0;
                 for (Object o : x) {
@@ -106,6 +111,7 @@ public class Function implements Token {
         return Db.registerToken(
                 ClassUtils.newObject(Boolean.class),
                 new Function("", (Object[]) x) {
+            @Override
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 int i = 0;
                 for (Object o : x) {
@@ -135,6 +141,7 @@ public class Function implements Token {
     public static Boolean like(String x, String pattern) {
         Boolean o = ClassUtils.newObject(Boolean.class);
         return Db.registerToken(o, new Function("LIKE", x, pattern) {
+            @Override
             public <T> void appendSQL(SQLStatement stat, Query<T> query) {
                 stat.appendSQL("(");
                 query.appendSQL(stat, x[0]);

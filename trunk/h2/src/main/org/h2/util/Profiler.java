@@ -213,6 +213,7 @@ public class Profiler implements Runnable {
 
     private static void copyInThread(final InputStream in, final OutputStream out) {
         new Thread("Profiler stream copy") {
+            @Override
             public void run() {
                 byte[] buffer = new byte[4096];
                 try {
@@ -260,6 +261,7 @@ public class Profiler implements Runnable {
         return this;
     }
 
+    @Override
     public void run() {
         start = System.currentTimeMillis();
         while (!stop) {

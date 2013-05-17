@@ -55,6 +55,7 @@ public class TestLob extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws Exception {
         testReadManyLobs();
         testLobSkip();
@@ -250,6 +251,7 @@ public class TestLob extends TestBase {
         final Connection conn2 = getConnection("lob");
         Task task = new Task() {
 
+            @Override
             public void call() throws Exception {
                 Statement stat = conn2.createStatement();
                 stat.setFetchSize(1);
@@ -319,6 +321,7 @@ public class TestLob extends TestBase {
         final byte[] buffer = new byte[10000];
 
         Task task1 = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     Blob b = conn1.createBlob();
@@ -329,6 +332,7 @@ public class TestLob extends TestBase {
             }
         };
         Task task2 = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     Blob b = conn2.createBlob();

@@ -34,14 +34,17 @@ public class DbContextRule implements Rule {
         this.type = type;
     }
 
+    @Override
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // nothing to do
     }
 
+    @Override
     public void accept(BnfVisitor visitor) {
         // nothing to do
     }
 
+    @Override
     public boolean autoComplete(Sentence sentence) {
         String query = sentence.getQuery(), s = query;
         String up = sentence.getQueryUpper();

@@ -33,6 +33,7 @@ public class TestRights extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testOpenNonAdminWithMode();
         testDisallowedTables();

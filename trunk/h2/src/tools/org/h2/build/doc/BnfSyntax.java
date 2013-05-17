@@ -84,22 +84,27 @@ public class BnfSyntax implements BnfVisitor {
         return "<a href=\"" + link + "\">" + token + "</a>";
     }
 
+    @Override
     public void visitRuleElement(boolean keyword, String name, Rule link) {
         // not used
     }
 
+    @Override
     public void visitRuleFixed(int type) {
         html = BnfRailroad.getHtmlText(type);
     }
 
+    @Override
     public void visitRuleList(boolean or, ArrayList<Rule> list) {
         // not used
     }
 
+    @Override
     public void visitRuleOptional(Rule rule) {
         // not used
     }
 
+    @Override
     public void visitRuleRepeat(boolean comma, Rule rule) {
         // not used
     }

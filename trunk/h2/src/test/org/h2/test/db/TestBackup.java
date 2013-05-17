@@ -33,6 +33,7 @@ public class TestBackup extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.memory) {
             return;
@@ -61,6 +62,7 @@ public class TestBackup extends TestBase {
         final AtomicLong updateEnd = new AtomicLong();
         final Statement stat1 = conn.createStatement();
         Task task = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     if (System.currentTimeMillis() < updateEnd.get()) {
@@ -105,22 +107,27 @@ public class TestBackup extends TestBase {
      */
     public static class BackupListener implements DatabaseEventListener {
 
+        @Override
         public void closingDatabase() {
             // ignore
         }
 
+        @Override
         public void exceptionThrown(SQLException e, String sql) {
             // ignore
         }
 
+        @Override
         public void init(String url) {
             // ignore
         }
 
+        @Override
         public void opened() {
             // ignore
         }
 
+        @Override
         public void setProgress(int state, String name, int x, int max) {
             try {
                 Thread.sleep(1);

@@ -31,6 +31,7 @@ public class DropDatabase extends DefineCommand {
         super(session);
     }
 
+    @Override
     public int update() {
         if (dropAllObjects) {
             dropAllObjects();
@@ -121,6 +122,7 @@ public class DropDatabase extends DefineCommand {
         this.deleteFiles = b;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_ALL_OBJECTS;
     }

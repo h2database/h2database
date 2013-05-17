@@ -34,6 +34,7 @@ public class TestMetaData extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         deleteDb("metaData");
 

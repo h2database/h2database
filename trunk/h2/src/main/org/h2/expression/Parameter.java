@@ -29,10 +29,12 @@ public class Parameter extends Expression implements ParameterInterface {
         this.index = index;
     }
 
+    @Override
     public String getSQL() {
         return "?" + (index + 1);
     }
 
+    @Override
     public void setValue(Value v, boolean closeOld) {
         // don't need to close the old value as temporary files are anyway removed
         this.value = v;
@@ -42,6 +44,7 @@ public class Parameter extends Expression implements ParameterInterface {
         this.value = v;
     }
 
+    @Override
     public Value getParamValue() {
         if (value == null) {
             // to allow parameters in function tables
@@ -50,10 +53,12 @@ public class Parameter extends Expression implements ParameterInterface {
         return value;
     }
 
+    @Override
     public Value getValue(Session session) {
         return getParamValue();
     }
 
+    @Override
     public int getType() {
         if (value != null) {
             return value.getType();
@@ -64,32 +69,39 @@ public class Parameter extends Expression implements ParameterInterface {
         return Value.UNKNOWN;
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         // can't map
     }
 
+    @Override
     public void checkSet() {
         if (value == null) {
             throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
         }
     }
 
+    @Override
     public Expression optimize(Session session) {
         return this;
     }
 
+    @Override
     public boolean isConstant() {
         return false;
     }
 
+    @Override
     public boolean isValueSet() {
         return value != null;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         // not bound
     }
 
+    @Override
     public int getScale() {
         if (value != null) {
             return value.getScale();
@@ -100,6 +112,7 @@ public class Parameter extends Expression implements ParameterInterface {
         return 0;
     }
 
+    @Override
     public long getPrecision() {
         if (value != null) {
             return value.getPrecision();
@@ -110,6 +123,7 @@ public class Parameter extends Expression implements ParameterInterface {
         return 0;
     }
 
+    @Override
     public int getDisplaySize() {
         if (value != null) {
             return value.getDisplaySize();
@@ -120,10 +134,12 @@ public class Parameter extends Expression implements ParameterInterface {
         return 0;
     }
 
+    @Override
     public void updateAggregate(Session session) {
         // nothing to do
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
         case ExpressionVisitor.EVALUATABLE:
@@ -145,10 +161,12 @@ public class Parameter extends Expression implements ParameterInterface {
         }
     }
 
+    @Override
     public int getCost() {
         return 0;
     }
 
+    @Override
     public Expression getNotIfPossible(Session session) {
         return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }

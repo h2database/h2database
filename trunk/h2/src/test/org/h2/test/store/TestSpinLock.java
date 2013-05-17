@@ -37,6 +37,7 @@ public class TestSpinLock extends TestBase {
     public void test() throws Exception {
         final TestSpinLock obj = new TestSpinLock();
         Thread t = new Thread() {
+            @Override
             public void run() {
                 while (!isInterrupted()) {
                     for (int i = 0; i < 10000; i++) {

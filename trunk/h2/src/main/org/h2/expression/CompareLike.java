@@ -67,6 +67,7 @@ public class CompareLike extends Condition {
         return s == null || s.length() == 0 ? null : s.charAt(0);
     }
 
+    @Override
     public String getSQL() {
         String sql;
         if (regexp) {
@@ -80,6 +81,7 @@ public class CompareLike extends Condition {
         return "(" + sql + ")";
     }
 
+    @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
         right = right.optimize(session);
@@ -147,6 +149,7 @@ public class CompareLike extends Condition {
         return esc;
     }
 
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         if (regexp) {
             return;
@@ -219,6 +222,7 @@ public class CompareLike extends Condition {
         }
     }
 
+    @Override
     public Value getValue(Session session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
@@ -375,6 +379,7 @@ public class CompareLike extends Condition {
         return true;
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         right.mapColumns(resolver, level);
@@ -383,6 +388,7 @@ public class CompareLike extends Condition {
         }
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
         right.setEvaluatable(tableFilter, b);
@@ -391,6 +397,7 @@ public class CompareLike extends Condition {
         }
     }
 
+    @Override
     public void updateAggregate(Session session) {
         left.updateAggregate(session);
         right.updateAggregate(session);
@@ -399,11 +406,13 @@ public class CompareLike extends Condition {
         }
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return left.isEverything(visitor) && right.isEverything(visitor)
                 && (escape == null || escape.isEverything(visitor));
     }
 
+    @Override
     public int getCost() {
         return left.getCost() + right.getCost() + 3;
     }

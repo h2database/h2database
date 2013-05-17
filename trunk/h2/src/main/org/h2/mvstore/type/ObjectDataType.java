@@ -557,6 +557,7 @@ public class ObjectDataType implements DataType {
             return buff;
         }
 
+        @Override
         public Object read(ByteBuffer buff, int tag) {
             return Byte.valueOf(buff.get());
         }

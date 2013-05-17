@@ -45,6 +45,7 @@ public class TestDeadlock extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("deadlock");
         testDeadlockInFulltextSearch();
@@ -70,6 +71,7 @@ public class TestDeadlock extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("call ft_create_index('PUBLIC', 'TEST', null)");
         Task t = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     stat.executeQuery("select * from test");
@@ -106,6 +108,7 @@ public class TestDeadlock extends TestBase {
         ResultSet rs2 = stat2.executeQuery("select * from test_clob");
         rs2.next();
         Task t = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     stat.execute("select * from (select distinct id from test)");
@@ -160,6 +163,7 @@ public class TestDeadlock extends TestBase {
          */
         abstract void execute() throws SQLException;
 
+        @Override
         public void run() {
             try {
                 execute();
@@ -192,6 +196,7 @@ public class TestDeadlock extends TestBase {
         c2.createStatement().execute("INSERT INTO TEST_B VALUES(1)");
         c3.createStatement().execute("INSERT INTO TEST_C VALUES(1)");
         DoIt t2 = new DoIt() {
+            @Override
             public void execute() throws SQLException {
                 c1.createStatement().execute("DELETE FROM TEST_B");
                 c1.commit();
@@ -199,6 +204,7 @@ public class TestDeadlock extends TestBase {
         };
         t2.start();
         DoIt t3 = new DoIt() {
+            @Override
             public void execute() throws SQLException {
                 c2.createStatement().execute("DELETE FROM TEST_C");
                 c2.commit();
@@ -238,6 +244,7 @@ public class TestDeadlock extends TestBase {
         c2.createStatement().execute("INSERT INTO TEST_B VALUES(1)");
         c3.createStatement().execute("INSERT INTO TEST_C VALUES(1)");
         DoIt t2 = new DoIt() {
+            @Override
             public void execute() throws SQLException {
                 c1.createStatement().execute("DELETE FROM TEST_B");
                 c1.commit();
@@ -245,6 +252,7 @@ public class TestDeadlock extends TestBase {
         };
         t2.start();
         DoIt t3 = new DoIt() {
+            @Override
             public void execute() throws SQLException {
                 c2.createStatement().execute("DELETE FROM TEST_C");
                 c2.commit();
@@ -282,6 +290,7 @@ public class TestDeadlock extends TestBase {
         c1.createStatement().execute("INSERT INTO TEST_B VALUES(1)");
         c2.createStatement().execute("INSERT INTO TEST_C VALUES(1)");
         DoIt t2 = new DoIt() {
+            @Override
             public void execute() throws SQLException {
                 c3.createStatement().execute("INSERT INTO TEST_B VALUES(2)");
                 c3.commit();
@@ -289,6 +298,7 @@ public class TestDeadlock extends TestBase {
         };
         t2.start();
         DoIt t3 = new DoIt() {
+            @Override
             public void execute() throws SQLException {
                 c2.createStatement().execute("INSERT INTO TEST_A VALUES(2)");
                 c2.commit();
@@ -325,6 +335,7 @@ public class TestDeadlock extends TestBase {
         c1.createStatement().executeQuery("SELECT * FROM TEST");
         c2.createStatement().executeQuery("SELECT * FROM TEST");
         Thread t1 = new DoIt() {
+            @Override
             public void execute() throws SQLException {
                 c1.createStatement().execute("DELETE FROM TEST");
                 c1.commit();
@@ -355,6 +366,7 @@ public class TestDeadlock extends TestBase {
         c1.createStatement().execute("INSERT INTO T1 VALUES(1)");
         c2.createStatement().execute("INSERT INTO T2 VALUES(1)");
         DoIt t1 = new DoIt() {
+            @Override
             public void execute() throws SQLException {
                 c1.createStatement().execute("INSERT INTO T2 VALUES(2)");
                 c1.commit();

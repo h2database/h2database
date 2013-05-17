@@ -73,6 +73,7 @@ public class ProductAnnotationOnly {
         return Arrays.asList(list);
     }
 
+    @Override
     public String toString() {
         return productName + ": " + unitsInStock;
     }

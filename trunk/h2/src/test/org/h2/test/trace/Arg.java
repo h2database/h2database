@@ -42,6 +42,7 @@ class Arg {
         this.stat = stat;
     }
 
+    @Override
     public String toString() {
         if (stat != null) {
             return stat.toString();

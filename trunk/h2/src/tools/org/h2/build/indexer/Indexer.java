@@ -132,6 +132,7 @@ public class Indexer {
         // TODO support A, B, C,... class links in the index file and use them
         // for combined AND searches
         Collections.sort(wordList, new Comparator<Word>() {
+            @Override
             public int compare(Word w0, Word w1) {
                 return w0.name.compareToIgnoreCase(w1.name);
             }
@@ -161,6 +162,7 @@ public class Indexer {
 
     private void sortPages() {
         Collections.sort(pages, new Comparator<Page>() {
+            @Override
             public int compare(Page p0, Page p1) {
                 return p0.relations == p1.relations ? 0 : p0.relations < p1.relations ? 1 : -1;
             }

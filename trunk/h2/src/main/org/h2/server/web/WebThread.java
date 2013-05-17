@@ -85,6 +85,7 @@ class WebThread extends WebApp implements Runnable {
         return requestedFile;
     }
 
+    @Override
     public void run() {
         try {
             input = new BufferedInputStream(socket.getInputStream());
@@ -372,6 +373,7 @@ class WebThread extends WebApp implements Runnable {
         return line.substring(line.indexOf(':') + 1).trim();
     }
 
+    @Override
     protected String adminShutdown() {
         stopNow();
         return super.adminShutdown();

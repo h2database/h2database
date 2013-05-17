@@ -39,6 +39,7 @@ class DatabaseCloser extends Thread {
         }
     }
 
+    @Override
     public void run() {
         while (delayInMillis > 0) {
             try {

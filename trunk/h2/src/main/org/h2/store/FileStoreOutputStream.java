@@ -32,15 +32,18 @@ public class FileStoreOutputStream extends OutputStream {
         page = Data.create(handler, Constants.FILE_BLOCK_SIZE);
     }
 
+    @Override
     public void write(int b) {
         buffer[0] = (byte) b;
         write(buffer);
     }
 
+    @Override
     public void write(byte[] buff) {
         write(buff, 0, buff.length);
     }
 
+    @Override
     public void write(byte[] buff, int off, int len) {
         if (len > 0) {
             page.reset();
@@ -68,6 +71,7 @@ public class FileStoreOutputStream extends OutputStream {
         }
     }
 
+    @Override
     public void close() {
         if (store != null) {
             try {

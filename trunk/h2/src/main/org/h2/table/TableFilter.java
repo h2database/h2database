@@ -125,6 +125,7 @@ public class TableFilter implements ColumnResolver {
         hashCode = session.nextObjectId();
     }
 
+    @Override
     public Select getSelect() {
         return select;
     }
@@ -416,6 +417,7 @@ public class TableFilter implements ColumnResolver {
         currentSearchRow = current;
         if (nestedJoin != null) {
             nestedJoin.visit(new TableFilterVisitor() {
+                @Override
                 public void accept(TableFilter f) {
                     f.setNullRow();
                 }
@@ -466,6 +468,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @return the alias name
      */
+    @Override
     public String getTableAlias() {
         if (alias != null) {
             return alias;
@@ -517,11 +520,13 @@ public class TableFilter implements ColumnResolver {
             on.mapColumns(this, 0);
             if (session.getDatabase().getSettings().nestedJoins) {
                 visit(new TableFilterVisitor() {
+                    @Override
                     public void accept(TableFilter f) {
                         on.mapColumns(f, 0);
                     }
                 });
                 filter.visit(new TableFilterVisitor() {
+                    @Override
                     public void accept(TableFilter f) {
                         on.mapColumns(f, 0);
                     }
@@ -536,6 +541,7 @@ public class TableFilter implements ColumnResolver {
             filter.joinOuter = outer;
             if (outer) {
                 visit(new TableFilterVisitor() {
+                    @Override
                     public void accept(TableFilter f) {
                         f.joinOuterIndirect = true;
                     }
@@ -551,6 +557,7 @@ public class TableFilter implements ColumnResolver {
                 if (session.getDatabase().getSettings().nestedJoins) {
                     if (outer) {
                         filter.visit(new TableFilterVisitor() {
+                            @Override
                             public void accept(TableFilter f) {
                                 f.joinOuterIndirect = true;
                             }
@@ -828,10 +835,12 @@ public class TableFilter implements ColumnResolver {
         this.evaluatable = evaluatable;
     }
 
+    @Override
     public String getSchemaName() {
         return table.getSchema().getName();
     }
 
+    @Override
     public Column[] getColumns() {
         return table.getColumns();
     }
@@ -843,6 +852,7 @@ public class TableFilter implements ColumnResolver {
      *
      * @return the system columns
      */
+    @Override
     public Column[] getSystemColumns() {
         if (!session.getDatabase().getMode().systemColumns) {
             return null;
@@ -857,6 +867,7 @@ public class TableFilter implements ColumnResolver {
         return sys;
     }
 
+    @Override
     public Column getRowIdColumn() {
         if (session.getDatabase().getSettings().rowId) {
             return table.getRowIdColumn();
@@ -864,6 +875,7 @@ public class TableFilter implements ColumnResolver {
         return null;
     }
 
+    @Override
     public Value getValue(Column column) {
         if (currentSearchRow == null) {
             return null;
@@ -885,6 +897,7 @@ public class TableFilter implements ColumnResolver {
         return current.getValue(columnId);
     }
 
+    @Override
     public TableFilter getTableFilter() {
         return this;
     }
@@ -893,10 +906,12 @@ public class TableFilter implements ColumnResolver {
         this.alias = alias;
     }
 
+    @Override
     public Expression optimize(ExpressionColumn expressionColumn, Column column) {
         return expressionColumn;
     }
 
+    @Override
     public String toString() {
         return alias != null ? alias : table.toString();
     }
@@ -923,6 +938,7 @@ public class TableFilter implements ColumnResolver {
         return naturalJoinColumns != null && naturalJoinColumns.indexOf(c) >= 0;
     }
 
+    @Override
     public int hashCode() {
         return hashCode;
     }

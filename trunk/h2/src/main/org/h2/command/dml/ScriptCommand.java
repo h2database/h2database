@@ -89,6 +89,7 @@ public class ScriptCommand extends ScriptBase {
         super(session);
     }
 
+    @Override
     public boolean isQuery() {
         return true;
     }
@@ -123,6 +124,7 @@ public class ScriptCommand extends ScriptBase {
         this.drop = drop;
     }
 
+    @Override
     public ResultInterface queryMeta() {
         LocalResult r = createResult();
         r.done();
@@ -135,6 +137,7 @@ public class ScriptCommand extends ScriptBase {
         return new LocalResult(session, expressions, 1);
     }
 
+    @Override
     public ResultInterface query(int maxrows) {
         session.getUser().checkAdmin();
         reset();
@@ -197,6 +200,7 @@ public class ScriptCommand extends ScriptBase {
             // sort by id, so that views are after tables and views on views
             // after the base views
             Collections.sort(tables, new Comparator<Table>() {
+                @Override
                 public int compare(Table t1, Table t2) {
                     return t1.getId() - t2.getId();
                 }
@@ -305,6 +309,7 @@ public class ScriptCommand extends ScriptBase {
             // Generate CREATE CONSTRAINT ...
             final ArrayList<SchemaObject> constraints = db.getAllSchemaObjects(DbObject.CONSTRAINT);
             Collections.sort(constraints, new Comparator<SchemaObject>() {
+                @Override
                 public int compare(SchemaObject c1, SchemaObject c2) {
                     return ((Constraint) c1).compareTo((Constraint) c2);
                 }
@@ -505,6 +510,7 @@ public class ScriptCommand extends ScriptBase {
         return new InputStream() {
             private InputStream current;
             private boolean closed;
+            @Override
             public int read() throws IOException {
                 while (true) {
                     try {
@@ -529,6 +535,7 @@ public class ScriptCommand extends ScriptBase {
                     }
                 }
             }
+            @Override
             public void close() throws IOException {
                 if (closed) {
                     return;
@@ -559,6 +566,7 @@ public class ScriptCommand extends ScriptBase {
         return new Reader() {
             private Reader current;
             private boolean closed;
+            @Override
             public int read() throws IOException {
                 while (true) {
                     try {
@@ -583,6 +591,7 @@ public class ScriptCommand extends ScriptBase {
                     }
                 }
             }
+            @Override
             public void close() throws IOException {
                 if (closed) {
                     return;
@@ -594,6 +603,7 @@ public class ScriptCommand extends ScriptBase {
                     throw DbException.convertToIOException(e);
                 }
             }
+            @Override
             public int read(char[] buffer, int off, int len) throws IOException {
                 if (len == 0) {
                     return 0;
@@ -692,6 +702,7 @@ public class ScriptCommand extends ScriptBase {
         this.charset = charset;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.SCRIPT;
     }

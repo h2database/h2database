@@ -34,6 +34,7 @@ public class CacheTQ implements Cache {
         setMaxMemory(4 * maxMemoryKb);
     }
 
+    @Override
     public void clear() {
         lru.clear();
         fifo.clear();
@@ -41,6 +42,7 @@ public class CacheTQ implements Cache {
         lastUsed = -1;
     }
 
+    @Override
     public CacheObject find(int pos) {
         CacheObject r = lru.find(pos);
         if (r == null) {
@@ -49,6 +51,7 @@ public class CacheTQ implements Cache {
         return r;
     }
 
+    @Override
     public CacheObject get(int pos) {
         CacheObject r = lru.find(pos);
         if (r != null) {
@@ -69,6 +72,7 @@ public class CacheTQ implements Cache {
         return r;
     }
 
+    @Override
     public ArrayList<CacheObject> getAllChanged() {
         ArrayList<CacheObject> changed = New.arrayList();
         changed.addAll(lru.getAllChanged());
@@ -76,14 +80,17 @@ public class CacheTQ implements Cache {
         return changed;
     }
 
+    @Override
     public int getMaxMemory() {
         return maxMemory;
     }
 
+    @Override
     public int getMemory() {
         return lru.getMemory() + fifo.getMemory();
     }
 
+    @Override
     public void put(CacheObject r) {
         if (r.isStream()) {
             fifo.put(r);
@@ -95,6 +102,7 @@ public class CacheTQ implements Cache {
         }
     }
 
+    @Override
     public boolean remove(int pos) {
         boolean result = lru.remove(pos);
         if (!result) {
@@ -104,6 +112,7 @@ public class CacheTQ implements Cache {
         return result;
     }
 
+    @Override
     public void setMaxMemory(int maxMemoryKb) {
         this.maxMemory = maxMemoryKb;
         lru.setMaxMemory((int) (maxMemoryKb * 0.8));
@@ -111,6 +120,7 @@ public class CacheTQ implements Cache {
         recentlyUsed.setMaxSize(4 * maxMemoryKb);
     }
 
+    @Override
     public CacheObject update(int pos, CacheObject record) {
         if (lru.find(pos) != null) {
             return lru.update(pos, record);

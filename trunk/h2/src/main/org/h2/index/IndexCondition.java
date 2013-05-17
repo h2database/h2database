@@ -144,6 +144,7 @@ public class IndexCondition {
         valueSet.toArray(array);
         final CompareMode mode = session.getDatabase().getCompareMode();
         Arrays.sort(array, new Comparator<Value>() {
+            @Override
             public int compare(Value o1, Value o2) {
                 return o1.compareTo(o2, mode);
             }

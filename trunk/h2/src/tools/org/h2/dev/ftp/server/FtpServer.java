@@ -149,6 +149,7 @@ public class FtpServer extends Tool implements Service {
         new FtpServer().runTool(args);
     }
 
+    @Override
     public void runTool(String... args) throws SQLException {
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
@@ -184,6 +185,7 @@ public class FtpServer extends Tool implements Service {
         out.println(server.getStatus());
     }
 
+    @Override
     public void listen() {
         try {
             while (serverSocket != null) {
@@ -322,6 +324,7 @@ public class FtpServer extends Tool implements Service {
         return userName.equals(this.readUserName);
     }
 
+    @Override
     public void init(String... args) {
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
@@ -343,14 +346,17 @@ public class FtpServer extends Tool implements Service {
         }
     }
 
+    @Override
     public String getURL() {
         return "ftp://" + NetUtils.getLocalAddress() + ":" + port;
     }
 
+    @Override
     public int getPort() {
         return port;
     }
 
+    @Override
     public void start() {
         root = FileUtils.toRealPath(root);
         FileUtils.createDirectories(root);
@@ -358,6 +364,7 @@ public class FtpServer extends Tool implements Service {
         port = serverSocket.getLocalPort();
     }
 
+    @Override
     public void stop() {
         if (serverSocket == null) {
             return;
@@ -370,6 +377,7 @@ public class FtpServer extends Tool implements Service {
         serverSocket = null;
     }
 
+    @Override
     public boolean isRunning(boolean traceError) {
         if (serverSocket == null) {
             return false;
@@ -386,14 +394,17 @@ public class FtpServer extends Tool implements Service {
         }
     }
 
+    @Override
     public boolean getAllowOthers() {
         return true;
     }
 
+    @Override
     public String getType() {
         return "FTP";
     }
 
+    @Override
     public String getName() {
         return "H2 FTP Server";
     }
@@ -475,6 +486,7 @@ public class FtpServer extends Tool implements Service {
             }
         }
 
+        @Override
         public void run() {
             while (true) {
                 try {
@@ -542,6 +554,7 @@ public class FtpServer extends Tool implements Service {
         return new Server(new FtpServer(), args);
     }
 
+    @Override
     public boolean isDaemon() {
         return false;
     }

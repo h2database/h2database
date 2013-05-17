@@ -822,6 +822,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 prop.getProperty("file.encoding"));
     }
 
+    @Override
     public String toString() {
         StringBuilder buff = new StringBuilder();
         appendIf(buff, big, "big");

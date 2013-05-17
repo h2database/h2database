@@ -119,6 +119,7 @@ public abstract class TestHalt extends TestBase {
      */
     abstract void processAppRun() throws SQLException;
 
+    @Override
     public void test() {
         for (int i = 0;; i++) {
             operations = OP_INSERT | i;
@@ -343,6 +344,7 @@ public abstract class TestHalt extends TestBase {
         return buff.toString();
     }
 
+    @Override
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
         return this;

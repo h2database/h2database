@@ -28,6 +28,7 @@ public class TestCacheLIRS extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testCache();
     }
@@ -337,14 +338,17 @@ public class TestCacheLIRS extends TestBase {
                 this.x = x;
             }
 
+            @Override
             public int hashCode() {
                 return (x & 1) * size * 2;
             }
 
+            @Override
             public boolean equals(Object o) {
                 return ((BadHash) o).x == x;
             }
 
+            @Override
             public String toString() {
                 return "" + x;
             }

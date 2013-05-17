@@ -36,6 +36,7 @@ public class Weight {
      */
     int value;
 
+    @Override
     public String toString() {
         return "" + value;
     }

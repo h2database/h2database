@@ -17,12 +17,14 @@ public class Fog implements BlockCipher {
 
     private int key;
 
+    @Override
     public void encrypt(byte[] bytes, int off, int len) {
         for (int i = off; i < off + len; i += 16) {
             encryptBlock(bytes, bytes, i);
         }
     }
 
+    @Override
     public void decrypt(byte[] bytes, int off, int len) {
         for (int i = off; i < off + len; i += 16) {
             decryptBlock(bytes, bytes, i);
@@ -81,10 +83,12 @@ public class Fog implements BlockCipher {
         out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
     }
 
+    @Override
     public int getKeyLength() {
         return 16;
     }
 
+    @Override
     public void setKey(byte[] key) {
         this.key = (int) Utils.readLong(key, 0);
     }

@@ -205,6 +205,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         return distinctRows.get(array) != null;
     }
 
+    @Override
     public void reset() {
         rowId = -1;
         if (external != null) {
@@ -217,10 +218,12 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
     }
 
+    @Override
     public Value[] currentRow() {
         return currentRow;
     }
 
+    @Override
     public boolean next() {
         if (rowId < rowCount) {
             rowId++;
@@ -237,6 +240,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         return false;
     }
 
+    @Override
     public int getRowId() {
         return rowId;
     }
@@ -246,6 +250,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      *
      * @param values the row to add
      */
+    @Override
     public void addRow(Value[] values) {
         if (distinct) {
             if (distinctRows != null) {
@@ -285,6 +290,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         rows.clear();
     }
 
+    @Override
     public int getVisibleColumnCount() {
         return visibleColumnCount;
     }
@@ -347,6 +353,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         reset();
     }
 
+    @Override
     public int getRowCount() {
         return rowCount;
     }
@@ -376,10 +383,12 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
     }
 
+    @Override
     public boolean needToClose() {
         return external != null;
     }
 
+    @Override
     public void close() {
         if (external != null) {
             external.close();
@@ -388,42 +397,52 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
     }
 
+    @Override
     public String getAlias(int i) {
         return expressions[i].getAlias();
     }
 
+    @Override
     public String getTableName(int i) {
         return expressions[i].getTableName();
     }
 
+    @Override
     public String getSchemaName(int i) {
         return expressions[i].getSchemaName();
     }
 
+    @Override
     public int getDisplaySize(int i) {
         return expressions[i].getDisplaySize();
     }
 
+    @Override
     public String getColumnName(int i) {
         return expressions[i].getColumnName();
     }
 
+    @Override
     public int getColumnType(int i) {
         return expressions[i].getType();
     }
 
+    @Override
     public long getColumnPrecision(int i) {
         return expressions[i].getPrecision();
     }
 
+    @Override
     public int getNullable(int i) {
         return expressions[i].getNullable();
     }
 
+    @Override
     public boolean isAutoIncrement(int i) {
         return expressions[i].isAutoIncrement();
     }
 
+    @Override
     public int getColumnScale(int i) {
         return expressions[i].getScale();
     }
@@ -461,6 +480,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
     }
 
+    @Override
     public String toString() {
         return super.toString() + " columns: " + visibleColumnCount + " rows: " + rowCount + " pos: " + rowId;
     }
@@ -474,10 +494,12 @@ public class LocalResult implements ResultInterface, ResultTarget {
         return closed;
     }
 
+    @Override
     public int getFetchSize() {
         return 0;
     }
 
+    @Override
     public void setFetchSize(int fetchSize) {
         // ignore
     }

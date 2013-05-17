@@ -107,6 +107,7 @@ public class DropTable extends SchemaCommand {
         }
     }
 
+    @Override
     public int update() {
         session.commit(true);
         prepareDrop();
@@ -121,6 +122,7 @@ public class DropTable extends SchemaCommand {
         }
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_TABLE;
     }

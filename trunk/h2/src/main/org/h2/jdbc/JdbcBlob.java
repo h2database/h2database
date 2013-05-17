@@ -48,6 +48,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return the length
      * @throws SQLException
      */
+    @Override
     public long length() throws SQLException {
         try {
             debugCodeCall("length");
@@ -70,6 +71,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @param len the new length
      * @throws SQLException
      */
+    @Override
     public void truncate(long len) throws SQLException {
         throw unsupported("LOB update");
     }
@@ -82,6 +84,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return the bytes, at most length bytes
      * @throws SQLException
      */
+    @Override
     public byte[] getBytes(long pos, int length) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -111,6 +114,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @param bytes the bytes to set
      * @return the length of the added data
      */
+    @Override
     public int setBytes(long pos, byte[] bytes) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -137,6 +141,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return how many bytes have been written
      * @throws SQLException
      */
+    @Override
     public int setBytes(long pos, byte[] bytes, int offset, int len) throws SQLException {
         throw unsupported("LOB update");
     }
@@ -147,6 +152,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return the input stream
      * @throws SQLException
      */
+    @Override
     public InputStream getBinaryStream() throws SQLException {
         try {
             debugCodeCall("getBinaryStream");
@@ -167,6 +173,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @param pos where to start writing (the first byte is at position 1)
      * @return an output stream
      */
+    @Override
     public OutputStream setBinaryStream(long pos) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -182,11 +189,13 @@ public class JdbcBlob extends TraceObject implements Blob {
             final JdbcConnection c = conn;
             final PipedInputStream in = new PipedInputStream();
             final Task task = new Task() {
+                @Override
                 public void call() {
                     value = c.createBlob(in, -1);
                 }
             };
             PipedOutputStream out = new PipedOutputStream(in) {
+                @Override
                 public void close() throws IOException {
                     super.close();
                     try {
@@ -211,6 +220,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return the position (first byte is at position 1), or -1 for not found
      * @throws SQLException
      */
+    @Override
     public long position(byte[] pattern, long start) throws SQLException {
         if (isDebugEnabled()) {
             debugCode("position("+quoteBytes(pattern)+", "+start+");");
@@ -266,6 +276,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return the position (first byte is at position 1), or -1 for not found
      * @throws SQLException
      */
+    @Override
     public long position(Blob blobPattern, long start) throws SQLException {
         if (isDebugEnabled()) {
             debugCode("position(blobPattern, "+start+");");
@@ -296,6 +307,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     /**
      * Release all resources of this object.
      */
+    @Override
     public void free() {
         debugCodeCall("free");
         value = null;
@@ -309,6 +321,7 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return the input stream to read
      * @throws SQLException
      */
+    @Override
     public InputStream getBinaryStream(long pos, long length) throws SQLException {
         throw unsupported("LOB update");
     }
@@ -323,6 +336,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     /**
      * INTERNAL
      */
+    @Override
     public String toString() {
         return getTraceObjectName() + ": " + (value == null ? "null" : value.getTraceSQL());
     }

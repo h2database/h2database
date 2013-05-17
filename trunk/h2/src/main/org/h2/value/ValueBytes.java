@@ -69,22 +69,27 @@ public class ValueBytes extends Value {
         return (ValueBytes) Value.cache(obj);
     }
 
+    @Override
     public int getType() {
         return Value.BYTES;
     }
 
+    @Override
     public String getSQL() {
         return "X'" + StringUtils.convertBytesToHex(getBytesNoCopy()) + "'";
     }
 
+    @Override
     public byte[] getBytesNoCopy() {
         return value;
     }
 
+    @Override
     public byte[] getBytes() {
         return Utils.cloneByteArray(getBytesNoCopy());
     }
 
+    @Override
     protected int compareSecure(Value v, CompareMode mode) {
         byte[] v2 = ((ValueBytes) v).value;
         if (mode.isBinaryUnsigned()) {
@@ -93,14 +98,17 @@ public class ValueBytes extends Value {
         return Utils.compareNotNullSigned(value, v2);
     }
 
+    @Override
     public String getString() {
         return StringUtils.convertBytesToHex(value);
     }
 
+    @Override
     public long getPrecision() {
         return value.length;
     }
 
+    @Override
     public int hashCode() {
         if (hash == 0) {
             hash = Utils.getByteArrayHash(value);
@@ -108,26 +116,32 @@ public class ValueBytes extends Value {
         return hash;
     }
 
+    @Override
     public Object getObject() {
         return getBytes();
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setBytes(parameterIndex, value);
     }
 
+    @Override
     public int getDisplaySize() {
         return MathUtils.convertLongToInt(value.length * 2L);
     }
 
+    @Override
     public int getMemory() {
         return value.length + 24;
     }
 
+    @Override
     public boolean equals(Object other) {
         return other instanceof ValueBytes && Arrays.equals(value, ((ValueBytes) other).value);
     }
 
+    @Override
     public Value convertPrecision(long precision, boolean force) {
         if (value.length <= precision) {
             return this;

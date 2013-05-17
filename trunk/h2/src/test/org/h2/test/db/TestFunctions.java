@@ -54,6 +54,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("functions");
         testVersion();
@@ -523,18 +524,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         private final ArrayList<String> list = New.arrayList();
 
+        @Override
         public void add(Object value) {
             list.add(value.toString());
         }
 
+        @Override
         public Object getResult() {
             return list.get(list.size() / 2);
         }
 
+        @Override
         public int getType(int[] inputType) {
             return Types.VARCHAR;
         }
 
+        @Override
         public void init(Connection conn) {
             // nothing to do
         }
@@ -1211,14 +1216,17 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         return new Object[] { buff.toString() };
     }
 
+    @Override
     public void add(Object value) {
         // ignore
     }
 
+    @Override
     public Object getResult() {
         return new BigDecimal("1.6");
     }
 
+    @Override
     public int getType(int[] inputTypes) {
         if (inputTypes.length != 1 || inputTypes[0] != Types.INTEGER) {
             throw new RuntimeException("unexpected data type");
@@ -1226,6 +1234,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         return Types.DECIMAL;
     }
 
+    @Override
     public void init(Connection conn) {
         // ignore
     }

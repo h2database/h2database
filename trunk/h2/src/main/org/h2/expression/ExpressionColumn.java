@@ -53,6 +53,7 @@ public class ExpressionColumn extends Expression {
         this.columnName = columnName;
     }
 
+    @Override
     public String getSQL() {
         String sql;
         boolean quote = database.getSettings().databaseToUpper;
@@ -76,6 +77,7 @@ public class ExpressionColumn extends Expression {
         return columnResolver == null ? null : columnResolver.getTableFilter();
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         if (tableAlias != null && !database.equalsIdentifiers(tableAlias, resolver.getTableAlias())) {
             return;
@@ -121,6 +123,7 @@ public class ExpressionColumn extends Expression {
         }
     }
 
+    @Override
     public Expression optimize(Session session) {
         if (columnResolver == null) {
             Schema schema = session.getDatabase().findSchema(
@@ -143,6 +146,7 @@ public class ExpressionColumn extends Expression {
         return columnResolver.optimize(this, column);
     }
 
+    @Override
     public void updateAggregate(Session session) {
         Value now = columnResolver.getValue(column);
         Select select = columnResolver.getSelect();
@@ -164,6 +168,7 @@ public class ExpressionColumn extends Expression {
         }
     }
 
+    @Override
     public Value getValue(Session session) {
         Select select = columnResolver.getSelect();
         if (select != null) {
@@ -183,10 +188,12 @@ public class ExpressionColumn extends Expression {
         return value;
     }
 
+    @Override
     public int getType() {
         return column.getType();
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         if (columnResolver != null && tableFilter == columnResolver.getTableFilter()) {
             evaluatable = b;
@@ -197,14 +204,17 @@ public class ExpressionColumn extends Expression {
         return column;
     }
 
+    @Override
     public int getScale() {
         return column.getScale();
     }
 
+    @Override
     public long getPrecision() {
         return column.getPrecision();
     }
 
+    @Override
     public int getDisplaySize() {
         return column.getDisplaySize();
     }
@@ -217,32 +227,39 @@ public class ExpressionColumn extends Expression {
         return tableAlias;
     }
 
+    @Override
     public String getColumnName() {
         return columnName != null ? columnName : column.getName();
     }
 
+    @Override
     public String getSchemaName() {
         Table table = column.getTable();
         return table == null ? null : table.getSchema().getName();
     }
 
+    @Override
     public String getTableName() {
         Table table = column.getTable();
         return table == null ? null : table.getName();
     }
 
+    @Override
     public String getAlias() {
         return column == null ? null : column.getName();
     }
 
+    @Override
     public boolean isAutoIncrement() {
         return column.getSequence() != null;
     }
 
+    @Override
     public int getNullable() {
         return column.isNullable() ? Column.NULLABLE : Column.NOT_NULLABLE;
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
@@ -285,10 +302,12 @@ public class ExpressionColumn extends Expression {
         }
     }
 
+    @Override
     public int getCost() {
         return 2;
     }
 
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         TableFilter tf = getTableFilter();
         if (filter == tf && column.getType() == Value.BOOLEAN) {
@@ -298,6 +317,7 @@ public class ExpressionColumn extends Expression {
         }
     }
 
+    @Override
     public Expression getNotIfPossible(Session session) {
         return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }

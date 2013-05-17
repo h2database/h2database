@@ -34,6 +34,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testInit();
         testIndexRebuiltOnce();
@@ -52,10 +53,12 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
 
         private String databaseUrl;
 
+        @Override
         public void init(String url) {
             databaseUrl = url;
         }
 
+        @Override
         public void opened() {
             try {
                 // using DriverManager.getConnection could result in a deadlock
@@ -72,14 +75,17 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
             }
         }
 
+        @Override
         public void closingDatabase() {
             // nothing to do
         }
 
+        @Override
         public void exceptionThrown(SQLException e, String sql) {
             // nothing to do
         }
 
+        @Override
         public void setProgress(int state, String name, int x, int max) {
             // nothing to do
         }
@@ -232,22 +238,27 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         assertTrue(calledStatementProgress);
     }
 
+    @Override
     public void closingDatabase() {
         calledClosingDatabase = true;
     }
 
+    @Override
     public void exceptionThrown(SQLException e, String sql) {
         // nothing to do
     }
 
+    @Override
     public void init(String url) {
         // nothing to do
     }
 
+    @Override
     public void opened() {
         calledOpened = true;
     }
 
+    @Override
     public void setProgress(int state, String name, int x, int max) {
         if (state == DatabaseEventListener.STATE_SCAN_FILE) {
             calledScan = true;

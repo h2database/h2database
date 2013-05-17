@@ -30,6 +30,7 @@ public class TestMultiNewsSimple extends TestMultiThread {
         return newsCount;
     }
 
+    @Override
     void first() throws SQLException {
         Connection c = base.getConnection();
         c.createStatement().execute("create table news(id identity, state int default 0, text varchar default '')");
@@ -41,14 +42,17 @@ public class TestMultiNewsSimple extends TestMultiThread {
         c.close();
     }
 
+    @Override
     void begin() {
         // nothing to do
     }
 
+    @Override
     void end() throws SQLException {
         conn.close();
     }
 
+    @Override
     void operation() throws SQLException {
         if (random.nextInt(10) == 0) {
             conn.setAutoCommit(random.nextBoolean());
@@ -80,6 +84,7 @@ public class TestMultiNewsSimple extends TestMultiThread {
         }
     }
 
+    @Override
     void finalTest() {
         // nothing to do
     }

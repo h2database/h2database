@@ -37,16 +37,19 @@ public class TableFunction extends Function {
         this.rowCount = rowCount;
     }
 
+    @Override
     public Value getValue(Session session) {
         return getTable(session, args, false, distinct);
     }
 
+    @Override
     protected void checkParameterCount(int len) {
         if (len < 1) {
             throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, getName(), ">0");
         }
     }
 
+    @Override
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder(getName());
         buff.append('(');
@@ -59,10 +62,12 @@ public class TableFunction extends Function {
     }
 
 
+    @Override
     public String getName() {
         return distinct ? "TABLE_DISTINCT" : "TABLE";
     }
 
+    @Override
     public ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) {
         return getTable(session, args, true, false);
     }
@@ -148,6 +153,7 @@ public class TableFunction extends Function {
         return rowCount;
     }
 
+    @Override
     public Expression[] getExpressionColumns(Session session) {
         return getExpressionColumns(session, getTable(session, getArgs(), true, false).getResultSet());
     }

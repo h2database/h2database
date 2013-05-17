@@ -52,6 +52,7 @@ public class ReaderInputStream extends InputStream {
         }
     }
 
+    @Override
     public int read() throws IOException {
         if (remaining == 0) {
             fillBuffer();

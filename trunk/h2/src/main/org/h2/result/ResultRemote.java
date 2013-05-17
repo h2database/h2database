@@ -51,46 +51,57 @@ public class ResultRemote implements ResultInterface {
         fetchRows(false);
     }
 
+    @Override
     public String getAlias(int i) {
         return columns[i].alias;
     }
 
+    @Override
     public String getSchemaName(int i) {
         return columns[i].schemaName;
     }
 
+    @Override
     public String getTableName(int i) {
         return columns[i].tableName;
     }
 
+    @Override
     public String getColumnName(int i) {
         return columns[i].columnName;
     }
 
+    @Override
     public int getColumnType(int i) {
         return columns[i].columnType;
     }
 
+    @Override
     public long getColumnPrecision(int i) {
         return columns[i].precision;
     }
 
+    @Override
     public int getColumnScale(int i) {
         return columns[i].scale;
     }
 
+    @Override
     public int getDisplaySize(int i) {
         return columns[i].displaySize;
     }
 
+    @Override
     public boolean isAutoIncrement(int i) {
         return columns[i].autoIncrement;
     }
 
+    @Override
     public int getNullable(int i) {
         return columns[i].nullable;
     }
 
+    @Override
     public void reset() {
         rowId = -1;
         currentRow = null;
@@ -108,10 +119,12 @@ public class ResultRemote implements ResultInterface {
         }
     }
 
+    @Override
     public Value[] currentRow() {
         return currentRow;
     }
 
+    @Override
     public boolean next() {
         if (rowId < rowCount) {
             rowId++;
@@ -128,14 +141,17 @@ public class ResultRemote implements ResultInterface {
         return false;
     }
 
+    @Override
     public int getRowId() {
         return rowId;
     }
 
+    @Override
     public int getVisibleColumnCount() {
         return columns.length;
     }
 
+    @Override
     public int getRowCount() {
         return rowCount;
     }
@@ -158,6 +174,7 @@ public class ResultRemote implements ResultInterface {
         }
     }
 
+    @Override
     public void close() {
         result = null;
         sendClose();
@@ -217,18 +234,22 @@ public class ResultRemote implements ResultInterface {
         }
     }
 
+    @Override
     public String toString() {
         return "columns: " + columns.length + " rows: " + rowCount + " pos: " + rowId;
     }
 
+    @Override
     public int getFetchSize() {
         return fetchSize;
     }
 
+    @Override
     public void setFetchSize(int fetchSize) {
         this.fetchSize = fetchSize;
     }
 
+    @Override
     public boolean needToClose() {
         return true;
     }

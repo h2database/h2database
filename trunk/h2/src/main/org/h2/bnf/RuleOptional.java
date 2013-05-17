@@ -19,16 +19,19 @@ class RuleOptional implements Rule {
         this.rule = rule;
     }
 
+    @Override
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleOptional(rule);
     }
 
+    @Override
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (!mapSet) {
             rule.setLinks(ruleMap);
             mapSet = true;
         }
     }
+    @Override
     public boolean autoComplete(Sentence sentence) {
         sentence.stopIfRequired();
         rule.autoComplete(sentence);

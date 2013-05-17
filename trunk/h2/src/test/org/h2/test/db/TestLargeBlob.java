@@ -27,6 +27,7 @@ public class TestLargeBlob extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (!config.big || config.memory || config.mvcc || config.networked) {
             return;
@@ -45,9 +46,11 @@ public class TestLargeBlob extends TestBase {
             long remaining = testLength;
             int p;
             byte[] oneByte = { 0 };
+            @Override
             public void close() {
                 // ignore
             }
+            @Override
             public int read(byte[] buff, int off, int len) {
                 len = (int) Math.min(remaining, len);
                 remaining -= len;
@@ -56,6 +59,7 @@ public class TestLargeBlob extends TestBase {
                 }
                 return len == 0 ? -1 : len;
             }
+            @Override
             public int read() {
                 return read(oneByte, 0, 1) < 0 ? -1 : oneByte[0];
             }

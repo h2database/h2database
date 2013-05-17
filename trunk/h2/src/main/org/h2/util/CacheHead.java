@@ -11,10 +11,12 @@ package org.h2.util;
  */
 public class CacheHead extends CacheObject {
 
+    @Override
     public boolean canRemove() {
         return false;
     }
 
+    @Override
     public int getMemory() {
         return 0;
     }

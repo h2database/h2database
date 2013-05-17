@@ -94,6 +94,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value the value (may not be null)
      * @return the old value if the key existed, or null otherwise
      */
+    @Override
     @SuppressWarnings("unchecked")
     public V put(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
@@ -244,14 +245,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public List<K> keyList() {
         return new AbstractList<K>() {
 
+            @Override
             public K get(int index) {
                 return getKey(index);
             }
 
+            @Override
             public int size() {
                 return MVMap.this.size();
             }
 
+            @Override
             @SuppressWarnings("unchecked")
             public int indexOf(Object key) {
                 return (int) getKeyIndex((K) key);
@@ -425,6 +429,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param key the key
      * @return the value, or null if not found
      */
+    @Override
     @SuppressWarnings("unchecked")
     public V get(Object key) {
         checkOpen();
@@ -455,6 +460,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return null;
     }
 
+    @Override
     public boolean containsKey(Object key) {
         return get(key) != null;
     }
@@ -496,6 +502,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     /**
      * Remove all entries.
      */
+    @Override
     public void clear() {
         beforeWrite();
         try {
@@ -544,6 +551,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param key the key (may not be null)
      * @return the old value if the key existed, or null otherwise
      */
+    @Override
     public V remove(Object key) {
         beforeWrite();
         try {
@@ -565,6 +573,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value the new value
      * @return the old value if the key existed, or null otherwise
      */
+    @Override
     public synchronized V putIfAbsent(K key, V value) {
         V old = get(key);
         if (old == null) {
@@ -580,6 +589,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value the expected value
      * @return true if the item was removed
      */
+    @Override
     public synchronized boolean remove(Object key, Object value) {
         V old = get(key);
         if (areValuesEqual(old, value)) {
@@ -613,6 +623,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param newValue the new value
      * @return true if the value was replaced
      */
+    @Override
     public synchronized boolean replace(K key, V oldValue, V newValue) {
         V old = get(key);
         if (areValuesEqual(old, oldValue)) {
@@ -629,6 +640,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param value the new value
      * @return the old value, if the value was replaced, or null
      */
+    @Override
     public synchronized V replace(K key, V value) {
         V old = get(key);
         if (old != null) {
@@ -769,6 +781,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return new Cursor<K>(this, root, from);
     }
 
+    @Override
     public Set<Map.Entry<K, V>> entrySet() {
         HashMap<K, V> map = new HashMap<K, V>();
         for (K k : keySet()) {
@@ -777,6 +790,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return map.entrySet();
     }
 
+    @Override
     public Set<K> keySet() {
         checkOpen();
         final MVMap<K, V> map = this;
@@ -958,14 +972,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
+    @Override
     public int hashCode() {
         return id;
     }
 
+    @Override
     public boolean equals(Object o) {
         return this == o;
     }
 
+    @Override
     public int size() {
         long size = getSize();
         return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
@@ -1122,6 +1139,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
     }
 
+    @Override
     public String toString() {
         return asString(null);
     }

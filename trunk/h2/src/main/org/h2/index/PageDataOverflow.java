@@ -174,6 +174,7 @@ public class PageDataOverflow extends Page {
         data.writeInt(parentPageId);
     }
 
+    @Override
     public void write() {
         writeData();
         store.writePage(getPos(), data);
@@ -191,6 +192,7 @@ public class PageDataOverflow extends Page {
     }
 
 
+    @Override
     public String toString() {
         return "page[" + getPos() + "] data leaf overflow parent:" + parentPageId + " next:" + nextPage;
     }
@@ -200,6 +202,7 @@ public class PageDataOverflow extends Page {
      *
      * @return number of double words (4 bytes)
      */
+    @Override
     public int getMemory() {
         return (Constants.MEMORY_PAGE_DATA_OVERFLOW + store.getPageSize()) >> 2;
     }
@@ -209,6 +212,7 @@ public class PageDataOverflow extends Page {
         this.parentPageId = parent;
     }
 
+    @Override
     public void moveTo(Session session, int newPos) {
         // load the pages into the cache, to ensure old pages
         // are written
@@ -255,10 +259,12 @@ public class PageDataOverflow extends Page {
         store.free(getPos());
     }
 
+    @Override
     public boolean canRemove() {
         return true;
     }
 
+    @Override
     public boolean isStream() {
         return true;
     }

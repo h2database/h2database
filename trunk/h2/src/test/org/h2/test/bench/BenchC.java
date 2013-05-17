@@ -179,6 +179,7 @@ public class BenchC implements Bench {
     private BenchCRandom random;
     private String action;
 
+    @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
 
@@ -542,6 +543,7 @@ public class BenchC implements Bench {
         }
     }
 
+    @Override
     public void runTest() throws SQLException {
         database.start(this, "Transactions");
         database.openConnection();
@@ -559,6 +561,7 @@ public class BenchC implements Bench {
         database.closeConnection();
     }
 
+    @Override
     public String getName() {
         return "BenchC";
     }

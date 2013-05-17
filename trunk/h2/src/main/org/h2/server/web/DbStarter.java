@@ -27,6 +27,7 @@ public class DbStarter implements ServletContextListener {
     private Connection conn;
     private Server server;
 
+    @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         try {
             org.h2.Driver.load();
@@ -68,6 +69,7 @@ public class DbStarter implements ServletContextListener {
         return conn;
     }
 
+    @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
         try {
             Statement stat = conn.createStatement();

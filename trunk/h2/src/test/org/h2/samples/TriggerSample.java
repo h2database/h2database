@@ -76,6 +76,7 @@ public class TriggerSample {
          *            operation is performed
          * @param type the operation type: INSERT, UPDATE, or DELETE
          */
+        @Override
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
             // initialize the trigger object is necessary
         }
@@ -88,6 +89,7 @@ public class TriggerSample {
          * @param newRow the new row, or null if no new row is available (for DELETE)
          * @throws SQLException if the operation must be undone
          */
+        @Override
         public void fire(Connection conn,
                 Object[] oldRow, Object[] newRow)
                 throws SQLException {
@@ -105,10 +107,12 @@ public class TriggerSample {
             prep.execute();
         }
 
+        @Override
         public void close() {
             // ignore
         }
 
+        @Override
         public void remove() {
             // ignore
         }

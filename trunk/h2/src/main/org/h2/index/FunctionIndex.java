@@ -27,18 +27,22 @@ public class FunctionIndex extends BaseIndex {
         this.functionTable = functionTable;
     }
 
+    @Override
     public void close(Session session) {
         // nothing to do
     }
 
+    @Override
     public void add(Session session, Row row) {
         throw DbException.getUnsupportedException("ALIAS");
     }
 
+    @Override
     public void remove(Session session, Row row) {
         throw DbException.getUnsupportedException("ALIAS");
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (functionTable.isFast()) {
             return new FunctionCursorResultSet(session, functionTable.getResultSet(session));
@@ -46,6 +50,7 @@ public class FunctionIndex extends BaseIndex {
         return new FunctionCursor(functionTable.getResult(session));
     }
 
+    @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         if (masks != null) {
             throw DbException.getUnsupportedException("ALIAS");
@@ -59,46 +64,57 @@ public class FunctionIndex extends BaseIndex {
         return expectedRows * 10;
     }
 
+    @Override
     public void remove(Session session) {
         throw DbException.getUnsupportedException("ALIAS");
     }
 
+    @Override
     public void truncate(Session session) {
         throw DbException.getUnsupportedException("ALIAS");
     }
 
+    @Override
     public boolean needRebuild() {
         return false;
     }
 
+    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("ALIAS");
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return false;
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         throw DbException.getUnsupportedException("ALIAS");
     }
 
+    @Override
     public long getRowCount(Session session) {
         return functionTable.getRowCount(session);
     }
 
+    @Override
     public long getRowCountApproximation() {
         return functionTable.getRowCountApproximation();
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return 0;
     }
 
+    @Override
     public String getPlanSQL() {
         return "function";
     }
 
+    @Override
     public boolean canScan() {
         return false;
     }

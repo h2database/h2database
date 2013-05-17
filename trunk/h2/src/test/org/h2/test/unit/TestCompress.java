@@ -45,6 +45,7 @@ public class TestCompress extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (testPerformance) {
             testDatabase();
@@ -99,6 +100,7 @@ public class TestCompress extends TestBase {
         Task[] tasks = new Task[3];
         for (int i = 0; i < tasks.length; i++) {
             Task t = new Task() {
+                @Override
                 public void call() {
                     CompressTool tool = CompressTool.getInstance();
                     byte[] b = new byte[1024];

@@ -27,27 +27,33 @@ public class Constant extends SchemaObjectBase {
         initSchemaObjectBase(schema, id, name, Trace.SCHEMA);
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public String getDropSQL() {
         return null;
     }
 
+    @Override
     public String getCreateSQL() {
         return "CREATE CONSTANT " + getSQL() + " VALUE " + value.getSQL();
     }
 
+    @Override
     public int getType() {
         return DbObject.CONSTANT;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
         invalidate();
     }
 
+    @Override
     public void checkRename() {
         // ok
     }

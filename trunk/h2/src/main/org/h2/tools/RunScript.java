@@ -87,6 +87,7 @@ public class RunScript extends Tool {
      *
      * @param args the command line arguments
      */
+    @Override
     public void runTool(String... args) throws SQLException {
         String url = null;
         String user = "sa";

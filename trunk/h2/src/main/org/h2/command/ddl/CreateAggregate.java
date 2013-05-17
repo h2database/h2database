@@ -30,6 +30,7 @@ public class CreateAggregate extends DefineCommand {
         super(session);
     }
 
+    @Override
     public int update() {
         session.commit(true);
         session.getUser().checkAdmin();
@@ -66,6 +67,7 @@ public class CreateAggregate extends DefineCommand {
         this.force = force;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_AGGREGATE;
     }

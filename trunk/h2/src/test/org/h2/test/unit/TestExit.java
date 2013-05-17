@@ -26,6 +26,7 @@ public class TestExit extends TestBase implements DatabaseEventListener {
 
     static final int OPEN_WITH_CLOSE_ON_EXIT = 1, OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
 
+    @Override
     public void test() throws Exception {
         if (config.codeCoverage || config.networked) {
             return;
@@ -110,10 +111,12 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         return DriverManager.getConnection(url, "sa", "");
     }
 
+    @Override
     public void exceptionThrown(SQLException e, String sql) {
         // nothing to do
     }
 
+    @Override
     public void closingDatabase() {
         try {
             getClosedFile().createNewFile();
@@ -126,14 +129,17 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         return new File(TestBase.BASE_TEST_DIR + "/closed.txt");
     }
 
+    @Override
     public void setProgress(int state, String name, int x, int max) {
         // nothing to do
     }
 
+    @Override
     public void init(String url) {
         // nothing to do
     }
 
+    @Override
     public void opened() {
         // nothing to do
     }

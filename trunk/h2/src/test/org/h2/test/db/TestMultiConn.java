@@ -31,6 +31,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testConcurrentShutdownQuery();
         testCommitRollback();
@@ -47,6 +48,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         final Statement stat2 = conn2.createStatement();
         stat1.execute("SET THROTTLE 100");
         Task t = new Task() {
+            @Override
             public void call() throws Exception {
                 stat2.executeQuery("CALL SLEEP(100)");
                 Thread.sleep(10);
@@ -90,6 +92,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         s2.execute("SET LOCK_TIMEOUT 1000");
         s3.execute("SET LOCK_TIMEOUT 1000");
         Thread t1 = new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     s3.execute("INSERT INTO TEST2 VALUES(4)");
@@ -102,6 +105,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         t1.start();
         Thread.sleep(20);
         Thread t2 = new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     s2.execute("INSERT INTO TEST1 VALUES(5)");
@@ -139,6 +143,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         conn.close();
         final String listener = getClass().getName();
         Runnable r = new Runnable() {
+            @Override
             public void run() {
                 try {
                     Connection c1 = getConnection("multiConn;DATABASE_EVENT_LISTENER='" + listener
@@ -157,10 +162,12 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         thread.join();
     }
 
+    @Override
     public void exceptionThrown(SQLException e, String sql) {
         // do nothing
     }
 
+    @Override
     public void setProgress(int state, String name, int x, int max) {
         if (wait > 0) {
             try {
@@ -171,6 +178,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         }
     }
 
+    @Override
     public void closingDatabase() {
         // do nothing
     }
@@ -214,10 +222,12 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
 
     }
 
+    @Override
     public void init(String url) {
         // do nothing
     }
 
+    @Override
     public void opened() {
         // do nothing
     }

@@ -96,6 +96,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         return fileName;
     }
 
+    @Override
     public boolean isTransactional() {
         return false;
     }
@@ -188,34 +189,42 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         }
     }
 
+    @Override
     public boolean needRecompile() {
         return false;
     }
 
+    @Override
     public String getDatabasePath() {
         return null;
     }
 
+    @Override
     public FileStore openFile(String name, String mode, boolean mustExist) {
         return null;
     }
 
+    @Override
     public void checkPowerOff() {
         session.getDatabase().checkPowerOff();
     }
 
+    @Override
     public void checkWritingAllowed() {
         session.getDatabase().checkWritingAllowed();
     }
 
+    @Override
     public int getMaxLengthInplaceLob() {
         return session.getDatabase().getMaxLengthInplaceLob();
     }
 
+    @Override
     public TempFileDeleter getTempFileDeleter() {
         return session.getDatabase().getTempFileDeleter();
     }
 
+    @Override
     public String getLobCompressionAlgorithm(int type) {
         return session.getDatabase().getLobCompressionAlgorithm(type);
     }
@@ -224,22 +233,27 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         this.compressionAlgorithm = algorithm;
     }
 
+    @Override
     public Object getLobSyncObject() {
         return this;
     }
 
+    @Override
     public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 
+    @Override
     public LobStorageBackend getLobStorage() {
         return null;
     }
 
+    @Override
     public Connection getLobConnection() {
         return null;
     }
 
+    @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         throw DbException.throwInternalError();
     }

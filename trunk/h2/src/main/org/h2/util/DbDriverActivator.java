@@ -23,6 +23,7 @@ public class DbDriverActivator implements BundleActivator {
      *
      * @param bundleContext the bundle context
      */
+    @Override
     public void start(BundleContext bundleContext) {
         org.h2.Driver driver = org.h2.Driver.load();
         Properties properties = new Properties();
@@ -39,6 +40,7 @@ public class DbDriverActivator implements BundleActivator {
      *
      * @param bundleContext the bundle context
      */
+    @Override
     public void stop(BundleContext bundleContext) {
         org.h2.Driver.unload();
     }

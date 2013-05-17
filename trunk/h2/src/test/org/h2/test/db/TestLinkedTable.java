@@ -34,6 +34,7 @@ public class TestLinkedTable extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testLinkedServerMode();
         testDefaultValues();

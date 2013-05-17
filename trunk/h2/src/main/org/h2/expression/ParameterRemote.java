@@ -29,6 +29,7 @@ public class ParameterRemote implements ParameterInterface {
         this.index = index;
     }
 
+    @Override
     public void setValue(Value newValue, boolean closeOld) {
         if (closeOld && value != null) {
             value.close();
@@ -36,32 +37,39 @@ public class ParameterRemote implements ParameterInterface {
         value = newValue;
     }
 
+    @Override
     public Value getParamValue() {
         return value;
     }
 
+    @Override
     public void checkSet() {
         if (value == null) {
             throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "#" + (index + 1));
         }
     }
 
+    @Override
     public boolean isValueSet() {
         return value != null;
     }
 
+    @Override
     public int getType() {
         return value == null ? dataType : value.getType();
     }
 
+    @Override
     public long getPrecision() {
         return value == null ? precision : value.getPrecision();
     }
 
+    @Override
     public int getScale() {
         return value == null ? scale : value.getScale();
     }
 
+    @Override
     public int getNullable() {
         return nullable;
     }

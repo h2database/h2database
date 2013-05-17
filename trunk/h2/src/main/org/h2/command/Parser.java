@@ -1715,6 +1715,7 @@ public class Parser {
             TableFilter n = top.getNestedJoin();
             if (n != null) {
                 n.visit(new TableFilterVisitor() {
+                    @Override
                     public void accept(TableFilter f) {
                         command.addTableFilter(f, false);
                     }

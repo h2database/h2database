@@ -46,6 +46,7 @@ public class MultiVersionIndex implements Index {
         this.firstColumn = base.getColumns()[0];
     }
 
+    @Override
     public void add(Session session, Row row) {
         synchronized (sync) {
             base.add(session, row);
@@ -58,12 +59,14 @@ public class MultiVersionIndex implements Index {
         }
     }
 
+    @Override
     public void close(Session session) {
         synchronized (sync) {
             base.close(session);
         }
     }
 
+    @Override
     public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
         synchronized (sync) {
             Cursor baseCursor = base.find(filter, first, last);
@@ -72,6 +75,7 @@ public class MultiVersionIndex implements Index {
         }
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         synchronized (sync) {
             Cursor baseCursor = base.find(session, first, last);
@@ -80,19 +84,23 @@ public class MultiVersionIndex implements Index {
         }
     }
 
+    @Override
     public Cursor findNext(Session session, SearchRow first, SearchRow last) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public boolean canFindNext() {
         // TODO possible, but more complicated
         return false;
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return base.canGetFirstOrLast() && delta.canGetFirstOrLast();
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         if (first) {
             // TODO optimization: this loops through NULL elements
@@ -124,10 +132,12 @@ public class MultiVersionIndex implements Index {
         return cursor;
     }
 
+    @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         return base.getCost(session, masks, sortOrder);
     }
 
+    @Override
     public boolean needRebuild() {
         return base.needRebuild();
     }
@@ -166,6 +176,7 @@ public class MultiVersionIndex implements Index {
         return false;
     }
 
+    @Override
     public void remove(Session session, Row row) {
         synchronized (sync) {
             base.remove(session, row);
@@ -177,12 +188,14 @@ public class MultiVersionIndex implements Index {
         }
     }
 
+    @Override
     public void remove(Session session) {
         synchronized (sync) {
             base.remove(session);
         }
     }
 
+    @Override
     public void truncate(Session session) {
         synchronized (sync) {
             delta.truncate(session);
@@ -190,60 +203,74 @@ public class MultiVersionIndex implements Index {
         }
     }
 
+    @Override
     public void commit(int operation, Row row) {
         synchronized (sync) {
             removeIfExists(null, row);
         }
     }
 
+    @Override
     public int compareRows(SearchRow rowData, SearchRow compare) {
         return base.compareRows(rowData, compare);
     }
 
+    @Override
     public int getColumnIndex(Column col) {
         return base.getColumnIndex(col);
     }
 
+    @Override
     public Column[] getColumns() {
         return base.getColumns();
     }
 
+    @Override
     public IndexColumn[] getIndexColumns() {
         return base.getIndexColumns();
     }
 
+    @Override
     public String getCreateSQL() {
         return base.getCreateSQL();
     }
 
+    @Override
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
         return base.getCreateSQLForCopy(forTable, quotedName);
     }
 
+    @Override
     public String getDropSQL() {
         return base.getDropSQL();
     }
 
+    @Override
     public IndexType getIndexType() {
         return base.getIndexType();
     }
 
+    @Override
     public String getPlanSQL() {
         return base.getPlanSQL();
     }
 
+    @Override
     public long getRowCount(Session session) {
         return base.getRowCount(session);
     }
 
+    @Override
     public Table getTable() {
         return base.getTable();
     }
 
+    @Override
     public int getType() {
         return base.getType();
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         synchronized (sync) {
             table.removeIndex(this);
@@ -251,58 +278,72 @@ public class MultiVersionIndex implements Index {
         }
     }
 
+    @Override
     public String getSQL() {
         return base.getSQL();
     }
 
+    @Override
     public Schema getSchema() {
         return base.getSchema();
     }
 
+    @Override
     public void checkRename() {
         base.checkRename();
     }
 
+    @Override
     public ArrayList<DbObject> getChildren() {
         return base.getChildren();
     }
 
+    @Override
     public String getComment() {
         return base.getComment();
     }
 
+    @Override
     public Database getDatabase() {
         return base.getDatabase();
     }
 
+    @Override
     public int getId() {
         return base.getId();
     }
 
+    @Override
     public String getName() {
         return base.getName();
     }
 
+    @Override
     public boolean isTemporary() {
         return base.isTemporary();
     }
 
+    @Override
     public void rename(String newName) {
         base.rename(newName);
     }
 
+    @Override
     public void setComment(String comment) {
         base.setComment(comment);
     }
 
+    @Override
     public void setTemporary(boolean temporary) {
         base.setTemporary(temporary);
     }
 
+    @Override
     public long getRowCountApproximation() {
         return base.getRowCountApproximation();
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return base.getDiskSpaceUsed();
     }
@@ -311,22 +352,27 @@ public class MultiVersionIndex implements Index {
         return base;
     }
 
+    @Override
     public Row getRow(Session session, long key) {
         return base.getRow(session, key);
     }
 
+    @Override
     public boolean isHidden() {
         return base.isHidden();
     }
 
+    @Override
     public boolean isRowIdIndex() {
         return base.isRowIdIndex() && delta.isRowIdIndex();
     }
 
+    @Override
     public boolean canScan() {
         return base.canScan();
     }
 
+    @Override
     public void setSortedInsertMode(boolean sortedInsertMode) {
         base.setSortedInsertMode(sortedInsertMode);
         delta.setSortedInsertMode(sortedInsertMode);

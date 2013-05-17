@@ -65,6 +65,7 @@ public class UpdatableView extends TriggerAdapter {
         conn.close();
     }
 
+    @Override
     public void init(Connection conn, String schemaName, String triggerName,
             String tableName, boolean before, int type) throws SQLException {
         prepDelete = conn.prepareStatement("delete from test where id = ?");
@@ -72,6 +73,7 @@ public class UpdatableView extends TriggerAdapter {
         super.init(conn, schemaName, triggerName, tableName, before, type);
     }
 
+    @Override
     public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
         if (oldRow != null && oldRow.next()) {
             prepDelete.setInt(1, oldRow.getInt(1));

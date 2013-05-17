@@ -837,6 +837,7 @@ public class FullText {
         /**
          * INTERNAL
          */
+        @Override
         public void init(Connection conn, String schemaName, String triggerName,
                 String tableName, boolean before, int type) throws SQLException {
             setting = FullTextSettings.getInstance(conn);
@@ -917,6 +918,7 @@ public class FullText {
         /**
          * INTERNAL
          */
+        @Override
         public void fire(Connection conn, Object[] oldRow, Object[] newRow)
                 throws SQLException {
             if (oldRow != null) {
@@ -939,6 +941,7 @@ public class FullText {
         /**
          * INTERNAL
          */
+        @Override
         public void close() {
             setting.removeIndexInfo(index);
         }
@@ -946,6 +949,7 @@ public class FullText {
         /**
          * INTERNAL
          */
+        @Override
         public void remove() {
             setting.removeIndexInfo(index);
         }

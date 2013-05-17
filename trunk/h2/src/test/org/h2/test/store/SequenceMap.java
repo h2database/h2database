@@ -32,11 +32,13 @@ public class SequenceMap extends MVMap<Long, Long> {
         super(null, null);
     }
 
+    @Override
     public void init(MVStore store, HashMap<String, String> config) {
         super.init(store, config);
         setReadOnly(true);
     }
 
+    @Override
     public Set<Long> keySet() {
         return new AbstractSet<Long>() {
 

@@ -28,6 +28,7 @@ public class FileChannelInputStream extends InputStream {
         this.channel = channel;
     }
 
+    @Override
     public int read() throws IOException {
         if (channel.position() >= channel.size()) {
             return -1;
@@ -36,10 +37,12 @@ public class FileChannelInputStream extends InputStream {
         return buffer[0] & 0xff;
     }
 
+    @Override
     public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
+    @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (channel.position() + len < channel.size()) {
             FileUtils.readFully(channel, ByteBuffer.wrap(b, off, len));
@@ -48,6 +51,7 @@ public class FileChannelInputStream extends InputStream {
         return super.read(b, off, len);
     }
 
+    @Override
     public void close() throws IOException {
         channel.close();
     }

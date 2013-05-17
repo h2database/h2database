@@ -40,6 +40,7 @@ public class CreateSequence extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -81,6 +82,7 @@ public class CreateSequence extends SchemaCommand {
         this.cacheSize = cacheSize;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_SEQUENCE;
     }

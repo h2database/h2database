@@ -35,6 +35,7 @@ public class TestStringCache extends TestBase {
         new TestStringCache().runBenchmark();
     }
 
+    @Override
     public void test() throws InterruptedException {
         returnNew = true;
         StringUtils.clearCache();
@@ -115,6 +116,7 @@ public class TestStringCache extends TestBase {
         Thread[] threads = new Thread[threadCount];
         for (int i = 0; i < threadCount; i++) {
             Thread t = new Thread(new Runnable() {
+                @Override
                 public void run() {
                     while (!stop) {
                         testString();

@@ -33,14 +33,17 @@ public class ViewCursor implements Cursor {
         this.last = last;
     }
 
+    @Override
     public Row get() {
         return current;
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return current;
     }
 
+    @Override
     public boolean next() {
         while (true) {
             boolean res = result.next();
@@ -72,6 +75,7 @@ public class ViewCursor implements Cursor {
         }
     }
 
+    @Override
     public boolean previous() {
         throw DbException.throwInternalError();
     }

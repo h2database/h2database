@@ -45,38 +45,47 @@ public class SelectListColumnResolver implements ColumnResolver {
         }
     }
 
+    @Override
     public Column[] getColumns() {
         return columns;
     }
 
+    @Override
     public String getSchemaName() {
         return null;
     }
 
+    @Override
     public Select getSelect() {
         return select;
     }
 
+    @Override
     public Column[] getSystemColumns() {
         return null;
     }
 
+    @Override
     public Column getRowIdColumn() {
         return null;
     }
 
+    @Override
     public String getTableAlias() {
         return null;
     }
 
+    @Override
     public TableFilter getTableFilter() {
         return null;
     }
 
+    @Override
     public Value getValue(Column column) {
         return null;
     }
 
+    @Override
     public Expression optimize(ExpressionColumn expressionColumn, Column column) {
         return expressions[column.getColumnId()];
     }

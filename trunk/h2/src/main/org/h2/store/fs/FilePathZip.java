@@ -27,24 +27,29 @@ import org.h2.util.New;
  */
 public class FilePathZip extends FilePath {
 
+    @Override
     public FilePathZip getPath(String path) {
         FilePathZip p = new FilePathZip();
         p.name = path;
         return p;
     }
 
+    @Override
     public void createDirectory() {
         // ignore
     }
 
+    @Override
     public boolean createFile() {
         throw DbException.getUnsupportedException("write");
     }
 
+    @Override
     public void delete() {
         throw DbException.getUnsupportedException("write");
     }
 
+    @Override
     public boolean exists() {
         try {
             String entryName = getEntryName();
@@ -58,24 +63,29 @@ public class FilePathZip extends FilePath {
         }
     }
 
+    @Override
     public long lastModified() {
         return 0;
     }
 
+    @Override
     public FilePath getParent() {
         int idx = name.lastIndexOf('/');
         return idx < 0 ? null : getPath(name.substring(0, idx));
     }
 
+    @Override
     public boolean isAbsolute() {
         String fileName = translateFileName(name);
         return FilePath.get(fileName).isAbsolute();
     }
 
+    @Override
     public FilePath unwrap() {
         return FilePath.get(name.substring(getScheme().length() + 1));
     }
 
+    @Override
     public boolean isDirectory() {
         try {
             String entryName = getEntryName();
@@ -103,14 +113,17 @@ public class FilePathZip extends FilePath {
         }
     }
 
+    @Override
     public boolean canWrite() {
         return false;
     }
 
+    @Override
     public boolean setReadOnly() {
         return true;
     }
 
+    @Override
     public long size() {
         try {
             ZipFile file = openZipFile();
@@ -121,6 +134,7 @@ public class FilePathZip extends FilePath {
         }
     }
 
+    @Override
     public ArrayList<FilePath> newDirectoryStream() {
         String path = name;
         ArrayList<FilePath> list = New.arrayList();
@@ -155,10 +169,12 @@ public class FilePathZip extends FilePath {
         }
     }
 
+    @Override
     public InputStream newInputStream() throws IOException {
         return new FileChannelInputStream(open("r"));
     }
 
+    @Override
     public FileChannel open(String mode) throws IOException {
         ZipFile file = openZipFile();
         ZipEntry entry = file.getEntry(getEntryName());
@@ -168,10 +184,12 @@ public class FilePathZip extends FilePath {
         return new FileZip(file, entry);
     }
 
+    @Override
     public OutputStream newOutputStream(boolean append) throws IOException {
         throw new IOException("write");
     }
 
+    @Override
     public void moveTo(FilePath newName) {
         throw DbException.getUnsupportedException("write");
     }
@@ -187,6 +205,7 @@ public class FilePathZip extends FilePath {
         return FilePathDisk.expandUserHomeDirectory(fileName);
     }
 
+    @Override
     public FilePath toRealPath() {
         return this;
     }
@@ -211,6 +230,7 @@ public class FilePathZip extends FilePath {
         return new ZipFile(fileName);
     }
 
+    @Override
     public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
         if (!inTempDir) {
             throw new IOException("File system is read-only");
@@ -218,6 +238,7 @@ public class FilePathZip extends FilePath {
         return new FilePathDisk().getPath(name).createTempFile(suffix, deleteOnExit, true);
     }
 
+    @Override
     public String getScheme() {
         return "zip";
     }
@@ -247,14 +268,17 @@ class FileZip extends FileBase {
         length = entry.getSize();
     }
 
+    @Override
     public long position() {
         return pos;
     }
 
+    @Override
     public long size() {
         return length;
     }
 
+    @Override
     public int read(ByteBuffer dst) throws IOException {
         seek();
         int len = in.read(dst.array(), dst.position(), dst.remaining());
@@ -298,23 +322,28 @@ class FileZip extends FileBase {
         }
     }
 
+    @Override
     public FileChannel position(long newPos) {
         this.pos = newPos;
         return this;
     }
 
+    @Override
     public FileChannel truncate(long newLength) throws IOException {
         throw new IOException("File is read-only");
     }
 
+    @Override
     public void force(boolean metaData) throws IOException {
         // nothing to do
     }
 
+    @Override
     public int write(ByteBuffer src) throws IOException {
         throw new IOException("File is read-only");
     }
 
+    @Override
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
         if (shared) {
             // cast to FileChannel to avoid JDK 1.7 ambiguity

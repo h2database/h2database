@@ -201,6 +201,7 @@ public class TableView extends Table {
         return createException != null;
     }
 
+    @Override
     public synchronized PlanItem getBestPlanItem(Session session, int[] masks, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks, sortOrder);
@@ -215,15 +216,18 @@ public class TableView extends Table {
         return item;
     }
 
+    @Override
     public String getDropSQL() {
         return "DROP VIEW IF EXISTS " + getSQL() + " CASCADE";
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         return getCreateSQL(false, true, quotedName);
     }
 
 
+    @Override
     public String getCreateSQL() {
         return getCreateSQL(false, true);
     }
@@ -270,64 +274,79 @@ public class TableView extends Table {
         return buff.append(" AS\n").append(querySQL).toString();
     }
 
+    @Override
     public void checkRename() {
         // ok
     }
 
+    @Override
     public void lock(Session session, boolean exclusive, boolean force) {
         // exclusive lock means: the view will be dropped
     }
 
+    @Override
     public void close(Session session) {
         // nothing to do
     }
 
+    @Override
     public void unlock(Session s) {
         // nothing to do
     }
 
+    @Override
     public boolean isLockedExclusively() {
         return false;
     }
 
+    @Override
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public void removeRow(Session session, Row row) {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public void addRow(Session session, Row row) {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public void checkSupportAlter() {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public void truncate(Session session) {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public long getRowCount(Session session) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public boolean canGetRowCount() {
         // TODO view: could get the row count, but not that easy
         return false;
     }
 
+    @Override
     public boolean canDrop() {
         return true;
     }
 
+    @Override
     public String getTableType() {
         return Table.VIEW;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         removeViewFromTables();
         super.removeChildrenAndResources(session);
@@ -337,6 +356,7 @@ public class TableView extends Table {
         invalidate();
     }
 
+    @Override
     public String getSQL() {
         if (isTemporary()) {
             return "(\n" + StringUtils.indent(querySQL) + ")";
@@ -348,6 +368,7 @@ public class TableView extends Table {
         return querySQL;
     }
 
+    @Override
     public Index getScanIndex(Session session) {
         if (createException != null) {
             String msg = createException.getMessage();
@@ -357,10 +378,12 @@ public class TableView extends Table {
         return item.getIndex();
     }
 
+    @Override
     public ArrayList<Index> getIndexes() {
         return null;
     }
 
+    @Override
     public long getMaxDataModificationId() {
         if (createException != null) {
             return Long.MAX_VALUE;
@@ -379,6 +402,7 @@ public class TableView extends Table {
         return maxDataModificationId;
     }
 
+    @Override
     public Index getUniqueIndex() {
         return null;
     }
@@ -434,10 +458,12 @@ public class TableView extends Table {
         this.topQuery = topQuery;
     }
 
+    @Override
     public long getRowCountApproximation() {
         return ROW_COUNT_APPROXIMATION;
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return 0;
     }
@@ -446,6 +472,7 @@ public class TableView extends Table {
         return topQuery == null ? 0 : topQuery.getParameters().size();
     }
 
+    @Override
     public boolean isDeterministic() {
         if (recursive || viewQuery == null) {
             return false;

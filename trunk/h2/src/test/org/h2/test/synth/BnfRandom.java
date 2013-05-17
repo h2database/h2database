@@ -82,6 +82,7 @@ public class BnfRandom implements BnfVisitor {
         return null;
     }
 
+    @Override
     public void visitRuleElement(boolean keyword, String name, Rule link) {
         if (keyword) {
             if (name.startsWith(";")) {
@@ -98,6 +99,7 @@ public class BnfRandom implements BnfVisitor {
         }
     }
 
+    @Override
     public void visitRuleFixed(int type) {
         sql = getRandomFixed(type);
     }
@@ -143,6 +145,7 @@ public class BnfRandom implements BnfVisitor {
         }
     }
 
+    @Override
     public void visitRuleList(boolean or, ArrayList<Rule> list) {
         if (or) {
             if (level > 10) {
@@ -169,6 +172,7 @@ public class BnfRandom implements BnfVisitor {
         sql = buff.toString();
     }
 
+    @Override
     public void visitRuleOptional(Rule rule) {
         if (level > 10 ? random.nextInt(level) == 1 : random.nextInt(4) == 1) {
             level++;
@@ -179,6 +183,7 @@ public class BnfRandom implements BnfVisitor {
         sql = "";
     }
 
+    @Override
     public void visitRuleRepeat(boolean comma, Rule rule) {
         rule.accept(this);
     }

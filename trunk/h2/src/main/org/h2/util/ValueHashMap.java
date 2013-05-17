@@ -30,6 +30,7 @@ public class ValueHashMap<V> extends HashBase {
         return new ValueHashMap<T>();
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     protected void reset(int newLevel) {
         super.reset(newLevel);
@@ -37,6 +38,7 @@ public class ValueHashMap<V> extends HashBase {
         values = (V[]) new Object[len];
     }
 
+    @Override
     protected void rehash(int newLevel) {
         Value[] oldKeys = keys;
         V[] oldValues = values;

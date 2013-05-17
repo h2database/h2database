@@ -41,6 +41,7 @@ public class SmallLRUCache<K, V> extends LinkedHashMap<K, V> {
         this.size = size;
     }
 
+    @Override
     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
         return size() > size;
     }

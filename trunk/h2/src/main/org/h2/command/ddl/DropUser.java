@@ -34,6 +34,7 @@ public class DropUser extends DefineCommand {
         this.userName = userName;
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -61,10 +62,12 @@ public class DropUser extends DefineCommand {
         return 0;
     }
 
+    @Override
     public boolean isTransactional() {
         return false;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_USER;
     }

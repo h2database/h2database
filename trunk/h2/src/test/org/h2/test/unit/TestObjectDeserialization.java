@@ -36,6 +36,7 @@ public class TestObjectDeserialization extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() {
         testThreadContextClassLoader();
     }
@@ -61,6 +62,7 @@ public class TestObjectDeserialization extends TestBase {
             super();
         }
 
+        @Override
         protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
             if (name.equals(CLAZZ)) {
                 usesThreadContextClassLoader = true;

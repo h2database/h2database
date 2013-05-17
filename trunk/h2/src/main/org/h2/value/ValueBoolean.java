@@ -37,44 +37,54 @@ public class ValueBoolean extends Value {
         this.value = Boolean.valueOf(value);
     }
 
+    @Override
     public int getType() {
         return Value.BOOLEAN;
     }
 
+    @Override
     public String getSQL() {
         return getString();
     }
 
+    @Override
     public String getString() {
         return value.booleanValue() ? "TRUE" : "FALSE";
     }
 
+    @Override
     public Value negate() {
         return (ValueBoolean) (value.booleanValue() ? FALSE : TRUE);
     }
 
+    @Override
     public Boolean getBoolean() {
         return value;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         boolean v2 = ((ValueBoolean) o).value.booleanValue();
         boolean v = value.booleanValue();
         return (v == v2) ? 0 : (v ? 1 : -1);
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int hashCode() {
         return value.booleanValue() ? 1 : 0;
     }
 
+    @Override
     public Object getObject() {
         return value;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setBoolean(parameterIndex, value.booleanValue());
     }
@@ -89,10 +99,12 @@ public class ValueBoolean extends Value {
         return (ValueBoolean) (b ? TRUE : FALSE);
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     public boolean equals(Object other) {
         // there are only ever two instances, so the instance must match
         return this == other;

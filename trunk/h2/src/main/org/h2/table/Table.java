@@ -115,6 +115,7 @@ public abstract class Table extends SchemaObjectBase {
         compareMode = schema.getDatabase().getCompareMode();
     }
 
+    @Override
     public void rename(String newName) {
         super.rename(newName);
         if (constraints != null) {
@@ -305,6 +306,7 @@ public abstract class Table extends SchemaObjectBase {
         return null;
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError();
     }
@@ -336,6 +338,7 @@ public abstract class Table extends SchemaObjectBase {
         dependencies.add(this);
     }
 
+    @Override
     public ArrayList<DbObject> getChildren() {
         ArrayList<DbObject> children = New.arrayList();
         ArrayList<Index> indexes = getIndexes();
@@ -458,6 +461,7 @@ public abstract class Table extends SchemaObjectBase {
         return views;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         while (views != null && views.size() > 0) {
             TableView view = views.get(0);
@@ -581,6 +585,7 @@ public abstract class Table extends SchemaObjectBase {
         return columns;
     }
 
+    @Override
     public int getType() {
         return DbObject.TABLE_OR_VIEW;
     }
@@ -1081,6 +1086,7 @@ public abstract class Table extends SchemaObjectBase {
         return column.convert(v);
     }
 
+    @Override
     public boolean isHidden() {
         return isHidden;
     }

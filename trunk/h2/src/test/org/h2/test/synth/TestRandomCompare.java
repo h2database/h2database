@@ -36,6 +36,7 @@ public class TestRandomCompare extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("randomCompare");
         testCases();

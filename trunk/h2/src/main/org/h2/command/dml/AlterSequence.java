@@ -38,6 +38,7 @@ public class AlterSequence extends SchemaCommand {
         this.sequence = sequence;
     }
 
+    @Override
     public boolean isTransactional() {
         return true;
     }
@@ -58,6 +59,7 @@ public class AlterSequence extends SchemaCommand {
         this.increment = increment;
     }
 
+    @Override
     public int update() {
         Database db = session.getDatabase();
         if (table != null) {
@@ -85,6 +87,7 @@ public class AlterSequence extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.ALTER_SEQUENCE;
     }

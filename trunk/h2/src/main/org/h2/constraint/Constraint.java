@@ -132,10 +132,12 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
      */
     public abstract Index getUniqueIndex();
 
+    @Override
     public void checkRename() {
         // ok
     }
 
+    @Override
     public int getType() {
         return DbObject.CONSTRAINT;
     }
@@ -148,6 +150,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
         return table;
     }
 
+    @Override
     public String getDropSQL() {
         return null;
     }
@@ -167,6 +170,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
         }
     }
 
+    @Override
     public int compareTo(Constraint other) {
         if (this == other) {
             return 0;
@@ -176,6 +180,7 @@ public abstract class Constraint extends SchemaObjectBase implements Comparable<
         return thisType - otherType;
     }
 
+    @Override
     public boolean isHidden() {
         return table.isHidden();
     }

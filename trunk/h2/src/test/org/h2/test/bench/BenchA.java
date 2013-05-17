@@ -29,6 +29,7 @@ public class BenchA implements Bench {
     private int accounts;
     private int transactions;
 
+    @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
         transactions = size * 30;
@@ -98,6 +99,7 @@ public class BenchA implements Bench {
 //        db.end();
     }
 
+    @Override
     public void runTest() throws SQLException {
 
         database.start(this, "Transactions");
@@ -179,6 +181,7 @@ public class BenchA implements Bench {
         insertHistory.close();
     }
 
+    @Override
     public String getName() {
         return "BenchA";
     }

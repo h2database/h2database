@@ -26,6 +26,7 @@ public class And implements Token {
         return new And(left, right);
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         left.appendSQL(stat, query);
         stat.appendSQL(" AND ");

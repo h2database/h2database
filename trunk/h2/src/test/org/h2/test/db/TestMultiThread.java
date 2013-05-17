@@ -50,6 +50,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testConcurrentView();
         testConcurrentAlter();
@@ -78,6 +79,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         stat.execute("create view test_view as select * from test");
         stat.execute("insert into test(id) select x from system_range(1, 2)");
         Task t = new Task() {
+            @Override
             public void call() throws Exception {
                 Connection c2 = getConnection(url);
                 while (!stop) {
@@ -101,6 +103,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         final Connection conn = getConnection("concurrentAlter");
         Statement stat = conn.createStatement();
         Task t = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     conn.prepareStatement("select * from test");
@@ -128,6 +131,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id bigint primary key) as select x from system_range(1, 1000)");
         Task t = new Task() {
+            @Override
             public void call() throws SQLException {
                 Connection conn2;
                 conn2 = getConnection(url);
@@ -176,6 +180,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         return getConnection("jdbc:h2:mem:multiThread");
     }
 
+    @Override
     public void run() {
         try {
             while (!parent.stop) {

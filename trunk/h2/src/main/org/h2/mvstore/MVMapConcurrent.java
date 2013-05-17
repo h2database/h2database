@@ -28,14 +28,17 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
         super(keyType, valueType);
     }
 
+    @Override
     protected Page copyOnWrite(Page p, long writeVersion) {
         return p.copy(writeVersion);
     }
 
+    @Override
     protected void checkConcurrentWrite() {
         // ignore (writes are synchronized)
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public V put(K key, V value) {
         beforeWrite();
@@ -56,10 +59,12 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
         }
     }
 
+    @Override
     protected void waitUntilWritten(Page root) {
         // no need to wait
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public V remove(Object key) {
         beforeWrite();

@@ -26,35 +26,43 @@ public class Variable extends Expression {
         lastValue = session.getVariable(name);
     }
 
+    @Override
     public int getCost() {
         return 0;
     }
 
+    @Override
     public int getDisplaySize() {
         return lastValue.getDisplaySize();
     }
 
+    @Override
     public long getPrecision() {
         return lastValue.getPrecision();
     }
 
+    @Override
     public String getSQL() {
         return "@" + Parser.quoteIdentifier(name);
     }
 
+    @Override
     public int getScale() {
         return lastValue.getScale();
     }
 
+    @Override
     public int getType() {
         return lastValue.getType();
     }
 
+    @Override
     public Value getValue(Session session) {
         lastValue = session.getVariable(name);
         return lastValue;
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
         case ExpressionVisitor.EVALUATABLE:
@@ -76,18 +84,22 @@ public class Variable extends Expression {
         }
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         // nothing to do
     }
 
+    @Override
     public Expression optimize(Session session) {
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean value) {
         // nothing to do
     }
 
+    @Override
     public void updateAggregate(Session session) {
         // nothing to do
     }

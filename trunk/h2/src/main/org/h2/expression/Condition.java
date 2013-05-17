@@ -14,18 +14,22 @@ import org.h2.value.ValueBoolean;
  */
 abstract class Condition extends Expression {
 
+    @Override
     public int getType() {
         return Value.BOOLEAN;
     }
 
+    @Override
     public int getScale() {
         return 0;
     }
 
+    @Override
     public long getPrecision() {
         return ValueBoolean.PRECISION;
     }
 
+    @Override
     public int getDisplaySize() {
         return ValueBoolean.DISPLAY_SIZE;
     }

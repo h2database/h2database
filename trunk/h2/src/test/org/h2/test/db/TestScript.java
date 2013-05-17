@@ -68,6 +68,7 @@ public class TestScript extends TestBase {
         return statements;
     }
 
+    @Override
     public void test() throws Exception {
         if (config.networked && config.big) {
             return;

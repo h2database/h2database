@@ -38,6 +38,7 @@ public class Product implements Table {
         this.unitsInStock = unitsInStock;
     }
 
+    @Override
     public void define() {
         tableName("Product");
         primaryKey(productId);
@@ -68,6 +69,7 @@ public class Product implements Table {
         return Arrays.asList(list);
     }
 
+    @Override
     public String toString() {
         return productName + ": " + unitsInStock;
     }

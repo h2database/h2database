@@ -47,6 +47,7 @@ public class TestFileLockProcess extends TestBase {
         }
     }
 
+    @Override
     public void test() throws Exception {
         if (config.codeCoverage || config.networked) {
             return;

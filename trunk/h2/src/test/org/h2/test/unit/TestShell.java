@@ -44,6 +44,7 @@ public class TestShell extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         Shell shell = new Shell();
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
@@ -74,6 +75,7 @@ public class TestShell extends TestBase {
         PrintStream testOut = new PrintStream(out, true);
         toolIn = new PipedInputStream(out);
         Task task = new Task() {
+            @Override
             public void call() throws Exception {
                 try {
                     Shell shell = new Shell();

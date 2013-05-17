@@ -29,6 +29,7 @@ public class TestMvcc3 extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws SQLException {
         testConcurrentUpdate();
         testInsertUpdateRollback();

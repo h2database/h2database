@@ -37,6 +37,7 @@ public class TestFuzzOptimizations extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("optimizations");
         conn = getConnection("optimizations");

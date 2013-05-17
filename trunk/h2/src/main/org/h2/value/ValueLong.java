@@ -57,6 +57,7 @@ public class ValueLong extends Value {
         this.value = value;
     }
 
+    @Override
     public Value add(Value v) {
         ValueLong other = (ValueLong) v;
         long result = value + other.value;
@@ -73,10 +74,12 @@ public class ValueLong extends Value {
         throw getOverflow();
     }
 
+    @Override
     public int getSignum() {
         return Long.signum(value);
     }
 
+    @Override
     public Value negate() {
         if (value == Long.MIN_VALUE) {
             throw getOverflow();
@@ -88,6 +91,7 @@ public class ValueLong extends Value {
         return DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(value));
     }
 
+    @Override
     public Value subtract(Value v) {
         ValueLong other = (ValueLong) v;
         int sv = Long.signum(value);
@@ -106,6 +110,7 @@ public class ValueLong extends Value {
         return a >= Integer.MIN_VALUE && a <= Integer.MAX_VALUE;
     }
 
+    @Override
     public Value multiply(Value v) {
         ValueLong other = (ValueLong) v;
         long result = value * other.value;
@@ -129,6 +134,7 @@ public class ValueLong extends Value {
         return ValueLong.get(br.longValue());
     }
 
+    @Override
     public Value divide(Value v) {
         ValueLong other = (ValueLong) v;
         if (other.value == 0) {
@@ -137,6 +143,7 @@ public class ValueLong extends Value {
         return ValueLong.get(value / other.value);
     }
 
+    @Override
     public Value modulus(Value v) {
         ValueLong other = (ValueLong) v;
         if (other.value == 0) {
@@ -145,39 +152,48 @@ public class ValueLong extends Value {
         return ValueLong.get(this.value % other.value);
     }
 
+    @Override
     public String getSQL() {
         return getString();
     }
 
+    @Override
     public int getType() {
         return Value.LONG;
     }
 
+    @Override
     public long getLong() {
         return value;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueLong v = (ValueLong) o;
         return MathUtils.compareLong(value, v.value);
     }
 
+    @Override
     public String getString() {
         return String.valueOf(value);
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int hashCode() {
         return (int) (value ^ (value >> 32));
     }
 
+    @Override
     public Object getObject() {
         return value;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setLong(parameterIndex, value);
     }
@@ -195,10 +211,12 @@ public class ValueLong extends Value {
         return (ValueLong) Value.cache(new ValueLong(i));
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     public boolean equals(Object other) {
         return other instanceof ValueLong && value == ((ValueLong) other).value;
     }

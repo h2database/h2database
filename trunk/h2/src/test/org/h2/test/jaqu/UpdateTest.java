@@ -30,6 +30,7 @@ public class UpdateTest extends TestBase {
         new UpdateTest().test();
     }
 
+    @Override
     public void test() throws Exception {
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());

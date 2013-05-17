@@ -393,6 +393,7 @@ public class Database implements DataHandler {
         return powerOffCount;
     }
 
+    @Override
     public void checkPowerOff() {
         if (powerOffCount == 0) {
             return;
@@ -452,6 +453,7 @@ public class Database implements DataHandler {
         return traceSystem.getTrace(module);
     }
 
+    @Override
     public FileStore openFile(String name, String openMode, boolean mustExist) {
         if (mustExist && !FileUtils.exists(name)) {
             throw DbException.get(ErrorCode.FILE_NOT_FOUND_1, name);
@@ -1380,6 +1382,7 @@ public class Database implements DataHandler {
         return compareMode;
     }
 
+    @Override
     public String getDatabasePath() {
         if (persistent) {
             return FileUtils.toRealPath(databaseName);
@@ -1696,6 +1699,7 @@ public class Database implements DataHandler {
         this.cluster = cluster;
     }
 
+    @Override
     public void checkWritingAllowed() {
         if (readOnly) {
             throw DbException.get(ErrorCode.DATABASE_IS_READ_ONLY);
@@ -1903,6 +1907,7 @@ public class Database implements DataHandler {
         this.maxLengthInplaceLob = value;
     }
 
+    @Override
     public int getMaxLengthInplaceLob() {
         return persistent ? maxLengthInplaceLob : Integer.MAX_VALUE;
     }
@@ -1923,6 +1928,7 @@ public class Database implements DataHandler {
         this.deleteFilesOnDisconnect = b;
     }
 
+    @Override
     public String getLobCompressionAlgorithm(int type) {
         return lobCompressionAlgorithm;
     }
@@ -1949,6 +1955,7 @@ public class Database implements DataHandler {
         optimizeReuseResults = b;
     }
 
+    @Override
     public Object getLobSyncObject() {
         return lobSyncObject;
     }
@@ -2048,6 +2055,7 @@ public class Database implements DataHandler {
         }
     }
 
+    @Override
     public SmallLRUCache<String, String[]> getLobFileListCache() {
         if (lobFileListCache == null) {
             lobFileListCache = SmallLRUCache.newInstance(128);
@@ -2080,6 +2088,7 @@ public class Database implements DataHandler {
         return TableLinkConnection.open(linkConnections, driver, url, user, password, dbSettings.shareLinkedConnections);
     }
 
+    @Override
     public String toString() {
         return databaseShortName + ":" + super.toString();
     }
@@ -2097,6 +2106,7 @@ public class Database implements DataHandler {
         closeFiles();
     }
 
+    @Override
     public TempFileDeleter getTempFileDeleter() {
         return tempFileDeleter;
     }
@@ -2314,6 +2324,7 @@ public class Database implements DataHandler {
         return compiler;
     }
 
+    @Override
     public LobStorageBackend getLobStorage() {
         if (lobStorage == null) {
             lobStorage = new LobStorageBackend(this);
@@ -2321,6 +2332,7 @@ public class Database implements DataHandler {
         return lobStorage;
     }
 
+    @Override
     public Connection getLobConnection() {
         String url = Constants.CONN_URL_INTERNAL;
         JdbcConnection conn = new JdbcConnection(systemSession, systemUser.getName(), url);
@@ -2398,6 +2410,7 @@ public class Database implements DataHandler {
         return false;
     }
 
+    @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         throw DbException.throwInternalError();
     }

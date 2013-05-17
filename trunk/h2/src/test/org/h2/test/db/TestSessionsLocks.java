@@ -27,6 +27,7 @@ public class TestSessionsLocks extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (config.mvcc) {
             return;
@@ -103,6 +104,7 @@ public class TestSessionsLocks extends TestBase {
         stat2.execute("set throttle 1");
         final boolean[] done = { false };
         Runnable runnable = new Runnable() {
+            @Override
             public void run() {
                 try {
                     stat2.execute("select count(*) from system_range(1, 10000000) t1, system_range(1, 10000000) t2");

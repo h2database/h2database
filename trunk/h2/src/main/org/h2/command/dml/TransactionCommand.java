@@ -31,6 +31,7 @@ public class TransactionCommand extends Prepared {
         this.savepointName = name;
     }
 
+    @Override
     public int update() {
         switch (type) {
         case CommandInterface.SET_AUTOCOMMIT_TRUE:
@@ -116,10 +117,12 @@ public class TransactionCommand extends Prepared {
         return 0;
     }
 
+    @Override
     public boolean isTransactional() {
         return true;
     }
 
+    @Override
     public boolean needRecompile() {
         return false;
     }
@@ -128,14 +131,17 @@ public class TransactionCommand extends Prepared {
         this.transactionName = string;
     }
 
+    @Override
     public ResultInterface queryMeta() {
         return null;
     }
 
+    @Override
     public int getType() {
         return type;
     }
 
+    @Override
     public boolean isCacheable() {
         return true;
     }

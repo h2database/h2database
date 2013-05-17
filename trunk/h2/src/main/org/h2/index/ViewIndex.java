@@ -77,18 +77,22 @@ public class ViewIndex extends BaseIndex {
         return createSession;
     }
 
+    @Override
     public String getPlanSQL() {
         return planSQL;
     }
 
+    @Override
     public void close(Session session) {
         // nothing to do
     }
 
+    @Override
     public void add(Session session, Row row) {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public void remove(Session session, Row row) {
         throw DbException.getUnsupportedException("VIEW");
     }
@@ -109,6 +113,7 @@ public class ViewIndex extends BaseIndex {
         double cost;
     }
 
+    @Override
     public synchronized double getCost(Session session, int[] masks, SortOrder sortOrder) {
         if (recursive) {
             return 1000;
@@ -162,6 +167,7 @@ public class ViewIndex extends BaseIndex {
         return cost;
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (recursive) {
             ResultInterface recResult = view.getRecursiveResult();
@@ -340,26 +346,32 @@ public class ViewIndex extends BaseIndex {
         return q;
     }
 
+    @Override
     public void remove(Session session) {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public void truncate(Session session) {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("VIEW");
     }
 
+    @Override
     public boolean needRebuild() {
         return false;
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return false;
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         throw DbException.getUnsupportedException("VIEW");
     }
@@ -368,14 +380,17 @@ public class ViewIndex extends BaseIndex {
         this.recursive = value;
     }
 
+    @Override
     public long getRowCount(Session session) {
         return 0;
     }
 
+    @Override
     public long getRowCountApproximation() {
         return 0;
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return 0;
     }

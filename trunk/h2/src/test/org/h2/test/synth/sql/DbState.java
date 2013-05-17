@@ -24,59 +24,73 @@ public class DbState implements DbInterface {
         this.config = config;
     }
 
+    @Override
     public void reset() {
         tables = New.arrayList();
         indexes = New.arrayList();
     }
 
+    @Override
     public void connect() {
         connected = true;
     }
 
+    @Override
     public void disconnect() {
         connected = false;
     }
 
+    @Override
     public void createTable(Table table) {
         tables.add(table);
     }
 
+    @Override
     public void dropTable(Table table) {
         tables.remove(table);
     }
 
+    @Override
     public void createIndex(Index index) {
         indexes.add(index);
     }
 
+    @Override
     public void dropIndex(Index index) {
         indexes.remove(index);
     }
 
+    @Override
     public Result insert(Table table, Column[] c, Value[] v) {
         return null;
     }
 
+    @Override
     public Result select(String sql) {
         return null;
     }
 
+    @Override
     public Result delete(Table table, String condition) {
         return null;
     }
 
+    @Override
     public Result update(Table table, Column[] columns, Value[] values, String condition) {
         return null;
     }
 
+    @Override
     public void setAutoCommit(boolean b) {
         autoCommit = b;
     }
 
+    @Override
     public void commit() {
         // nothing to do
     }
 
+    @Override
     public void rollback() {
         // nothing to do
     }
@@ -94,10 +108,12 @@ public class DbState implements DbInterface {
         return tables.get(i);
     }
 
+    @Override
     public void end() {
         // nothing to do
     }
 
+    @Override
     public String toString() {
         return "autocommit: " + autoCommit + " connected: " + connected;
     }

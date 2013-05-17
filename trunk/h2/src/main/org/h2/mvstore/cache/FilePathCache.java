@@ -22,10 +22,12 @@ public class FilePathCache extends FilePathWrapper {
         return new FileCache(f);
     }
 
+    @Override
     public FileChannel open(String mode) throws IOException {
         return new FileCache(getBase().open(mode));
     }
 
+    @Override
     public String getScheme() {
         return "cache";
     }
@@ -45,23 +47,28 @@ public class FilePathCache extends FilePathWrapper {
             this.base = base;
         }
 
+        @Override
         protected void implCloseChannel() throws IOException {
             base.close();
         }
 
+        @Override
         public FileChannel position(long newPosition) throws IOException {
             base.position(newPosition);
             return this;
         }
 
+        @Override
         public long position() throws IOException {
             return base.position();
         }
 
+        @Override
         public int read(ByteBuffer dst) throws IOException {
             return base.read(dst);
         }
 
+        @Override
         public int read(ByteBuffer dst, long position) throws IOException {
             long cachePos = getCachePos(position);
             int off = (int) (position - cachePos);
@@ -89,16 +96,19 @@ public class FilePathCache extends FilePathWrapper {
             return (pos / CACHE_BLOCK_SIZE) * CACHE_BLOCK_SIZE;
         }
 
+        @Override
         public long size() throws IOException {
             return base.size();
         }
 
+        @Override
         public FileChannel truncate(long newSize) throws IOException {
             cache.clear();
             base.truncate(newSize);
             return this;
         }
 
+        @Override
         public int write(ByteBuffer src, long position) throws IOException {
             if (cache.size() > 0) {
                 int len = src.remaining();
@@ -112,19 +122,23 @@ public class FilePathCache extends FilePathWrapper {
             return base.write(src, position);
         }
 
+        @Override
         public int write(ByteBuffer src) throws IOException {
             throw new UnsupportedOperationException();
             // return base.write(src);
         }
 
+        @Override
         public void force(boolean metaData) throws IOException {
             base.force(metaData);
         }
 
+        @Override
         public FileLock tryLock(long position, long size, boolean shared) throws IOException {
             return base.tryLock(position, size, shared);
         }
 
+        @Override
         public String toString() {
             return "cache:" + base.toString();
         }

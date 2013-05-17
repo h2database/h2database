@@ -25,6 +25,7 @@ public class TestPattern extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() {
         testCompareModeReuse();
         testPattern();

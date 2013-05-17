@@ -36,6 +36,7 @@ public class TestRowLocks extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testSetMode();
         testCases();
@@ -81,6 +82,7 @@ public class TestRowLocks extends TestBase {
 
         s2.execute("UPDATE TEST SET NAME='H1' WHERE ID=1");
         Task task = new Task() {
+            @Override
             public void call() throws SQLException {
                 s1.execute("UPDATE TEST SET NAME='H2' WHERE ID=1");
             }

@@ -20,30 +20,37 @@ public class NoOperation extends Prepared {
         super(session);
     }
 
+    @Override
     public int update() {
         return 0;
     }
 
+    @Override
     public boolean isQuery() {
         return false;
     }
 
+    @Override
     public boolean isTransactional() {
         return true;
     }
 
+    @Override
     public boolean needRecompile() {
         return false;
     }
 
+    @Override
     public boolean isReadOnly() {
         return true;
     }
 
+    @Override
     public ResultInterface queryMeta() {
         return null;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.NO_OPERATION;
     }

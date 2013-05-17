@@ -33,6 +33,7 @@ public abstract class PageIndex extends BaseIndex {
      */
     public abstract void writeRowCount();
 
+    @Override
     public void setSortedInsertMode(boolean sortedInsertMode) {
         this.sortedInsertMode = sortedInsertMode;
     }

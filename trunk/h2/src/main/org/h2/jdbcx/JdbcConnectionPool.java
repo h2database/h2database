@@ -142,6 +142,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      *
      * @return the timeout in seconds
      */
+    @Override
     public synchronized int getLoginTimeout() {
         return timeout;
     }
@@ -153,6 +154,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      *
      * @param seconds the timeout, 0 meaning the default
      */
+    @Override
     public synchronized void setLoginTimeout(int seconds) {
         if (seconds == 0) {
             seconds = DEFAULT_TIMEOUT;
@@ -188,6 +190,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      * @throws SQLException when a new connection could not be established,
      *      or a timeout occurred
      */
+    @Override
     public Connection getConnection() throws SQLException {
         long max = System.currentTimeMillis() + timeout * 1000;
         do {
@@ -208,6 +211,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
     /**
      * INTERNAL
      */
+    @Override
     public Connection getConnection(String user, String password) {
         throw new UnsupportedOperationException();
     }
@@ -263,6 +267,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
     /**
      * INTERNAL
      */
+    @Override
     public void connectionClosed(ConnectionEvent event) {
         PooledConnection pc = (PooledConnection) event.getSource();
         pc.removeConnectionEventListener(this);
@@ -272,6 +277,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
     /**
      * INTERNAL
      */
+    @Override
     public void connectionErrorOccurred(ConnectionEvent event) {
         // not used
     }
@@ -291,6 +297,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
     /**
      * INTERNAL
      */
+    @Override
     public PrintWriter getLogWriter() {
         return logWriter;
     }
@@ -298,6 +305,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
     /**
      * INTERNAL
      */
+    @Override
     public void setLogWriter(PrintWriter logWriter) {
         this.logWriter = logWriter;
     }
@@ -307,6 +315,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      *
      * @param iface the class
      */
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw DbException.getUnsupportedException("unwrap");
     }
@@ -316,6 +325,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      *
      * @param iface the class
      */
+    @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw DbException.getUnsupportedException("isWrapperFor");
     }

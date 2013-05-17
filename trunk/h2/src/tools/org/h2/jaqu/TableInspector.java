@@ -596,6 +596,7 @@ public class TableInspector {
         boolean isAutoIncrement;
         String defaultValue;
 
+        @Override
         public int compareTo(ColumnInspector o) {
             if (isPrimaryKey && o.isPrimaryKey) {
                 // both primary sort by name

@@ -39,10 +39,12 @@ public class NonUniqueHashIndex extends HashIndex {
         rowCount = 0;
     }
 
+    @Override
     public void truncate(Session session) {
         reset();
     }
 
+    @Override
     public void add(Session session, Row row) {
         Value key = row.getValue(indexColumn);
         ArrayList<Long> positions = rows.get(key);
@@ -54,6 +56,7 @@ public class NonUniqueHashIndex extends HashIndex {
         rowCount++;
     }
 
+    @Override
     public void remove(Session session, Row row) {
         if (rowCount == 1) {
             // last row in table
@@ -71,6 +74,7 @@ public class NonUniqueHashIndex extends HashIndex {
         }
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (first == null || last == null) {
             throw DbException.throwInternalError();
@@ -84,10 +88,12 @@ public class NonUniqueHashIndex extends HashIndex {
         return new NonUniqueHashCursor(session, tableData, positions);
     }
 
+    @Override
     public long getRowCount(Session session) {
         return rowCount;
     }
 
+    @Override
     public long getRowCountApproximation() {
         return rowCount;
     }

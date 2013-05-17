@@ -53,20 +53,24 @@ public class TriggerPassData implements Trigger {
         conn.close();
     }
 
+    @Override
     public void init(Connection conn, String schemaName,
             String triggerName, String tableName, boolean before,
             int type) throws SQLException {
         TRIGGERS.put(getPrefix(conn) + triggerName, this);
     }
 
+    @Override
     public void fire(Connection conn, Object[] old, Object[] row) {
         System.out.println(triggerData + ": " + row[0]);
     }
 
+    @Override
     public void close() {
         // ignore
     }
 
+    @Override
     public void remove() {
         // ignore
     }

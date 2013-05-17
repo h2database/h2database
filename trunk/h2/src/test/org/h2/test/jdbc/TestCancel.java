@@ -51,6 +51,7 @@ public class TestCancel extends TestBase {
             this.stop = true;
         }
 
+        @Override
         public void run() {
             while (!stop) {
                 try {
@@ -66,6 +67,7 @@ public class TestCancel extends TestBase {
         }
     }
 
+    @Override
     public void test() throws Exception {
         testQueryTimeoutInTransaction();
         testReset();

@@ -31,6 +31,7 @@ public class Subquery extends Expression {
         this.query = query;
     }
 
+    @Override
     public Value getValue(Session session) {
         query.setSession(session);
         ResultInterface result = query.query(2);
@@ -57,39 +58,48 @@ public class Subquery extends Expression {
         }
     }
 
+    @Override
     public int getType() {
         return getExpression().getType();
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         query.mapColumns(resolver, level + 1);
     }
 
+    @Override
     public Expression optimize(Session session) {
         query.prepare();
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         query.setEvaluatable(tableFilter, b);
     }
 
+    @Override
     public int getScale() {
         return getExpression().getScale();
     }
 
+    @Override
     public long getPrecision() {
         return getExpression().getPrecision();
     }
 
+    @Override
     public int getDisplaySize() {
         return getExpression().getDisplaySize();
     }
 
+    @Override
     public String getSQL() {
         return "(" + query.getPlanSQL() + ")";
     }
 
+    @Override
     public void updateAggregate(Session session) {
         query.updateAggregate(session);
     }
@@ -111,6 +121,7 @@ public class Subquery extends Expression {
         return expression;
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return query.isEverything(visitor);
     }
@@ -119,10 +130,12 @@ public class Subquery extends Expression {
         return query;
     }
 
+    @Override
     public int getCost() {
         return query.getCostAsExpression();
     }
 
+    @Override
     public Expression[] getExpressionColumns(Session session) {
         return getExpression().getExpressionColumns(session);
     }

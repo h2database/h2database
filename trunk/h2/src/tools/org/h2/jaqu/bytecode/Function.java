@@ -23,10 +23,12 @@ class Function implements Token {
         this.expr = expr;
     }
 
+    @Override
     public String toString() {
         return name + "(" + expr + ")";
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         // untested
         stat.appendSQL(name + "(");

@@ -271,6 +271,7 @@ public class TestSynth extends TestBase {
         databases.add(db);
     }
 
+    @Override
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
         deleteDb("synth/synth");
@@ -319,6 +320,7 @@ public class TestSynth extends TestBase {
         return this;
     }
 
+    @Override
     public void testCase(int seed) throws Exception {
         deleteDb("synth/synth");
         try {
@@ -330,6 +332,7 @@ public class TestSynth extends TestBase {
         }
     }
 
+    @Override
     public void test() throws Exception {
         while (true) {
             int seed = MathUtils.randomInt(Integer.MAX_VALUE);

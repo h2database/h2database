@@ -34,6 +34,7 @@ public class CreateRole extends DefineCommand {
         this.roleName = name;
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -53,6 +54,7 @@ public class CreateRole extends DefineCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_ROLE;
     }

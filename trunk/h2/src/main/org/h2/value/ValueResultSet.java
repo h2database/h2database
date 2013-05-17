@@ -73,19 +73,23 @@ public class ValueResultSet extends Value {
         }
     }
 
+    @Override
     public int getType() {
         return Value.RESULT_SET;
     }
 
+    @Override
     public long getPrecision() {
         return Integer.MAX_VALUE;
     }
 
+    @Override
     public int getDisplaySize() {
         // it doesn't make sense to calculate it
         return Integer.MAX_VALUE;
     }
 
+    @Override
     public String getString() {
         try {
             StatementBuilder buff = new StatementBuilder("(");
@@ -113,34 +117,42 @@ public class ValueResultSet extends Value {
         }
     }
 
+    @Override
     protected int compareSecure(Value v, CompareMode mode) {
         return this == v ? 0 : super.toString().compareTo(v.toString());
     }
 
+    @Override
     public boolean equals(Object other) {
         return other == this;
     }
 
+    @Override
     public int hashCode() {
         return 0;
     }
 
+    @Override
     public Object getObject() {
         return result;
     }
 
+    @Override
     public ResultSet getResultSet() {
         return result;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) {
         throw throwUnsupportedExceptionForType("PreparedStatement.set");
     }
 
+    @Override
     public String getSQL() {
         return "";
     }
 
+    @Override
     public Value convertPrecision(long precision, boolean force) {
         if (!force) {
             return this;

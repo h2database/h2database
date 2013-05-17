@@ -371,6 +371,7 @@ public class Expression {
         sql += v.getSQL();
     }
 
+    @Override
     public String toString() {
         throw new AssertionError();
     }

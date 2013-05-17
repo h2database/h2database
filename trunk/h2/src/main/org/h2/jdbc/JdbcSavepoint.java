@@ -76,6 +76,7 @@ public class JdbcSavepoint extends TraceObject implements Savepoint {
      * Get the generated id of this savepoint.
      * @return the id
      */
+    @Override
     public int getSavepointId() throws SQLException {
         try {
             debugCodeCall("getSavepointId");
@@ -93,6 +94,7 @@ public class JdbcSavepoint extends TraceObject implements Savepoint {
      * Get the name of this savepoint.
      * @return the name
      */
+    @Override
     public String getSavepointName() throws SQLException {
         try {
             debugCodeCall("getSavepointName");
@@ -109,6 +111,7 @@ public class JdbcSavepoint extends TraceObject implements Savepoint {
     /**
      * INTERNAL
      */
+    @Override
     public String toString() {
         return getTraceObjectName() + ": id=" + savepointId + " name=" + name;
     }

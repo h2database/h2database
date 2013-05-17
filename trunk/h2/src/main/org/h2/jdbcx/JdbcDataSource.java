@@ -108,6 +108,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @return the timeout in seconds
      */
+    @Override
     public int getLoginTimeout() {
         debugCodeCall("getLoginTimeout");
         return loginTimeout;
@@ -120,6 +121,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @param timeout the timeout in seconds
      */
+    @Override
     public void setLoginTimeout(int timeout) {
         debugCodeCall("setLoginTimeout", timeout);
         this.loginTimeout = timeout;
@@ -130,6 +132,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @return the log writer
      */
+    @Override
     public PrintWriter getLogWriter() {
         debugCodeCall("getLogWriter");
         return logWriter;
@@ -141,6 +144,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @param out the log writer
      */
+    @Override
     public void setLogWriter(PrintWriter out) {
         debugCodeCall("setLogWriter(out)");
         logWriter = out;
@@ -151,6 +155,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @return the connection
      */
+    @Override
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
         return getJdbcConnection(userName, StringUtils.cloneCharArray(passwordChars));
@@ -164,6 +169,7 @@ public class JdbcDataSource extends TraceObject
      * @param password the password
      * @return the connection
      */
+    @Override
     public Connection getConnection(String user, String password) throws SQLException {
         if (isDebugEnabled()) {
             debugCode("getConnection("+quote(user)+", \"\");");
@@ -292,6 +298,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @return the new reference
      */
+    @Override
     public Reference getReference() {
         debugCodeCall("getReference");
         String factoryClassName = JdbcDataSourceFactory.class.getName();
@@ -309,6 +316,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @return the connection
      */
+    @Override
     public XAConnection getXAConnection() throws SQLException {
         debugCodeCall("getXAConnection");
         int id = getNextId(XA_DATA_SOURCE);
@@ -323,6 +331,7 @@ public class JdbcDataSource extends TraceObject
      * @param password the password
      * @return the connection
      */
+    @Override
     public XAConnection getXAConnection(String user, String password) throws SQLException {
         if (isDebugEnabled()) {
             debugCode("getXAConnection("+quote(user)+", \"\");");
@@ -336,6 +345,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @return the connection
      */
+    @Override
     public PooledConnection getPooledConnection() throws SQLException {
         debugCodeCall("getPooledConnection");
         return getXAConnection();
@@ -349,6 +359,7 @@ public class JdbcDataSource extends TraceObject
      * @param password the password
      * @return the connection
      */
+    @Override
     public PooledConnection getPooledConnection(String user, String password) throws SQLException {
         if (isDebugEnabled()) {
             debugCode("getPooledConnection("+quote(user)+", \"\");");
@@ -361,6 +372,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @param iface the class
      */
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw unsupported("unwrap");
     }
@@ -370,6 +382,7 @@ public class JdbcDataSource extends TraceObject
      *
      * @param iface the class
      */
+    @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw unsupported("isWrapperFor");
     }
@@ -386,6 +399,7 @@ public class JdbcDataSource extends TraceObject
     /**
      * INTERNAL
      */
+    @Override
     public String toString() {
         return getTraceObjectName() + ": url=" + url + " user=" + userName;
     }

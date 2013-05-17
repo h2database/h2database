@@ -74,14 +74,17 @@ public class User extends RightOwner {
         }
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public String getCreateSQL() {
         return getCreateSQL(true);
     }
 
+    @Override
     public String getDropSQL() {
         return null;
     }
@@ -200,10 +203,12 @@ public class User extends RightOwner {
         }
     }
 
+    @Override
     public int getType() {
         return DbObject.USER;
     }
 
+    @Override
     public ArrayList<DbObject> getChildren() {
         ArrayList<DbObject> children = New.arrayList();
         for (Right right : database.getAllRights()) {
@@ -219,6 +224,7 @@ public class User extends RightOwner {
         return children;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         for (Right right : database.getAllRights()) {
             if (right.getGrantee() == this) {
@@ -232,6 +238,7 @@ public class User extends RightOwner {
         invalidate();
     }
 
+    @Override
     public void checkRename() {
         // ok
     }

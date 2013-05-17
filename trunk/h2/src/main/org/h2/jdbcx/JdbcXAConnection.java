@@ -60,6 +60,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @return itself
      */
+    @Override
     public XAResource getXAResource() {
         debugCodeCall("getXAResource");
         return this;
@@ -71,6 +72,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @throws SQLException
      */
+    @Override
     public void close() throws SQLException {
         debugCodeCall("close");
         Connection lastHandle = handleConn;
@@ -94,6 +96,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @return the connection
      */
+    @Override
     public Connection getConnection() throws SQLException {
         debugCodeCall("getConnection");
         Connection lastHandle = handleConn;
@@ -111,6 +114,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param listener the event listener
      */
+    @Override
     public void addConnectionEventListener(ConnectionEventListener listener) {
         debugCode("addConnectionEventListener(listener);");
         listeners.add(listener);
@@ -121,6 +125,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param listener the event listener
      */
+    @Override
     public void removeConnectionEventListener(ConnectionEventListener listener) {
         debugCode("removeConnectionEventListener(listener);");
         listeners.remove(listener);
@@ -146,6 +151,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @return 0
      */
+    @Override
     public int getTransactionTimeout() {
         debugCodeCall("getTransactionTimeout");
         return 0;
@@ -157,6 +163,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * @param seconds ignored
      * @return false
      */
+    @Override
     public boolean setTransactionTimeout(int seconds) {
         debugCodeCall("setTransactionTimeout", seconds);
         return false;
@@ -168,6 +175,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * @param xares the other object
      * @return true if this is the same object
      */
+    @Override
     public boolean isSameRM(XAResource xares) {
         debugCode("isSameRM(xares);");
         return xares == this;
@@ -182,6 +190,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *  @return zero or more Xid objects
      * @throws XAException
      */
+    @Override
     public Xid[] recover(int flag) throws XAException {
         debugCodeCall("recover", quoteFlags(flag));
         checkOpen();
@@ -219,6 +228,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * @return XA_OK
      * @throws XAException
      */
+    @Override
     public int prepare(Xid xid) throws XAException {
         if (isDebugEnabled()) {
             debugCode("prepare("+JdbcXid.toString(xid)+");");
@@ -246,6 +256,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param xid the transaction id
      */
+    @Override
     public void forget(Xid xid) {
         if (isDebugEnabled()) {
             debugCode("forget("+JdbcXid.toString(xid)+");");
@@ -259,6 +270,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * @param xid the transaction id
      * @throws XAException
      */
+    @Override
     public void rollback(Xid xid) throws XAException {
         if (isDebugEnabled()) {
             debugCode("rollback("+JdbcXid.toString(xid)+");");
@@ -289,6 +301,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * @param flags TMSUCCESS, TMFAIL, or TMSUSPEND
      * @throws XAException
      */
+    @Override
     public void end(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
             debugCode("end("+JdbcXid.toString(xid)+", "+quoteFlags(flags)+");");
@@ -310,6 +323,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * @param flags TMNOFLAGS, TMJOIN, or TMRESUME
      * @throws XAException
      */
+    @Override
     public void start(Xid xid, int flags) throws XAException {
         if (isDebugEnabled()) {
             debugCode("start("+JdbcXid.toString(xid)+", "+quoteFlags(flags)+");");
@@ -340,6 +354,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * @param onePhase use a one-phase protocol if true
      * @throws XAException
      */
+    @Override
     public void commit(Xid xid, boolean onePhase) throws XAException {
         if (isDebugEnabled()) {
             debugCode("commit("+JdbcXid.toString(xid)+", "+onePhase+");");
@@ -367,6 +382,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param listener the new statement event listener
      */
+    @Override
     public void addStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
@@ -376,6 +392,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param listener the statement event listener
      */
+    @Override
     public void removeStatementEventListener(StatementEventListener listener) {
         throw new UnsupportedOperationException();
     }
@@ -383,6 +400,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
     /**
      * INTERNAL
      */
+    @Override
     public String toString() {
         return getTraceObjectName() + ": " + physicalConn;
     }
@@ -445,6 +463,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
             super(conn);
         }
 
+        @Override
         public synchronized void close() throws SQLException {
             if (!isClosed) {
                 try {
@@ -458,10 +477,12 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
             }
         }
 
+        @Override
         public synchronized boolean isClosed() throws SQLException {
             return isClosed || super.isClosed();
         }
 
+        @Override
         protected synchronized void checkClosed(boolean write) {
             if (isClosed) {
                 throw DbException.get(ErrorCode.OBJECT_CLOSED);

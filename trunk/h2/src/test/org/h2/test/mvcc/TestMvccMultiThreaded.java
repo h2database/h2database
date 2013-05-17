@@ -29,6 +29,7 @@ public class TestMvccMultiThreaded extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testMergeWithUniqueKeyViolation();
         testConcurrentMerge();
@@ -66,6 +67,7 @@ public class TestMvccMultiThreaded extends TestBase {
             final Connection c = connList[i];
             c.setAutoCommit(false);
             tasks[i] = new Task() {
+                @Override
                 public void call() throws Exception {
                     while (!stop) {
                         c.createStatement().execute("merge into test values(1, 'x')");
@@ -105,6 +107,7 @@ public class TestMvccMultiThreaded extends TestBase {
         for (int i = 0; i < len; i++) {
             final int x = i;
             tasks[i] = new Task() {
+                @Override
                 public void call() throws Exception {
                     for (int a = 0; a < count; a++) {
                         connList[x].createStatement().execute("update test set value=value+1");

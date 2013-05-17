@@ -87,12 +87,14 @@ public class TestStreamStore extends TestBase {
             this.seed = seed;
         }
 
+        @Override
         public int read() {
             byte[] data = new byte[1];
             int len = read(data, 0, 1);
             return len <= 0 ? len : data[0] & 255;
         }
 
+        @Override
         public int read(byte[] b, int off, int len) {
             if (pos >= size) {
                 return -1;
@@ -145,6 +147,7 @@ public class TestStreamStore extends TestBase {
 
             private static final long serialVersionUID = 1L;
 
+            @Override
             public byte[] get(Object k) {
                 reads.incrementAndGet();
                 return super.get(k);
@@ -201,6 +204,7 @@ public class TestStreamStore extends TestBase {
 
             private static final long serialVersionUID = 1L;
 
+            @Override
             public boolean containsKey(Object k) {
                 tests.incrementAndGet();
                 return super.containsKey(k);
@@ -242,6 +246,7 @@ public class TestStreamStore extends TestBase {
 
             private static final long serialVersionUID = 1L;
 
+            @Override
             public boolean containsKey(Object k) {
                 tests.incrementAndGet();
                 if (((Long) k) < Long.MAX_VALUE / 2) {

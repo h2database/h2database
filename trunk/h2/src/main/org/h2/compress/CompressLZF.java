@@ -113,6 +113,7 @@ public final class CompressLZF implements Compressor {
      */
     private int[] cachedHashTable;
 
+    @Override
     public void setOptions(String options) {
         // nothing to do
     }
@@ -154,6 +155,7 @@ public final class CompressLZF implements Compressor {
         return ((h * 2777) >> 9) & (HASH_SIZE - 1);
     }
 
+    @Override
     public int compress(byte[] in, int inLen, byte[] out, int outPos) {
         int inPos = 0;
         if (cachedHashTable == null) {
@@ -361,6 +363,7 @@ public final class CompressLZF implements Compressor {
         return outPos;
     }
 
+    @Override
     public void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen) {
         // if ((inPos | outPos | outLen) < 0) {
         if (inPos < 0 || outPos < 0 || outLen < 0) {
@@ -458,6 +461,7 @@ public final class CompressLZF implements Compressor {
         } while (out.position() < out.capacity());
     }
 
+    @Override
     public int getAlgorithm() {
         return Compressor.LZF;
     }

@@ -21,19 +21,23 @@ public class ValueStringIgnoreCase extends ValueString {
         super(value);
     }
 
+    @Override
     public int getType() {
         return Value.STRING_IGNORECASE;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueStringIgnoreCase v = (ValueStringIgnoreCase) o;
         return mode.compareString(value, v.value, true);
     }
 
+    @Override
     public boolean equals(Object other) {
         return other instanceof ValueString && value.equalsIgnoreCase(((ValueString) other).value);
     }
 
+    @Override
     public int hashCode() {
         if (hash == 0) {
             // this is locale sensitive
@@ -42,6 +46,7 @@ public class ValueStringIgnoreCase extends ValueString {
         return hash;
     }
 
+    @Override
     public String getSQL() {
         return "CAST(" + StringUtils.quoteStringSQL(value) + " AS VARCHAR_IGNORECASE)";
     }
@@ -70,6 +75,7 @@ public class ValueStringIgnoreCase extends ValueString {
         return obj;
     }
 
+    @Override
     protected ValueString getNew(String s) {
         return ValueStringIgnoreCase.get(s);
     }

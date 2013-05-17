@@ -93,6 +93,7 @@ public class ShowProgress implements DatabaseEventListener {
      * @param e the exception
      * @param sql the SQL statement
      */
+    @Override
     public void exceptionThrown(SQLException e, String sql) {
         System.out.println("Error executing " + sql);
         e.printStackTrace();
@@ -106,6 +107,7 @@ public class ShowProgress implements DatabaseEventListener {
      * @param current the current progress
      * @param max the 100% mark
      */
+    @Override
     public void setProgress(int state, String name, int current, int max) {
         long time = System.currentTimeMillis();
         if (time < last + 5000) {
@@ -138,6 +140,7 @@ public class ShowProgress implements DatabaseEventListener {
     /**
      * This method is called when the database is closed.
      */
+    @Override
     public void closingDatabase() {
         System.out.println("Closing the database");
     }
@@ -147,6 +150,7 @@ public class ShowProgress implements DatabaseEventListener {
      *
      * @param url the database URL
      */
+    @Override
     public void init(String url) {
         System.out.println("Initializing the event listener for database " + url);
     }
@@ -154,6 +158,7 @@ public class ShowProgress implements DatabaseEventListener {
     /**
      * This method is called when the database is open.
      */
+    @Override
     public void opened() {
         // do nothing
     }

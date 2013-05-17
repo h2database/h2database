@@ -50,6 +50,7 @@ public class JdbcDataSourceFactory implements ObjectFactory {
      * @return the new JdbcDataSource, or null if the reference class name is
      *         not JdbcDataSource.
      */
+    @Override
     public synchronized Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable<?, ?> environment) {
         if (trace.isDebugEnabled()) {
             trace.debug("getObjectInstance obj={0} name={1} nameCtx={2} environment={3}", obj, name, nameCtx, environment);

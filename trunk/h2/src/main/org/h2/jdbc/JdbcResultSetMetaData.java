@@ -43,6 +43,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the number of columns
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public int getColumnCount() throws SQLException {
         try {
             debugCodeCall("getColumnCount");
@@ -60,6 +61,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the column label
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public String getColumnLabel(int column) throws SQLException {
         try {
             debugCodeCall("getColumnLabel", column);
@@ -77,6 +79,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the column name
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public String getColumnName(int column) throws SQLException {
         try {
             debugCodeCall("getColumnName", column);
@@ -95,6 +98,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the data type
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public int getColumnType(int column) throws SQLException {
         try {
             debugCodeCall("getColumnType", column);
@@ -113,6 +117,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the data type name
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public String getColumnTypeName(int column) throws SQLException {
         try {
             debugCodeCall("getColumnTypeName", column);
@@ -131,6 +136,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the schema name, or "" (an empty string) if not applicable
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public String getSchemaName(int column) throws SQLException {
         try {
             debugCodeCall("getSchemaName", column);
@@ -149,6 +155,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the table name
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public String getTableName(int column) throws SQLException {
         try {
             debugCodeCall("getTableName", column);
@@ -167,6 +174,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the catalog name
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public String getCatalogName(int column) throws SQLException {
         try {
             debugCodeCall("getCatalogName", column);
@@ -184,6 +192,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return false
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public boolean isAutoIncrement(int column) throws SQLException {
         try {
             debugCodeCall("isAutoIncrement", column);
@@ -202,6 +211,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return true
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public boolean isCaseSensitive(int column) throws SQLException {
         try {
             debugCodeCall("isCaseSensitive", column);
@@ -220,6 +230,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return true
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public boolean isSearchable(int column) throws SQLException {
         try {
             debugCodeCall("isSearchable", column);
@@ -238,6 +249,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return false
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public boolean isCurrency(int column) throws SQLException {
         try {
             debugCodeCall("isCurrency", column);
@@ -259,6 +271,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return ResultSetMetaData.column*
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public int isNullable(int column) throws SQLException {
         try {
             debugCodeCall("isNullable", column);
@@ -277,6 +290,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return true
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public boolean isSigned(int column) throws SQLException {
         try {
             debugCodeCall("isSigned", column);
@@ -295,6 +309,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return false
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public boolean isReadOnly(int column) throws SQLException {
         try {
             debugCodeCall("isReadOnly", column);
@@ -313,6 +328,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return true
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public boolean isWritable(int column) throws SQLException {
         try {
             debugCodeCall("isWritable", column);
@@ -331,6 +347,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return false
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public boolean isDefinitelyWritable(int column) throws SQLException {
         try {
             debugCodeCall("isDefinitelyWritable", column);
@@ -349,6 +366,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the Java class name
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public String getColumnClassName(int column) throws SQLException {
         try {
             debugCodeCall("getColumnClassName", column);
@@ -367,6 +385,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the precision
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public int getPrecision(int column) throws SQLException {
         try {
             debugCodeCall("getPrecision", column);
@@ -385,6 +404,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the scale
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public int getScale(int column) throws SQLException {
         try {
             debugCodeCall("getScale", column);
@@ -402,6 +422,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
      * @return the display size
      * @throws SQLException if the result set is closed or invalid
      */
+    @Override
     public int getColumnDisplaySize(int column) throws SQLException {
         try {
             debugCodeCall("getColumnDisplaySize", column);
@@ -431,6 +452,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
     /**
      * [Not supported] Return an object of this class if possible.
      */
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw unsupported("unwrap");
     }
@@ -438,6 +460,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      */
+    @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw unsupported("isWrapperFor");
     }
@@ -445,6 +468,7 @@ public class JdbcResultSetMetaData extends TraceObject implements ResultSetMetaD
     /**
      * INTERNAL
      */
+    @Override
     public String toString() {
         return getTraceObjectName() + ": columns=" + columnCount;
     }

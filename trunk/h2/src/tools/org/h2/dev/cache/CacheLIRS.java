@@ -101,6 +101,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
     /**
      * Remove all entries.
      */
+    @Override
     public void clear() {
         long max = Math.max(1, maxMemory / segmentCount);
         for (int i = 0; i < segmentCount; i++) {
@@ -121,6 +122,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param key the key (may not be null)
      * @return true if there is a resident entry
      */
+    @Override
     public boolean containsKey(Object key) {
         int hash = getHash(key);
         return getSegment(hash).containsKey(key, hash);
@@ -160,6 +162,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param value the value (may not be null)
      * @return the old value, or null if there was no resident entry
      */
+    @Override
     public V put(K key, V value) {
         return put(key, value, sizeOf(key, value));
     }
@@ -183,6 +186,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param key the key (may not be null)
      * @return the old value, or null if there was no resident entry
      */
+    @Override
     public synchronized V remove(Object key) {
         int hash = getHash(key);
         return getSegment(hash).remove(key, hash);
@@ -207,6 +211,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param key the key (may not be null)
      * @return the value, or null if there is no resident entry
      */
+    @Override
     public V get(Object key) {
         int hash = getHash(key);
         return getSegment(hash).get(key, hash);
@@ -308,6 +313,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      *
      * @return the entry set
      */
+    @Override
     public synchronized Set<Map.Entry<K, V>> entrySet() {
         HashMap<K, V> map = new HashMap<K, V>();
         for (K k : keySet()) {
@@ -321,6 +327,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      *
      * @return the set of keys
      */
+    @Override
     public synchronized Set<K> keySet() {
         HashSet<K> set = new HashSet<K>();
         for (Segment<K, V> s : segments) {
@@ -373,6 +380,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      *
      * @return the number of entries
      */
+    @Override
     public int size() {
         int x = 0;
         for (Segment<K, V> s : segments) {

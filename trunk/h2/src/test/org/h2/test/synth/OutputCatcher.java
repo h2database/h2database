@@ -49,6 +49,7 @@ public class OutputCatcher extends Thread {
         }
     }
 
+    @Override
     public void run() {
         StringBuilder buff = new StringBuilder();
         while (true) {

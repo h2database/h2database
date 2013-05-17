@@ -39,6 +39,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      *
      * @return the number
      */
+    @Override
     public int getParameterCount() throws SQLException {
         try {
             debugCodeCall("getParameterCount");
@@ -56,6 +57,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      * @param param the column index (1,2,...)
      * @return parameterModeIn
      */
+    @Override
     public int getParameterMode(int param) throws SQLException {
         try {
             debugCodeCall("getParameterMode", param);
@@ -73,6 +75,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      * @param param the column index (1,2,...)
      * @return the data type
      */
+    @Override
     public int getParameterType(int param) throws SQLException {
         try {
             debugCodeCall("getParameterType", param);
@@ -94,6 +97,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      * @param param the column index (1,2,...)
      * @return the precision
      */
+    @Override
     public int getPrecision(int param) throws SQLException {
         try {
             debugCodeCall("getPrecision", param);
@@ -111,6 +115,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      * @param param the column index (1,2,...)
      * @return the scale
      */
+    @Override
     public int getScale(int param) throws SQLException {
         try {
             debugCodeCall("getScale", param);
@@ -128,6 +133,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      * @param param the column index (1,2,...)
      * @return ResultSetMetaData.columnNullableUnknown
      */
+    @Override
     public int isNullable(int param) throws SQLException {
         try {
             debugCodeCall("isNullable", param);
@@ -144,6 +150,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      * @param param the column index (1,2,...)
      * @return true
      */
+    @Override
     public boolean isSigned(int param) throws SQLException {
         try {
             debugCodeCall("isSigned", param);
@@ -161,6 +168,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      * @param param the column index (1,2,...)
      * @return the Java class name
      */
+    @Override
     public String getParameterClassName(int param) throws SQLException {
         try {
             debugCodeCall("getParameterClassName", param);
@@ -182,6 +190,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
      * @param param the column index (1,2,...)
      * @return the type name
      */
+    @Override
     public String getParameterTypeName(int param) throws SQLException {
         try {
             debugCodeCall("getParameterTypeName", param);
@@ -211,6 +220,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
     /**
      * [Not supported] Return an object of this class if possible.
      */
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw unsupported("unwrap");
     }
@@ -218,6 +228,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      */
+    @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw unsupported("isWrapperFor");
     }
@@ -225,6 +236,7 @@ public class JdbcParameterMetaData extends TraceObject implements ParameterMetaD
     /**
      * INTERNAL
      */
+    @Override
     public String toString() {
         return getTraceObjectName() + ": parameterCount=" + paramCount;
     }

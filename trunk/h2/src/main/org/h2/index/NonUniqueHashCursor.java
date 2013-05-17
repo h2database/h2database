@@ -31,6 +31,7 @@ public class NonUniqueHashCursor implements Cursor {
         this.positions = positions;
     }
 
+    @Override
     public Row get() {
         if (index < 0 || index >= positions.size()) {
             return null;
@@ -38,14 +39,17 @@ public class NonUniqueHashCursor implements Cursor {
         return tableData.getRow(session, positions.get(index));
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return get();
     }
 
+    @Override
     public boolean next() {
         return positions != null && ++index < positions.size();
     }
 
+    @Override
     public boolean previous() {
         return positions != null && --index >= 0;
     }

@@ -28,6 +28,7 @@ public class TestSort extends TestBase {
      * The comparison object used in this test.
      */
     Comparator<Long> comp = new Comparator<Long>() {
+        @Override
         public int compare(Long o1, Long o2) {
             compareCount.incrementAndGet();
             return Long.valueOf(o1 >> 32).compareTo(o2 >> 32);
@@ -46,6 +47,7 @@ public class TestSort extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         test(InPlaceStableMergeSort.class);
         test(InPlaceStableQuicksort.class);

@@ -49,6 +49,7 @@ public class Delete extends Prepared {
         this.condition = condition;
     }
 
+    @Override
     public int update() {
         tableFilter.startQuery(session);
         tableFilter.reset();
@@ -106,6 +107,7 @@ public class Delete extends Prepared {
         }
     }
 
+    @Override
     public String getPlanSQL() {
         StringBuilder buff = new StringBuilder();
         buff.append("DELETE ");
@@ -119,6 +121,7 @@ public class Delete extends Prepared {
         return buff.toString();
     }
 
+    @Override
     public void prepare() {
         if (condition != null) {
             condition.mapColumns(tableFilter, 0);
@@ -130,14 +133,17 @@ public class Delete extends Prepared {
         tableFilter.prepare();
     }
 
+    @Override
     public boolean isTransactional() {
         return true;
     }
 
+    @Override
     public ResultInterface queryMeta() {
         return null;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DELETE;
     }
@@ -146,6 +152,7 @@ public class Delete extends Prepared {
         this.limitExpr = limit;
     }
 
+    @Override
     public boolean isCacheable() {
         return true;
     }

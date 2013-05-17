@@ -67,6 +67,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *         commit or rollback)
      * @throws SQLException if this object is closed or invalid
      */
+    @Override
     public int executeUpdate() throws SQLException {
         try {
             checkClosed();
@@ -86,6 +87,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param sqlType the data type (Types.x) - ignored
      */
+    @Override
     public void registerOutParameter(int parameterIndex, int sqlType) throws SQLException {
         registerOutParameter(parameterIndex);
     }
@@ -97,6 +99,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param sqlType the data type (Types.x) - ignored
      * @param typeName the SQL type name - ignored
      */
+    @Override
     public void registerOutParameter(int parameterIndex, int sqlType, String typeName) throws SQLException {
         registerOutParameter(parameterIndex);
     }
@@ -108,6 +111,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param sqlType the data type (Types.x)
      * @param scale is ignored
      */
+    @Override
     public void registerOutParameter(int parameterIndex, int sqlType, int scale) throws SQLException {
         registerOutParameter(parameterIndex);
     }
@@ -119,6 +123,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param sqlType the data type (Types.x) - ignored
      * @param typeName the SQL type name - ignored
      */
+    @Override
     public void registerOutParameter(String parameterName, int sqlType, String typeName) throws SQLException {
         registerOutParameter(getIndexForName(parameterName), sqlType, typeName);
     }
@@ -130,6 +135,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param sqlType the data type (Types.x) - ignored
      * @param scale is ignored
      */
+    @Override
     public void registerOutParameter(String parameterName, int sqlType, int scale) throws SQLException {
         registerOutParameter(getIndexForName(parameterName), sqlType, scale);
     }
@@ -140,6 +146,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param parameterName the parameter name
      * @param sqlType the data type (Types.x) - ignored
      */
+    @Override
     public void registerOutParameter(String parameterName, int sqlType) throws SQLException {
         registerOutParameter(getIndexForName(parameterName), sqlType);
     }
@@ -149,6 +156,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @return true if the last column accessed was null
      */
+    @Override
     public boolean wasNull() throws SQLException {
         return getOpenResultSet().wasNull();
     }
@@ -156,6 +164,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
+    @Override
     public URL getURL(int parameterIndex) throws SQLException {
         throw unsupported("url");
     }
@@ -167,6 +176,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public String getString(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getString(parameterIndex);
@@ -180,6 +190,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public boolean getBoolean(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getBoolean(parameterIndex);
@@ -193,6 +204,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public byte getByte(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getByte(parameterIndex);
@@ -206,6 +218,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public short getShort(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getShort(parameterIndex);
@@ -218,6 +231,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public int getInt(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getInt(parameterIndex);
@@ -231,6 +245,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public long getLong(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getLong(parameterIndex);
@@ -244,6 +259,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public float getFloat(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getFloat(parameterIndex);
@@ -257,6 +273,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public double getDouble(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getDouble(parameterIndex);
@@ -273,6 +290,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public BigDecimal getBigDecimal(int parameterIndex, int scale) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getBigDecimal(parameterIndex, scale);
@@ -286,6 +304,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public byte[] getBytes(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getBytes(parameterIndex);
@@ -298,6 +317,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public Date getDate(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getDate(parameterIndex);
@@ -310,6 +330,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public Time getTime(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getTime(parameterIndex);
@@ -322,6 +343,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public Timestamp getTimestamp(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getTimestamp(parameterIndex);
@@ -336,6 +358,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Object getObject(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getObject(parameterIndex);
@@ -348,6 +371,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public BigDecimal getBigDecimal(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getBigDecimal(parameterIndex);
@@ -357,6 +381,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported] Gets a column as a object using the specified type
      * mapping.
      */
+    @Override
     public Object getObject(int parameterIndex, Map<String, Class<?>> map) throws SQLException {
         throw unsupported("map");
     }
@@ -364,6 +389,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported] Gets a column as a reference.
      */
+    @Override
     public Ref getRef(int parameterIndex) throws SQLException {
         throw unsupported("ref");
     }
@@ -376,6 +402,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Blob getBlob(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getBlob(parameterIndex);
@@ -389,6 +416,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Clob getClob(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getClob(parameterIndex);
@@ -402,6 +430,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Array getArray(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getArray(parameterIndex);
@@ -417,6 +446,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Date getDate(int parameterIndex, Calendar cal) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getDate(parameterIndex, cal);
@@ -432,6 +462,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Time getTime(int parameterIndex, Calendar cal) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getTime(parameterIndex, cal);
@@ -447,6 +478,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Timestamp getTimestamp(int parameterIndex, Calendar cal) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getTimestamp(parameterIndex, cal);
@@ -455,6 +487,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
+    @Override
     public URL getURL(String parameterName) throws SQLException {
         throw unsupported("url");
     }
@@ -469,6 +502,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Timestamp getTimestamp(String parameterName, Calendar cal) throws SQLException {
         return getTimestamp(getIndexForName(parameterName), cal);
     }
@@ -483,6 +517,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Time getTime(String parameterName, Calendar cal) throws SQLException {
         return getTime(getIndexForName(parameterName), cal);
     }
@@ -496,6 +531,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public Date getDate(String parameterName, Calendar cal) throws SQLException {
         return getDate(getIndexForName(parameterName), cal);
     }
@@ -508,6 +544,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Array getArray(String parameterName) throws SQLException {
         return getArray(getIndexForName(parameterName));
     }
@@ -520,6 +557,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Clob getClob(String parameterName) throws SQLException {
         return getClob(getIndexForName(parameterName));
     }
@@ -532,6 +570,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Blob getBlob(String parameterName) throws SQLException {
         return getBlob(getIndexForName(parameterName));
     }
@@ -539,6 +578,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported] Gets a column as a reference.
      */
+    @Override
     public Ref getRef(String parameterName) throws SQLException {
         throw unsupported("ref");
     }
@@ -547,6 +587,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * [Not supported] Gets a column as a object using the specified type
      * mapping.
      */
+    @Override
     public Object getObject(String parameterName, Map<String, Class<?>> map) throws SQLException {
         throw unsupported("map");
     }
@@ -559,6 +600,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public BigDecimal getBigDecimal(String parameterName) throws SQLException {
         return getBigDecimal(getIndexForName(parameterName));
     }
@@ -572,6 +614,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Object getObject(String parameterName) throws SQLException {
         return getObject(getIndexForName(parameterName));
     }
@@ -584,6 +627,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Timestamp getTimestamp(String parameterName) throws SQLException {
         return getTimestamp(getIndexForName(parameterName));
     }
@@ -596,6 +640,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Time getTime(String parameterName) throws SQLException {
         return getTime(getIndexForName(parameterName));
     }
@@ -607,6 +652,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public Date getDate(String parameterName) throws SQLException {
         return getDate(getIndexForName(parameterName));
     }
@@ -619,6 +665,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public byte[] getBytes(String parameterName) throws SQLException {
         return getBytes(getIndexForName(parameterName));
     }
@@ -631,6 +678,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public double getDouble(String parameterName) throws SQLException {
         return getDouble(getIndexForName(parameterName));
     }
@@ -643,6 +691,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public float getFloat(String parameterName) throws SQLException {
         return getFloat(getIndexForName(parameterName));
     }
@@ -655,6 +704,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public long getLong(String parameterName) throws SQLException {
         return getLong(getIndexForName(parameterName));
     }
@@ -666,6 +716,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public int getInt(String parameterName) throws SQLException {
         return getInt(getIndexForName(parameterName));
     }
@@ -678,6 +729,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public short getShort(String parameterName) throws SQLException {
         return getShort(getIndexForName(parameterName));
     }
@@ -690,6 +742,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public byte getByte(String parameterName) throws SQLException {
         return getByte(getIndexForName(parameterName));
     }
@@ -702,6 +755,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public boolean getBoolean(String parameterName) throws SQLException {
         return getBoolean(getIndexForName(parameterName));
     }
@@ -713,6 +767,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public String getString(String parameterName) throws SQLException {
         return getString(getIndexForName(parameterName));
     }
@@ -722,6 +777,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      */
+    @Override
     public RowId getRowId(int parameterIndex) throws SQLException {
         throw unsupported("rowId");
     }
@@ -731,6 +787,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      *
      * @param parameterName the parameter name
      */
+    @Override
     public RowId getRowId(String parameterName) throws SQLException {
         throw unsupported("rowId");
     }
@@ -742,6 +799,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public NClob getNClob(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getNClob(parameterIndex);
@@ -754,6 +812,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @return the value
      * @throws SQLException if the column is not found or if the result set is closed
      */
+    @Override
     public NClob getNClob(String parameterName) throws SQLException {
         return getNClob(getIndexForName(parameterName));
     }
@@ -761,6 +820,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported] Returns the value of the specified column as a SQLXML object.
      */
+    @Override
     public SQLXML getSQLXML(int parameterIndex) throws SQLException {
         throw unsupported("SQLXML");
     }
@@ -768,6 +828,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported] Returns the value of the specified column as a SQLXML object.
      */
+    @Override
     public SQLXML getSQLXML(String parameterName) throws SQLException {
         throw unsupported("SQLXML");
     }
@@ -780,6 +841,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public String getNString(int parameterIndex) throws SQLException {
         checkRegistered(parameterIndex);
         return getOpenResultSet().getNString(parameterIndex);
@@ -793,6 +855,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public String getNString(String parameterName) throws SQLException {
         return getNString(getIndexForName(parameterName));
     }
@@ -805,6 +868,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Reader getNCharacterStream(int parameterIndex)
             throws SQLException {
         checkRegistered(parameterIndex);
@@ -819,6 +883,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Reader getNCharacterStream(String parameterName)
             throws SQLException {
         return getNCharacterStream(getIndexForName(parameterName));
@@ -832,6 +897,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Reader getCharacterStream(int parameterIndex)
             throws SQLException {
         checkRegistered(parameterIndex);
@@ -846,6 +912,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Override
     public Reader getCharacterStream(String parameterName)
             throws SQLException {
         return getCharacterStream(getIndexForName(parameterName));
@@ -861,6 +928,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param typeName this parameter is ignored
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setNull(String parameterName, int sqlType, String typeName) throws SQLException {
         setNull(getIndexForName(parameterName), sqlType, typeName);
     }
@@ -872,6 +940,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param sqlType the data type (Types.x)
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setNull(String parameterName, int sqlType) throws SQLException {
         setNull(getIndexForName(parameterName), sqlType);
     }
@@ -885,6 +954,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param cal the calendar
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setTimestamp(String parameterName, Timestamp x, Calendar cal) throws SQLException {
         setTimestamp(getIndexForName(parameterName), x, cal);
     }
@@ -898,6 +968,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param cal the calendar
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setTime(String parameterName, Time x, Calendar cal) throws SQLException {
         setTime(getIndexForName(parameterName), x, cal);
     }
@@ -911,6 +982,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param cal the calendar
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setDate(String parameterName, Date x, Calendar cal) throws SQLException {
         setDate(getIndexForName(parameterName), x, cal);
     }
@@ -925,6 +997,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setCharacterStream(String parameterName, Reader x, int length) throws SQLException {
         setCharacterStream(getIndexForName(parameterName), x, length);
     }
@@ -937,6 +1010,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setObject(String parameterName, Object x) throws SQLException {
         setObject(getIndexForName(parameterName), x);
     }
@@ -951,6 +1025,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param targetSqlType the type as defined in java.sql.Types
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setObject(String parameterName, Object x, int targetSqlType) throws SQLException {
         setObject(getIndexForName(parameterName), x, targetSqlType);
     }
@@ -966,6 +1041,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param scale is ignored
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setObject(String parameterName, Object x, int targetSqlType, int scale) throws SQLException {
         setObject(getIndexForName(parameterName), x, targetSqlType, scale);
     }
@@ -980,6 +1056,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBinaryStream(String parameterName, InputStream x, int length) throws SQLException {
         setBinaryStream(getIndexForName(parameterName), x, length);
     }
@@ -994,6 +1071,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setAsciiStream(String parameterName,
             InputStream x, long length) throws SQLException {
         setAsciiStream(getIndexForName(parameterName), x, length);
@@ -1006,6 +1084,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setTimestamp(String parameterName, Timestamp x) throws SQLException {
         setTimestamp(getIndexForName(parameterName), x);
     }
@@ -1017,6 +1096,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setTime(String parameterName, Time x) throws SQLException {
         setTime(getIndexForName(parameterName), x);
     }
@@ -1028,6 +1108,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setDate(String parameterName, Date x) throws SQLException {
         setDate(getIndexForName(parameterName), x);
     }
@@ -1039,6 +1120,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBytes(String parameterName, byte[] x) throws SQLException {
         setBytes(getIndexForName(parameterName), x);
     }
@@ -1050,6 +1132,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setString(String parameterName, String x) throws SQLException {
         setString(getIndexForName(parameterName), x);
     }
@@ -1061,6 +1144,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBigDecimal(String parameterName, BigDecimal x) throws SQLException {
         setBigDecimal(getIndexForName(parameterName), x);
     }
@@ -1072,6 +1156,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setDouble(String parameterName, double x) throws SQLException {
         setDouble(getIndexForName(parameterName), x);
     }
@@ -1083,6 +1168,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setFloat(String parameterName, float x) throws SQLException {
         setFloat(getIndexForName(parameterName), x);
     }
@@ -1094,6 +1180,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setLong(String parameterName, long x) throws SQLException {
         setLong(getIndexForName(parameterName), x);
     }
@@ -1105,6 +1192,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setInt(String parameterName, int x) throws SQLException {
         setInt(getIndexForName(parameterName), x);
     }
@@ -1116,6 +1204,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setShort(String parameterName, short x) throws SQLException {
         setShort(getIndexForName(parameterName), x);
     }
@@ -1127,6 +1216,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setByte(String parameterName, byte x) throws SQLException {
         setByte(getIndexForName(parameterName), x);
     }
@@ -1138,6 +1228,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBoolean(String parameterName, boolean x) throws SQLException {
         setBoolean(getIndexForName(parameterName), x);
     }
@@ -1145,6 +1236,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported]
      */
+    @Override
     public void setURL(String parameterName, URL val) throws SQLException {
         throw unsupported("url");
     }
@@ -1152,6 +1244,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported] Sets the value of a parameter as a row id.
      */
+    @Override
     public void setRowId(String parameterName, RowId x)
             throws SQLException {
         throw unsupported("rowId");
@@ -1164,6 +1257,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setNString(String parameterName, String x)
             throws SQLException {
         setNString(getIndexForName(parameterName), x);
@@ -1179,6 +1273,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setNCharacterStream(String parameterName,
             Reader x, long length) throws SQLException {
         setNCharacterStream(getIndexForName(parameterName), x, length);
@@ -1191,6 +1286,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setNClob(String parameterName, NClob x)
             throws SQLException {
         setNClob(getIndexForName(parameterName), x);
@@ -1206,6 +1302,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setClob(String parameterName, Reader x,
             long length) throws SQLException {
         setClob(getIndexForName(parameterName), x, length);
@@ -1221,6 +1318,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBlob(String parameterName, InputStream x,
             long length) throws SQLException {
         setBlob(getIndexForName(parameterName), x, length);
@@ -1236,6 +1334,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setNClob(String parameterName, Reader x,
             long length) throws SQLException {
         setNClob(getIndexForName(parameterName), x, length);
@@ -1248,6 +1347,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBlob(String parameterName, Blob x)
             throws SQLException {
         setBlob(getIndexForName(parameterName), x);
@@ -1260,6 +1360,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setClob(String parameterName, Clob x) throws SQLException {
         setClob(getIndexForName(parameterName), x);
     }
@@ -1273,6 +1374,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setAsciiStream(String parameterName, InputStream x)
             throws SQLException {
         setAsciiStream(getIndexForName(parameterName), x);
@@ -1288,6 +1390,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setAsciiStream(String parameterName,
             InputStream x, int length) throws SQLException {
         setAsciiStream(getIndexForName(parameterName), x, length);
@@ -1302,6 +1405,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBinaryStream(String parameterName,
             InputStream x) throws SQLException {
         setBinaryStream(getIndexForName(parameterName), x);
@@ -1317,6 +1421,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of bytes
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBinaryStream(String parameterName,
             InputStream x, long length) throws SQLException {
         setBinaryStream(getIndexForName(parameterName), x, length);
@@ -1331,6 +1436,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setBlob(String parameterName, InputStream x)
             throws SQLException {
         setBlob(getIndexForName(parameterName), x);
@@ -1345,6 +1451,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setCharacterStream(String parameterName, Reader x)
             throws SQLException {
         setCharacterStream(getIndexForName(parameterName), x);
@@ -1360,6 +1467,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param length the maximum number of characters
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setCharacterStream(String parameterName,
             Reader x, long length) throws SQLException {
         setCharacterStream(getIndexForName(parameterName), x, length);
@@ -1374,6 +1482,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setClob(String parameterName, Reader x) throws SQLException {
         setClob(getIndexForName(parameterName), x);
     }
@@ -1387,6 +1496,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setNCharacterStream(String parameterName, Reader x)
             throws SQLException {
         setNCharacterStream(getIndexForName(parameterName), x);
@@ -1401,6 +1511,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
      * @param x the value
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setNClob(String parameterName, Reader x)
             throws SQLException {
         setNClob(getIndexForName(parameterName), x);
@@ -1409,6 +1520,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
     /**
      * [Not supported] Sets the value of a parameter as a SQLXML object.
      */
+    @Override
     public void setSQLXML(String parameterName, SQLXML x)
             throws SQLException {
         throw unsupported("SQLXML");

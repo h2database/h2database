@@ -32,6 +32,7 @@ public class TestMultiDimension extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws SQLException {
         testHelperMethods();
         testPerformance2d();

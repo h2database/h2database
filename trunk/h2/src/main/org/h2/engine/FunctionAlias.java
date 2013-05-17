@@ -183,14 +183,17 @@ public class FunctionAlias extends SchemaObjectBase {
         return buff.append(')').toString();
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public String getDropSQL() {
         return "DROP ALIAS IF EXISTS " + getSQL();
     }
 
+    @Override
     public String getSQL() {
         // TODO can remove this method once FUNCTIONS_IN_SCHEMA is enabled
         if (database.getSettings().functionsInSchema || !getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
@@ -199,6 +202,7 @@ public class FunctionAlias extends SchemaObjectBase {
         return Parser.quoteIdentifier(getName());
     }
 
+    @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("CREATE FORCE ALIAS ");
         buff.append(getSQL());
@@ -213,10 +217,12 @@ public class FunctionAlias extends SchemaObjectBase {
         return buff.toString();
     }
 
+    @Override
     public int getType() {
         return DbObject.FUNCTION_ALIAS;
     }
 
+    @Override
     public synchronized void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
         className = null;
@@ -225,6 +231,7 @@ public class FunctionAlias extends SchemaObjectBase {
         invalidate();
     }
 
+    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("RENAME");
     }
@@ -304,6 +311,7 @@ public class FunctionAlias extends SchemaObjectBase {
             dataType = DataType.getTypeFromClass(returnClass);
         }
 
+        @Override
         public String toString() {
             return method.toString();
         }
@@ -446,6 +454,7 @@ public class FunctionAlias extends SchemaObjectBase {
             return varArgs;
         }
 
+        @Override
         public int compareTo(JavaMethod m) {
             if (varArgs != m.varArgs) {
                 return varArgs ? 1 : -1;

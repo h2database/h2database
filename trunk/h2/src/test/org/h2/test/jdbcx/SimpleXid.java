@@ -42,22 +42,27 @@ public class SimpleXid implements Xid {
         return new SimpleXid(formatId, bq, gt);
     }
 
+    @Override
     public byte[] getBranchQualifier() {
         return branchQualifier;
     }
 
+    @Override
     public int getFormatId() {
         return formatId;
     }
 
+    @Override
     public byte[] getGlobalTransactionId() {
         return globalTransactionId;
     }
 
+    @Override
     public int hashCode() {
         return formatId;
     }
 
+    @Override
     public boolean equals(Object other) {
         if (other instanceof Xid) {
             Xid xid = (Xid) other;
@@ -72,6 +77,7 @@ public class SimpleXid implements Xid {
         return false;
     }
 
+    @Override
     public String toString() {
         return "xid:" + formatId;
     }

@@ -34,6 +34,7 @@ public class TestSampleApps extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (!getBaseDir().startsWith(TestBase.BASE_TEST_DIR)) {
             return;

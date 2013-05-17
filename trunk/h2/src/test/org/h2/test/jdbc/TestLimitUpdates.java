@@ -28,6 +28,7 @@ public class TestLimitUpdates extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testLimitUpdates();
         deleteDb(DATABASE_NAME);

@@ -93,6 +93,7 @@ public class CreateTable extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
+    @Override
     public int update() {
         if (!transactional) {
             session.commit(true);
@@ -291,6 +292,7 @@ public class CreateTable extends SchemaCommand {
         data.isHidden = isHidden;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_TABLE;
     }

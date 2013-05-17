@@ -43,6 +43,7 @@ public class Plan {
         for (int i = 0; i < count; i++) {
             TableFilter f = filters[i];
             f.visit(new TableFilterVisitor() {
+                @Override
                 public void accept(TableFilter f) {
                     all.add(f);
                     if (f.getJoinCondition() != null) {

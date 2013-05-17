@@ -21,14 +21,17 @@ class RuleRepeat implements Rule {
         this.comma = comma;
     }
 
+    @Override
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleRepeat(comma, rule);
     }
 
+    @Override
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // not required, because it's already linked
     }
 
+    @Override
     public boolean autoComplete(Sentence sentence) {
         sentence.stopIfRequired();
         while (rule.autoComplete(sentence)) {

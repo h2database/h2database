@@ -28,6 +28,7 @@ public class TestTransactionIsolation extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.mvcc) {
             // no tests yet

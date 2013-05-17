@@ -42,15 +42,18 @@ public class PageInputStream extends InputStream {
         this.dataPage = dataPage;
     }
 
+    @Override
     public int read() throws IOException {
         int len = read(buffer);
         return len < 0 ? -1 : (buffer[0] & 255);
     }
 
+    @Override
     public int read(byte[] b) throws IOException {
         return read(b, 0, b.length);
     }
 
+    @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (len == 0) {
             return 0;
@@ -160,6 +163,7 @@ public class PageInputStream extends InputStream {
         return data.getPos();
     }
 
+    @Override
     public void close() {
         // nothing to do
     }

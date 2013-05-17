@@ -42,6 +42,7 @@ public class TestMultiThreadedKernel extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (config.mvcc) {
             return;
@@ -56,6 +57,7 @@ public class TestMultiThreadedKernel extends TestBase {
         Thread[] threads = new Thread[len];
         for (int i = 0; i < len; i++) {
             threads[i] = new Thread(new Runnable() {
+                @Override
                 public void run() {
                     Connection conn = null;
                     try {
@@ -108,6 +110,7 @@ public class TestMultiThreadedKernel extends TestBase {
             }
             final Random random = new Random(i);
             Task t = new Task() {
+                @Override
                 public void call() throws Exception {
                     PreparedStatement prep = conn.prepareStatement(
                             "select * from test where id = ?");
@@ -146,6 +149,7 @@ public class TestMultiThreadedKernel extends TestBase {
             }
             final Random random = new Random(i);
             Task t = new Task() {
+                @Override
                 public void call() throws SQLException {
                     PreparedStatement prep = conn.prepareStatement(
                             "select * from test where id = ?");

@@ -30,6 +30,7 @@ public class SelfDestructor extends Thread {
         final int minutes = Integer.parseInt(System.getProperty(PROPERTY_NAME, "" + defaultMinutes));
         if (minutes != 0) {
             Thread thread = new Thread() {
+                @Override
                 public void run() {
                     for (int i = minutes; i >= 0; i--) {
                         while (true) {

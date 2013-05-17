@@ -37,6 +37,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("trigger");
         testTriggerDeadlock();
@@ -56,6 +57,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
      * A trigger that deletes all rows in the test table.
      */
     public static class DeleteTrigger extends TriggerAdapter {
+        @Override
         public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
             conn.createStatement().execute("delete from test");
         }
@@ -76,6 +78,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn2.setAutoCommit(false);
         stat2.execute("update test set id = 2");
         Task task = new Task() {
+            @Override
             public void call() throws Exception {
                 Thread.sleep(300);
                 stat2.execute("update test2 set id = 4");
@@ -199,6 +202,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
      */
     public static class TestTriggerAdapter extends TriggerAdapter {
 
+        @Override
         public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
             StringBuilder buff = new StringBuilder();
             if (oldRow != null) {
@@ -245,11 +249,13 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
         PreparedStatement prepInsert;
 
+        @Override
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
                 int type) throws SQLException {
             prepInsert = conn.prepareStatement("insert into test values(?)");
         }
 
+        @Override
         public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
             if (newRow != null) {
                 prepInsert.setInt(1, (Integer) newRow[0]);
@@ -257,10 +263,12 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             }
         }
 
+        @Override
         public void close() {
             // ignore
         }
 
+        @Override
         public void remove() {
             // ignore
         }
@@ -306,6 +314,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
         PreparedStatement prepMeta;
 
+        @Override
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
                 int type) throws SQLException {
             prepMeta = conn.prepareStatement("insert into meta_tables " +
@@ -313,6 +322,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                     "where table_schema='PUBLIC'");
         }
 
+        @Override
         public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
             if (oldRow != null || newRow != null) {
                 throw new SQLException("old and new must be null");
@@ -321,10 +331,12 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             prepMeta.execute();
         }
 
+        @Override
         public void close() {
             // ignore
         }
 
+        @Override
         public void remove() {
             // ignore
         }
@@ -336,19 +348,23 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
      */
     public static class Test implements Trigger {
 
+        @Override
         public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
             conn.createStatement().execute("call seq.nextval");
         }
 
+        @Override
         public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before,
                 int type) {
             // nothing to do
         }
 
+        @Override
         public void close() {
             // ignore
         }
 
+        @Override
         public void remove() {
             // ignore
         }
@@ -504,6 +520,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
     }
 
+    @Override
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) throws SQLException {
         if (mustNotCallTrigger) {
             throw new AssertionError("must not be called now");
@@ -528,10 +545,12 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
     }
 
+    @Override
     public void close() {
         // ignore
     }
 
+    @Override
     public void remove() {
         // ignore
     }
@@ -542,6 +561,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                 execute("CREATE TABLE X(ID INT)");
     }
 
+    @Override
     public void init(Connection conn, String schemaName, String trigger, String tableName, boolean before, int type) {
         this.triggerName = trigger;
         if (!"TEST".equals(tableName)) {

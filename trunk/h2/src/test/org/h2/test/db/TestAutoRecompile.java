@@ -28,6 +28,7 @@ public class TestAutoRecompile extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         deleteDb("autoRecompile");
         Connection conn = getConnection("autoRecompile");

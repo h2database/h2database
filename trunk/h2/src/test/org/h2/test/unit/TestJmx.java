@@ -34,6 +34,7 @@ public class TestJmx extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         HashMap<String, MBeanAttributeInfo> attrMap;
         HashMap<String, MBeanOperationInfo> opMap;

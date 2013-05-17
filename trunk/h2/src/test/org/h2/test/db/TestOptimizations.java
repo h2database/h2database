@@ -37,6 +37,7 @@ public class TestOptimizations extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("optimizations");
         testAnalyzeLob();
@@ -130,6 +131,7 @@ public class TestOptimizations extends TestBase {
         Task[] tasks = new Task[2];
         for (int i = 0; i < tasks.length; i++) {
             tasks[i] = new Task() {
+                @Override
                 public void call() throws Exception {
                     PreparedStatement prep = conn.prepareStatement("select * from test where id = ?");
                     while (!stop) {

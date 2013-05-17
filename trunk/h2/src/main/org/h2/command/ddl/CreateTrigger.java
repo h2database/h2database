@@ -80,6 +80,7 @@ public class CreateTrigger extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -116,6 +117,7 @@ public class CreateTrigger extends SchemaCommand {
         this.onRollback = onRollback;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_TRIGGER;
     }

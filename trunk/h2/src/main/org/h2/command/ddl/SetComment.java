@@ -33,6 +33,7 @@ public class SetComment extends DefineCommand {
         super(session);
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -147,6 +148,7 @@ public class SetComment extends DefineCommand {
         this.column = column;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.COMMENT;
     }

@@ -29,44 +29,54 @@ public class ValueString extends Value {
         this.value = value;
     }
 
+    @Override
     public String getSQL() {
         return StringUtils.quoteStringSQL(value);
     }
 
+    @Override
     public boolean equals(Object other) {
         return other instanceof ValueString && value.equals(((ValueString) other).value);
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         // compatibility: the other object could be another type
         ValueString v = (ValueString) o;
         return mode.compareString(value, v.value, false);
     }
 
+    @Override
     public String getString() {
         return value;
     }
 
+    @Override
     public long getPrecision() {
         return value.length();
     }
 
+    @Override
     public Object getObject() {
         return value;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setString(parameterIndex, value);
     }
 
+    @Override
     public int getDisplaySize() {
         return value.length();
     }
 
+    @Override
     public int getMemory() {
         return value.length() * 2 + 48;
     }
 
+    @Override
     public Value convertPrecision(long precision, boolean force) {
         if (precision == 0 || value.length() <= precision) {
             return this;
@@ -75,6 +85,7 @@ public class ValueString extends Value {
         return getNew(value.substring(0, p));
     }
 
+    @Override
     public int hashCode() {
         // TODO hash performance: could build a quicker hash
         // by hashing the size and a few characters
@@ -106,6 +117,7 @@ public class ValueString extends Value {
 
     }
 
+    @Override
     public int getType() {
         return Value.STRING;
     }

@@ -38,22 +38,27 @@ public class PageDelegateIndex extends PageIndex {
         }
     }
 
+    @Override
     public void add(Session session, Row row) {
         // nothing to do
     }
 
+    @Override
     public boolean canFindNext() {
         return false;
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return true;
     }
 
+    @Override
     public void close(Session session) {
         // nothing to do
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         long min = mainIndex.getKey(first, Long.MIN_VALUE, Long.MIN_VALUE);
         // ifNull is MIN_VALUE as well, because the column is never NULL
@@ -62,6 +67,7 @@ public class PageDelegateIndex extends PageIndex {
         return mainIndex.find(session, min, max, false);
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         Cursor cursor;
         if (first) {
@@ -74,10 +80,12 @@ public class PageDelegateIndex extends PageIndex {
         return cursor;
     }
 
+    @Override
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public int getColumnIndex(Column col) {
         if (col.getColumnId() == mainIndex.getMainIndexColumn()) {
             return 0;
@@ -85,43 +93,53 @@ public class PageDelegateIndex extends PageIndex {
         return -1;
     }
 
+    @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session), sortOrder);
     }
 
+    @Override
     public boolean needRebuild() {
         return false;
     }
 
+    @Override
     public void remove(Session session, Row row) {
         // nothing to do
     }
 
+    @Override
     public void remove(Session session) {
         mainIndex.setMainIndexColumn(-1);
         session.getDatabase().getPageStore().removeMeta(this, session);
     }
 
+    @Override
     public void truncate(Session session) {
         // nothing to do
     }
 
+    @Override
     public void checkRename() {
         // ok
     }
 
+    @Override
     public long getRowCount(Session session) {
         return mainIndex.getRowCount(session);
     }
 
+    @Override
     public long getRowCountApproximation() {
         return mainIndex.getRowCountApproximation();
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return mainIndex.getDiskSpaceUsed();
     }
 
+    @Override
     public void writeRowCount() {
         // ignore
     }

@@ -42,6 +42,7 @@ public class DeleteDbFiles extends Tool {
         new DeleteDbFiles().runTool(args);
     }
 
+    @Override
     public void runTool(String... args) throws SQLException {
         String dir = ".";
         String db = null;

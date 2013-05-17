@@ -38,6 +38,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.networked || config.cipher != null) {
             return;
@@ -60,10 +61,12 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         deleteDb("listener");
     }
 
+    @Override
     public void exceptionThrown(SQLException e, String sql) {
         TestBase.logError("exceptionThrown sql=" + sql, e);
     }
 
+    @Override
     public void setProgress(int state, String name, int current, int max) {
         long time = System.currentTimeMillis();
         if (state == lastState && time < last + 1000) {
@@ -100,6 +103,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         printTime("state: " + stateName + " " + (100 * current / max) + " " + (time - start));
     }
 
+    @Override
     public void closingDatabase() {
         if (databaseUrl.toUpperCase().indexOf("CIPHER") >= 0) {
             return;
@@ -116,10 +120,12 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         }
     }
 
+    @Override
     public void init(String url) {
         this.databaseUrl = url;
     }
 
+    @Override
     public void opened() {
         if (databaseUrl.toUpperCase().indexOf("CIPHER") >= 0) {
             return;

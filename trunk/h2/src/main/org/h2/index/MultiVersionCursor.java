@@ -73,6 +73,7 @@ public class MultiVersionCursor implements Cursor {
         return reverse ? cursor.previous() : cursor.next();
     }
 
+    @Override
     public Row get() {
         synchronized (sync) {
             if (end) {
@@ -82,6 +83,7 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
+    @Override
     public SearchRow getSearchRow() {
         synchronized (sync) {
             if (end) {
@@ -91,6 +93,7 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
+    @Override
     public boolean next() {
         synchronized (sync) {
             if (SysProperties.CHECK && end) {
@@ -173,6 +176,7 @@ public class MultiVersionCursor implements Cursor {
         }
     }
 
+    @Override
     public boolean previous() {
         reverse = true;
         try {

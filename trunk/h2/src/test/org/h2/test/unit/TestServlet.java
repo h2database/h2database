@@ -51,10 +51,12 @@ public class TestServlet extends TestBase {
         private final Properties initParams = new Properties();
         private final HashMap<String, Object> attributes = New.hashMap();
 
+        @Override
         public void setAttribute(String key, Object value) {
             attributes.put(key, value);
         }
 
+        @Override
         public Object getAttribute(String key) {
             return attributes.get(key);
         }
@@ -69,58 +71,72 @@ public class TestServlet extends TestBase {
             initParams.setProperty(key, value);
         }
 
+        @Override
         public String getInitParameter(String key) {
             return initParams.getProperty(key);
         }
 
+        @Override
         public Enumeration<Object> getAttributeNames() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public ServletContext getContext(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public Enumeration<Object> getInitParameterNames() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public int getMajorVersion() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public String getMimeType(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public int getMinorVersion() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public RequestDispatcher getNamedDispatcher(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public String getRealPath(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public RequestDispatcher getRequestDispatcher(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public URL getResource(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public InputStream getResourceAsStream(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public Set<Object> getResourcePaths(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public String getServerInfo() {
             throw new UnsupportedOperationException();
         }
@@ -128,10 +144,12 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.1
          */
+        @Override
         public Servlet getServlet(String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public String getServletContextName() {
             throw new UnsupportedOperationException();
         }
@@ -139,6 +157,7 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.1
          */
+        @Override
         public Enumeration<Object> getServletNames() {
             throw new UnsupportedOperationException();
         }
@@ -146,10 +165,12 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.0
          */
+        @Override
         public Enumeration<Object> getServlets() {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void log(String string) {
             throw new UnsupportedOperationException();
         }
@@ -157,20 +178,24 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.1
          */
+        @Override
         public void log(Exception exception, String string) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void log(String string, Throwable throwable) {
             throw new UnsupportedOperationException();
         }
 
+        @Override
         public void removeAttribute(String string) {
             throw new UnsupportedOperationException();
         }
 
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.networked || config.memory) {
             return;

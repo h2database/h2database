@@ -25,19 +25,23 @@ public class MetaCursor implements Cursor {
         this.rows = rows;
     }
 
+    @Override
     public Row get() {
         return current;
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return current;
     }
 
+    @Override
     public boolean next() {
         current = index >= rows.size() ? null : rows.get(index++);
         return current != null;
     }
 
+    @Override
     public boolean previous() {
         throw DbException.throwInternalError();
     }

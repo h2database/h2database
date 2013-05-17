@@ -54,6 +54,7 @@ public class CreateUser extends DefineCommand {
         return StringUtils.convertHexToBytes(e.optimize(session).getValue(session).getString());
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -105,6 +106,7 @@ public class CreateUser extends DefineCommand {
         this.comment = comment;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_USER;
     }

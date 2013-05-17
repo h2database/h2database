@@ -37,6 +37,7 @@ public class FunctionCursorResultSet implements Cursor {
         }
     }
 
+    @Override
     public Row get() {
         if (values == null) {
             return null;
@@ -47,10 +48,12 @@ public class FunctionCursorResultSet implements Cursor {
         return row;
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return get();
     }
 
+    @Override
     public boolean next() {
         row = null;
         try {
@@ -70,6 +73,7 @@ public class FunctionCursorResultSet implements Cursor {
         return values != null;
     }
 
+    @Override
     public boolean previous() {
         throw DbException.throwInternalError();
     }

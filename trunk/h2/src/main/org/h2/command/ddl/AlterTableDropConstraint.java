@@ -32,6 +32,7 @@ public class AlterTableDropConstraint extends SchemaCommand {
         constraintName = string;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Constraint constraint = getSchema().findConstraint(session, constraintName);
@@ -47,6 +48,7 @@ public class AlterTableDropConstraint extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.ALTER_TABLE_DROP_CONSTRAINT;
     }

@@ -36,14 +36,17 @@ class PageDataCursor implements Cursor {
         }
     }
 
+    @Override
     public Row get() {
         return row;
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return get();
     }
 
+    @Override
     public boolean next() {
         if (!multiVersion) {
             nextRow();
@@ -98,6 +101,7 @@ class PageDataCursor implements Cursor {
         idx++;
     }
 
+    @Override
     public boolean previous() {
         throw DbException.throwInternalError();
     }

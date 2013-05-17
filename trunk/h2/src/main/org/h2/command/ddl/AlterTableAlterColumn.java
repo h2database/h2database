@@ -78,6 +78,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         this.addAfter = after;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -480,6 +481,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         this.newColumn = newColumn;
     }
 
+    @Override
     public int getType() {
         return type;
     }

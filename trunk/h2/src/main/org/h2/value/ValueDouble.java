@@ -42,25 +42,30 @@ public class ValueDouble extends Value {
         this.value = value;
     }
 
+    @Override
     public Value add(Value v) {
         ValueDouble v2 = (ValueDouble) v;
         return ValueDouble.get(value + v2.value);
     }
 
+    @Override
     public Value subtract(Value v) {
         ValueDouble v2 = (ValueDouble) v;
         return ValueDouble.get(value - v2.value);
     }
 
+    @Override
     public Value negate() {
         return ValueDouble.get(-value);
     }
 
+    @Override
     public Value multiply(Value v) {
         ValueDouble v2 = (ValueDouble) v;
         return ValueDouble.get(value * v2.value);
     }
 
+    @Override
     public Value divide(Value v) {
         ValueDouble v2 = (ValueDouble) v;
         if (v2.value == 0.0) {
@@ -69,6 +74,7 @@ public class ValueDouble extends Value {
         return ValueDouble.get(value / v2.value);
     }
 
+    @Override
     public ValueDouble modulus(Value v) {
         ValueDouble other = (ValueDouble) v;
         if (other.value == 0) {
@@ -77,6 +83,7 @@ public class ValueDouble extends Value {
         return ValueDouble.get(value % other.value);
     }
 
+    @Override
     public String getSQL() {
         if (value == Double.POSITIVE_INFINITY) {
             return "POWER(0, -1)";
@@ -92,44 +99,54 @@ public class ValueDouble extends Value {
         return s;
     }
 
+    @Override
     public int getType() {
         return Value.DOUBLE;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueDouble v = (ValueDouble) o;
         return Double.compare(value, v.value);
     }
 
+    @Override
     public int getSignum() {
         return value == 0 ? 0 : (value < 0 ? -1 : 1);
     }
 
+    @Override
     public double getDouble() {
         return value;
     }
 
+    @Override
     public String getString() {
         return String.valueOf(value);
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int getScale() {
         return 0;
     }
 
+    @Override
     public int hashCode() {
         long hash = Double.doubleToLongBits(value);
         return (int) (hash ^ (hash >> 32));
     }
 
+    @Override
     public Object getObject() {
         return Double.valueOf(value);
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setDouble(parameterIndex, value);
     }
@@ -155,10 +172,12 @@ public class ValueDouble extends Value {
         return (ValueDouble) Value.cache(new ValueDouble(d));
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     public boolean equals(Object other) {
         if (!(other instanceof ValueDouble)) {
             return false;

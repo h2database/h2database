@@ -55,6 +55,7 @@ public class ChangeFileEncryption extends Tool {
         new ChangeFileEncryption().runTool(args);
     }
 
+    @Override
     public void runTool(String... args) throws SQLException {
         String dir = ".";
         String cipher = null;

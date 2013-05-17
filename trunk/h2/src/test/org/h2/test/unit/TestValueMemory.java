@@ -68,6 +68,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         test.test();
     }
 
+    @Override
     public void test() throws SQLException {
         testCompare();
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
@@ -210,42 +211,52 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return new String(chars);
     }
 
+    @Override
     public void checkPowerOff() {
         // nothing to do
     }
 
+    @Override
     public void checkWritingAllowed() {
         // nothing to do
     }
 
+    @Override
     public String getDatabasePath() {
         return getBaseDir() + "/valueMemory";
     }
 
+    @Override
     public String getLobCompressionAlgorithm(int type) {
         return "LZF";
     }
 
+    @Override
     public Object getLobSyncObject() {
         return this;
     }
 
+    @Override
     public int getMaxLengthInplaceLob() {
         return 100;
     }
 
+    @Override
     public FileStore openFile(String name, String mode, boolean mustExist) {
         return FileStore.open(this, name, mode);
     }
 
+    @Override
     public SmallLRUCache<String, String[]> getLobFileListCache() {
         return lobFileListCache;
     }
 
+    @Override
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
     }
 
+    @Override
     public LobStorageFrontend getLobStorage() {
         if (lobStorage == null) {
             lobStorage = new LobStorageFrontend(this);
@@ -253,10 +264,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return lobStorage;
     }
 
+    @Override
     public Connection getLobConnection() {
         return null;
     }
 
+    @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         return -1;
     }

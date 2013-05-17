@@ -128,6 +128,7 @@ public class MVTable extends TableBase {
         }
     }
 
+    @Override
     public void rename(String newName) {
         super.rename(newName);
         primaryIndex.renameTable(newName);
@@ -247,6 +248,7 @@ public class MVTable extends TableBase {
         return buff.toString();
     }
 
+    @Override
     public ArrayList<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
         // only one deadlock check at any given time
         synchronized (RegularTable.class) {
@@ -299,14 +301,17 @@ public class MVTable extends TableBase {
         }
     }
 
+    @Override
     public boolean isLockedExclusively() {
         return lockExclusive != null;
     }
     
+    @Override
     public boolean isLockedExclusivelyBy(Session session) {
         return lockExclusive == session;
     }
     
+    @Override
     public void unlock(Session s) {
         if (database != null) {
             traceLock(s, lockExclusive == s, "unlock");
@@ -476,6 +481,7 @@ public class MVTable extends TableBase {
     private static void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
         final Index idx = index;
         Collections.sort(list, new Comparator<Row>() {
+            @Override
             public int compare(Row r1, Row r2) {
                 return idx.compareRows(r1, r2);
             }
@@ -607,6 +613,7 @@ public class MVTable extends TableBase {
         return true;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         if (containsLargeObject) {
             // unfortunately, the data is gone on rollback
@@ -647,6 +654,7 @@ public class MVTable extends TableBase {
         return primaryIndex.getRowCountApproximation();
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return primaryIndex.getDiskSpaceUsed();
     }
@@ -670,6 +678,7 @@ public class MVTable extends TableBase {
         return session.getTransaction(store);
     }
 
+    @Override
     public Column getRowIdColumn() {
         if (rowIdColumn == null) {
             rowIdColumn = new Column(Column.ROWID, Value.LONG);
@@ -678,10 +687,12 @@ public class MVTable extends TableBase {
         return rowIdColumn;
     }
 
+    @Override
     public String toString() {
         return getSQL();
     }
 
+    @Override
     public boolean isMVStore() {
         return true;
     }

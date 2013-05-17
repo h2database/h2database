@@ -40,6 +40,7 @@ public class TestOuterJoins extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws Exception {
         if (!config.nestedJoins) {
             return;

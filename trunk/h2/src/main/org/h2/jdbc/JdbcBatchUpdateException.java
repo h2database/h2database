@@ -29,6 +29,7 @@ public class JdbcBatchUpdateException extends BatchUpdateException {
     /**
      * INTERNAL
      */
+    @Override
     public void printStackTrace() {
         // The default implementation already does that,
         // but we do it again to avoid problems.
@@ -40,6 +41,7 @@ public class JdbcBatchUpdateException extends BatchUpdateException {
     /**
      * INTERNAL
      */
+    @Override
     public void printStackTrace(PrintWriter s) {
         if (s != null) {
             super.printStackTrace(s);
@@ -52,6 +54,7 @@ public class JdbcBatchUpdateException extends BatchUpdateException {
     /**
      * INTERNAL
      */
+    @Override
     public void printStackTrace(PrintStream s) {
         if (s != null) {
             super.printStackTrace(s);

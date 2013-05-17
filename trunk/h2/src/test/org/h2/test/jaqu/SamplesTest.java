@@ -42,6 +42,7 @@ public class SamplesTest extends TestBase {
         new SamplesTest().test();
     }
 
+    @Override
     public void test() {
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());
@@ -215,6 +216,7 @@ public class SamplesTest extends TestBase {
         public String customerId;
         public Integer orderId;
         public BigDecimal total;
+        @Override
         public String toString() {
             return customerId + ":" + orderId + ":" + total;
         }
@@ -356,7 +358,8 @@ public class SamplesTest extends TestBase {
         final ComplexObject co = new ComplexObject();
 
         String sql = db.from(co).
-            where(new Filter() { public boolean where() {
+            where(new Filter() { @Override
+            public boolean where() {
                     return co.id == x
                     && co.name.equals(name)
                     && co.name.equals("hello");
@@ -367,7 +370,8 @@ public class SamplesTest extends TestBase {
                 "AND 'hello'=name", sql);
 
         long count = db.from(co).
-            where(new Filter() { public boolean where() {
+            where(new Filter() { @Override
+            public boolean where() {
                 return co.id == x
                 && co.name.equals(name)
                 && co.name.equals("hello");
@@ -403,6 +407,7 @@ public class SamplesTest extends TestBase {
     public static class ProductGroup {
         public String category;
         public Long productCount;
+        @Override
         public String toString() {
             return category + ":" + productCount;
         }

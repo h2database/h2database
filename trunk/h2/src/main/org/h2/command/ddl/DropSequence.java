@@ -35,6 +35,7 @@ public class DropSequence extends SchemaCommand {
         this.sequenceName = sequenceName;
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -53,6 +54,7 @@ public class DropSequence extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_SEQUENCE;
     }

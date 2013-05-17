@@ -49,6 +49,7 @@ public class TestTableEngines extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (config.mvcc) {
             return;
@@ -145,58 +146,72 @@ public class TestTableEngines extends TestBase {
                             IndexColumn.wrap(table.getColumns()), IndexType.createScan(false));
                 }
 
+                @Override
                 public long getRowCountApproximation() {
                     return table.getRowCountApproximation();
                 }
 
+                @Override
                 public long getDiskSpaceUsed() {
                     return table.getDiskSpaceUsed();
                 }
 
+                @Override
                 public long getRowCount(Session session) {
                     return table.getRowCount(session);
                 }
 
+                @Override
                 public void checkRename() {
                     // do nothing
                 }
 
+                @Override
                 public void truncate(Session session) {
                     // do nothing
                 }
 
+                @Override
                 public void remove(Session session) {
                     // do nothing
                 }
 
+                @Override
                 public void remove(Session session, Row r) {
                     // do nothing
                 }
 
+                @Override
                 public boolean needRebuild() {
                     return false;
                 }
 
+                @Override
                 public double getCost(Session session, int[] masks, SortOrder sortOrder) {
                     return 0;
                 }
 
+                @Override
                 public Cursor findFirstOrLast(Session session, boolean first) {
                     return new SingleRowCursor(row);
                 }
 
+                @Override
                 public Cursor find(Session session, SearchRow first, SearchRow last) {
                     return new SingleRowCursor(row);
                 }
 
+                @Override
                 public void close(Session session) {
                     // do nothing
                 }
 
+                @Override
                 public boolean canGetFirstOrLast() {
                     return true;
                 }
 
+                @Override
                 public void add(Session session, Row r) {
                     // do nothing
                 }
@@ -262,6 +277,7 @@ public class TestTableEngines extends TestBase {
                 return row == null ? 0 : 1;
             }
 
+            @Override
             public long getDiskSpaceUsed() {
                 return 0;
             }
@@ -324,6 +340,7 @@ public class TestTableEngines extends TestBase {
          * @param data the meta data of the table to create
          * @return the new table
          */
+        @Override
         public OneRowTable createTable(CreateTableData data) {
             return new OneRowTable(data);
         }
@@ -355,10 +372,12 @@ public class TestTableEngines extends TestBase {
                     super(table);
                 }
 
+                @Override
                 public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
                     return find(filter.getFilterCondition());
                 }
 
+                @Override
                 public Cursor find(Session session, SearchRow first, SearchRow last) {
                     return find(null);
                 }
@@ -386,6 +405,7 @@ public class TestTableEngines extends TestBase {
          * @param data the meta data of the table to create
          * @return the new table
          */
+        @Override
         public EndlessTable createTable(CreateTableData data) {
             return new EndlessTable(data);
         }

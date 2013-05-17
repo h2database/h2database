@@ -60,6 +60,7 @@ public class ConnectionInfo implements Comparable<ConnectionInfo> {
         return StringUtils.arrayCombine(new String[] { name, driver, url, user }, '|');
     }
 
+    @Override
     public int compareTo(ConnectionInfo o) {
         return -MathUtils.compareInt(lastAccess, o.lastAccess);
     }

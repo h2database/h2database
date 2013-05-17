@@ -27,6 +27,7 @@ public class DropFunctionAlias extends SchemaCommand {
         super(session, schema);
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -50,6 +51,7 @@ public class DropFunctionAlias extends SchemaCommand {
         this.ifExists = ifExists;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_ALIAS;
     }

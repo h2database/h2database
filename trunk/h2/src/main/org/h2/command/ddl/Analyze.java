@@ -33,6 +33,7 @@ public class Analyze extends DefineCommand {
         sampleRows = session.getDatabase().getSettings().analyzeSample;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         session.getUser().checkAdmin();
@@ -122,6 +123,7 @@ public class Analyze extends DefineCommand {
         this.sampleRows = top;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.ANALYZE;
     }

@@ -41,25 +41,30 @@ public class ValueFloat extends Value {
         this.value = value;
     }
 
+    @Override
     public Value add(Value v) {
         ValueFloat v2 = (ValueFloat) v;
         return ValueFloat.get(value + v2.value);
     }
 
+    @Override
     public Value subtract(Value v) {
         ValueFloat v2 = (ValueFloat) v;
         return ValueFloat.get(value - v2.value);
     }
 
+    @Override
     public Value negate() {
         return ValueFloat.get(-value);
     }
 
+    @Override
     public Value multiply(Value v) {
         ValueFloat v2 = (ValueFloat) v;
         return ValueFloat.get(value * v2.value);
     }
 
+    @Override
     public Value divide(Value v) {
         ValueFloat v2 = (ValueFloat) v;
         if (v2.value == 0.0) {
@@ -68,6 +73,7 @@ public class ValueFloat extends Value {
         return ValueFloat.get(value / v2.value);
     }
 
+    @Override
     public Value modulus(Value v) {
         ValueFloat other = (ValueFloat) v;
         if (other.value == 0) {
@@ -76,6 +82,7 @@ public class ValueFloat extends Value {
         return ValueFloat.get(value % other.value);
     }
 
+    @Override
     public String getSQL() {
         if (value == Float.POSITIVE_INFINITY) {
             return "POWER(0, -1)";
@@ -92,44 +99,54 @@ public class ValueFloat extends Value {
         return s;
     }
 
+    @Override
     public int getType() {
         return Value.FLOAT;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueFloat v = (ValueFloat) o;
         return Float.compare(value, v.value);
     }
 
+    @Override
     public int getSignum() {
         return value == 0 ? 0 : (value < 0 ? -1 : 1);
     }
 
+    @Override
     public float getFloat() {
         return value;
     }
 
+    @Override
     public String getString() {
         return String.valueOf(value);
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int getScale() {
         return 0;
     }
 
+    @Override
     public int hashCode() {
         long hash = Float.floatToIntBits(value);
         return (int) (hash ^ (hash >> 32));
     }
 
+    @Override
     public Object getObject() {
         return Float.valueOf(value);
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setFloat(parameterIndex, value);
     }
@@ -153,10 +170,12 @@ public class ValueFloat extends Value {
         return (ValueFloat) Value.cache(new ValueFloat(d));
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     public boolean equals(Object other) {
         if (!(other instanceof ValueFloat)) {
             return false;

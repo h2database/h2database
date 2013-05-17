@@ -36,6 +36,7 @@ public class TestUpdatableResultSet extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testDetectUpdatable();
         testUpdateLob();

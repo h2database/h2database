@@ -45,14 +45,17 @@ public class FileStoreInputStream extends InputStream {
         }
     }
 
+    @Override
     public int available() {
         return remainingInBuffer <= 0 ? 0 : remainingInBuffer;
     }
 
+    @Override
     public int read(byte[] buff) throws IOException {
         return read(buff, 0, buff.length);
     }
 
+    @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (len == 0) {
             return 0;
@@ -126,6 +129,7 @@ public class FileStoreInputStream extends InputStream {
         }
     }
 
+    @Override
     public void close() {
         if (store != null) {
             try {
@@ -137,10 +141,12 @@ public class FileStoreInputStream extends InputStream {
         }
     }
 
+    @Override
     protected void finalize() {
         close();
     }
 
+    @Override
     public int read() throws IOException {
         fillBuffer();
         if (endOfFile) {

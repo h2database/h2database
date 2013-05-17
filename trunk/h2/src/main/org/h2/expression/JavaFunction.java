@@ -34,20 +34,24 @@ public class JavaFunction extends Expression implements FunctionCall {
         this.args = args;
     }
 
+    @Override
     public Value getValue(Session session) {
         return javaMethod.getValue(session, args, false);
     }
 
+    @Override
     public int getType() {
         return javaMethod.getDataType();
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : args) {
             e.mapColumns(resolver, level);
         }
     }
 
+    @Override
     public Expression optimize(Session session) {
         boolean allConst = isDeterministic();
         for (int i = 0, len = args.length; i < len; i++) {
@@ -61,6 +65,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         for (Expression e : args) {
             if (e != null) {
@@ -69,18 +74,22 @@ public class JavaFunction extends Expression implements FunctionCall {
         }
     }
 
+    @Override
     public int getScale() {
         return DataType.getDataType(getType()).defaultScale;
     }
 
+    @Override
     public long getPrecision() {
         return Integer.MAX_VALUE;
     }
 
+    @Override
     public int getDisplaySize() {
         return Integer.MAX_VALUE;
     }
 
+    @Override
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder();
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
@@ -96,6 +105,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         return buff.append(')').toString();
     }
 
+    @Override
     public void updateAggregate(Session session) {
         for (Expression e : args) {
             if (e != null) {
@@ -104,23 +114,28 @@ public class JavaFunction extends Expression implements FunctionCall {
         }
     }
 
+    @Override
     public String getName() {
         return functionAlias.getName();
     }
 
+    @Override
     public int getParameterCount() {
         return javaMethod.getParameterCount();
     }
 
+    @Override
     public ValueResultSet getValueForColumnList(Session session, Expression[] argList) {
         Value v = javaMethod.getValue(session, argList, true);
         return v == ValueNull.INSTANCE ? null : (ValueResultSet) v;
     }
 
+    @Override
     public Expression[] getArgs() {
         return args;
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
@@ -142,6 +157,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         return true;
     }
 
+    @Override
     public int getCost() {
         int cost = javaMethod.hasConnectionParam() ? 25 : 5;
         for (Expression e : args) {
@@ -150,10 +166,12 @@ public class JavaFunction extends Expression implements FunctionCall {
         return cost;
     }
 
+    @Override
     public boolean isDeterministic() {
         return functionAlias.isDeterministic();
     }
 
+    @Override
     public Expression[] getExpressionColumns(Session session) {
         switch (getType()) {
         case Value.RESULT_SET:
@@ -165,6 +183,7 @@ public class JavaFunction extends Expression implements FunctionCall {
         return super.getExpressionColumns(session);
     }
 
+    @Override
     public boolean isFast() {
         return false;
     }

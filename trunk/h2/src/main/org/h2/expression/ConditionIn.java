@@ -40,6 +40,7 @@ public class ConditionIn extends Condition {
         this.valueList = values;
     }
 
+    @Override
     public Value getValue(Session session) {
         Value l = left.getValue(session);
         if (l == ValueNull.INSTANCE) {
@@ -65,6 +66,7 @@ public class ConditionIn extends Condition {
         return ValueBoolean.get(result);
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         for (Expression e : valueList) {
@@ -73,6 +75,7 @@ public class ConditionIn extends Condition {
         this.queryLevel = Math.max(level, this.queryLevel);
     }
 
+    @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
         boolean constant = left.isConstant();
@@ -114,6 +117,7 @@ public class ConditionIn extends Condition {
         return this;
     }
 
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         if (!(left instanceof ExpressionColumn)) {
             return;
@@ -134,6 +138,7 @@ public class ConditionIn extends Condition {
         }
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
         for (Expression e : valueList) {
@@ -141,6 +146,7 @@ public class ConditionIn extends Condition {
         }
     }
 
+    @Override
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder("(");
         buff.append(left.getSQL()).append(" IN(");
@@ -151,6 +157,7 @@ public class ConditionIn extends Condition {
         return buff.append("))").toString();
     }
 
+    @Override
     public void updateAggregate(Session session) {
         left.updateAggregate(session);
         for (Expression e : valueList) {
@@ -158,6 +165,7 @@ public class ConditionIn extends Condition {
         }
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         if (!left.isEverything(visitor)) {
             return false;
@@ -174,6 +182,7 @@ public class ConditionIn extends Condition {
         return true;
     }
 
+    @Override
     public int getCost() {
         int cost = left.getCost();
         for (Expression e : valueList) {

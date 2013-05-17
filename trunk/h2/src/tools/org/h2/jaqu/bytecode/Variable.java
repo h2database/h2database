@@ -29,10 +29,12 @@ public class Variable implements Token {
         return new Variable(name, obj);
     }
 
+    @Override
     public String toString() {
         return name;
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         query.appendSQL(stat, obj);
     }

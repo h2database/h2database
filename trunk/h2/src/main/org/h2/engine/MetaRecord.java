@@ -87,6 +87,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * @param other the other record
      * @return -1, 0, or 1
      */
+    @Override
     public int compareTo(MetaRecord other) {
         int c1 = getCreateOrder();
         int c2 = other.getCreateOrder();

@@ -66,6 +66,7 @@ public class TestClearReferences extends TestBase {
         }
     }
 
+    @Override
     public void test() throws Exception {
         // initialize the known classes
         MathUtils.secureRandomLong();

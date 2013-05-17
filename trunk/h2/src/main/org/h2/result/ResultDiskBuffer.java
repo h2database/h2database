@@ -114,6 +114,7 @@ class ResultDiskBuffer implements ResultExternal {
         maxBufferSize = parent.maxBufferSize;
     }
 
+    @Override
     public synchronized ResultDiskBuffer createShallowCopy() {
         if (closed || parent != null) {
             return null;
@@ -122,6 +123,7 @@ class ResultDiskBuffer implements ResultExternal {
         return new ResultDiskBuffer(this);
     }
 
+    @Override
     public int addRows(ArrayList<Value[]> rows) {
         if (sort != null) {
             sort.sort(rows);
@@ -170,11 +172,13 @@ class ResultDiskBuffer implements ResultExternal {
         return rowCount;
     }
 
+    @Override
     public void done() {
         file.seek(FileStore.HEADER_LENGTH);
         file.autoDelete();
     }
 
+    @Override
     public void reset() {
         if (sort != null) {
             for (ResultDiskTape tape : tapes) {
@@ -205,6 +209,7 @@ class ResultDiskBuffer implements ResultExternal {
         tape.buffer.add(row);
     }
 
+    @Override
     public Value[] next() {
         return sort != null ? nextSorted() : nextUnsorted();
     }
@@ -258,10 +263,12 @@ class ResultDiskBuffer implements ResultExternal {
         }
     }
 
+    @Override
     protected void finalize() {
         close();
     }
 
+    @Override
     public synchronized void close() {
         if (closed) {
             return;
@@ -277,14 +284,17 @@ class ResultDiskBuffer implements ResultExternal {
         }
     }
 
+    @Override
     public int removeRow(Value[] values) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public boolean contains(Value[] values) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public int addRow(Value[] values) {
         throw DbException.throwInternalError();
     }

@@ -35,10 +35,12 @@ public abstract class TableBase extends Table {
         setColumns(cols);
     }
 
+    @Override
     public String getDropSQL() {
         return "DROP TABLE IF EXISTS " + getSQL() + " CASCADE";
     }
 
+    @Override
     public String getCreateSQL() {
         StatementBuilder buff = new StatementBuilder("CREATE ");
         if (isTemporary()) {
@@ -84,6 +86,7 @@ public abstract class TableBase extends Table {
         return buff.toString();
     }
 
+    @Override
     public boolean isGlobalTemporary() {
         return globalTemporary;
     }

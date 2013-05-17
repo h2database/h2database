@@ -32,6 +32,7 @@ public class TestUpgrade extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (!Utils.isClassPresent("org.h2.upgrade.v1_1.Driver")) {
             return;
@@ -199,6 +200,7 @@ public class TestUpgrade extends TestBase {
         deleteDb("upgrade");
     }
 
+    @Override
     public void deleteDb(String dbName) {
         super.deleteDb(dbName);
         try {

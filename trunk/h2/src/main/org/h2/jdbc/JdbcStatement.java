@@ -57,6 +57,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param sql the SQL statement to execute
      * @return the result set
      */
+    @Override
     public ResultSet executeQuery(String sql) throws SQLException {
         try {
             int id = getNextId(TraceObject.RESULT_SET);
@@ -104,6 +105,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @throws SQLException if a database error occurred or a
      *         select statement was executed
      */
+    @Override
     public int executeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeUpdate", sql);
@@ -146,6 +148,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param sql the SQL statement to execute
      * @return true if a result set is available, false if not
      */
+    @Override
     public boolean execute(String sql) throws SQLException {
         try {
             debugCodeCall("execute", sql);
@@ -192,6 +195,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return the result set
      */
+    @Override
     public ResultSet getResultSet() throws SQLException {
         try {
             checkClosed();
@@ -215,6 +219,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *         create, drop, commit or rollback; -1 if the statement was a select).
      * @throws SQLException if this object is closed or invalid
      */
+    @Override
     public int getUpdateCount() throws SQLException {
         try {
             debugCodeCall("getUpdateCount");
@@ -230,6 +235,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * All result sets that where created by this statement
      * become invalid after calling this method.
      */
+    @Override
     public void close() throws SQLException {
         try {
             debugCodeCall("close");
@@ -249,6 +255,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return the connection
      */
+    @Override
     public Connection getConnection() {
         debugCodeCall("getConnection");
         return conn;
@@ -260,6 +267,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return null
      */
+    @Override
     public SQLWarning getWarnings() throws SQLException {
         try {
             debugCodeCall("getWarnings");
@@ -274,6 +282,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * Clears all warnings. As this driver does not support warnings,
      * this call is ignored.
      */
+    @Override
     public void clearWarnings() throws SQLException {
         try {
             debugCodeCall("clearWarnings");
@@ -289,6 +298,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param name ignored
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setCursorName(String name) throws SQLException {
         try {
             debugCodeCall("setCursorName", name);
@@ -305,6 +315,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param direction ignored
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setFetchDirection(int direction) throws SQLException {
         try {
             debugCodeCall("setFetchDirection", direction);
@@ -320,6 +331,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @return FETCH_FORWARD
      * @throws SQLException if this object is closed
      */
+    @Override
     public int getFetchDirection() throws SQLException {
         try {
             debugCodeCall("getFetchDirection");
@@ -336,6 +348,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @return the number of rows where 0 means no limit
      * @throws SQLException if this object is closed
      */
+    @Override
     public int getMaxRows() throws SQLException {
         try {
             debugCodeCall("getMaxRows");
@@ -352,6 +365,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param maxRows the number of rows where 0 means no limit
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setMaxRows(int maxRows) throws SQLException {
         try {
             debugCodeCall("setMaxRows", maxRows);
@@ -376,6 +390,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param rows the number of rows
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setFetchSize(int rows) throws SQLException {
         try {
             debugCodeCall("setFetchSize", rows);
@@ -398,6 +413,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @return the current fetch size
      * @throws SQLException if this object is closed
      */
+    @Override
     public int getFetchSize() throws SQLException {
         try {
             debugCodeCall("getFetchSize");
@@ -413,6 +429,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return the concurrency
      */
+    @Override
     public int getResultSetConcurrency() throws SQLException {
         try {
             debugCodeCall("getResultSetConcurrency");
@@ -429,6 +446,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @return the type
      * @throws SQLException if this object is closed
      */
+    @Override
     public int getResultSetType()  throws SQLException {
         try {
             debugCodeCall("getResultSetType");
@@ -445,6 +463,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @return always 0 for no limit
      * @throws SQLException if this object is closed
      */
+    @Override
     public int getMaxFieldSize() throws SQLException {
         try {
             debugCodeCall("getMaxFieldSize");
@@ -462,6 +481,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param max the maximum size - ignored
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setMaxFieldSize(int max) throws SQLException {
         try {
             debugCodeCall("setMaxFieldSize", max);
@@ -478,6 +498,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @param enable - true (default) or false (no conversion is attempted)
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setEscapeProcessing(boolean enable) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -499,6 +520,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @throws SQLException if this object is closed
      */
+    @Override
     public void cancel() throws SQLException {
         try {
             debugCodeCall("cancel");
@@ -529,6 +551,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @return the timeout in seconds
      * @throws SQLException if this object is closed
      */
+    @Override
     public int getQueryTimeout() throws SQLException {
         try {
             debugCodeCall("getQueryTimeout");
@@ -549,6 +572,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *        smaller 0 will throw an exception
      * @throws SQLException if this object is closed
      */
+    @Override
     public void setQueryTimeout(int seconds) throws SQLException {
         try {
             debugCodeCall("setQueryTimeout", seconds);
@@ -567,6 +591,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @param sql the SQL statement
      */
+    @Override
     public void addBatch(String sql) throws SQLException {
         try {
             debugCodeCall("addBatch", sql);
@@ -584,6 +609,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * Clears the batch.
      */
+    @Override
     public void clearBatch() throws SQLException {
         try {
             debugCodeCall("clearBatch");
@@ -600,6 +626,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return the array of update counts
      */
+    @Override
     public int[] executeBatch() throws SQLException {
         try {
             debugCodeCall("executeBatch");
@@ -651,6 +678,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @return the result set with one row and one column containing the key
      * @throws SQLException if this object is closed
      */
+    @Override
     public ResultSet getGeneratedKeys() throws SQLException {
         try {
             int id = getNextId(TraceObject.RESULT_SET);
@@ -673,6 +701,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @return false
      * @throws SQLException if this object is closed.
      */
+    @Override
     public boolean getMoreResults() throws SQLException {
         try {
             debugCodeCall("getMoreResults");
@@ -693,6 +722,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *          or Statement.CLOSE_ALL_RESULTS
      * @return false
      */
+    @Override
     public boolean getMoreResults(int current) throws SQLException {
         try {
             debugCodeCall("getMoreResults", current);
@@ -727,6 +757,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @throws SQLException if a database error occurred or a
      *         select statement was executed
      */
+    @Override
     public int executeUpdate(String sql, int autoGeneratedKeys) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -751,6 +782,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @throws SQLException if a database error occurred or a
      *         select statement was executed
      */
+    @Override
     public int executeUpdate(String sql, int[] columnIndexes) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -775,6 +807,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @throws SQLException if a database error occurred or a
      *         select statement was executed
      */
+    @Override
     public int executeUpdate(String sql, String[] columnNames) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -799,6 +832,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @throws SQLException if a database error occurred or a
      *         select statement was executed
      */
+    @Override
     public boolean execute(String sql, int autoGeneratedKeys) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -823,6 +857,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @throws SQLException if a database error occurred or a
      *         select statement was executed
      */
+    @Override
     public boolean execute(String sql, int[] columnIndexes) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -847,6 +882,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * @throws SQLException if a database error occurred or a
      *         select statement was executed
      */
+    @Override
     public boolean execute(String sql, String[] columnNames) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -863,6 +899,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return the holdability
      */
+    @Override
     public int getResultSetHoldability() throws SQLException {
         try {
             debugCodeCall("getResultSetHoldability");
@@ -992,6 +1029,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return true if the statement is closed
      */
+    @Override
     public boolean isClosed() throws SQLException {
         try {
             debugCodeCall("isClosed");
@@ -1004,6 +1042,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * [Not supported] Return an object of this class if possible.
      */
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw unsupported("unwrap");
     }
@@ -1011,6 +1050,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * [Not supported] Checks if unwrap can return an object of this class.
      */
+    @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         throw unsupported("isWrapperFor");
     }
@@ -1019,6 +1059,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      * Returns whether this object is poolable.
      * @return false
      */
+    @Override
     public boolean isPoolable() {
         debugCodeCall("isPoolable");
         return false;
@@ -1030,6 +1071,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @param poolable the requested value
      */
+    @Override
     public void setPoolable(boolean poolable) {
         if (isDebugEnabled()) {
             debugCode("setPoolable("+poolable+");");
@@ -1039,6 +1081,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * INTERNAL
      */
+    @Override
     public String toString() {
         return getTraceObjectName();
     }

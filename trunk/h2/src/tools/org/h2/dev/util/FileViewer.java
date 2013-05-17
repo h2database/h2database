@@ -29,6 +29,7 @@ public class FileViewer extends Tool {
         new FileViewer().runTool(args);
     }
 
+    @Override
     protected void showUsage() {
         out.println("A text file viewer that support very large files.");
         out.println("java "+getClass().getName() + "\n" +
@@ -41,6 +42,7 @@ public class FileViewer extends Tool {
                 " [-quiet]         Do not print progress information");
     }
 
+    @Override
     public void runTool(String... args) throws SQLException {
         String file = null;
         String find = null;

@@ -35,19 +35,23 @@ public class FileChannelOutputStream extends OutputStream {
         }
     }
 
+    @Override
     public void write(int b) throws IOException {
         buffer[0] = (byte) b;
         FileUtils.writeFully(channel, ByteBuffer.wrap(buffer));
     }
 
+    @Override
     public void write(byte[] b) throws IOException {
         FileUtils.writeFully(channel, ByteBuffer.wrap(b));
     }
 
+    @Override
     public void write(byte[] b, int off, int len) throws IOException {
         FileUtils.writeFully(channel, ByteBuffer.wrap(b, off, len));
     }
 
+    @Override
     public void close() throws IOException {
         channel.close();
     }

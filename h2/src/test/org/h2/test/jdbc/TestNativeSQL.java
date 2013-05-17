@@ -65,6 +65,7 @@ public class TestNativeSQL extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         deleteDb("nativeSql");
         conn = getConnection("nativeSql");

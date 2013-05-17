@@ -28,6 +28,7 @@ public class TestEncryptedDb extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.memory || config.cipher != null) {
             return;

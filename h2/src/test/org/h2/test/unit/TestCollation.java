@@ -25,6 +25,7 @@ public class TestCollation extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("collation");
         Connection conn = getConnection("collation");

@@ -42,6 +42,7 @@ public class ConditionAndOr extends Condition {
         }
     }
 
+    @Override
     public String getSQL() {
         String sql;
         switch (andOrType) {
@@ -57,6 +58,7 @@ public class ConditionAndOr extends Condition {
         return "(" + sql + ")";
     }
 
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         if (andOrType == AND) {
             left.createIndexConditions(session, filter);
@@ -64,6 +66,7 @@ public class ConditionAndOr extends Condition {
         }
     }
 
+    @Override
     public Expression getNotIfPossible(Session session) {
         // (NOT (A OR B)): (NOT(A) AND NOT(B))
         // (NOT (A AND B)): (NOT(A) OR NOT(B))
@@ -79,6 +82,7 @@ public class ConditionAndOr extends Condition {
         return new ConditionAndOr(reversed, l, r);
     }
 
+    @Override
     public Value getValue(Session session) {
         Value l = left.getValue(session);
         Value r;
@@ -120,6 +124,7 @@ public class ConditionAndOr extends Condition {
         }
     }
 
+    @Override
     public Expression optimize(Session session) {
         // NULL handling: see wikipedia,
         // http://www-cs-students.stanford.edu/~wlam/compsci/sqlnulls
@@ -229,6 +234,7 @@ public class ConditionAndOr extends Condition {
         return this;
     }
 
+    @Override
     public void addFilterConditions(TableFilter filter, boolean outerJoin) {
         if (andOrType == AND) {
             left.addFilterConditions(filter, outerJoin);
@@ -238,25 +244,30 @@ public class ConditionAndOr extends Condition {
         }
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         right.mapColumns(resolver, level);
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
         right.setEvaluatable(tableFilter, b);
     }
 
+    @Override
     public void updateAggregate(Session session) {
         left.updateAggregate(session);
         right.updateAggregate(session);
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return left.isEverything(visitor) && right.isEverything(visitor);
     }
 
+    @Override
     public int getCost() {
         return left.getCost() + right.getCost();
     }

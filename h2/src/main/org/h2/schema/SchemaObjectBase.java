@@ -28,14 +28,17 @@ public abstract class SchemaObjectBase extends DbObjectBase implements SchemaObj
         this.schema = newSchema;
     }
 
+    @Override
     public Schema getSchema() {
         return schema;
     }
 
+    @Override
     public String getSQL() {
         return schema.getSQL() + "." + super.getSQL();
     }
 
+    @Override
     public boolean isHidden() {
         return false;
     }

@@ -23,6 +23,7 @@ public class RowDataType implements DataType {
         this.types = types;
     }
 
+    @Override
     public int compare(Object a, Object b) {
         if (a == b) {
             return 0;
@@ -46,6 +47,7 @@ public class RowDataType implements DataType {
         return 0;
     }
 
+    @Override
     public int getMemory(Object obj) {
         Object[] x = (Object[]) obj;
         int len = x.length;
@@ -56,6 +58,7 @@ public class RowDataType implements DataType {
         return memory;
     }
 
+    @Override
     public Object[] read(ByteBuffer buff) {
         int len = DataUtils.readVarInt(buff);
         Object[] x = new Object[len];
@@ -65,6 +68,7 @@ public class RowDataType implements DataType {
         return x;
     }
 
+    @Override
     public ByteBuffer write(ByteBuffer buff, Object obj) {
         Object[] x = (Object[]) obj;
         int len = x.length;

@@ -66,6 +66,7 @@ public class ProductMixedAnnotation {
         return Arrays.asList(list);
     }
 
+    @Override
     public String toString() {
         return productName + ": " + unitsInStock;
     }

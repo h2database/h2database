@@ -44,6 +44,7 @@ public class BackupCommand extends Prepared {
         this.fileNameExpr = fileName;
     }
 
+    @Override
     public int update() {
         String name = fileNameExpr.getValue(session).getString();
         session.getUser().checkAdmin();
@@ -124,6 +125,7 @@ public class BackupCommand extends Prepared {
         out.closeEntry();
     }
 
+    @Override
     public boolean isTransactional() {
         return true;
     }
@@ -142,14 +144,17 @@ public class BackupCommand extends Prepared {
         return f;
     }
 
+    @Override
     public boolean needRecompile() {
         return false;
     }
 
+    @Override
     public ResultInterface queryMeta() {
         return null;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.BACKUP;
     }

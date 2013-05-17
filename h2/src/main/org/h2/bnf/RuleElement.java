@@ -27,10 +27,12 @@ class RuleElement implements Rule {
         this.type = topic.startsWith("function") ? Sentence.FUNCTION : Sentence.KEYWORD;
     }
 
+    @Override
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleElement(keyword, name, link);
     }
 
+    @Override
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (link != null) {
             link.setLinks(ruleMap);
@@ -50,6 +52,7 @@ class RuleElement implements Rule {
         throw new AssertionError("Unknown " + name + "/" + test);
     }
 
+    @Override
     public boolean autoComplete(Sentence sentence) {
         sentence.stopIfRequired();
         if (keyword) {

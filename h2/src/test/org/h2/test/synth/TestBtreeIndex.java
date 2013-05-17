@@ -33,6 +33,7 @@ public class TestBtreeIndex extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws SQLException {
         Random random = new Random();
         for (int i = 0; i < getSize(1, 4); i++) {
@@ -69,6 +70,7 @@ public class TestBtreeIndex extends TestBase {
         deleteDb("index");
     }
 
+    @Override
     public void testCase(int seed) throws SQLException {
         testOne(seed);
     }

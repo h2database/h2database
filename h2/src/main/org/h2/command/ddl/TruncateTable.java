@@ -29,6 +29,7 @@ public class TruncateTable extends DefineCommand {
         this.table = table;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         if (!table.canTruncate()) {
@@ -40,6 +41,7 @@ public class TruncateTable extends DefineCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.TRUNCATE_TABLE;
     }

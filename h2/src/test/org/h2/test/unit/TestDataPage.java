@@ -60,6 +60,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() {
         if (testPerformance) {
             testPerformance();
@@ -279,50 +280,62 @@ public class TestDataPage extends TestBase implements DataHandler {
         page = null;
     }
 
+    @Override
     public String getDatabasePath() {
         return null;
     }
 
+    @Override
     public FileStore openFile(String name, String mode, boolean mustExist) {
         return null;
     }
 
+    @Override
     public void checkPowerOff() {
         // nothing to do
     }
 
+    @Override
     public void checkWritingAllowed() {
         // ok
     }
 
+    @Override
     public int getMaxLengthInplaceLob() {
         throw new AssertionError();
     }
 
+    @Override
     public String getLobCompressionAlgorithm(int type) {
         throw new AssertionError();
     }
 
+    @Override
     public Object getLobSyncObject() {
         return this;
     }
 
+    @Override
     public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 
+    @Override
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
     }
 
+    @Override
     public LobStorageBackend getLobStorage() {
         return null;
     }
 
+    @Override
     public Connection getLobConnection() {
         return null;
     }
 
+    @Override
     public int readLob(long lobId,  byte[] hmac, long offset, byte[] buff, int off, int length) {
         return -1;
     }

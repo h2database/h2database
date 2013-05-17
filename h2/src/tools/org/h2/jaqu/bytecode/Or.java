@@ -26,6 +26,7 @@ public class Or implements Token {
         return new Or(left, right);
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         // untested
         left.appendSQL(stat, query);

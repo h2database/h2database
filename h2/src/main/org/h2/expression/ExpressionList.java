@@ -26,6 +26,7 @@ public class ExpressionList extends Expression {
         this.list = list;
     }
 
+    @Override
     public Value getValue(Session session) {
         Value[] v = new Value[list.length];
         for (int i = 0; i < list.length; i++) {
@@ -34,16 +35,19 @@ public class ExpressionList extends Expression {
         return ValueArray.get(v);
     }
 
+    @Override
     public int getType() {
         return Value.ARRAY;
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : list) {
             e.mapColumns(resolver, level);
         }
     }
 
+    @Override
     public Expression optimize(Session session) {
         boolean allConst = true;
         for (int i = 0; i < list.length; i++) {
@@ -59,24 +63,29 @@ public class ExpressionList extends Expression {
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         for (Expression e : list) {
             e.setEvaluatable(tableFilter, b);
         }
     }
 
+    @Override
     public int getScale() {
         return 0;
     }
 
+    @Override
     public long getPrecision() {
         return Integer.MAX_VALUE;
     }
 
+    @Override
     public int getDisplaySize() {
         return Integer.MAX_VALUE;
     }
 
+    @Override
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder("(");
         for (Expression e: list) {
@@ -89,12 +98,14 @@ public class ExpressionList extends Expression {
         return buff.append(')').toString();
     }
 
+    @Override
     public void updateAggregate(Session session) {
         for (Expression e : list) {
             e.updateAggregate(session);
         }
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         for (Expression e : list) {
             if (!e.isEverything(visitor)) {
@@ -104,6 +115,7 @@ public class ExpressionList extends Expression {
         return true;
     }
 
+    @Override
     public int getCost() {
         int cost = 1;
         for (Expression e : list) {
@@ -112,6 +124,7 @@ public class ExpressionList extends Expression {
         return cost;
     }
 
+    @Override
     public Expression[] getExpressionColumns(Session session) {
         ExpressionColumn[] expr = new ExpressionColumn[list.length];
         for (int i = 0; i < list.length; i++) {

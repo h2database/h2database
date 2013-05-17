@@ -62,6 +62,7 @@ public class BenchB implements Bench, Runnable {
                 "INSERT INTO HISTORY(TID, BID, AID, DELTA) VALUES(?, ?, ?, ?)");
     }
 
+    @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
         this.transactionPerClient = size;
@@ -123,6 +124,7 @@ public class BenchB implements Bench, Runnable {
 //        db.end();
     }
 
+    @Override
     public void run() {
         int accountsPerBranch = ACCOUNTS / BRANCHES;
         for (int i = 0; i < master.transactionPerClient; i++) {
@@ -181,6 +183,7 @@ public class BenchB implements Bench, Runnable {
     }
 
 
+    @Override
     public void runTest() throws Exception {
         Database db = database;
         db.start(this, "Transactions");
@@ -207,6 +210,7 @@ public class BenchB implements Bench, Runnable {
         }
     }
 
+    @Override
     public String getName() {
         return "BenchB";
     }

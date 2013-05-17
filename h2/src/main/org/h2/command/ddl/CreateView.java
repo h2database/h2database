@@ -70,6 +70,7 @@ public class CreateView extends SchemaCommand {
         this.force = force;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -120,6 +121,7 @@ public class CreateView extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_VIEW;
     }

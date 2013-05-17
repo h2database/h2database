@@ -30,6 +30,7 @@ public class DropSchema extends DefineCommand {
         this.schemaName = name;
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -52,6 +53,7 @@ public class DropSchema extends DefineCommand {
         this.ifExists = ifExists;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_SCHEMA;
     }

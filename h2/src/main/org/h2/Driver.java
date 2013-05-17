@@ -54,6 +54,7 @@ public class Driver implements java.sql.Driver {
      * @param info the connection properties
      * @return the new connection or null if the URL is not supported
      */
+    @Override
     public Connection connect(String url, Properties info) throws SQLException {
         try {
             if (info == null) {
@@ -82,6 +83,7 @@ public class Driver implements java.sql.Driver {
      * @param url the database URL
      * @return if the driver understands the URL
      */
+    @Override
     public boolean acceptsURL(String url) {
         if (url != null) {
             if (url.startsWith(Constants.START_URL)) {
@@ -99,6 +101,7 @@ public class Driver implements java.sql.Driver {
      *
      * @return the major version number
      */
+    @Override
     public int getMajorVersion() {
         return Constants.VERSION_MAJOR;
     }
@@ -109,6 +112,7 @@ public class Driver implements java.sql.Driver {
      *
      * @return the minor version number
      */
+    @Override
     public int getMinorVersion() {
         return Constants.VERSION_MINOR;
     }
@@ -121,6 +125,7 @@ public class Driver implements java.sql.Driver {
      * @param info the connection properties
      * @return a zero length array
      */
+    @Override
     public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) {
         return new DriverPropertyInfo[0];
     }
@@ -131,6 +136,7 @@ public class Driver implements java.sql.Driver {
      *
      * @return true
      */
+    @Override
     public boolean jdbcCompliant() {
         return true;
     }

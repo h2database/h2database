@@ -52,6 +52,7 @@ public class TestThreads extends TestBase implements Runnable {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("threads");
         Connection conn = getConnection("threads;MAX_LOG_SIZE=1");
@@ -118,6 +119,7 @@ public class TestThreads extends TestBase implements Runnable {
         return "TEST_" + (char) ('A' + random.nextInt(3));
     }
 
+    @Override
     public void run() {
         try {
             String t = table == null ? getRandomTable() : table;

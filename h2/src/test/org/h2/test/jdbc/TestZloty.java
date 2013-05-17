@@ -30,6 +30,7 @@ public class TestZloty extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testZloty();
         testModifyBytes();
@@ -47,6 +48,7 @@ public class TestZloty extends TestBase {
             super(s);
         }
 
+        @Override
         public int compareTo(BigDecimal bd) {
             return -super.compareTo(bd);
         }
@@ -101,6 +103,7 @@ public class TestZloty extends TestBase {
 
             private static final long serialVersionUID = 1L;
 
+            @Override
             public String toString() {
                 return "12,100000 EURO";
             }

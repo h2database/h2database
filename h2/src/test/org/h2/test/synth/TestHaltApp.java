@@ -47,6 +47,7 @@ public class TestHaltApp extends TestHalt {
     /**
      * Initialize the database.
      */
+    @Override
     protected void controllerInit() throws SQLException {
         Statement stat = conn.createStatement();
         // stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR(255))");
@@ -64,6 +65,7 @@ public class TestHaltApp extends TestHalt {
     /**
      * Wait after the application has been started.
      */
+    @Override
     protected void controllerWaitAfterAppStart() throws Exception {
         int sleep = 10 + random.nextInt(300);
         if ((flags & FLAG_NO_DELAY) == 0) {
@@ -78,6 +80,7 @@ public class TestHaltApp extends TestHalt {
      *
      * @throws SQLException  if the data is not consistent.
      */
+    @Override
     protected void controllerCheckAfterCrash() throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT COUNT(*) FROM TEST");
@@ -93,6 +96,7 @@ public class TestHaltApp extends TestHalt {
     /**
      * Initialize the application.
      */
+    @Override
     protected void processAppStart() throws SQLException {
         Statement stat = conn.createStatement();
         if ((flags & FLAG_NO_DELAY) != 0) {
@@ -108,6 +112,7 @@ public class TestHaltApp extends TestHalt {
     /**
      * Run the application code.
      */
+    @Override
     protected void processAppRun() throws SQLException {
         conn.setAutoCommit(false);
         traceOperation("setAutoCommit false");

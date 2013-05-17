@@ -88,6 +88,7 @@ public class ValueDataType implements DataType {
         this.sortTypes = sortTypes;
     }
 
+    @Override
     public int compare(Object a, Object b) {
         if (a == b) {
             return 0;
@@ -139,6 +140,7 @@ public class ValueDataType implements DataType {
         return a.compareTypeSave(b, compareMode);
     }
 
+    @Override
     public int getMemory(Object obj) {
         return getMemory((Value) obj);
     }
@@ -147,10 +149,12 @@ public class ValueDataType implements DataType {
         return v == null ? 0 : v.getMemory();
     }
 
+    @Override
     public Value read(ByteBuffer buff) {
         return readValue(buff);
     }
 
+    @Override
     public ByteBuffer write(ByteBuffer buff, Object obj) {
         Value x = (Value) obj;
         buff = DataUtils.ensureCapacity(buff, 0);

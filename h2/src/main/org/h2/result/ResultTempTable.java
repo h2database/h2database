@@ -77,6 +77,7 @@ public class ResultTempTable implements ResultExternal {
         reset();
     }
 
+    @Override
     public synchronized ResultExternal createShallowCopy() {
         if (parent != null) {
             return parent.createShallowCopy();
@@ -88,6 +89,7 @@ public class ResultTempTable implements ResultExternal {
         return new ResultTempTable(this);
     }
 
+    @Override
     public int removeRow(Value[] values) {
         Row row = convertToRow(values);
         Cursor cursor = find(row);
@@ -98,10 +100,12 @@ public class ResultTempTable implements ResultExternal {
         return (int) table.getRowCount(session);
     }
 
+    @Override
     public boolean contains(Value[] values) {
         return find(convertToRow(values)) != null;
     }
 
+    @Override
     public int addRow(Value[] values) {
         Row row = convertToRow(values);
         Cursor cursor = find(row);
@@ -111,6 +115,7 @@ public class ResultTempTable implements ResultExternal {
         return (int) table.getRowCount(session);
     }
 
+    @Override
     public int addRows(ArrayList<Value[]> rows) {
         if (sort != null) {
             sort.sort(rows);
@@ -127,6 +132,7 @@ public class ResultTempTable implements ResultExternal {
         }
     }
 
+    @Override
     public synchronized void close() {
         if (closed) {
             return;
@@ -170,10 +176,12 @@ public class ResultTempTable implements ResultExternal {
         }
     }
 
+    @Override
     public void done() {
         // nothing to do
     }
 
+    @Override
     public Value[] next() {
         if (!resultCursor.next()) {
             return null;
@@ -183,6 +191,7 @@ public class ResultTempTable implements ResultExternal {
         return data.getList();
     }
 
+    @Override
     public void reset() {
         resultCursor = index.find(session, null, null);
     }

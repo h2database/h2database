@@ -32,6 +32,7 @@ public class LobStorageFrontend implements LobStorageInterface {
      *
      * @param lob the lob id
      */
+    @Override
     public void removeLob(long lob) {
         // TODO ideally, this should not be called at all, but that's a refactoring for another day
     }
@@ -44,6 +45,7 @@ public class LobStorageFrontend implements LobStorageInterface {
      * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */
+    @Override
     public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
         if (byteCount < 0) {
             byteCount = Long.MAX_VALUE;
@@ -60,6 +62,7 @@ public class LobStorageFrontend implements LobStorageInterface {
      * @param length the length
      * @return the new lob
      */
+    @Override
     public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
         // TODO ideally, this should not be called at all, but that's a refactoring for another day
         // this should never be called
@@ -73,6 +76,7 @@ public class LobStorageFrontend implements LobStorageInterface {
      * @param maxLength the maximum length (-1 if not known)
      * @return the LOB
      */
+    @Override
     public Value createBlob(InputStream in, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
             // need to use a temp file, because the input stream could come from
@@ -90,6 +94,7 @@ public class LobStorageFrontend implements LobStorageInterface {
      * @param maxLength the maximum length (-1 if not known)
      * @return the LOB
      */
+    @Override
     public Value createClob(Reader reader, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
             // need to use a temp file, because the input stream could come from

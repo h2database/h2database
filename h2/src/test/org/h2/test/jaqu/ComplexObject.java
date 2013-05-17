@@ -39,6 +39,7 @@ public class ComplexObject implements Table {
         return obj;
     }
 
+    @Override
     public void define() {
         primaryKey(id);
     }

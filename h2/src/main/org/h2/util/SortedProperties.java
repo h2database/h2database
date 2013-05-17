@@ -34,6 +34,7 @@ public class SortedProperties extends Properties {
 
     private static final long serialVersionUID = 1L;
 
+    @Override
     public synchronized Enumeration<Object> keys() {
         Vector<String> v = new Vector<String>();
         for (Object o : keySet()) {

@@ -33,6 +33,7 @@ public class TestScriptSimple extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (config.memory || config.big || config.networked) {
             return;

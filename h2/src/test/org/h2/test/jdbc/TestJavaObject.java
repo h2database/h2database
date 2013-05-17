@@ -143,18 +143,22 @@ public class TestJavaObject extends TestBase {
             this.value = value;
         }
 
+        @Override
         public String toString() {
             return "myObj:" + value;
         }
 
+        @Override
         public int compareTo(MyObj o) {
             return value - o.value;
         }
 
+        @Override
         public boolean equals(Object o) {
             return toString().equals(o.toString());
         }
 
+        @Override
         public int hashCode() {
             return -value;
         }

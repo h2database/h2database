@@ -574,6 +574,7 @@ public class Csv implements SimpleRowSource {
     /**
      * INTERNAL
      */
+    @Override
     public Object[] readRow() throws SQLException {
         if (input == null) {
             return null;
@@ -615,6 +616,7 @@ public class Csv implements SimpleRowSource {
     /**
      * INTERNAL
      */
+    @Override
     public void close() {
         IOUtils.closeSilently(input);
         input = null;
@@ -625,6 +627,7 @@ public class Csv implements SimpleRowSource {
     /**
      * INTERNAL
      */
+    @Override
     public void reset() throws SQLException {
         throw new SQLException("Method is not supported", "CSV");
     }

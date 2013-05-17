@@ -28,14 +28,17 @@ class RangeCursor implements Cursor {
         beforeFirst = true;
     }
 
+    @Override
     public Row get() {
         return currentRow;
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return currentRow;
     }
 
+    @Override
     public boolean next() {
         if (beforeFirst) {
             beforeFirst = false;
@@ -47,6 +50,7 @@ class RangeCursor implements Cursor {
         return current <= max;
     }
 
+    @Override
     public boolean previous() {
         throw DbException.throwInternalError();
     }

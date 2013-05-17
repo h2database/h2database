@@ -23,10 +23,12 @@ public class ConditionNot extends Condition {
         this.condition = condition;
     }
 
+    @Override
     public Expression getNotIfPossible(Session session) {
         return condition;
     }
 
+    @Override
     public Value getValue(Session session) {
         Value v = condition.getValue(session);
         if (v == ValueNull.INSTANCE) {
@@ -35,10 +37,12 @@ public class ConditionNot extends Condition {
         return v.convertTo(Value.BOOLEAN).negate();
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         condition.mapColumns(resolver, level);
     }
 
+    @Override
     public Expression optimize(Session session) {
         Expression e2 = condition.getNotIfPossible(session);
         if (e2 != null) {
@@ -56,18 +60,22 @@ public class ConditionNot extends Condition {
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         condition.setEvaluatable(tableFilter, b);
     }
 
+    @Override
     public String getSQL() {
         return "(NOT " + condition.getSQL() + ")";
     }
 
+    @Override
     public void updateAggregate(Session session) {
         condition.updateAggregate(session);
     }
 
+    @Override
     public void addFilterConditions(TableFilter filter, boolean outerJoin) {
         if (outerJoin) {
             // can not optimize:
@@ -81,10 +89,12 @@ public class ConditionNot extends Condition {
         super.addFilterConditions(filter, outerJoin);
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return condition.isEverything(visitor);
     }
 
+    @Override
     public int getCost() {
         return condition.getCost();
     }

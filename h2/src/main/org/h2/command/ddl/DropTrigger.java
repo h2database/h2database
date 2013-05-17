@@ -37,6 +37,7 @@ public class DropTrigger extends SchemaCommand {
         this.triggerName = triggerName;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -53,6 +54,7 @@ public class DropTrigger extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_TRIGGER;
     }

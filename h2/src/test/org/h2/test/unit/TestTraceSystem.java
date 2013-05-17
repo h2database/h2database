@@ -26,6 +26,7 @@ public class TestTraceSystem extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testTraceDebug();
         testReadOnly();

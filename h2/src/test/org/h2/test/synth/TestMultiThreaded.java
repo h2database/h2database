@@ -46,6 +46,7 @@ public class TestMultiThreaded extends TestBase {
         public Throwable getException() {
             return exception;
         }
+        @Override
         public void run() {
             int count = 0;
             ResultSet rs;
@@ -118,6 +119,7 @@ public class TestMultiThreaded extends TestBase {
         }
     }
 
+    @Override
     public void test() throws Exception {
         if (config.mvcc) {
             return;

@@ -1160,6 +1160,7 @@ public class MVStore {
 
         // sort the list, so the first entry should be collected first
         Collections.sort(old, new Comparator<Chunk>() {
+            @Override
             public int compare(Chunk o1, Chunk o2) {
                 return new Integer(o1.collectPriority).compareTo(o2.collectPriority);
             }
@@ -1906,6 +1907,7 @@ public class MVStore {
             return s;
         }
 
+        @Override
         public String toString() {
             return DataUtils.appendMap(new StringBuilder(), config).toString();
         }

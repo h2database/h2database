@@ -39,6 +39,7 @@ public class ValueUuid extends Value {
         this.low = low;
     }
 
+    @Override
     public int hashCode() {
         return (int) ((high >>> 32) ^ high ^ (low >>> 32) ^ low);
     }
@@ -115,14 +116,17 @@ public class ValueUuid extends Value {
         return (ValueUuid) Value.cache(new ValueUuid(high, low));
     }
 
+    @Override
     public String getSQL() {
         return StringUtils.quoteStringSQL(getString());
     }
 
+    @Override
     public int getType() {
         return Value.UUID;
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
@@ -134,6 +138,7 @@ public class ValueUuid extends Value {
         }
     }
 
+    @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(36);
         appendHex(buff, high >> 32, 4);
@@ -148,6 +153,7 @@ public class ValueUuid extends Value {
         return buff.toString();
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         if (o == this) {
             return 0;
@@ -159,14 +165,17 @@ public class ValueUuid extends Value {
         return high > v.high ? 1 : -1;
     }
 
+    @Override
     public boolean equals(Object other) {
         return other instanceof ValueUuid && compareSecure((Value) other, null) == 0;
     }
 
+    @Override
     public Object getObject() {
         return new UUID(high, low);
     }
 
+    @Override
     public byte[] getBytes() {
         byte[] buff = new byte[16];
         for (int i = 0; i < 8; i++) {
@@ -176,6 +185,7 @@ public class ValueUuid extends Value {
         return buff;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setBytes(parameterIndex, getBytes());
     }
@@ -198,6 +208,7 @@ public class ValueUuid extends Value {
         return low;
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }

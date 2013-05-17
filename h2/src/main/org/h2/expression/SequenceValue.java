@@ -26,48 +26,59 @@ public class SequenceValue extends Expression {
         this.sequence = sequence;
     }
 
+    @Override
     public Value getValue(Session session) {
         long value = sequence.getNext(session);
         session.setLastIdentity(ValueLong.get(value));
         return ValueLong.get(value);
     }
 
+    @Override
     public int getType() {
         return Value.LONG;
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         // nothing to do
     }
 
+    @Override
     public Expression optimize(Session session) {
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         // nothing to do
     }
 
+    @Override
     public int getScale() {
         return 0;
     }
 
+    @Override
     public long getPrecision() {
         return ValueInt.PRECISION;
     }
 
+    @Override
     public int getDisplaySize() {
         return ValueInt.DISPLAY_SIZE;
     }
 
+    @Override
     public String getSQL() {
         return "(NEXT VALUE FOR " + sequence.getSQL() +")";
     }
 
+    @Override
     public void updateAggregate(Session session) {
         // nothing to do
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
         case ExpressionVisitor.EVALUATABLE:
@@ -91,6 +102,7 @@ public class SequenceValue extends Expression {
         }
     }
 
+    @Override
     public int getCost() {
         return 1;
     }

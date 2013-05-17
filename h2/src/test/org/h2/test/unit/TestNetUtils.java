@@ -35,6 +35,7 @@ public class TestNetUtils extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testFrequentConnections(true, 100);
         testFrequentConnections(false, 1000);
@@ -44,6 +45,7 @@ public class TestNetUtils extends TestBase {
         final ServerSocket serverSocket = NetUtils.createServerSocket(PORT, ssl);
         final AtomicInteger counter = new AtomicInteger(count);
         Task serverThread = new Task() {
+            @Override
             public void call() {
                 while (!stop) {
                     try {
@@ -100,6 +102,7 @@ public class TestNetUtils extends TestBase {
             this.counter = counter;
         }
 
+        @Override
         public void run() {
             try {
                 while (!isInterrupted() && counter.decrementAndGet() > 0) {

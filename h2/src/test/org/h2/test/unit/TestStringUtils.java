@@ -31,6 +31,7 @@ public class TestStringUtils extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testHex();
         testXML();
@@ -46,13 +47,16 @@ public class TestStringUtils extends TestBase {
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("face"));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("fAcE"));
         assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("FaCe"));
-        new AssertThrows(DbException.class) { public void test() {
+        new AssertThrows(DbException.class) { @Override
+        public void test() {
             StringUtils.convertHexToBytes("120");
         }};
-        new AssertThrows(DbException.class) { public void test() {
+        new AssertThrows(DbException.class) { @Override
+        public void test() {
             StringUtils.convertHexToBytes("fast");
         }};
-        new AssertThrows(DbException.class) { public void test() {
+        new AssertThrows(DbException.class) { @Override
+        public void test() {
             StringUtils.convertHexToBytes("012=abcf");
         }};
     }

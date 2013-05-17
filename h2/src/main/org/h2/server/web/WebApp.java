@@ -953,9 +953,11 @@ public class WebApp {
                 list.add(page.substring(idx + "${result}".length()));
                 session.put("chunks", new Iterator<String>() {
                     private int i;
+                    @Override
                     public boolean hasNext() {
                         return i < list.size();
                     }
+                    @Override
                     public String next() {
                         String s = list.get(i++);
                         if (i == 1 || i == list.size()) {
@@ -965,6 +967,7 @@ public class WebApp {
                         query(conn, s, i - 1, list.size() - 2, b);
                         return b.toString();
                     }
+                    @Override
                     public void remove() {
                         throw new UnsupportedOperationException();
                     }
@@ -1159,6 +1162,7 @@ public class WebApp {
     private static void addDatabaseMetaData(SimpleResultSet rs, DatabaseMetaData meta) {
         Method[] methods = DatabaseMetaData.class.getDeclaredMethods();
         Arrays.sort(methods, new Comparator<Method>() {
+            @Override
             public int compare(Method o1, Method o2) {
                 return o1.toString().compareTo(o2.toString());
             }

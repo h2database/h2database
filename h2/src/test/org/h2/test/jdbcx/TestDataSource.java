@@ -63,6 +63,7 @@ public class TestDataSource extends TestBase {
 //     conn.close();
 //     }
 
+    @Override
     public void test() throws Exception {
         if (config.traceLevelFile > 0) {
             TraceSystem sys = JdbcDataSourceFactory.getTraceSystem();
@@ -134,10 +135,12 @@ public class TestDataSource extends TestBase {
         assertTrue(xaConn.toString().startsWith("xads" + traceId + ": conn"));
 
         xaConn.addConnectionEventListener(new ConnectionEventListener() {
+            @Override
             public void connectionClosed(ConnectionEvent event) {
                 // nothing to do
             }
 
+            @Override
             public void connectionErrorOccurred(ConnectionEvent event) {
                 // nothing to do
             }

@@ -258,6 +258,7 @@ class AggregateData {
             }
             final CompareMode compareMode = database.getCompareMode();
             Arrays.sort(values, new Comparator<ValueArray>() {
+                @Override
                 public int compare(ValueArray v1, ValueArray v2) {
                     Value a1 = v1.getList()[0];
                     Value a2 = v2.getList()[0];

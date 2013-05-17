@@ -229,6 +229,7 @@ abstract class PageData extends Page {
      *
      * @return number of double words (4 bytes each)
      */
+    @Override
     public int getMemory() {
         // need to always return the same value for the same object (otherwise
         // the cache size would change after adding and then removing the same
@@ -241,6 +242,7 @@ abstract class PageData extends Page {
         return parentPageId;
     }
 
+    @Override
     public boolean canRemove() {
         if (changeCount >= index.getPageStore().getChangeCount()) {
             return false;

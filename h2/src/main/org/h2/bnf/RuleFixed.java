@@ -29,14 +29,17 @@ public class RuleFixed implements Rule {
         this.type = type;
     }
 
+    @Override
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleFixed(type);
     }
 
+    @Override
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         // nothing to do
     }
 
+    @Override
     public boolean autoComplete(Sentence sentence) {
         sentence.stopIfRequired();
         String query = sentence.getQuery();

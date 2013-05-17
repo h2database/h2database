@@ -56,6 +56,7 @@ public class JdbcSQLException extends SQLException {
      *
      * @return the message
      */
+    @Override
     public String getMessage() {
         return message;
     }
@@ -70,6 +71,7 @@ public class JdbcSQLException extends SQLException {
     /**
      * Prints the stack trace to the standard error stream.
      */
+    @Override
     public void printStackTrace() {
         // The default implementation already does that,
         // but we do it again to avoid problems.
@@ -83,6 +85,7 @@ public class JdbcSQLException extends SQLException {
      *
      * @param s the print writer
      */
+    @Override
     public void printStackTrace(PrintWriter s) {
         if (s != null) {
             super.printStackTrace(s);
@@ -104,6 +107,7 @@ public class JdbcSQLException extends SQLException {
      *
      * @param s the print stream
      */
+    @Override
     public void printStackTrace(PrintStream s) {
         if (s != null) {
             super.printStackTrace(s);
@@ -163,6 +167,7 @@ public class JdbcSQLException extends SQLException {
      *
      * @return the string representation
      */
+    @Override
     public String toString() {
         if (stackTrace == null) {
             return super.toString();

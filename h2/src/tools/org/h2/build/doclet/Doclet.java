@@ -106,6 +106,7 @@ public class Doclet {
         System.arraycopy(constructors, 0, constructorsMethods, 0, constructors.length);
         System.arraycopy(methods, 0, constructorsMethods, constructors.length, methods.length);
         Arrays.sort(constructorsMethods, new Comparator<ExecutableMemberDoc>() {
+            @Override
             public int compare(ExecutableMemberDoc a, ExecutableMemberDoc b) {
                 // sort static method before non-static methods
                 if (a.isStatic() != b.isStatic()) {
@@ -189,6 +190,7 @@ public class Doclet {
             fields = clazz.interfaces()[0].fields();
         }
         Arrays.sort(fields, new Comparator<FieldDoc>() {
+            @Override
             public int compare(FieldDoc a, FieldDoc b) {
                 return a.name().compareTo(b.name());
             }
@@ -230,6 +232,7 @@ public class Doclet {
 
         // field details
         Arrays.sort(fields, new Comparator<FieldDoc>() {
+            @Override
             public int compare(FieldDoc a, FieldDoc b) {
                 String ca = a.constantValueExpression();
                 if (ca == null) {

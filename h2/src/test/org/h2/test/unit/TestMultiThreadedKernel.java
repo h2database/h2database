@@ -32,6 +32,7 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (config.networked || config.mvcc) {
             return;
@@ -59,6 +60,7 @@ public class TestMultiThreadedKernel extends TestBase implements Runnable {
         deleteDb("multiThreadedKernel");
     }
 
+    @Override
     public void run() {
         try {
             org.h2.Driver.load();

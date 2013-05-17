@@ -981,6 +981,7 @@ public class PageStore implements CacheWriter {
         }
     }
 
+    @Override
     public synchronized void flushLog() {
         if (file != null) {
             log.flush();
@@ -997,10 +998,12 @@ public class PageStore implements CacheWriter {
         }
     }
 
+    @Override
     public Trace getTrace() {
         return trace;
     }
 
+    @Override
     public synchronized void writeBack(CacheObject obj) {
         Page record = (Page) obj;
         if (trace.isDebugEnabled()) {

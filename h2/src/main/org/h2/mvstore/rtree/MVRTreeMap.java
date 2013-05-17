@@ -48,6 +48,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         return new MVRTreeMap<V>(dimensions, valueType);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public V get(Object key) {
         checkOpen();
@@ -63,6 +64,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     public Iterator<SpatialKey> findIntersectingKeys(SpatialKey x) {
         checkOpen();
         return new RTreeCursor(this, root, x) {
+            @Override
             protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
                 return keyType.isOverlap(key, test);
             }
@@ -78,6 +80,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     public Iterator<SpatialKey> findContainedKeys(SpatialKey x) {
         checkOpen();
         return new RTreeCursor(this, root, x) {
+            @Override
             protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
                 if (leaf) {
                     return keyType.isInside(key, test);
@@ -118,6 +121,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         return null;
     }
 
+    @Override
     protected Page getPage(SpatialKey key) {
         return getPage(root, key);
     }
@@ -142,6 +146,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         return null;
     }
 
+    @Override
     protected Object remove(Page p, long writeVersion, Object key) {
         Object result = null;
         if (p.isLeaf()) {
@@ -194,6 +199,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         return bounds;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public V put(SpatialKey key, V value) {
         return (V) putOrAdd(key, value, false);
@@ -465,6 +471,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         this.quadraticSplit = quadraticSplit;
     }
 
+    @Override
     protected int getChildPageCount(Page p) {
         return p.getChildPageCount() - 1;
     }
@@ -478,6 +485,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             super(map, root, from);
         }
 
+        @Override
         public void skip(long n) {
             if (!hasNext()) {
                 return;
@@ -499,6 +507,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             return true;
         }
 
+        @Override
         protected void min(Page p, SpatialKey x) {
             while (true) {
                 if (p.isLeaf()) {
@@ -521,6 +530,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             fetchNext();
         }
 
+        @Override
         protected void fetchNext() {
             while (pos != null) {
                 while (pos.index < pos.page.getKeyCount()) {
@@ -543,6 +553,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         }
     }
 
+    @Override
     public String getType() {
         return "rtree";
     }
@@ -587,6 +598,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             return this;
         }
 
+        @Override
         public MVRTreeMap<V> create() {
             if (valueType == null) {
                 valueType = new ObjectDataType();

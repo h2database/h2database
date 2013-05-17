@@ -206,6 +206,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         }
     }
 
+    @Override
     public void runTool(String... args) throws SQLException {
         boolean tcpStart = false, pgStart = false, webStart = false;
         boolean browserStart = false;
@@ -542,6 +543,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     /**
      * INTERNAL
      */
+    @Override
     public void run() {
         try {
             service.listen();
@@ -560,6 +562,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     /**
      * INTERNAL
      */
+    @Override
     public void shutdown() {
         if (shutdownHandler != null) {
             shutdownHandler.shutdown();

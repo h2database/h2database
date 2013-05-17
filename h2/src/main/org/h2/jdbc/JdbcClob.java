@@ -49,6 +49,7 @@ public class JdbcClob extends TraceObject implements NClob
      *
      * @return the length
      */
+    @Override
     public long length() throws SQLException {
         try {
             debugCodeCall("length");
@@ -68,6 +69,7 @@ public class JdbcClob extends TraceObject implements NClob
     /**
      * [Not supported] Truncates the object.
      */
+    @Override
     public void truncate(long len) throws SQLException {
         throw unsupported("LOB update");
     }
@@ -77,6 +79,7 @@ public class JdbcClob extends TraceObject implements NClob
      *
      * @return the input stream
      */
+    @Override
     public InputStream getAsciiStream() throws SQLException {
         try {
             debugCodeCall("getAsciiStream");
@@ -91,6 +94,7 @@ public class JdbcClob extends TraceObject implements NClob
     /**
      * [Not supported] Returns an output  stream.
      */
+    @Override
     public OutputStream setAsciiStream(long pos) throws SQLException {
         throw unsupported("LOB update");
     }
@@ -100,6 +104,7 @@ public class JdbcClob extends TraceObject implements NClob
      *
      * @return the reader
      */
+    @Override
     public Reader getCharacterStream() throws SQLException {
         try {
             debugCodeCall("getCharacterStream");
@@ -120,6 +125,7 @@ public class JdbcClob extends TraceObject implements NClob
      * @param pos where to start writing (the first character is at position 1)
      * @return a writer
      */
+    @Override
     public Writer setCharacterStream(long pos) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -138,11 +144,13 @@ public class JdbcClob extends TraceObject implements NClob
             // (Sun/Oracle Java 1.6.0_20)
             final PipedInputStream in = new PipedInputStream();
             final Task task = new Task() {
+                @Override
                 public void call() {
                     value = c.createClob(IOUtils.getReader(in), -1);
                 }
             };
             PipedOutputStream out = new PipedOutputStream(in) {
+                @Override
                 public void close() throws IOException {
                     super.close();
                     try {
@@ -166,6 +174,7 @@ public class JdbcClob extends TraceObject implements NClob
      * @param length the number of characters
      * @return the string
      */
+    @Override
     public String getSubString(long pos, int length) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -201,6 +210,7 @@ public class JdbcClob extends TraceObject implements NClob
      * @param str the string to add
      * @return the length of the added text
      */
+    @Override
     public int setString(long pos, String str) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -222,6 +232,7 @@ public class JdbcClob extends TraceObject implements NClob
     /**
      * [Not supported] Sets a substring.
      */
+    @Override
     public int setString(long pos, String str, int offset, int len) throws SQLException {
         throw unsupported("LOB update");
     }
@@ -229,6 +240,7 @@ public class JdbcClob extends TraceObject implements NClob
     /**
      * [Not supported] Searches a pattern and return the position.
      */
+    @Override
     public long position(String pattern, long start) throws SQLException {
         throw unsupported("LOB search");
     }
@@ -236,6 +248,7 @@ public class JdbcClob extends TraceObject implements NClob
     /**
      * [Not supported] Searches a pattern and return the position.
      */
+    @Override
     public long position(Clob clobPattern, long start) throws SQLException {
         throw unsupported("LOB search");
     }
@@ -243,6 +256,7 @@ public class JdbcClob extends TraceObject implements NClob
     /**
      * Release all resources of this object.
      */
+    @Override
     public void free() {
         debugCodeCall("free");
         value = null;
@@ -251,6 +265,7 @@ public class JdbcClob extends TraceObject implements NClob
     /**
      * [Not supported] Returns the reader, starting from an offset.
      */
+    @Override
     public Reader getCharacterStream(long pos, long length) throws SQLException {
         throw unsupported("LOB subset");
     }
@@ -265,6 +280,7 @@ public class JdbcClob extends TraceObject implements NClob
     /**
      * INTERNAL
      */
+    @Override
     public String toString() {
         return getTraceObjectName() + ": " + (value == null ? "null" : value.getTraceSQL());
     }

@@ -31,10 +31,12 @@ public abstract class DefineCommand extends Prepared {
         super(session);
     }
 
+    @Override
     public boolean isReadOnly() {
         return false;
     }
 
+    @Override
     public ResultInterface queryMeta() {
         return null;
     }
@@ -43,6 +45,7 @@ public abstract class DefineCommand extends Prepared {
         this.transactional = transactional;
     }
 
+    @Override
     public boolean isTransactional() {
         return transactional;
     }

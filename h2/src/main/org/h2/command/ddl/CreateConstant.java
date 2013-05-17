@@ -34,6 +34,7 @@ public class CreateConstant extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         session.getUser().checkAdmin();
@@ -61,6 +62,7 @@ public class CreateConstant extends SchemaCommand {
         this.expression = expr;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_CONSTANT;
     }

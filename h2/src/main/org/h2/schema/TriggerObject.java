@@ -255,10 +255,12 @@ public class TriggerObject extends SchemaObjectBase {
         this.onRollback = onRollback;
     }
 
+    @Override
     public String getDropSQL() {
         return null;
     }
 
+    @Override
     public String getCreateSQLForCopy(Table targetTable, String quotedName) {
         StringBuilder buff = new StringBuilder("CREATE FORCE TRIGGER ");
         buff.append(quotedName);
@@ -308,14 +310,17 @@ public class TriggerObject extends SchemaObjectBase {
         return buff.toString();
     }
 
+    @Override
     public String getCreateSQL() {
         return getCreateSQLForCopy(table, getSQL());
     }
 
+    @Override
     public int getType() {
         return DbObject.TRIGGER;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         table.removeTrigger(this);
         database.removeMeta(session, getId());
@@ -332,6 +337,7 @@ public class TriggerObject extends SchemaObjectBase {
         invalidate();
     }
 
+    @Override
     public void checkRename() {
         // nothing to do
     }

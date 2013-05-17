@@ -34,6 +34,7 @@ public class TestRunscript extends TestBase implements Trigger {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testDropReferencedUserDefinedFunction();
         testDropCascade();
@@ -326,6 +327,7 @@ public class TestRunscript extends TestBase implements Trigger {
         final String dir = getBaseDir();
         Task task;
         task = new Task() {
+            @Override
             public void call() throws SQLException {
                 stat.execute("script simple drop to '"+dir+"/backup2.sql'");
             }
@@ -342,6 +344,7 @@ public class TestRunscript extends TestBase implements Trigger {
         Thread.sleep(100);
 
         task = new Task() {
+            @Override
             public void call() throws SQLException {
                 stat.execute("runscript from '"+dir+"/backup.sql'");
             }
@@ -504,6 +507,7 @@ public class TestRunscript extends TestBase implements Trigger {
 
     }
 
+    @Override
     public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
         if (!before) {
             throw new InternalError("before:" + before);
@@ -513,14 +517,17 @@ public class TestRunscript extends TestBase implements Trigger {
         }
     }
 
+    @Override
     public void fire(Connection conn, Object[] oldRow, Object[] newRow) {
         // nothing to do
     }
 
+    @Override
     public void close() {
         // ignore
     }
 
+    @Override
     public void remove() {
         // ignore
     }

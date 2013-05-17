@@ -43,6 +43,7 @@ public class TestClassLoaderLeak extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         WeakReference<ClassLoader> ref = createClassLoader();
         for (int i = 0; i < 10; i++) {
@@ -102,6 +103,7 @@ public class TestClassLoaderLeak extends TestBase {
         }
 
         // allows delegation of H2 to the AppClassLoader
+        @Override
         public synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
             if (!name.contains(CLASS_NAME) && !name.startsWith("org.h2.")) {
                 return super.loadClass(name, resolve);

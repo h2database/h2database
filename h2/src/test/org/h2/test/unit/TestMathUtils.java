@@ -26,6 +26,7 @@ public class TestMathUtils extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() {
         testRandom();
         testReverse();
@@ -88,7 +89,8 @@ public class TestMathUtils extends TestBase {
     }
 
     private void testFactorial() {
-        new AssertThrows(IllegalArgumentException.class) { public void test() {
+        new AssertThrows(IllegalArgumentException.class) { @Override
+        public void test() {
             factorial(-1);
         }};
         assertEquals("1", factorial(0).toString());

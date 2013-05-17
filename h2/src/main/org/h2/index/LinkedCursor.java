@@ -39,14 +39,17 @@ public class LinkedCursor implements Cursor {
         this.prep = prep;
     }
 
+    @Override
     public Row get() {
         return current;
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return current;
     }
 
+    @Override
     public boolean next() {
         try {
             boolean result = rs.next();
@@ -68,6 +71,7 @@ public class LinkedCursor implements Cursor {
         return true;
     }
 
+    @Override
     public boolean previous() {
         throw DbException.throwInternalError();
     }

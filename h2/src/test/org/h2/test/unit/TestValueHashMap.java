@@ -41,6 +41,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() {
         testNotANumber();
         testRandomized();
@@ -61,6 +62,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         HashMap<Value, Value> hash = New.hashMap();
         Random random = new Random(1);
         Comparator<Value> vc = new Comparator<Value>() {
+            @Override
             public int compare(Value v1, Value v2) {
                 return v1.compareTo(v2, compareMode);
             }
@@ -109,50 +111,62 @@ public class TestValueHashMap extends TestBase implements DataHandler {
         }
     }
 
+    @Override
     public String getDatabasePath() {
         return null;
     }
 
+    @Override
     public FileStore openFile(String name, String mode, boolean mustExist) {
         return null;
     }
 
+    @Override
     public void checkPowerOff() {
         // nothing to do
     }
 
+    @Override
     public void checkWritingAllowed() {
         // nothing to do
     }
 
+    @Override
     public int getMaxLengthInplaceLob() {
         return 0;
     }
 
+    @Override
     public String getLobCompressionAlgorithm(int type) {
         return null;
     }
 
+    @Override
     public Object getLobSyncObject() {
         return this;
     }
 
+    @Override
     public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 
+    @Override
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
     }
 
+    @Override
     public LobStorageBackend getLobStorage() {
         return null;
     }
 
+    @Override
     public Connection getLobConnection() {
         return null;
     }
 
+    @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         return -1;
     }

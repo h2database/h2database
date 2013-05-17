@@ -33,11 +33,13 @@ public class TreeIndex extends BaseIndex {
         tableData = table;
     }
 
+    @Override
     public void close(Session session) {
         root = null;
         closed = true;
     }
 
+    @Override
     public void add(Session session, Row row) {
         if (closed) {
             throw DbException.throwInternalError();
@@ -141,6 +143,7 @@ public class TreeIndex extends BaseIndex {
         }
     }
 
+    @Override
     public void remove(Session session, Row row) {
         if (closed) {
             throw DbException.throwInternalError();
@@ -285,10 +288,12 @@ public class TreeIndex extends BaseIndex {
         return result;
     }
 
+    @Override
     public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
         return find(first, last);
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         return find(first, last);
     }
@@ -309,31 +314,38 @@ public class TreeIndex extends BaseIndex {
         return new TreeCursor(this, x, first, last);
     }
 
+    @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         return getCostRangeIndex(masks, tableData.getRowCountApproximation(), sortOrder);
     }
 
+    @Override
     public void remove(Session session) {
         truncate(session);
     }
 
+    @Override
     public void truncate(Session session) {
         root = null;
         rowCount = 0;
     }
 
+    @Override
     public void checkRename() {
         // nothing to do
     }
 
+    @Override
     public boolean needRebuild() {
         return true;
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return true;
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         if (closed) {
             throw DbException.throwInternalError();
@@ -376,14 +388,17 @@ public class TreeIndex extends BaseIndex {
         return cursor;
     }
 
+    @Override
     public long getRowCount(Session session) {
         return rowCount;
     }
 
+    @Override
     public long getRowCountApproximation() {
         return rowCount;
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return 0;
     }

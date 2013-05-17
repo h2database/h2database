@@ -311,6 +311,7 @@ public class LobStorageBackend implements LobStorageInterface {
             this.length = byteCount;
         }
 
+        @Override
         public int read() throws IOException {
             fillBuffer();
             if (remainingBytes <= 0) {
@@ -320,6 +321,7 @@ public class LobStorageBackend implements LobStorageInterface {
             return buffer[pos++] & 255;
         }
 
+        @Override
         public long skip(long n) throws IOException {
             long remaining = n;
             remaining -= skipSmall(remaining);
@@ -357,10 +359,12 @@ public class LobStorageBackend implements LobStorageInterface {
             return 0;
         }
 
+        @Override
         public int read(byte[] buff) throws IOException {
             return readFully(buff, 0, buff.length);
         }
 
+        @Override
         public int read(byte[] buff, int off, int length) throws IOException {
             return readFully(buff, off, length);
         }
@@ -431,6 +435,7 @@ public class LobStorageBackend implements LobStorageInterface {
      *
      * @param lob the lob id
      */
+    @Override
     public void removeLob(long lob) {
         try {
             synchronized (database) {
@@ -482,6 +487,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */
+    @Override
     public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
         init();
         if (byteCount == -1) {
@@ -590,6 +596,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * @param length the length
      * @return the new lob
      */
+    @Override
     public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
         synchronized (database) {
             try {
@@ -721,6 +728,7 @@ public class LobStorageBackend implements LobStorageInterface {
             buffer = Utils.EMPTY_BYTES;
         }
 
+        @Override
         public int read(byte[] buff, int offset, int len) throws IOException {
             if (buffer == null) {
                 return -1;
@@ -737,6 +745,7 @@ public class LobStorageBackend implements LobStorageInterface {
             return len;
         }
 
+        @Override
         public int read() throws IOException {
             if (buffer == null) {
                 return -1;
@@ -771,6 +780,7 @@ public class LobStorageBackend implements LobStorageInterface {
             return length;
         }
 
+        @Override
         public void close() throws IOException {
             reader.close();
         }
@@ -784,6 +794,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * @param maxLength the maximum length (-1 if not known)
      * @return the LOB
      */
+    @Override
     public Value createBlob(InputStream in, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
@@ -799,6 +810,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * @param maxLength the maximum length (-1 if not known)
      * @return the LOB
      */
+    @Override
     public Value createClob(Reader reader, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
             init();

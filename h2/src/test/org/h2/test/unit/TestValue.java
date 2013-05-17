@@ -45,6 +45,7 @@ public class TestValue extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testCastTrim();
         testValueResultSet();
@@ -78,7 +79,8 @@ public class TestValue extends TestBase {
         final Value vd = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
         assertEquals(19, vd.getPrecision());
         assertEquals("1234567890.1234567", vd.convertPrecision(10, true).getString());
-        new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) { public void test() {
+        new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) { @Override
+        public void test() {
             vd.convertPrecision(10, false);
         }};
 
@@ -228,7 +230,8 @@ public class TestValue extends TestBase {
 
     private void testModulusDouble() {
         final ValueDouble vd1 = ValueDouble.get(12);
-        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { public void test() {
+        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { @Override
+        public void test() {
             vd1.modulus(ValueDouble.get(0));
         }};
         ValueDouble vd2 = ValueDouble.get(10);
@@ -238,7 +241,8 @@ public class TestValue extends TestBase {
 
     private void testModulusDecimal() {
         final ValueDecimal vd1 = ValueDecimal.get(new BigDecimal(12));
-        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { public void test() {
+        new AssertThrows(ErrorCode.DIVISION_BY_ZERO_1) { @Override
+        public void test() {
             vd1.modulus(ValueDecimal.get(new BigDecimal(0)));
         }};
         ValueDecimal vd2 = ValueDecimal.get(new BigDecimal(10));

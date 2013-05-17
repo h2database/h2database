@@ -32,6 +32,7 @@ public class TestMemoryUsage extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testOpenCloseConnections();
         if (getBaseDir().indexOf(':') >= 0) {

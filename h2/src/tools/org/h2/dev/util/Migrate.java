@@ -219,6 +219,7 @@ public class Migrate {
 
     private static void copyInThread(final InputStream in, final OutputStream out) {
         new Thread() {
+            @Override
             public void run() {
                 try {
                     while (true) {

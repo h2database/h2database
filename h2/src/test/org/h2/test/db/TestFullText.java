@@ -44,6 +44,7 @@ public class TestFullText extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testUuidPrimaryKey(false);
         testAutoAnalyze();
@@ -243,6 +244,7 @@ public class TestFullText extends TestBase {
             stat.execute("CREATE TABLE " + tableName + "(ID INT PRIMARY KEY, DATA VARCHAR)");
             stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', '" + tableName + "', NULL)");
             task[i] = new Task() {
+                @Override
                 public void call() throws SQLException {
                     trace("starting thread " + Thread.currentThread());
                     PreparedStatement prep = conn.prepareStatement("INSERT INTO " + tableName + " VALUES(?, ?)");
@@ -308,10 +310,12 @@ public class TestFullText extends TestBase {
         prep.setCharacterStream(1, new Reader() {
             int remaining = length;
 
+            @Override
             public void close() {
                 // ignore
             }
 
+            @Override
             public int read(char[] buff, int off, int len) {
                 if (remaining >= len) {
                     remaining -= len;

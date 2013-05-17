@@ -27,6 +27,7 @@ public class ArrayGet implements Token {
         return new ArrayGet(variable, index);
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         // untested
         variable.appendSQL(stat, query);

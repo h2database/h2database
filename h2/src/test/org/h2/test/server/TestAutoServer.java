@@ -32,6 +32,7 @@ public class TestAutoServer extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testUnsupportedCombinations();
         testAutoServer(false);

@@ -69,14 +69,17 @@ public class ValueExpression extends Expression {
         return new ValueExpression(value);
     }
 
+    @Override
     public Value getValue(Session session) {
         return value;
     }
 
+    @Override
     public int getType() {
         return value.getType();
     }
 
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         if (value.getType() == Value.BOOLEAN) {
             boolean v = ((ValueBoolean) value).getBoolean().booleanValue();
@@ -86,42 +89,52 @@ public class ValueExpression extends Expression {
         }
     }
 
+    @Override
     public Expression getNotIfPossible(Session session) {
         return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         // nothing to do
     }
 
+    @Override
     public Expression optimize(Session session) {
         return this;
     }
 
+    @Override
     public boolean isConstant() {
         return true;
     }
 
+    @Override
     public boolean isValueSet() {
         return true;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         // nothing to do
     }
 
+    @Override
     public int getScale() {
         return value.getScale();
     }
 
+    @Override
     public long getPrecision() {
         return value.getPrecision();
     }
 
+    @Override
     public int getDisplaySize() {
         return value.getDisplaySize();
     }
 
+    @Override
     public String getSQL() {
         if (this == DEFAULT) {
             return "DEFAULT";
@@ -129,10 +142,12 @@ public class ValueExpression extends Expression {
         return value.getSQL();
     }
 
+    @Override
     public void updateAggregate(Session session) {
         // nothing to do
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch (visitor.getType()) {
         case ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL:
@@ -151,10 +166,12 @@ public class ValueExpression extends Expression {
         }
     }
 
+    @Override
     public int getCost() {
         return 0;
     }
 
+    @Override
     public Expression[] getExpressionColumns(Session session) {
         if (getType() == Value.ARRAY) {
             return getExpressionColumns(session, (ValueArray) getValue(session));

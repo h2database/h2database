@@ -30,6 +30,7 @@ public class TestBigResult extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.memory) {
             return;

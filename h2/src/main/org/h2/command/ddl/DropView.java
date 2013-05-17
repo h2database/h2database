@@ -46,6 +46,7 @@ public class DropView extends SchemaCommand {
         this.viewName = viewName;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Table view = getSchema().findTableOrView(session, viewName);
@@ -73,6 +74,7 @@ public class DropView extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_VIEW;
     }

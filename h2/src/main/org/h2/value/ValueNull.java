@@ -47,102 +47,127 @@ public class ValueNull extends Value {
         // don't allow construction
     }
 
+    @Override
     public String getSQL() {
         return "NULL";
     }
 
+    @Override
     public int getType() {
         return Value.NULL;
     }
 
+    @Override
     public String getString() {
         return null;
     }
 
+    @Override
     public Boolean getBoolean() {
         return null;
     }
 
+    @Override
     public Date getDate() {
         return null;
     }
 
+    @Override
     public Time getTime() {
         return null;
     }
 
+    @Override
     public Timestamp getTimestamp() {
         return null;
     }
 
+    @Override
     public byte[] getBytes() {
         return null;
     }
 
+    @Override
     public byte getByte() {
         return 0;
     }
 
+    @Override
     public short getShort() {
         return 0;
     }
 
+    @Override
     public BigDecimal getBigDecimal() {
         return null;
     }
 
+    @Override
     public double getDouble() {
         return 0.0;
     }
 
+    @Override
     public float getFloat() {
         return 0.0F;
     }
 
+    @Override
     public int getInt() {
         return 0;
     }
 
+    @Override
     public long getLong() {
         return 0;
     }
 
+    @Override
     public InputStream getInputStream() {
         return null;
     }
 
+    @Override
     public Reader getReader() {
         return null;
     }
 
+    @Override
     public Value convertTo(int type) {
         return this;
     }
 
+    @Override
     protected int compareSecure(Value v, CompareMode mode) {
         throw DbException.throwInternalError("compare null");
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int hashCode() {
         return 0;
     }
 
+    @Override
     public Object getObject() {
         return null;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setNull(parameterIndex, DataType.convertTypeToSQLType(Value.NULL));
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     public boolean equals(Object other) {
         return other == this;
     }

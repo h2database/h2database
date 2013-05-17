@@ -50,6 +50,7 @@ public class TestReopen extends TestBase implements Recorder {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         System.setProperty("h2.delayWrongPasswordMin", "0");
         FilePathRec.register();
@@ -65,6 +66,7 @@ public class TestReopen extends TestBase implements Recorder {
         System.out.println("counter: " + writeCount);
     }
 
+    @Override
     public void log(int op, String fileName, byte[] data, long x) {
         if (op != Recorder.WRITE && op != Recorder.TRUNCATE) {
             return;

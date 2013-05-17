@@ -30,6 +30,7 @@ public class TestViewDropView extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("alter");
         conn = getConnection("alter");

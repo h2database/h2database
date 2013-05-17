@@ -29,6 +29,7 @@ public class TestNestedLoop extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         deleteDb("nestedLoop");
         Connection conn = getConnection("nestedLoop");

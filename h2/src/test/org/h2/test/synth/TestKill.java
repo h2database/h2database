@@ -39,6 +39,7 @@ public class TestKill extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         String connect = "";
 

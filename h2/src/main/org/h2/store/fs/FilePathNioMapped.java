@@ -24,10 +24,12 @@ import org.h2.constant.SysProperties;
  */
 public class FilePathNioMapped extends FilePathNio {
 
+    @Override
     public FileChannel open(String mode) throws IOException {
         return new FileNioMapped(name.substring(getScheme().length() + 1), mode);
     }
 
+    @Override
     public String getScheme() {
         return "nioMapped";
     }
@@ -137,6 +139,7 @@ class FileNioMapped extends FileBase {
         }
     }
 
+    @Override
     public void implCloseChannel() throws IOException {
         if (file != null) {
             unMap();
@@ -145,18 +148,22 @@ class FileNioMapped extends FileBase {
         }
     }
 
+    @Override
     public long position() {
         return pos;
     }
 
+    @Override
     public String toString() {
         return "nioMapped:" + name;
     }
 
+    @Override
     public synchronized long size() throws IOException {
         return fileLength;
     }
 
+    @Override
     public synchronized int read(ByteBuffer dst) throws IOException {
         try {
             int len = dst.remaining();
@@ -183,12 +190,14 @@ class FileNioMapped extends FileBase {
         }
     }
 
+    @Override
     public FileChannel position(long pos) throws IOException {
         checkFileSizeLimit(pos);
         this.pos = (int) pos;
         return this;
     }
 
+    @Override
     public synchronized FileChannel truncate(long newLength) throws IOException {
         if (newLength < size()) {
             setFileLength(newLength);
@@ -215,11 +224,13 @@ class FileNioMapped extends FileBase {
         pos = (int) Math.min(newLength, oldPos);
     }
 
+    @Override
     public void force(boolean metaData) throws IOException {
         mapped.force();
         file.getFD().sync();
     }
 
+    @Override
     public synchronized int write(ByteBuffer src) throws IOException {
         int len = src.remaining();
         // check if need to expand file
@@ -232,6 +243,7 @@ class FileNioMapped extends FileBase {
         return len;
     }
 
+    @Override
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
         return file.getChannel().tryLock(position, size, shared);
     }

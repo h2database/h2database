@@ -46,6 +46,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb(null);
         testDropTempTable();
@@ -834,22 +835,27 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         trace("   " + m);
     }
 
+    @Override
     public void closingDatabase() {
         event("closing");
     }
 
+    @Override
     public void exceptionThrown(SQLException e, String sql) {
         event("exceptionThrown " + e + " " + sql);
     }
 
+    @Override
     public void init(String url) {
         event("init");
     }
 
+    @Override
     public void opened() {
         event("opened");
     }
 
+    @Override
     public void setProgress(int state, String name, int x, int max) {
         if (name.startsWith("SYS:SYS_ID")) {
             // ignore

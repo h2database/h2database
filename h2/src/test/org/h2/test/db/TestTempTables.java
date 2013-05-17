@@ -29,6 +29,7 @@ public class TestTempTables extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         deleteDb("tempTables");
         testTempFileResultSet();

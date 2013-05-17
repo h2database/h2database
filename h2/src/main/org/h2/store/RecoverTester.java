@@ -63,6 +63,7 @@ public class RecoverTester implements Recorder {
         return instance;
     }
 
+    @Override
     public void log(int op, String fileName, byte[] data, long x) {
         if (op != Recorder.WRITE && op != Recorder.TRUNCATE) {
             return;

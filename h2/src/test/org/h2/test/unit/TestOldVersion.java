@@ -39,6 +39,7 @@ public class TestOldVersion extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         cl = getClassLoader("file:ext/h2-1.2.127.jar");
         driver = getDriver(cl);

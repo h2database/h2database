@@ -28,6 +28,7 @@ public class TestRecoverKillLoop extends TestBase {
         new TestRecoverKillLoop().runTest(Integer.MAX_VALUE);
     }
 
+    @Override
     public void test() throws Exception {
         runTest(3);
     }

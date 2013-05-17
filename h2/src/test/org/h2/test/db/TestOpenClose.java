@@ -37,6 +37,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testErrorMessageLocked();
         testErrorMessageWrongSplit();
@@ -177,6 +178,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         Task[] tasks = new Task[len];
         for (int i = 0; i < len; i++) {
             tasks[i] = new Task() {
+                @Override
                 public void call() throws SQLException {
                     Connection c = DriverManager.getConnection(url, user, password);
                     PreparedStatement prep = c.prepareStatement("insert into employee values(?, ?, 0)");
@@ -206,10 +208,12 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         return nextId++;
     }
 
+    @Override
     public void exceptionThrown(SQLException e, String sql) {
         throw new AssertionError("unexpected: " + e + " sql: " + sql);
     }
 
+    @Override
     public void setProgress(int state, String name, int current, int max) {
         String stateName;
         switch (state) {
@@ -234,14 +238,17 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         // System.out.println(": " + stateName);
     }
 
+    @Override
     public void closingDatabase() {
         // nothing to do
     }
 
+    @Override
     public void init(String url) {
         // nothing to do
     }
 
+    @Override
     public void opened() {
         // nothing to do
     }

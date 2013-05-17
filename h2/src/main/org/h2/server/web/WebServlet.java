@@ -31,6 +31,7 @@ public class WebServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private transient WebServer server;
 
+    @Override
     public void init() {
         ServletConfig config = getServletConfig();
         Enumeration<?> en = config.getInitParameterNames();
@@ -53,6 +54,7 @@ public class WebServlet extends HttpServlet {
         server.init(args);
     }
 
+    @Override
     public void destroy() {
         server.stop();
     }
@@ -83,6 +85,7 @@ public class WebServlet extends HttpServlet {
         return requestedFile;
     }
 
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         req.setCharacterEncoding("utf-8");
         String file = req.getPathInfo();
@@ -153,6 +156,7 @@ public class WebServlet extends HttpServlet {
         }
     }
 
+    @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doGet(req, resp);
     }

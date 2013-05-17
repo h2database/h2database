@@ -21,6 +21,7 @@ public class DeallocateProcedure extends DefineCommand {
         super(session);
     }
 
+    @Override
     public int update() {
         session.removeProcedure(procedureName);
         return 0;
@@ -30,6 +31,7 @@ public class DeallocateProcedure extends DefineCommand {
         this.procedureName = name;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DEALLOCATE;
     }

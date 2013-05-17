@@ -101,16 +101,19 @@ public class OutputCatcher {
             this.error = error;
         }
 
+        @Override
         public void close() throws IOException {
             print.close();
             super.close();
         }
 
+        @Override
         public void flush() throws IOException {
             print.flush();
             super.flush();
         }
 
+        @Override
         public void write(int b) throws IOException {
             print.write(b);
             htmlOut.write(error, b);

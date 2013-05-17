@@ -48,6 +48,7 @@ public class TestDate extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testValueDate();
         testValueTime();
@@ -281,10 +282,12 @@ public class TestDate extends TestBase {
         assertEquals(0, ValueTimestamp.parse("+1970-01-01T00:00:00.000Z").getTimestamp().getTime());
         assertEquals(0, ValueTimestamp.parse("1970-01-01T00:00:00.000+00:00").getTimestamp().getTime());
         assertEquals(0, ValueTimestamp.parse("1970-01-01T00:00:00.000-00:00").getTimestamp().getTime());
-        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) { public void test() {
+        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) { @Override
+        public void test() {
             ValueTimestamp.parse("1970-01-01 00:00:00.000 ABC");
         }};
-        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) { public void test() {
+        new AssertThrows(ErrorCode.INVALID_DATETIME_CONSTANT_2) { @Override
+        public void test() {
             ValueTimestamp.parse("1970-01-01T00:00:00.000+ABC");
         }};
     }

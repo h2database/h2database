@@ -72,6 +72,7 @@ public class PgServerThread implements Runnable {
         this.socket = socket;
     }
 
+    @Override
     public void run() {
         try {
             server.trace("Connect");

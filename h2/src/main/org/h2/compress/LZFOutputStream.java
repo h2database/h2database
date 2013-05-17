@@ -44,6 +44,7 @@ public class LZFOutputStream extends OutputStream {
         }
     }
 
+    @Override
     public void write(int b) throws IOException {
         if (pos >= buffer.length) {
             flush();
@@ -73,6 +74,7 @@ public class LZFOutputStream extends OutputStream {
         out.write((byte) x);
     }
 
+    @Override
     public void write(byte[] buff, int off, int len) throws IOException {
         while (len > 0) {
             int copy = Math.min(buffer.length - pos, len);
@@ -86,11 +88,13 @@ public class LZFOutputStream extends OutputStream {
         }
     }
 
+    @Override
     public void flush() throws IOException {
         compressAndWrite(buffer, pos);
         pos = 0;
     }
 
+    @Override
     public void close() throws IOException {
         flush();
         out.close();

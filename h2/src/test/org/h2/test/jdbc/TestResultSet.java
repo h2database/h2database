@@ -47,6 +47,7 @@ public class TestResultSet extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         deleteDb("resultSet");
         conn = getConnection("resultSet");

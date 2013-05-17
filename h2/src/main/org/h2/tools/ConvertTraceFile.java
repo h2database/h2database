@@ -42,6 +42,7 @@ public class ConvertTraceFile extends Tool {
         long time;
         long resultCount;
 
+        @Override
         public int compareTo(Stat other) {
             if (other == this) {
                 return 0;
@@ -77,6 +78,7 @@ public class ConvertTraceFile extends Tool {
         new ConvertTraceFile().runTool(args);
     }
 
+    @Override
     public void runTool(String... args) throws SQLException {
         String traceFile = "test.trace.db";
         String javaClass = "Test";

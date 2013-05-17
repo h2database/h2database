@@ -30,6 +30,7 @@ public class TestView extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testEmptyColumn();
         testChangeSchemaSearchPath();

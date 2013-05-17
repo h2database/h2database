@@ -77,6 +77,7 @@ public class MathUtils {
             // In this case it is initialized using our own seed implementation
             // and afterwards (in the thread) using the regular algorithm.
             Runnable runnable = new Runnable() {
+                @Override
                 public void run() {
                     try {
                         SecureRandom sr = SecureRandom.getInstance("SHA1PRNG");

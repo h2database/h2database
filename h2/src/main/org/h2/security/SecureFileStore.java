@@ -35,10 +35,12 @@ public class SecureFileStore extends FileStore {
         bufferForInitVector = new byte[Constants.FILE_BLOCK_SIZE];
     }
 
+    @Override
     protected byte[] generateSalt() {
         return MathUtils.secureRandomBytes(Constants.FILE_BLOCK_SIZE);
     }
 
+    @Override
     protected void initKey(byte[] salt) {
         key = SHA256.getHashWithSalt(key, salt);
         for (int i = 0; i < keyIterations; i++) {
@@ -49,11 +51,13 @@ public class SecureFileStore extends FileStore {
         cipherForInitVector.setKey(key);
     }
 
+    @Override
     protected void writeDirect(byte[] b, int off, int len) {
         super.write(b, off, len);
         pos += len;
     }
 
+    @Override
     public void write(byte[] b, int off, int len) {
         if (buffer.length < b.length) {
             buffer = new byte[len];
@@ -65,11 +69,13 @@ public class SecureFileStore extends FileStore {
         pos += len;
     }
 
+    @Override
     protected void readFullyDirect(byte[] b, int off, int len) {
         super.readFully(b, off, len);
         pos += len;
     }
 
+    @Override
     public void readFully(byte[] b, int off, int len) {
         super.readFully(b, off, len);
         for (int i = 0; i < len; i++) {
@@ -82,6 +88,7 @@ public class SecureFileStore extends FileStore {
         pos += len;
     }
 
+    @Override
     public void seek(long x) {
         this.pos = x;
         super.seek(x);

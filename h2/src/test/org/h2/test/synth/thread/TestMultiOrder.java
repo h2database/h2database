@@ -33,15 +33,18 @@ public class TestMultiOrder extends TestMultiThread {
         conn = base.getConnection();
     }
 
+    @Override
     void begin() throws SQLException {
         insertLine = conn.prepareStatement("insert into orderLine(order_id, line_id, text, amount) values(?, ?, ?, ?)");
         insertCustomer();
     }
 
+    @Override
     void end() throws SQLException {
         conn.close();
     }
 
+    @Override
     void operation() throws SQLException {
         if (random.nextInt(10) == 0) {
             insertCustomer();
@@ -117,6 +120,7 @@ public class TestMultiOrder extends TestMultiThread {
         return customerCount;
     }
 
+    @Override
     void first() throws SQLException {
         Connection c = base.getConnection();
         c.createStatement().execute("drop table customer if exists");
@@ -132,6 +136,7 @@ public class TestMultiOrder extends TestMultiThread {
         c.close();
     }
 
+    @Override
     void finalTest() throws SQLException {
         conn = base.getConnection();
         ResultSet rs = conn.createStatement().executeQuery("select count(*) from customer");

@@ -343,6 +343,7 @@ public class Session extends SessionWithState {
         }
     }
 
+    @Override
     public boolean getAutoCommit() {
         return autoCommit;
     }
@@ -351,6 +352,7 @@ public class Session extends SessionWithState {
         return user;
     }
 
+    @Override
     public void setAutoCommit(boolean b) {
         autoCommit = b;
     }
@@ -363,6 +365,7 @@ public class Session extends SessionWithState {
         this.lockTimeout = lockTimeout;
     }
 
+    @Override
     public synchronized CommandInterface prepareCommand(String sql, int fetchSize) {
         return prepareLocal(sql);
     }
@@ -428,10 +431,12 @@ public class Session extends SessionWithState {
         return database;
     }
 
+    @Override
     public int getPowerOffCount() {
         return database.getPowerOffCount();
     }
 
+    @Override
     public void setPowerOffCount(int count) {
         database.setPowerOffCount(count);
     }
@@ -553,6 +558,7 @@ public class Session extends SessionWithState {
         }
     }
 
+    @Override
     public int getUndoLogPos() {
         return undoLog.size();
     }
@@ -561,10 +567,12 @@ public class Session extends SessionWithState {
         return id;
     }
 
+    @Override
     public void cancel() {
         cancelAt = System.currentTimeMillis();
     }
 
+    @Override
     public void close() {
         if (!closed) {
             try {
@@ -713,6 +721,7 @@ public class Session extends SessionWithState {
         return random;
     }
 
+    @Override
     public Trace getTrace() {
         if (trace != null && !closed) {
             return trace;
@@ -849,6 +858,7 @@ public class Session extends SessionWithState {
         }
     }
 
+    @Override
     public boolean isClosed() {
         return closed;
     }
@@ -963,6 +973,7 @@ public class Session extends SessionWithState {
         return new JdbcConnection(this, getUser().getName(), url);
     }
 
+    @Override
     public DataHandler getDataHandler() {
         return database;
     }
@@ -1059,10 +1070,12 @@ public class Session extends SessionWithState {
         return schemaSearchPath;
     }
 
+    @Override
     public int hashCode() {
         return serialId;
     }
 
+    @Override
     public String toString() {
         return "#" + serialId + " (user: " + user.getName() + ")";
     }
@@ -1197,6 +1210,7 @@ public class Session extends SessionWithState {
         return modificationId;
     }
 
+    @Override
     public boolean isReconnectNeeded(boolean write) {
         while (true) {
             boolean reconnect = database.isReconnectNeeded();
@@ -1213,10 +1227,12 @@ public class Session extends SessionWithState {
         }
     }
 
+    @Override
     public void afterWriting() {
         database.afterWriting();
     }
 
+    @Override
     public SessionInterface reconnect(boolean write) {
         readSessionState();
         close();

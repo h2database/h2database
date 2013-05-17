@@ -26,6 +26,7 @@ public class TestCheckpoint extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         // TODO test checkpoint with rollback, not only just run the command
         deleteDb("checkpoint");

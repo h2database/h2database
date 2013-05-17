@@ -169,6 +169,7 @@ public class PageFreeList extends Page {
         full = false;
     }
 
+    @Override
     public void write() {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_FREE_LIST);
@@ -194,6 +195,7 @@ public class PageFreeList extends Page {
      *
      * @return number of double words (4 bytes)
      */
+    @Override
     public int getMemory() {
         return store.getPageSize() >> 2;
     }
@@ -208,20 +210,24 @@ public class PageFreeList extends Page {
         return used.get(pageId - getPos());
     }
 
+    @Override
     public void moveTo(Session session, int newPos) {
         // the old data does not need to be copied, as free-list pages
         // at the end of the file are not required
         store.free(getPos(), false);
     }
 
+    @Override
     public String toString() {
         return "page [" + getPos() + "] freeList" + (full ? "full" : "");
     }
 
+    @Override
     public boolean canRemove() {
         return true;
     }
 
+    @Override
     public boolean canMove() {
         return false;
     }

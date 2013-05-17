@@ -33,6 +33,7 @@ public class TestConnectionPool extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("connectionPool");
         testShutdown();
@@ -82,6 +83,7 @@ public class TestConnectionPool extends TestBase {
         // connection 1 (of 2)
         Connection conn = man.getConnection();
         Task t = new Task() {
+            @Override
             public void call() {
                 while (!stop) {
                     // this calls notifyAll
@@ -181,6 +183,7 @@ public class TestConnectionPool extends TestBase {
          * This class gets and returns connections from the pool.
          */
         class TestRunner implements Runnable {
+            @Override
             public void run() {
                 try {
                     while (!stop[0]) {

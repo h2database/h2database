@@ -64,6 +64,7 @@ public class ValueInt extends Value {
         return v;
     }
 
+    @Override
     public Value add(Value v) {
         ValueInt other = (ValueInt) v;
         return checkRange((long) value + (long) other.value);
@@ -76,24 +77,29 @@ public class ValueInt extends Value {
         return ValueInt.get((int) x);
     }
 
+    @Override
     public int getSignum() {
         return Integer.signum(value);
     }
 
+    @Override
     public Value negate() {
         return checkRange(-(long) value);
     }
 
+    @Override
     public Value subtract(Value v) {
         ValueInt other = (ValueInt) v;
         return checkRange((long) value - (long) other.value);
     }
 
+    @Override
     public Value multiply(Value v) {
         ValueInt other = (ValueInt) v;
         return checkRange((long) value * (long) other.value);
     }
 
+    @Override
     public Value divide(Value v) {
         ValueInt other = (ValueInt) v;
         if (other.value == 0) {
@@ -102,6 +108,7 @@ public class ValueInt extends Value {
         return ValueInt.get(value / other.value);
     }
 
+    @Override
     public Value modulus(Value v) {
         ValueInt other = (ValueInt) v;
         if (other.value == 0) {
@@ -110,51 +117,63 @@ public class ValueInt extends Value {
         return ValueInt.get(value % other.value);
     }
 
+    @Override
     public String getSQL() {
         return getString();
     }
 
+    @Override
     public int getType() {
         return Value.INT;
     }
 
+    @Override
     public int getInt() {
         return value;
     }
 
+    @Override
     public long getLong() {
         return value;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueInt v = (ValueInt) o;
         return MathUtils.compareInt(value, v.value);
     }
 
+    @Override
     public String getString() {
         return String.valueOf(value);
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int hashCode() {
         return value;
     }
 
+    @Override
     public Object getObject() {
         return value;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setInt(parameterIndex, value);
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     public boolean equals(Object other) {
         return other instanceof ValueInt && value == ((ValueInt) other).value;
     }

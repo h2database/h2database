@@ -63,6 +63,7 @@ public abstract class TriggerAdapter implements Trigger {
      * @param type the operation type: INSERT, UPDATE, DELETE, SELECT, or a
      *            combination (this parameter is a bit field)
      */
+    @Override
     public void init(Connection conn, String schemaName,
             String triggerName, String tableName,
             boolean before, int type) throws SQLException {
@@ -98,14 +99,17 @@ public abstract class TriggerAdapter implements Trigger {
             this.row = row;
         }
 
+        @Override
         public Object[] readRow() {
             return row;
         }
 
+        @Override
         public void close() {
             // ignore
         }
 
+        @Override
         public void reset() {
             // ignore
         }
@@ -135,6 +139,7 @@ public abstract class TriggerAdapter implements Trigger {
      *            DELETE)
      * @throws SQLException if the operation must be undone
      */
+    @Override
     public void fire(Connection conn, Object[] oldRow,
             Object[] newRow) throws SQLException {
         fire(conn, wrap(oldResultSet, oldSource, oldRow), wrap(newResultSet, newSource, newRow));
@@ -176,6 +181,7 @@ public abstract class TriggerAdapter implements Trigger {
      *
      * @throws SQLException
      */
+    @Override
     public void remove() throws SQLException {
         // do nothing by default
     }
@@ -186,6 +192,7 @@ public abstract class TriggerAdapter implements Trigger {
      *
      * @throws SQLException
      */
+    @Override
     public void close() throws SQLException {
         // do nothing by default
     }

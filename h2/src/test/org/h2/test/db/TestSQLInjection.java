@@ -32,6 +32,7 @@ public class TestSQLInjection extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.reopen) {
             return;

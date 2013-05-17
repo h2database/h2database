@@ -30,6 +30,7 @@ public class ClobTest extends TestBase {
         new ClobTest().test();
     }
 
+    @Override
     public void test() throws Exception {
         String create = "CREATE TABLE CLOB_TEST(ID INT PRIMARY KEY, WORDS {0})";
         Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
@@ -79,6 +80,7 @@ public class ClobTest extends TestBase {
             this.words = words;
         }
 
+        @Override
         public void define() {
             tableName("CLOB_TEST");
             primaryKey(id);
@@ -100,6 +102,7 @@ public class ClobTest extends TestBase {
             return Arrays.asList(list);
         }
 
+        @Override
         public String toString() {
             return id + ": " + words;
         }

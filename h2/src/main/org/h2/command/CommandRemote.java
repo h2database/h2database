@@ -80,10 +80,12 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
+    @Override
     public boolean isQuery() {
         return isQuery;
     }
 
+    @Override
     public ArrayList<ParameterInterface> getParameters() {
         return parameters;
     }
@@ -100,6 +102,7 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
+    @Override
     public ResultInterface getMetaData() {
         synchronized (session) {
             if (!isQuery) {
@@ -126,6 +129,7 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
+    @Override
     public ResultInterface executeQuery(int maxRows, boolean scrollable) {
         checkParameters();
         synchronized (session) {
@@ -166,6 +170,7 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
+    @Override
     public int executeUpdate() {
         checkParameters();
         synchronized (session) {
@@ -206,6 +211,7 @@ public class CommandRemote implements CommandInterface {
         }
     }
 
+    @Override
     public void close() {
         if (session == null || session.isClosed()) {
             return;
@@ -237,14 +243,17 @@ public class CommandRemote implements CommandInterface {
     /**
      * Cancel this current statement.
      */
+    @Override
     public void cancel() {
         session.cancelStatement(id);
     }
 
+    @Override
     public String toString() {
         return sql + Trace.formatParams(getParameters());
     }
 
+    @Override
     public int getCommandType() {
         return UNKNOWN;
     }

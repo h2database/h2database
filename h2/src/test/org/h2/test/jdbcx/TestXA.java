@@ -36,6 +36,7 @@ public class TestXA extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testRollbackWithoutPrepare();
         testXAAutoCommit();
@@ -55,12 +56,15 @@ public class TestXA extends TestBase {
             return;
         }
         Xid xid = new Xid() {
+            @Override
             public int getFormatId() {
                 return 3145;
             }
+            @Override
             public byte[] getGlobalTransactionId() {
                 return new byte[] { 1, 2, 3, 4, 5, 6, 6, 7, 8 };
             }
+            @Override
             public byte[] getBranchQualifier() {
                 return new byte[] { 34, 43, 33, 3, 3, 3, 33, 33, 3 };
             }
@@ -121,12 +125,15 @@ public class TestXA extends TestBase {
     public static class MyXid implements Xid {
         private final byte[] branchQualifier = { 0 };
         private final byte[] globalTransactionId = { 0 };
+        @Override
         public byte[] getBranchQualifier() {
             return branchQualifier;
         }
+        @Override
         public int getFormatId() {
             return 0;
         }
+        @Override
         public byte[] getGlobalTransactionId() {
             return globalTransactionId;
         }

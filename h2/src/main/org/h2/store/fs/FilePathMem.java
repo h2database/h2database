@@ -31,16 +31,19 @@ public class FilePathMem extends FilePath {
 
     private static final TreeMap<String, FileMemData> MEMORY_FILES = new TreeMap<String, FileMemData>();
 
+    @Override
     public FilePathMem getPath(String path) {
         FilePathMem p = new FilePathMem();
         p.name = getCanonicalPath(path);
         return p;
     }
 
+    @Override
     public long size() {
         return getMemoryFile().length();
     }
 
+    @Override
     public void moveTo(FilePath newName) {
         synchronized (MEMORY_FILES) {
             FileMemData f = getMemoryFile();
@@ -50,6 +53,7 @@ public class FilePathMem extends FilePath {
         }
     }
 
+    @Override
     public boolean createFile() {
         synchronized (MEMORY_FILES) {
             if (exists()) {
@@ -60,6 +64,7 @@ public class FilePathMem extends FilePath {
         return true;
     }
 
+    @Override
     public boolean exists() {
         if (isRoot()) {
             return true;
@@ -69,6 +74,7 @@ public class FilePathMem extends FilePath {
         }
     }
 
+    @Override
     public void delete() {
         if (isRoot()) {
             return;
@@ -78,6 +84,7 @@ public class FilePathMem extends FilePath {
         }
     }
 
+    @Override
     public List<FilePath> newDirectoryStream() {
         ArrayList<FilePath> list = New.arrayList();
         synchronized (MEMORY_FILES) {
@@ -92,19 +99,23 @@ public class FilePathMem extends FilePath {
         }
     }
 
+    @Override
     public boolean setReadOnly() {
         return getMemoryFile().setReadOnly();
     }
 
+    @Override
     public boolean canWrite() {
         return getMemoryFile().canWrite();
     }
 
+    @Override
     public FilePathMem getParent() {
         int idx = name.lastIndexOf('/');
         return idx < 0 ? null : getPath(name.substring(0, idx));
     }
 
+    @Override
     public boolean isDirectory() {
         if (isRoot()) {
             return true;
@@ -116,19 +127,23 @@ public class FilePathMem extends FilePath {
         }
     }
 
+    @Override
     public boolean isAbsolute() {
         // TODO relative files are not supported
         return true;
     }
 
+    @Override
     public FilePathMem toRealPath() {
         return this;
     }
 
+    @Override
     public long lastModified() {
         return getMemoryFile().getLastModified();
     }
 
+    @Override
     public void createDirectory() {
         if (exists() && isDirectory()) {
             throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a file with this name already exists)");
@@ -136,18 +151,21 @@ public class FilePathMem extends FilePath {
         // TODO directories are not really supported
     }
 
+    @Override
     public OutputStream newOutputStream(boolean append) throws IOException {
         FileMemData obj = getMemoryFile();
         FileMem m = new FileMem(obj, false);
         return new FileChannelOutputStream(m, append);
     }
 
+    @Override
     public InputStream newInputStream() {
         FileMemData obj = getMemoryFile();
         FileMem m = new FileMem(obj, true);
         return new FileChannelInputStream(m);
     }
 
+    @Override
     public FileChannel open(String mode) {
         FileMemData obj = getMemoryFile();
         return new FileMem(obj, "r".equals(mode));
@@ -177,6 +195,7 @@ public class FilePathMem extends FilePath {
         return fileName;
     }
 
+    @Override
     public String getScheme() {
         return "memFS";
     }
@@ -197,10 +216,12 @@ public class FilePathMem extends FilePath {
  */
 class FilePathMemLZF extends FilePathMem {
 
+    @Override
     boolean compressed() {
         return true;
     }
 
+    @Override
     public String getScheme() {
         return "memLZF";
     }
@@ -225,10 +246,12 @@ class FileMem extends FileBase {
         this.readOnly = readOnly;
     }
 
+    @Override
     public long size() {
         return data.length();
     }
 
+    @Override
     public FileChannel truncate(long newLength) throws IOException {
         if (newLength < size()) {
             data.touch(readOnly);
@@ -238,11 +261,13 @@ class FileMem extends FileBase {
         return this;
     }
 
+    @Override
     public FileChannel position(long newPos) {
         this.pos = (int) newPos;
         return this;
     }
 
+    @Override
     public int write(ByteBuffer src) throws IOException {
         int len = src.remaining();
         if (len == 0) {
@@ -254,6 +279,7 @@ class FileMem extends FileBase {
         return len;
     }
 
+    @Override
     public int read(ByteBuffer dst) throws IOException {
         int len = dst.remaining();
         if (len == 0) {
@@ -269,18 +295,22 @@ class FileMem extends FileBase {
         return len;
     }
 
+    @Override
     public long position() {
         return pos;
     }
 
+    @Override
     public void implCloseChannel() throws IOException {
         pos = 0;
     }
 
+    @Override
     public void force(boolean metaData) throws IOException {
         // do nothing
     }
 
+    @Override
     public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
         if (shared) {
             if (!data.lockShared()) {
@@ -308,6 +338,7 @@ class FileMem extends FileBase {
         return lock;
     }
 
+    @Override
     public String toString() {
         return data.getName();
     }
@@ -404,6 +435,7 @@ class FileMemData {
             this.size = size;
         }
 
+        @Override
         protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
             if (size() < size) {
                 return false;
@@ -429,10 +461,12 @@ class FileMemData {
          */
         int page;
 
+        @Override
         public int hashCode() {
             return page;
         }
 
+        @Override
         public boolean equals(Object o) {
             if (o instanceof CompressItem) {
                 CompressItem c = (CompressItem) o;

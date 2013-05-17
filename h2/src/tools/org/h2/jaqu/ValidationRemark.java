@@ -93,6 +93,7 @@ public class ValidationRemark {
         return level.equals(Level.ERROR);
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(StringUtils.pad(level.name(), 9, " ", true));

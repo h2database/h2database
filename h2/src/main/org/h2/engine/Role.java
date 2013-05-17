@@ -22,10 +22,12 @@ public class Role extends RightOwner {
         this.system = system;
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public String getDropSQL() {
         return null;
     }
@@ -48,14 +50,17 @@ public class Role extends RightOwner {
         return buff.toString();
     }
 
+    @Override
     public String getCreateSQL() {
         return getCreateSQL(false);
     }
 
+    @Override
     public int getType() {
         return DbObject.ROLE;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         for (User user : database.getAllUsers()) {
             Right right = user.getRightForRole(this);
@@ -78,6 +83,7 @@ public class Role extends RightOwner {
         invalidate();
     }
 
+    @Override
     public void checkRename() {
         // ok
     }

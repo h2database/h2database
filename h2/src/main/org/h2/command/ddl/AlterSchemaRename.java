@@ -37,6 +37,7 @@ public class AlterSchemaRename extends DefineCommand {
         newSchemaName = name;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -55,6 +56,7 @@ public class AlterSchemaRename extends DefineCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.ALTER_SCHEMA_RENAME;
     }

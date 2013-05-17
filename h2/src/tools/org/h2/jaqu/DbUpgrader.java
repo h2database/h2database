@@ -48,10 +48,12 @@ public interface DbUpgrader {
     @JQDatabase(version = 0)
     public static class DefaultDbUpgrader implements DbUpgrader {
 
+        @Override
         public boolean upgradeDatabase(Db db, int fromVersion, int toVersion) {
             throw new RuntimeException("Please provide your own DbUpgrader implementation.");
         }
 
+        @Override
         public boolean upgradeTable(Db db, String schema, String table, int fromVersion, int toVersion) {
             throw new RuntimeException("Please provide your own DbUpgrader implementation.");
         }

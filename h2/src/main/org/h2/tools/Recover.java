@@ -149,6 +149,7 @@ public class Recover extends Tool implements DataHandler {
      *
      * @param args the command line arguments
      */
+    @Override
     public void runTool(String... args) throws SQLException {
         String dir = ".";
         String db = null;
@@ -430,6 +431,7 @@ public class Recover extends Tool implements DataHandler {
                     "/" + logFirstDataPage);
 
             PrintWriter devNull = new PrintWriter(new OutputStream() {
+                @Override
                 public void write(int b) {
                     // ignore
                 }
@@ -788,16 +790,19 @@ public class Recover extends Tool implements DataHandler {
             page = Data.create(handler, pageSize);
         }
 
+        @Override
         public int read() {
             byte[] b = { 0 };
             int len = read(b);
             return len < 0 ? -1 : (b[0] & 255);
         }
 
+        @Override
         public int read(byte[] b) {
             return read(b, 0, b.length);
         }
 
+        @Override
         public int read(byte[] b, int off, int len) {
             if (len == 0) {
                 return 0;
@@ -1347,6 +1352,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public String getDatabasePath() {
         return databaseName;
     }
@@ -1354,6 +1360,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public FileStore openFile(String name, String mode, boolean mustExist) {
         return FileStore.open(this, name, "rw");
     }
@@ -1361,6 +1368,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public void checkPowerOff() {
         // nothing to do
     }
@@ -1368,6 +1376,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public void checkWritingAllowed() {
         // nothing to do
     }
@@ -1375,6 +1384,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public int getMaxLengthInplaceLob() {
         throw DbException.throwInternalError();
     }
@@ -1382,6 +1392,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public String getLobCompressionAlgorithm(int type) {
         return null;
     }
@@ -1389,6 +1400,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public Object getLobSyncObject() {
         return this;
     }
@@ -1396,6 +1408,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
@@ -1403,6 +1416,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
     }
@@ -1410,6 +1424,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public LobStorageBackend getLobStorage() {
         return null;
     }
@@ -1417,6 +1432,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public Connection getLobConnection() {
         return null;
     }
@@ -1424,6 +1440,7 @@ public class Recover extends Tool implements DataHandler {
     /**
      * INTERNAL
      */
+    @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         throw DbException.throwInternalError();
     }

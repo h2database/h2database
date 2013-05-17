@@ -30,6 +30,7 @@ public class TestFtp extends TestBase implements FtpEventListener {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         if (getBaseDir().indexOf(':') > 0) {
             return;
@@ -58,14 +59,17 @@ public class TestFtp extends TestBase implements FtpEventListener {
         server.stop();
     }
 
+    @Override
     public void beforeCommand(FtpEvent event) {
         lastEvent = event;
     }
 
+    @Override
     public void afterCommand(FtpEvent event) {
         lastEvent = event;
     }
 
+    @Override
     public void onUnsupportedCommand(FtpEvent event) {
         lastEvent = event;
     }

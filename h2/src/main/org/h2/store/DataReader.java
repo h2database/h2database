@@ -157,10 +157,12 @@ public class DataReader extends Reader {
         }
     }
 
+    @Override
     public void close() throws IOException {
         // ignore
     }
 
+    @Override
     public int read(char[] buff, int off, int len) throws IOException {
         int i = 0;
         try {
@@ -182,6 +184,7 @@ public class DataReader extends Reader {
 
         private static final long serialVersionUID = 1L;
 
+        @Override
         public synchronized Throwable fillInStackTrace() {
             return null;
         }

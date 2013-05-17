@@ -32,14 +32,17 @@ public class ScanCursor implements Cursor {
         row = null;
     }
 
+    @Override
     public Row get() {
         return row;
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return row;
     }
 
+    @Override
     public boolean next() {
         if (multiVersion) {
             while (true) {
@@ -67,6 +70,7 @@ public class ScanCursor implements Cursor {
         return row != null;
     }
 
+    @Override
     public boolean previous() {
         throw DbException.throwInternalError();
     }

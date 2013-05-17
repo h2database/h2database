@@ -27,6 +27,7 @@ public class TestSequence extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testSchemaSearchPath();
         testAlterSequenceColumn();

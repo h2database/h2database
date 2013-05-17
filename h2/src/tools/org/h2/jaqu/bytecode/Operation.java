@@ -20,31 +20,37 @@ class Operation implements Token {
      */
     enum Type {
         EQUALS("=") {
+            @Override
             Type reverse() {
                 return NOT_EQUALS;
             }
         },
         NOT_EQUALS("<>") {
+            @Override
             Type reverse() {
                 return EQUALS;
             }
         },
         BIGGER(">") {
+            @Override
             Type reverse() {
                 return SMALLER_EQUALS;
             }
         },
         BIGGER_EQUALS(">=") {
+            @Override
             Type reverse() {
                 return SMALLER;
             }
         },
         SMALLER_EQUALS("<=") {
+            @Override
             Type reverse() {
                 return BIGGER;
             }
         },
         SMALLER("<") {
+            @Override
             Type reverse() {
                 return BIGGER_EQUALS;
             }
@@ -61,6 +67,7 @@ class Operation implements Token {
             this.name = name;
         }
 
+        @Override
         public String toString() {
             return name;
         }
@@ -87,6 +94,7 @@ class Operation implements Token {
         return new Operation(left, op, right);
     }
 
+    @Override
     public String toString() {
         return left + " " + op + " " + right;
     }
@@ -95,6 +103,7 @@ class Operation implements Token {
         return get(left, op.reverse(), right);
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         left.appendSQL(stat, query);
         stat.appendSQL(op.toString());

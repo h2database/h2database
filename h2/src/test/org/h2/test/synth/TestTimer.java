@@ -33,6 +33,7 @@ public class TestTimer extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         validateOld();
         DeleteDbFiles.execute(getBaseDir(), "timer", true);

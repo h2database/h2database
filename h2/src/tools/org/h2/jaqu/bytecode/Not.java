@@ -34,6 +34,7 @@ public class Not implements Token {
         return expr;
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         // untested
         stat.appendSQL("NOT(");

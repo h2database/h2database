@@ -93,6 +93,7 @@ public class RegularTable extends TableBase {
         traceLock = database.getTrace(Trace.LOCK);
     }
 
+    @Override
     public void close(Session session) {
         for (Index index : indexes) {
             index.close(session);
@@ -110,6 +111,7 @@ public class RegularTable extends TableBase {
         return scanIndex.getRow(session, key);
     }
 
+    @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
         if (database.isMultiVersion()) {
@@ -154,6 +156,7 @@ public class RegularTable extends TableBase {
         analyzeIfRequired(session);
     }
 
+    @Override
     public void commit(short operation, Row row) {
         lastModificationId = database.getNextModificationDataId();
         for (int i = 0, size = indexes.size(); i < size; i++) {
@@ -175,10 +178,12 @@ public class RegularTable extends TableBase {
         }
     }
 
+    @Override
     public Index getScanIndex(Session session) {
         return indexes.get(0);
     }
 
+    @Override
     public Index getUniqueIndex() {
         for (Index idx : indexes) {
             if (idx.getIndexType().isUnique()) {
@@ -188,10 +193,12 @@ public class RegularTable extends TableBase {
         return null;
     }
 
+    @Override
     public ArrayList<Index> getIndexes() {
         return indexes;
     }
 
+    @Override
     public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
         if (indexType.isPrimaryKey()) {
@@ -313,6 +320,7 @@ public class RegularTable extends TableBase {
         return first.column.getColumnId();
     }
 
+    @Override
     public boolean canGetRowCount() {
         return true;
     }
@@ -320,6 +328,7 @@ public class RegularTable extends TableBase {
     private static void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
         final Index idx = index;
         Collections.sort(list, new Comparator<Row>() {
+            @Override
             public int compare(Row r1, Row r2) {
                 return idx.compareRows(r1, r2);
             }
@@ -330,10 +339,12 @@ public class RegularTable extends TableBase {
         list.clear();
     }
 
+    @Override
     public boolean canDrop() {
         return true;
     }
 
+    @Override
     public long getRowCount(Session session) {
         if (database.isMultiVersion()) {
             return getScanIndex(session).getRowCount(session);
@@ -341,6 +352,7 @@ public class RegularTable extends TableBase {
         return rowCount;
     }
 
+    @Override
     public void removeRow(Session session, Row row) {
         if (database.isMultiVersion()) {
             if (row.isDeleted()) {
@@ -382,6 +394,7 @@ public class RegularTable extends TableBase {
         analyzeIfRequired(session);
     }
 
+    @Override
     public void truncate(Session session) {
         lastModificationId = database.getNextModificationDataId();
         for (int i = indexes.size() - 1; i >= 0; i--) {
@@ -405,10 +418,12 @@ public class RegularTable extends TableBase {
         Analyze.analyzeTable(session, this, rows, false);
     }
 
+    @Override
     public boolean isLockedExclusivelyBy(Session session) {
         return lockExclusive == session;
     }
 
+    @Override
     public void lock(Session session, boolean exclusive, boolean force) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
@@ -553,6 +568,7 @@ public class RegularTable extends TableBase {
         return buff.toString();
     }
 
+    @Override
     public ArrayList<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
         // only one deadlock check at any given time
         synchronized (RegularTable.class) {
@@ -605,10 +621,12 @@ public class RegularTable extends TableBase {
         }
     }
 
+    @Override
     public boolean isLockedExclusively() {
         return lockExclusive != null;
     }
 
+    @Override
     public void unlock(Session s) {
         if (database != null) {
             traceLock(s, lockExclusive == s, "unlock");
@@ -647,6 +665,7 @@ public class RegularTable extends TableBase {
         this.rowCount = count;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         if (containsLargeObject) {
             // unfortunately, the data is gone on rollback
@@ -678,18 +697,22 @@ public class RegularTable extends TableBase {
         invalidate();
     }
 
+    @Override
     public String toString() {
         return getSQL();
     }
 
+    @Override
     public void checkRename() {
         // ok
     }
 
+    @Override
     public void checkSupportAlter() {
         // ok
     }
 
+    @Override
     public boolean canTruncate() {
         if (getCheckForeignKeyConstraints() && database.getReferentialIntegrity()) {
             ArrayList<Constraint> constraints = getConstraints();
@@ -709,10 +732,12 @@ public class RegularTable extends TableBase {
         return true;
     }
 
+    @Override
     public String getTableType() {
         return Table.TABLE;
     }
 
+    @Override
     public long getMaxDataModificationId() {
         return lastModificationId;
     }
@@ -721,6 +746,7 @@ public class RegularTable extends TableBase {
         return containsLargeObject;
     }
 
+    @Override
     public long getRowCountApproximation() {
         return scanIndex.getRowCountApproximation();
     }
@@ -734,10 +760,12 @@ public class RegularTable extends TableBase {
         this.compareMode = compareMode;
     }
 
+    @Override
     public boolean isDeterministic() {
         return true;
     }
 
+    @Override
     public Column getRowIdColumn() {
         if (rowIdColumn == null) {
             rowIdColumn = new Column(Column.ROWID, Value.LONG);

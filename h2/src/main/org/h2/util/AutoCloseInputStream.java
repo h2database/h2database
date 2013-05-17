@@ -33,6 +33,7 @@ public class AutoCloseInputStream extends InputStream {
         return x;
     }
 
+    @Override
     public void close() throws IOException {
         if (!closed) {
             in.close();
@@ -40,14 +41,17 @@ public class AutoCloseInputStream extends InputStream {
         }
     }
 
+    @Override
     public int read(byte[] b, int off, int len) throws IOException {
         return closed ? -1 : autoClose(in.read(b, off, len));
     }
 
+    @Override
     public int read(byte[] b) throws IOException {
         return closed ? -1 : autoClose(in.read(b));
     }
 
+    @Override
     public int read() throws IOException {
         return closed ? -1 : autoClose(in.read());
     }

@@ -64,25 +64,30 @@ public class ValueDecimal extends Value {
         this.value = value;
     }
 
+    @Override
     public Value add(Value v) {
         ValueDecimal dec = (ValueDecimal) v;
         return ValueDecimal.get(value.add(dec.value));
     }
 
+    @Override
     public Value subtract(Value v) {
         ValueDecimal dec = (ValueDecimal) v;
         return ValueDecimal.get(value.subtract(dec.value));
     }
 
+    @Override
     public Value negate() {
         return ValueDecimal.get(value.negate());
     }
 
+    @Override
     public Value multiply(Value v) {
         ValueDecimal dec = (ValueDecimal) v;
         return ValueDecimal.get(value.multiply(dec.value));
     }
 
+    @Override
     public Value divide(Value v) {
         ValueDecimal dec = (ValueDecimal) v;
         if (dec.value.signum() == 0) {
@@ -107,6 +112,7 @@ public class ValueDecimal extends Value {
         return ValueDecimal.get(bd);
     }
 
+    @Override
     public ValueDecimal modulus(Value v) {
         ValueDecimal dec = (ValueDecimal) v;
         if (dec.value.signum() == 0) {
@@ -116,27 +122,33 @@ public class ValueDecimal extends Value {
         return ValueDecimal.get(bd);
     }
 
+    @Override
     public String getSQL() {
         return getString();
     }
 
+    @Override
     public int getType() {
         return Value.DECIMAL;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueDecimal v = (ValueDecimal) o;
         return value.compareTo(v.value);
     }
 
+    @Override
     public int getSignum() {
         return value.signum();
     }
 
+    @Override
     public BigDecimal getBigDecimal() {
         return value;
     }
 
+    @Override
     public String getString() {
         if (valueString == null) {
             String p = value.toPlainString();
@@ -149,6 +161,7 @@ public class ValueDecimal extends Value {
         return valueString;
     }
 
+    @Override
     public long getPrecision() {
         if (precision == 0) {
             precision = value.precision();
@@ -156,6 +169,7 @@ public class ValueDecimal extends Value {
         return precision;
     }
 
+    @Override
     public boolean checkPrecision(long prec) {
         if (prec == DEFAULT_PRECISION) {
             return true;
@@ -163,22 +177,27 @@ public class ValueDecimal extends Value {
         return getPrecision() <= prec;
     }
 
+    @Override
     public int getScale() {
         return value.scale();
     }
 
+    @Override
     public int hashCode() {
         return value.hashCode();
     }
 
+    @Override
     public Object getObject() {
         return value;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setBigDecimal(parameterIndex, value);
     }
 
+    @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         if (value.scale() == targetScale) {
             return this;
@@ -192,6 +211,7 @@ public class ValueDecimal extends Value {
         return ValueDecimal.get(bd);
     }
 
+    @Override
     public Value convertPrecision(long precision, boolean force) {
         if (getPrecision() <= precision) {
             return this;
@@ -217,11 +237,13 @@ public class ValueDecimal extends Value {
         return (ValueDecimal) Value.cache(new ValueDecimal(dec));
     }
 
+    @Override
     public int getDisplaySize() {
         // add 2 characters for '-' and '.'
         return MathUtils.convertLongToInt(getPrecision() + 2);
     }
 
+    @Override
     public boolean equals(Object other) {
         // Two BigDecimal objects are considered equal only if they are equal in
         // value and scale (thus 2.0 is not equal to 2.00 when using equals;
@@ -230,6 +252,7 @@ public class ValueDecimal extends Value {
         return other instanceof ValueDecimal && value.equals(((ValueDecimal) other).value);
     }
 
+    @Override
     public int getMemory() {
         return value.precision() + 120;
     }

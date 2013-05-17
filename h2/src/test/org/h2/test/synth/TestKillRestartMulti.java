@@ -36,6 +36,7 @@ public class TestKillRestartMulti extends TestBase {
     private final ArrayList<String> tables = New.arrayList();
     private int openCount;
 
+    @Override
     public void test() throws Exception {
         if (config.networked) {
             return;

@@ -34,10 +34,12 @@ class RuleList implements Rule {
         this.or = or;
     }
 
+    @Override
     public void accept(BnfVisitor visitor) {
         visitor.visitRuleList(or, list);
     }
 
+    @Override
     public void setLinks(HashMap<String, RuleHead> ruleMap) {
         if (!mapSet) {
             for (Rule r : list) {
@@ -47,6 +49,7 @@ class RuleList implements Rule {
         }
     }
 
+    @Override
     public boolean autoComplete(Sentence sentence) {
         sentence.stopIfRequired();
         String old = sentence.getQuery();

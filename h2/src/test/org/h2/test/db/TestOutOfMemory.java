@@ -29,6 +29,7 @@ public class TestOutOfMemory extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.memory || config.mvcc) {
             return;

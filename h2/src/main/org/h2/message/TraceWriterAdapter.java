@@ -27,10 +27,12 @@ public class TraceWriterAdapter implements TraceWriter {
     private String name;
     private final Logger logger = LoggerFactory.getLogger("h2database");
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public boolean isEnabled(int level) {
         switch (level) {
         case TraceSystem.DEBUG:
@@ -44,6 +46,7 @@ public class TraceWriterAdapter implements TraceWriter {
         }
     }
 
+    @Override
     public void write(int level, String module, String s, Throwable t) {
         if (isEnabled(level)) {
             if (name != null) {

@@ -29,6 +29,7 @@ public class TestReader extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         String s = "\u00ef\u00f6\u00fc";
         StringReader r = new StringReader(s);

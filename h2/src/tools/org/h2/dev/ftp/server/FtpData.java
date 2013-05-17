@@ -42,6 +42,7 @@ public class FtpData extends Thread {
         this.active = true;
     }
 
+    @Override
     public void run() {
         try {
             synchronized (this) {

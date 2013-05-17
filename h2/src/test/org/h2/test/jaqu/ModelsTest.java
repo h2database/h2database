@@ -40,6 +40,7 @@ public class ModelsTest extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() {
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());
@@ -143,6 +144,7 @@ public class ModelsTest extends TestBase {
         final AtomicInteger oldVersion = new AtomicInteger(0);
         final AtomicInteger newVersion = new AtomicInteger(0);
 
+        @Override
         public boolean upgradeTable(Db db, String schema, String table,
                 int fromVersion, int toVersion) {
             // just claims success on upgrade request
@@ -151,6 +153,7 @@ public class ModelsTest extends TestBase {
             return true;
         }
 
+        @Override
         public boolean upgradeDatabase(Db db, int fromVersion, int toVersion) {
             // just claims success on upgrade request
             oldVersion.set(fromVersion);

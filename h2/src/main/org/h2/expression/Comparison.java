@@ -111,6 +111,7 @@ public class Comparison extends Condition {
         this.compareType = compareType;
     }
 
+    @Override
     public String getSQL() {
         String sql;
         switch (compareType) {
@@ -155,6 +156,7 @@ public class Comparison extends Condition {
         }
     }
 
+    @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
         if (right != null) {
@@ -202,6 +204,7 @@ public class Comparison extends Condition {
         return this;
     }
 
+    @Override
     public Value getValue(Session session) {
         Value l = left.getValue(session);
         if (right == null) {
@@ -322,11 +325,13 @@ public class Comparison extends Condition {
         }
     }
 
+    @Override
     public Expression getNotIfPossible(Session session) {
         int type = getNotCompareType();
         return new Comparison(session, type, left, right);
     }
 
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         ExpressionColumn l = null;
         if (left instanceof ExpressionColumn) {
@@ -402,6 +407,7 @@ public class Comparison extends Condition {
         }
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
         if (right != null) {
@@ -409,6 +415,7 @@ public class Comparison extends Condition {
         }
     }
 
+    @Override
     public void updateAggregate(Session session) {
         left.updateAggregate(session);
         if (right != null) {
@@ -416,6 +423,7 @@ public class Comparison extends Condition {
         }
     }
 
+    @Override
     public void addFilterConditions(TableFilter filter, boolean outerJoin) {
         if (compareType == IS_NULL && outerJoin) {
             // can not optimize:
@@ -427,6 +435,7 @@ public class Comparison extends Condition {
         super.addFilterConditions(filter, outerJoin);
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         if (right != null) {
@@ -434,10 +443,12 @@ public class Comparison extends Condition {
         }
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return left.isEverything(visitor) && (right == null || right.isEverything(visitor));
     }
 
+    @Override
     public int getCost() {
         return left.getCost() + (right == null ? 0 : right.getCost()) + 1;
     }

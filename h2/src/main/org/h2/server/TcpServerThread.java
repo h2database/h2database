@@ -70,6 +70,7 @@ public class TcpServerThread implements Runnable {
         server.trace(this + " " + s);
     }
 
+    @Override
     public void run() {
         try {
             transfer.init();
@@ -523,6 +524,7 @@ public class TcpServerThread implements Runnable {
             }
         }
 
+        @Override
         public int read(byte[] buff, int off, int len) throws IOException {
             len = super.read(buff, off, len);
             if (len > 0) {
@@ -531,6 +533,7 @@ public class TcpServerThread implements Runnable {
             return len;
         }
 
+        @Override
         public int read() throws IOException {
             int x = in.read();
             if (x >= 0) {
@@ -539,6 +542,7 @@ public class TcpServerThread implements Runnable {
             return x;
         }
 
+        @Override
         public long skip(long n) throws IOException {
             n = super.skip(n);
             if (n > 0) {

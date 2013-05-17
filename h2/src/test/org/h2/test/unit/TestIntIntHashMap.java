@@ -27,6 +27,7 @@ public class TestIntIntHashMap extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() {
         IntIntHashMap map = new IntIntHashMap();
         map.put(1, 1);

@@ -83,6 +83,7 @@ public class MVSecondaryIndex extends BaseIndex {
         // ok
     }
 
+    @Override
     public void rename(String newName) {
         TransactionMap<Value, Value> map = getMap(null);
         String newMapName = newName + "_" + getId();
@@ -166,6 +167,7 @@ public class MVSecondaryIndex extends BaseIndex {
         return searchRow;
     }
 
+    @Override
     public MVTable getTable() {
         return mvTable;
     }
@@ -230,6 +232,7 @@ public class MVSecondaryIndex extends BaseIndex {
         return dataMap.map.getSize();
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         // TODO estimate disk space usage
         return 0;

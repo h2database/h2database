@@ -35,18 +35,22 @@ public class MVDelegateIndex extends BaseIndex {
         }
     }
 
+    @Override
     public void add(Session session, Row row) {
         // nothing to do
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return true;
     }
 
+    @Override
     public void close(Session session) {
         // nothing to do
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         long min = mainIndex.getKey(first, Long.MIN_VALUE, Long.MIN_VALUE);
         // ifNull is MIN_VALUE as well, because the column is never NULL
@@ -55,10 +59,12 @@ public class MVDelegateIndex extends BaseIndex {
         return mainIndex.find(session, min, max);
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         return mainIndex.findFirstOrLast(session, first);
     }
 
+    @Override
     public int getColumnIndex(Column col) {
         if (col.getColumnId() == mainIndex.getMainIndexColumn()) {
             return 0;
@@ -66,38 +72,47 @@ public class MVDelegateIndex extends BaseIndex {
         return -1;
     }
 
+    @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session), sortOrder);
     }
 
+    @Override
     public boolean needRebuild() {
         return false;
     }
 
+    @Override
     public void remove(Session session, Row row) {
         // nothing to do
     }
 
+    @Override
     public void remove(Session session) {
         mainIndex.setMainIndexColumn(-1);
     }
 
+    @Override
     public void truncate(Session session) {
         // nothing to do
     }
 
+    @Override
     public void checkRename() {
         // ok
     }
 
+    @Override
     public long getRowCount(Session session) {
         return mainIndex.getRowCount(session);
     }
 
+    @Override
     public long getRowCountApproximation() {
         return mainIndex.getRowCountApproximation();
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return 0;
     }

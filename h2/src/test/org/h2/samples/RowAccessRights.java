@@ -82,6 +82,7 @@ public class RowAccessRights extends TriggerAdapter {
 
     }
 
+    @Override
     public void init(Connection conn, String schemaName, String triggerName,
             String tableName, boolean before, int type) throws SQLException {
         prepDelete = conn.prepareStatement("delete from test_data where id = ? and user = ?");
@@ -89,6 +90,7 @@ public class RowAccessRights extends TriggerAdapter {
         super.init(conn, schemaName, triggerName, tableName, before, type);
     }
 
+    @Override
     public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
         String user = conn.getMetaData().getUserName();
         if (oldRow != null && oldRow.next()) {

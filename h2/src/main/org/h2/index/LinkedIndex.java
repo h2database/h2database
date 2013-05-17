@@ -39,10 +39,12 @@ public class LinkedIndex extends BaseIndex {
         targetTableName = link.getQualifiedTable();
     }
 
+    @Override
     public String getCreateSQL() {
         return null;
     }
 
+    @Override
     public void close(Session session) {
         // nothing to do
     }
@@ -51,6 +53,7 @@ public class LinkedIndex extends BaseIndex {
         return v == null || v == ValueNull.INSTANCE;
     }
 
+    @Override
     public void add(Session session, Row row) {
         ArrayList<Value> params = New.arrayList();
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
@@ -77,6 +80,7 @@ public class LinkedIndex extends BaseIndex {
         }
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         ArrayList<Value> params = New.arrayList();
         StatementBuilder buff = new StatementBuilder("SELECT * FROM ");
@@ -135,36 +139,44 @@ public class LinkedIndex extends BaseIndex {
         }
     }
 
+    @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         return 100 + getCostRangeIndex(masks, rowCount + Constants.COST_ROW_OFFSET, sortOrder);
     }
 
+    @Override
     public void remove(Session session) {
         // nothing to do
     }
 
+    @Override
     public void truncate(Session session) {
         // nothing to do
     }
 
+    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("LINKED");
     }
 
+    @Override
     public boolean needRebuild() {
         return false;
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return false;
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         // TODO optimization: could get the first or last value (in any case;
         // maybe not optimized)
         throw DbException.getUnsupportedException("LINKED");
     }
 
+    @Override
     public void remove(Session session, Row row) {
         ArrayList<Value> params = New.arrayList();
         StatementBuilder buff = new StatementBuilder("DELETE FROM ");
@@ -239,14 +251,17 @@ public class LinkedIndex extends BaseIndex {
         }
     }
 
+    @Override
     public long getRowCount(Session session) {
         return rowCount;
     }
 
+    @Override
     public long getRowCountApproximation() {
         return rowCount;
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return 0;
     }

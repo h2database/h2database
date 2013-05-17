@@ -261,6 +261,7 @@ public class MultiDimension implements Comparator<long[]> {
         }
     }
 
+    @Override
     public int compare(long[] a, long[] b) {
         return a[0] > b[0] ? 1 : -1;
     }

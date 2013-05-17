@@ -33,6 +33,7 @@ public abstract class Task implements Runnable {
      */
     public abstract void call() throws Exception;
 
+    @Override
     public void run() {
         try {
             call();

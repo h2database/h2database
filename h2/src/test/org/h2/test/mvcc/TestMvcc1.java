@@ -35,6 +35,7 @@ public class TestMvcc1 extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws SQLException {
         testCases();
         testSetMode();

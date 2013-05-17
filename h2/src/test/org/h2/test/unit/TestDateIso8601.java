@@ -30,6 +30,7 @@ public class TestDateIso8601 extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testIsoDayOfWeek();
         testIsoWeekJanuary1thMonday();

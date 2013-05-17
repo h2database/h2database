@@ -29,6 +29,7 @@ public class TestExclusive extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("exclusive");
         Connection conn = getConnection("exclusive");
@@ -43,6 +44,7 @@ public class TestExclusive extends TestBase {
         stat.execute("set exclusive true");
         final AtomicInteger state = new AtomicInteger(0);
         Task task = new Task() {
+            @Override
             public void call() throws SQLException {
                 stat2.execute("select * from dual");
                 if (state.get() != 1) {

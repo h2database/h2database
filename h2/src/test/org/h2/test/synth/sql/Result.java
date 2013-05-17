@@ -79,6 +79,7 @@ class Result implements Comparable<Result> {
         }
     }
 
+    @Override
     public String toString() {
         switch (type) {
         case SUCCESS:
@@ -107,6 +108,7 @@ class Result implements Comparable<Result> {
         }
     }
 
+    @Override
     public int compareTo(Result r) {
         switch (type) {
         case EXCEPTION:

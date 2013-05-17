@@ -40,6 +40,7 @@ public class AlterTableRenameColumn extends DefineCommand {
         this.newName = newName;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -56,6 +57,7 @@ public class AlterTableRenameColumn extends DefineCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.ALTER_TABLE_ALTER_COLUMN_RENAME;
     }

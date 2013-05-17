@@ -30,6 +30,7 @@ public class TestSecurity extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testConnectWithHash();
         testSHA();

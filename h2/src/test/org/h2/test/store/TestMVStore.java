@@ -39,6 +39,7 @@ public class TestMVStore extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());

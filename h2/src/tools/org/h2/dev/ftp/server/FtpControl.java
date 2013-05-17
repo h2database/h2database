@@ -44,6 +44,7 @@ public class FtpControl extends Thread {
         this.stop = stop;
     }
 
+    @Override
     public void run() {
         try {
             output = new PrintWriter(new OutputStreamWriter(control.getOutputStream(), Constants.UTF8));

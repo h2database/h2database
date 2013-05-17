@@ -155,10 +155,12 @@ public class Chunk {
         return (int) (maxLength == 0 ? 0 : 100 * maxLengthLive / maxLength);
     }
 
+    @Override
     public int hashCode() {
         return id;
     }
 
+    @Override
     public boolean equals(Object o) {
         return o instanceof Chunk && ((Chunk) o).id == id;
     }
@@ -182,6 +184,7 @@ public class Chunk {
                 "version:" + version;
     }
 
+    @Override
     public String toString() {
         return asString();
     }

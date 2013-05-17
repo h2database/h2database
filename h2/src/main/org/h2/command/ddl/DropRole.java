@@ -31,6 +31,7 @@ public class DropRole extends DefineCommand {
         this.roleName = roleName;
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -53,6 +54,7 @@ public class DropRole extends DefineCommand {
         this.ifExists = ifExists;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_ROLE;
     }

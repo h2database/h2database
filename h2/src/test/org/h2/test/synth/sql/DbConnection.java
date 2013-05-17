@@ -40,6 +40,7 @@ class DbConnection implements DbInterface {
         log("url=" + url);
     }
 
+    @Override
     public void reset() throws SQLException {
         log("reset;");
         DatabaseMetaData meta = conn.getMetaData();
@@ -72,6 +73,7 @@ class DbConnection implements DbInterface {
         }
     }
 
+    @Override
     public void connect() throws Exception {
         if (useSentinel && sentinel == null) {
             sentinel = getConnection();
@@ -89,11 +91,13 @@ class DbConnection implements DbInterface {
         return DriverManager.getConnection(url, user, password);
     }
 
+    @Override
     public void disconnect() throws SQLException {
         log("disconnect " + url + ";");
         conn.close();
     }
 
+    @Override
     public void end() throws SQLException {
         log("end " + url + ";");
         if (sentinel != null) {
@@ -102,24 +106,29 @@ class DbConnection implements DbInterface {
         }
     }
 
+    @Override
     public void createTable(Table table) throws SQLException {
         execute(table.getCreateSQL());
     }
 
+    @Override
     public void dropTable(Table table) throws SQLException {
         execute(table.getDropSQL());
     }
 
+    @Override
     public void createIndex(Index index) throws SQLException {
         execute(index.getCreateSQL());
         index.getTable().addIndex(index);
     }
 
+    @Override
     public void dropIndex(Index index) throws SQLException {
         execute(index.getDropSQL());
         index.getTable().removeIndex(index);
     }
 
+    @Override
     public Result insert(Table table, Column[] c, Value[] v) throws SQLException {
         String sql = table.getInsertSQL(c, v);
         execute(sql);
@@ -131,6 +140,7 @@ class DbConnection implements DbInterface {
         conn.createStatement().execute(sql);
     }
 
+    @Override
     public Result select(String sql) throws SQLException {
         log(sql + ";");
         Statement stat = conn.createStatement();
@@ -138,6 +148,7 @@ class DbConnection implements DbInterface {
         return result;
     }
 
+    @Override
     public Result delete(Table table, String condition) throws SQLException {
         String sql = "DELETE FROM " + table.getName();
         if (condition != null) {
@@ -149,6 +160,7 @@ class DbConnection implements DbInterface {
         return result;
     }
 
+    @Override
     public Result update(Table table, Column[] columns, Value[] values, String condition) throws SQLException {
         String sql = "UPDATE " + table.getName() + " SET ";
         for (int i = 0; i < columns.length; i++) {
@@ -166,16 +178,19 @@ class DbConnection implements DbInterface {
         return result;
     }
 
+    @Override
     public void setAutoCommit(boolean b) throws SQLException {
         log("set autoCommit " + b + ";");
         conn.setAutoCommit(b);
     }
 
+    @Override
     public void commit() throws SQLException {
         log("commit;");
         conn.commit();
     }
 
+    @Override
     public void rollback() throws SQLException {
         log("rollback;");
         conn.rollback();
@@ -185,6 +200,7 @@ class DbConnection implements DbInterface {
         config.log(id, s);
     }
 
+    @Override
     public String toString() {
         return url;
     }

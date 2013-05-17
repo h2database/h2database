@@ -21,6 +21,7 @@ class Condition<A> implements Token {
         this.y = y;
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         query.appendSQL(stat, x);
         stat.appendSQL(" ");

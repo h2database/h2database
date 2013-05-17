@@ -24,35 +24,43 @@ public class SimpleRow implements SearchRow {
         this.data = data;
     }
 
+    @Override
     public int getColumnCount() {
         return data.length;
     }
 
+    @Override
     public long getKey() {
         return key;
     }
 
+    @Override
     public void setKey(long key) {
         this.key = key;
     }
 
+    @Override
     public void setKeyAndVersion(SearchRow row) {
         key = row.getKey();
         version = row.getVersion();
     }
 
+    @Override
     public int getVersion() {
         return version;
     }
 
+    @Override
     public void setValue(int i, Value v) {
         data[i] = v;
     }
 
+    @Override
     public Value getValue(int i) {
         return data[i];
     }
 
+    @Override
     public String toString() {
         StatementBuilder buff = new StatementBuilder("( /* key:");
         buff.append(getKey());
@@ -67,6 +75,7 @@ public class SimpleRow implements SearchRow {
         return buff.append(')').toString();
     }
 
+    @Override
     public int getMemory() {
         if (memory == 0) {
             int len = data.length;

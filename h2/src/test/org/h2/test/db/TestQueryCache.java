@@ -26,6 +26,7 @@ public class TestQueryCache extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         deleteDb("queryCache");
         Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10");

@@ -112,6 +112,7 @@ public class ConnectionInfo implements Cloneable {
         return KNOWN_SETTINGS.contains(s);
     }
 
+    @Override
     public ConnectionInfo clone() throws CloneNotSupportedException {
         ConnectionInfo clone = (ConnectionInfo) super.clone();
         clone.prop = (Properties) prop.clone();

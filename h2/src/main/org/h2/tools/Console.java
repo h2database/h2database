@@ -107,6 +107,7 @@ ShutdownHandler {
      *
      * @param args the command line arguments
      */
+    @Override
     public void runTool(String... args) throws SQLException {
         isWindows = Utils.getProperty("os.name", "").startsWith("Windows");
         boolean tcpStart = false, pgStart = false, webStart = false, toolStart = false;
@@ -319,6 +320,7 @@ ShutdownHandler {
      * INTERNAL.
      * Stop all servers that were started using the console.
      */
+    @Override
     public void shutdown() {
         if (web != null && web.isRunning(false)) {
             web.stop();
@@ -536,6 +538,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void actionPerformed(ActionEvent e) {
         String command = e.getActionCommand();
         if ("exit".equals(command)) {
@@ -555,6 +558,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void mouseClicked(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             startBrowser();
@@ -566,6 +570,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void mouseEntered(MouseEvent e) {
         // nothing to do
     }
@@ -575,6 +580,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void mouseExited(MouseEvent e) {
         // nothing to do
     }
@@ -584,6 +590,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void mousePressed(MouseEvent e) {
         // nothing to do
     }
@@ -593,6 +600,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void mouseReleased(MouseEvent e) {
         // nothing to do
     }
@@ -602,6 +610,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void windowClosing(WindowEvent e) {
         if (trayIconUsed) {
             frame.dispose();
@@ -616,6 +625,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void windowActivated(WindowEvent e) {
         // nothing to do
     }
@@ -625,6 +635,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void windowClosed(WindowEvent e) {
         // nothing to do
     }
@@ -634,6 +645,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void windowDeactivated(WindowEvent e) {
         // nothing to do
     }
@@ -643,6 +655,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void windowDeiconified(WindowEvent e) {
         // nothing to do
     }
@@ -652,6 +665,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void windowIconified(WindowEvent e) {
         // nothing to do
     }
@@ -661,6 +675,7 @@ ShutdownHandler {
      * INTERNAL
      */
 //## AWT ##
+    @Override
     public void windowOpened(WindowEvent e) {
         // nothing to do
     }

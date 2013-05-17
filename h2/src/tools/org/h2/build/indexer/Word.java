@@ -50,6 +50,7 @@ public class Word {
         page.relations++;
     }
 
+    @Override
     public String toString() {
         return name + ":" + pages;
     }
@@ -71,6 +72,7 @@ public class Word {
         if (weightList == null) {
             weightList = new ArrayList<Weight>(pages.values());
             Collections.sort(weightList, new Comparator<Weight>() {
+                @Override
                 public int compare(Weight w0, Weight w1) {
                     return w0.value < w1.value ? 1 : w0.value == w1.value ? 0 : -1;
                 }

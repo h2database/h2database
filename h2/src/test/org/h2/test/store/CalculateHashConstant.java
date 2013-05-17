@@ -71,6 +71,7 @@ public class CalculateHashConstant implements Runnable {
         int[] minMax;
         int av = 0;
         test = new CalculateHashConstant() {
+            @Override
             public int hash(int x) {
                 return secureHash(x);
             }
@@ -254,6 +255,7 @@ public class CalculateHashConstant implements Runnable {
         return values;
     }
 
+    @Override
     public void run() {
         while (true) {
             int currentHigh = high.getAndIncrement();

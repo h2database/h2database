@@ -263,6 +263,7 @@ public class WebServer implements Service {
         return startDateTime;
     }
 
+    @Override
     public void init(String... args) {
         // set the serverPropertiesDir, because it's used in loadProperties()
         for (int i = 0; args != null && i < args.length; i++) {
@@ -315,6 +316,7 @@ public class WebServer implements Service {
         updateURL();
     }
 
+    @Override
     public String getURL() {
         updateURL();
         return url;
@@ -328,12 +330,14 @@ public class WebServer implements Service {
         }
     }
 
+    @Override
     public void start() {
         serverSocket = NetUtils.createServerSocket(port, ssl);
         port = serverSocket.getLocalPort();
         updateURL();
     }
 
+    @Override
     public void listen() {
         this.listenerThread = Thread.currentThread();
         try {
@@ -348,6 +352,7 @@ public class WebServer implements Service {
         }
     }
 
+    @Override
     public boolean isRunning(boolean traceError) {
         if (serverSocket == null) {
             return false;
@@ -368,6 +373,7 @@ public class WebServer implements Service {
         return serverSocket == null;
     }
 
+    @Override
     public void stop() {
         if (serverSocket != null) {
             try {
@@ -465,10 +471,12 @@ public class WebServer implements Service {
         return list;
     }
 
+    @Override
     public String getType() {
         return "Web Console";
     }
 
+    @Override
     public String getName() {
         return "H2 Console Server";
     }
@@ -477,6 +485,7 @@ public class WebServer implements Service {
         allowOthers = b;
     }
 
+    @Override
     public boolean getAllowOthers() {
         return allowOthers;
     }
@@ -493,6 +502,7 @@ public class WebServer implements Service {
         return ssl;
     }
 
+    @Override
     public int getPort() {
         return port;
     }
@@ -709,6 +719,7 @@ public class WebServer implements Service {
             }
         }
 
+        @Override
         public void run() {
             while (!stopNow) {
                 try {
@@ -747,6 +758,7 @@ public class WebServer implements Service {
         return translateThread.getFileName();
     }
 
+    @Override
     public boolean isDaemon() {
         return isDaemon;
     }

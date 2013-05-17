@@ -403,15 +403,19 @@ public class FtpClient {
             this.dir = dir;
             this.length = length;
         }
+        @Override
         public long length() {
             return length;
         }
+        @Override
         public boolean isFile() {
             return !dir;
         }
+        @Override
         public boolean isDirectory() {
             return dir;
         }
+        @Override
         public boolean exists() {
             return true;
         }

@@ -40,18 +40,22 @@ public class ConstantNumber implements Constant {
         return new ConstantNumber(s, x, type);
     }
 
+    @Override
     public int intValue() {
         return (int) longValue;
     }
 
+    @Override
     public String toString() {
         return value;
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         stat.appendSQL(toString());
     }
 
+    @Override
     public Constant.Type getType() {
         return type;
     }

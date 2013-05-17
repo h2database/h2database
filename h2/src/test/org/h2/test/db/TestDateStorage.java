@@ -35,6 +35,7 @@ public class TestDateStorage extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         deleteDb("date");
         testMoveDatabaseToAnotherTimezone();

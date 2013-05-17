@@ -29,6 +29,7 @@ public class TestTwoPhaseCommit extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         if (config.memory || config.networked) {
             return;

@@ -71,6 +71,7 @@ public class SpatialKey {
         return id;
     }
 
+    @Override
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append(id).append(": (");
@@ -83,10 +84,12 @@ public class SpatialKey {
         return buff.append(")").toString();
     }
 
+    @Override
     public int hashCode() {
         return (int) ((id >>> 32) ^ id);
     }
 
+    @Override
     public boolean equals(Object other) {
         if (!(other instanceof SpatialKey)) {
             return false;

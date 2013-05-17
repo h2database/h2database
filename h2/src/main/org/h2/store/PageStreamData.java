@@ -101,6 +101,7 @@ public class PageStreamData extends Page {
         return max;
     }
 
+    @Override
     public void write() {
         store.writePage(getPos(), data);
     }
@@ -141,10 +142,12 @@ public class PageStreamData extends Page {
      *
      * @return number of double words (4 bytes)
      */
+    @Override
     public int getMemory() {
         return store.getPageSize() >> 2;
     }
 
+    @Override
     public void moveTo(Session session, int newPos) {
         // not required
     }
@@ -153,10 +156,12 @@ public class PageStreamData extends Page {
         return logKey;
     }
 
+    @Override
     public String toString() {
         return "[" + getPos() + "] stream data key:" + logKey + " pos:" + data.length() + " remaining:" + remaining;
     }
 
+    @Override
     public boolean canRemove() {
         return true;
     }
@@ -165,6 +170,7 @@ public class PageStreamData extends Page {
         return DATA_START;
     }
 
+    @Override
     public boolean canMove() {
         return false;
     }

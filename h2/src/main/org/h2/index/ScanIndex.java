@@ -50,10 +50,12 @@ public class ScanIndex extends BaseIndex {
         tableData = table;
     }
 
+    @Override
     public void remove(Session session) {
         truncate(session);
     }
 
+    @Override
     public void truncate(Session session) {
         rows = New.arrayList();
         firstFree = -1;
@@ -68,18 +70,22 @@ public class ScanIndex extends BaseIndex {
         }
     }
 
+    @Override
     public String getCreateSQL() {
         return null;
     }
 
+    @Override
     public void close(Session session) {
         // nothing to do
     }
 
+    @Override
     public Row getRow(Session session, long key) {
         return rows.get((int) key);
     }
 
+    @Override
     public void add(Session session, Row row) {
         // in-memory
         if (firstFree == -1) {
@@ -107,6 +113,7 @@ public class ScanIndex extends BaseIndex {
         rowCount++;
     }
 
+    @Override
     public void commit(int operation, Row row) {
         if (database.isMultiVersion()) {
             if (delta != null) {
@@ -126,6 +133,7 @@ public class ScanIndex extends BaseIndex {
         }
     }
 
+    @Override
     public void remove(Session session, Row row) {
         // in-memory
         if (!database.isMultiVersion() && rowCount == 1) {
@@ -156,14 +164,17 @@ public class ScanIndex extends BaseIndex {
         rowCount--;
     }
 
+    @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         return new ScanCursor(session, this, database.isMultiVersion());
     }
 
+    @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
         return tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
     }
 
+    @Override
     public long getRowCount(Session session) {
         if (database.isMultiVersion()) {
             Integer i = sessionRowCount.get(session.getId());
@@ -200,23 +211,28 @@ public class ScanIndex extends BaseIndex {
         }
     }
 
+    @Override
     public int getColumnIndex(Column col) {
         // the scan index cannot use any columns
         return -1;
     }
 
+    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("SCAN");
     }
 
+    @Override
     public boolean needRebuild() {
         return false;
     }
 
+    @Override
     public boolean canGetFirstOrLast() {
         return false;
     }
 
+    @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         throw DbException.getUnsupportedException("SCAN");
     }
@@ -229,14 +245,17 @@ public class ScanIndex extends BaseIndex {
         return delta.iterator();
     }
 
+    @Override
     public long getRowCountApproximation() {
         return rowCount;
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return 0;
     }
 
+    @Override
     public String getPlanSQL() {
         return table.getSQL() + ".tableScan";
     }

@@ -28,6 +28,7 @@ public class AlterView extends DefineCommand {
         this.view = view;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         session.getUser().checkRight(view, Right.ALL);
@@ -38,6 +39,7 @@ public class AlterView extends DefineCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.ALTER_VIEW;
     }

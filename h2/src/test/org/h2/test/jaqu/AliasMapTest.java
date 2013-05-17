@@ -29,6 +29,7 @@ public class AliasMapTest extends TestBase {
         new AliasMapTest().test();
     }
 
+    @Override
     public void test() throws Exception {
         Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());

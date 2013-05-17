@@ -71,6 +71,7 @@ public class WriterThread implements Runnable {
         }
     }
 
+    @Override
     public void run() {
         while (!stop) {
             Database database = databaseRef.get();

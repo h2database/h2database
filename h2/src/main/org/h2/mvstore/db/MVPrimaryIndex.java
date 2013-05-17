@@ -75,10 +75,12 @@ public class MVPrimaryIndex extends BaseIndex {
         mapName = newMapName;
     }
 
+    @Override
     public String getCreateSQL() {
         return null;
     }
 
+    @Override
     public String getPlanSQL() {
         return table.getSQL() + ".tableScan";
     }
@@ -182,10 +184,12 @@ public class MVPrimaryIndex extends BaseIndex {
                 ValueLong.get(min)), max);
     }
 
+    @Override
     public MVTable getTable() {
         return mvTable;
     }
 
+    @Override
     public Row getRow(Session session, long key) {
         TransactionMap<Value, Value> map = getMap(session);
         ValueArray array = (ValueArray) map.get(ValueLong.get(key));
@@ -200,6 +204,7 @@ public class MVPrimaryIndex extends BaseIndex {
         return cost;
     }
 
+    @Override
     public int getColumnIndex(Column col) {
         // can not use this index - use the delegate index instead
         return -1;
@@ -258,6 +263,7 @@ public class MVPrimaryIndex extends BaseIndex {
         return dataMap.map.getSize();
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         // TODO estimate disk space usage
         return 0;
@@ -302,6 +308,7 @@ public class MVPrimaryIndex extends BaseIndex {
         return new MVStoreCursor(session, map.keyIterator(ValueLong.get(first)), last);
     }
     
+    @Override
     public boolean isRowIdIndex() {
         return true;
     }

@@ -26,6 +26,7 @@ public class Comment extends DbObjectBase {
         this.objectName = obj.getSQL();
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError();
     }
@@ -60,10 +61,12 @@ public class Comment extends DbObjectBase {
         }
     }
 
+    @Override
     public String getDropSQL() {
         return null;
     }
 
+    @Override
     public String getCreateSQL() {
         StringBuilder buff = new StringBuilder("COMMENT ON ");
         buff.append(getTypeName(objectType)).append(' ').append(objectName).append(" IS ");
@@ -75,14 +78,17 @@ public class Comment extends DbObjectBase {
         return buff.toString();
     }
 
+    @Override
     public int getType() {
         return DbObject.COMMENT;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         database.removeMeta(session, getId());
     }
 
+    @Override
     public void checkRename() {
         DbException.throwInternalError();
     }

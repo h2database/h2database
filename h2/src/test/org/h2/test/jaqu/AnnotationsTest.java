@@ -35,6 +35,7 @@ public class AnnotationsTest extends TestBase {
         new AnnotationsTest().test();
     }
 
+    @Override
     public void test() throws SQLException {
         db = Db.open("jdbc:h2:mem:", "sa", "sa");
         db.insertAll(Product.getList());

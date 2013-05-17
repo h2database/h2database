@@ -30,6 +30,7 @@ public class TestPowerOffFs extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         fs = FilePathDebug.register();
         test(Integer.MAX_VALUE);

@@ -118,6 +118,7 @@ public class PageStreamTrunk extends Page {
         return pageIds[index];
     }
 
+    @Override
     public void write() {
         data = store.createData();
         data.writeByte((byte) Page.TYPE_STREAM_TRUNK);
@@ -189,10 +190,12 @@ public class PageStreamTrunk extends Page {
      *
      * @return number of double words (4 bytes)
      */
+    @Override
     public int getMemory() {
         return store.getPageSize() >> 2;
     }
 
+    @Override
     public void moveTo(Session session, int newPos) {
         // not required
     }
@@ -279,14 +282,17 @@ public class PageStreamTrunk extends Page {
 
     }
 
+    @Override
     public boolean canRemove() {
         return true;
     }
 
+    @Override
     public String toString() {
         return "page[" + getPos() + "] stream trunk key:" + logKey + " next:" + nextTrunk;
     }
 
+    @Override
     public boolean canMove() {
         return false;
     }

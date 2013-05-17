@@ -58,6 +58,7 @@ public class Backup extends Tool {
         new Backup().runTool(args);
     }
 
+    @Override
     public void runTool(String... args) throws SQLException {
         String zipFileName = "backup.zip";
         String dir = ".";

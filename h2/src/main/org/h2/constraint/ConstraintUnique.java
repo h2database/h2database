@@ -34,10 +34,12 @@ public class ConstraintUnique extends Constraint {
         this.primaryKey = primaryKey;
     }
 
+    @Override
     public String getConstraintType() {
         return primaryKey ? Constraint.PRIMARY_KEY : Constraint.UNIQUE;
     }
 
+    @Override
     public String getCreateSQLForCopy(Table forTable, String quotedName) {
         return getCreateSQLForCopy(forTable, quotedName, true);
     }
@@ -71,10 +73,12 @@ public class ConstraintUnique extends Constraint {
         return "UNIQUE";
     }
 
+    @Override
     public String getCreateSQLWithoutIndexes() {
         return getCreateSQLForCopy(table, getSQL(), false);
     }
 
+    @Override
     public String getCreateSQL() {
         return getCreateSQLForCopy(table, getSQL());
     }
@@ -99,6 +103,7 @@ public class ConstraintUnique extends Constraint {
         this.indexOwner = isOwner;
     }
 
+    @Override
     public void removeChildrenAndResources(Session session) {
         table.removeConstraint(this);
         if (indexOwner) {
@@ -111,18 +116,22 @@ public class ConstraintUnique extends Constraint {
         invalidate();
     }
 
+    @Override
     public void checkRow(Session session, Table t, Row oldRow, Row newRow) {
         // unique index check is enough
     }
 
+    @Override
     public boolean usesIndex(Index idx) {
         return idx == index;
     }
 
+    @Override
     public void setIndexOwner(Index index) {
         indexOwner = true;
     }
 
+    @Override
     public HashSet<Column> getReferencedColumns(Table table) {
         HashSet<Column> result = New.hashSet();
         for (IndexColumn c : columns) {
@@ -131,18 +140,22 @@ public class ConstraintUnique extends Constraint {
         return result;
     }
 
+    @Override
     public boolean isBefore() {
         return true;
     }
 
+    @Override
     public void checkExistingData(Session session) {
         // no need to check: when creating the unique index any problems are found
     }
 
+    @Override
     public Index getUniqueIndex() {
         return index;
     }
 
+    @Override
     public void rebuild() {
         // nothing to do
     }

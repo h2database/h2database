@@ -26,14 +26,17 @@ public class TreeCursor implements Cursor {
         beforeFirst = true;
     }
 
+    @Override
     public Row get() {
         return node == null ? null : node.row;
     }
 
+    @Override
     public SearchRow getSearchRow() {
         return get();
     }
 
+    @Override
     public boolean next() {
         if (beforeFirst) {
             beforeFirst = false;
@@ -54,6 +57,7 @@ public class TreeCursor implements Cursor {
         return node != null;
     }
 
+    @Override
     public boolean previous() {
         node = previous(node);
         return node != null;

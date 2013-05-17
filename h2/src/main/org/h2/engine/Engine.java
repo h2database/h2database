@@ -117,6 +117,7 @@ public class Engine implements SessionFactory {
      * @param ci the connection information
      * @return the session
      */
+    @Override
     public Session createSession(ConnectionInfo ci) {
         return INSTANCE.createSessionAndValidate(ci);
     }

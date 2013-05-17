@@ -43,6 +43,7 @@ public class TestCache extends TestBase implements CacheWriter {
         test.test();
     }
 
+    @Override
     public void test() throws Exception {
         testTQ();
         testMemoryUsage();
@@ -195,32 +196,39 @@ public class TestCache extends TestBase implements CacheWriter {
             setPos(pos);
         }
 
+        @Override
         public int getMemory() {
             return 1024;
         }
 
+        @Override
         public boolean canRemove() {
             return true;
         }
 
+        @Override
         public boolean isChanged() {
             return true;
         }
 
+        @Override
         public String toString() {
             return "[" + getPos() + "]";
         }
 
     }
 
+    @Override
     public void flushLog() {
         out += "flush ";
     }
 
+    @Override
     public Trace getTrace() {
         return null;
     }
 
+    @Override
     public void writeBack(CacheObject entry) {
         out += entry.getPos() + " ";
     }

@@ -28,6 +28,7 @@ public interface SessionInterface extends Closeable {
     /**
      * Roll back pending transactions and close the session.
      */
+    @Override
     void close();
 
     /**

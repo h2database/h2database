@@ -81,6 +81,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     @SuppressWarnings("deprecation")
     public void run() {
         while (--maxWait > 0) {
@@ -111,6 +112,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         org.h2.Driver.load();
         File[] files = new File("temp/backup").listFiles();
         Arrays.sort(files, new Comparator<File>() {
+            @Override
             public int compare(File o1, File o2) {
                 return o1.getName().compareTo(o2.getName());
             }
@@ -142,6 +144,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         }
     }
 
+    @Override
     public void test() throws Exception {
         if (RECOVER_ALL) {
             recoverAll();
@@ -271,6 +274,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         return conn;
     }
 
+    @Override
     public void testCase(int seed) throws SQLException {
         printTime("seed: " + seed);
         callCount = 0;
@@ -512,6 +516,7 @@ if (connectTime > 2000) {
         }
     }
 
+    @Override
     public TestBase init(TestAll conf) throws Exception {
         super.init(conf);
         if (config.mvcc || config.networked) {

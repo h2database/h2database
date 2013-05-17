@@ -76,6 +76,7 @@ public abstract class CacheObject implements Comparable<CacheObject> {
         changed = b;
     }
 
+    @Override
     public int compareTo(CacheObject other) {
         return MathUtils.compareInt(getPos(), other.getPos());
     }

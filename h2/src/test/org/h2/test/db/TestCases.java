@@ -37,6 +37,7 @@ public class TestCases extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testViewParameters();
         testLargeKeys();
@@ -713,6 +714,7 @@ public class TestCases extends TestBase {
         }
         final SQLException[] stopped = { null };
         Thread t = new Thread(new Runnable() {
+            @Override
             public void run() {
                 try {
                     long time = System.currentTimeMillis();

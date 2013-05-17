@@ -56,6 +56,7 @@ public abstract class DbObjectBase implements DbObject {
      *
      * @return the SQL statement
      */
+    @Override
     public abstract String getCreateSQL();
 
     /**
@@ -63,6 +64,7 @@ public abstract class DbObjectBase implements DbObject {
      *
      * @return the SQL statement
      */
+    @Override
     public abstract String getDropSQL();
 
     /**
@@ -71,11 +73,13 @@ public abstract class DbObjectBase implements DbObject {
      *
      * @param session the session
      */
+    @Override
     public abstract void removeChildrenAndResources(Session session);
 
     /**
      * Check if this object can be renamed. System objects may not be renamed.
      */
+    @Override
     public abstract void checkRename();
 
     /**
@@ -93,22 +97,27 @@ public abstract class DbObjectBase implements DbObject {
         objectName = name;
     }
 
+    @Override
     public String getSQL() {
         return Parser.quoteIdentifier(objectName);
     }
 
+    @Override
     public ArrayList<DbObject> getChildren() {
         return null;
     }
 
+    @Override
     public Database getDatabase() {
         return database;
     }
 
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return objectName;
     }
@@ -125,28 +134,34 @@ public abstract class DbObjectBase implements DbObject {
         objectName = null;
     }
 
+    @Override
     public void rename(String newName) {
         checkRename();
         objectName = newName;
         setModified();
     }
 
+    @Override
     public boolean isTemporary() {
         return temporary;
     }
 
+    @Override
     public void setTemporary(boolean temporary) {
         this.temporary = temporary;
     }
 
+    @Override
     public void setComment(String comment) {
         this.comment = comment;
     }
 
+    @Override
     public String getComment() {
         return comment;
     }
 
+    @Override
     public String toString() {
         return objectName + ":" + id + ":" + super.toString();
     }

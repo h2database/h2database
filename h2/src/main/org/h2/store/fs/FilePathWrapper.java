@@ -20,6 +20,7 @@ public abstract class FilePathWrapper extends FilePath {
 
     private FilePath base;
 
+    @Override
     public FilePathWrapper getPath(String path) {
         return create(path, unwrap(path));
     }
@@ -34,6 +35,7 @@ public abstract class FilePathWrapper extends FilePath {
         return base == null ? null : create(getPrefix() + base.name, base);
     }
 
+    @Override
     public FilePath unwrap() {
         return unwrap(name);
     }
@@ -67,46 +69,57 @@ public abstract class FilePathWrapper extends FilePath {
         return base;
     }
 
+    @Override
     public boolean canWrite() {
         return base.canWrite();
     }
 
+    @Override
     public void createDirectory() {
         base.createDirectory();
     }
 
+    @Override
     public boolean createFile() {
         return base.createFile();
     }
 
+    @Override
     public void delete() {
         base.delete();
     }
 
+    @Override
     public boolean exists() {
         return base.exists();
     }
 
+    @Override
     public FilePath getParent() {
         return wrap(base.getParent());
     }
 
+    @Override
     public boolean isAbsolute() {
         return base.isAbsolute();
     }
 
+    @Override
     public boolean isDirectory() {
         return base.isDirectory();
     }
 
+    @Override
     public long lastModified() {
         return base.lastModified();
     }
 
+    @Override
     public FilePath toRealPath() {
         return wrap(base.toRealPath());
     }
 
+    @Override
     public List<FilePath> newDirectoryStream() {
         List<FilePath> list = base.newDirectoryStream();
         for (int i = 0, len = list.size(); i < len; i++) {
@@ -115,30 +128,37 @@ public abstract class FilePathWrapper extends FilePath {
         return list;
     }
 
+    @Override
     public void moveTo(FilePath newName) {
         base.moveTo(((FilePathWrapper) newName).base);
     }
 
+    @Override
     public InputStream newInputStream() throws IOException {
         return base.newInputStream();
     }
 
+    @Override
     public OutputStream newOutputStream(boolean append) throws IOException {
         return base.newOutputStream(append);
     }
 
+    @Override
     public FileChannel open(String mode) throws IOException {
         return base.open(mode);
     }
 
+    @Override
     public boolean setReadOnly() {
         return base.setReadOnly();
     }
 
+    @Override
     public long size() {
         return base.size();
     }
 
+    @Override
     public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
         return wrap(base.createTempFile(suffix, deleteOnExit, inTempDir));

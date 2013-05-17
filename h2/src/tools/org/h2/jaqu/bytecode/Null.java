@@ -21,10 +21,12 @@ public class Null implements Token {
         // don't allow to create new instances
     }
 
+    @Override
     public String toString() {
         return "null";
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         // untested
         stat.appendSQL("NULL");

@@ -21,6 +21,7 @@ public class XTEA implements BlockCipher {
     private int k0, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12, k13, k14, k15;
     private int k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26, k27, k28, k29, k30, k31;
 
+    @Override
     public void setKey(byte[] b) {
         int[] key = new int[4];
         for (int i = 0; i < 16;) {
@@ -38,6 +39,7 @@ public class XTEA implements BlockCipher {
         k24 = r[24]; k25 = r[25]; k26 = r[26]; k27 = r[27]; k28 = r[28]; k29 = r[29]; k30 = r[30]; k31 = r[31];
     }
 
+    @Override
     public void encrypt(byte[] bytes, int off, int len) {
         if (SysProperties.CHECK) {
             if (len % ALIGN != 0) {
@@ -49,6 +51,7 @@ public class XTEA implements BlockCipher {
         }
     }
 
+    @Override
     public void decrypt(byte[] bytes, int off, int len) {
         if (SysProperties.CHECK) {
             if (len % ALIGN != 0) {
@@ -106,6 +109,7 @@ public class XTEA implements BlockCipher {
         out[off+4] = (byte) (z >> 24); out[off+5] = (byte) (z >> 16); out[off+6] = (byte) (z >> 8); out[off+7] = (byte) z;
     }
 
+    @Override
     public int getKeyLength() {
         return 16;
     }

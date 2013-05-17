@@ -31,6 +31,7 @@ public class TestStreams extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws IOException {
         testLZFStreams();
         testLZFStreamClose();

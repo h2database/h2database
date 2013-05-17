@@ -30,6 +30,7 @@ public class Call extends Prepared {
         super(session);
     }
 
+    @Override
     public ResultInterface queryMeta() {
         LocalResult result;
         if (isResultSet) {
@@ -42,6 +43,7 @@ public class Call extends Prepared {
         return result;
     }
 
+    @Override
     public int update() {
         Value v = expression.getValue(session);
         int type = v.getType();
@@ -58,6 +60,7 @@ public class Call extends Prepared {
         }
     }
 
+    @Override
     public ResultInterface query(int maxrows) {
         setCurrentRowNumber(1);
         Value v = expression.getValue(session);
@@ -73,6 +76,7 @@ public class Call extends Prepared {
         return result;
     }
 
+    @Override
     public void prepare() {
         expression = expression.optimize(session);
         expressions = new Expression[] { expression };
@@ -86,23 +90,28 @@ public class Call extends Prepared {
         this.expression = expression;
     }
 
+    @Override
     public boolean isQuery() {
         return true;
     }
 
+    @Override
     public boolean isTransactional() {
         return true;
     }
 
+    @Override
     public boolean isReadOnly() {
         return expression.isEverything(ExpressionVisitor.READONLY_VISITOR);
 
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CALL;
     }
 
+    @Override
     public boolean isCacheable() {
         return !isResultSet;
     }

@@ -48,6 +48,7 @@ public class BnfRailroad implements BnfVisitor {
         return buff.toString();
     }
 
+    @Override
     public void visitRuleElement(boolean keyword, String name, Rule link) {
         String x;
         if (keyword) {
@@ -58,6 +59,7 @@ public class BnfRailroad implements BnfVisitor {
         html = "<code class=\"c\">" + x + "</code>";
     }
 
+    @Override
     public void visitRuleRepeat(boolean comma, Rule rule) {
         StringBuilder buff = new StringBuilder();
         if (RAILROAD_DOTS) {
@@ -80,6 +82,7 @@ public class BnfRailroad implements BnfVisitor {
         html = buff.toString();
     }
 
+    @Override
     public void visitRuleFixed(int type) {
         html = getHtmlText(type);
     }
@@ -125,6 +128,7 @@ public class BnfRailroad implements BnfVisitor {
         }
     }
 
+    @Override
     public void visitRuleList(boolean or, ArrayList<Rule> list) {
         StringBuilder buff = new StringBuilder();
         if (or) {
@@ -153,6 +157,7 @@ public class BnfRailroad implements BnfVisitor {
         html = buff.toString();
     }
 
+    @Override
     public void visitRuleOptional(Rule rule) {
         StringBuilder buff = new StringBuilder();
         buff.append("<table class=\"railroad\">");

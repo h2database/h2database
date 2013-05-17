@@ -36,6 +36,7 @@ public class Order implements Table {
         // public constructor
     }
 
+    @Override
     public void define() {
         tableName("Orders");
         primaryKey(customerId, orderId);

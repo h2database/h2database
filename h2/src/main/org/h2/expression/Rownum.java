@@ -25,46 +25,57 @@ public class Rownum extends Expression {
         this.prepared = prepared;
     }
 
+    @Override
     public Value getValue(Session session) {
         return ValueInt.get(prepared.getCurrentRowNumber());
     }
 
+    @Override
     public int getType() {
         return Value.INT;
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         // nothing to do
     }
 
+    @Override
     public Expression optimize(Session session) {
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         // nothing to do
     }
 
+    @Override
     public int getScale() {
         return 0;
     }
 
+    @Override
     public long getPrecision() {
         return ValueInt.PRECISION;
     }
 
+    @Override
     public int getDisplaySize() {
         return ValueInt.DISPLAY_SIZE;
     }
 
+    @Override
     public String getSQL() {
         return "ROWNUM()";
     }
 
+    @Override
     public void updateAggregate(Session session) {
         // nothing to do
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         switch(visitor.getType()) {
         case ExpressionVisitor.QUERY_COMPARABLE:
@@ -85,6 +96,7 @@ public class Rownum extends Expression {
         }
     }
 
+    @Override
     public int getCost() {
         return 0;
     }

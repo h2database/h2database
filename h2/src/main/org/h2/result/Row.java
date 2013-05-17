@@ -48,11 +48,13 @@ public class Row implements SearchRow {
         return r2;
     }
 
+    @Override
     public void setKeyAndVersion(SearchRow row) {
         setKey(row.getKey());
         setVersion(row.getVersion());
     }
 
+    @Override
     public int getVersion() {
         return version;
     }
@@ -61,14 +63,17 @@ public class Row implements SearchRow {
         this.version = version;
     }
 
+    @Override
     public long getKey() {
         return key;
     }
 
+    @Override
     public void setKey(long key) {
         this.key = key;
     }
 
+    @Override
     public Value getValue(int i) {
         return i == -1 ? ValueLong.get(key) : data[i];
     }
@@ -87,6 +92,7 @@ public class Row implements SearchRow {
         return size;
     }
 
+    @Override
     public void setValue(int i, Value v) {
         if (i == -1) {
             this.key = v.getLong();
@@ -99,10 +105,12 @@ public class Row implements SearchRow {
         return data == null;
     }
 
+    @Override
     public int getColumnCount() {
         return data.length;
     }
 
+    @Override
     public int getMemory() {
         if (memory != MEMORY_CALCULATE) {
             return memory;
@@ -122,6 +130,7 @@ public class Row implements SearchRow {
         return m;
     }
 
+    @Override
     public String toString() {
         StatementBuilder buff = new StatementBuilder("( /* key:");
         buff.append(getKey());

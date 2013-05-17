@@ -25,6 +25,7 @@ public class TestBitField extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() {
         testNextClearBit();
         testByteOperations();

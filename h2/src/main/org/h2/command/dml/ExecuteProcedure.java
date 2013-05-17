@@ -53,32 +53,38 @@ public class ExecuteProcedure extends Prepared {
         }
     }
 
+    @Override
     public boolean isQuery() {
         Prepared prepared = procedure.getPrepared();
         return prepared.isQuery();
     }
 
+    @Override
     public int update() {
         setParameters();
         Prepared prepared = procedure.getPrepared();
         return prepared.update();
     }
 
+    @Override
     public ResultInterface query(int limit) {
         setParameters();
         Prepared prepared = procedure.getPrepared();
         return prepared.query(limit);
     }
 
+    @Override
     public boolean isTransactional() {
         return true;
     }
 
+    @Override
     public ResultInterface queryMeta() {
         Prepared prepared = procedure.getPrepared();
         return prepared.queryMeta();
     }
 
+    @Override
     public int getType() {
         return CommandInterface.EXECUTE;
     }

@@ -77,36 +77,44 @@ public class ValueTime extends Value {
         return nanos;
     }
 
+    @Override
     public Time getTime() {
         return DateTimeUtils.convertNanoToTime(nanos);
     }
 
+    @Override
     public int getType() {
         return Value.TIME;
     }
 
+    @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
         appendTime(buff, nanos, false);
         return buff.toString();
     }
 
+    @Override
     public String getSQL() {
         return "TIME '" + getString() + "'";
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         return MathUtils.compareLong(nanos, ((ValueTime) o).nanos);
     }
 
+    @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
@@ -114,40 +122,49 @@ public class ValueTime extends Value {
         return other instanceof ValueTime && nanos == (((ValueTime) other).nanos);
     }
 
+    @Override
     public int hashCode() {
         return (int) (nanos ^ (nanos >>> 32));
     }
 
+    @Override
     public Object getObject() {
         return getTime();
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setTime(parameterIndex, getTime());
     }
 
+    @Override
     public Value add(Value v) {
         ValueTime t = (ValueTime) v.convertTo(Value.TIME);
         return ValueTime.fromNanos(nanos + t.getNanos());
     }
 
+    @Override
     public Value subtract(Value v) {
         ValueTime t = (ValueTime) v.convertTo(Value.TIME);
         return ValueTime.fromNanos(nanos - t.getNanos());
     }
 
+    @Override
     public Value multiply(Value v) {
         return ValueTime.fromNanos((long) (nanos * v.getDouble()));
     }
 
+    @Override
     public Value divide(Value v) {
         return ValueTime.fromNanos((long) (nanos / v.getDouble()));
     }
 
+    @Override
     public int getSignum() {
         return Long.signum(nanos);
     }
 
+    @Override
     public Value negate() {
         return ValueTime.fromNanos(-nanos);
     }

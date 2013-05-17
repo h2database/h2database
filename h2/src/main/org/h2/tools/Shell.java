@@ -112,6 +112,7 @@ public class Shell extends Tool implements Runnable {
      *
      * @param args the command line settings
      */
+    @Override
     public void runTool(String... args) throws SQLException {
         String url = null;
         String user = "";
@@ -396,6 +397,7 @@ public class Shell extends Tool implements Runnable {
      * Hides the password by repeatedly printing
      * backspace, backspace, &gt;, &lt;.
      */
+    @Override
     public void run() {
         while (!stopHide) {
             print("\b\b><");

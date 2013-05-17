@@ -34,6 +34,7 @@ public class TestTransaction extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws SQLException {
         testCommitOnAutoCommitChange();
         testConcurrentSelectForUpdate();

@@ -64,6 +64,7 @@ public interface SQLDialect {
      */
     public static class DefaultSQLDialect implements SQLDialect {
 
+        @Override
         public String getTableName(String schema, String table) {
             if (StringUtils.isNullOrEmpty(schema)) {
                 return table;
@@ -71,10 +72,12 @@ public interface SQLDialect {
             return schema + "." + table;
         }
 
+        @Override
         public boolean supportsMemoryTables() {
             return true;
         }
 
+        @Override
         public String getCreateIndex(String schema, String table, IndexDefinition index) {
             StatementBuilder buff = new StatementBuilder();
             buff.append("CREATE ");
@@ -104,10 +107,12 @@ public interface SQLDialect {
             return buff.toString();
         }
 
+        @Override
         public void appendLimit(SQLStatement stat, long limit) {
             stat.appendSQL(" LIMIT " + limit);
         }
 
+        @Override
         public void appendOffset(SQLStatement stat, long offset) {
             stat.appendSQL(" OFFSET " + offset);
         }

@@ -276,6 +276,7 @@ public abstract class PageBtree extends Page {
      *
      * @return number of double words (4 bytes)
      */
+    @Override
     public int getMemory() {
         // need to always return the same value for the same object (otherwise
         // the cache size would change after adding and then removing the same
@@ -284,6 +285,7 @@ public abstract class PageBtree extends Page {
         return memoryEstimated;
     }
 
+    @Override
     public boolean canRemove() {
         if (changeCount >= index.getPageStore().getChangeCount()) {
             return false;

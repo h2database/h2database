@@ -229,6 +229,7 @@ public abstract class Value {
      */
     protected abstract int compareSecure(Value v, CompareMode mode);
 
+    @Override
     public abstract int hashCode();
 
     /**
@@ -240,6 +241,7 @@ public abstract class Value {
      * @param other the other value
      * @return true if they are equal
      */
+    @Override
     public abstract boolean equals(Object other);
 
     /**
@@ -1022,6 +1024,7 @@ public abstract class Value {
         return getSQL();
     }
 
+    @Override
     public String toString() {
         return getTraceSQL();
     }

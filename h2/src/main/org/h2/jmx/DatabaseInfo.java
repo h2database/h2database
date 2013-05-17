@@ -92,77 +92,95 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         }
     }
 
+    @Override
     public boolean isExclusive() {
         return database.getExclusiveSession() != null;
     }
 
+    @Override
     public boolean isReadOnly() {
         return database.isReadOnly();
     }
 
+    @Override
     public String getMode() {
         return database.getMode().getName();
     }
 
+    @Override
     public boolean isMultiThreaded() {
         return database.isMultiThreaded();
     }
 
+    @Override
     public boolean isMvcc() {
         return database.isMultiVersion();
     }
 
+    @Override
     public int getLogMode() {
         return database.getLogMode();
     }
 
+    @Override
     public void setLogMode(int value) {
         database.setLogMode(value);
     }
 
+    @Override
     public int getTraceLevel() {
         return database.getTraceSystem().getLevelFile();
     }
 
+    @Override
     public void setTraceLevel(int level) {
         database.getTraceSystem().setLevelFile(level);
     }
 
+    @Override
     public long getFileWriteCountTotal() {
         return database.isPersistent() ? database.getPageStore().getWriteCountTotal() : 0L;
     }
 
+    @Override
     public long getFileWriteCount() {
         return database.isPersistent() ? database.getPageStore().getWriteCount() : 0L;
     }
 
+    @Override
     public long getFileReadCount() {
         return database.isPersistent() ? database.getPageStore().getReadCount() : 0L;
     }
 
+    @Override
     public long getFileSize() {
         return database.isPersistent() ?
                 (database.getPageStore().getPageCount() * database.getPageStore().getPageSize() / 1024) : 0;
     }
 
+    @Override
     public int getCacheSizeMax() {
         return database.isPersistent() ? database.getPageStore().getCache().getMaxMemory() : 0;
     }
 
+    @Override
     public void setCacheSizeMax(int kb) {
         if (database.isPersistent()) {
             database.getPageStore().getCache().setMaxMemory(kb);
         }
     }
 
+    @Override
     public int getCacheSize() {
         return database.isPersistent() ? database.getPageStore().getCache().getMemory() : 0;
     }
 
+    @Override
     public String getVersion() {
         return Constants.getFullVersion();
     }
 
+    @Override
     public String listSettings() {
         StringBuilder buff = new StringBuilder();
         for (Map.Entry<String, String> e : new TreeMap<String, String>(database.getSettings().getSettings()).entrySet()) {
@@ -171,6 +189,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         return buff.toString();
     }
 
+    @Override
     public String listSessions() {
         StringBuilder buff = new StringBuilder();
         for (Session session : database.getSessions(false)) {

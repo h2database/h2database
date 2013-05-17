@@ -26,6 +26,7 @@ public class DropAggregate extends DefineCommand {
         super(session);
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -49,6 +50,7 @@ public class DropAggregate extends DefineCommand {
         this.ifExists = ifExists;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_AGGREGATE;
     }

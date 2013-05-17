@@ -30,6 +30,7 @@ public class TestFile extends TestBase implements DataHandler {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         doTest(false, false);
         doTest(false, true);
@@ -133,50 +134,62 @@ public class TestFile extends TestBase implements DataHandler {
         FileUtils.delete("~/testFile");
     }
 
+    @Override
     public void checkPowerOff() {
         // nothing to do
     }
 
+    @Override
     public void checkWritingAllowed() {
         // nothing to do
     }
 
+    @Override
     public String getDatabasePath() {
         return null;
     }
 
+    @Override
     public String getLobCompressionAlgorithm(int type) {
         return null;
     }
 
+    @Override
     public Object getLobSyncObject() {
         return null;
     }
 
+    @Override
     public int getMaxLengthInplaceLob() {
         return 0;
     }
 
+    @Override
     public FileStore openFile(String name, String mode, boolean mustExist) {
         return null;
     }
 
+    @Override
     public SmallLRUCache<String, String[]> getLobFileListCache() {
         return null;
     }
 
+    @Override
     public TempFileDeleter getTempFileDeleter() {
         return TempFileDeleter.getInstance();
     }
 
+    @Override
     public LobStorageBackend getLobStorage() {
         return null;
     }
 
+    @Override
     public Connection getLobConnection() {
         return null;
     }
 
+    @Override
     public int readLob(long lobId,  byte[] hmac, long offset, byte[] buff, int off, int length) {
         return -1;
     }

@@ -36,6 +36,7 @@ public class AlterIndexRename extends DefineCommand {
         newIndexName = name;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -48,6 +49,7 @@ public class AlterIndexRename extends DefineCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.ALTER_INDEX_RENAME;
     }

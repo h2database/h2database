@@ -219,6 +219,7 @@ public class Aggregate extends Expression {
         return new SortOrder(session.getDatabase(), index, sortType);
     }
 
+    @Override
     public void updateAggregate(Session session) {
         // TODO aggregates: check nested MIN(MAX(ID)) and so on
         // if(on != null) {
@@ -261,6 +262,7 @@ public class Aggregate extends Expression {
         data.add(session.getDatabase(), distinct, v);
     }
 
+    @Override
     public Value getValue(Session session) {
         if (select.isQuickAggregateQuery()) {
             switch (type) {
@@ -306,6 +308,7 @@ public class Aggregate extends Expression {
             if (orderList != null) {
                 final SortOrder sortOrder = sort;
                 Collections.sort(list, new Comparator<Value>() {
+                    @Override
                     public int compare(Value v1, Value v2) {
                         Value[] a1 = ((ValueArray) v1).getList();
                         Value[] a2 = ((ValueArray) v2).getList();
@@ -335,10 +338,12 @@ public class Aggregate extends Expression {
         return v;
     }
 
+    @Override
     public int getType() {
         return dataType;
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         if (on != null) {
             on.mapColumns(resolver, level);
@@ -353,6 +358,7 @@ public class Aggregate extends Expression {
         }
     }
 
+    @Override
     public Expression optimize(Session session) {
         if (on != null) {
             on = on.optimize(session);
@@ -434,6 +440,7 @@ public class Aggregate extends Expression {
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         if (on != null) {
             on.setEvaluatable(tableFilter, b);
@@ -448,14 +455,17 @@ public class Aggregate extends Expression {
         }
     }
 
+    @Override
     public int getScale() {
         return scale;
     }
 
+    @Override
     public long getPrecision() {
         return precision;
     }
 
+    @Override
     public int getDisplaySize() {
         return displaySize;
     }
@@ -482,6 +492,7 @@ public class Aggregate extends Expression {
         return buff.append(')').toString();
     }
 
+    @Override
     public String getSQL() {
         String text;
         switch (type) {
@@ -551,6 +562,7 @@ public class Aggregate extends Expression {
         return null;
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         if (visitor.getType() == ExpressionVisitor.OPTIMIZABLE_MIN_MAX_COUNT_ALL) {
             switch (type) {
@@ -586,6 +598,7 @@ public class Aggregate extends Expression {
         return true;
     }
 
+    @Override
     public int getCost() {
         return (on == null) ? 1 : on.getCost() + 1;
     }

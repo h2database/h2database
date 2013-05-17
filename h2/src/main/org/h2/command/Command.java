@@ -66,6 +66,7 @@ public abstract class Command implements CommandInterface {
      *
      * @return true if it is
      */
+    @Override
     public abstract boolean isQuery();
 
     /**
@@ -73,6 +74,7 @@ public abstract class Command implements CommandInterface {
      *
      * @return the list of parameters
      */
+    @Override
     public abstract ArrayList<? extends ParameterInterface> getParameters();
 
     /**
@@ -110,6 +112,7 @@ public abstract class Command implements CommandInterface {
         throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
 
+    @Override
     public final ResultInterface getMetaData() {
         return queryMeta();
     }
@@ -170,6 +173,7 @@ public abstract class Command implements CommandInterface {
      * @param scrollable if the result set must be scrollable (ignored)
      * @return the result set
      */
+    @Override
     public ResultInterface executeQuery(int maxrows, boolean scrollable) {
         startTime = 0;
         long start = 0;
@@ -208,6 +212,7 @@ public abstract class Command implements CommandInterface {
         }
     }
 
+    @Override
     public int executeUpdate() {
         long start = 0;
         Database database = session.getDatabase();
@@ -295,14 +300,17 @@ public abstract class Command implements CommandInterface {
         return start == 0 ? now : start;
     }
 
+    @Override
     public void close() {
         canReuse = true;
     }
 
+    @Override
     public void cancel() {
         this.cancel = true;
     }
 
+    @Override
     public String toString() {
         return sql + Trace.formatParams(getParameters());
     }

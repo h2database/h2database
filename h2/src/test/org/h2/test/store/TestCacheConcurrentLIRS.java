@@ -26,6 +26,7 @@ public class TestCacheConcurrentLIRS extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         testConcurrent();
     }

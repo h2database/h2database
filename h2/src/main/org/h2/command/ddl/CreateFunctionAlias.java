@@ -32,6 +32,7 @@ public class CreateFunctionAlias extends SchemaCommand {
         super(session, schema);
     }
 
+    @Override
     public int update() {
         session.commit(true);
         session.getUser().checkAdmin();
@@ -83,6 +84,7 @@ public class CreateFunctionAlias extends SchemaCommand {
         this.source = source;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_ALIAS;
     }

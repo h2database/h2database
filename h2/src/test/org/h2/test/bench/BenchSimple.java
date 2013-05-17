@@ -20,6 +20,7 @@ public class BenchSimple implements Bench {
     Database database;
     int records;
 
+    @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
         this.records = size * 60;
@@ -51,6 +52,7 @@ public class BenchSimple implements Bench {
 
     }
 
+    @Override
     public void runTest() throws SQLException {
         PreparedStatement prep;
         Database db = database;
@@ -105,6 +107,7 @@ public class BenchSimple implements Bench {
 
     }
 
+    @Override
     public String getName() {
         return "Simple";
     }

@@ -38,6 +38,7 @@ public class TestTransactionStore extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
         testKeyIterator();

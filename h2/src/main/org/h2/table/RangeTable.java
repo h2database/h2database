@@ -47,72 +47,89 @@ public class RangeTable extends Table {
         setColumns(cols);
     }
 
+    @Override
     public String getDropSQL() {
         return null;
     }
 
+    @Override
     public String getCreateSQL() {
         return null;
     }
 
+    @Override
     public String getSQL() {
         return NAME + "(" + min.getSQL() + ", " + max.getSQL() + ")";
     }
 
+    @Override
     public void lock(Session session, boolean exclusive, boolean force) {
         // nothing to do
     }
 
+    @Override
     public void close(Session session) {
         // nothing to do
     }
 
+    @Override
     public void unlock(Session s) {
         // nothing to do
     }
 
+    @Override
     public boolean isLockedExclusively() {
         return false;
     }
 
+    @Override
     public Index addIndex(Session session, String indexName,
             int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment) {
         throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
+    @Override
     public void removeRow(Session session, Row row) {
         throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
+    @Override
     public void addRow(Session session, Row row) {
         throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
+    @Override
     public void checkSupportAlter() {
         throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
+    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
+    @Override
     public boolean canGetRowCount() {
         return true;
     }
 
+    @Override
     public boolean canDrop() {
         return false;
     }
 
+    @Override
     public long getRowCount(Session session) {
         return Math.max(0, getMax(session) - getMin(session) + 1);
     }
 
+    @Override
     public String getTableType() {
         throw DbException.throwInternalError();
     }
 
+    @Override
     public Index getScanIndex(Session session) {
         return new RangeIndex(this, IndexColumn.wrap(columns));
     }
@@ -147,34 +164,42 @@ public class RangeTable extends Table {
         }
     }
 
+    @Override
     public ArrayList<Index> getIndexes() {
         return null;
     }
 
+    @Override
     public void truncate(Session session) {
         throw DbException.getUnsupportedException("SYSTEM_RANGE");
     }
 
+    @Override
     public long getMaxDataModificationId() {
         return 0;
     }
 
+    @Override
     public Index getUniqueIndex() {
         return null;
     }
 
+    @Override
     public long getRowCountApproximation() {
         return 100;
     }
 
+    @Override
     public long getDiskSpaceUsed() {
         return 0;
     }
 
+    @Override
     public boolean isDeterministic() {
         return true;
     }
 
+    @Override
     public boolean canReference() {
         return false;
     }

@@ -29,6 +29,7 @@ public class TestInit extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
 
         String init1 = getBaseDir() + "/test-init-1.sql";

@@ -100,6 +100,7 @@ public class IntArray {
         }
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof IntArray)) {
             return false;
@@ -116,6 +117,7 @@ public class IntArray {
         return true;
     }
 
+    @Override
     public int hashCode() {
         if (hash != 0) {
             return hash;
@@ -146,6 +148,7 @@ public class IntArray {
         System.arraycopy(data, 0, array, 0, size);
     }
 
+    @Override
     public String toString() {
         StatementBuilder buff = new StatementBuilder("{");
         for (int i = 0; i < size; i++) {

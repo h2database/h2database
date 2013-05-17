@@ -22,6 +22,7 @@ import org.h2.test.utils.SelfDestructor;
  */
 public class TestKillRestart extends TestBase {
 
+    @Override
     public void test() throws Exception {
         if (config.networked) {
             return;

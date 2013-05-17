@@ -51,6 +51,7 @@ public class CreateIndex extends SchemaCommand {
         this.indexColumns = columns;
     }
 
+    @Override
     public int update() {
         if (!transactional) {
             session.commit(true);
@@ -109,6 +110,7 @@ public class CreateIndex extends SchemaCommand {
         this.comment = comment;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_INDEX;
     }

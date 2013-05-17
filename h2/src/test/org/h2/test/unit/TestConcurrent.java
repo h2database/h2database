@@ -29,6 +29,7 @@ public class TestConcurrent extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         String url = "jdbc:h2:mem:";
         for (int i = 0; i < 50; i++) {
@@ -48,6 +49,7 @@ public class TestConcurrent extends TestBase {
             }
             final PreparedStatement prep = conn.prepareStatement(sql);
             Task t = new Task() {
+                @Override
                 public void call() throws SQLException {
                     while (!conn.isClosed()) {
                         switch (x % 6) {

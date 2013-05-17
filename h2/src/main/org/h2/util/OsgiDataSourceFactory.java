@@ -49,6 +49,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      *             source can not be created.
      * @return a new data source.
      */
+    @Override
     public DataSource createDataSource(Properties properties) throws SQLException {
         // Make copy of properties
         Properties propertiesCopy = new Properties();
@@ -77,6 +78,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      *             source can not be created.
      * @return a new data source.
      */
+    @Override
     public ConnectionPoolDataSource createConnectionPoolDataSource(Properties properties) throws SQLException {
         // Make copy of properties
         Properties propertiesCopy = new Properties();
@@ -105,6 +107,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      *             source can not be created.
      * @return a new data source.
      */
+    @Override
     public XADataSource createXADataSource(Properties properties) throws SQLException {
         // Make copy of properties
         Properties propertiesCopy = new Properties();
@@ -132,6 +135,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
      * @throws SQLException if any property is supplied.
      * @return a driver.
      */
+    @Override
     public java.sql.Driver createDriver(Properties properties) throws SQLException {
         if (properties != null && !properties.isEmpty()) {
             // No properties supported

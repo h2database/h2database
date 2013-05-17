@@ -30,6 +30,7 @@ public class ValueStringFixed extends ValueString {
         return s;
     }
 
+    @Override
     public int getType() {
         return Value.STRING_FIXED;
     }
@@ -53,6 +54,7 @@ public class ValueStringFixed extends ValueString {
         return (ValueStringFixed) Value.cache(obj);
     }
 
+    @Override
     protected ValueString getNew(String s) {
         return ValueStringFixed.get(s);
     }

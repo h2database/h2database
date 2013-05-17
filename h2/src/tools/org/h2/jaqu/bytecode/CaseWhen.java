@@ -34,10 +34,12 @@ public class CaseWhen implements Token {
         return new CaseWhen(condition, ifTrue, ifFalse);
     }
 
+    @Override
     public String toString() {
         return "CASEWHEN(" + condition + ", " + ifTrue + ", " + ifFalse + ")";
     }
 
+    @Override
     public <T> void appendSQL(SQLStatement stat, Query<T> query) {
         stat.appendSQL("CASEWHEN ");
         condition.appendSQL(stat, query);

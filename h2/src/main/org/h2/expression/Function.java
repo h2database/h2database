@@ -461,6 +461,7 @@ public class Function extends Expression implements FunctionCall {
         return roundmagic(StrictMath.log(value) / StrictMath.log(10));
     }
 
+    @Override
     public Value getValue(Session session) {
         return getValueWithArgs(session, args);
     }
@@ -1688,10 +1689,12 @@ public class Function extends Expression implements FunctionCall {
         return new String(chars);
     }
 
+    @Override
     public int getType() {
         return dataType;
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : args) {
             e.mapColumns(resolver, level);
@@ -1800,6 +1803,7 @@ public class Function extends Expression implements FunctionCall {
         scale = col.getScale();
     }
 
+    @Override
     public Expression optimize(Session session) {
         boolean allConst = info.deterministic;
         for (int i = 0; i < args.length; i++) {
@@ -1981,6 +1985,7 @@ public class Function extends Expression implements FunctionCall {
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         for (Expression e : args) {
             if (e != null) {
@@ -1989,10 +1994,12 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    @Override
     public int getScale() {
         return scale;
     }
 
+    @Override
     public long getPrecision() {
         if (precision == PRECISION_UNKNOWN) {
             calculatePrecisionAndDisplaySize();
@@ -2000,6 +2007,7 @@ public class Function extends Expression implements FunctionCall {
         return precision;
     }
 
+    @Override
     public int getDisplaySize() {
         if (precision == PRECISION_UNKNOWN) {
             calculatePrecisionAndDisplaySize();
@@ -2072,6 +2080,7 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    @Override
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder(info.name);
         buff.append('(');
@@ -2101,6 +2110,7 @@ public class Function extends Expression implements FunctionCall {
         return buff.append(')').toString();
     }
 
+    @Override
     public void updateAggregate(Session session) {
         for (Expression e : args) {
             if (e != null) {
@@ -2113,14 +2123,17 @@ public class Function extends Expression implements FunctionCall {
         return info.type;
     }
 
+    @Override
     public String getName() {
         return info.name;
     }
 
+    @Override
     public int getParameterCount() {
         return args.length;
     }
 
+    @Override
     public ValueResultSet getValueForColumnList(Session session, Expression[] argList) {
         switch (info.type) {
         case CSVREAD: {
@@ -2180,10 +2193,12 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    @Override
     public Expression[] getArgs() {
         return args;
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         for (Expression e : args) {
             if (e != null && !e.isEverything(visitor)) {
@@ -2208,6 +2223,7 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
+    @Override
     public int getCost() {
         int cost = 3;
         for (Expression e : args) {
@@ -2216,10 +2232,12 @@ public class Function extends Expression implements FunctionCall {
         return cost;
     }
 
+    @Override
     public boolean isDeterministic() {
         return info.deterministic;
     }
 
+    @Override
     public boolean isFast() {
         return info.fast;
     }

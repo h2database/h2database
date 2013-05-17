@@ -76,36 +76,44 @@ public class ValueDate extends Value {
         return dateValue;
     }
 
+    @Override
     public Date getDate() {
         return DateTimeUtils.convertDateValueToDate(dateValue);
     }
 
+    @Override
     public int getType() {
         return Value.DATE;
     }
 
+    @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
         appendDate(buff, dateValue);
         return buff.toString();
     }
 
+    @Override
     public String getSQL() {
         return "DATE '" + getString() + "'";
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         return MathUtils.compareLong(dateValue, ((ValueDate) o).dateValue);
     }
 
+    @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
@@ -113,14 +121,17 @@ public class ValueDate extends Value {
         return other instanceof ValueDate && dateValue == (((ValueDate) other).dateValue);
     }
 
+    @Override
     public int hashCode() {
         return (int) (dateValue ^ (dateValue >>> 32));
     }
 
+    @Override
     public Object getObject() {
         return getDate();
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setDate(parameterIndex, getDate());
     }

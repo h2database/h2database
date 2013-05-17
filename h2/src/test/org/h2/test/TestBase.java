@@ -1325,6 +1325,7 @@ public abstract class TestBase {
      */
     protected <T> T assertThrows(final Class<?> expectedExceptionClass, final T obj) {
         return assertThrows(new ResultVerifier() {
+            @Override
             public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
                 if (t == null) {
                     throw new AssertionError("Expected an exception of type " +
@@ -1359,6 +1360,7 @@ public abstract class TestBase {
      */
     protected <T> T assertThrows(final int expectedErrorCode, final T obj) {
         return assertThrows(new ResultVerifier() {
+            @Override
             public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
                 int errorCode;
                 if (t instanceof DbException) {
@@ -1392,11 +1394,13 @@ public abstract class TestBase {
         Class<?> c = obj.getClass();
         InvocationHandler ih = new InvocationHandler() {
             private Exception called = new Exception("No method called");
+            @Override
             protected void finalize() {
                 if (called != null) {
                     called.printStackTrace(System.err);
                 }
             }
+            @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Exception {
                 try {
                     called = null;

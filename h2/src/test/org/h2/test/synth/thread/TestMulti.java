@@ -31,6 +31,7 @@ public class TestMulti extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         org.h2.Driver.load();
         deleteDb("openClose");

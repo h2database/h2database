@@ -47,6 +47,7 @@ class SessionState {
         return lastCommitPos >= pos;
     }
 
+    @Override
     public String toString() {
         return "sessionId:" + sessionId + " log:" + lastCommitLog + " pos:" + lastCommitPos + " inDoubt:" + inDoubtTransaction;
     }

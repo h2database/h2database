@@ -169,14 +169,17 @@ public class ValueTimestamp extends Value {
         return nanos;
     }
 
+    @Override
     public Timestamp getTimestamp() {
         return DateTimeUtils.convertDateValueToTimestamp(dateValue, nanos);
     }
 
+    @Override
     public int getType() {
         return Value.TIMESTAMP;
     }
 
+    @Override
     public String getString() {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
         ValueDate.appendDate(buff, dateValue);
@@ -185,22 +188,27 @@ public class ValueTimestamp extends Value {
         return buff.toString();
     }
 
+    @Override
     public String getSQL() {
         return "TIMESTAMP '" + getString() + "'";
     }
 
+    @Override
     public long getPrecision() {
         return PRECISION;
     }
 
+    @Override
     public int getScale() {
         return DEFAULT_SCALE;
     }
 
+    @Override
     public int getDisplaySize() {
         return DISPLAY_SIZE;
     }
 
+    @Override
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         if (targetScale >= DEFAULT_SCALE) {
             return this;
@@ -220,6 +228,7 @@ public class ValueTimestamp extends Value {
         return fromDateValueAndNanos(dateValue, n2);
     }
 
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueTimestamp t = (ValueTimestamp) o;
         int c = MathUtils.compareLong(dateValue, t.dateValue);
@@ -229,6 +238,7 @@ public class ValueTimestamp extends Value {
         return MathUtils.compareLong(nanos, t.nanos);
     }
 
+    @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
@@ -239,18 +249,22 @@ public class ValueTimestamp extends Value {
         return dateValue == x.dateValue && nanos == x.nanos;
     }
 
+    @Override
     public int hashCode() {
         return (int) (dateValue ^ (dateValue >>> 32) ^ nanos ^ (nanos >>> 32));
     }
 
+    @Override
     public Object getObject() {
         return getTimestamp();
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setTimestamp(parameterIndex, getTimestamp());
     }
 
+    @Override
     public Value add(Value v) {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
@@ -258,6 +272,7 @@ public class ValueTimestamp extends Value {
         return DateTimeUtils.normalizeTimestamp(d1 + d2, nanos + t.nanos);
     }
 
+    @Override
     public Value subtract(Value v) {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);

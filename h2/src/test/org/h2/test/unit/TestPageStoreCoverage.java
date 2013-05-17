@@ -33,6 +33,7 @@ public class TestPageStoreCoverage extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         // TODO mvcc, 2-phase commit
         if (config.memory) {

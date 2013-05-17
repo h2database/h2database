@@ -39,6 +39,7 @@ public class DropIndex extends SchemaCommand {
         this.indexName = indexName;
     }
 
+    @Override
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
@@ -73,6 +74,7 @@ public class DropIndex extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_INDEX;
     }

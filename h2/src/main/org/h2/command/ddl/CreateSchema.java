@@ -32,6 +32,7 @@ public class CreateSchema extends DefineCommand {
         this.ifNotExists = ifNotExists;
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -58,6 +59,7 @@ public class CreateSchema extends DefineCommand {
         this.authorization = userName;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.CREATE_SCHEMA;
     }

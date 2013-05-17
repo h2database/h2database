@@ -35,6 +35,7 @@ public class DropConstant extends SchemaCommand {
         this.constantName = constantName;
     }
 
+    @Override
     public int update() {
         session.getUser().checkAdmin();
         session.commit(true);
@@ -50,6 +51,7 @@ public class DropConstant extends SchemaCommand {
         return 0;
     }
 
+    @Override
     public int getType() {
         return CommandInterface.DROP_CONSTANT;
     }

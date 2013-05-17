@@ -38,6 +38,7 @@ public class TestConcurrent extends TestMVStore {
         TestBase.createCaller().init().test();
     }
 
+    @Override
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
@@ -59,6 +60,7 @@ public class TestConcurrent extends TestMVStore {
         final int size = 20;
         final Random rand = new Random(1);
         Task task = new Task() {
+            @Override
             public void call() throws Exception {
                 try {
                     while (!stop) {
@@ -154,6 +156,7 @@ public class TestConcurrent extends TestMVStore {
     private static byte[] readFileSlowly(FileChannel file, long length) throws Exception {
         file.position(0);
         InputStream in = new BufferedInputStream(Channels.newInputStream(file)) {
+            @Override
             public void close() {
                 // don't close
             }
@@ -228,6 +231,7 @@ public class TestConcurrent extends TestMVStore {
         final int size = 20;
         final Random rand = new Random(1);
         Task task = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     try {
@@ -291,6 +295,7 @@ public class TestConcurrent extends TestMVStore {
         }
         s.incrementVersion();
         Task task = new Task() {
+            @Override
             public void call() throws Exception {
                 while (!stop) {
                     long v = s.getCurrentVersion() - 1;

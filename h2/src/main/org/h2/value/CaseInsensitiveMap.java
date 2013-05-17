@@ -18,18 +18,22 @@ public class CaseInsensitiveMap<V> extends HashMap<String, V> {
 
     private static final long serialVersionUID = 1L;
 
+    @Override
     public V get(Object key) {
         return super.get(toUpper(key));
     }
 
+    @Override
     public V put(String key, V value) {
         return super.put(toUpper(key), value);
     }
 
+    @Override
     public boolean containsKey(Object key) {
         return super.containsKey(toUpper(key));
     }
 
+    @Override
     public V remove(Object key) {
         return super.remove(toUpper(key));
     }

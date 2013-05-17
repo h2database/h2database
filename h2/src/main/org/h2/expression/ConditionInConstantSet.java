@@ -49,6 +49,7 @@ public class ConditionInConstantSet extends Condition {
         }
     }
 
+    @Override
     public Value getValue(Session session) {
         Value x = left.getValue(session);
         if (x == ValueNull.INSTANCE) {
@@ -64,16 +65,19 @@ public class ConditionInConstantSet extends Condition {
         return ValueBoolean.get(result);
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         left.mapColumns(resolver, level);
         this.queryLevel = Math.max(level, this.queryLevel);
     }
 
+    @Override
     public Expression optimize(Session session) {
         left = left.optimize(session);
         return this;
     }
 
+    @Override
     public void createIndexConditions(Session session, TableFilter filter) {
         if (!(left instanceof ExpressionColumn)) {
             return;
@@ -88,10 +92,12 @@ public class ConditionInConstantSet extends Condition {
         }
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         left.setEvaluatable(tableFilter, b);
     }
 
+    @Override
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder("(");
         buff.append(left.getSQL()).append(" IN(");
@@ -102,10 +108,12 @@ public class ConditionInConstantSet extends Condition {
         return buff.append("))").toString();
     }
 
+    @Override
     public void updateAggregate(Session session) {
         // nothing to do
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         if (!left.isEverything(visitor)) {
             return false;
@@ -127,6 +135,7 @@ public class ConditionInConstantSet extends Condition {
         }
     }
 
+    @Override
     public int getCost() {
         int cost = left.getCost();
         return cost;

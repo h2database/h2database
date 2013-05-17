@@ -85,6 +85,7 @@ public class CacheLRU implements Cache {
         return cache;
     }
 
+    @Override
     public void clear() {
         head.cacheNext = head.cachePrevious = head;
         // first set to null - avoiding out of memory
@@ -94,6 +95,7 @@ public class CacheLRU implements Cache {
         memory = len * Constants.MEMORY_POINTER;
     }
 
+    @Override
     public void put(CacheObject rec) {
         if (SysProperties.CHECK) {
             int pos = rec.getPos();
@@ -111,6 +113,7 @@ public class CacheLRU implements Cache {
         removeOldIfRequired();
     }
 
+    @Override
     public CacheObject update(int pos, CacheObject rec) {
         CacheObject old = find(pos);
         if (old == null) {
@@ -242,6 +245,7 @@ public class CacheLRU implements Cache {
         rec.cachePrevious = null;
     }
 
+    @Override
     public boolean remove(int pos) {
         int index = pos & mask;
         CacheObject rec = values[index];
@@ -274,6 +278,7 @@ public class CacheLRU implements Cache {
         return true;
     }
 
+    @Override
     public CacheObject find(int pos) {
         CacheObject rec = values[pos & mask];
         while (rec != null && rec.getPos() != pos) {
@@ -282,6 +287,7 @@ public class CacheLRU implements Cache {
         return rec;
     }
 
+    @Override
     public CacheObject get(int pos) {
         CacheObject rec = find(pos);
         if (rec != null) {
@@ -322,6 +328,7 @@ public class CacheLRU implements Cache {
 //        }
 //    }
 
+    @Override
     public ArrayList<CacheObject> getAllChanged() {
 //        if(Database.CHECK) {
 //            testConsistency();
@@ -337,6 +344,7 @@ public class CacheLRU implements Cache {
         return list;
     }
 
+    @Override
     public void setMaxMemory(int maxKb) {
         int newSize = MathUtils.convertLongToInt(maxKb * 1024L / 4);
         maxMemory = newSize < 0 ? 0 : newSize;
@@ -345,10 +353,12 @@ public class CacheLRU implements Cache {
         removeOldIfRequired();
     }
 
+    @Override
     public int getMaxMemory() {
         return (int) (maxMemory * 4L / 1024);
     }
 
+    @Override
     public int getMemory() {
         // CacheObject rec = head.cacheNext;
         // while (rec != head) {

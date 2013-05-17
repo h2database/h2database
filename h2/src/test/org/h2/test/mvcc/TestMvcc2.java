@@ -36,6 +36,7 @@ public class TestMvcc2 extends TestBase {
         test.test();
     }
 
+    @Override
     public void test() throws Exception {
         if (!config.mvcc) {
             return;
@@ -63,6 +64,7 @@ public class TestMvcc2 extends TestBase {
         conn.setAutoCommit(false);
         final AtomicBoolean committed = new AtomicBoolean(false);
         Task t = new Task() {
+            @Override
             public void call() throws SQLException {
                 try {
 //System.out.println("insert2 hallo");
@@ -103,6 +105,7 @@ public class TestMvcc2 extends TestBase {
         stat.execute("insert into test values(0, 'Hello')");
         conn.setAutoCommit(false);
         Task t = new Task() {
+            @Override
             public void call() throws SQLException {
                 stat2.execute("update test set name = 'Hallo'");
             }

@@ -29,6 +29,7 @@ public class TestMultiNews extends TestMultiThread {
         conn = base.getConnection();
     }
 
+    @Override
     void operation() throws SQLException {
         if (random.nextInt(10) == 0) {
             conn.close();
@@ -69,18 +70,22 @@ public class TestMultiNews extends TestMultiThread {
         }
     }
 
+    @Override
     void begin() {
         // nothing to do
     }
 
+    @Override
     void end() throws SQLException {
         conn.close();
     }
 
+    @Override
     void finalTest() {
         // nothing to do
     }
 
+    @Override
     void first() throws SQLException {
         Connection c = base.getConnection();
         Statement stat = c.createStatement();

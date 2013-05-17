@@ -27,71 +27,88 @@ public class Alias extends Expression {
         this.aliasColumnName = aliasColumnName;
     }
 
+    @Override
     public Expression getNonAliasExpression() {
         return expr;
     }
 
+    @Override
     public Value getValue(Session session) {
         return expr.getValue(session);
     }
 
+    @Override
     public int getType() {
         return expr.getType();
     }
 
+    @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         expr.mapColumns(resolver, level);
     }
 
+    @Override
     public Expression optimize(Session session) {
         expr = expr.optimize(session);
         return this;
     }
 
+    @Override
     public void setEvaluatable(TableFilter tableFilter, boolean b) {
         expr.setEvaluatable(tableFilter, b);
     }
 
+    @Override
     public int getScale() {
         return expr.getScale();
     }
 
+    @Override
     public long getPrecision() {
         return expr.getPrecision();
     }
 
+    @Override
     public int getDisplaySize() {
         return expr.getDisplaySize();
     }
 
+    @Override
     public boolean isAutoIncrement() {
         return expr.isAutoIncrement();
     }
 
+    @Override
     public String getSQL() {
         return expr.getSQL() + " AS " + Parser.quoteIdentifier(alias);
     }
 
+    @Override
     public void updateAggregate(Session session) {
         expr.updateAggregate(session);
     }
 
+    @Override
     public String getAlias() {
         return alias;
     }
 
+    @Override
     public int getNullable() {
         return expr.getNullable();
     }
 
+    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return expr.isEverything(visitor);
     }
 
+    @Override
     public int getCost() {
         return expr.getCost();
     }
 
+    @Override
     public String getTableName() {
         if (aliasColumnName) {
             return super.getTableName();
@@ -99,6 +116,7 @@ public class Alias extends Expression {
         return expr.getTableName();
     }
 
+    @Override
     public String getColumnName() {
         if (!(expr instanceof ExpressionColumn) || aliasColumnName) {
             return super.getColumnName();

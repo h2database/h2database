@@ -51,10 +51,12 @@ public class ValueJavaObject extends ValueBytes {
         return (ValueJavaObject) Value.cache(obj);
     }
 
+    @Override
     public int getType() {
         return Value.JAVA_OBJECT;
     }
 
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         Object obj = Utils.deserialize(getBytesNoCopy());
         prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);

@@ -85,6 +85,7 @@ public class SourceCompiler {
         }
         
         ClassLoader classLoader = new ClassLoader(getClass().getClassLoader()) {
+            @Override
             public Class<?> findClass(String name) throws ClassNotFoundException {
                 Class<?> classInstance = compiled.get(name);
                 if (classInstance == null) {
@@ -223,6 +224,7 @@ public class SourceCompiler {
 
     private static void copyInThread(final InputStream in, final OutputStream out) {
         new Task() {
+            @Override
             public void call() throws IOException {
                 IOUtils.copy(in, out);
             }

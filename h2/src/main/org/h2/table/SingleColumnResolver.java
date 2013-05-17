@@ -24,6 +24,7 @@ public class SingleColumnResolver implements ColumnResolver {
         this.column = column;
     }
 
+    @Override
     public String getTableAlias() {
         return null;
     }
@@ -32,34 +33,42 @@ public class SingleColumnResolver implements ColumnResolver {
         this.value = value;
     }
 
+    @Override
     public Value getValue(Column col) {
         return value;
     }
 
+    @Override
     public Column[] getColumns() {
         return new Column[] { column };
     }
 
+    @Override
     public String getSchemaName() {
         return null;
     }
 
+    @Override
     public TableFilter getTableFilter() {
         return null;
     }
 
+    @Override
     public Select getSelect() {
         return null;
     }
 
+    @Override
     public Column[] getSystemColumns() {
         return null;
     }
 
+    @Override
     public Column getRowIdColumn() {
         return null;
     }
 
+    @Override
     public Expression optimize(ExpressionColumn expressionColumn, Column col) {
         return expressionColumn;
     }

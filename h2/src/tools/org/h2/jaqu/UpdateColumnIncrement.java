@@ -29,6 +29,7 @@ public class UpdateColumnIncrement<T, A> implements UpdateColumn {
         return query;
     }
 
+    @Override
     public void appendSQL(SQLStatement stat) {
         query.appendSQL(stat, x);
         stat.appendSQL("=(");

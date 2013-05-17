@@ -274,9 +274,9 @@ public class SourceCompiler {
 
         static {
             Object tmpLoader = null;
-            Throwable tmpInitfailException = null;
+            Throwable tmpInitFailException = null;
             try {
-                // create an instance of ImportCustomiser
+                // create an instance of ImportCustomizer
                 Class<?> importCustomizerClass = Class.forName("org.codehaus.groovy.control.customizers.ImportCustomizer");
                 Object importCustomizer = Utils.newInstance("org.codehaus.groovy.control.customizers.ImportCustomizer");
                 // Call the method ImportCustomizer#addImports(String[])
@@ -293,10 +293,10 @@ public class SourceCompiler {
                 ClassLoader parent = GroovyCompiler.class.getClassLoader();
                 tmpLoader = Utils.newInstance("groovy.lang.GroovyClassLoader", parent, configuration);
             } catch (Exception ex) {
-                tmpInitfailException = ex;
+                tmpInitFailException = ex;
             }
             LOADER = tmpLoader;
-            INIT_FAIL_EXCEPTION = tmpInitfailException;
+            INIT_FAIL_EXCEPTION = tmpInitFailException;
         }
 
         public static Class<?> parseClass(String source, String packageAndClassName) {

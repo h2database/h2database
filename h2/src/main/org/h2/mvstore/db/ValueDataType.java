@@ -618,12 +618,10 @@ public class ValueDataType implements DataType {
                 }
                 if (smallLen == -2) {
                     String filename = readString(buff);
-                    ValueLob lob = ValueLob.openUnlinked(type, handler, tableId, objectId, precision, compression, filename);
-                    return lob;
-                } else {
-                    ValueLob lob = ValueLob.openLinked(type, handler, tableId, objectId, precision, compression);
-                    return lob;
+                    return ValueLob.openUnlinked(type, handler, tableId, objectId, precision, compression, filename);
                 }
+                ValueLob lob = ValueLob.openLinked(type, handler, tableId, objectId, precision, compression);
+                return lob;
             }
         }
         case Value.ARRAY: {

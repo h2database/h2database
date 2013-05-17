@@ -56,7 +56,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public static final int SESSION_CANCEL_STATEMENT = 13;
     public static final int SESSION_CHECK_KEY = 14;
     public static final int SESSION_SET_AUTOCOMMIT = 15;
-    public static final int SESSION_UNDO_LOG_POS = 16;
+    public static final int SESSION_HAS_PENDING_TRANSACTION = 16;
     public static final int LOB_READ = 17;
 
     public static final int STATUS_ERROR = 0;
@@ -123,23 +123,22 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         return trans;
     }
 
-    @Override
-    public int getUndoLogPos() {
+    public boolean hasPendingTransaction() {
         if (clientVersion < Constants.TCP_PROTOCOL_VERSION_10) {
-            return 1;
+            return true;
         }
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             Transfer transfer = transferList.get(i);
             try {
-                traceOperation("SESSION_UNDO_LOG_POS", 0);
-                transfer.writeInt(SessionRemote.SESSION_UNDO_LOG_POS);
+                traceOperation("SESSION_HAS_PENDING_TRANSACTION", 0);
+                transfer.writeInt(SessionRemote.SESSION_HAS_PENDING_TRANSACTION);
                 done(transfer);
-                return transfer.readInt();
+                return transfer.readInt() != 0;
             } catch (IOException e) {
                 removeServer(e, i--, ++count);
             }
         }
-        return 1;
+        return true;
     }
 
     @Override

@@ -328,7 +328,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Get the smallest key that is larger than the given key, or null if no
      * such key exists.
      *
-     * @param key the key (may not be null)
+     * @param key the key
      * @return the result
      */
     public K higherKey(K key) {
@@ -338,7 +338,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     /**
      * Get the smallest key that is larger or equal to this key.
      *
-     * @param key the key (may not be null)
+     * @param key the key
      * @return the result
      */
     public K ceilingKey(K key) {
@@ -348,7 +348,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     /**
      * Get the largest key that is smaller or equal to this key.
      *
-     * @param key the key (may not be null)
+     * @param key the key
      * @return the result
      */
     public K floorKey(K key) {
@@ -359,7 +359,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Get the largest key that is smaller than the given key, or null if no
      * such key exists.
      *
-     * @param key the key (may not be null)
+     * @param key the key
      * @return the result
      */
     public K lowerKey(K key) {
@@ -372,22 +372,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param key the key
      * @param min whether to retrieve the smallest key
      * @param excluding if the given upper/lower bound is exclusive
-     * @return the key, or null if the map is empty
+     * @return the key, or null if no such key exists
      */
     protected K getMinMax(K key, boolean min, boolean excluding) {
         checkOpen();
-        if (size() == 0) {
-            return null;
-        }
         return getMinMax(root, key, min, excluding);
     }
 
     @SuppressWarnings("unchecked")
     private K getMinMax(Page p, K key, boolean min, boolean excluding) {
         if (p.isLeaf()) {
-            if (key == null) {
-                return (K) p.getKey(min ? 0 : p.getKeyCount() - 1);
-            }
             int x = p.binarySearch(key);
             if (x < 0) {
                 x = -x - (min ? 2 : 1);
@@ -399,16 +393,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
             return (K) p.getKey(x);
         }
-        int x;
-        if (key == null) {
-            x = min ? 0 : p.getKeyCount() - 1;
+        int x = p.binarySearch(key);
+        if (x < 0) {
+            x = -x - 1;
         } else {
-            x = p.binarySearch(key);
-            if (x < 0) {
-                x = -x - 1;
-            } else {
-                x++;
-            }
+            x++;
         }
         while (true) {
             if (x < 0 || x >= p.getChildPageCount()) {

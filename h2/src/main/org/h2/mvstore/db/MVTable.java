@@ -47,8 +47,6 @@ import org.h2.value.Value;
  */
 public class MVTable extends TableBase {
 
-    private final String storeName;
-    private final TransactionStore store;
     private MVPrimaryIndex primaryIndex;
     private ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
@@ -60,6 +58,8 @@ public class MVTable extends TableBase {
     private int nextAnalyze;
     private boolean containsLargeObject;
     private Column rowIdColumn;
+    
+    private final TransactionStore store;
 
     /**
      * True if one thread ever was waiting to lock this table. This is to avoid
@@ -68,11 +68,10 @@ public class MVTable extends TableBase {
      */
     private boolean waitForLock;
 
-    public MVTable(CreateTableData data, String storeName, TransactionStore store) {
+    public MVTable(CreateTableData data, MVTableEngine.Store store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
-        this.storeName = storeName;
-        this.store = store;
+        this.store = store.getTransactionStore();
         this.isHidden = data.isHidden;
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType())) {
@@ -95,6 +94,10 @@ public class MVTable extends TableBase {
                 );
         rowCount = primaryIndex.getRowCount(session);
         indexes.add(primaryIndex);
+    }
+    
+    public String getMapName() {
+        return primaryIndex.getMapName();
     }
 
     @Override
@@ -354,7 +357,7 @@ public class MVTable extends TableBase {
 
     @Override
     public void close(Session session) {
-        MVTableEngine.closeTable(storeName, this);
+        // ignore
     }
 
     /**
@@ -675,7 +678,7 @@ public class MVTable extends TableBase {
             // TODO need to commit/rollback the transaction
             return store.begin();
         }
-        return session.getTransaction(store);
+        return session.getTransaction();
     }
 
     @Override

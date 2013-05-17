@@ -398,9 +398,9 @@ public class TcpServerThread implements Runnable {
             transfer.writeInt(SessionRemote.STATUS_OK).flush();
             break;
         }
-        case SessionRemote.SESSION_UNDO_LOG_POS: {
+        case SessionRemote.SESSION_HAS_PENDING_TRANSACTION: {
             transfer.writeInt(SessionRemote.STATUS_OK).
-                writeInt(session.getUndoLogPos()).flush();
+                writeInt(session.hasPendingTransaction() ? 1 : 0).flush();
             break;
         }
         case SessionRemote.LOB_READ: {

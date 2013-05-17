@@ -268,6 +268,10 @@ public class MVPrimaryIndex extends BaseIndex {
         // TODO estimate disk space usage
         return 0;
     }
+    
+    public String getMapName() {
+        return mapName;
+    }
 
     @Override
     public void checkRename() {

@@ -14,11 +14,13 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Savepoint;
 import java.sql.Statement;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.mvstore.db.MVTableEngine;
+import org.h2.engine.Database;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -40,6 +42,7 @@ public class TestMVTableEngine extends TestBase {
     @Override
     public void test() throws Exception {
         // testSpeed();
+        testAutoCommit();
         testReopen();
         testBlob();
         testExclusiveLock();
@@ -58,7 +61,7 @@ public class TestMVTableEngine extends TestBase {
             dbName += ";LOCK_MODE=0";
 //            dbName += ";LOG=0";
             testSpeed(dbName);
-int tes;            
+int test;            
 //Profiler prof = new Profiler().startCollecting();
             dbName = "mvstore" +
                     ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
@@ -118,6 +121,37 @@ int tes;
         conn.close();
 //System.out.println(prof.getTop(10));        
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
+    }
+    
+    private void testAutoCommit() throws SQLException {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        ResultSet rs;
+        conn = getConnection("mvstore");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar) "
+                + "engine \"org.h2.mvstore.db.MVTableEngine\"");
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values(1, 'Hello')");
+        stat.execute("insert into test values(2, 'World')");
+        rs = stat.executeQuery("select count(*) from test");
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        conn.rollback();
+        rs = stat.executeQuery("select count(*) from test");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+
+        stat.execute("insert into test values(1, 'Hello')");
+        Savepoint sp = conn.setSavepoint();
+        stat.execute("insert into test values(2, 'World')");
+        conn.rollback(sp);
+        rs = stat.executeQuery("select count(*) from test");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        
+        conn.close();
     }
 
     private void testReopen() throws SQLException {
@@ -220,9 +254,8 @@ int tes;
         conn.close();
         FileUtils.setReadOnly(getBaseDir() + "/mvstore.h2.db");
         conn = getConnection(dbName);
-        for (MVTableEngine.Store s : MVTableEngine.getStores()) {
-            assertTrue(s.getStore().isReadOnly());
-        }
+        Database db = (Database) ((JdbcConnection) conn).getSession().getDataHandler();
+        assertTrue(db.getMvStore().getStore().isReadOnly());
         conn.close();
         FileUtils.deleteRecursive(getBaseDir(), true);
     }
@@ -236,9 +269,8 @@ int tes;
         long maxSize = 0;
         for (int i = 0; i < 20; i++) {
             conn = getConnection(dbName);
-            for (MVTableEngine.Store s : MVTableEngine.getStores()) {
-                s.getStore().setRetentionTime(0);
-            }
+            Database db = (Database) ((JdbcConnection) conn).getSession().getDataHandler();
+            db.getMvStore().getStore().setRetentionTime(0);
             stat = conn.createStatement();
             stat.execute("create table test(id int primary key, data varchar)");
             stat.execute("insert into test select x, space(1000) from system_range(1, 1000)");

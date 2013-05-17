@@ -34,7 +34,7 @@ public class LobStorageFrontend implements LobStorageInterface {
      */
     @Override
     public void removeLob(long lob) {
-        // TODO ideally, this should not be called at all, but that's a refactoring for another day
+        // TODO this should not be called at all, but that's a refactoring for another day
     }
     
     /**
@@ -64,7 +64,7 @@ public class LobStorageFrontend implements LobStorageInterface {
      */
     @Override
     public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
-        // TODO ideally, this should not be called at all, but that's a refactoring for another day
+        // TODO this should not be called at all, but that's a refactoring for another day
         // this should never be called
         throw new UnsupportedOperationException();
     }

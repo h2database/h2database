@@ -44,6 +44,12 @@ H:3,...
 
 TODO:
 
+TestMVStoreDataLoss
+
+TransactionStore:
+- support reading the undo log
+
+MVStore:
 - rolling docs review: at convert "Features" to top-level (linked) entries
 - additional test async write / read algorithm for speed and errors
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
@@ -94,10 +100,12 @@ TODO:
 - to save space when persisting very small transactions,
 -- use a transaction log where only the deltas are stored
 - serialization for lists, sets, sets, sorted sets, maps, sorted maps
-- maybe rename 'rollback' to 'revert'
+- maybe rename 'rollback' to 'revert' to distinguish from transactions
 - support other compression algorithms (deflate, LZ4,...)
 - only retain the last version, unless explicitly set (setRetainVersion)
 - unit test for the FreeSpaceList; maybe find a simpler implementation
+- support opening (existing) maps by id
+- more consistent null handling (keys/values sometimes may be null)
 
 */
 
@@ -751,18 +759,18 @@ public class MVStore {
      * Commit the changes. This method marks the changes as committed and
      * increments the version.
      * <p>
-     * Unless the write delay is disabled, this method does not write to the
+     * Unless the write delay is set to 0, this method does not write to the
      * file. Instead, data is written after the delay, manually by calling the
      * store method, when the write buffer is full, or when closing the store.
      *
      * @return the new version
      */
     public long commit() {
-        if (writeDelay == 0) {
-            return store(true);
-        }
         long v = ++currentVersion;
         lastCommittedVersion = v;
+        if (writeDelay == 0) {
+            store(false);
+        }
         return v;
     }
 

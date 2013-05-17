@@ -426,7 +426,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void updateRows(Prepared prepared, Session session, RowList rows) {
         // in case we need to undo the update
-        int rollback = session.getUndoLogPos();
+        Session.Savepoint rollback = session.setSavepoint();
         // remove the old rows
         int rowScanCount = 0;
         for (rows.reset(); rows.hasNext();) {

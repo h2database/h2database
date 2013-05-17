@@ -30,6 +30,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
@@ -173,6 +174,7 @@ public class Database implements DataHandler {
     private final DbSettings dbSettings;
     private final int reconnectCheckDelay;
     private int logMode;
+    private MVTableEngine.Store mvStore;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -261,6 +263,14 @@ public class Database implements DataHandler {
             return;
         }
         powerOffCount = count;
+    }
+    
+    public MVTableEngine.Store getMvStore() {
+        return mvStore;
+    }
+
+    public void setMvStore(MVTableEngine.Store mvStore) {
+        this.mvStore = mvStore;
     }
 
     /**
@@ -406,6 +416,9 @@ public class Database implements DataHandler {
             try {
                 powerOffCount = -1;
                 stopWriter();
+                if (mvStore != null) {
+                    mvStore.closeImmediately();
+                }
                 if (pageStore != null) {
                     try {
                         pageStore.close();
@@ -1218,6 +1231,9 @@ public class Database implements DataHandler {
             }
         }
         reconnectModified(false);
+        if (mvStore != null) {
+            mvStore.close();
+        }
         closeFiles();
         if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO && fileLockMethod != FileLock.LOCK_FS) {
             // everything already closed (maybe in checkPowerOff)
@@ -1251,6 +1267,9 @@ public class Database implements DataHandler {
 
     private synchronized void closeFiles() {
         try {
+            if (mvStore != null) {
+                mvStore.closeImmediately();
+            }
             if (pageStore != null) {
                 pageStore.close();
                 pageStore = null;

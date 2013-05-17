@@ -582,19 +582,17 @@ public class MetaTable extends Table {
             return true;
         }
         Database db = session.getDatabase();
+        Value v;
         if (database.getMode().lowerCaseIdentifiers) {
-            Value v = ValueStringIgnoreCase.get(value);
-            if (indexFrom.equals(indexTo) && db.compare(v, indexFrom) != 0) {
-                return false;
-            }
+            v = ValueStringIgnoreCase.get(value);
         } else {
-            Value v = ValueString.get(value);
-            if (indexFrom != null && db.compare(v, indexFrom) < 0) {
-                return false;
-            }
-            if (indexTo != null && db.compare(v, indexTo) > 0) {
-                return false;
-            }
+            v = ValueString.get(value);
+        }
+        if (indexFrom != null && db.compare(v, indexFrom) < 0) {
+            return false;
+        }
+        if (indexTo != null && db.compare(v, indexTo) > 0) {
+            return false;
         }
         return true;
     }

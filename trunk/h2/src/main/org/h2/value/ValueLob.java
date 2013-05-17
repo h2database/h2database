@@ -142,6 +142,7 @@ public class ValueLob extends Value {
      * @param objectId the object id
      * @param precision the precision (length in elements)
      * @param compression if compression is used
+     * @param fileName the file name
      * @return the value object
      */
     public static ValueLob openUnlinked(int type, DataHandler handler,
@@ -237,7 +238,7 @@ public class ValueLob extends Value {
         }
     }
 
-    public static String getFileNamePrefix(String path, int objectId) {
+    private static String getFileNamePrefix(String path, int objectId) {
         String name;
         int f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
         if (f > 0) {
@@ -480,7 +481,8 @@ public class ValueLob extends Value {
         }
     }
 
-    public void unlink() {
+    @Override
+    public void unlink(DataHandler handler) {
         if (linked && fileName != null) {
             String temp;
             // synchronize on the database, to avoid concurrent temp file
@@ -751,7 +753,7 @@ public class ValueLob extends Value {
         return compression;
     }
 
-    public static synchronized void deleteFile(DataHandler handler, String fileName) {
+    private static synchronized void deleteFile(DataHandler handler, String fileName) {
         // synchronize on the database, to avoid concurrent temp file creation /
         // deletion / backup
         synchronized (handler.getLobSyncObject()) {

@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
@@ -99,18 +98,6 @@ public class LobStorageFrontend implements LobStorageInterface {
             return ValueLobDb.createTempClob(reader, maxLength, handler);
         }
         return ValueLob.createClob(reader, maxLength, handler);
-    }
-
-    /**
-     * Set the table reference of this lob.
-     *
-     * @param lobId the lob
-     * @param table the table
-     */
-    public void setTable(long lobId, int table) {
-        // TODO ideally, this should not be called at all, but that's a refactoring for another day
-        // this should never be called
-        throw new UnsupportedOperationException();
     }
 
 }

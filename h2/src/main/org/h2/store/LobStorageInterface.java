@@ -36,14 +36,6 @@ public interface LobStorageInterface {
     Value createBlob(InputStream in, long maxLength);
     
     /**
-     * Set the table reference of this lob.
-     *
-     * @param lobId the lob
-     * @param table the table
-     */
-    void setTable(long lobId, int table);
-    
-    /**
      * Copy a lob.
      *
      * @param type the type

@@ -19,10 +19,10 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.store.LobStorageBackend;
@@ -968,11 +968,11 @@ public abstract class Value {
      * Link a large value to a given table. For values that are kept fully in
      * memory this method has no effect.
      *
-     * @param handler the data handler
+     * @param database the database
      * @param tableId the table to link to
      * @return the new value or itself
      */
-    public Value link(DataHandler handler, int tableId) {
+    public Value link(Database database, int tableId) {
         return this;
     }
 
@@ -990,7 +990,7 @@ public abstract class Value {
      * Mark any underlying resource as 'not linked to any table'. For values
      * that are kept fully in memory this method has no effect.
      */
-    public void unlink() {
+    public void unlink(Database database) {
         // nothing to do
     }
 

@@ -150,7 +150,7 @@ public class Session extends SessionWithState {
         }
         if (old != null) {
             // close the old value (in case it is a lob)
-            old.unlink();
+            old.unlink(database);
             old.close();
         }
     }
@@ -489,7 +489,7 @@ public class Session extends SessionWithState {
             // commit record is not written
             database.flush();
             for (Value v : unlinkLobMap.values()) {
-                v.unlink();
+                v.unlink(database);
                 v.close();
             }
             unlinkLobMap = null;

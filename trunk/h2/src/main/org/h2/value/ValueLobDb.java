@@ -168,15 +168,15 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             } else {
                 return lobStorage.copyLob(type, lobId, tabId, getPrecision());
             }
-        } else if (small.length > handler.getMaxLengthInplaceLob()) {
-            LobStorageInterface s = handler.getLobStorage();
+        } else if (small.length > database.getMaxLengthInplaceLob()) {
+            LobStorageInterface s = database.getLobStorage();
             Value v;
             if (type == Value.BLOB) {
                 v = s.createBlob(getInputStream(), getPrecision());
             } else {
                 v = s.createClob(getReader(), getPrecision());
             }
-            return v.link(handler, tabId);
+            return v.link(database, tabId);
         }
         return this;
     }

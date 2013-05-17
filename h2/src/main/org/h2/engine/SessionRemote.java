@@ -294,8 +294,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         ConnectionInfo backup = null;
         try {
             if (autoServerMode) {
-                backup = (ConnectionInfo) ci.clone();
-                connectionInfo = (ConnectionInfo) ci.clone();
+                backup = ci.clone();
+                connectionInfo = ci.clone();
             }
             if (openNew) {
                 ci.setProperty("OPEN_NEW", "true");

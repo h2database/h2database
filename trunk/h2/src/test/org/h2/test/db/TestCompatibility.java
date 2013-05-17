@@ -253,7 +253,7 @@ public class TestCompatibility extends TestBase {
         rs.updateString(2, "Hallo");
         rs.updateRow();
 
-        // we used to have an NPE bug in the MetaTable#checkIndex() method
+        // we used to have an NullPointerException in the MetaTable.checkIndex() method
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME > 'aaaa'");
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME < 'aaaa'");
         

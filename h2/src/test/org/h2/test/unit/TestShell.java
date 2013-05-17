@@ -62,7 +62,7 @@ public class TestShell extends TestBase {
         shell.runTool("-help");
         s = new String(buff.toByteArray());
         assertContains(s, "Interactive command line tool to access a database using JDBC.");
-        
+
         test(true);
         test(false);
     }

@@ -155,8 +155,8 @@ NODATA will not emit INSERT statements.
 If the DROP option is specified, drop statements are created for tables, views,
 and sequences. If the block size is set, CLOB and BLOB values larger than this
 size are split into separate blocks.
-BLOCKSIZE is used when writing out LOB data, and specifies the point at the 
-values transition from being inserted as inline values, to be inserted using 
+BLOCKSIZE is used when writing out LOB data, and specifies the point at the
+values transition from being inserted as inline values, to be inserted using
 out-of-line commands.
 
 If no file name is specified, the
@@ -1268,7 +1268,7 @@ SET LOCK_TIMEOUT 1000
 "Commands (Other)","SET MAX_LENGTH_INPLACE_LOB","
 SET MAX_LENGTH_INPLACE_LOB int
 ","
-Sets the maximum size of an in-place LOB object. 
+Sets the maximum size of an in-place LOB object.
 
 If the 'h2.lobInDatabase' property is true, this is the maximum length of an LOB that is stored with the record itself,
 and the default value is 128.

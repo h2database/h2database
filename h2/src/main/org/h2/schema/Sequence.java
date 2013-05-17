@@ -141,7 +141,7 @@ public class Sequence extends SchemaObjectBase {
             value = realValue;
         }
     }
-    
+
     /**
      * Flush the current value to disk and close this object.
      */

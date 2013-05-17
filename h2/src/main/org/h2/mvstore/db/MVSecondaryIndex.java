@@ -242,7 +242,7 @@ public class MVSecondaryIndex extends BaseIndex {
     public void checkRename() {
         // ok
     }
-    
+
     /**
      * Get the map to store the data.
      *

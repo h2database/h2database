@@ -138,7 +138,7 @@ should never be used for columns with a maximum size below about 200 bytes.
 The best threshold depends on the use case; reading in-place objects is faster
 than reading from separate files, but slows down the performance of operations
 that don't involve this column.
-<p>
+</p><p>
 It is possible to configure the database to store LOB objects outside the database file,
 see the <a href="../javadoc/org/h2/constant/SysProperties.html#h2.lobInDatabase">h2.lobInDatabase</a> property.
 </p>

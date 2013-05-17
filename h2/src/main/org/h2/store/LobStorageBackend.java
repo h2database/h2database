@@ -59,7 +59,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * bytes), therefore, the size 4096 means 64 KB.
      */
     private static final int HASH_CACHE_SIZE = 4 * 1024;
-    
+
     private Connection conn;
     private final HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
@@ -559,7 +559,7 @@ public class LobStorageBackend implements LobStorageInterface {
             }
         }
     }
-    
+
     /**
      * An input stream that reads from a LOB.
      */
@@ -697,7 +697,7 @@ public class LobStorageBackend implements LobStorageInterface {
         }
 
     }
-    
+
     /**
      * An input stream that reads the data from a reader.
      */

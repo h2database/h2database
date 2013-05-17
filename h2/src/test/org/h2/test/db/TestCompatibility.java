@@ -256,7 +256,7 @@ public class TestCompatibility extends TestBase {
         // we used to have an NullPointerException in the MetaTable.checkIndex() method
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME > 'aaaa'");
         rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME < 'aaaa'");
-        
+
         stat.execute("CREATE TABLE TEST_1(ID INT PRIMARY KEY) ENGINE=InnoDb");
         stat.execute("CREATE TABLE TEST_2(ID INT PRIMARY KEY) ENGINE=MyISAM");
         stat.execute("CREATE TABLE TEST_3(ID INT PRIMARY KEY) ENGINE=InnoDb charset=UTF8");

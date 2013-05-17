@@ -107,7 +107,7 @@ public class Session extends SessionWithState {
     private int objectId;
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
-    
+
     private Transaction transaction;
     private long startStatement = -1;
 
@@ -578,15 +578,15 @@ public class Session extends SessionWithState {
             }
         }
     }
-    
+
     @Override
     public boolean hasPendingTransaction() {
         return undoLog.size() > 0;
     }
-    
+
     /**
      * Create a savepoint to allow rolling back to this state.
-     * 
+     *
      * @return the savepoint
      */
     public Savepoint setSavepoint() {
@@ -1020,7 +1020,7 @@ public class Session extends SessionWithState {
     public LobStorageBackend getLobStorageBackend() {
         return database.getLobStorage();
     }
-    
+
     /**
      * Remember that the given LOB value must be un-linked (disconnected from
      * the table) at commit.
@@ -1334,18 +1334,18 @@ public class Session extends SessionWithState {
         startStatement = -1;
         closeTemporaryResults();
     }
-    
+
     /**
      * Represents a savepoint (a position in a transaction to where one can roll
      * back to).
      */
     public static class Savepoint {
-        
+
         /**
          * The undo log index.
          */
         int logIndex;
-        
+
         /**
          * The transaction savepoint id.
          */

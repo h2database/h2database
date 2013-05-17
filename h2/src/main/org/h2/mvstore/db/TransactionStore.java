@@ -64,7 +64,7 @@ public class TransactionStore {
     private long lastTransactionIdStored;
 
     private long lastTransactionId;
-    
+
     private long firstOpenTransaction = -1;
 
     /**
@@ -171,7 +171,7 @@ public class TransactionStore {
         int status = Transaction.STATUS_OPEN;
         return new Transaction(this, transactionId, status, null, 0);
     }
-    
+
     private void commitIfNeeded() {
         if (store.getUnsavedPageCount() > MAX_UNSAVED_PAGES) {
             store.commit();
@@ -190,7 +190,7 @@ public class TransactionStore {
             preparedTransactions.put(t.getId(), v);
         }
     }
-    
+
     /**
      * Log an entry.
      *
@@ -225,7 +225,7 @@ public class TransactionStore {
         for (long logId = 0; logId < maxLogId; logId++) {
             long[] undoKey = new long[] {
                     t.getId(), logId };
-            commitIfNeeded();            
+            commitIfNeeded();
             Object[] op = undoLog.get(undoKey);
             int opType = (Integer) op[0];
             if (opType == Transaction.OP_REMOVE) {
@@ -247,11 +247,11 @@ public class TransactionStore {
         }
         endTransaction(t);
     }
-    
+
     /**
      * Check whether the given transaction id is still open and contains log
      * entries.
-     * 
+     *
      * @param transactionId the transaction id
      * @return true if it is open
      */
@@ -273,10 +273,10 @@ public class TransactionStore {
         key = undoLog.higherKey(key);
         return key != null && key[0] == transactionId;
     }
-    
+
     /**
      * End this transaction
-     * 
+     *
      * @param t the transaction
      */
     void endTransaction(Transaction t) {
@@ -298,7 +298,7 @@ public class TransactionStore {
      */
     void rollbackTo(Transaction t, long maxLogId, long toLogId) {
         for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
-            commitIfNeeded();            
+            commitIfNeeded();
             Object[] op = undoLog.get(new long[] {
                     t.getId(), logId });
             int mapId = ((Integer) op[1]).intValue();
@@ -319,10 +319,10 @@ public class TransactionStore {
             undoLog.remove(op);
         }
     }
-    
+
     /**
      * Get the set of changed maps.
-     * 
+     *
      * @param t the transaction
      * @param maxLogId the maximum log id
      * @param toLogId the minimum log id
@@ -387,7 +387,7 @@ public class TransactionStore {
          * The log id of the last entry in the undo log map.
          */
         long logId;
-        
+
         private int status;
 
         private String name;
@@ -408,7 +408,7 @@ public class TransactionStore {
         public int getStatus() {
             return status;
         }
-        
+
         void setStatus(int status) {
             this.status = status;
         }
@@ -510,7 +510,7 @@ public class TransactionStore {
             store.rollbackTo(this, logId, savepointId);
             logId = savepointId;
         }
-        
+
         /**
          * Roll the transaction back. Afterwards, this transaction is closed.
          */
@@ -519,11 +519,11 @@ public class TransactionStore {
             store.rollbackTo(this, logId, 0);
             store.endTransaction(this);
         }
-        
+
         /**
          * Get the set of changed maps starting at the given savepoint up to
          * now.
-         * 
+         *
          * @param savepointId the savepoint id, 0 meaning the beginning of the
          *            transaction
          * @return the set of changed maps
@@ -540,7 +540,7 @@ public class TransactionStore {
                 throw DataUtils.newIllegalStateException("Transaction is closed");
             }
         }
-        
+
         /**
          * Check whether this transaction is open or prepared.
          */
@@ -567,7 +567,7 @@ public class TransactionStore {
          * Value: { transactionId, oldVersion, value }
          */
         final MVMap<K, VersionedValue> map;
-        
+
         private Transaction transaction;
 
         private final int mapId;
@@ -589,26 +589,26 @@ public class TransactionStore {
             map = transaction.store.store.openMap(name, builder);
             mapId = map.getId();
         }
-        
+
         private TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map, int mapId) {
             this.transaction = transaction;
             this.map = map;
             this.mapId = mapId;
         }
-        
+
         /**
          * Set the savepoint. Afterwards, reads are based on the specified
          * savepoint.
-         * 
+         *
          * @param savepoint the savepoint
          */
         public void setSavepoint(long savepoint) {
             this.readLogId = savepoint;
         }
-        
+
         /**
          * Get a clone of this map for the given transaction.
-         * 
+         *
          * @param transaction the transaction
          * @param savepoint the savepoint
          * @return the map
@@ -858,7 +858,7 @@ public class TransactionStore {
             VersionedValue data = getValue(key, maxLogId);
             return data == null ? null : (V) data.value;
         }
-        
+
         private VersionedValue getValue(K key, long maxLog) {
             VersionedValue data = map.get(key);
             while (true) {
@@ -954,11 +954,11 @@ public class TransactionStore {
             return new Iterator<K>() {
                 private final Cursor<K> cursor = map.keyIterator(from);
                 private K current;
-                
+
                 {
                     fetchNext();
                 }
-                
+
                 private void fetchNext() {
                     while (cursor.hasNext()) {
                         current = cursor.next();
@@ -1029,40 +1029,40 @@ public class TransactionStore {
         }
 
     }
-    
+
     /**
      * A versioned value (possibly null). It contains a pointer to the old
      * value, and the value itself.
      */
     static class VersionedValue {
-        
+
         /**
          * The transaction id.
          */
         public long transactionId;
-        
+
         /**
          * The log id.
          */
         public long logId;
-        
+
         /**
          * The value.
          */
         public Object value;
     }
-    
+
     /**
      * The value type for a versioned value.
      */
     public static class VersionedValueType implements DataType {
-        
+
         private final DataType valueType;
-        
+
         VersionedValueType(DataType valueType) {
             this.valueType = valueType;
         }
-        
+
         @Override
         public int getMemory(Object obj) {
             VersionedValue v = (VersionedValue) obj;
@@ -1101,8 +1101,8 @@ public class TransactionStore {
             v.logId = DataUtils.readVarLong(buff);
             v.value = valueType.read(buff);
             return v;
-        }        
-        
+        }
+
     }
 
     /**

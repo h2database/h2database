@@ -362,7 +362,7 @@ public class Doclet {
             }
         }
     }
-    
+
     private static String getLink(ClassDoc clazz, int line) {
         String c = clazz.name();
         int x = c.lastIndexOf('.');

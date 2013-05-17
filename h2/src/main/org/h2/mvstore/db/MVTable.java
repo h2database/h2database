@@ -58,7 +58,7 @@ public class MVTable extends TableBase {
     private int nextAnalyze;
     private boolean containsLargeObject;
     private Column rowIdColumn;
-    
+
     private final TransactionStore store;
 
     /**
@@ -95,7 +95,7 @@ public class MVTable extends TableBase {
         rowCount = primaryIndex.getRowCount(session);
         indexes.add(primaryIndex);
     }
-    
+
     public String getMapName() {
         return primaryIndex.getMapName();
     }
@@ -308,12 +308,12 @@ public class MVTable extends TableBase {
     public boolean isLockedExclusively() {
         return lockExclusive != null;
     }
-    
+
     @Override
     public boolean isLockedExclusivelyBy(Session session) {
         return lockExclusive == session;
     }
-    
+
     @Override
     public void unlock(Session s) {
         if (database != null) {

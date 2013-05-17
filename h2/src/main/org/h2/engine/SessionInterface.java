@@ -67,10 +67,10 @@ public interface SessionInterface extends Closeable {
      * @return the data handler
      */
     DataHandler getDataHandler();
-    
+
     /**
      * Check whether this session has a pending transaction.
-     * 
+     *
      * @return true if it has
      */
     boolean hasPendingTransaction();

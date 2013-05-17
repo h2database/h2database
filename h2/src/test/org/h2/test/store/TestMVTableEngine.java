@@ -61,7 +61,7 @@ public class TestMVTableEngine extends TestBase {
             dbName += ";LOCK_MODE=0";
 //            dbName += ";LOG=0";
             testSpeed(dbName);
-int test;            
+int test;
 //Profiler prof = new Profiler().startCollecting();
             dbName = "mvstore" +
                     ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
@@ -72,7 +72,7 @@ int test;
         }
         FileUtils.deleteRecursive(getBaseDir(), true);
     }
-    
+
     private void testSpeed(String dbName) throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -80,11 +80,11 @@ int test;
         String url = getURL(dbName, true);
         String user = getUser();
         String password = getPassword();
-        
+
 //Profiler prof = new Profiler();
 //prof.sumClasses=true;
 //prof.startCollecting();
-        
+
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
         long time = System.currentTimeMillis();
@@ -94,35 +94,20 @@ int test;
         stat.execute("create table test(id int primary key, name varchar)");
         PreparedStatement prep = conn
                 .prepareStatement("insert into test values(?, ?)");
-        
-        // -mx4g
-        // fast size
-        
-        // 10 / 800000
-        // 1272 mvstore;LOCK_MODE=0 before
-        // 1449 mvstore;LOCK_MODE=0 after
-        // 1076 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 before
-        // 1086 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 after
-
-        // 100 / 800000
-        // 2010 mvstore;LOCK_MODE=0 before
-        // 2261 mvstore;LOCK_MODE=0 after
-        // 1536 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 before
-        // 1546 mvstore;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine;LOCK_MODE=0;LOG=0 after
 
         prep.setString(2, new String(new char[10]).replace((char) 0, 'x'));
 //        for (int i = 0; i < 20000; i++) {
         for (int i = 0; i < 800000; i++) {
-            
+
             prep.setInt(1, i);
             prep.execute();
         }
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " before");
         conn.close();
-//System.out.println(prof.getTop(10));        
+//System.out.println(prof.getTop(10));
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
     }
-    
+
     private void testAutoCommit() throws SQLException {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -150,7 +135,7 @@ int test;
         rs = stat.executeQuery("select count(*) from test");
         rs.next();
         assertEquals(1, rs.getInt(1));
-        
+
         conn.close();
     }
 
@@ -168,7 +153,7 @@ int test;
         stat.execute("drop table test");
         conn.close();
     }
-    
+
     private void testBlob() throws SQLException, IOException {
         FileUtils.deleteRecursive(getBaseDir(), true);
         String dbName = "mvstore" +
@@ -217,7 +202,7 @@ int test;
         conn.close();
         FileUtils.deleteRecursive(getBaseDir(), true);
     }
-    
+
     private void testExclusiveLock() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         String dbName = "mvstore" +
@@ -488,7 +473,7 @@ int test;
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertEquals(1, rs.getInt(3));
-        
+
         stat.execute("update test set name = 'Hello' where id = 1");
 
         if (!config.memory) {

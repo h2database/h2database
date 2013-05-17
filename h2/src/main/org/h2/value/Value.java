@@ -24,7 +24,6 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
-import org.h2.store.DataHandler;
 import org.h2.store.LobStorageBackend;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;

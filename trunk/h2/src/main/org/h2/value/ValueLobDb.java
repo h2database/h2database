@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.store.DataHandler;
@@ -147,30 +148,30 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
     }
 
-    public void unlink() {
+    public void unlink(Database database) {
         if (small == null && tableId != LobStorageBackend.TABLE_ID_SESSION_VARIABLE) {
-            lobStorage.setTable(lobId, LobStorageBackend.TABLE_ID_SESSION_VARIABLE);
+            database.getLobStorage().setTable(lobId, LobStorageBackend.TABLE_ID_SESSION_VARIABLE);
             tableId = LobStorageBackend.TABLE_ID_SESSION_VARIABLE;
         }
     }
 
-    public Value link(DataHandler h, int tabId) {
+    public Value link(Database database, int tabId) {
         if (small == null) {
             if (tableId == LobStorageBackend.TABLE_TEMP) {
-                lobStorage.setTable(lobId, tabId);
+                database.getLobStorage().setTable(lobId, tabId);
                 this.tableId = tabId;
             } else {
                 return lobStorage.copyLob(type, lobId, tabId, getPrecision());
             }
-        } else if (small.length > h.getMaxLengthInplaceLob()) {
-            LobStorageInterface s = h.getLobStorage();
+        } else if (small.length > database.getMaxLengthInplaceLob()) {
+            LobStorageInterface s = database.getLobStorage();
             Value v;
             if (type == Value.BLOB) {
                 v = s.createBlob(getInputStream(), getPrecision());
             } else {
                 v = s.createClob(getReader(), getPrecision());
             }
-            return v.link(h, tabId);
+            return v.link(database, tabId);
         }
         return this;
     }

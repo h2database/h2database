@@ -130,7 +130,7 @@ public class Engine implements SessionFactory {
                 // In serialized mode, database instance sharing is not possible
                 ci.setProperty("OPEN_NEW", "TRUE");
                 try {
-                    backup = (ConnectionInfo) ci.clone();
+                    backup = ci.clone();
                 } catch (CloneNotSupportedException e) {
                     throw DbException.convert(e);
                 }

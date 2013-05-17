@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
+
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -122,7 +123,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testWriteBuffer() throws IOException {
-        String fileName = getBaseDir() + "/testAutoStoreBuffer.h3";
+        String fileName = getBaseDir() + "/testWriteBuffer.h3";
         FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, byte[]> m;
@@ -167,10 +168,24 @@ public class TestMVStore extends TestBase {
     }
 
     private void testWriteDelay() throws InterruptedException {
-        String fileName = getBaseDir() + "/testUndoTempStore.h3";
-        FileUtils.delete(fileName);
+        String fileName = getBaseDir() + "/testWriteDelay.h3";
         MVStore s;
         MVMap<Integer, String> m;
+        
+        FileUtils.delete(fileName);
+        s = new MVStore.Builder().writeDelay(0).
+                fileName(fileName).open();
+        m = s.openMap("data");
+        m.put(1, "1");
+        s.commit();
+        s.close();
+        s = new MVStore.Builder().writeDelay(0).
+                fileName(fileName).open();
+        m = s.openMap("data");
+        assertEquals(1, m.size());
+        s.close();
+        
+        FileUtils.delete(fileName);
         s = new MVStore.Builder().
                 writeDelay(1).
                 fileName(fileName).
@@ -468,6 +483,16 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 100; i += 2) {
             map.put(i, 10 * i);
         }
+        
+        Cursor<Integer> c = map.keyIterator(50);
+        // skip must reset the root of the cursor
+        c.skip(10);
+        for (int i = 70; i < 100; i += 2) {
+            assertTrue(c.hasNext());
+            assertEquals(i, c.next().intValue());
+        }     
+        assertFalse(c.hasNext());
+        
         for (int i = -1; i < 100; i++) {
             long index = map.getKeyIndex(i);
             if (i < 0 || (i % 2) != 0) {
@@ -485,7 +510,7 @@ public class TestMVStore extends TestBase {
             }
         }
         // skip
-        Cursor<Integer> c = map.keyIterator(0);
+        c = map.keyIterator(0);
         assertTrue(c.hasNext());
         assertEquals(0, c.next().intValue());
         c.skip(0);
@@ -513,14 +538,22 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, Integer> map = s.openMap("test");
         map.put(10, 100);
         map.put(20, 200);
+        
         assertEquals(10, map.firstKey().intValue());
         assertEquals(20, map.lastKey().intValue());
+        
         assertEquals(20, map.ceilingKey(15).intValue());
         assertEquals(20, map.ceilingKey(20).intValue());
         assertEquals(10, map.floorKey(15).intValue());
         assertEquals(10, map.floorKey(10).intValue());
         assertEquals(20, map.higherKey(10).intValue());
         assertEquals(10, map.lowerKey(20).intValue());
+        
+        final MVMap<Integer, Integer> m = map;
+        assertEquals(10, m.ceilingKey(null).intValue());
+        assertEquals(10, m.higherKey(null).intValue());
+        assertNull(m.lowerKey(null));
+        assertNull(m.floorKey(null));
 
         for (int i = 3; i < 20; i++) {
             s = openStore(null);

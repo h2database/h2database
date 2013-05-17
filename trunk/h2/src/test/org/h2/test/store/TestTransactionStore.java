@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.TreeSet;
 
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore;
@@ -41,6 +42,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
+        testGetModifiedMaps();
         testKeyIterator();
         testMultiStatement();
         testTwoPhaseCommit();
@@ -48,6 +50,42 @@ public class TestTransactionStore extends TestBase {
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+    }
+    
+    private void testGetModifiedMaps() {
+        MVStore s = MVStore.open(null);
+        TransactionStore ts = new TransactionStore(s);
+        Transaction tx;
+        TransactionMap<String, String> m1, m2, m3;
+        long sp;
+        TreeSet<String> changed;
+        
+        tx = ts.begin();
+        m1 = tx.openMap("m1");
+        m2 = tx.openMap("m2");
+        m3 = tx.openMap("m3");
+        changed = new TreeSet<String>(tx.getChangedMaps(0));
+        assertEquals(0, changed.size());
+        tx.commit();
+
+        tx = ts.begin();
+        m1 = tx.openMap("m1");
+        m2 = tx.openMap("m2");
+        m3 = tx.openMap("m3");
+        m1.put("1", "100");
+        sp = tx.setSavepoint();
+        m2.put("1", "100");
+        m3.put("1", "100");
+        changed = new TreeSet<String>(tx.getChangedMaps(sp));
+        assertEquals("[m2, m3]", changed.toString());
+        changed = new TreeSet<String>(tx.getChangedMaps(0));
+        assertEquals("[m1, m2, m3]", changed.toString());
+        tx.rollbackToSavepoint(sp);
+        changed = new TreeSet<String>(tx.getChangedMaps(0));
+        assertEquals("[m1]", changed.toString());
+        tx.commit();
+        
+        s.close();
     }
 
     private void testKeyIterator() {

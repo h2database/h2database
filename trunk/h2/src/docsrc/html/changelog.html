@@ -23,6 +23,7 @@ Change Log
     in a strange exception of the type "column x must be included in the group by list".
 </li><li>Issue 454: Use Charset for type-safety.
 </li><li>Queries with both LIMIT and OFFSET could throw an IllegalArgumentException.
+</li><li>MVStore: multiple issues were fixed: 460, 461, 462. 
 </li><li>MVStore: larger stores (multiple GB) are now much faster.
 </li><li>When using local temporary tables and not dropping them manually before closing the session,
     and then killing the process could result in a database that couldn't be opened (except when using
@@ -38,7 +39,7 @@ Change Log
 </li><li>Issue 274: Sybase/MSSQLServer compatibility - Add GETDATE and CHARINDEX system functions
 </li><li>Issue 274: Sybase/MSSQLServer compatibility - swap parameters of CONVERT function.
 </li><li>Issue 274: Sybase/MSSQLServer compatibility - support index clause e.g. "select * from test (index table1_index)"
-</li><li>Fix bug in optimising SELECT * FROM A WHERE X=1 OR X=2 OR X=3 into SELECT * FROM A WHERE X IN (1,2,3)
+</li><li>Fix bug in optimizing SELECT * FROM A WHERE X=1 OR X=2 OR X=3 into SELECT * FROM A WHERE X IN (1,2,3)
 </li><li>Issue 442: groovy patch for SourceCompiler (function ALIAS)
 </li><li>Issue 459: Improve LOB documentation
 </li></ul>

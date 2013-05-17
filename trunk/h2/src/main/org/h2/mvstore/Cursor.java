@@ -64,6 +64,7 @@ public class Cursor<K> implements Iterator<K> {
         }
         long index = map.getKeyIndex(current);
         K k = map.getKey(index + n);
+        pos = null;
         min(root, k);
         fetchNext();
     }
@@ -76,7 +77,7 @@ public class Cursor<K> implements Iterator<K> {
 
     /**
      * Fetch the next entry that is equal or larger than the given key, starting
-     * from the given page.
+     * from the given page. This method retains the stack.
      *
      * @param p the page to start
      * @param from the key to search

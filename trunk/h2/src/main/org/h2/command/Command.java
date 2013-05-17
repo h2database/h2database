@@ -143,6 +143,7 @@ public abstract class Command implements CommandInterface {
     }
 
     private void stop() {
+        session.endStatement();
         session.closeTemporaryResults();
         session.setCurrentCommand(null);
         if (!isTransactional()) {
@@ -226,7 +227,7 @@ public abstract class Command implements CommandInterface {
             }
         }
         synchronized (sync) {
-            int rollback = session.getUndoLogPos();
+            Session.Savepoint rollback = session.setSavepoint();
             session.setCurrentCommand(this);
             try {
                 while (true) {

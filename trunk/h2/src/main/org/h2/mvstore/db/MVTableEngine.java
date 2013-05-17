@@ -6,13 +6,13 @@
  */
 package org.h2.mvstore.db;
 
+import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.List;
+
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
@@ -25,100 +25,36 @@ import org.h2.util.New;
  */
 public class MVTableEngine implements TableEngine {
 
-    static final Map<String, Store> STORES = new WeakHashMap<String, Store>();
-
-    /**
-     * Flush all changes.
-     *
-     * @param db the database
-     */
-    public static void flush(Database db) {
-        String storeName = db.getDatabasePath();
-        if (storeName == null) {
-            return;
-        }
-        synchronized (STORES) {
-            Store store = STORES.get(storeName);
-            if (store == null) {
-                return;
-            }
-            store(store.getStore());
-        }
-    }
-
-    public static Collection<Store> getStores() {
-        return STORES.values();
-    }
-
     @Override
     public TableBase createTable(CreateTableData data) {
         Database db = data.session.getDatabase();
-        byte[] key = db.getFilePasswordHash();
-        String storeName = db.getDatabasePath();
-        MVStore.Builder builder = new MVStore.Builder();
-        Store store;
-        if (storeName == null) {
-            store = new Store(db, builder.open());
-        } else {
-            synchronized (STORES) {
-                store = STORES.get(storeName);
-                if (store == null) {
-                    builder.fileName(storeName + Constants.SUFFIX_MV_FILE);
-                    if (db.isReadOnly()) {
-                        builder.readOnly();
-                    }
-                    if (key != null) {
-                        char[] password = new char[key.length];
-                        for (int i = 0; i < key.length; i++) {
-                            password[i] = (char) key[i];
-                        }
-                        builder.encryptionKey(password);
-                    }
-                    store = new Store(db, builder.open());
-                    STORES.put(storeName, store);
-                } else if (store.db != db) {
-                    throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, storeName);
+        Store store = db.getMvStore();
+        if (store == null) {
+            byte[] key = db.getFilePasswordHash();
+            String dbPath = db.getDatabasePath();
+            MVStore.Builder builder = new MVStore.Builder();
+            if (dbPath == null) {
+                store = new Store(db, builder.open());
+            } else {
+                builder.fileName(dbPath + Constants.SUFFIX_MV_FILE);
+                if (db.isReadOnly()) {
+                    builder.readOnly();
                 }
+                if (key != null) {
+                    char[] password = new char[key.length];
+                    for (int i = 0; i < key.length; i++) {
+                        password[i] = (char) key[i];
+                    }
+                    builder.encryptionKey(password);
+                }
+                store = new Store(db, builder.open());
             }
+            db.setMvStore(store);
         }
-        MVTable table = new MVTable(data, storeName, store.getTransactionStore());
+        MVTable table = new MVTable(data, store);
         store.openTables.add(table);
         table.init(data.session);
         return table;
-    }
-
-    /**
-     * Close the table, and close the store if there are no remaining open
-     * tables.
-     *
-     * @param storeName the store name
-     * @param table the table
-     */
-    static void closeTable(String storeName, MVTable table) {
-        synchronized (STORES) {
-            Store store = STORES.get(storeName);
-            if (store != null) {
-                store.openTables.remove(table);
-                if (store.openTables.size() == 0) {
-                    store(store.getStore());
-                    store.getStore().close();
-                    STORES.remove(storeName);
-                }
-            }
-        }
-    }
-
-    /**
-     * Store the data if needed.
-     *
-     * @param store the store
-     */
-    static void store(MVStore store) {
-        if (!store.isReadOnly()) {
-            store.commit();
-            store.compact(50);
-            store.store();
-        }
     }
 
     /**
@@ -152,13 +88,46 @@ public class MVTableEngine implements TableEngine {
             this.transactionStore = new TransactionStore(store,
                     new ValueDataType(null, null, null));
         }
-
+        
         public MVStore getStore() {
             return store;
         }
 
         public TransactionStore getTransactionStore() {
             return transactionStore;
+        }
+        
+        public List<MVTable> getTables() {
+            return openTables;
+        }
+        
+        public void store() {
+            if (!store.isReadOnly()) {
+                store.commit();
+                store.compact(50);
+                store.store();
+            }
+        }
+        
+        public void closeImmediately() {
+            if (store.isClosed()) {
+                return;
+            }
+            FileChannel f = store.getFile();
+            if (f != null) {
+                try {
+                    f.close();
+                } catch (IOException e) {
+                    throw DbException.convertIOException(e, "Closing file");
+                }
+            }
+        }
+
+        public void close() {
+            if (!store.isReadOnly()) {
+                store.store();
+            }
+            store.close();
         }
 
     }

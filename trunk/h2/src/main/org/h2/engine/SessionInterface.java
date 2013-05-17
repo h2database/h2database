@@ -67,13 +67,13 @@ public interface SessionInterface extends Closeable {
      * @return the data handler
      */
     DataHandler getDataHandler();
-
+    
     /**
-     * Get the undo log position.
-     *
-     * @return the position (0 means no pending transaction)
+     * Check whether this session has a pending transaction.
+     * 
+     * @return true if it has
      */
-    int getUndoLogPos();
+    boolean hasPendingTransaction();
 
     /**
      * Cancel the current or next command (called when closing a connection).

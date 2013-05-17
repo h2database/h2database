@@ -8,9 +8,11 @@ package org.h2.mvstore.db;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
@@ -28,7 +30,7 @@ public class TransactionStore {
 
     private static final String LAST_TRANSACTION_ID = "lastTransactionId";
 
-    // TODO should not be hardcoded
+    // TODO should not be hard-coded
     private static final int MAX_UNSAVED_PAGES = 4 * 1024;
 
     /**
@@ -245,22 +247,11 @@ public class TransactionStore {
         }
         endTransaction(t);
     }
-
-    /**
-     * Roll a transaction back.
-     *
-     * @param t the transaction
-     * @param maxLogId the last log id
-     */
-    void rollback(Transaction t, long maxLogId) {
-        rollbackTo(t, maxLogId, 0);
-        endTransaction(t);
-    }
     
     boolean isTransactionOpen(long transactionId) {
-//        if (transactionId < firstOpenTransaction) {
-//            return false;
-//        }
+        if (transactionId < firstOpenTransaction) {
+            return false;
+        }
         if (firstOpenTransaction == -1) {
             if (undoLog.size() == 0) {
                 return false;
@@ -276,7 +267,7 @@ public class TransactionStore {
         return key != null && key[0] == transactionId;
     }
     
-    private void endTransaction(Transaction t) {
+    void endTransaction(Transaction t) {
         if (t.getStatus() == Transaction.STATUS_PREPARED) {
             preparedTransactions.remove(t.getId());
         }
@@ -299,6 +290,7 @@ public class TransactionStore {
             Object[] op = undoLog.get(new long[] {
                     t.getId(), logId });
             int mapId = ((Integer) op[1]).intValue();
+            // TODO open map by id if possible
             Map<String, String> meta = store.getMetaMap();
             String m = meta.get("map." + mapId);
             String mapName = DataUtils.parseMap(m).get("name");
@@ -314,6 +306,21 @@ public class TransactionStore {
             }
             undoLog.remove(op);
         }
+    }
+    
+    HashSet<String> getChangedMaps(Transaction t, long maxLogId, long toLogId) {
+        HashSet<String> set = New.hashSet();
+        for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
+            Object[] op = undoLog.get(new long[] {
+                    t.getId(), logId });
+            int mapId = ((Integer) op[1]).intValue();
+            // TODO open map by id if possible
+            Map<String, String> meta = store.getMetaMap();
+            String m = meta.get("map." + mapId);
+            String mapName = DataUtils.parseMap(m).get("name");
+            set.add(mapName);
+        }
+        return set;
     }
 
     /**
@@ -452,18 +459,6 @@ public class TransactionStore {
         }
 
         /**
-         * Roll back to the given savepoint. This is only allowed if the
-         * transaction is open.
-         *
-         * @param savepointId the savepoint id
-         */
-        public void rollbackToSavepoint(long savepointId) {
-            checkOpen();
-            store.rollbackTo(this, this.logId, savepointId);
-            this.logId = savepointId;
-        }
-
-        /**
          * Prepare the transaction. Afterwards, the transaction can only be
          * committed or rolled back.
          */
@@ -477,18 +472,41 @@ public class TransactionStore {
          * Commit the transaction. Afterwards, this transaction is closed.
          */
         public void commit() {
-            if (status != STATUS_CLOSED) {
-                store.commit(this, logId);
-            }
+            checkNotClosed();
+            store.commit(this, logId);
         }
 
+        /**
+         * Roll back to the given savepoint. This is only allowed if the
+         * transaction is open.
+         *
+         * @param savepointId the savepoint id
+         */
+        public void rollbackToSavepoint(long savepointId) {
+            checkOpen();
+            store.rollbackTo(this, logId, savepointId);
+            logId = savepointId;
+        }
+        
         /**
          * Roll the transaction back. Afterwards, this transaction is closed.
          */
         public void rollback() {
-            if (status != STATUS_CLOSED) {
-                store.rollback(this, logId);
-            }
+            checkNotClosed();
+            store.rollbackTo(this, logId, 0);
+            store.endTransaction(this);
+        }
+        
+        /**
+         * Get the set of changed maps starting at the given savepoint up to
+         * now.
+         * 
+         * @param savepointId the savepoint id, 0 meaning the beginning of the
+         *            transaction
+         * @return the set of changed maps
+         */
+        public Set<String> getChangedMaps(long savepointId) {
+            return store.getChangedMaps(this, logId, savepointId);
         }
 
         /**
@@ -499,9 +517,14 @@ public class TransactionStore {
                 throw DataUtils.newIllegalStateException("Transaction is closed");
             }
         }
-
-        public long getCurrentVersion() {
-            return store.store.getCurrentVersion();
+        
+        /**
+         * Check whether this transaction is open or prepared.
+         */
+        void checkNotClosed() {
+            if (status == STATUS_CLOSED) {
+                throw DataUtils.newIllegalStateException("Transaction is closed");
+            }
         }
 
     }

@@ -808,12 +808,9 @@ public class Data {
                 }
                 if (smallLen == -2) {
                     String filename = readString();
-                    ValueLob lob = ValueLob.openUnlinked(type, handler, tableId, objectId, precision, compression, filename);
-                    return lob;
-                } else {
-                    ValueLob lob = ValueLob.openLinked(type, handler, tableId, objectId, precision, compression);
-                    return lob;
+                    return ValueLob.openUnlinked(type, handler, tableId, objectId, precision, compression, filename);
                 }
+                return ValueLob.openLinked(type, handler, tableId, objectId, precision, compression);
             }
         }
         case Value.ARRAY: {

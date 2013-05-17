@@ -121,7 +121,7 @@ public class MVPrimaryIndex extends BaseIndex {
                 }
             }
         }
-        
+
         TransactionMap<Value, Value> map = getMap(session);
         Value key = ValueLong.get(row.getKey());
         Value old = map.getLatest(key);
@@ -268,7 +268,7 @@ public class MVPrimaryIndex extends BaseIndex {
         // TODO estimate disk space usage
         return 0;
     }
-    
+
     public String getMapName() {
         return mapName;
     }
@@ -311,7 +311,7 @@ public class MVPrimaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         return new MVStoreCursor(session, map.keyIterator(ValueLong.get(first)), last);
     }
-    
+
     @Override
     public boolean isRowIdIndex() {
         return true;

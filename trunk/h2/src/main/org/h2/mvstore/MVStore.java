@@ -1291,7 +1291,7 @@ public class MVStore {
         // to support reading old versions and rollback
         if (pos == 0) {
             // the value could be smaller than 0 because
-            // in some cases a page is allocated without a store 
+            // in some cases a page is allocated without a store
             unsavedPageCount = Math.max(0, unsavedPageCount - 1);
             return;
         }

@@ -100,8 +100,10 @@ public class TestCluster extends TestBase {
         String url2 = "jdbc:h2:tcp://localhost:" + port2 + "/test";
         String urlCluster = "jdbc:h2:tcp://" + serverList + "/test";
 
-        Server server1 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
-        Server server2 = org.h2.tools.Server.createTcpServer("-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
+        Server server1 = org.h2.tools.Server.createTcpServer(
+                "-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
+        Server server2 = org.h2.tools.Server.createTcpServer(
+                "-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
 
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2, "-user", user, "-password", password, "-serverList",
                 serverList);
@@ -134,7 +136,7 @@ public class TestCluster extends TestBase {
         rs.next();
         assertEquals(5, rs.getInt(1));
         conn.close();
-        
+
         server1.stop();
         server2.stop();
         deleteFiles();
@@ -301,13 +303,13 @@ public class TestCluster extends TestBase {
         // test the cluster connection
         check(connApp, len, "'" + serverList + "'");
         connApp.close();
-        
+
         // test a non-admin user
         String user2 = "test", password2 = getPassword("test");
         connApp = DriverManager.getConnection(urlCluster, user2, password2);
         check(connApp, len, "'" + serverList + "'");
         connApp.close();
-        
+
         n1.stop();
 
         // test non-admin cluster connection if only one server runs

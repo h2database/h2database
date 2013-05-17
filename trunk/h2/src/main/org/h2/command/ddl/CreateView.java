@@ -96,8 +96,8 @@ public class CreateView extends SchemaCommand {
             }
             querySQL = select.getPlanSQL();
         }
-        // The view creates a Prepared command object, which belongs to a session, so we pass
-        // the system session down.
+        // The view creates a Prepared command object, which belongs to a
+        // session, so we pass the system session down.
         Session sysSession = db.getSystemSession();
         try {
             if (view == null) {

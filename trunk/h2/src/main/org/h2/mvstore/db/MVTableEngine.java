@@ -88,7 +88,7 @@ public class MVTableEngine implements TableEngine {
             this.transactionStore = new TransactionStore(store,
                     new ValueDataType(null, null, null));
         }
-        
+
         public MVStore getStore() {
             return store;
         }
@@ -96,11 +96,11 @@ public class MVTableEngine implements TableEngine {
         public TransactionStore getTransactionStore() {
             return transactionStore;
         }
-        
+
         public List<MVTable> getTables() {
             return openTables;
         }
-        
+
         /**
          * Store all pending changes.
          */
@@ -111,7 +111,7 @@ public class MVTableEngine implements TableEngine {
                 store.store();
             }
         }
-        
+
         /**
          * Close the store, without persisting changes.
          */

@@ -21,7 +21,7 @@ import org.h2.value.ValueLobDb;
  * This is the front-end i.e. the client side of the LOB storage.
  */
 public class LobStorageFrontend implements LobStorageInterface {
-    
+
     /**
      * The table id for session variables (LOBs not assigned to a table).
      */
@@ -45,9 +45,10 @@ public class LobStorageFrontend implements LobStorageInterface {
      */
     @Override
     public void removeLob(long lob) {
-        // TODO this should not be called at all, but that's a refactoring for another day
+        // TODO this should not be called at all,
+        // but that's a refactoring for another day
     }
-    
+
     /**
      * Get the input stream for the given lob.
      *
@@ -68,7 +69,7 @@ public class LobStorageFrontend implements LobStorageInterface {
     public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
         throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public void setTable(long lobId, int tableIdSessionVariable) {
         throw new UnsupportedOperationException();
@@ -102,7 +103,7 @@ public class LobStorageFrontend implements LobStorageInterface {
         }
         return ValueLob.createClob(reader, maxLength, handler);
     }
-    
+
 
     /**
      * Create a LOB object that fits in memory.

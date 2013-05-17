@@ -149,7 +149,7 @@ public class ValueLob extends Value {
             int tableId, int objectId, long precision, boolean compression, String fileName) {
         return new ValueLob(type, handler, fileName, tableId, objectId, false/*linked*/, precision, compression);
     }
-    
+
     /**
      * Create a CLOB value from a stream.
      *
@@ -785,7 +785,7 @@ public class ValueLob extends Value {
         }
         return 140;
     }
-    
+
     /**
      * Remove all lobs for a given table id.
      *

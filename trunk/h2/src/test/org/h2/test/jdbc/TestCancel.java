@@ -185,8 +185,8 @@ public class TestCancel extends TestBase {
                         executeQuery("SELECT VISIT(ID), (SELECT SUM(X) " +
                                 "FROM SYSTEM_RANGE(1, 10000) WHERE X<>ID) FROM TEST ORDER BY ID");
             } finally {
-               cancel.stopNow();
-               cancel.join();
+                cancel.stopNow();
+                cancel.join();
             }
             if (lastVisited == 0) {
                 i += 10;

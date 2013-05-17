@@ -25,7 +25,7 @@ public interface LobStorageInterface {
      * @return the LOB
      */
     Value createClob(Reader reader, long maxLength);
-    
+
     /**
      * Create a BLOB object.
      *
@@ -34,7 +34,7 @@ public interface LobStorageInterface {
      * @return the LOB
      */
     Value createBlob(InputStream in, long maxLength);
-    
+
     /**
      * Copy a lob.
      *
@@ -45,7 +45,7 @@ public interface LobStorageInterface {
      * @return the new lob
      */
     ValueLobDb copyLob(int type, long oldLobId, int tableId, long length);
-    
+
     /**
      * Get the input stream for the given lob.
      *
@@ -54,8 +54,9 @@ public interface LobStorageInterface {
      * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */
-    InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException;
-    
+    InputStream getInputStream(long lobId, byte[] hmac, long byteCount)
+            throws IOException;
+
     /**
      * Set the table reference of this lob.
      *
@@ -70,5 +71,5 @@ public interface LobStorageInterface {
      * @param lob the lob id
      */
     void removeLob(long lob);
-  
+
 }

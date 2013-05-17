@@ -148,7 +148,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
                 stat.execute("insert into test values (space(2000))");
         }
         stat.execute("checkpoint");
-        InputStream in = FileUtils.newInputStream(getBaseDir() + 
+        InputStream in = FileUtils.newInputStream(getBaseDir() +
                 "/pageStoreLogLimitFalsePositive.trace.db");
         String s = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
         assertFalse(s.indexOf("Transaction log could not be truncated") > 0);

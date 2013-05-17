@@ -265,7 +265,7 @@ public class Database implements DataHandler {
         }
         powerOffCount = count;
     }
-    
+
     public MVTableEngine.Store getMvStore() {
         return mvStore;
     }

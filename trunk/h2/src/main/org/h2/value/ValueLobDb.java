@@ -31,7 +31,8 @@ import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
 /**
- * An alternate LOB implementation, where LOB data is stored inside the database, instead of in external files.
+ * An alternate LOB implementation, where LOB data is stored inside the
+ * database, instead of in external files.
  */
 public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlob {
 
@@ -504,7 +505,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
     }
 
-    private void createTempFromStream(byte[] buff, int len, InputStream in, long remaining, DataHandler h) throws IOException {
+    private void createTempFromStream(byte[] buff, int len, InputStream in,
+            long remaining, DataHandler h) throws IOException {
         FileStoreOutputStream out = initTemp(h);
         boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
         try {

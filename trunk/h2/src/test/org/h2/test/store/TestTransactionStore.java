@@ -51,7 +51,7 @@ public class TestTransactionStore extends TestBase {
         testSingleConnection();
         testCompareWithPostgreSQL();
     }
-    
+
     private void testGetModifiedMaps() {
         MVStore s = MVStore.open(null);
         TransactionStore ts = new TransactionStore(s);
@@ -59,7 +59,7 @@ public class TestTransactionStore extends TestBase {
         TransactionMap<String, String> m1, m2, m3;
         long sp;
         TreeSet<String> changed;
-        
+
         tx = ts.begin();
         m1 = tx.openMap("m1");
         m2 = tx.openMap("m2");
@@ -84,7 +84,7 @@ public class TestTransactionStore extends TestBase {
         changed = new TreeSet<String>(tx.getChangedMaps(0));
         assertEquals("[m1]", changed.toString());
         tx.commit();
-        
+
         s.close();
     }
 
@@ -94,20 +94,20 @@ public class TestTransactionStore extends TestBase {
         Transaction tx, tx2;
         TransactionMap<String, String> m, m2;
         Iterator<String> it, it2;
-        
+
         tx = ts.begin();
         m = tx.openMap("test");
         m.put("1", "Hello");
         m.put("2", "World");
         m.put("3", ".");
         tx.commit();
-        
+
         tx2 = ts.begin();
         m2 = tx2.openMap("test");
         m2.remove("2");
         m2.put("3", "!");
         m2.put("4", "?");
-        
+
         tx = ts.begin();
         m = tx.openMap("test");
         it = m.keyIterator(null);
@@ -127,7 +127,7 @@ public class TestTransactionStore extends TestBase {
         assertTrue(it2.hasNext());
         assertEquals("4", it2.next());
         assertFalse(it2.hasNext());
-        
+
         s.close();
     }
 

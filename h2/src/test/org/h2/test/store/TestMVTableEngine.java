@@ -114,27 +114,30 @@ int test;
         Statement stat;
         ResultSet rs;
         conn = getConnection("mvstore");
-        stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name varchar) "
-                + "engine \"org.h2.mvstore.db.MVTableEngine\"");
-        conn.setAutoCommit(false);
-        stat.execute("insert into test values(1, 'Hello')");
-        stat.execute("insert into test values(2, 'World')");
-        rs = stat.executeQuery("select count(*) from test");
-        rs.next();
-        assertEquals(2, rs.getInt(1));
-        conn.rollback();
-        rs = stat.executeQuery("select count(*) from test");
-        rs.next();
-        assertEquals(0, rs.getInt(1));
+        for (int i = 0; i < 2; i++) {
+            stat = conn.createStatement();
+            stat.execute("create table test(id int primary key, name varchar) "
+                    + "engine \"org.h2.mvstore.db.MVTableEngine\"");
+            conn.setAutoCommit(false);
+            stat.execute("insert into test values(1, 'Hello')");
+            stat.execute("insert into test values(2, 'World')");
+            rs = stat.executeQuery("select count(*) from test");
+            rs.next();
+            assertEquals(2, rs.getInt(1));
+            conn.rollback();
+            rs = stat.executeQuery("select count(*) from test");
+            rs.next();
+            assertEquals(0, rs.getInt(1));
 
-        stat.execute("insert into test values(1, 'Hello')");
-        Savepoint sp = conn.setSavepoint();
-        stat.execute("insert into test values(2, 'World')");
-        conn.rollback(sp);
-        rs = stat.executeQuery("select count(*) from test");
-        rs.next();
-        assertEquals(1, rs.getInt(1));
+            stat.execute("insert into test values(1, 'Hello')");
+            Savepoint sp = conn.setSavepoint();
+            stat.execute("insert into test values(2, 'World')");
+            conn.rollback(sp);
+            rs = stat.executeQuery("select count(*) from test");
+            rs.next();
+            assertEquals(1, rs.getInt(1));
+            stat.execute("drop table test");
+        }
 
         conn.close();
     }

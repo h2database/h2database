@@ -100,6 +100,10 @@ public class MVTableEngine implements TableEngine {
         public List<MVTable> getTables() {
             return openTables;
         }
+        
+        public void removeTable(MVTable table) {
+            openTables.remove(table);
+        }
 
         /**
          * Store all pending changes.

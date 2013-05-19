@@ -476,6 +476,7 @@ public class ValueLob extends Value {
         if (fileName != null) {
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
+                tempFile = null;
             }
             deleteFile(handler, fileName);
         }

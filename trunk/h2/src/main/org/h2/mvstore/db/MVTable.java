@@ -642,6 +642,7 @@ public class MVTable extends TableBase {
         }
         primaryIndex.remove(session);
         database.removeMeta(session, getId());
+        database.getMvStore().removeTable(this);
         primaryIndex = null;
         close(session);
         invalidate();

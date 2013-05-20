@@ -85,6 +85,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private DatabaseEventListener eventListener;
     private LobStorageFrontend lobStorage;
     private boolean cluster;
+    private TempFileDeleter tempFileDeleter;
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
@@ -687,7 +688,10 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     @Override
     public TempFileDeleter getTempFileDeleter() {
-        return TempFileDeleter.getInstance();
+        if (tempFileDeleter == null) {
+            tempFileDeleter = TempFileDeleter.getInstance();
+        }
+        return tempFileDeleter;
     }
 
     @Override

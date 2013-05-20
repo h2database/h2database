@@ -118,10 +118,8 @@ public class MVSecondaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         Value old = map.remove(array);
         if (old == null) {
-            if (old == null) {
-                throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
-                        getSQL() + ": " + row.getKey());
-            }
+            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
+                    getSQL() + ": " + row.getKey());
         }
     }
 
@@ -140,9 +138,7 @@ public class MVSecondaryIndex extends BaseIndex {
         for (int i = 0; i < columns.length; i++) {
             Column c = columns[i];
             int idx = c.getColumnId();
-            if (r != null) {
-                array[i] = r.getValue(idx);
-            }
+            array[i] = r.getValue(idx);
         }
         array[keyColumns - 1] = ValueLong.get(r.getKey());
         return ValueArray.get(array);

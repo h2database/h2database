@@ -139,6 +139,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         if (fileName != null) {
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
+                tempFile = null;
             }
             // synchronize on the database, to avoid concurrent temp file creation /
             // deletion / backup

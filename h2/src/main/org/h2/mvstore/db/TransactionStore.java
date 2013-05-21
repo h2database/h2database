@@ -374,11 +374,6 @@ public class TransactionStore {
         final TransactionStore store;
 
         /**
-         * The version of the store at the time the transaction was started.
-         */
-        final long startVersion;
-
-        /**
          * The transaction id.
          */
         final long transactionId;
@@ -394,7 +389,6 @@ public class TransactionStore {
 
         Transaction(TransactionStore store, long transactionId, int status, String name, long logId) {
             this.store = store;
-            this.startVersion = store.store.getCurrentVersion();
             this.transactionId = transactionId;
             this.status = status;
             this.name = name;
@@ -1091,7 +1085,13 @@ public class TransactionStore {
             VersionedValue v = (VersionedValue) obj;
             DataUtils.writeVarLong(buff, v.transactionId);
             DataUtils.writeVarLong(buff, v.logId);
-            return valueType.write(buff, v.value);
+            if (v.value == null) {
+                buff.put((byte) 0);
+            } else {
+                buff.put((byte) 1);
+                buff = valueType.write(buff, v.value);
+            }
+            return buff;
         }
 
         @Override
@@ -1099,7 +1099,9 @@ public class TransactionStore {
             VersionedValue v = new VersionedValue();
             v.transactionId = DataUtils.readVarLong(buff);
             v.logId = DataUtils.readVarLong(buff);
-            v.value = valueType.read(buff);
+            if (buff.get() == 1) {
+                v.value = valueType.read(buff);
+            }
             return v;
         }
 

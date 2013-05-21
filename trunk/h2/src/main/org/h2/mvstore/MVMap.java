@@ -926,8 +926,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     "This map is read-only");
         }
         checkConcurrentWrite();
-        writing = true;
         store.beforeWrite();
+        writing = true;
     }
 
     /**

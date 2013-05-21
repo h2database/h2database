@@ -97,7 +97,7 @@ public class MVSecondaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         ValueArray array = getKey(row);
         if (indexType.isUnique()) {
-            array.getList()[keyColumns - 1] = ValueLong.get(0);
+            array.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
             ValueArray key = (ValueArray) map.ceilingKey(array);
             if (key != null) {
                 SearchRow r2 = getRow(key.getList());
@@ -125,7 +125,10 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        Value min = getKey(first);
+        ValueArray min = getKey(first);
+        if (min != null) {
+            min.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+        }
         TransactionMap<Value, Value> map = getMap(session);
         return new MVStoreCursor(session, map.keyIterator(min), last);
     }

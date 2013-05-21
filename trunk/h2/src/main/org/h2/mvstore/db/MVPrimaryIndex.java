@@ -192,7 +192,8 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public Row getRow(Session session, long key) {
         TransactionMap<Value, Value> map = getMap(session);
-        ValueArray array = (ValueArray) map.get(ValueLong.get(key));
+        Value v = map.get(ValueLong.get(key));
+        ValueArray array = (ValueArray) v;
         Row row = new Row(array.getList(), 0);
         row.setKey(key);
         return row;

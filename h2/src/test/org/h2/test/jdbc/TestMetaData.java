@@ -292,23 +292,18 @@ public class TestMetaData extends TestBase {
         assertEquals(".", meta.getCatalogSeparator());
         assertEquals("catalog", meta.getCatalogTerm());
         assertTrue(meta.getConnection() == conn);
-        if (config.jdk14) {
-            String versionStart = meta.getDatabaseMajorVersion() + "." + meta.getDatabaseMinorVersion();
-            assertTrue(meta.getDatabaseProductVersion().startsWith(versionStart));
-            assertEquals(meta.getDatabaseMajorVersion(), meta.getDriverMajorVersion());
-            assertEquals(meta.getDatabaseMinorVersion(), meta.getDriverMinorVersion());
-            int majorVersion = 3;
-            //## Java 1.6 ##
-            majorVersion = 4;
-            //*/
-            assertEquals(majorVersion, meta.getJDBCMajorVersion());
-            assertEquals(0, meta.getJDBCMinorVersion());
-        }
+        String versionStart = meta.getDatabaseMajorVersion() + "." + meta.getDatabaseMinorVersion();
+        assertTrue(meta.getDatabaseProductVersion().startsWith(versionStart));
+        assertEquals(meta.getDatabaseMajorVersion(), meta.getDriverMajorVersion());
+        assertEquals(meta.getDatabaseMinorVersion(), meta.getDriverMinorVersion());
+        int majorVersion = 4;
+        assertEquals(majorVersion, meta.getJDBCMajorVersion());
+        assertEquals(0, meta.getJDBCMinorVersion());
         assertEquals("H2", meta.getDatabaseProductName());
         assertEquals(Connection.TRANSACTION_READ_COMMITTED, meta.getDefaultTransactionIsolation());
         assertEquals("H2 JDBC Driver", meta.getDriverName());
 
-        String versionStart = meta.getDriverMajorVersion() + "." + meta.getDriverMinorVersion();
+        versionStart = meta.getDriverMajorVersion() + "." + meta.getDriverMinorVersion();
         assertTrue(meta.getDriverVersion().startsWith(versionStart));
         assertEquals("", meta.getExtraNameCharacters());
         assertEquals("\"", meta.getIdentifierQuoteString());
@@ -333,11 +328,11 @@ public class TestMetaData extends TestBase {
         assertEquals(0, meta.getMaxTablesInSelect());
         assertEquals(0, meta.getMaxUserNameLength());
         assertEquals("procedure", meta.getProcedureTerm());
-        if (config.jdk14) {
-            assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT, meta.getResultSetHoldability());
-            assertEquals(DatabaseMetaData.sqlStateSQL99, meta.getSQLStateType());
-            assertFalse(meta.locatorsUpdateCopy());
-        }
+        
+        assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT, meta.getResultSetHoldability());
+        assertEquals(DatabaseMetaData.sqlStateSQL99, meta.getSQLStateType());
+        assertFalse(meta.locatorsUpdateCopy());
+        
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
         assertEquals("LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY", meta.getSQLKeywords());
@@ -400,11 +395,11 @@ public class TestMetaData extends TestBase {
         assertTrue(meta.supportsExpressionsInOrderBy());
         assertFalse(meta.supportsExtendedSQLGrammar());
         assertFalse(meta.supportsFullOuterJoins());
-        if (config.jdk14) {
-            assertTrue(meta.supportsGetGeneratedKeys());
-            assertTrue(meta.supportsMultipleOpenResults());
-            assertFalse(meta.supportsNamedParameters());
-        }
+
+        assertTrue(meta.supportsGetGeneratedKeys());
+        assertTrue(meta.supportsMultipleOpenResults());
+        assertFalse(meta.supportsNamedParameters());
+
         assertTrue(meta.supportsGroupBy());
         assertTrue(meta.supportsGroupByBeyondSelect());
         assertTrue(meta.supportsGroupByUnrelated());
@@ -431,12 +426,12 @@ public class TestMetaData extends TestBase {
         assertTrue(meta.supportsResultSetConcurrency(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE));
         assertFalse(meta.supportsResultSetConcurrency(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY));
         assertFalse(meta.supportsResultSetConcurrency(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE));
-        if (config.jdk14) {
-            assertFalse(meta.supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT));
-            assertTrue(meta.supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT));
-            assertTrue(meta.supportsSavepoints());
-            assertFalse(meta.supportsStatementPooling());
-        }
+
+        assertFalse(meta.supportsResultSetHoldability(ResultSet.HOLD_CURSORS_OVER_COMMIT));
+        assertTrue(meta.supportsResultSetHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT));
+        assertTrue(meta.supportsSavepoints());
+        assertFalse(meta.supportsStatementPooling());
+
         assertTrue(meta.supportsResultSetType(ResultSet.TYPE_FORWARD_ONLY));
         assertTrue(meta.supportsResultSetType(ResultSet.TYPE_SCROLL_INSENSITIVE));
         assertFalse(meta.supportsResultSetType(ResultSet.TYPE_SCROLL_SENSITIVE));

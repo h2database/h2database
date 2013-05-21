@@ -80,9 +80,7 @@ public class TestPreparedStatement extends TestBase {
         testCasewhen(conn);
         testSubquery(conn);
         testObject(conn);
-        if (config.jdk14) {
-            testIdentity(conn);
-        }
+        testIdentity(conn);
         testDataTypes(conn);
         testGetMoreResults(conn);
         testBlob(conn);

@@ -559,6 +559,14 @@ int test;
         } catch (SQLException e) {
             assertEquals(ErrorCode.DUPLICATE_KEY_1, e.getErrorCode());
         }
+        stat.execute("delete from test");
+        stat.execute("insert into test(id, name) values(-1, 'Hello')");
+        rs = stat.executeQuery("select count(*) from test where id = -1");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        rs = stat.executeQuery("select count(*) from test where name = 'Hello'");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
         conn.close();
     }
 

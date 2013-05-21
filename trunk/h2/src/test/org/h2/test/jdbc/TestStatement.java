@@ -38,15 +38,11 @@ public class TestStatement extends TestBase {
         deleteDb("statement");
         conn = getConnection("statement");
         testTraceError();
-        if (config.jdk14) {
-            testSavepoint();
-        }
+        testSavepoint();
         testConnectionRollback();
         testStatement();
-        if (config.jdk14) {
-            testIdentityMerge();
-            testIdentity();
-        }
+        testIdentityMerge();
+        testIdentity();
         conn.close();
         deleteDb("statement");
     }
@@ -183,9 +179,7 @@ public class TestStatement extends TestBase {
         // this method should not throw an exception - if not supported, this
         // calls are ignored
 
-        if (config.jdk14) {
-            assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, stat.getResultSetHoldability());
-        }
+        assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, stat.getResultSetHoldability());
         assertEquals(ResultSet.CONCUR_READ_ONLY, stat.getResultSetConcurrency());
 
         stat.cancel();

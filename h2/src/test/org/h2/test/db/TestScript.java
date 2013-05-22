@@ -43,8 +43,7 @@ public class TestScript extends TestBase {
     private String putBack;
     private StringBuilder errors;
     private ArrayList<String> statements;
-    private final String fileName = "org/h2/test/test-" +
-        Constants.VERSION_MAJOR + "." + Constants.VERSION_MINOR + ".txt";
+    private final String fileName = "org/h2/test/testScript.sql";
 
     /**
      * Run just this test.

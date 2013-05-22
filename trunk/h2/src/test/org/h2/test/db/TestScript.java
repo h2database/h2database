@@ -19,7 +19,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import org.h2.engine.Constants;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -31,6 +30,8 @@ import org.h2.util.StringUtils;
  */
 public class TestScript extends TestBase {
 
+    private static final String FILENAME = "org/h2/test/testScript.sql";
+    
     private boolean failFast;
 
     private boolean alwaysReconnect;
@@ -43,7 +44,6 @@ public class TestScript extends TestBase {
     private String putBack;
     private StringBuilder errors;
     private ArrayList<String> statements;
-    private final String fileName = "org/h2/test/testScript.sql";
 
     /**
      * Run just this test.
@@ -85,7 +85,7 @@ public class TestScript extends TestBase {
     private void testScript() throws Exception {
         deleteDb("script");
         String outFile = "test.out.txt";
-        String inFile = fileName;
+        String inFile = FILENAME;
         conn = getConnection("script");
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));

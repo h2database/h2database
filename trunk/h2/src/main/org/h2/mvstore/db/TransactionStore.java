@@ -223,9 +223,8 @@ public class TransactionStore {
             return;
         }
         for (long logId = 0; logId < maxLogId; logId++) {
-            long[] undoKey = new long[] {
-                    t.getId(), logId };
             commitIfNeeded();
+            long[] undoKey = new long[] { t.getId(), logId };
             Object[] op = undoLog.get(undoKey);
             int opType = (Integer) op[0];
             if (opType == Transaction.OP_REMOVE) {
@@ -287,6 +286,9 @@ public class TransactionStore {
         if (t.getId() == firstOpenTransaction) {
             firstOpenTransaction = -1;
         }
+        if (store.getWriteDelay() == 0) {
+            store.commit();
+        }
     }
 
     /**
@@ -299,8 +301,8 @@ public class TransactionStore {
     void rollbackTo(Transaction t, long maxLogId, long toLogId) {
         for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
             commitIfNeeded();
-            Object[] op = undoLog.get(new long[] {
-                    t.getId(), logId });
+            long[] undoKey = new long[] { t.getId(), logId };
+            Object[] op = undoLog.get(undoKey);
             int mapId = ((Integer) op[1]).intValue();
             // TODO open map by id if possible
             Map<String, String> meta = store.getMetaMap();
@@ -316,7 +318,7 @@ public class TransactionStore {
                 // this transaction updated the value
                 map.put(key, oldValue);
             }
-            undoLog.remove(op);
+            undoLog.remove(undoKey);
         }
     }
 

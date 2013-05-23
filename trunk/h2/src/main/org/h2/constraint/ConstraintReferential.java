@@ -636,6 +636,7 @@ public class ConstraintReferential extends Constraint {
             // don't check at startup
             return;
         }
+        session.startStatementWithinTransaction();
         StatementBuilder buff = new StatementBuilder("SELECT 1 FROM (SELECT ");
         for (IndexColumn c : columns) {
             buff.appendExceptFirst(", ");

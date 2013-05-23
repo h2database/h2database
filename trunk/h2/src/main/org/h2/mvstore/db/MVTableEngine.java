@@ -137,10 +137,16 @@ public class MVTableEngine implements TableEngine {
          * Close the store. Pending changes are persisted.
          */
         public void close() {
-            if (!store.isReadOnly()) {
-                store.store();
+            if (!store.isClosed()) {
+                if (!store.isReadOnly()) {
+                    store.store();
+                }
+                store.close();
             }
-            store.close();
+        }
+
+        public void setWriteDelay(int value) {
+            store.setWriteDelay(value);
         }
 
     }

@@ -1742,6 +1742,9 @@ public class Database implements DataHandler {
             // TODO check if MIN_WRITE_DELAY is a good value
             flushOnEachCommit = writeDelay < Constants.MIN_WRITE_DELAY;
         }
+        if (mvStore != null) {
+            mvStore.setWriteDelay(value);
+        }
     }
 
     /**

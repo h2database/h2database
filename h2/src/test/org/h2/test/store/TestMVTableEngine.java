@@ -42,6 +42,8 @@ public class TestMVTableEngine extends TestBase {
     @Override
     public void test() throws Exception {
         // testSpeed();
+        testReferentialIntegrity();
+        testWriteDelay();
         testAutoCommit();
         testReopen();
         testBlob();
@@ -106,6 +108,78 @@ int test;
         conn.close();
 //System.out.println(prof.getTop(10));
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
+    }
+    
+    private void testReferentialIntegrity() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        conn = getConnection("mvstore;default_table_engine=org.h2.mvstore.db.MVTableEngine");
+        stat = conn.createStatement();
+
+        stat.execute("create table parent(id int)");
+        stat.execute("create table child(pid int)");
+        stat.execute("insert into parent values(1)");
+        stat.execute("insert into child values(2)");
+        try {
+            stat.execute("alter table child add constraint cp " + 
+                    "foreign key(pid) references parent(id)");
+            fail();
+        } catch (SQLException e) {
+            // expected
+        }
+        int todo;
+        // stat.execute("update child set pid=1");
+        stat.execute("drop table child, parent");
+
+        stat.execute("create table parent(id int)");
+        stat.execute("create table child(pid int)");
+        stat.execute("insert into parent values(1)");
+        stat.execute("insert into child values(2)");
+        try {
+            stat.execute("alter table child add constraint cp " + 
+                        "foreign key(pid) references parent(id)");
+            fail();
+        } catch (SQLException e) {
+            // expected
+        }
+        stat.execute("drop table child, parent");
+        
+        // currently not supported, as previous rows are not visible
+        // stat.execute("create table test(id identity, parent bigint, foreign key(parent) references(id))");
+        // stat.execute("insert into test values(0, 0), (1, NULL), (2, 1), (3, 3), (4, 3)");
+        // stat.execute("drop table test");
+        
+        stat.execute("create table parent(id int, x int)");
+        stat.execute("insert into parent values(1, 2)");
+        stat.execute("create table child(id int references parent(id)) as select 1");
+
+        conn.close();
+    }
+    
+    private void testWriteDelay() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        ResultSet rs;
+        conn = getConnection("mvstore");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int) " +
+                "engine \"org.h2.mvstore.db.MVTableEngine\"");
+        stat.execute("set write_delay 0");
+        stat.execute("insert into test values(1)");
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (Exception e) {
+            // ignore
+        }
+
+        conn = getConnection("mvstore");
+        stat = conn.createStatement();
+        rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        conn.close();
     }
 
     private void testAutoCommit() throws SQLException {

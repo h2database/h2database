@@ -1287,7 +1287,16 @@ public class Session extends SessionWithState {
     }
 
     public Value getTransactionId() {
-        if (undoLog.size() == 0 || !database.isPersistent()) {
+        if (!database.isPersistent()) {
+            return ValueNull.INSTANCE;
+        }
+        if (database.getMvStore() != null) {
+            if (transaction == null) {
+                return ValueNull.INSTANCE;
+            }
+            return ValueString.get(Long.toString(getTransaction().getId()));
+        }
+        if (undoLog.size() == 0) {
             return ValueNull.INSTANCE;
         }
         return ValueString.get(firstUncommittedLog + "-" + firstUncommittedPos + "-" + id);
@@ -1324,6 +1333,13 @@ public class Session extends SessionWithState {
             startStatement = getTransaction().setSavepoint();
         }
         return startStatement;
+    }
+    
+    /**
+     * Start a new statement within a transaction.
+     */
+    public void startStatementWithinTransaction() {
+        startStatement = -1;
     }
 
     /**

@@ -172,6 +172,7 @@ public class CreateTable extends SchemaCommand {
                 boolean old = session.isUndoLogEnabled();
                 try {
                     session.setUndoLogEnabled(false);
+                    session.startStatementWithinTransaction();
                     Insert insert = null;
                     insert = new Insert(session);
                     insert.setSortedInsertMode(sortedInsertMode);

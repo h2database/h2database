@@ -87,7 +87,7 @@ public class Analyze extends DefineCommand {
             if (type == Value.BLOB || type == Value.CLOB) {
                 // can not index LOB columns, so calculating
                 // the selectivity is not required
-                buff.append("100");
+                buff.append("MAX(100)");
             } else {
                 buff.append("SELECTIVITY(").append(col.getSQL()).append(')');
             }

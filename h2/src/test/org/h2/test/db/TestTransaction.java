@@ -36,6 +36,7 @@ public class TestTransaction extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testContraintCreationRollback();
         testCommitOnAutoCommitChange();
         testConcurrentSelectForUpdate();
         testLogMode();
@@ -47,6 +48,24 @@ public class TestTransaction extends TestBase {
         testSavepoint();
         testIsolation();
         deleteDb("transaction");
+    }
+    
+    private void testContraintCreationRollback() throws SQLException {
+        deleteDb("transaction");
+        Connection conn = getConnection("transaction");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, p int)");
+        stat.execute("insert into test values(1, 2)");
+        try {
+            stat.execute("alter table test add constraint fail " +
+                    "foreign key(p) references test(id)");
+            fail();
+        } catch (SQLException e) {
+            // expected
+        }
+        stat.execute("insert into test values(1, 2)");
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testCommitOnAutoCommitChange() throws SQLException {

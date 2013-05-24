@@ -50,6 +50,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private boolean checkExisting;
     private boolean primaryKeyHash;
     private final boolean ifNotExists;
+    private ArrayList<Index> createdIndexes = New.arrayList();
 
     public AlterTableAddConstraint(Session session, Schema schema, boolean ifNotExists) {
         super(session, schema);
@@ -67,6 +68,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
     public int update() {
         try {
             return tryUpdate();
+        } catch (DbException e) {
+            for (Index index : createdIndexes) {
+                session.getDatabase().removeSchemaObject(session, index);
+            }
+            throw e;
         } finally {
             getSchema().freeUniqueName(constraintName);
         }
@@ -259,7 +265,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
         String prefix = constraintName == null ? "CONSTRAINT" : constraintName;
         String indexName = t.getSchema().getUniqueIndexName(session, t, prefix + "_INDEX_");
         try {
-            return t.addIndex(session, indexName, indexId, cols, indexType, true, null);
+            Index index = t.addIndex(session, indexName, indexId, cols, indexType, true, null);
+            createdIndexes.add(index);
+            return index;
         } finally {
             getSchema().freeUniqueName(indexName);
         }

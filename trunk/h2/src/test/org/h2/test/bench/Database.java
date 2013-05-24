@@ -30,13 +30,9 @@ import org.h2.util.StringUtils;
  */
 class Database {
 
-    public interface DatabaseParentInterface {
-        boolean isCollect();
-        void trace(String msg);
-    }
     private static final boolean TRACE = true;
 
-    private DatabaseParentInterface test;
+    private DatabaseTest test;
     private int id;
     private String name, url, user, password;
     private final ArrayList<String[]> replace = new ArrayList<String[]>();
@@ -49,8 +45,8 @@ class Database {
     private final ArrayList<Object[]> results = new ArrayList<Object[]>();
     private int totalTime;
     private final AtomicInteger executedStatements = new AtomicInteger(0);
-    private int noThreads;
-    
+    private int threadCount;
+
     private Server serverH2;
     private Object serverDerby;
     private boolean serverHSQLDB;
@@ -153,13 +149,15 @@ class Database {
      * @param test the test application
      * @param id the database id
      * @param dbString the configuration string
+     * @param threadCount the number of threads to use
      * @return a new database object with the given settings
      */
-    static Database parse(DatabaseParentInterface test, int id, String dbString) {
+    static Database parse(DatabaseTest test, int id, String dbString, int threadCount) {
         try {
             StringTokenizer tokenizer = new StringTokenizer(dbString, ",");
             Database db = new Database();
             db.id = id;
+            db.threadCount = threadCount;
             db.test = test;
             db.name = tokenizer.nextToken().trim();
             String driver = tokenizer.nextToken().trim();
@@ -177,12 +175,6 @@ class Database {
         }
     }
 
-    static Database parse(DatabaseParentInterface test, int id, String dbString, int noThreads) {
-        Database db = parse(test, id, dbString);
-        db.noThreads = noThreads;
-        return db;
-    }
-    
     /**
      * Open a new database connection. This connection must be closed
      * by calling conn.close().
@@ -463,9 +455,30 @@ class Database {
     int getId() {
         return id;
     }
-    
-    int getNoThreads() {
-        return noThreads;
+
+    int getThreadsCount() {
+        return threadCount;
+    }
+
+    /**
+     * The interface used for a test.
+     */
+    public interface DatabaseTest {
+
+        /**
+         * Whether data needs to be collected.
+         *
+         * @return true if yes
+         */
+        boolean isCollect();
+
+        /**
+         * Print a message to system out if trace is enabled.
+         *
+         * @param msg the message
+         */
+        void trace(String msg);
+
     }
 
 }

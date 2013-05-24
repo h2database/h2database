@@ -109,7 +109,7 @@ int test;
 //System.out.println(prof.getTop(10));
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
     }
-    
+
     private void testReferentialIntegrity() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -122,7 +122,7 @@ int test;
         stat.execute("insert into parent values(1)");
         stat.execute("insert into child values(2)");
         try {
-            stat.execute("alter table child add constraint cp " + 
+            stat.execute("alter table child add constraint cp " +
                     "foreign key(pid) references parent(id)");
             fail();
         } catch (SQLException e) {
@@ -137,26 +137,28 @@ int test;
         stat.execute("insert into parent values(1)");
         stat.execute("insert into child values(2)");
         try {
-            stat.execute("alter table child add constraint cp " + 
+            stat.execute("alter table child add constraint cp " +
                         "foreign key(pid) references parent(id)");
             fail();
         } catch (SQLException e) {
             // expected
         }
         stat.execute("drop table child, parent");
-        
+
         // currently not supported, as previous rows are not visible
-        // stat.execute("create table test(id identity, parent bigint, foreign key(parent) references(id))");
-        // stat.execute("insert into test values(0, 0), (1, NULL), (2, 1), (3, 3), (4, 3)");
+        // stat.execute("create table test(id identity, parent bigint,
+        //     foreign key(parent) references(id))");
+        // stat.execute("insert into test values(0, 0), (1, NULL),
+        //     (2, 1), (3, 3), (4, 3)");
         // stat.execute("drop table test");
-        
+
         stat.execute("create table parent(id int, x int)");
         stat.execute("insert into parent values(1, 2)");
         stat.execute("create table child(id int references parent(id)) as select 1");
 
         conn.close();
     }
-    
+
     private void testWriteDelay() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;

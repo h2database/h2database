@@ -31,7 +31,7 @@ import org.h2.util.StringUtils;
 public class TestScript extends TestBase {
 
     private static final String FILENAME = "org/h2/test/testScript.sql";
-    
+
     private boolean failFast;
 
     private boolean alwaysReconnect;

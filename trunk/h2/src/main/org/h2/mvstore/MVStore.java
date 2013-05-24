@@ -1738,7 +1738,7 @@ public class MVStore {
     public boolean isClosed() {
         return closed;
     }
-    
+
     private void stopBackgroundThread() {
         if (backgroundThread == null) {
             return;
@@ -1768,7 +1768,7 @@ public class MVStore {
             backgroundThread = t;
         }
     }
-    
+
     public int getWriteDelay() {
         return writeDelay;
     }

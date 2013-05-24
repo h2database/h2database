@@ -100,7 +100,12 @@ public class MVTableEngine implements TableEngine {
         public List<MVTable> getTables() {
             return openTables;
         }
-        
+
+        /**
+         * Remove a table.
+         *
+         * @param table the table
+         */
         public void removeTable(MVTable table) {
             openTables.remove(table);
         }

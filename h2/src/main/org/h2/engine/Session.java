@@ -1334,7 +1334,7 @@ public class Session extends SessionWithState {
         }
         return startStatement;
     }
-    
+
     /**
      * Start a new statement within a transaction.
      */

@@ -1655,7 +1655,7 @@ Centralリポジトリの利用
 #Queries with both LIMIT and OFFSET could throw an IllegalArgumentException. 
 
 @changelog_1006_li
-#MVStore: multiple issues were fixed: 460, 461, 462. 
+#MVStore: multiple issues were fixed: 460, 461, 462, 464, 466. 
 
 @changelog_1007_li
 #MVStore: larger stores (multiple GB) are now much faster. 

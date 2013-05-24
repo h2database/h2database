@@ -27,7 +27,7 @@ import org.h2.util.JdbcUtils;
  * The main controller class of the benchmark application.
  * To run the benchmark, call the main method of this class.
  */
-public class TestPerformance implements Database.DatabaseParentInterface {
+public class TestPerformance implements Database.DatabaseTest {
 
     /**
      * Whether data should be collected.
@@ -97,7 +97,7 @@ public class TestPerformance implements Database.DatabaseParentInterface {
             }
             String dbString = prop.getProperty("db" + i);
             if (dbString != null) {
-                Database db = Database.parse(this, i, dbString);
+                Database db = Database.parse(this, i, dbString, 1);
                 if (db != null) {
                     db.setTranslations(prop);
                     dbs.add(db);
@@ -248,17 +248,13 @@ public class TestPerformance implements Database.DatabaseParentInterface {
         bench.runTest();
     }
 
-    /**
-     * Print a message to system out if trace is enabled.
-     *
-     * @param s the message
-     */
-    public void trace(String s) {
+    @Override
+    public void trace(String msg) {
         if (trace) {
-            System.out.println(s);
+            System.out.println(msg);
         }
     }
-    
+
     @Override
     public boolean isCollect() {
         return collect;

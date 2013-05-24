@@ -24,7 +24,7 @@ import org.h2.util.JdbcUtils;
  * Used to compare scalability between the old engine and the new MVStore engine.
  * Mostly it runs BenchB with various numbers of threads.
  */
-public class TestScalability implements Database.DatabaseParentInterface {
+public class TestScalability implements Database.DatabaseTest {
 
     /**
      * Whether data should be collected.
@@ -38,7 +38,7 @@ public class TestScalability implements Database.DatabaseParentInterface {
 
     /**
      * This method is called when executing this sample application.
-     * 
+     *
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
@@ -80,8 +80,8 @@ public class TestScalability implements Database.DatabaseParentInterface {
         dbs.add(createDbEntry(id++, "H2", 40, h2Url));
         dbs.add(createDbEntry(id++, "H2", 50, h2Url));
         dbs.add(createDbEntry(id++, "H2", 100, h2Url));
-        
-        final String mvUrl = "jdbc:h2:data/mvtest;LOCK_TIMEOUT=10000;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
+
+        final String mvUrl = "jdbc:h2:data/mvTest;LOCK_TIMEOUT=10000;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
         dbs.add(createDbEntry(id++, "MV", 1, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 10, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 20, mvUrl));
@@ -89,7 +89,7 @@ public class TestScalability implements Database.DatabaseParentInterface {
         dbs.add(createDbEntry(id++, "MV", 40, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 50, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 100, mvUrl));
-        
+
         final BenchB test = new BenchB();
         testAll(dbs, test, size);
         collect = false;
@@ -144,9 +144,9 @@ public class TestScalability implements Database.DatabaseParentInterface {
         }
     }
 
-    private Database createDbEntry(int id, String namePrefix, int noThreads, String url) {
+    private Database createDbEntry(int id, String namePrefix, int threadCount, String url) {
         Database db = Database.parse(this, id,
-                namePrefix + "(" + noThreads + "thread), org.h2.Driver, " + url + ", sa, sa", noThreads);
+                namePrefix + "(" + threadCount + "threads), org.h2.Driver, " + url + ", sa, sa", threadCount);
         return db;
     }
 
@@ -181,13 +181,13 @@ public class TestScalability implements Database.DatabaseParentInterface {
 
     private static void runDatabase(Database db, BenchB bench, int size) throws Exception {
         bench.init(db, size);
-        bench.setNoThreads(db.getNoThreads());
+        bench.setThreadCount(db.getThreadsCount());
         bench.runTest();
     }
 
     /**
      * Print a message to system out if trace is enabled.
-     * 
+     *
      * @param s the message
      */
     @Override

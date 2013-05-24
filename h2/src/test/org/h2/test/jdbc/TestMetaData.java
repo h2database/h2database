@@ -328,11 +328,11 @@ public class TestMetaData extends TestBase {
         assertEquals(0, meta.getMaxTablesInSelect());
         assertEquals(0, meta.getMaxUserNameLength());
         assertEquals("procedure", meta.getProcedureTerm());
-        
+
         assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT, meta.getResultSetHoldability());
         assertEquals(DatabaseMetaData.sqlStateSQL99, meta.getSQLStateType());
         assertFalse(meta.locatorsUpdateCopy());
-        
+
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
         assertEquals("LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY", meta.getSQLKeywords());

@@ -26,8 +26,8 @@ public class BenchB implements Bench, Runnable {
     private static final int TELLERS = 10;
     private static final int ACCOUNTS = 100000;
 
-    private int noThreads = 10;
-    
+    private int threadCount = 10;
+
     // master data
     private Database database;
     private int transactionPerClient;
@@ -200,8 +200,8 @@ public class BenchB implements Bench, Runnable {
     }
 
     private void processTransactions() throws Exception {
-        Thread[] threads = new Thread[noThreads];
-        for (int i = 0; i < noThreads; i++) {
+        Thread[] threads = new Thread[threadCount];
+        for (int i = 0; i < threadCount; i++) {
             threads[i] = new Thread(new BenchB(this, i), "BenchB-" + i);
         }
         for (Thread t : threads) {
@@ -216,8 +216,8 @@ public class BenchB implements Bench, Runnable {
     public String getName() {
         return "BenchB";
     }
-    
-    public void setNoThreads(int noThreads) {
-        this.noThreads = noThreads;
+
+    public void setThreadCount(int threadCount) {
+        this.threadCount = threadCount;
     }
 }

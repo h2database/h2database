@@ -27,7 +27,7 @@ import org.h2.util.JdbcUtils;
  * The main controller class of the benchmark application.
  * To run the benchmark, call the main method of this class.
  */
-public class TestPerformance {
+public class TestPerformance implements Database.DatabaseParentInterface {
 
     /**
      * Whether data should be collected.
@@ -253,10 +253,15 @@ public class TestPerformance {
      *
      * @param s the message
      */
-    void trace(String s) {
+    public void trace(String s) {
         if (trace) {
             System.out.println(s);
         }
+    }
+    
+    @Override
+    public boolean isCollect() {
+        return collect;
     }
 
 }

@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 import org.h2.util.JdbcUtils;
@@ -30,9 +30,13 @@ import org.h2.util.StringUtils;
  */
 class Database {
 
+    public interface DatabaseParentInterface {
+        boolean isCollect();
+        void trace(String msg);
+    }
     private static final boolean TRACE = true;
 
-    private TestPerformance test;
+    private DatabaseParentInterface test;
     private int id;
     private String name, url, user, password;
     private final ArrayList<String[]> replace = new ArrayList<String[]>();
@@ -44,8 +48,9 @@ class Database {
     private final Random random = new Random(1);
     private final ArrayList<Object[]> results = new ArrayList<Object[]>();
     private int totalTime;
-    private int executedStatements;
-
+    private final AtomicInteger executedStatements = new AtomicInteger(0);
+    private int noThreads;
+    
     private Server serverH2;
     private Object serverDerby;
     private boolean serverHSQLDB;
@@ -150,7 +155,7 @@ class Database {
      * @param dbString the configuration string
      * @return a new database object with the given settings
      */
-    static Database parse(TestPerformance test, int id, String dbString) {
+    static Database parse(DatabaseParentInterface test, int id, String dbString) {
         try {
             StringTokenizer tokenizer = new StringTokenizer(dbString, ",");
             Database db = new Database();
@@ -172,6 +177,12 @@ class Database {
         }
     }
 
+    static Database parse(DatabaseParentInterface test, int id, String dbString, int noThreads) {
+        Database db = parse(test, id, dbString);
+        db.noThreads = noThreads;
+        return db;
+    }
+    
     /**
      * Open a new database connection. This connection must be closed
      * by calling conn.close().
@@ -285,7 +296,7 @@ class Database {
     void end() {
         long time = System.currentTimeMillis() - startTime;
         log(currentAction, "ms", (int) time);
-        if (test.collect) {
+        if (test.isCollect()) {
             totalTime += time;
         }
     }
@@ -312,8 +323,8 @@ class Database {
     void update(PreparedStatement prep, String traceMessage) throws SQLException {
         test.trace(traceMessage);
         prep.executeUpdate();
-        if (test.collect) {
-            executedStatements++;
+        if (test.isCollect()) {
+            executedStatements.incrementAndGet();
         }
     }
 
@@ -325,8 +336,8 @@ class Database {
     void update(String sql) throws SQLException {
         sql = getSQL(sql);
         if (sql.trim().length() > 0) {
-            if (test.collect) {
-                executedStatements++;
+            if (test.isCollect()) {
+                executedStatements.incrementAndGet();
             }
             stat.execute(sql);
         } else {
@@ -395,7 +406,7 @@ class Database {
      * @param value the value
      */
     void log(String action, String scale, int value) {
-        if (test.collect) {
+        if (test.isCollect()) {
             results.add(new Object[] { action, scale, Integer.valueOf(value) });
         }
     }
@@ -413,8 +424,8 @@ class Database {
         // if(time > 100) {
         //     System.out.println("time="+time);
         // }
-        if (test.collect) {
-            executedStatements++;
+        if (test.isCollect()) {
+            executedStatements.incrementAndGet();
         }
         return rs;
     }
@@ -441,7 +452,7 @@ class Database {
      * @return the number of statements
      */
     int getExecutedStatements() {
-        return executedStatements;
+        return executedStatements.get();
     }
 
     /**
@@ -451,6 +462,10 @@ class Database {
      */
     int getId() {
         return id;
+    }
+    
+    int getNoThreads() {
+        return noThreads;
     }
 
 }

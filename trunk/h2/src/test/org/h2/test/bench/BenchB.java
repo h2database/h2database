@@ -25,8 +25,9 @@ public class BenchB implements Bench, Runnable {
     private static final int BRANCHES = 1;
     private static final int TELLERS = 10;
     private static final int ACCOUNTS = 100000;
-    private static final int CLIENTS = 10;
 
+    private int noThreads = 10;
+    
     // master data
     private Database database;
     private int transactionPerClient;
@@ -151,11 +152,12 @@ public class BenchB implements Bench, Runnable {
             // UPDATE ACCOUNTS SET ABALANCE=ABALANCE+? WHERE AID=?
             updateAccount.setInt(1, delta);
             updateAccount.setInt(2, account);
+            master.database.update(updateAccount, "UpdateAccounts");
             updateAccount.executeUpdate();
 
             // SELECT ABALANCE FROM ACCOUNTS WHERE AID=?
             selectAccount.setInt(1, account);
-            ResultSet rs = selectAccount.executeQuery();
+            ResultSet rs = master.database.query(selectAccount);
             while (rs.next()) {
                 rs.getInt(1);
             }
@@ -163,19 +165,19 @@ public class BenchB implements Bench, Runnable {
             // UPDATE TELLERS SET TBALANCE=TABLANCE+? WHERE TID=?
             updateTeller.setInt(1, delta);
             updateTeller.setInt(2, teller);
-            updateTeller.executeUpdate();
+            master.database.update(updateTeller, "UpdateTeller");
 
             // UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?
             updateBranch.setInt(1, delta);
             updateBranch.setInt(2, branch);
-            updateBranch.executeUpdate();
+            master.database.update(updateBranch, "UpdateBranch");
 
             // INSERT INTO HISTORY(TID, BID, AID, DELTA) VALUES(?, ?, ?, ?)
             insertHistory.setInt(1, teller);
             insertHistory.setInt(2, branch);
             insertHistory.setInt(3, account);
             insertHistory.setInt(4, delta);
-            insertHistory.executeUpdate();
+            master.database.update(insertHistory, "InsertHistory");
             conn.commit();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -198,9 +200,9 @@ public class BenchB implements Bench, Runnable {
     }
 
     private void processTransactions() throws Exception {
-        Thread[] threads = new Thread[CLIENTS];
-        for (int i = 0; i < CLIENTS; i++) {
-            threads[i] = new Thread(new BenchB(this, i));
+        Thread[] threads = new Thread[noThreads];
+        for (int i = 0; i < noThreads; i++) {
+            threads[i] = new Thread(new BenchB(this, i), "BenchB-" + i);
         }
         for (Thread t : threads) {
             t.start();
@@ -213,5 +215,9 @@ public class BenchB implements Bench, Runnable {
     @Override
     public String getName() {
         return "BenchB";
+    }
+    
+    public void setNoThreads(int noThreads) {
+        this.noThreads = noThreads;
     }
 }

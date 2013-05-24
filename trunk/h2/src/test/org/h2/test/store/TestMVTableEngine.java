@@ -128,8 +128,7 @@ int test;
         } catch (SQLException e) {
             // expected
         }
-        int todo;
-        // stat.execute("update child set pid=1");
+        stat.execute("update child set pid=1");
         stat.execute("drop table child, parent");
 
         stat.execute("create table parent(id int)");

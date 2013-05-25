@@ -1,7 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: H2 Database Engine Sources
-Bundle-SymbolicName: org.h2.source
-Bundle-Vendor: H2 Group
-Bundle-Version: ${version}
-Eclipse-SourceBundle: org.h2;version="${version}"

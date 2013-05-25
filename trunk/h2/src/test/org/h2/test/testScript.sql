@@ -2,7 +2,7 @@
 -- Version 1.0, and under the Eclipse Public License, Version 1.0
 -- (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
-
+--
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
 select * from dual where x = x + 1 or x in(2, 0);
 > X

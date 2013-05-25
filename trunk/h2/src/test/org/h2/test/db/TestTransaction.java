@@ -36,7 +36,7 @@ public class TestTransaction extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        testContraintCreationRollback();
+        testConstraintCreationRollback();
         testCommitOnAutoCommitChange();
         testConcurrentSelectForUpdate();
         testLogMode();
@@ -49,8 +49,8 @@ public class TestTransaction extends TestBase {
         testIsolation();
         deleteDb("transaction");
     }
-    
-    private void testContraintCreationRollback() throws SQLException {
+
+    private void testConstraintCreationRollback() throws SQLException {
         deleteDb("transaction");
         Connection conn = getConnection("transaction");
         Statement stat = conn.createStatement();

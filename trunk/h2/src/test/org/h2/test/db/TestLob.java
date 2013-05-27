@@ -9,6 +9,7 @@ package org.h2.test.db;
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -64,6 +65,7 @@ public class TestLob extends TestBase {
         testBlobInputStreamSeek(true);
         testBlobInputStreamSeek(false);
         testDeadlock();
+        testDeadlock2();
         testCopyManyLobs();
         testCopyLob();
         testConcurrentCreate();
@@ -275,6 +277,103 @@ public class TestLob extends TestBase {
         conn2.close();
     }
 
+    private final class Deadlock2Task1 extends Task {
+        public final Connection conn;
+
+        private Deadlock2Task1() throws SQLException {
+            this.conn = getDeadlock2Connection();
+        }
+
+        @Override
+        public void call() throws Exception {
+            Random random = new Random();
+            Statement stat = conn.createStatement();
+            char[] tmp = new char[1024];
+            while (!stop) {
+                try {
+                    ResultSet rs = stat.executeQuery("select name from test where id = " + random.nextInt(999));
+                    if (rs.next()) {
+                        Reader r = rs.getClob("name").getCharacterStream();
+                        while ( r.read(tmp) > 0) {}
+                        r.close();
+                    }
+                    rs.close();
+                } catch (SQLException ex) {
+                    // ignore "LOB gone away", this can happen in the presence of concurrent updates
+                    if (ex.getErrorCode() != ErrorCode.IO_EXCEPTION_2) {
+                        ex.printStackTrace();
+                    }
+                } catch (IOException ex) {
+                    // ignore "LOB gone away", this can happen in the presence of concurrent updates
+                    if (!(ex.getCause() instanceof SQLException)) {
+                        ex.printStackTrace();
+                    }
+                    SQLException ex2 = (SQLException) ex.getCause();
+                    if (ex2.getErrorCode() != 90028) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+    
+    private final class Deadlock2Task2 extends Task {
+        public final Connection conn;
+
+        private Deadlock2Task2() throws SQLException {
+            this.conn = getDeadlock2Connection();
+        }
+
+        @Override
+        public void call() throws Exception {
+            Random random = new Random();
+            Statement stat = conn.createStatement();
+            while (!stop) {
+                stat.execute("update test set counter = " + random.nextInt(10) + " where id = " + random.nextInt(1000));
+            }
+        }
+    }
+    
+    private void testDeadlock2() throws Exception {
+        deleteDb("lob");
+        Connection conn = getDeadlock2Connection();
+        Statement stat = conn.createStatement();
+        stat.execute("create cached table test(id int not null identity, name clob, counter int)");
+        stat.execute("insert into test(id, name) select x, space(100000) from system_range(1, 1000)");
+        Deadlock2Task1 task1 = new Deadlock2Task1();
+        Deadlock2Task1 task2 = new Deadlock2Task1();
+        Deadlock2Task1 task3 = new Deadlock2Task1();
+        Deadlock2Task1 task4 = new Deadlock2Task1();
+        Deadlock2Task2 task5 = new Deadlock2Task2();
+        Deadlock2Task2 task6 = new Deadlock2Task2();
+        task1.execute();
+        task2.execute();
+        task3.execute();
+        task4.execute();
+        task5.execute();
+        task6.execute();
+        for (int i = 0; i < 1000; i++) {
+            stat.execute("insert into test values(null, space(10000 + " + i + "), 1)");
+        }
+        task1.get();
+        task1.conn.close();
+        task2.get();
+        task2.conn.close();
+        task3.get();
+        task3.conn.close();
+        task4.get();
+        task4.conn.close();
+        task5.get();
+        task5.conn.close();
+        task6.get();
+        task6.conn.close();
+        conn.close();
+    }
+    
+    private Connection getDeadlock2Connection() throws SQLException {
+        return getConnection("lob;MULTI_THREADED=TRUE;LOCK_TIMEOUT=60000");
+    }
+    
     private void testCopyManyLobs() throws Exception {
         deleteDb("lob");
         Connection conn = getConnection("lob");

@@ -2356,7 +2356,7 @@ public class Database implements DataHandler {
     }
 
     @Override
-    public Connection getLobConnection() {
+    public JdbcConnection getLobConnection() {
         String url = Constants.CONN_URL_INTERNAL;
         JdbcConnection conn = new JdbcConnection(systemSession, systemUser.getName(), url);
         conn.setTraceLevel(TraceSystem.OFF);

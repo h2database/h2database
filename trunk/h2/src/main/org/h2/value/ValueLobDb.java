@@ -45,7 +45,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     private final long lobId;
     private final byte[] hmac;
 
-    private byte[] small;
+    private final byte[] small;
 
     private DataHandler handler;
     private FileStore tempFile;
@@ -58,6 +58,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.lobId = lobId;
         this.hmac = hmac;
         this.precision = precision;
+        this.small = null;
     }
 
     private ValueLobDb(int type, byte[] small, long precision) {
@@ -533,7 +534,6 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.precision = 0;
         this.handler = h;
         this.lobStorage = h.getLobStorage();
-        this.small = null;
         String path = h.getDatabasePath();
         if (path.length() == 0) {
             path = SysProperties.PREFIX_TEMP_FILE;

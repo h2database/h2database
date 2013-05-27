@@ -47,7 +47,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     private final byte[] small;
 
-    private DataHandler handler;
+    private final DataHandler handler;
     private FileStore tempFile;
     private String fileName;
 
@@ -59,6 +59,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.hmac = hmac;
         this.precision = precision;
         this.small = null;
+        this.handler = null;
     }
 
     private ValueLobDb(int type, byte[] small, long precision) {
@@ -67,8 +68,18 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.precision = precision;
         this.lobId = 0;
         this.hmac = null;
+        this.handler = null;
     }
 
+    private ValueLobDb(int type, DataHandler handler) {
+        this.type = type;
+        this.small = null;
+        this.precision = 0;
+        this.lobId = 0;
+        this.hmac = null;
+        this.handler = handler;
+    }
+    
     /**
      * Create a LOB value.
      *
@@ -440,8 +451,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, len);
             }
-            ValueLobDb lob = new ValueLobDb(Value.CLOB, null, 0);
-            lob.createTempFromReader(buff, len, in, remaining, handler);
+            ValueLobDb lob = new ValueLobDb(Value.CLOB, handler);
+            lob.createTempFromReader(buff, len, in, remaining);
             return lob;
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
@@ -477,16 +488,16 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 System.arraycopy(buff, 0, small, 0, len);
                 return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
             }
-            ValueLobDb lob = new ValueLobDb(Value.BLOB, null, 0);
-            lob.createTempFromStream(buff, len, in, remaining, handler);
+            ValueLobDb lob = new ValueLobDb(Value.BLOB, handler);
+            lob.createTempFromStream(buff, len, in, remaining);
             return lob;
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }
     }
 
-    private void createTempFromReader(char[] buff, int len, Reader in, long remaining, DataHandler h) throws IOException {
-        FileStoreOutputStream out = initTemp(h);
+    private void createTempFromReader(char[] buff, int len, Reader in, long remaining) throws IOException {
+        FileStoreOutputStream out = initTemp();
         try {
             while (true) {
                 precision += len;
@@ -496,7 +507,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 if (remaining <= 0) {
                     break;
                 }
-                len = getBufferSize(h, false, remaining);
+                len = getBufferSize(this.handler, false, remaining);
                 len = IOUtils.readFully(in, buff, len);
                 if (len <= 0) {
                     break;
@@ -508,9 +519,9 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     }
 
     private void createTempFromStream(byte[] buff, int len, InputStream in,
-            long remaining, DataHandler h) throws IOException {
-        FileStoreOutputStream out = initTemp(h);
-        boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
+            long remaining) throws IOException {
+        FileStoreOutputStream out = initTemp();
+        boolean compress = this.handler.getLobCompressionAlgorithm(Value.BLOB) != null;
         try {
             while (true) {
                 precision += len;
@@ -519,7 +530,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 if (remaining <= 0) {
                     break;
                 }
-                len = getBufferSize(h, compress, remaining);
+                len = getBufferSize(this.handler, compress, remaining);
                 len = IOUtils.readFully(in, buff, 0, len);
                 if (len <= 0) {
                     break;
@@ -530,16 +541,15 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
     }
 
-    private FileStoreOutputStream initTemp(DataHandler h) throws IOException {
+    private FileStoreOutputStream initTemp() throws IOException {
         this.precision = 0;
-        this.handler = h;
-        this.lobStorage = h.getLobStorage();
-        String path = h.getDatabasePath();
+        this.lobStorage = this.handler.getLobStorage();
+        String path = this.handler.getDatabasePath();
         if (path.length() == 0) {
             path = SysProperties.PREFIX_TEMP_FILE;
         }
         fileName = FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);
-        tempFile = h.openFile(fileName, "rw", false);
+        tempFile = this.handler.openFile(fileName, "rw", false);
         tempFile.autoDelete();
         FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);
         return out;

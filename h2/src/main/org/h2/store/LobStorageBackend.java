@@ -9,7 +9,6 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,11 +16,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
@@ -60,7 +59,7 @@ public class LobStorageBackend implements LobStorageInterface {
      */
     private static final int HASH_CACHE_SIZE = 4 * 1024;
 
-    private Connection conn;
+    private JdbcConnection conn;
     private final HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
     private final CompressTool compress = CompressTool.getInstance();
@@ -156,7 +155,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Remove all LOBs for this table.
-     *
+     * 
      * @param tableId the table id
      */
     public void removeAllForTable(int tableId) {
@@ -185,30 +184,33 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Read a block of data from the given LOB.
-     *
+     * 
      * @param lob the lob id
      * @param seq the block sequence number
      * @return the block (expanded if stored compressed)
      */
     byte[] readBlock(long lob, int seq) throws SQLException {
-        synchronized (database) {
-            String sql = "SELECT COMPRESSED, DATA FROM " + LOB_MAP + " M " +
-                    "INNER JOIN " + LOB_DATA + " D ON M.BLOCK = D.BLOCK " +
-                    "WHERE M.LOB = ? AND M.SEQ = ?";
-            PreparedStatement prep = prepare(sql);
-            prep.setLong(1, lob);
-            prep.setInt(2, seq);
-            ResultSet rs = prep.executeQuery();
-            if (!rs.next()) {
+        // we have to take the lock on the session before the lock on the database to prevent ABBA deadlocks
+        synchronized (conn.getSession()) {
+            synchronized (database) {
+                String sql = "SELECT COMPRESSED, DATA FROM " + LOB_MAP + " M " +
+                        "INNER JOIN " + LOB_DATA + " D ON M.BLOCK = D.BLOCK " +
+                        "WHERE M.LOB = ? AND M.SEQ = ?";
+                PreparedStatement prep = prepare(sql);
+                prep.setLong(1, lob);
+                prep.setInt(2, seq);
+                ResultSet rs = prep.executeQuery();
+                if (!rs.next()) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry: "+ lob + "/" + seq).getSQLException();
+                }
+                int compressed = rs.getInt(1);
+                byte[] buffer = rs.getBytes(2);
+                if (compressed != 0) {
+                    buffer = compress.expand(buffer);
+                }
+                reuse(sql, prep);
+                return buffer;
             }
-            int compressed = rs.getInt(1);
-            byte[] buffer = rs.getBytes(2);
-            if (compressed != 0) {
-                buffer = compress.expand(buffer);
-            }
-            reuse(sql, prep);
-            return buffer;
         }
     }
 
@@ -216,28 +218,30 @@ public class LobStorageBackend implements LobStorageInterface {
      * Retrieve the sequence id and position that is smaller than the requested
      * position. Those values can be used to quickly skip to a given position
      * without having to read all data.
-     *
+     * 
      * @param lob the lob
      * @param pos the required position
      * @return null if the data is not available, or an array of two elements:
      *         the sequence, and the offset
      */
     long[] skipBuffer(long lob, long pos) throws SQLException {
-        synchronized (database) {
-            String sql = "SELECT MAX(SEQ), MAX(POS) FROM " + LOB_MAP +
-                    " WHERE LOB = ? AND POS < ?";
-            PreparedStatement prep = prepare(sql);
-            prep.setLong(1, lob);
-            prep.setLong(2, pos);
-            ResultSet rs = prep.executeQuery();
-            rs.next();
-            int seq = rs.getInt(1);
-            pos = rs.getLong(2);
-            boolean wasNull = rs.wasNull();
-            rs.close();
-            reuse(sql, prep);
-            // upgraded: offset not set
-            return wasNull ? null : new long[]{seq, pos};
+        synchronized (conn.getSession()) {
+            synchronized (database) {
+                String sql = "SELECT MAX(SEQ), MAX(POS) FROM " + LOB_MAP +
+                         " WHERE LOB = ? AND POS < ?";
+                PreparedStatement prep = prepare(sql);
+                prep.setLong(1, lob);
+                prep.setLong(2, pos);
+                ResultSet rs = prep.executeQuery();
+                rs.next();
+                int seq = rs.getInt(1);
+                pos = rs.getLong(2);
+                boolean wasNull = rs.wasNull();
+                rs.close();
+                reuse(sql, prep);
+                // upgraded: offset not set
+                return wasNull ? null : new long[] { seq, pos };
+            }
         }
     }
 
@@ -266,41 +270,43 @@ public class LobStorageBackend implements LobStorageInterface {
     @Override
     public void removeLob(long lob) {
         try {
-            synchronized (database) {
-                String sql = "SELECT BLOCK, HASH FROM " + LOB_MAP + " D WHERE D.LOB = ? " +
-                        "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " O " +
-                        "WHERE O.BLOCK = D.BLOCK AND O.LOB <> ?)";
-                PreparedStatement prep = prepare(sql);
-                prep.setLong(1, lob);
-                prep.setLong(2, lob);
-                ResultSet rs = prep.executeQuery();
-                ArrayList<Long> blocks = New.arrayList();
-                while (rs.next()) {
-                    blocks.add(rs.getLong(1));
-                    int hash = rs.getInt(2);
-                    setHashCacheBlock(hash, -1);
-                }
-                reuse(sql, prep);
+            synchronized (conn.getSession()) {
+                synchronized (database) {
+                    String sql = "SELECT BLOCK, HASH FROM " + LOB_MAP + " D WHERE D.LOB = ? " +
+                            "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " O " +
+                            "WHERE O.BLOCK = D.BLOCK AND O.LOB <> ?)";
+                    PreparedStatement prep = prepare(sql);
+                    prep.setLong(1, lob);
+                    prep.setLong(2, lob);
+                    ResultSet rs = prep.executeQuery();
+                    ArrayList<Long> blocks = New.arrayList();
+                    while (rs.next()) {
+                        blocks.add(rs.getLong(1));
+                        int hash = rs.getInt(2);
+                        setHashCacheBlock(hash, -1);
+                    }
+                    reuse(sql, prep);
 
-                sql = "DELETE FROM " + LOB_MAP + " WHERE LOB = ?";
-                prep = prepare(sql);
-                prep.setLong(1, lob);
-                prep.execute();
-                reuse(sql, prep);
-
-                sql = "DELETE FROM " + LOB_DATA + " WHERE BLOCK = ?";
-                prep = prepare(sql);
-                for (long block : blocks) {
-                    prep.setLong(1, block);
+                    sql = "DELETE FROM " + LOB_MAP + " WHERE LOB = ?";
+                    prep = prepare(sql);
+                    prep.setLong(1, lob);
                     prep.execute();
-                }
-                reuse(sql, prep);
+                    reuse(sql, prep);
 
-                sql = "DELETE FROM " + LOBS + " WHERE ID = ?";
-                prep = prepare(sql);
-                prep.setLong(1, lob);
-                prep.execute();
-                reuse(sql, prep);
+                    sql = "DELETE FROM " + LOB_DATA + " WHERE BLOCK = ?";
+                    prep = prepare(sql);
+                    for (long block : blocks) {
+                        prep.setLong(1, block);
+                        prep.execute();
+                    }
+                    reuse(sql, prep);
+
+                    sql = "DELETE FROM " + LOBS + " WHERE ID = ?";
+                    prep = prepare(sql);
+                    prep.setLong(1, lob);
+                    prep.execute();
+                    reuse(sql, prep);
+                }
             }
         } catch (SQLException e) {
             throw DbException.convert(e);
@@ -311,19 +317,21 @@ public class LobStorageBackend implements LobStorageInterface {
     public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
         init();
         if (byteCount == -1) {
-            synchronized (database) {
-                try {
-                    String sql = "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?";
-                    PreparedStatement prep = prepare(sql);
-                    prep.setLong(1, lobId);
-                    ResultSet rs = prep.executeQuery();
-                    if (!rs.next()) {
-                        throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob: "+ lobId).getSQLException();
+            synchronized (conn.getSession()) {
+                synchronized (database) {
+                    try {
+                        String sql = "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?";
+                        PreparedStatement prep = prepare(sql);
+                        prep.setLong(1, lobId);
+                        ResultSet rs = prep.executeQuery();
+                        if (!rs.next()) {
+                            throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob: " + lobId).getSQLException();
+                        }
+                        byteCount = rs.getLong(1);
+                        reuse(sql, prep);
+                    } catch (SQLException e) {
+                        throw DbException.convertToIOException(e);
                     }
-                    byteCount = rs.getLong(1);
-                    reuse(sql, prep);
-                } catch (SQLException e) {
-                    throw DbException.convertToIOException(e);
                 }
             }
         }
@@ -360,11 +368,13 @@ public class LobStorageBackend implements LobStorageInterface {
                         small = b;
                         break;
                     }
-                    synchronized (database) {
-                        if (seq == 0) {
-                            lobId = getNextLobId();
+                    synchronized (conn.getSession()) {
+                        synchronized (database) {
+                            if (seq == 0) {
+                                lobId = getNextLobId();
+                            }
+                            storeBlock(lobId, seq, length, b, compressAlgorithm);
                         }
-                        storeBlock(lobId, seq, length, b, compressAlgorithm);
                     }
                     length += len;
                 }
@@ -390,50 +400,54 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     private ValueLobDb registerLob(int type, long lobId, int tableId, long byteCount) {
-        synchronized (database) {
-            try {
-                String sql = "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)";
-                PreparedStatement prep = prepare(sql);
-                prep.setLong(1, lobId);
-                prep.setLong(2, byteCount);
-                prep.setInt(3, tableId);
-                prep.execute();
-                reuse(sql, prep);
-                ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, null, byteCount);
-                return v;
-            } catch (SQLException e) {
-                throw DbException.convert(e);
+        synchronized (conn.getSession()) {
+            synchronized (database) {
+                try {
+                    String sql = "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)";
+                    PreparedStatement prep = prepare(sql);
+                    prep.setLong(1, lobId);
+                    prep.setLong(2, byteCount);
+                    prep.setInt(3, tableId);
+                    prep.execute();
+                    reuse(sql, prep);
+                    ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, null, byteCount);
+                    return v;
+                } catch (SQLException e) {
+                    throw DbException.convert(e);
+                }
             }
         }
     }
 
     @Override
     public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
-        synchronized (database) {
-            try {
-                init();
-                long lobId = getNextLobId();
-                String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, POS, HASH, BLOCK) " +
-                        "SELECT ?, SEQ, POS, HASH, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?";
-                PreparedStatement prep = prepare(sql);
-                prep.setLong(1, lobId);
-                prep.setLong(2, oldLobId);
-                prep.executeUpdate();
-                reuse(sql, prep);
+        synchronized (conn.getSession()) {
+            synchronized (database) {
+                try {
+                    init();
+                    long lobId = getNextLobId();
+                    String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, POS, HASH, BLOCK) " +
+                            "SELECT ?, SEQ, POS, HASH, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?";
+                    PreparedStatement prep = prepare(sql);
+                    prep.setLong(1, lobId);
+                    prep.setLong(2, oldLobId);
+                    prep.executeUpdate();
+                    reuse(sql, prep);
 
-                sql = "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) " +
-                        "SELECT ?, BYTE_COUNT, ? FROM " + LOBS + " WHERE ID = ?";
-                prep = prepare(sql);
-                prep.setLong(1, lobId);
-                prep.setLong(2, tableId);
-                prep.setLong(3, oldLobId);
-                prep.executeUpdate();
-                reuse(sql, prep);
+                    sql = "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) " +
+                            "SELECT ?, BYTE_COUNT, ? FROM " + LOBS + " WHERE ID = ?";
+                    prep = prepare(sql);
+                    prep.setLong(1, lobId);
+                    prep.setLong(2, tableId);
+                    prep.setLong(3, oldLobId);
+                    prep.executeUpdate();
+                    reuse(sql, prep);
 
-                ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, null, length);
-                return v;
-            } catch (SQLException e) {
-                throw DbException.convert(e);
+                    ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, null, length);
+                    return v;
+                } catch (SQLException e) {
+                    throw DbException.convert(e);
+                }
             }
         }
     }
@@ -467,7 +481,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Store a block in the LOB storage.
-     *
+     * 
      * @param lobId the lob id
      * @param seq the sequence number
      * @param pos the position within the lob
@@ -481,43 +495,45 @@ public class LobStorageBackend implements LobStorageInterface {
             b = compress.compress(b, compressAlgorithm);
         }
         int hash = Arrays.hashCode(b);
-        synchronized (database) {
-            block = getHashCacheBlock(hash);
-            if (block != -1) {
-                String sql =  "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
-                        " WHERE BLOCK = ?";
-                PreparedStatement prep = prepare(sql);
-                prep.setLong(1, block);
-                ResultSet rs = prep.executeQuery();
-                if (rs.next()) {
-                    boolean compressed = rs.getInt(1) != 0;
-                    byte[] compare = rs.getBytes(2);
-                    if (compressed == (compressAlgorithm != null) && Arrays.equals(b, compare)) {
-                        blockExists = true;
+        synchronized (conn.getSession()) {
+            synchronized (database) {
+                block = getHashCacheBlock(hash);
+                if (block != -1) {
+                    String sql =  "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
+                            " WHERE BLOCK = ?";
+                    PreparedStatement prep = prepare(sql);
+                    prep.setLong(1, block);
+                    ResultSet rs = prep.executeQuery();
+                    if (rs.next()) {
+                        boolean compressed = rs.getInt(1) != 0;
+                        byte[] compare = rs.getBytes(2);
+                        if (compressed == (compressAlgorithm != null) && Arrays.equals(b, compare)) {
+                            blockExists = true;
+                        }
                     }
+                    reuse(sql, prep);
                 }
-                reuse(sql, prep);
-            }
-            if (!blockExists) {
-                block = nextBlock++;
-                setHashCacheBlock(hash, block);
-                String sql = "INSERT INTO " + LOB_DATA + "(BLOCK, COMPRESSED, DATA) VALUES(?, ?, ?)";
+                if (!blockExists) {
+                    block = nextBlock++;
+                    setHashCacheBlock(hash, block);
+                    String sql = "INSERT INTO " + LOB_DATA + "(BLOCK, COMPRESSED, DATA) VALUES(?, ?, ?)";
+                    PreparedStatement prep = prepare(sql);
+                    prep.setLong(1, block);
+                    prep.setInt(2, compressAlgorithm == null ? 0 : 1);
+                    prep.setBytes(3, b);
+                    prep.execute();
+                    reuse(sql, prep);
+                }
+                String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, POS, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
                 PreparedStatement prep = prepare(sql);
-                prep.setLong(1, block);
-                prep.setInt(2, compressAlgorithm == null ? 0 : 1);
-                prep.setBytes(3, b);
+                prep.setLong(1, lobId);
+                prep.setInt(2, seq);
+                prep.setLong(3, pos);
+                prep.setLong(4, hash);
+                prep.setLong(5, block);
                 prep.execute();
                 reuse(sql, prep);
             }
-            String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, POS, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
-            PreparedStatement prep = prepare(sql);
-            prep.setLong(1, lobId);
-            prep.setInt(2, seq);
-            prep.setLong(3, pos);
-            prep.setLong(4, hash);
-            prep.setLong(5, block);
-            prep.execute();
-            reuse(sql, prep);
         }
     }
 
@@ -545,17 +561,19 @@ public class LobStorageBackend implements LobStorageInterface {
 
     @Override
     public void setTable(long lobId, int table) {
-        synchronized (database) {
-            try {
-                init();
-                String sql = "UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?";
-                PreparedStatement prep = prepare(sql);
-                prep.setInt(1, table);
-                prep.setLong(2, lobId);
-                prep.executeUpdate();
-                reuse(sql, prep);
-            } catch (SQLException e) {
-                throw DbException.convert(e);
+        synchronized (conn.getSession()) {
+            synchronized (database) {
+                try {
+                    init();
+                    String sql = "UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?";
+                    PreparedStatement prep = prepare(sql);
+                    prep.setInt(1, table);
+                    prep.setLong(2, lobId);
+                    prep.executeUpdate();
+                    reuse(sql, prep);
+                } catch (SQLException e) {
+                    throw DbException.convert(e);
+                }
             }
         }
     }

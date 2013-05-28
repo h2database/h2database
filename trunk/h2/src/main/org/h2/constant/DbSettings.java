@@ -268,9 +268,11 @@ public class DbSettings extends SettingsBase {
      * The size of the query cache, in number of cached statements. Each session
      * has it's own cache with the given size. The cache is only used if the SQL
      * statement and all parameters match. Only the last returned result per
-     * query is cached. Only SELECT statements are cached (excluding UNION and
-     * FOR UPDATE statements). This works for both statements and prepared
-     * statement.
+     * query is cached. The following statement types are cached: SELECT
+     * statements are cached (excluding UNION and FOR UPDATE statements), CALL
+     * if it return a single value, DELETE, INSERT, MERGE, UPDATE, and
+     * transactional statements such as COMMIT. This works for both statements
+     * and prepared statement.
      */
     public final int queryCacheSize = get("QUERY_CACHE_SIZE", 8);
 

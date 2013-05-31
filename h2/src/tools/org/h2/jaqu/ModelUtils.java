@@ -117,12 +117,8 @@ public class ModelUtils {
      */
     static String getDataType(FieldDefinition fieldDef, boolean strictTypeMapping) {
         Class<?> fieldClass = fieldDef.field.getType();
-        if (SUPPORTED_TYPES.containsKey(fieldClass)) {
-            String type = SUPPORTED_TYPES.get(fieldClass);
-            if (type.equals("VARCHAR") && fieldDef.maxLength <= 0) {
-                // unspecified length strings are TEXT, not VARCHAR
-                return "TEXT";
-            }
+        String type = SUPPORTED_TYPES.get(fieldClass);
+        if (type != null) {
             return type;
         }
         if (!strictTypeMapping) {

@@ -136,7 +136,8 @@ public class MetaTable extends Table {
                     "LAST_MODIFICATION BIGINT",
                     "ID INT",
                     "TYPE_NAME",
-                    "TABLE_CLASS"
+                    "TABLE_CLASS",
+                    "ROW_COUNT_ESTIMATE BIGINT"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -676,7 +677,9 @@ public class MetaTable extends Table {
                         // TYPE_NAME
                         null,
                         // TABLE_CLASS
-                        table.getClass().getName()
+                        table.getClass().getName(),
+                        // ROW_COUNT_ESTIMATE
+                        "" + table.getRowCountApproximation()
                 );
             }
             break;

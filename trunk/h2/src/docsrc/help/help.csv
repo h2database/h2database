@@ -844,7 +844,7 @@ TRUNCATE TABLE TEST
 "Commands (Other)","CHECKPOINT","
 CHECKPOINT
 ","
-Flushes the data to disk and switches to a new transaction log if possible.
+Flushes the data to disk.
 
 Admin rights are required to execute this command.
 ","

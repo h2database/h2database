@@ -28,8 +28,8 @@ public class DbDriverActivator implements BundleActivator {
         org.h2.Driver driver = org.h2.Driver.load();
         Properties properties = new Properties();
         properties.put(DataSourceFactory.OSGI_JDBC_DRIVER_CLASS, org.h2.Driver.class.getName());
-        properties.put(DataSourceFactory.OSGI_JDBC_DRIVER_NAME, "H2");
-        properties.put(DataSourceFactory.OSGI_JDBC_DRIVER_VERSION, Constants.getVersion());
+        properties.put(DataSourceFactory.OSGI_JDBC_DRIVER_NAME, "H2 JDBC Driver");
+        properties.put(DataSourceFactory.OSGI_JDBC_DRIVER_VERSION, Constants.getFullVersion());
         bundleContext.registerService(DataSourceFactory.class.getName(), new OsgiDataSourceFactory(driver), properties);
     }
 

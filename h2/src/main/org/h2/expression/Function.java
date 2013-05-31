@@ -1033,7 +1033,7 @@ public class Function extends Expression implements FunctionCall {
                 java.sql.Timestamp d = v0.getTimestamp();
                 Calendar c = Calendar.getInstance();
                 c.setTime(d);
-                c.set(Calendar.HOUR, 0);
+                c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
                 c.set(Calendar.SECOND, 0);
                 c.set(Calendar.MILLISECOND, 0);

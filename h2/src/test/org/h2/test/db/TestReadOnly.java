@@ -9,11 +9,11 @@ package org.h2.test.db;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
 import org.h2.constant.ErrorCode;
 import org.h2.dev.fs.FilePathZip2;
 import org.h2.store.FileLister;
@@ -63,20 +63,20 @@ public class TestReadOnly extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT) AS SELECT X FROM SYSTEM_RANGE(1, 20)");
         conn.close();
         Backup.execute(dir + "/readonly.zip", dir, "readonly", true);
-        conn = DriverManager.getConnection(
+        conn = getConnection(
                 "jdbc:h2:zip:"+dir+"/readonly.zip!/readonly", getUser(), getPassword());
         conn.createStatement().execute("select * from test where id=1");
         conn.close();
         Server server = Server.createTcpServer("-tcpPort", "9081", "-baseDir", dir);
         server.start();
         try {
-            conn = DriverManager.getConnection(
+            conn = getConnection(
                     "jdbc:h2:tcp://localhost:9081/zip:readonly.zip!/readonly",
                         getUser(), getPassword());
             conn.createStatement().execute("select * from test where id=1");
             conn.close();
             FilePathZip2.register();
-            conn = DriverManager.getConnection(
+            conn = getConnection(
                     "jdbc:h2:tcp://localhost:9081/zip2:readonly.zip!/readonly",
                         getUser(), getPassword());
             conn.createStatement().execute("select * from test where id=1");

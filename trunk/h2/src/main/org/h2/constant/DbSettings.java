@@ -270,7 +270,7 @@ public class DbSettings extends SettingsBase {
      * statement and all parameters match. Only the last returned result per
      * query is cached. The following statement types are cached: SELECT
      * statements are cached (excluding UNION and FOR UPDATE statements), CALL
-     * if it return a single value, DELETE, INSERT, MERGE, UPDATE, and
+     * if it returns a single value, DELETE, INSERT, MERGE, UPDATE, and
      * transactional statements such as COMMIT. This works for both statements
      * and prepared statement.
      */

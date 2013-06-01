@@ -100,6 +100,7 @@ public class Insert extends Prepared implements ResultTarget {
         if (listSize > 0) {
             int columnLen = columns.length;
             for (int x = 0; x < listSize; x++) {
+                session.startStatementWithinTransaction();
                 Row newRow = table.getTemplateRow();
                 Expression[] expr = list.get(x);
                 setCurrentRowNumber(x + 1);

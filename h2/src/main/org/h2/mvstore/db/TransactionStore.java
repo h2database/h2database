@@ -60,6 +60,8 @@ public class TransactionStore {
      * transaction id.
      */
     private final MVMap<String, String> settings;
+    
+    private final DataType dataType;
 
     private long lastTransactionIdStored;
 
@@ -80,23 +82,24 @@ public class TransactionStore {
      * Create a new transaction store.
      *
      * @param store the store
-     * @param keyType the data type for map keys
+     * @param dataType the data type for map keys and values
      */
-    public TransactionStore(MVStore store, DataType keyType) {
+    public TransactionStore(MVStore store, DataType dataType) {
         this.store = store;
+        this.dataType = dataType;
         settings = store.openMap("settings");
         preparedTransactions = store.openMap("openTransactions",
                 new MVMap.Builder<Long, Object[]>());
         // TODO commit of larger transaction could be faster if we have one undo
         // log per transaction, or a range delete operation for maps
-        VersionedValueType oldValueType = new VersionedValueType(keyType);
-        ArrayType valueType = new ArrayType(new DataType[]{
-                new ObjectDataType(), new ObjectDataType(), keyType,
+        VersionedValueType oldValueType = new VersionedValueType(dataType);
+        ArrayType undoLogValueType = new ArrayType(new DataType[]{
+                new ObjectDataType(), new ObjectDataType(), dataType,
                 oldValueType
         });
         MVMap.Builder<long[], Object[]> builder =
                 new MVMap.Builder<long[], Object[]>().
-                valueType(valueType);
+                valueType(undoLogValueType);
         // TODO escape other map names, to avoid conflicts
         undoLog = store.openMap("undoLog", builder);
         init();
@@ -229,10 +232,7 @@ public class TransactionStore {
             int opType = (Integer) op[0];
             if (opType == Transaction.OP_REMOVE) {
                 int mapId = (Integer) op[1];
-                Map<String, String> meta = store.getMetaMap();
-                String m = meta.get("map." + mapId);
-                String mapName = DataUtils.parseMap(m).get("name");
-                MVMap<Object, VersionedValue> map = store.openMap(mapName);
+                MVMap<Object, VersionedValue> map = openMap(mapId);
                 Object key = op[2];
                 VersionedValue value = map.get(key);
                 // possibly the entry was added later on
@@ -245,6 +245,23 @@ public class TransactionStore {
             undoLog.remove(undoKey);
         }
         endTransaction(t);
+    }
+    
+    private MVMap<Object, VersionedValue> openMap(int mapId) {
+        // TODO open map by id if possible
+        Map<String, String> meta = store.getMetaMap();
+        String m = meta.get("map." + mapId);
+        if (m == null) {
+            // the map was removed later on
+            return null;
+        }
+        String mapName = DataUtils.parseMap(m).get("name");
+        VersionedValueType vt = new VersionedValueType(dataType);
+        MVMap.Builder<Object, VersionedValue> mapBuilder = 
+                new MVMap.Builder<Object, VersionedValue>().
+                keyType(dataType).valueType(vt);
+        MVMap<Object, VersionedValue> map = store.openMap(mapName, mapBuilder);
+        return map;
     }
 
     /**
@@ -304,19 +321,17 @@ public class TransactionStore {
             long[] undoKey = new long[] { t.getId(), logId };
             Object[] op = undoLog.get(undoKey);
             int mapId = ((Integer) op[1]).intValue();
-            // TODO open map by id if possible
-            Map<String, String> meta = store.getMetaMap();
-            String m = meta.get("map." + mapId);
-            String mapName = DataUtils.parseMap(m).get("name");
-            MVMap<Object, VersionedValue> map = store.openMap(mapName);
-            Object key = op[2];
-            VersionedValue oldValue = (VersionedValue) op[3];
-            if (oldValue == null) {
-                // this transaction added the value
-                map.remove(key);
-            } else {
-                // this transaction updated the value
-                map.put(key, oldValue);
+            MVMap<Object, VersionedValue> map = openMap(mapId);
+            if (map != null) {
+                Object key = op[2];
+                VersionedValue oldValue = (VersionedValue) op[3];
+                if (oldValue == null) {
+                    // this transaction added the value
+                    map.remove(key);
+                } else {
+                    // this transaction updated the value
+                    map.put(key, oldValue);
+                }
             }
             undoLog.remove(undoKey);
         }
@@ -339,8 +354,12 @@ public class TransactionStore {
             // TODO open map by id if possible
             Map<String, String> meta = store.getMetaMap();
             String m = meta.get("map." + mapId);
-            String mapName = DataUtils.parseMap(m).get("name");
-            set.add(mapName);
+            if (m == null) {
+                // map was removed later on
+            } else {
+                String mapName = DataUtils.parseMap(m).get("name");
+                set.add(mapName);
+            }
         }
         return set;
     }
@@ -939,6 +958,68 @@ public class TransactionStore {
             // TODO transactional lastKey
             return map.lastKey();
         }
+        
+        /**
+         * Get the most recent smallest key that is larger or equal to this key.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K getLatestCeilingKey(K key) {
+            Cursor<K> cursor = map.keyIterator(key);
+            while (cursor.hasNext()) {
+                key = cursor.next();
+                if (get(key, Long.MAX_VALUE) != null) {
+                    return key;
+                }
+            }
+            return null;
+        }
+        
+        /**
+         * Get the smallest key that is larger or equal to this key.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K ceilingKey(K key) {
+            int test;
+            // TODO this method is slow
+            Cursor<K> cursor = map.keyIterator(key);
+            while (cursor.hasNext()) {
+                key = cursor.next();
+                if (get(key) != null) {
+                    return key;
+                }
+            }
+            return null;
+            // TODO transactional ceilingKey
+//            return map.ceilingKey(key);
+        }
+
+        /**
+         * Get the smallest key that is larger than the given key, or null if no
+         * such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K higherKey(K key) {
+            // TODO transactional higherKey
+            return map.higherKey(key);
+        }
+
+        /**
+         * Get the largest key that is smaller than the given key, or null if no
+         * such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K lowerKey(K key) {
+            // TODO Auto-generated method stub
+            return map.lowerKey(key);
+        }
 
         /**
          * Iterate over all keys.
@@ -983,41 +1064,6 @@ public class TransactionStore {
                             "Removing is not supported");
                 }
             };
-        }
-
-        /**
-         * Get the smallest key that is larger or equal to this key.
-         *
-         * @param key the key (may not be null)
-         * @return the result
-         */
-        public K ceilingKey(K key) {
-            // TODO transactional ceilingKey
-            return map.ceilingKey(key);
-        }
-
-        /**
-         * Get the smallest key that is larger than the given key, or null if no
-         * such key exists.
-         *
-         * @param key the key (may not be null)
-         * @return the result
-         */
-        public K higherKey(K key) {
-            // TODO transactional higherKey
-            return map.higherKey(key);
-        }
-
-        /**
-         * Get the largest key that is smaller than the given key, or null if no
-         * such key exists.
-         *
-         * @param key the key (may not be null)
-         * @return the result
-         */
-        public K lowerKey(K key) {
-            // TODO Auto-generated method stub
-            return map.lowerKey(key);
         }
 
         public Transaction getTransaction() {

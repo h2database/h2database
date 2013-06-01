@@ -277,10 +277,14 @@ public class TestLob extends TestBase {
         conn2.close();
     }
 
+    /**
+     * A background task.
+     */
     private final class Deadlock2Task1 extends Task {
+        
         public final Connection conn;
 
-        private Deadlock2Task1() throws SQLException {
+        Deadlock2Task1() throws SQLException {
             this.conn = getDeadlock2Connection();
         }
 
@@ -294,7 +298,9 @@ public class TestLob extends TestBase {
                     ResultSet rs = stat.executeQuery("select name from test where id = " + random.nextInt(999));
                     if (rs.next()) {
                         Reader r = rs.getClob("name").getCharacterStream();
-                        while ( r.read(tmp) > 0) {}
+                        while (r.read(tmp) > 0) {
+                            // ignore
+                        }
                         r.close();
                     }
                     rs.close();
@@ -315,12 +321,17 @@ public class TestLob extends TestBase {
                 }
             }
         }
+        
     }
     
+    /**
+     * A background task.
+     */
     private final class Deadlock2Task2 extends Task {
+        
         public final Connection conn;
 
-        private Deadlock2Task2() throws SQLException {
+        Deadlock2Task2() throws SQLException {
             this.conn = getDeadlock2Connection();
         }
 
@@ -332,6 +343,7 @@ public class TestLob extends TestBase {
                 stat.execute("update test set counter = " + random.nextInt(10) + " where id = " + random.nextInt(1000));
             }
         }
+        
     }
     
     private void testDeadlock2() throws Exception {
@@ -370,7 +382,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
     
-    private Connection getDeadlock2Connection() throws SQLException {
+    Connection getDeadlock2Connection() throws SQLException {
         return getConnection("lob;MULTI_THREADED=TRUE;LOCK_TIMEOUT=60000");
     }
     
@@ -473,15 +485,12 @@ public class TestLob extends TestBase {
         Statement stat;
         conn = getConnection("lob");
         stat = conn.createStatement();
-        stat.execute("create memory table test(x clob unique)");
-        stat.execute("insert into test values('hello')");
-        stat.execute("insert into test values('world')");
-        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).
-                execute("insert into test values('world')");
-        stat.execute("insert into test values(space(10000) || 'a')");
-        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).
-                execute("insert into test values(space(10000) || 'a')");
-        stat.execute("insert into test values(space(10000) || 'b')");
+        try {
+            stat.execute("create memory table test(x clob unique)");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
+        }
         conn.close();
     }
 

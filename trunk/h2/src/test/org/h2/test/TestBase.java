@@ -247,6 +247,10 @@ public abstract class TestBase {
     protected String getURL(String name, boolean admin) {
         String url;
         if (name.startsWith("jdbc:")) {
+            if (config.mvStore) {
+                name = addOption(name, "DEFAULT_TABLE_ENGINE",
+                        "org.h2.mvstore.db.MVTableEngine");
+            }
             return name;
         }
         if (config.memory) {

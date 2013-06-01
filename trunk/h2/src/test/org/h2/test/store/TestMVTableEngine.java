@@ -23,6 +23,7 @@ import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.tools.Restore;
 import org.h2.util.Task;
 
 /**
@@ -42,6 +43,7 @@ public class TestMVTableEngine extends TestBase {
     @Override
     public void test() throws Exception {
         // testSpeed();
+        testRollbackAfterCrash();
         testReferentialIntegrity();
         testWriteDelay();
         testAutoCommit();
@@ -109,13 +111,91 @@ int test;
 //System.out.println(prof.getTop(10));
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
     }
+    
+    private void testRollbackAfterCrash() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        
+        String url = "mvstore;default_table_engine=org.h2.mvstore.db.MVTableEngine";
+        String url2 = "mvstore2;default_table_engine=org.h2.mvstore.db.MVTableEngine";
+        
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("insert into test values(0)");
+        stat.execute("set write_delay 0");
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values(1)");
+        stat.execute("shutdown immediately");
+        
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select row_count_estimate " + 
+                "from information_schema.tables where table_name='TEST'");
+        rs.next();
+        assertEquals(1, rs.getLong(1));
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int primary key, data clob)");
+        stat.execute("insert into test values(1, space(10000))");
+        conn.setAutoCommit(false);
+        stat.execute("delete from test");
+        stat.execute("checkpoint");
+        stat.execute("shutdown immediately");
+        
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        stat.execute("drop all objects delete files");
+        conn.close();
+        
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("create index idx_name on test(name, id)");
+        stat.execute("insert into test select x, x || space(200 * x) from system_range(1, 10)");
+        conn.setAutoCommit(false);
+        stat.execute("delete from test where id > 5");
+        stat.execute("backup to '" + getBaseDir() + "/backup.zip'");
+        conn.rollback();
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "mvstore2");
+        Connection conn2;
+        conn2 = getConnection(url2);
+        conn.close();
+        conn2.close();
+        
+    }
 
     private void testReferentialIntegrity() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
+        
         conn = getConnection("mvstore;default_table_engine=org.h2.mvstore.db.MVTableEngine");
+        
         stat = conn.createStatement();
+        stat.execute("create table test(id int, parent int " + 
+                "references test(id) on delete cascade)");
+        stat.execute("insert into test values(0, 0)");
+        stat.execute("delete from test");
+        stat.execute("drop table test");
+        
+        stat.execute("create table parent(id int, name varchar)");
+        stat.execute("create table child(id int, parentid int, " + 
+        "foreign key(parentid) references parent(id))");
+        stat.execute("insert into parent values(1, 'mary'), (2, 'john')");
+        stat.execute("insert into child values(10, 1), (11, 1), (20, 2), (21, 2)");
+        stat.execute("update parent set name = 'marc' where id = 1");
+        stat.execute("merge into parent key(id) values(1, 'marcy')");
+        stat.execute("drop table parent, child");
+        
+        stat.execute("create table test(id identity, parent bigint, " + 
+                "foreign key(parent) references(id))");
+        stat.execute("insert into test values(0, 0), (1, NULL), " + 
+                "(2, 1), (3, 3), (4, 3)");
+        stat.execute("drop table test");
 
         stat.execute("create table parent(id int)");
         stat.execute("create table child(pid int)");
@@ -126,7 +206,7 @@ int test;
                     "foreign key(pid) references parent(id)");
             fail();
         } catch (SQLException e) {
-            // expected
+            assertEquals(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, e.getErrorCode());
         }
         stat.execute("update child set pid=1");
         stat.execute("drop table child, parent");
@@ -140,16 +220,15 @@ int test;
                         "foreign key(pid) references parent(id)");
             fail();
         } catch (SQLException e) {
-            // expected
+            assertEquals(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, e.getErrorCode());
         }
         stat.execute("drop table child, parent");
 
-        // currently not supported, as previous rows are not visible
-        // stat.execute("create table test(id identity, parent bigint,
-        //     foreign key(parent) references(id))");
-        // stat.execute("insert into test values(0, 0), (1, NULL),
-        //     (2, 1), (3, 3), (4, 3)");
-        // stat.execute("drop table test");
+        stat.execute("create table test(id identity, parent bigint, " + 
+                "foreign key(parent) references(id))");
+        stat.execute("insert into test values(0, 0), (1, NULL), " + 
+                "(2, 1), (3, 3), (4, 3)");
+        stat.execute("drop table test");
 
         stat.execute("create table parent(id int, x int)");
         stat.execute("insert into parent values(1, 2)");

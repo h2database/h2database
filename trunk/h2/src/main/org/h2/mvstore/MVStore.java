@@ -535,7 +535,7 @@ public class MVStore {
             }
         } catch (Exception e) {
             try {
-                close(false);
+                closeFile(false);
             } catch (Exception e2) {
                 // ignore
             }
@@ -668,10 +668,6 @@ public class MVStore {
      * written but not committed, this is rolled back. All open maps are closed.
      */
     public void close() {
-        close(true);
-    }
-
-    private void close(boolean shrinkIfPossible) {
         if (closed) {
             return;
         }
@@ -680,6 +676,20 @@ public class MVStore {
                 rollbackTo(lastCommittedVersion);
                 store(false);
             }
+        }
+        closeFile(true);
+    }
+    
+    /**
+     * Close the file and the store, without writing anything.
+     */
+    public void closeImmediately() {
+        closeFile(false);
+    }
+    
+    private void closeFile(boolean shrinkIfPossible) {
+        if (closed) {
+            return;
         }
         closed = true;
         if (file == null) {

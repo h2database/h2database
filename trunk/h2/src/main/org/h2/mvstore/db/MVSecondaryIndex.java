@@ -69,15 +69,6 @@ public class MVSecondaryIndex extends BaseIndex {
         dataMap = mvTable.getTransaction(null).openMap(mapName, mapBuilder);
     }
 
-    private static void checkIndexColumnTypes(IndexColumn[] columns) {
-        for (IndexColumn c : columns) {
-            int type = c.column.getType();
-            if (type == Value.CLOB || type == Value.BLOB) {
-                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "Index on BLOB or CLOB column: " + c.column.getCreateSQL());
-            }
-        }
-    }
-
     @Override
     public void close(Session session) {
         // ok
@@ -98,7 +89,7 @@ public class MVSecondaryIndex extends BaseIndex {
         ValueArray array = getKey(row);
         if (indexType.isUnique()) {
             array.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
-            ValueArray key = (ValueArray) map.ceilingKey(array);
+            ValueArray key = (ValueArray) map.getLatestCeilingKey(array);
             if (key != null) {
                 SearchRow r2 = getRow(key.getList());
                 if (compareRows(row, r2) == 0) {
@@ -253,8 +244,7 @@ public class MVSecondaryIndex extends BaseIndex {
             return dataMap;
         }
         Transaction t = mvTable.getTransaction(session);
-        long savepoint = session.getStatementSavepoint();
-        return dataMap.getInstance(t, savepoint);
+        return dataMap.getInstance(t, Long.MAX_VALUE);
     }
 
     /**

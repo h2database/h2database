@@ -6,6 +6,11 @@
  */
 package org.h2.test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.Driver;
@@ -493,7 +498,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     private void runTests() throws SQLException {
 
         int test;
-        mvStore = false;
+//        mvStore = true;
 
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
@@ -583,7 +588,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestDeadlock().runTest(this);
         new TestEncryptedDb().runTest(this);
         new TestExclusive().runTest(this);
-        new TestFullText().runTest(this);
+        if (!mvStore) {
+            new TestFullText().runTest(this);
+        }
         new TestFunctionOverload().runTest(this);
         new TestFunctions().runTest(this);
         new TestInit().runTest(this);
@@ -599,13 +606,17 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMultiThreadedKernel().runTest(this);
         new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
-        new TestOutOfMemory().runTest(this);
+        if (!mvStore) {
+            new TestOutOfMemory().runTest(this);
+        }
         new TestPowerOff().runTest(this);
         new TestQueryCache().runTest(this);
         new TestReadOnly().runTest(this);
         new TestRecursiveQueries().runTest(this);
         new TestRights().runTest(this);
-        new TestRunscript().runTest(this);
+        if (!mvStore) {
+            new TestRunscript().runTest(this);
+        }
         new TestSQLInjection().runTest(this);
         new TestSessionsLocks().runTest(this);
         new TestSelectCountNonNullColumn().runTest(this);
@@ -614,9 +625,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestSpeed().runTest(this);
         new TestTableEngines().runTest(this);
         new TestTempTables().runTest(this);
-        new TestTransaction().runTest(this);
-        new TestTriggersConstraints().runTest(this);
-        new TestTwoPhaseCommit().runTest(this);
+        if (!mvStore) {
+            new TestTransaction().runTest(this);
+            new TestTriggersConstraints().runTest(this);
+            new TestTwoPhaseCommit().runTest(this);
+        }
         new TestView().runTest(this);
         new TestViewAlterTable().runTest(this);
         new TestViewDropView().runTest(this);
@@ -652,8 +665,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestConnectionPool().runTest(this);
         new TestDataSource().runTest(this);
         new TestXA().runTest(this);
-        new TestXASimple().runTest(this);
-
+        if (!mvStore) {
+            new TestXASimple().runTest(this);
+        }
+        
         // server
         new TestAutoServer().runTest(this);
         new TestNestedLoop().runTest(this);
@@ -663,9 +678,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMvcc1().runTest(this);
         new TestMvcc2().runTest(this);
         new TestMvcc3().runTest(this);
-        new TestMvccMultiThreaded().runTest(this);
-        new TestRowLocks().runTest(this);
-
+        if (!mvStore) {
+            new TestMvccMultiThreaded().runTest(this);
+            new TestRowLocks().runTest(this);
+        }
+        
         // synth
         new TestBtreeIndex().runTest(this);
         new TestDiskFull().runTest(this);
@@ -700,7 +717,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // unit
         new TestAutoReconnect().runTest(this);
-        new TestCache().runTest(this);
+        if (!mvStore) {
+            new TestCache().runTest(this);
+        }
         new TestClearReferences().runTest(this);
         new TestCollation().runTest(this);
         new TestCompress().runTest(this);
@@ -717,7 +736,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
-        // verify
         new TestJmx().runTest(this);
         new TestMathUtils().runTest(this);
         new TestModifyOnWrite().runTest(this);
@@ -726,12 +744,16 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestObjectDeserialization().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);
-        new TestPageStore().runTest(this);
+        if (!mvStore) {
+            new TestPageStore().runTest(this);
+        }
         new TestPageStoreCoverage().runTest(this);
         new TestPattern().runTest(this);
         new TestPgServer().runTest(this);
         new TestReader().runTest(this);
-        new TestRecovery().runTest(this);
+        if (!mvStore) {
+            new TestRecovery().runTest(this);
+        }
         new TestSampleApps().runTest(this);
         new TestScriptReader().runTest(this);
         runTest("org.h2.test.unit.TestServlet");
@@ -741,13 +763,28 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStreams().runTest(this);
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
-        new TestTools().runTest(this);
+        if (!mvStore) {
+            new TestTools().runTest(this);
+        }
         new TestTraceSystem().runTest(this);
         new TestUpgrade().runTest(this);
         new TestUtils().runTest(this);
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);
         new TestValueMemory().runTest(this);
+    }
+    
+    
+    public static byte[] serialize(Object obj) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream os = new ObjectOutputStream(out);
+        os.writeObject(obj);
+        return out.toByteArray();
+    }
+    public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream in = new ByteArrayInputStream(data);
+        ObjectInputStream is = new ObjectInputStream(in);
+        return is.readObject();
     }
 
     private void runTest(String className) {

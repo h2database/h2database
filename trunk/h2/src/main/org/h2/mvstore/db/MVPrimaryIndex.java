@@ -329,8 +329,7 @@ public class MVPrimaryIndex extends BaseIndex {
             return dataMap;
         }
         Transaction t = mvTable.getTransaction(session);
-        long savepoint = session.getStatementSavepoint();
-        return dataMap.getInstance(t, savepoint);
+        return dataMap.getInstance(t, Long.MAX_VALUE);
     }
 
     /**

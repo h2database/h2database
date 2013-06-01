@@ -49,63 +49,64 @@ public class TestReadOnly extends TestBase {
             testReadOnlyFiles(true);
         }
         testReadOnlyFiles(false);
-        deleteDb("readonly");
     }
 
     private void testReadOnlyInZip() throws SQLException {
         if (config.cipher != null) {
             return;
         }
-        deleteDb("readonly");
+        deleteDb("readonlyInZip");
         String dir = getBaseDir();
-        Connection conn = getConnection("readonly");
+        Connection conn = getConnection("readonlyInZip");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT) AS SELECT X FROM SYSTEM_RANGE(1, 20)");
         conn.close();
-        Backup.execute(dir + "/readonly.zip", dir, "readonly", true);
+        Backup.execute(dir + "/readonly.zip", dir, "readonlyInZip", true);
         conn = getConnection(
-                "jdbc:h2:zip:"+dir+"/readonly.zip!/readonly", getUser(), getPassword());
+                "jdbc:h2:zip:"+dir+"/readonly.zip!/readonlyInZip", getUser(), getPassword());
         conn.createStatement().execute("select * from test where id=1");
         conn.close();
         Server server = Server.createTcpServer("-tcpPort", "9081", "-baseDir", dir);
         server.start();
         try {
             conn = getConnection(
-                    "jdbc:h2:tcp://localhost:9081/zip:readonly.zip!/readonly",
+                    "jdbc:h2:tcp://localhost:9081/zip:readonly.zip!/readonlyInZip",
                         getUser(), getPassword());
             conn.createStatement().execute("select * from test where id=1");
             conn.close();
             FilePathZip2.register();
             conn = getConnection(
-                    "jdbc:h2:tcp://localhost:9081/zip2:readonly.zip!/readonly",
+                    "jdbc:h2:tcp://localhost:9081/zip2:readonly.zip!/readonlyInZip",
                         getUser(), getPassword());
             conn.createStatement().execute("select * from test where id=1");
             conn.close();
         } finally {
             server.stop();
         }
+        deleteDb("readonlyInZip");
     }
 
     private void testReadOnlyTempTableResult() throws SQLException {
-        deleteDb("readonly");
-        Connection conn = getConnection("readonly");
+        deleteDb("readonlyTemp");
+        Connection conn = getConnection("readonlyTemp");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT) AS SELECT X FROM SYSTEM_RANGE(1, 20)");
         conn.close();
-        conn = getConnection("readonly;ACCESS_MODE_DATA=r;MAX_MEMORY_ROWS_DISTINCT=10");
+        conn = getConnection("readonlyTemp;ACCESS_MODE_DATA=r;MAX_MEMORY_ROWS_DISTINCT=10");
         stat = conn.createStatement();
         stat.execute("SELECT DISTINCT ID FROM TEST");
         conn.close();
+        deleteDb("readonlyTemp");
     }
 
     private void testReadOnlyDbCreate() throws SQLException {
-        deleteDb("readonly");
-        Connection conn = getConnection("readonly");
+        deleteDb("readonlyDbCreate");
+        Connection conn = getConnection("readonlyDbCreate");
         Statement stat = conn.createStatement();
         stat.execute("create table a(id int)");
         stat.execute("create index ai on a(id)");
         conn.close();
-        conn = getConnection("readonly;ACCESS_MODE_DATA=r");
+        conn = getConnection("readOnlyDbCreate;ACCESS_MODE_DATA=r");
         stat = conn.createStatement();
         stat.execute("create table if not exists a(id int)");
         stat.execute("create index if not exists ai on a(id)");
@@ -136,8 +137,8 @@ public class TestReadOnly extends TestBase {
         assertTrue(!f.canWrite());
         f.delete();
 
-        deleteDb("readonly");
-        Connection conn = getConnection("readonly");
+        deleteDb("readonlyFiles");
+        Connection conn = getConnection("readonlyFiles");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
@@ -147,9 +148,9 @@ public class TestReadOnly extends TestBase {
 
         if (setReadOnly) {
             setReadOnly();
-            conn = getConnection("readonly");
+            conn = getConnection("readonlyFiles");
         } else {
-            conn = getConnection("readonly;ACCESS_MODE_DATA=r");
+            conn = getConnection("readonlyFiles;ACCESS_MODE_DATA=r");
         }
         assertTrue(conn.isReadOnly());
         stat = conn.createStatement();
@@ -159,9 +160,9 @@ public class TestReadOnly extends TestBase {
         conn.close();
 
         if (setReadOnly) {
-            conn = getConnection("readonly;DB_CLOSE_DELAY=1");
+            conn = getConnection("readonlyFiles;DB_CLOSE_DELAY=1");
         } else {
-            conn = getConnection("readonly;DB_CLOSE_DELAY=1;ACCESS_MODE_DATA=r");
+            conn = getConnection("readonlyFiles;DB_CLOSE_DELAY=1;ACCESS_MODE_DATA=r");
         }
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
@@ -172,22 +173,22 @@ public class TestReadOnly extends TestBase {
     }
 
     private void setReadOnly() {
-        ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(), "readonly", true);
+        ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(), "readonlyFiles", true);
         for (String fileName : list) {
             FileUtils.setReadOnly(fileName);
         }
     }
 
     private void testReadOnlyConnect() throws SQLException {
-        deleteDb("readonly");
-        Connection conn = getConnection("readonly;OPEN_NEW=TRUE");
+        deleteDb("readonlyConnect");
+        Connection conn = getConnection("readonlyConnect;OPEN_NEW=TRUE");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity)");
         stat.execute("insert into test select x from system_range(1, 11)");
         assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                getConnection("readonly;ACCESS_MODE_DATA=r;OPEN_NEW=TRUE");
+                getConnection("readonlyConnect;ACCESS_MODE_DATA=r;OPEN_NEW=TRUE");
         conn.close();
-        deleteDb("readonly");
+        deleteDb("readonlyConnect");
     }
 
 }

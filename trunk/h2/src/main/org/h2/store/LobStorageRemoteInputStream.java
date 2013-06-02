@@ -9,6 +9,8 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.h2.message.DbException;
+
 /**
  * An input stream that reads from a remote LOB.
  */
@@ -64,7 +66,11 @@ class LobStorageRemoteInputStream extends InputStream {
         if (length == 0) {
             return -1;
         }
-        length = handler.readLob(lob, hmac, pos, buff, off, length);
+        try {
+            length = handler.readLob(lob, hmac, pos, buff, off, length);
+        } catch (DbException e) {
+            throw DbException.convertToIOException(e);
+        }
         remainingBytes -= length;
         if (length == 0) {
             return -1;

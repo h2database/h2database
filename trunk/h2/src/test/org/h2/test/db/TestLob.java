@@ -29,6 +29,7 @@ import java.util.Random;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.message.DbException;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -298,7 +299,7 @@ public class TestLob extends TestBase {
                     ResultSet rs = stat.executeQuery("select name from test where id = " + random.nextInt(999));
                     if (rs.next()) {
                         Reader r = rs.getClob("name").getCharacterStream();
-                        while (r.read(tmp) > 0) {
+                        while (r.read(tmp) >= 0) {
                             // ignore
                         }
                         r.close();
@@ -307,17 +308,24 @@ public class TestLob extends TestBase {
                 } catch (SQLException ex) {
                     // ignore "LOB gone away", this can happen in the presence of concurrent updates
                     if (ex.getErrorCode() != ErrorCode.IO_EXCEPTION_2) {
-                        ex.printStackTrace();
+                        throw ex;
                     }
                 } catch (IOException ex) {
                     // ignore "LOB gone away", this can happen in the presence of concurrent updates
-                    if (!(ex.getCause() instanceof SQLException)) {
-                        ex.printStackTrace();
+                    Exception e = ex;
+                    if (e.getCause() instanceof DbException) {
+                        e = (Exception) e.getCause();
                     }
-                    SQLException ex2 = (SQLException) ex.getCause();
-                    if (ex2.getErrorCode() != 90028) {
-                        ex.printStackTrace();
+                    if (!(e.getCause() instanceof SQLException)) {
+                        throw ex;
                     }
+                    SQLException e2 = (SQLException) e.getCause();
+                    if (e2.getErrorCode() != ErrorCode.IO_EXCEPTION_1) {
+                        throw ex;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace(System.out);
+                    throw e;
                 }
             }
         }
@@ -358,12 +366,12 @@ public class TestLob extends TestBase {
         Deadlock2Task1 task4 = new Deadlock2Task1();
         Deadlock2Task2 task5 = new Deadlock2Task2();
         Deadlock2Task2 task6 = new Deadlock2Task2();
-        task1.execute();
-        task2.execute();
-        task3.execute();
-        task4.execute();
-        task5.execute();
-        task6.execute();
+        task1.execute("task1");
+        task2.execute("task2");
+        task3.execute("task3");
+        task4.execute("task4");
+        task5.execute("task5");
+        task6.execute("task6");
         for (int i = 0; i < 1000; i++) {
             stat.execute("insert into test values(null, space(10000 + " + i + "), 1)");
         }

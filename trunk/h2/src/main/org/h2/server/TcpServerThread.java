@@ -407,26 +407,33 @@ public class TcpServerThread implements Runnable {
             long lobId = transfer.readLong();
             byte[] hmac;
             CachedInputStream in;
+            boolean verifyMac;
             if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_11) {
                 if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
                     hmac = transfer.readBytes();
-                    transfer.verifyLobMac(hmac, lobId);
+                    verifyMac = true;
                 } else {
                     hmac = null;
+                    verifyMac = false;
                 }
                 in = lobs.get(lobId);
-                if (in == null) {
+                if (in == null && verifyMac) {
                     in = new CachedInputStream(null);
                     lobs.put(lobId, in);
                 }
             } else {
+                verifyMac = false;
                 hmac = null;
                 in = lobs.get(lobId);
-                if (in == null) {
-                    throw DbException.get(ErrorCode.OBJECT_CLOSED);
-                }
             }
             long offset = transfer.readLong();
+            int length = transfer.readInt();
+            if (verifyMac) {
+                transfer.verifyLobMac(hmac, lobId);
+            }
+            if (in == null) {
+                throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            }
             if (in.getPos() != offset) {
                 LobStorageInterface lobStorage = session.getDataHandler().getLobStorage();
                 InputStream lobIn = lobStorage.getInputStream(lobId, hmac, -1);
@@ -434,12 +441,11 @@ public class TcpServerThread implements Runnable {
                 lobs.put(lobId, in);
                 lobIn.skip(offset);
             }
-            int length = transfer.readInt();
             // limit the buffer size
             length = Math.min(16 * Constants.IO_BUFFER_SIZE, length);
-            transfer.writeInt(SessionRemote.STATUS_OK);
             byte[] buff = new byte[length];
             length = IOUtils.readFully(in, buff, 0, length);
+            transfer.writeInt(SessionRemote.STATUS_OK);
             transfer.writeInt(length);
             transfer.writeBytes(buff, 0, length);
             transfer.flush();

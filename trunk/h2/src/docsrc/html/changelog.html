@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 463: Driver name and version are now the same in OsgiDataSourceFactory and JdbcDatabaseMetaData.
+<ul><li>Server mode: if there was an error while reading from a LOB, the session was closed in some cases.
+</li><li>Issue 463: Driver name and version are now the same in OsgiDataSourceFactory and JdbcDatabaseMetaData.
 </li><li>JaQu: The data type VARCHAR is now (again) used for Strings 
     (no longer TEXT, except when explicitly set).
 </li><li>For in-memory databases, creating an index on a CLOB or BLOB column 

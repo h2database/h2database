@@ -896,7 +896,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         Calendar c = Calendar.getInstance();
         c.setTime(rs.getTimestamp(1));
-        c.set(Calendar.HOUR, 0);
+        c.set(Calendar.HOUR_OF_DAY, 0);
         c.set(Calendar.MINUTE, 0);
         c.set(Calendar.SECOND, 0);
         c.set(Calendar.MILLISECOND, 0);

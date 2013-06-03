@@ -158,6 +158,7 @@ size are split into separate blocks.
 BLOCKSIZE is used when writing out LOB data, and specifies the point at the
 values transition from being inserted as inline values, to be inserted using
 out-of-line commands.
+NOSETTINGS turns off dumping the DB settings (ie. the values from the SET XXX commands)
 
 If no file name is specified, the
 script is returned as a result set. This command can be used to create a backup

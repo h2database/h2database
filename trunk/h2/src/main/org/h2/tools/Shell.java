@@ -136,6 +136,8 @@ public class Shell extends Tool implements Runnable {
             } else if (arg.equals("-help") || arg.equals("-?")) {
                 showUsage();
                 return;
+            } else if (arg.equals("-list")) {
+                listMode = true;
             } else {
                 showUsageAndThrowUnsupportedOption(arg);
             }

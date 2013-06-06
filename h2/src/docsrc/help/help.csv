@@ -2826,7 +2826,7 @@ CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
 "
 
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ({numeric, digitsInt} | timestamp)
+{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp } )
 ","
 Truncates to a number of digits (to the next value closer to 0).
 This method returns a double.

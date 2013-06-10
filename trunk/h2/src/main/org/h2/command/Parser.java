@@ -5332,6 +5332,13 @@ public class Parser {
                 } while (readIfMore());
             }
         }
+        // Allows "COMMENT='comment'" in DDL statements (MySQL syntax)
+        if (readIf("COMMENT")) {
+            if (readIf("=")) {
+                // read the complete string comment, but nothing with it for now
+                readString();
+            }
+        }
         if (readIf("ENGINE")) {
             if (readIf("=")) {
                 // map MySQL engine types onto H2 behavior

@@ -135,7 +135,7 @@ public class FileStore {
      * @return the random salt or the magic
      */
     protected byte[] generateSalt() {
-        return HEADER.getBytes();
+        return HEADER.getBytes(Constants.UTF8);
     }
 
     /**
@@ -170,7 +170,7 @@ public class FileStore {
     public void init() {
         int len = Constants.FILE_BLOCK_SIZE;
         byte[] salt;
-        byte[] magic = HEADER.getBytes();
+        byte[] magic = HEADER.getBytes(Constants.UTF8);
         if (length() < HEADER_LENGTH) {
             // write unencrypted
             checkedWriting = false;

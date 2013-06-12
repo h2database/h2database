@@ -15,6 +15,7 @@
 23506=Referential integrity constraint violation: {0}
 23507=No default value is set for column {0}
 23513=Check constraint violation: {0}
+23514=Check constraint invalid: {0}
 28000=Wrong user name or password
 40001=Deadlock detected. The current transaction was rolled back. Details: {0}
 42000=Syntax error in SQL statement {0}

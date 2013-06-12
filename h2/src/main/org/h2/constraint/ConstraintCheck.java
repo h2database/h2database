@@ -93,8 +93,14 @@ public class ConstraintCheck extends Constraint {
             return;
         }
         filter.set(newRow);
+        Boolean b;
+        try {
+            b = expr.getValue(session).getBoolean();
+        } catch (DbException ex) {
+            throw DbException.get(ErrorCode.CHECK_CONSTRAINT_INVALID, ex, getShortDescription());
+        }
         // Both TRUE and NULL are ok
-        if (Boolean.FALSE.equals(expr.getValue(session).getBoolean())) {
+        if (Boolean.FALSE.equals(b)) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, getShortDescription());
         }
     }

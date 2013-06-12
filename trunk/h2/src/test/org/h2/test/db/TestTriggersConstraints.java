@@ -49,6 +49,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testTriggerAlterTable();
         testTriggers();
         testConstraints();
+        testCheckConstraintErrorMessage();
         testMultiPartForeignKeys();
         deleteDb("trigger");
     }
@@ -403,6 +404,36 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn.close();
     }
 
+    private void testCheckConstraintErrorMessage() throws SQLException {
+        Connection conn = getConnection("trigger");
+        Statement stat = conn.createStatement();
+        
+        stat.execute("create table companies(id identity)");
+        stat.execute("create table departments(id identity, "
+                + "company_id int not null, "
+                + "foreign key(company_id) references companies(id))");
+        stat.execute("create table connections (id identity, company_id int not null, "
+                + "first int not null, second int not null, "
+                + "foreign key (company_id) references companies(id), "
+                + "foreign key (first) references departments(id), "
+                + "foreign key (second) references departments(id), "
+                + "check (select departments.company_id from departments, companies where "
+                + "       departments.id in (first, second)) = company_id)");
+        stat.execute("insert into companies(id) values(1)");
+        stat.execute("insert into departments(id, company_id) "
+                + "values(10, 1)");
+        stat.execute("insert into departments(id, company_id) "
+                + "values(20, 1)");
+        assertThrows(ErrorCode.CHECK_CONSTRAINT_INVALID, stat)
+             .execute("insert into connections(id, company_id, first, second) "
+                + "values(100, 1, 10, 20)");         
+        
+        stat.execute("drop table connections");
+        stat.execute("drop table departments");
+        stat.execute("drop table companies");
+        conn.close();
+    }
+    
     /**
      * Regression test: we had a bug where the AlterTableAddConstraint class
      * used to sometimes pick the wrong unique index for a foreign key.

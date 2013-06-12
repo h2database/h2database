@@ -224,6 +224,12 @@ public class ErrorCode {
      */
     public static final int CHECK_CONSTRAINT_VIOLATED_1 = 23513;
 
+    /**
+     * The error with code <code>23514</code> is thrown during evaluation of a check constraint
+     * if the SQL generates an error.
+     */
+    public static final int CHECK_CONSTRAINT_INVALID = 23514;
+    
     // 28: invalid authorization specification
 
     /**

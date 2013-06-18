@@ -19,6 +19,7 @@ import java.sql.Types;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.server.Service;
@@ -78,6 +79,7 @@ public class PgServer implements Service {
     private boolean trace;
     private ServerSocket serverSocket;
     private final Set<PgServerThread> running = Collections.synchronizedSet(new HashSet<PgServerThread>());
+    private final AtomicInteger pid= new AtomicInteger(0);
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;
@@ -191,7 +193,7 @@ public class PgServer implements Service {
                 } else {
                     PgServerThread c = new PgServerThread(s, this);
                     running.add(c);
-                    c.setProcessId(running.size());
+                    c.setProcessId(pid.incrementAndGet());
                     Thread thread = new Thread(c, threadName+" thread");
                     thread.setDaemon(isDaemon);
                     c.setThread(thread);
@@ -250,6 +252,18 @@ public class PgServer implements Service {
             }
             return false;
         }
+    }
+
+    /**
+     * @return the thread with the given process-id
+     */
+    PgServerThread getThread(int processId) {
+        for (PgServerThread c : New.arrayList(running)) {
+            if (c.getProcessId()==processId) {
+                return c;
+            }
+        }
+        return null;
     }
 
     String getBaseDir() {

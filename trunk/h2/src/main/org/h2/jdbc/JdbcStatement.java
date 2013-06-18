@@ -39,6 +39,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     private int lastExecutedCommandType;
     private ArrayList<String> batchCommands;
     private boolean escapeProcessing = true;
+    private boolean cancelled = false;
 
     JdbcStatement(JdbcConnection conn, int id, int resultSetType, int resultSetConcurrency, boolean closeWithResultSet) {
         this.conn = conn;
@@ -530,6 +531,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             try {
                 if (c != null) {
                     c.cancel();
+                    cancelled = true;
                 }
             } finally {
                 setExecutingStatement(null);
@@ -537,6 +539,13 @@ public class JdbcStatement extends TraceObject implements Statement {
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    /**
+     * @return true if this statement has been cancelled.
+     */
+    public boolean isCancelled() {
+        return cancelled;
     }
 
     /**

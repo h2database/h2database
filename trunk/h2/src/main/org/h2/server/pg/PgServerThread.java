@@ -28,6 +28,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.Random;
 import org.h2.command.CommandInterface;
 import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
@@ -62,6 +63,8 @@ public class PgServerThread implements Runnable {
     private String userName;
     private String databaseName;
     private int processId;
+    private int secret;
+    private JdbcStatement activeRequest;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO";
     private final HashMap<String, Prepared> prepared = new CaseInsensitiveMap<Prepared>();
@@ -70,6 +73,7 @@ public class PgServerThread implements Runnable {
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;
         this.socket = socket;
+        this.secret = new Random().nextInt();
     }
 
     @Override
@@ -142,9 +146,16 @@ public class PgServerThread implements Runnable {
             server.trace("Init");
             int version = readInt();
             if (version == 80877102) {
-                server.trace("CancelRequest (not supported)");
-                server.trace(" pid: " + readInt());
-                server.trace(" key: " + readInt());
+                server.trace("CancelRequest");
+                int pid = readInt();
+                int key = readInt();
+                PgServerThread c = server.getThread(pid);
+                if (c!=null) {
+                    c.cancelRequest(key);
+                } else {
+                    sendErrorResponse("unknown process: "+pid);
+                }
+                close();
             } else if (version == 80877103) {
                 server.trace("SSLRequest");
                 out.write('N');
@@ -328,6 +339,7 @@ public class PgServerThread implements Runnable {
             server.trace(prepared.sql);
             try {
                 prep.setMaxRows(maxRows);
+                setActiveRequest(prep);
                 boolean result = prep.execute();
                 if (result) {
                     try {
@@ -345,7 +357,13 @@ public class PgServerThread implements Runnable {
                     sendCommandComplete(prep, prep.getUpdateCount());
                 }
             } catch (Exception e) {
-                sendErrorResponse(e);
+                if (prep.isCancelled()) {
+                    sendCancelQueryResponse();
+                } else {
+                    sendErrorResponse(e);
+                }
+            } finally {
+                setActiveRequest(null);
             }
             break;
         }
@@ -367,6 +385,7 @@ public class PgServerThread implements Runnable {
                     }
                     s = getSQL(s);
                     stat = (JdbcStatement) conn.createStatement();
+                    setActiveRequest(stat);
                     boolean result = stat.execute(s);
                     if (result) {
                         ResultSet rs = stat.getResultSet();
@@ -385,10 +404,15 @@ public class PgServerThread implements Runnable {
                         sendCommandComplete(stat, stat.getUpdateCount());
                     }
                 } catch (SQLException e) {
-                    sendErrorResponse(e);
+                    if (stat!=null && stat.isCancelled()) {
+                        sendCancelQueryResponse();
+                    } else {
+                        sendErrorResponse(e);
+                    }
                     break;
                 } finally {
                     JdbcUtils.closeSilently(stat);
+                    setActiveRequest(null);
                 }
             }
             sendReadyForQuery();
@@ -509,6 +533,19 @@ public class PgServerThread implements Runnable {
         writeString(e.getMessage());
         write('D');
         writeString(e.toString());
+        write(0);
+        sendMessage();
+    }
+
+    private void sendCancelQueryResponse() throws IOException {
+        server.trace("CancelSuccessResponse");
+        startMessage('E');
+        write('S');
+        writeString("ERROR");
+        write('C');
+        writeString("57014");
+        write('M');
+        writeString("canceling statement due to user request");
         write(0);
         sendMessage();
     }
@@ -746,7 +783,7 @@ public class PgServerThread implements Runnable {
     private void sendBackendKeyData() throws IOException {
         startMessage('K');
         writeInt(processId);
-        writeInt(processId);
+        writeInt(secret);
         sendMessage();
     }
 
@@ -811,6 +848,34 @@ public class PgServerThread implements Runnable {
         this.processId = id;
     }
 
+    int getProcessId() {
+        return this.processId;
+    }
+
+    synchronized void setActiveRequest(JdbcStatement statement) {
+        activeRequest = statement;
+    }
+
+    /**
+     * Kill a currently running query on this thread.
+     * @param secret the private key of the command
+     * @return true if the command was successfully killed
+     */
+    synchronized boolean cancelRequest(int secret) throws IOException {
+        if (activeRequest != null)
+        {
+            if (secret != this.secret) throw new IOException("invalid cancel secret");
+            try {
+                activeRequest.cancel();
+                activeRequest = null;
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Represents a PostgreSQL Prepared object.
      */
@@ -857,5 +922,4 @@ public class PgServerThread implements Runnable {
          */
         Prepared prep;
     }
-
 }

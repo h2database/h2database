@@ -118,7 +118,7 @@ public abstract class PageBtree extends Page {
             if (comp == 0) {
                 if (add && index.indexType.isUnique()) {
                     if (!index.containsNullAndAllowMultipleNull(compare)) {
-                        throw index.getDuplicateKeyException();
+                        throw index.getDuplicateKeyException(compare.toString());
                     }
                 }
                 if (compareKeys) {

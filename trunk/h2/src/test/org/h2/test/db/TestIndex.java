@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Random;
-
+import org.h2.constant.ErrorCode;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -40,6 +40,7 @@ public class TestIndex extends TestBase {
     public void test() throws SQLException {
         deleteDb("index");
         testErrorMessage();
+        testDuplicateKeyException();
         testNonUniqueHashIndex();
         testRenamePrimaryKey();
         testRandomized();
@@ -125,6 +126,24 @@ public class TestIndex extends TestBase {
         stat.execute("drop table test");
     }
 
+    private void testDuplicateKeyException() throws SQLException {
+        reconnect();
+        stat.execute("create table test(id int primary key, name varchar(255))");
+        stat.execute("create unique index idx_test_name on test(name)");
+        stat.execute("insert into TEST values(1, 'Hello')");
+        try {
+            stat.execute("insert into TEST values(2, 'Hello')");
+            fail();
+        } catch (SQLException ex) {
+            assertEquals(ErrorCode.DUPLICATE_KEY_1, ex.getErrorCode());
+            String m = ex.getMessage();
+            int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
+            String s = m.substring(start + 1, end);
+            assertEquals("IDX_TEST_NAME ON PUBLIC.TEST(NAME) VALUES ( /* 2 */ 'Hello' )", s);
+        }
+        stat.execute("drop table test");
+    }
+    
     private void testNonUniqueHashIndex() throws SQLException {
         reconnect();
         stat.execute("create memory table test(id bigint, data bigint)");

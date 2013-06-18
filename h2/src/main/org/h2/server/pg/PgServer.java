@@ -55,22 +55,22 @@ public class PgServer implements Service {
      */
     public static final int PG_TYPE_INT2VECTOR = 22;
 
-    private static final int PG_TYPE_BOOL = 16;
-    private static final int PG_TYPE_BYTEA = 17;
-    private static final int PG_TYPE_BPCHAR = 1042;
-    private static final int PG_TYPE_INT8 = 20;
-    private static final int PG_TYPE_INT2 = 21;
-    private static final int PG_TYPE_INT4 = 23;
-    private static final int PG_TYPE_TEXT = 25;
-    private static final int PG_TYPE_OID = 26;
-    private static final int PG_TYPE_FLOAT4 = 700;
-    private static final int PG_TYPE_FLOAT8 = 701;
-    private static final int PG_TYPE_UNKNOWN = 705;
-    private static final int PG_TYPE_TEXTARRAY = 1009;
-    private static final int PG_TYPE_DATE = 1082;
-    private static final int PG_TYPE_TIME = 1083;
-    private static final int PG_TYPE_TIMESTAMP_NO_TMZONE = 1114;
-    private static final int PG_TYPE_NUMERIC = 1700;
+    public static final int PG_TYPE_BOOL = 16;
+    public static final int PG_TYPE_BYTEA = 17;
+    public static final int PG_TYPE_BPCHAR = 1042;
+    public static final int PG_TYPE_INT8 = 20;
+    public static final int PG_TYPE_INT2 = 21;
+    public static final int PG_TYPE_INT4 = 23;
+    public static final int PG_TYPE_TEXT = 25;
+    public static final int PG_TYPE_OID = 26;
+    public static final int PG_TYPE_FLOAT4 = 700;
+    public static final int PG_TYPE_FLOAT8 = 701;
+    public static final int PG_TYPE_UNKNOWN = 705;
+    public static final int PG_TYPE_TEXTARRAY = 1009;
+    public static final int PG_TYPE_DATE = 1082;
+    public static final int PG_TYPE_TIME = 1083;
+    public static final int PG_TYPE_TIMESTAMP_NO_TMZONE = 1114;
+    public static final int PG_TYPE_NUMERIC = 1700;
 
     private final HashSet<Integer> typeSet = New.hashSet();
 

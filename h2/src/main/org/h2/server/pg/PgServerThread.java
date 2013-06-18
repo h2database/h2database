@@ -257,16 +257,13 @@ public class PgServerThread implements Runnable {
                 formatCodes[i] = readShort();
             }
             int paramCount = readShort();
-            for (int i = 0; i < paramCount; i++) {
-                int paramLen = readInt();
-                byte[] d2 = DataUtils.newBytes(paramLen);
-                readFully(d2);
-                try {
-                    setParameter(prep.prep, i, d2, formatCodes);
-                } catch (Exception e) {
-                    sendErrorResponse(e);
-                    break switchBlock;
+            try {
+                for (int i = 0; i < paramCount; i++) {
+                    setParameter(prep.prep, prep.paramType[i], i, formatCodes);
                 }
+            } catch (Exception e) {
+                sendErrorResponse(e);
+                break switchBlock;
             }
             int resultCodeCount = readShort();
             portal.resultColumnFormat = new int[resultCodeCount];
@@ -474,24 +471,62 @@ public class PgServerThread implements Runnable {
     }
 
     private void sendDataRow(ResultSet rs) throws Exception {
-        int columns = rs.getMetaData().getColumnCount();
-        String[] values = new String[columns];
-        for (int i = 0; i < columns; i++) {
-            values[i] = rs.getString(i + 1);
-        }
+        ResultSetMetaData metaData = rs.getMetaData();
+        int columns = metaData.getColumnCount();
         startMessage('D');
         writeShort(columns);
-        for (String s : values) {
-            if (s == null) {
-                writeInt(-1);
-            } else {
-                // TODO write Binary data
-                byte[] d2 = s.getBytes(getEncoding());
-                writeInt(d2.length);
-                write(d2);
-            }
+        for (int i = 1; i <= columns; i++) {
+            writeDataColumn(rs, i, PgServer.convertType(metaData.getColumnType(i)));
         }
         sendMessage();
+    }
+
+    private void writeDataColumn(ResultSet rs, int column, int pgType) throws Exception {
+        if (formatAsText(pgType)) {
+            String s = rs.getString(column);
+            if (s==null) {
+                writeInt(-1);
+            } else {
+                byte[] data = s.getBytes(getEncoding());
+                writeInt(data.length);
+                write(data);
+            }
+        } else {
+            // binary
+            switch (pgType) {
+            case PgServer.PG_TYPE_INT2:
+                writeInt(2);
+                dataOut.writeShort(rs.getShort(column));
+                break;
+            case PgServer.PG_TYPE_INT4:
+                writeInt(4);
+                dataOut.writeInt(rs.getInt(column));
+                break;
+            case PgServer.PG_TYPE_INT8:
+                writeInt(8);
+                dataOut.writeLong(rs.getLong(column));
+                break;
+            case PgServer.PG_TYPE_FLOAT4:
+                writeInt(4);
+                dataOut.writeFloat(rs.getFloat(column));
+                break;
+            case PgServer.PG_TYPE_FLOAT8:
+                writeInt(8);
+                dataOut.writeDouble(rs.getDouble(column));
+                break;
+            case PgServer.PG_TYPE_BYTEA:
+                byte[] data = rs.getBytes(column);
+                if (data==null) {
+                    writeInt(-1);
+                } else {
+                    writeInt(data.length);
+                    write(data);
+                }
+                break;
+
+            default: throw new IllegalStateException("output binary format is undefined");
+            }
+        }
     }
 
     private String getEncoding() {
@@ -501,24 +536,60 @@ public class PgServerThread implements Runnable {
         return clientEncoding;
     }
 
-    private void setParameter(PreparedStatement prep, int i, byte[] d2, int[] formatCodes) throws SQLException {
+    private void setParameter(PreparedStatement prep, int pgType, int i, int[] formatCodes) throws SQLException, IOException {
         boolean text = (i >= formatCodes.length) || (formatCodes[i] == 0);
-        String s;
-        try {
-            if (text) {
-                s = new String(d2, getEncoding());
-            } else {
-                server.trace("Binary format not supported");
-                s = new String(d2, getEncoding());
+        int col = i + 1;
+        int paramLen = readInt();
+        if (text) {
+            // plain text
+            byte[] data = DataUtils.newBytes(paramLen);
+            readFully(data);
+            prep.setString(col, new String(data, getEncoding()));
+        } else {
+            // binary
+            switch (pgType) {
+            case PgServer.PG_TYPE_INT2:
+                if (paramLen != 4) {
+                    throw DbException.getInvalidValueException("paramLen", paramLen);
+                }
+                prep.setShort(col, dataIn.readShort());
+                break;
+            case PgServer.PG_TYPE_INT4:
+                if (paramLen != 4) {
+                    throw DbException.getInvalidValueException("paramLen", paramLen);
+                }
+                prep.setInt(col, dataIn.readInt());
+                break;
+            case PgServer.PG_TYPE_INT8:
+                if (paramLen != 8) {
+                    throw DbException.getInvalidValueException("paramLen", paramLen);
+                }
+                prep.setLong(col, dataIn.readLong());
+                break;
+            case PgServer.PG_TYPE_FLOAT4:
+                if (paramLen != 4) {
+                    throw DbException.getInvalidValueException("paramLen", paramLen);
+                }
+                prep.setFloat(col, dataIn.readFloat());
+                break;
+            case PgServer.PG_TYPE_FLOAT8:
+                if (paramLen != 8) {
+                    throw DbException.getInvalidValueException("paramLen", paramLen);
+                }
+                prep.setDouble(col, dataIn.readDouble());
+                break;
+            case PgServer.PG_TYPE_BYTEA:
+                byte[] d1 = DataUtils.newBytes(paramLen);
+                readFully(d1);
+                prep.setBytes(col, d1);
+                break;
+            default:
+                server.trace("Binary format for type: "+pgType+" is unsupported");
+                byte[] d2 = DataUtils.newBytes(paramLen);
+                readFully(d2);
+                prep.setString(col, new String(d2, getEncoding()));
             }
-        } catch (Exception e) {
-            server.traceError(e);
-            s = null;
         }
-        // if(server.getLog()) {
-        // server.log(" " + i + ": " + s);
-        // }
-        prep.setString(i + 1, s);
     }
 
     private void sendErrorResponse(Exception re) throws IOException {
@@ -615,11 +686,21 @@ public class PgServerThread implements Runnable {
                 writeShort(getTypeSize(types[i], precision[i]));
                 // pg_attribute.atttypmod
                 writeInt(-1);
-                // text
-                writeShort(0);
+                // the format type: text = 0, binary = 1
+                writeShort(formatAsText(types[i]) ? 0 : 1);
             }
             sendMessage();
         }
+    }
+
+    /** @return should the given type be formatted as binary or plain text? */
+    private boolean formatAsText(int pgType) {
+        switch (pgType) {
+        // TODO: add more types to send as binary once compatibility is confirmed
+        case PgServer.PG_TYPE_BYTEA:
+            return false;
+        }
+        return true;
     }
 
     private static int getTypeSize(int pgType, int precision) {

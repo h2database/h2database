@@ -6,16 +6,7 @@
  */
 package org.h2.test.unit;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.ParameterMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
+import java.sql.*;
 import java.util.concurrent.*;
 
 import org.h2.test.TestBase;
@@ -278,6 +269,52 @@ public class TestPgServer extends TestBase {
             ResultSet rs = stat.executeQuery("select storage_type from information_schema.tables where table_name = 'TEST'");
             assertTrue(rs.next());
             assertEquals("MEMORY", rs.getString(1));
+
+            conn.close();
+        } catch (ClassNotFoundException e) {
+            println("PostgreSQL JDBC driver not found - PgServer not tested");
+        } finally {
+            server.stop();
+        }
+    }
+
+    private void testBinaryTypes() throws SQLException {
+        Server server = Server.createPgServer("-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
+        server.start();
+        try {
+            Class.forName("org.postgresql.Driver");
+
+            Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
+            Statement stat = conn.createStatement();
+
+            stat.execute("create table test(x1 varchar, x2 int, x3 smallint, x4 bigint, x5 double, x6 float, " +
+                "x7 real, x8 boolean, x9 char, x10 bytea)");
+
+            PreparedStatement ps = conn.prepareStatement("insert into test values (?,?,?,?,?,?,?,?,?,?)");
+            ps.setString(1, "test");
+            ps.setInt(2, 12345678);
+            ps.setShort(3, (short)12345);
+            ps.setLong(4, 1234567890123L);
+            ps.setDouble(5, 123.456);
+            ps.setFloat(6, 123.456f);
+            ps.setDouble(7, 123.456);
+            ps.setBoolean(8, true);
+            ps.setByte(9, (byte)0xfe);
+            ps.setBytes(10, new byte[] {'a',(byte)0xfe,'\127'});
+            ps.execute();
+
+            ResultSet rs = stat.executeQuery("select * from test");
+            assertTrue(rs.next());
+            assertEquals("test", rs.getString(1));
+            assertEquals(12345678, rs.getInt(2));
+            assertEquals((short)12345, rs.getShort(3));
+            assertEquals(1234567890123L, rs.getLong(4));
+            assertEquals(123.456, rs.getDouble(5));
+            assertEquals(123.456f, rs.getFloat(6));
+            assertEquals(123.456, rs.getDouble(7));
+            assertEquals(true, rs.getBoolean(8));
+            assertEquals((byte)0xfe, rs.getByte(9));
+            assertEquals(new byte[]{'a',(byte)0xfe,'\127'}, rs.getBytes(10));
 
             conn.close();
         } catch (ClassNotFoundException e) {

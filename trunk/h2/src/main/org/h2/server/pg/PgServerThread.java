@@ -933,28 +933,28 @@ public class PgServerThread implements Runnable {
         return this.processId;
     }
 
-    synchronized void setActiveRequest(JdbcStatement statement) {
+    private synchronized void setActiveRequest(JdbcStatement statement) {
         activeRequest = statement;
     }
 
     /**
      * Kill a currently running query on this thread.
      * @param secret the private key of the command
-     * @return true if the command was successfully killed
      */
-    synchronized boolean cancelRequest(int secret) throws IOException {
+    private synchronized void cancelRequest(int secret) throws IOException {
         if (activeRequest != null)
         {
-            if (secret != this.secret) throw new IOException("invalid cancel secret");
+            if (secret != this.secret) {
+                sendErrorResponse("invalid cancel secret");
+                return;
+            }
             try {
                 activeRequest.cancel();
                 activeRequest = null;
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
-            return true;
         }
-        return false;
     }
 
     /**

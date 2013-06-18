@@ -73,6 +73,7 @@ public class CreateView extends SchemaCommand {
     @Override
     public int update() {
         session.commit(true);
+        session.getUser().checkAdmin();
         Database db = session.getDatabase();
         TableView view = null;
         Table old = getSchema().findTableOrView(session, viewName);

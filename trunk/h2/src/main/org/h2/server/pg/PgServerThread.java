@@ -171,7 +171,7 @@ public class PgServerThread implements Runnable {
                     if ("user".equals(param)) {
                         this.userName = value;
                     } else if ("database".equals(param)) {
-                        this.databaseName = value;
+                        this.databaseName = server.checkKeyAndGetDatabaseName(value);
                     } else if ("client_encoding".equals(param)) {
                         // UTF8
                         clientEncoding = value;

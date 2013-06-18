@@ -37,6 +37,11 @@ public class TestPgServer extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testPGAdapter();
+        testKeyAlias();
+    }
+
+    private void testPGAdapter() throws SQLException {
         deleteDb("test");
         Server server = Server.createPgServer("-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
         assertEquals(5535, server.getPort());
@@ -259,4 +264,26 @@ public class TestPgServer extends TestBase {
         conn.close();
     }
 
+    private void testKeyAlias() throws SQLException {
+        Server server = Server.createPgServer("-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
+        server.start();
+        try {
+            Class.forName("org.postgresql.Driver");
+
+            Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
+            Statement stat = conn.createStatement();
+
+            // confirm that we've got the in memory implementation by creating a table and checking flags
+            stat.execute("create table test(id int primary key, name varchar)");
+            ResultSet rs = stat.executeQuery("select storage_type from information_schema.tables where table_name = 'TEST'");
+            assertTrue(rs.next());
+            assertEquals("MEMORY", rs.getString(1));
+
+            conn.close();
+        } catch (ClassNotFoundException e) {
+            println("PostgreSQL JDBC driver not found - PgServer not tested");
+        } finally {
+            server.stop();
+        }
+    }
 }

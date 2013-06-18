@@ -61,6 +61,7 @@ import org.h2.test.db.TestScriptSimple;
 import org.h2.test.db.TestSelectCountNonNullColumn;
 import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
+import org.h2.test.db.TestShow;
 import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpeed;
 import org.h2.test.db.TestTableEngines;
@@ -621,6 +622,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestSessionsLocks().runTest(this);
         new TestSelectCountNonNullColumn().runTest(this);
         new TestSequence().runTest(this);
+        new TestShow().runTest(this);
         new TestSpaceReuse().runTest(this);
         new TestSpeed().runTest(this);
         new TestTableEngines().runTest(this);

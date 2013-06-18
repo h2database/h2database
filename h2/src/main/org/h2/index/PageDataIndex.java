@@ -94,9 +94,9 @@ public class PageDataIndex extends PageIndex {
     }
 
     @Override
-    public DbException getDuplicateKeyException() {
+    public DbException getDuplicateKeyException(String key) {
         if (fastDuplicateKeyException == null) {
-            fastDuplicateKeyException = super.getDuplicateKeyException();
+            fastDuplicateKeyException = super.getDuplicateKeyException(null);
         }
         return fastDuplicateKeyException;
     }

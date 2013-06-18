@@ -52,7 +52,7 @@ public class HashIndex extends BaseIndex {
         Object old = rows.get(key);
         if (old != null) {
             // TODO index duplicate key for hash indexes: is this allowed?
-            throw getDuplicateKeyException();
+            throw getDuplicateKeyException(key.toString());
         }
         rows.put(key, row.getKey());
     }

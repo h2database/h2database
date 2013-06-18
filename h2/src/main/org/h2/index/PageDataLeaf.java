@@ -154,7 +154,7 @@ public class PageDataLeaf extends PageData {
     private int findInsertionPoint(long key) {
         int x = find(key);
         if (x < entryCount && keys[x] == key) {
-            throw index.getDuplicateKeyException();
+            throw index.getDuplicateKeyException(""+key);
         }
         return x;
     }

@@ -94,7 +94,7 @@ public class MVSecondaryIndex extends BaseIndex {
                 SearchRow r2 = getRow(key.getList());
                 if (compareRows(row, r2) == 0) {
                     if (!containsNullAndAllowMultipleNull(r2)) {
-                        throw getDuplicateKeyException();
+                        throw getDuplicateKeyException(key.toString());
                     }
                 }
             }

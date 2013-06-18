@@ -234,6 +234,8 @@ public class TestRights extends TestBase {
         executeError("SELECT * FROM (SELECT * FROM PASS)");
         assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, stat).
                 execute("CREATE VIEW X AS SELECT * FROM PASS_READER");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+                execute("CREATE VIEW X AS SELECT * FROM PASS_NAME");
         conn.close();
 
         conn = getConnection("rights");

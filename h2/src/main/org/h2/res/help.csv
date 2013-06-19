@@ -88,7 +88,7 @@ Adds a new column to a table."
 ALTER TABLE tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table."
-"Commands (DDL)","ALTER TABLE ALTER","
+"Commands (DDL)","ALTER TABLE ALTER COLUMN","
 ALTER TABLE tableName ALTER COLUMN columnName
 { { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
     | { RENAME TO name }

@@ -238,7 +238,7 @@ This command commits an open transaction.
 ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
 
-"Commands (DDL)","ALTER TABLE ALTER","
+"Commands (DDL)","ALTER TABLE ALTER COLUMN","
 ALTER TABLE tableName ALTER COLUMN columnName
 { { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
     | { RENAME TO name }

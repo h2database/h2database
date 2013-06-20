@@ -25,6 +25,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
@@ -341,8 +342,7 @@ public class PgServerThread implements Runnable {
                 if (result) {
                     try {
                         ResultSet rs = prep.getResultSet();
-                        ResultSetMetaData meta = rs.getMetaData();
-                        sendRowDescription(meta);
+                        // the meta-data is sent in the prior 'Describe'
                         while (rs.next()) {
                             sendDataRow(rs);
                         }
@@ -483,13 +483,21 @@ public class PgServerThread implements Runnable {
 
     private void writeDataColumn(ResultSet rs, int column, int pgType) throws Exception {
         if (formatAsText(pgType)) {
-            String s = rs.getString(column);
-            if (s==null) {
-                writeInt(-1);
-            } else {
-                byte[] data = s.getBytes(getEncoding());
-                writeInt(data.length);
-                write(data);
+            // plain text
+            switch (pgType) {
+            case PgServer.PG_TYPE_BOOL:
+                writeInt(1);
+                dataOut.writeByte(rs.getBoolean(column) ? 't' : 'f');
+                break;
+            default:
+                String s = rs.getString(column);
+                if (s==null) {
+                    writeInt(-1);
+                } else {
+                    byte[] data = s.getBytes(getEncoding());
+                    writeInt(data.length);
+                    write(data);
+                }
             }
         } else {
             // binary
@@ -540,7 +548,9 @@ public class PgServerThread implements Runnable {
         boolean text = (i >= formatCodes.length) || (formatCodes[i] == 0);
         int col = i + 1;
         int paramLen = readInt();
-        if (text) {
+        if (paramLen==-1) {
+            prep.setNull(i, Types.NULL);
+        } else if (text) {
             // plain text
             byte[] data = DataUtils.newBytes(paramLen);
             readFully(data);
@@ -661,7 +671,7 @@ public class PgServerThread implements Runnable {
                 String name = meta.getColumnName(i + 1);
                 names[i] = name;
                 int type = meta.getColumnType(i + 1);
-                type = PgServer.convertType(type);
+                int pgType = PgServer.convertType(type);
                 // the ODBC client needs the column pg_catalog.pg_index
                 // to be of type 'int2vector'
                 // if (name.equalsIgnoreCase("indkey") &&
@@ -669,8 +679,10 @@ public class PgServerThread implements Runnable {
                 //     type = PgServer.PG_TYPE_INT2VECTOR;
                 // }
                 precision[i] = meta.getColumnDisplaySize(i + 1);
-                server.checkType(type);
-                types[i] = type;
+                if (type!=Types.NULL) {
+                    server.checkType(pgType);
+                }
+                types[i] = pgType;
             }
             startMessage('T');
             writeShort(columns);
@@ -705,6 +717,8 @@ public class PgServerThread implements Runnable {
 
     private static int getTypeSize(int pgType, int precision) {
         switch (pgType) {
+        case PgServer.PG_TYPE_BOOL:
+            return 1;
         case PgServer.PG_TYPE_VARCHAR:
             return Math.max(255, precision + 10);
         default:

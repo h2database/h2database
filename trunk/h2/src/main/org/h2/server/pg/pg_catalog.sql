@@ -42,7 +42,9 @@ create table pg_catalog.pg_type(
     typlen int,
     typtype varchar,
     typbasetype int,
-    typtypmod int);
+    typtypmod int,
+    typnotnull boolean
+);
 grant select on pg_catalog.pg_type to public;
 
 insert into pg_catalog.pg_type
@@ -53,7 +55,8 @@ select
     -1 typlen,
     'c' typtype,
     0 typbasetype,
-    -1 typtypmod
+    -1 typtypmod,
+    false typnotnull
 from information_schema.type_info
 where pos = 0
     and pg_convertType(data_type) <> 705; -- not unknown
@@ -65,7 +68,8 @@ merge into pg_catalog.pg_type values(
     -1,
     'c',
     0,
-    -1
+    -1,
+    false
 );
 merge into pg_catalog.pg_type values(
     0,
@@ -74,7 +78,8 @@ merge into pg_catalog.pg_type values(
     -1,
     'c',
     0,
-    -1
+    -1,
+    false
 );
 merge into pg_catalog.pg_type values(
     22,
@@ -83,7 +88,8 @@ merge into pg_catalog.pg_type values(
     -1,
     'c',
     0,
-    -1
+    -1,
+    false
 );
 
 create view pg_catalog.pg_class -- (oid, relname, relnamespace, relkind, relam, reltuples, relpages, relhasrules, relhasoids)
@@ -140,7 +146,8 @@ select
     id oid,
     0 adsrc,
     0 adrelid,
-    0 adnum
+    0 adnum,
+    null adbin
 from information_schema.tables where 1=0;
 grant select on pg_catalog.pg_attrdef to public;
 
@@ -179,7 +186,7 @@ and t.table_name = c.table_name
 and t.table_schema = c.table_schema;
 grant select on pg_catalog.pg_attribute to public;
 
-create view pg_catalog.pg_index -- (oid, indexrelid, indrelid, indisclustered, indisunique, indisprimary, indexprs, indkey)
+create view pg_catalog.pg_index -- (oid, indexrelid, indrelid, indisclustered, indisunique, indisprimary, indexprs, indkey, indpred)
 as
 select
     i.id oid,
@@ -189,7 +196,8 @@ select
     not non_unique indisunique,
     primary_key indisprimary,
     cast('' as varchar_ignorecase) indexprs,
-    cast(1 as array) indkey
+    cast(1 as array) indkey,
+    null indpred
 from information_schema.indexes i, information_schema.tables t
 where i.table_schema = t.table_schema
 and i.table_name = t.table_name
@@ -200,6 +208,12 @@ grant select on pg_catalog.pg_index to public;
 
 drop alias if exists pg_get_indexdef;
 create alias pg_get_indexdef for "org.h2.server.pg.PgServer.getIndexColumn";
+
+drop alias if exists pg_catalog.pg_get_indexdef;
+create alias pg_catalog.pg_get_indexdef for "org.h2.server.pg.PgServer.getIndexColumn";
+
+drop alias if exists pg_catalog.pg_get_expr;
+create alias pg_catalog.pg_get_expr for "org.h2.server.pg.PgServer.getPgExpr";
 
 drop alias if exists version;
 create alias version for "org.h2.server.pg.PgServer.getVersion";

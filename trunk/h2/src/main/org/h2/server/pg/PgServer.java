@@ -457,6 +457,14 @@ public class PgServer implements Service {
     }
 
     /**
+     * A fake wrapper around pg_get_expr(expr_text, relation_oid), in PG it decompiles the "internal form of an
+     * expression, assuming that any Vars in it refer to the relation indicated by the second parameter".
+     */
+    public static String getPgExpr(String exprText, int relationOid) {
+        return null;
+    }
+
+    /**
      * Convert the SQL type to a PostgreSQL type
      *
      * @param type the SQL type

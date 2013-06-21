@@ -5365,7 +5365,7 @@ public class Parser {
                 if ("InnoDb".equalsIgnoreCase(tableEngine)) {
                     // ok
                 } else if (!"MyISAM".equalsIgnoreCase(tableEngine)) {
-                    throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, tableEngine);
+                    throw DbException.getUnsupportedException(tableEngine);
                 }
             } else {
                 command.setTableEngine(readUniqueIdentifier());

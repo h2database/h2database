@@ -899,7 +899,7 @@ public class Csv implements SimpleRowSource {
             } else if (isParam(key, "caseSensitiveColumnNames")) {
                 setCaseSensitiveColumnNames(Boolean.parseBoolean(value));
             } else {
-                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, key);
+                throw DbException.getUnsupportedException(key);
             }
         }
         return charset;

@@ -79,8 +79,9 @@ public class PgServer implements Service {
     private boolean stop;
     private boolean trace;
     private ServerSocket serverSocket;
-    private final Set<PgServerThread> running = Collections.synchronizedSet(new HashSet<PgServerThread>());
-    private final AtomicInteger pid= new AtomicInteger(0);
+    private final Set<PgServerThread> running = Collections.
+            synchronizedSet(new HashSet<PgServerThread>());
+    private final AtomicInteger pid = new AtomicInteger();
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;
@@ -260,11 +261,13 @@ public class PgServer implements Service {
     }
 
     /**
-     * @return the thread with the given process-id
+     * Get the thread with the given process id.
+     * 
+     * @return the thread
      */
     PgServerThread getThread(int processId) {
         for (PgServerThread c : New.arrayList(running)) {
-            if (c.getProcessId()==processId) {
+            if (c.getProcessId() == processId) {
                 return c;
             }
         }
@@ -457,8 +460,12 @@ public class PgServer implements Service {
     }
 
     /**
-     * A fake wrapper around pg_get_expr(expr_text, relation_oid), in PG it decompiles the "internal form of an
-     * expression, assuming that any Vars in it refer to the relation indicated by the second parameter".
+     * A fake wrapper around pg_get_expr(expr_text, relation_oid), in PostgreSQL
+     * it "decompiles the internal form of an expression, assuming that any vars
+     * in it refer to the relation indicated by the second parameter".
+     * 
+     * @param exprText the expression text
+     * @param relationOid the relation object id
      */
     public static String getPgExpr(String exprText, int relationOid) {
         return null;

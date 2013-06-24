@@ -41,7 +41,7 @@ public class MVSecondaryIndex extends BaseIndex {
     final MVTable mvTable;
 
     private final int keyColumns;
-    private String mapName;
+    private final String mapName;
     private TransactionMap<Value, Value> dataMap;
 
     public MVSecondaryIndex(Database db, MVTable table, int id, String indexName,
@@ -59,7 +59,7 @@ public class MVSecondaryIndex extends BaseIndex {
             sortTypes[i] = columns[i].sortType;
         }
         sortTypes[keyColumns - 1] = SortOrder.ASCENDING;
-        mapName = getName() + "_" + getId();
+        mapName = "index." + getId();
         ValueDataType keyType = new ValueDataType(
                 db.getCompareMode(), db, sortTypes);
         ValueDataType valueType = new ValueDataType(null, null, null);
@@ -72,15 +72,6 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public void close(Session session) {
         // ok
-    }
-
-    @Override
-    public void rename(String newName) {
-        TransactionMap<Value, Value> map = getMap(null);
-        String newMapName = newName + "_" + getId();
-        map.renameMap(newMapName);
-        mapName = newMapName;
-        super.rename(newName);
     }
 
     @Override
@@ -100,17 +91,25 @@ public class MVSecondaryIndex extends BaseIndex {
             }
         }
         array.getList()[keyColumns - 1] = ValueLong.get(row.getKey());
-        map.put(array, ValueLong.get(0));
+        try {
+            map.put(array, ValueLong.get(0));
+        } catch (IllegalStateException e) {
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+        }
     }
 
     @Override
     public void remove(Session session, Row row) {
         ValueArray array = getKey(row);
         TransactionMap<Value, Value> map = getMap(session);
-        Value old = map.remove(array);
-        if (old == null) {
-            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
-                    getSQL() + ": " + row.getKey());
+        try {
+            Value old = map.remove(array);
+            if (old == null) {
+                throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
+                        getSQL() + ": " + row.getKey());
+            }
+        } catch (IllegalStateException e) {
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
         }
     }
 
@@ -164,7 +163,11 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public double getCost(Session session, int[] masks, SortOrder sortOrder) {
-        return 10 * getCostRangeIndex(masks, dataMap.map.getSize(), sortOrder);
+        try {
+            return 10 * getCostRangeIndex(masks, dataMap.map.getSize(), sortOrder);
+        } catch (IllegalStateException e) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+        }
     }
 
     @Override
@@ -208,7 +211,11 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public boolean needRebuild() {
-        return dataMap.map.getSize() == 0;
+        try {
+            return dataMap.map.getSize() == 0;
+        } catch (IllegalStateException e) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+        }
     }
 
     @Override
@@ -219,7 +226,11 @@ public class MVSecondaryIndex extends BaseIndex {
 
     @Override
     public long getRowCountApproximation() {
-        return dataMap.map.getSize();
+        try {
+            return dataMap.map.getSize();
+        } catch (IllegalStateException e) {
+            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+        }
     }
 
     @Override

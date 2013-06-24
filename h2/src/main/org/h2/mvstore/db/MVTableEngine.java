@@ -149,6 +149,9 @@ public class MVTableEngine implements TableEngine {
             store.setWriteDelay(value);
         }
 
+        /**
+         * Rollback all open transactions.
+         */
         public void rollback() {
             List<Transaction> list = transactionStore.getOpenTransactions();
             for (Transaction t : list) {

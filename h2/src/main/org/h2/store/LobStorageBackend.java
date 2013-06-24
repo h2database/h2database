@@ -155,7 +155,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Remove all LOBs for this table.
-     * 
+     *
      * @param tableId the table id
      */
     public void removeAllForTable(int tableId) {
@@ -184,13 +184,14 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Read a block of data from the given LOB.
-     * 
+     *
      * @param lob the lob id
      * @param seq the block sequence number
      * @return the block (expanded if stored compressed)
      */
     byte[] readBlock(long lob, int seq) throws SQLException {
-        // we have to take the lock on the session before the lock on the database to prevent ABBA deadlocks
+        // we have to take the lock on the session
+        // before the lock on the database to prevent ABBA deadlocks
         synchronized (conn.getSession()) {
             synchronized (database) {
                 String sql = "SELECT COMPRESSED, DATA FROM " + LOB_MAP + " M " +
@@ -218,7 +219,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * Retrieve the sequence id and position that is smaller than the requested
      * position. Those values can be used to quickly skip to a given position
      * without having to read all data.
-     * 
+     *
      * @param lob the lob
      * @param pos the required position
      * @return null if the data is not available, or an array of two elements:
@@ -228,7 +229,7 @@ public class LobStorageBackend implements LobStorageInterface {
         synchronized (conn.getSession()) {
             synchronized (database) {
                 String sql = "SELECT MAX(SEQ), MAX(POS) FROM " + LOB_MAP +
-                         " WHERE LOB = ? AND POS < ?";
+                        " WHERE LOB = ? AND POS < ?";
                 PreparedStatement prep = prepare(sql);
                 prep.setLong(1, lob);
                 prep.setLong(2, pos);
@@ -481,7 +482,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Store a block in the LOB storage.
-     * 
+     *
      * @param lobId the lob id
      * @param seq the sequence number
      * @param pos the position within the lob

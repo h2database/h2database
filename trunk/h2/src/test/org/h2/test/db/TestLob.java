@@ -282,7 +282,7 @@ public class TestLob extends TestBase {
      * A background task.
      */
     private final class Deadlock2Task1 extends Task {
-        
+
         public final Connection conn;
 
         Deadlock2Task1() throws SQLException {
@@ -306,12 +306,14 @@ public class TestLob extends TestBase {
                     }
                     rs.close();
                 } catch (SQLException ex) {
-                    // ignore "LOB gone away", this can happen in the presence of concurrent updates
+                    // ignore "LOB gone away", this can happen
+                    // in the presence of concurrent updates
                     if (ex.getErrorCode() != ErrorCode.IO_EXCEPTION_2) {
                         throw ex;
                     }
                 } catch (IOException ex) {
-                    // ignore "LOB gone away", this can happen in the presence of concurrent updates
+                    // ignore "LOB gone away", this can happen
+                    // in the presence of concurrent updates
                     Exception e = ex;
                     if (e.getCause() instanceof DbException) {
                         e = (Exception) e.getCause();
@@ -329,14 +331,14 @@ public class TestLob extends TestBase {
                 }
             }
         }
-        
+
     }
-    
+
     /**
      * A background task.
      */
     private final class Deadlock2Task2 extends Task {
-        
+
         public final Connection conn;
 
         Deadlock2Task2() throws SQLException {
@@ -351,9 +353,9 @@ public class TestLob extends TestBase {
                 stat.execute("update test set counter = " + random.nextInt(10) + " where id = " + random.nextInt(1000));
             }
         }
-        
+
     }
-    
+
     private void testDeadlock2() throws Exception {
         deleteDb("lob");
         Connection conn = getDeadlock2Connection();
@@ -389,11 +391,11 @@ public class TestLob extends TestBase {
         task6.conn.close();
         conn.close();
     }
-    
+
     Connection getDeadlock2Connection() throws SQLException {
         return getConnection("lob;MULTI_THREADED=TRUE;LOCK_TIMEOUT=60000");
     }
-    
+
     private void testCopyManyLobs() throws Exception {
         deleteDb("lob");
         Connection conn = getConnection("lob");

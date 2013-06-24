@@ -6,8 +6,21 @@
  */
 package org.h2.test.unit;
 
-import java.sql.*;
-import java.util.concurrent.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
+import java.sql.ParameterMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
@@ -27,9 +40,11 @@ public class TestPgServer extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
+    public void test() throws Exception {
         testPGAdapter();
         testKeyAlias();
+        testCancelQuery();
+        testBinaryTypes();
     }
 
     private void testPGAdapter() throws SQLException {
@@ -63,12 +78,13 @@ public class TestPgServer extends TestBase {
 
             // create a table with 200 rows (cancel interval is 127)
             stat.execute("create table test(id int)");
-            for (int i=0; i<200; i++) {
+            for (int i = 0; i < 200; i++) {
                 stat.execute("insert into test (id) values (rand())");
             }
 
             Future<Boolean> future = executor.submit(new Callable<Boolean>() {
-                public Boolean call() throws Exception {
+                @Override
+                public Boolean call() throws SQLException {
                     return stat.execute("select id, sleep(5) from test");
                 }
             });
@@ -81,7 +97,7 @@ public class TestPgServer extends TestBase {
                 future.get();
                 throw new IllegalStateException();
             } catch (ExecutionException e) {
-                assertStartsWith(e.getCause().getMessage(), "ERROR: Statement was canceled");
+                assertStartsWith(e.getCause().getMessage(), "ERROR: canceling statement due to user request");
             } finally {
                 conn.close();
             }
@@ -293,28 +309,29 @@ public class TestPgServer extends TestBase {
             PreparedStatement ps = conn.prepareStatement("insert into test values (?,?,?,?,?,?,?,?,?,?)");
             ps.setString(1, "test");
             ps.setInt(2, 12345678);
-            ps.setShort(3, (short)12345);
+            ps.setShort(3, (short) 12345);
             ps.setLong(4, 1234567890123L);
             ps.setDouble(5, 123.456);
             ps.setFloat(6, 123.456f);
             ps.setDouble(7, 123.456);
             ps.setBoolean(8, true);
-            ps.setByte(9, (byte)0xfe);
-            ps.setBytes(10, new byte[] {'a',(byte)0xfe,'\127'});
+            ps.setByte(9, (byte) 0xfe);
+            ps.setBytes(10, new byte[] { 'a', (byte) 0xfe, '\127' });
             ps.execute();
 
             ResultSet rs = stat.executeQuery("select * from test");
             assertTrue(rs.next());
             assertEquals("test", rs.getString(1));
             assertEquals(12345678, rs.getInt(2));
-            assertEquals((short)12345, rs.getShort(3));
+            assertEquals((short) 12345, rs.getShort(3));
             assertEquals(1234567890123L, rs.getLong(4));
             assertEquals(123.456, rs.getDouble(5));
             assertEquals(123.456f, rs.getFloat(6));
             assertEquals(123.456, rs.getDouble(7));
             assertEquals(true, rs.getBoolean(8));
-            assertEquals((byte)0xfe, rs.getByte(9));
-            assertEquals(new byte[]{'a',(byte)0xfe,'\127'}, rs.getBytes(10));
+            assertEquals((byte) 0xfe, rs.getByte(9));
+            assertEquals(new byte[] { 'a', (byte) 0xfe, '\127' },
+                    rs.getBytes(10));
 
             conn.close();
         } catch (ClassNotFoundException e) {

@@ -29,7 +29,7 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
-import java.util.Random;
+
 import org.h2.command.CommandInterface;
 import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
@@ -40,6 +40,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
+import org.h2.util.MathUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -74,7 +75,7 @@ public class PgServerThread implements Runnable {
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;
         this.socket = socket;
-        this.secret = new Random().nextInt();
+        this.secret = (int) MathUtils.secureRandomLong();
     }
 
     @Override
@@ -151,10 +152,10 @@ public class PgServerThread implements Runnable {
                 int pid = readInt();
                 int key = readInt();
                 PgServerThread c = server.getThread(pid);
-                if (c!=null) {
+                if (c != null) {
                     c.cancelRequest(key);
                 } else {
-                    sendErrorResponse("unknown process: "+pid);
+                    sendErrorResponse("unknown process: " + pid);
                 }
                 close();
             } else if (version == 80877103) {
@@ -354,7 +355,7 @@ public class PgServerThread implements Runnable {
                     sendCommandComplete(prep, prep.getUpdateCount());
                 }
             } catch (Exception e) {
-                if (prep.isCancelled()) {
+                if (prep.wasCancelled()) {
                     sendCancelQueryResponse();
                 } else {
                     sendErrorResponse(e);
@@ -401,7 +402,7 @@ public class PgServerThread implements Runnable {
                         sendCommandComplete(stat, stat.getUpdateCount());
                     }
                 } catch (SQLException e) {
-                    if (stat!=null && stat.isCancelled()) {
+                    if (stat != null && stat.wasCancelled()) {
                         sendCancelQueryResponse();
                     } else {
                         sendErrorResponse(e);
@@ -491,7 +492,7 @@ public class PgServerThread implements Runnable {
                 break;
             default:
                 String s = rs.getString(column);
-                if (s==null) {
+                if (s == null) {
                     writeInt(-1);
                 } else {
                     byte[] data = s.getBytes(getEncoding());
@@ -524,7 +525,7 @@ public class PgServerThread implements Runnable {
                 break;
             case PgServer.PG_TYPE_BYTEA:
                 byte[] data = rs.getBytes(column);
-                if (data==null) {
+                if (data == null) {
                     writeInt(-1);
                 } else {
                     writeInt(data.length);
@@ -548,7 +549,7 @@ public class PgServerThread implements Runnable {
         boolean text = (i >= formatCodes.length) || (formatCodes[i] == 0);
         int col = i + 1;
         int paramLen = readInt();
-        if (paramLen==-1) {
+        if (paramLen == -1) {
             prep.setNull(i, Types.NULL);
         } else if (text) {
             // plain text
@@ -679,7 +680,7 @@ public class PgServerThread implements Runnable {
                 //     type = PgServer.PG_TYPE_INT2VECTOR;
                 // }
                 precision[i] = meta.getColumnDisplaySize(i + 1);
-                if (type!=Types.NULL) {
+                if (type != Types.NULL) {
                     server.checkType(pgType);
                 }
                 types[i] = pgType;
@@ -705,8 +706,12 @@ public class PgServerThread implements Runnable {
         }
     }
 
-    /** @return should the given type be formatted as binary or plain text? */
-    private boolean formatAsText(int pgType) {
+    /**
+     * Check whether the given type should be formatted as text.
+     * 
+     * @return true for binary
+     */
+    private static boolean formatAsText(int pgType) {
         switch (pgType) {
         // TODO: add more types to send as binary once compatibility is confirmed
         case PgServer.PG_TYPE_BYTEA:
@@ -956,8 +961,7 @@ public class PgServerThread implements Runnable {
      * @param secret the private key of the command
      */
     private synchronized void cancelRequest(int secret) throws IOException {
-        if (activeRequest != null)
-        {
+        if (activeRequest != null) {
             if (secret != this.secret) {
                 sendErrorResponse("invalid cancel secret");
                 return;

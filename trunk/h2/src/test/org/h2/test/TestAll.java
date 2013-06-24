@@ -498,8 +498,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     private void runTests() throws SQLException {
 
-        int test;
-//        mvStore = true;
+        {}
+        mvStore = false;
 
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
@@ -589,9 +589,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestDeadlock().runTest(this);
         new TestEncryptedDb().runTest(this);
         new TestExclusive().runTest(this);
-        if (!mvStore) {
-            new TestFullText().runTest(this);
-        }
+        new TestFullText().runTest(this);
         new TestFunctionOverload().runTest(this);
         new TestFunctions().runTest(this);
         new TestInit().runTest(this);
@@ -607,15 +605,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMultiThreadedKernel().runTest(this);
         new TestOpenClose().runTest(this);
         new TestOptimizations().runTest(this);
-        if (!mvStore) {
-            new TestOutOfMemory().runTest(this);
-        }
+        new TestOutOfMemory().runTest(this);
         new TestPowerOff().runTest(this);
         new TestQueryCache().runTest(this);
         new TestReadOnly().runTest(this);
         new TestRecursiveQueries().runTest(this);
         new TestRights().runTest(this);
         if (!mvStore) {
+            // Recover is not yet implemented
             new TestRunscript().runTest(this);
         }
         new TestSQLInjection().runTest(this);
@@ -627,9 +624,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestSpeed().runTest(this);
         new TestTableEngines().runTest(this);
         new TestTempTables().runTest(this);
+        new TestTransaction().runTest(this);
+        new TestTriggersConstraints().runTest(this);
         if (!mvStore) {
-            new TestTransaction().runTest(this);
-            new TestTriggersConstraints().runTest(this);
+            // Two-Phase commit is not yet implemented
             new TestTwoPhaseCommit().runTest(this);
         }
         new TestView().runTest(this);
@@ -668,9 +666,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestDataSource().runTest(this);
         new TestXA().runTest(this);
         if (!mvStore) {
+            // Two-Phase commit is not yet implemented
             new TestXASimple().runTest(this);
         }
-        
+
         // server
         new TestAutoServer().runTest(this);
         new TestNestedLoop().runTest(this);
@@ -680,11 +679,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestMvcc1().runTest(this);
         new TestMvcc2().runTest(this);
         new TestMvcc3().runTest(this);
-        if (!mvStore) {
-            new TestMvccMultiThreaded().runTest(this);
-            new TestRowLocks().runTest(this);
-        }
-        
+        new TestMvccMultiThreaded().runTest(this);
+        new TestRowLocks().runTest(this);
+
         // synth
         new TestBtreeIndex().runTest(this);
         new TestDiskFull().runTest(this);
@@ -720,6 +717,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // unit
         new TestAutoReconnect().runTest(this);
         if (!mvStore) {
+            // Caching is different; cache size not yet implemented
             new TestCache().runTest(this);
         }
         new TestClearReferences().runTest(this);
@@ -746,14 +744,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestObjectDeserialization().runTest(this);
         new TestMultiThreadedKernel().runTest(this);
         new TestOverflow().runTest(this);
-        if (!mvStore) {
-            new TestPageStore().runTest(this);
-        }
+        new TestPageStore().runTest(this);
         new TestPageStoreCoverage().runTest(this);
         new TestPattern().runTest(this);
         new TestPgServer().runTest(this);
         new TestReader().runTest(this);
         if (!mvStore) {
+            // Recover is not yet implemented
             new TestRecovery().runTest(this);
         }
         new TestSampleApps().runTest(this);
@@ -766,6 +763,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
         if (!mvStore) {
+            // Recover is not yet implemented
             new TestTools().runTest(this);
         }
         new TestTraceSystem().runTest(this);
@@ -774,19 +772,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);
         new TestValueMemory().runTest(this);
-    }
-    
-    
-    public static byte[] serialize(Object obj) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ObjectOutputStream os = new ObjectOutputStream(out);
-        os.writeObject(obj);
-        return out.toByteArray();
-    }
-    public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
-        ByteArrayInputStream in = new ByteArrayInputStream(data);
-        ObjectInputStream is = new ObjectInputStream(in);
-        return is.readObject();
     }
 
     private void runTest(String className) {

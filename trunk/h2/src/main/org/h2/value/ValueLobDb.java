@@ -79,7 +79,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.hmac = null;
         this.handler = handler;
     }
-    
+
     /**
      * Create a LOB value.
      *

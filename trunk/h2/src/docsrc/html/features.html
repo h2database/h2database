@@ -1660,9 +1660,11 @@ CREATE TABLE TEST(ID INT, NAME VARCHAR) ENGINE "acme.MyTableEngine";
 </p>
 <p>
 It is also possible to pass in parameters to the table engine, like so:
+</p>
 <pre>
 CREATE TABLE TEST(ID INT, NAME VARCHAR) ENGINE "acme.MyTableEngine" WITH "param1", "param2";
 </pre>
+<p>
 In which case the parameters are passed down in the tableEngineParams field of the CreateTableData object.
 </p>
 

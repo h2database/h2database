@@ -15,6 +15,7 @@
 23506=Violación de una restricción de Integridad Referencial: {0}
 23507=No se fijado un valor por defecto para la columna {0}
 23513=Violación de Check constraint: {0}
+23514=#Check constraint invalid: {0}
 28000=Nombre de usuario ó password incorrecto
 40001=Deadlock - Punto muerto detectado. La transacción actual fue retrotraída (rollback). Detalles: {0}
 42000=Error de Sintaxis en sentencia SQL {0}

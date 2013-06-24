@@ -15,6 +15,7 @@
 23506=Violação da integridade de restrição: {0}
 23507=Nenhum valor pré-definido foi especificado para a coluna {0}
 23513=Violação da restrição: {0}
+23514=#Check constraint invalid: {0}
 28000=Autenticaçao inválida, verifique o usuário ou a senha
 40001=#Deadlock detected. The current transaction was rolled back. Details: {0}
 42000=Erro de sintax na declaração SQL {0}

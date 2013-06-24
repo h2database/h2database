@@ -15,6 +15,7 @@
 23506=Porušenie obmedzenia (constraint) referenčnej integrity: {0}
 23507=Nie je nastavená vychodzia hodnota stĺpca {0}
 23513=Skontrolujte porušenie obmedzenia (constraint): {0}
+23514=#Check constraint invalid: {0}
 28000=Nesprávne používateľské meno alebo heslo
 40001=Mŕtvy bod (deadlock) detegovaný. Aktuálna transakcia bude odvolaná (rolled back). Podrobnosti: {0}
 42000=Syntaktická chyba v SQL príkaze {0}

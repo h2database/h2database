@@ -15,6 +15,7 @@
 23506=Referentielle Integrität verletzt: {0}
 23507=Kein Vorgabewert für Feld {0}
 23513=Bedingung verletzt: {0}
+23514=Ungültige Bedingung: {0}
 28000=Falscher Benutzer Name oder Passwort
 40001=Eine Verklemmung (Deadlock) ist aufgetreten. Die aktuelle Transaktion wurde rückgängig gemacht. Details: {0}
 42000=Syntax Fehler in SQL Befehl {0}

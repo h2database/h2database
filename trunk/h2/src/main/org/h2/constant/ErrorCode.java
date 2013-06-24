@@ -215,8 +215,8 @@ public class ErrorCode {
     public static final int NO_DEFAULT_SET_1 = 23507;
 
     /**
-     * The error with code <code>23513</code> is thrown when a check
-     * constraint is violated. Example:
+     * The error with code <code>23513</code> is thrown when 
+     * a check constraint is violated. Example:
      * <pre>
      * CREATE TABLE TEST(ID INT CHECK ID&gt;0);
      * INSERT INTO TEST VALUES(0);
@@ -225,8 +225,8 @@ public class ErrorCode {
     public static final int CHECK_CONSTRAINT_VIOLATED_1 = 23513;
 
     /**
-     * The error with code <code>23514</code> is thrown during evaluation of a check constraint
-     * if the SQL generates an error.
+     * The error with code <code>23514</code> is thrown when
+     * evaluation of a check constraint resulted in a error.
      */
     public static final int CHECK_CONSTRAINT_INVALID = 23514;
     

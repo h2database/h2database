@@ -15,6 +15,7 @@
 23506=Nedodržení omezení referenční integrity: {0}
 23507=Nebyla nastavena žádná výchozí hodnota pro sloupec {0}
 23513=Nedodržení omezení kontroly: {0}
+23514=#Check constraint invalid: {0}
 28000=Nesprávné uživatelské jméno nebo heslo
 40001=Detekován deadlock. Probíhající transakce byla vrácena zpět. Podrobnosti: {0}
 42000=Chyba syntaxe v SQL příkazu {0}

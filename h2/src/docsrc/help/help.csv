@@ -580,7 +580,8 @@ CREATE SEQUENCE SEQ_ID
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
 [ ( { columnDefinition | constraint } [,...] ) ]
-[ ENGINE tableEngineName ] [ NOT PERSISTENT ] [ TRANSACTIONAL ]
+[ ENGINE tableEngineName [ WITH tableEngineParam [,...] ] ]
+[ NOT PERSISTENT ] [ TRANSACTIONAL ]
 [ AS select ]","
 Creates a new table.
 
@@ -599,6 +600,7 @@ unless the temporary table is created using CREATE CACHED TABLE.
 
 The ENGINE option is only required when custom table implementations are used.
 The table engine class must implement the interface ""org.h2.api.TableEngine"".
+Any table engine parameters are passed down in the tableEngineParams field of the CreateTableData object.
 
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.

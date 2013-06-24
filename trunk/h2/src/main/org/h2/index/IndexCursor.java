@@ -104,9 +104,9 @@ public class IndexCursor implements Cursor {
                 Value v = condition.getCurrentValue(s);
                 boolean isStart = condition.isStart();
                 boolean isEnd = condition.isEnd();
-                int id = column.getColumnId();
-                if (id >= 0) {
-                    IndexColumn idxCol = indexColumns[id];
+                int columnId = column.getColumnId();
+                if (columnId >= 0) {
+                    IndexColumn idxCol = indexColumns[columnId];
                     if (idxCol != null && (idxCol.sortType & SortOrder.DESCENDING) != 0) {
                         // if the index column is sorted the other way, we swap end and start
                         // NULLS_FIRST / NULLS_LAST is not a problem, as nulls never match anyway
@@ -116,10 +116,10 @@ public class IndexCursor implements Cursor {
                     }
                 }
                 if (isStart) {
-                    start = getSearchRow(start, id, v, true);
+                    start = getSearchRow(start, columnId, v, true);
                 }
                 if (isEnd) {
-                    end = getSearchRow(end, id, v, false);
+                    end = getSearchRow(end, columnId, v, false);
                 }
                 if (isStart || isEnd) {
                     // an X=? condition will produce less rows than
@@ -163,16 +163,16 @@ public class IndexCursor implements Cursor {
         return idxCol == null || idxCol.column == column;
     }
 
-    private SearchRow getSearchRow(SearchRow row, int id, Value v, boolean max) {
+    private SearchRow getSearchRow(SearchRow row, int columnId, Value v, boolean max) {
         if (row == null) {
             row = table.getTemplateRow();
         } else {
-            v = getMax(row.getValue(id), v, max);
+            v = getMax(row.getValue(columnId), v, max);
         }
-        if (id < 0) {
+        if (columnId < 0) {
             row.setKey(v.getLong());
         } else {
-            row.setValue(id, v);
+            row.setValue(columnId, v);
         }
         return row;
     }

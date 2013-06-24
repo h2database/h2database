@@ -679,14 +679,14 @@ public class MVStore {
         }
         closeFile(true);
     }
-    
+
     /**
      * Close the file and the store, without writing anything.
      */
     public void closeImmediately() {
         closeFile(false);
     }
-    
+
     private void closeFile(boolean shrinkIfPossible) {
         if (closed) {
             return;

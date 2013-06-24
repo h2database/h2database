@@ -8,11 +8,9 @@ package org.h2.mvstore.db;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
@@ -60,7 +58,7 @@ public class TransactionStore {
      * transaction id.
      */
     private final MVMap<String, String> settings;
-    
+
     private final DataType dataType;
 
     private long lastTransactionIdStored;
@@ -237,7 +235,9 @@ public class TransactionStore {
                 VersionedValue value = map.get(key);
                 // possibly the entry was added later on
                 // so we have to check
-                if (value.value == null) {
+                if (value == null) {
+                    // nothing to do
+                } else if (value.value == null) {
                     // remove the value
                     map.remove(key);
                 }
@@ -246,7 +246,7 @@ public class TransactionStore {
         }
         endTransaction(t);
     }
-    
+
     private MVMap<Object, VersionedValue> openMap(int mapId) {
         // TODO open map by id if possible
         Map<String, String> meta = store.getMetaMap();
@@ -257,7 +257,7 @@ public class TransactionStore {
         }
         String mapName = DataUtils.parseMap(m).get("name");
         VersionedValueType vt = new VersionedValueType(dataType);
-        MVMap.Builder<Object, VersionedValue> mapBuilder = 
+        MVMap.Builder<Object, VersionedValue> mapBuilder =
                 new MVMap.Builder<Object, VersionedValue>().
                 keyType(dataType).valueType(vt);
         MVMap<Object, VersionedValue> map = store.openMap(mapName, mapBuilder);
@@ -280,6 +280,10 @@ public class TransactionStore {
                 return false;
             }
             long[] key = undoLog.firstKey();
+            if (key == null) {
+                // unusual, but can happen
+                return false;
+            }
             firstOpenTransaction = key[0];
         }
         if (firstOpenTransaction == transactionId) {
@@ -338,30 +342,89 @@ public class TransactionStore {
     }
 
     /**
-     * Get the set of changed maps.
+     * Get the changes of the given transaction, starting from the latest log id
+     * back to the given log id.
      *
      * @param t the transaction
      * @param maxLogId the maximum log id
      * @param toLogId the minimum log id
-     * @return the set of changed maps
+     * @return the changes
      */
-    HashSet<String> getChangedMaps(Transaction t, long maxLogId, long toLogId) {
-        HashSet<String> set = New.hashSet();
-        for (long logId = maxLogId - 1; logId >= toLogId; logId--) {
-            Object[] op = undoLog.get(new long[] {
-                    t.getId(), logId });
-            int mapId = ((Integer) op[1]).intValue();
-            // TODO open map by id if possible
-            Map<String, String> meta = store.getMetaMap();
-            String m = meta.get("map." + mapId);
-            if (m == null) {
-                // map was removed later on
-            } else {
-                String mapName = DataUtils.parseMap(m).get("name");
-                set.add(mapName);
+    Iterator<Change> getChanges(final Transaction t, final long maxLogId, final long toLogId) {
+        return new Iterator<Change>() {
+
+            private long logId = maxLogId - 1;
+            private Change current;
+
+            {
+                fetchNext();
             }
-        }
-        return set;
+
+            private void fetchNext() {
+                while (logId >= toLogId) {
+                    Object[] op = undoLog.get(new long[] {
+                            t.getId(), logId });
+                    int mapId = ((Integer) op[1]).intValue();
+                    // TODO open map by id if possible
+                    Map<String, String> meta = store.getMetaMap();
+                    String m = meta.get("map." + mapId);
+                    logId--;
+                    if (m == null) {
+                        // map was removed later on
+                    } else {
+                        current = new Change();
+                        current.mapName = DataUtils.parseMap(m).get("name");
+                        current.key = op[2];
+                        VersionedValue oldValue = (VersionedValue) op[3];
+                        current.value = oldValue == null ? null : oldValue.value;
+                        return;
+                    }
+                }
+                current = null;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return current != null;
+            }
+
+            @Override
+            public Change next() {
+                if (current == null) {
+                    throw DataUtils.newUnsupportedOperationException("no data");
+                }
+                Change result = current;
+                fetchNext();
+                return result;
+            }
+
+            @Override
+            public void remove() {
+                throw DataUtils.newUnsupportedOperationException("remove");
+            }
+
+        };
+    }
+
+    /**
+     * A change in a map.
+     */
+    public static class Change {
+
+        /**
+         * The name of the map where the change occurred.
+         */
+        public String mapName;
+
+        /**
+         * The key.
+         */
+        public Object key;
+
+        /**
+         * The value.
+         */
+        public Object value;
     }
 
     /**
@@ -536,15 +599,16 @@ public class TransactionStore {
         }
 
         /**
-         * Get the set of changed maps starting at the given savepoint up to
-         * now.
+         * Get the list of changes, starting with the latest change, up to the
+         * given savepoint (in reverse order than they occurred). The value of
+         * the change is the value before the change was applied.
          *
          * @param savepointId the savepoint id, 0 meaning the beginning of the
          *            transaction
-         * @return the set of changed maps
+         * @return the changes
          */
-        public Set<String> getChangedMaps(long savepointId) {
-            return store.getChangedMaps(this, logId, savepointId);
+        public Iterator<Change> getChanges(long savepointId) {
+            return store.getChanges(this, logId, savepointId);
         }
 
         /**
@@ -945,8 +1009,8 @@ public class TransactionStore {
          * @return the first key, or null if empty
          */
         public K firstKey() {
-            // TODO transactional firstKey
-            return map.firstKey();
+            Iterator<K> it = keyIterator(null);
+            return it.hasNext() ? it.next() : null;
         }
 
         /**
@@ -955,10 +1019,18 @@ public class TransactionStore {
          * @return the last key, or null if empty
          */
         public K lastKey() {
-            // TODO transactional lastKey
-            return map.lastKey();
+            K k = map.lastKey();
+            while (true) {
+                if (k == null) {
+                    return null;
+                }
+                if (get(k) != null) {
+                    return k;
+                }
+                k = map.lowerKey(k);
+            }
         }
-        
+
         /**
          * Get the most recent smallest key that is larger or equal to this key.
          *
@@ -975,7 +1047,7 @@ public class TransactionStore {
             }
             return null;
         }
-        
+
         /**
          * Get the smallest key that is larger or equal to this key.
          *
@@ -983,7 +1055,6 @@ public class TransactionStore {
          * @return the result
          */
         public K ceilingKey(K key) {
-            int test;
             // TODO this method is slow
             Cursor<K> cursor = map.keyIterator(key);
             while (cursor.hasNext()) {
@@ -993,8 +1064,6 @@ public class TransactionStore {
                 }
             }
             return null;
-            // TODO transactional ceilingKey
-//            return map.ceilingKey(key);
         }
 
         /**

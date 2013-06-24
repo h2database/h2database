@@ -83,7 +83,7 @@ public class ValueDataType implements DataType {
     final CompareMode compareMode;
     final int[] sortTypes;
 
-    ValueDataType(CompareMode compareMode, DataHandler handler, int[] sortTypes) {
+    public ValueDataType(CompareMode compareMode, DataHandler handler, int[] sortTypes) {
         this.compareMode = compareMode;
         this.handler = handler;
         this.sortTypes = sortTypes;

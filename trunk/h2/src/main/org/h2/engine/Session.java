@@ -9,8 +9,9 @@ package org.h2.engine;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
-import java.util.Set;
 
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -26,6 +27,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mvstore.db.MVTable;
+import org.h2.mvstore.db.TransactionStore.Change;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -38,6 +40,7 @@ import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
@@ -517,21 +520,19 @@ public class Session extends SessionWithState {
      */
     public void rollback() {
         checkCommitRollback();
-        if (transaction != null) {
-            Set<String> changed = transaction.getChangedMaps(0);
-            for (MVTable t : database.getMvStore().getTables()) {
-                if (changed.contains(t.getMapName())) {
-                    t.setModified();
-                }
-            }
-            transaction.rollback();
-            transaction = null;
-        }
         currentTransactionName = null;
         boolean needCommit = false;
         if (undoLog.size() > 0) {
             rollbackTo(null, false);
             needCommit = true;
+        }
+        if (transaction != null) {
+            rollbackTo(null, false);
+            needCommit = true;
+            // rollback stored the undo operations in the transaction
+            // committing will end the transaction
+            transaction.commit();
+            transaction = null;
         }
         if (locks.size() > 0 || needCommit) {
             database.commit(this);
@@ -558,13 +559,33 @@ public class Session extends SessionWithState {
             undoLog.removeLast(trimToSize);
         }
         if (transaction != null) {
-            Set<String> changed = transaction.getChangedMaps(savepoint.transactionSavepoint);
-            for (MVTable t : database.getMvStore().getTables()) {
-                if (changed.contains(t.getMapName())) {
-                    t.setModified();
+            long savepointId = savepoint == null ? 0 : savepoint.transactionSavepoint;
+            List<MVTable> tables = database.getMvStore().getTables();
+            HashMap<String, MVTable> tableMap = New.hashMap();
+            for (MVTable t : tables) {
+                tableMap.put(t.getMapName(), t);
+            }
+            Iterator<Change> it = transaction.getChanges(savepointId);
+            while (it.hasNext()) {
+                Change c = it.next();
+                MVTable t = tableMap.get(c.mapName);
+                if (t != null) {
+                    long key = ((ValueLong) c.key).getLong();
+                    ValueArray value = (ValueArray) c.value;
+                    short op;
+                    Row row;
+                    if (value == null) {
+                        op = UndoLogRecord.INSERT;
+                        row = t.getRow(this, key);
+                    } else {
+                        op = UndoLogRecord.DELETE;
+                        row = new Row(value.getList(), Row.MEMORY_CALCULATE);
+                    }
+                    row.setKey(key);
+                    UndoLogRecord log = new UndoLogRecord(t, op, row);
+                    log.undo(this);
                 }
             }
-            transaction.rollbackToSavepoint(savepoint.transactionSavepoint);
         }
         if (savepoints != null) {
             String[] names = new String[savepoints.size()];

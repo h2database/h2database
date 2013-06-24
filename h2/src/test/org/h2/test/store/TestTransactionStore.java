@@ -15,10 +15,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.TreeSet;
 
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore;
+import org.h2.mvstore.db.TransactionStore.Change;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.store.fs.FileUtils;
@@ -58,14 +58,12 @@ public class TestTransactionStore extends TestBase {
         Transaction tx;
         TransactionMap<String, String> m1, m2, m3;
         long sp;
-        TreeSet<String> changed;
 
         tx = ts.begin();
         m1 = tx.openMap("m1");
         m2 = tx.openMap("m2");
         m3 = tx.openMap("m3");
-        changed = new TreeSet<String>(tx.getChangedMaps(0));
-        assertEquals(0, changed.size());
+        assertFalse(tx.getChanges(0).hasNext());
         tx.commit();
 
         tx = ts.begin();
@@ -76,13 +74,48 @@ public class TestTransactionStore extends TestBase {
         sp = tx.setSavepoint();
         m2.put("1", "100");
         m3.put("1", "100");
-        changed = new TreeSet<String>(tx.getChangedMaps(sp));
-        assertEquals("[m2, m3]", changed.toString());
-        changed = new TreeSet<String>(tx.getChangedMaps(0));
-        assertEquals("[m1, m2, m3]", changed.toString());
+        Iterator<Change> it = tx.getChanges(sp);
+        assertTrue(it.hasNext());
+        Change c;
+        c = it.next();
+        assertEquals("m3", c.mapName);
+        assertEquals("1", c.key.toString());
+        assertNull(c.value);
+        assertTrue(it.hasNext());
+        c = it.next();
+        assertEquals("m2", c.mapName);
+        assertEquals("1", c.key.toString());
+        assertNull(c.value);
+        assertFalse(it.hasNext());
+
+        it = tx.getChanges(0);
+        assertTrue(it.hasNext());
+        c = it.next();
+        assertEquals("m3", c.mapName);
+        assertEquals("1", c.key.toString());
+        assertNull(c.value);
+        assertTrue(it.hasNext());
+        c = it.next();
+        assertEquals("m2", c.mapName);
+        assertEquals("1", c.key.toString());
+        assertNull(c.value);
+        assertTrue(it.hasNext());
+        c = it.next();
+        assertEquals("m1", c.mapName);
+        assertEquals("1", c.key.toString());
+        assertNull(c.value);
+        assertFalse(it.hasNext());
+
         tx.rollbackToSavepoint(sp);
-        changed = new TreeSet<String>(tx.getChangedMaps(0));
-        assertEquals("[m1]", changed.toString());
+
+        it = tx.getChanges(0);
+        assertTrue(it.hasNext());
+        c = it.next();
+        assertEquals("m1", c.mapName);
+        assertEquals("1", c.key.toString());
+        assertNull(c.value);
+        assertFalse(it.hasNext());
+
         tx.commit();
 
         s.close();

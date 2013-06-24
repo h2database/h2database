@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.CRC32;
 import org.h2.compress.CompressLZF;
@@ -28,7 +29,12 @@ import org.h2.engine.DbObject;
 import org.h2.engine.MetaRecord;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
+import org.h2.mvstore.db.TransactionStore;
+import org.h2.mvstore.db.TransactionStore.TransactionMap;
+import org.h2.mvstore.db.ValueDataType;
 import org.h2.result.Row;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
@@ -84,6 +90,7 @@ public class Recover extends Tool implements DataHandler {
     private int pageSize;
     private FileStore store;
     private int[] parents;
+    private String mvFile;
 
     private Stats stat;
 
@@ -242,6 +249,11 @@ public class Recover extends Tool implements DataHandler {
         }
         for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+                String mvFile = fileName.substring(0, fileName.length() - 
+                        Constants.SUFFIX_PAGE_FILE.length()) + Constants.SUFFIX_MV_FILE;
+                if (list.contains(mvFile)) {
+                    this.mvFile = mvFile;
+                }
                 dumpPageStore(fileName);
             } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 dumpLob(fileName, false);
@@ -442,6 +454,9 @@ public class Recover extends Tool implements DataHandler {
             schema.clear();
             objectIdSet = New.hashSet();
             dumpPageStore(writer, pageCount);
+            if (mvFile != null) {
+                dumpMVStoreFile(writer, mvFile);
+            }
             writeSchema(writer);
             try {
                 dumpPageLogStream(writer, logKey, logFirstTrunkPage, logFirstDataPage, pageCount);
@@ -469,6 +484,43 @@ public class Recover extends Tool implements DataHandler {
             closeSilently(store);
         }
     }
+    
+    private void dumpMVStoreFile(PrintWriter writer, String fileName) {
+        writer.println("-- mvstore");
+        setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_MV_FILE.length()));
+        MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open();
+        TransactionStore store = new TransactionStore(mv);
+        try {
+            MVMap<String, String> meta = mv.getMetaMap();
+            Iterator<String> it = meta.keyIterator(null);
+            while (it.hasNext()) {
+                String key = it.next();
+                if (!key.startsWith("name.table.")) {
+                    continue;
+                }
+                String mapName = key.substring("name.".length());
+                String tableId = mapName.substring("table.".length());
+                ValueDataType keyType = new ValueDataType(
+                        null, null, null);
+                ValueDataType valueType = new ValueDataType(
+                        null, null, null);
+                MVMap.Builder<Value, Value> mapBuilder = new MVMap.Builder<Value, Value>().
+                        keyType(keyType).
+                        valueType(valueType);
+                TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, mapBuilder);
+                Iterator<Value> dataIt = dataMap.keyIterator(null);
+                while (dataIt.hasNext()) {
+                    Value rowId = dataIt.next();
+                    Value values = dataMap.get(rowId);
+                    writer.println("-- insert into O_" + tableId + " key=" + rowId + " values=" + values);
+                }
+            }
+        } catch (Throwable e) {
+            writeError(writer, e);
+        } finally {
+            mv.close();
+        }
+    }    
 
     private static String getPageType(int type) {
         switch (type) {

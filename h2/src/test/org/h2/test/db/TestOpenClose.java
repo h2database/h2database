@@ -131,14 +131,10 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
                 + "'", true);
         Connection conn = DriverManager.getConnection(url, user, password);
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
-            stat.execute("SET MAX_MEMORY_UNDO 100000");
-            stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
-            stat.execute("INSERT INTO TEST SELECT X, X || ' Data' FROM SYSTEM_RANGE(1, 1000)");
-        } catch (SQLException e) {
-            // ok
-        }
+        stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
+        stat.execute("SET MAX_MEMORY_UNDO 100000");
+        stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
+        stat.execute("INSERT INTO TEST SELECT X, X || ' Data' FROM SYSTEM_RANGE(1, 1000)");
         stat.close();
         conn.close();
         conn = DriverManager.getConnection(url, user, password);
@@ -222,6 +218,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
             if (current > 0) {
                 throw new AssertionError("unexpected: " + stateName);
             }
+            break;
+        case STATE_STATEMENT_START:
             break;
         case STATE_CREATE_INDEX:
             stateName = "Create Index " + name + " " + current + "/" + max;

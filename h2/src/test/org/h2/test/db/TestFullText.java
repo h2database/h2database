@@ -160,6 +160,8 @@ public class TestFullText extends TestBase {
         conn = getConnection("fullTextNative", connList);
         stat = conn.createStatement();
         conn.setAutoCommit(false);
+        rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('Welcome', 0, 0)");
+        assertTrue(rs.next());
         stat.execute("delete from test");
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH_DATA('Welcome', 0, 0)");
         assertFalse(rs.next());

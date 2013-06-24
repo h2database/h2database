@@ -109,6 +109,9 @@ public class TestTransaction extends TestBase {
         if (config.memory) {
             return;
         }
+        if (config.mvStore) {
+            return;
+        }
         deleteDb("transaction");
         testLogMode(0);
         testLogMode(1);

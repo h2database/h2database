@@ -5369,6 +5369,13 @@ public class Parser {
                 }
             } else {
                 command.setTableEngine(readUniqueIdentifier());
+                if (readIf("WITH")) {
+                    ArrayList<String> tableEngineParams = New.arrayList();
+                    do {
+                        tableEngineParams.add(readUniqueIdentifier());
+                    } while (readIf(","));
+                    command.setTableEngineParams(tableEngineParams);
+                }
             }
         } else if (database.getSettings().defaultTableEngine != null) {
             command.setTableEngine(database.getSettings().defaultTableEngine);

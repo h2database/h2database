@@ -1658,6 +1658,13 @@ and then create the table from SQL like this:
 CREATE TABLE TEST(ID INT, NAME VARCHAR) ENGINE "acme.MyTableEngine";
 </pre>
 </p>
+<p>
+It is also possible to pass in parameters to the table engine, like so:
+<pre>
+CREATE TABLE TEST(ID INT, NAME VARCHAR) ENGINE "acme.MyTableEngine" WITH "param1", "param2";
+</pre>
+In which case the parameters are passed down in the tableEngineParams field of the CreateTableData object.
+</p>
 
 <h2 id="triggers">Triggers</h2>
 <p>

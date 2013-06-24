@@ -289,6 +289,10 @@ public class CreateTable extends SchemaCommand {
         data.tableEngine = tableEngine;
     }
 
+    public void setTableEngineParams(ArrayList<String> tableEngineParams) {
+        data.tableEngineParams = tableEngineParams;
+    }
+    
     public void setHidden(boolean isHidden) {
         data.isHidden = isHidden;
     }

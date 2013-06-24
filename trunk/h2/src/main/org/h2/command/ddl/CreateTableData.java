@@ -73,6 +73,11 @@ public class CreateTableData {
     public String tableEngine;
 
     /**
+     * The table engine params to use for creating the table.
+     */
+    public ArrayList<String> tableEngineParams;
+    
+    /**
      * The table is hidden.
      */
     public boolean isHidden;

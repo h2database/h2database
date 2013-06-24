@@ -13,8 +13,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/** Test of compatability for the SHOW statement */
+/** 
+ * Test of compatibility for the SHOW statement 
+ */
 public class TestShow extends TestBase {
+    
     /**
      * Run just this test.
      *
@@ -26,12 +29,12 @@ public class TestShow extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        testPgCompat();
-        testMysqlCompat();
+        testPgCompatibility();
+        testMysqlCompatibility();
     }
 
-    private void testPgCompat() throws SQLException {
-        Connection conn = getConnection("mem:showtest");
+    private void testPgCompatibility() throws SQLException {
+        Connection conn = getConnection("mem:pg");
         Statement stat = conn.createStatement();
 
         assertResult("UNICODE", stat, "SHOW CLIENT_ENCODING");
@@ -42,8 +45,8 @@ public class TestShow extends TestBase {
         assertResult("UTF8", stat, "SHOW SERVER_ENCODING");
     }
 
-    private void testMysqlCompat() throws SQLException {
-        Connection conn = getConnection("mem:showtest");
+    private void testMysqlCompatibility() throws SQLException {
+        Connection conn = getConnection("mem:pg");
         Statement stat = conn.createStatement();
         ResultSet rs;
 

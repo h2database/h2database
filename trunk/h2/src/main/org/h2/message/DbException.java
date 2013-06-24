@@ -57,6 +57,8 @@ public class DbException extends RuntimeException {
                     }
                 }
             }
+        } catch (OutOfMemoryError e) {
+            TraceSystem.traceThrowable(e);
         } catch (IOException e) {
             TraceSystem.traceThrowable(e);
         }

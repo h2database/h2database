@@ -69,7 +69,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     /**
      * Check that the index columns are not CLOB or BLOB.
-     * 
+     *
      * @param columns the columns
      */
     protected static void checkIndexColumnTypes(IndexColumn[] columns) {

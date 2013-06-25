@@ -57,6 +57,11 @@ public class IndexCondition {
      */
     public static final int ALWAYS_FALSE = 8;
 
+    /**
+     * A bit of a search mask meaning 'spatial intersection'.
+     */
+    public static final int SPATIAL_INTERSECTS = 16;
+    
     private final Column column;
     /**
      * see constants in {@link Comparison}
@@ -249,6 +254,8 @@ public class IndexCondition {
         case Comparison.SMALLER_EQUAL:
         case Comparison.SMALLER:
             return END;
+        case Comparison.SPATIAL_INTERSECTS:
+            return SPATIAL_INTERSECTS;
         default:
             throw DbException.throwInternalError("type=" + compareType);
         }
@@ -299,6 +306,20 @@ public class IndexCondition {
         }
     }
 
+    /**
+     * Check if this index condition is of the type spatial column intersects value.
+     *
+     * @return true if this is a spatial intersects condition
+     */
+    public boolean isSpatialIntersects() {
+        switch (compareType) {
+        case Comparison.SPATIAL_INTERSECTS:
+            return true;
+        default:
+            return false;
+        }
+    }
+    
     public int getCompareType() {
         return compareType;
     }

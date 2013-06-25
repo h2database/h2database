@@ -11,7 +11,7 @@ package org.h2.index;
  */
 public class IndexType {
 
-    private boolean primaryKey, persistent, unique, hash, scan;
+    private boolean primaryKey, persistent, unique, hash, scan, spatial;
     private boolean belongsToConstraint;
 
     /**
@@ -52,7 +52,7 @@ public class IndexType {
      * @return the index type
      */
     public static IndexType createNonUnique(boolean persistent) {
-        return createNonUnique(persistent, false);
+        return createNonUnique(persistent, false, false);
     }
 
     /**
@@ -62,10 +62,11 @@ public class IndexType {
      * @param hash if a hash index should be used
      * @return the index type
      */
-    public static IndexType createNonUnique(boolean persistent, boolean hash) {
+    public static IndexType createNonUnique(boolean persistent, boolean hash, boolean spatial) {
         IndexType type = new IndexType();
         type.persistent = persistent;
         type.hash = hash;
+        type.spatial = spatial;
         return type;
     }
 
@@ -111,6 +112,15 @@ public class IndexType {
     }
 
     /**
+     * Is this a spatial index?
+     *
+     * @return true if it is a spatial index
+     */
+    public boolean isSpatial() {
+        return spatial;
+    }
+    
+    /**
      * Is this index persistent?
      *
      * @return true if it is persistent
@@ -155,6 +165,9 @@ public class IndexType {
             }
             if (hash) {
                 buff.append("HASH ");
+            }
+            if (spatial) {
+                buff.append("SPATIAL ");
             }
             buff.append("INDEX");
         }

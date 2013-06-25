@@ -17,6 +17,7 @@ import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
+import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
 
 /**
@@ -99,6 +100,11 @@ public class Comparison extends Condition {
      */
     public static final int IN_QUERY = 10;
 
+    /**
+     * This is a pseudo comparison type that is only used for spatial index conditions.
+     */
+    public static final int SPATIAL_INTERSECTS = 11;
+    
     private final Database database;
     private int compareType;
     private Expression left;
@@ -120,6 +126,9 @@ public class Comparison extends Condition {
             break;
         case IS_NOT_NULL:
             sql = left.getSQL() + " IS NOT NULL";
+            break;
+        case SPATIAL_INTERSECTS:
+            sql = "INTERSECTS(" + left.getSQL() + ", " + right.getSQL() + ")";
             break;
         default:
             sql = left.getSQL() + " " + getCompareOperator(compareType) + " " + right.getSQL();
@@ -272,6 +281,12 @@ public class Comparison extends Condition {
         case SMALLER:
             result = database.compare(l, r) < 0;
             break;
+        case SPATIAL_INTERSECTS: {
+            ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
+            ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
+            result = lg.intersects(rg);
+            break;
+        }
         default:
             throw DbException.throwInternalError("type=" + compareType);
         }
@@ -392,6 +407,7 @@ public class Comparison extends Condition {
         case BIGGER_EQUAL:
         case SMALLER_EQUAL:
         case SMALLER:
+        case SPATIAL_INTERSECTS:
             addIndex = true;
             break;
         default:

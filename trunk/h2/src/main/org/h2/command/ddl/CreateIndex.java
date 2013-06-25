@@ -27,7 +27,7 @@ public class CreateIndex extends SchemaCommand {
     private String tableName;
     private String indexName;
     private IndexColumn[] indexColumns;
-    private boolean primaryKey, unique, hash;
+    private boolean primaryKey, unique, hash, spatial;
     private boolean ifNotExists;
     private String comment;
 
@@ -87,7 +87,7 @@ public class CreateIndex extends SchemaCommand {
         } else if (unique) {
             indexType = IndexType.createUnique(persistent, hash);
         } else {
-            indexType = IndexType.createNonUnique(persistent, hash);
+            indexType = IndexType.createNonUnique(persistent, hash, spatial);
         }
         IndexColumn.mapColumns(indexColumns, table);
         table.addIndex(session, indexName, id, indexColumns, indexType, create, comment);
@@ -106,6 +106,10 @@ public class CreateIndex extends SchemaCommand {
         this.hash = b;
     }
 
+    public void setSpatial(boolean b) {
+        this.spatial = b;
+    }
+    
     public void setComment(String comment) {
         this.comment = comment;
     }

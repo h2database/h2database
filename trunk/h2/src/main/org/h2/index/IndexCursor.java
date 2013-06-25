@@ -20,6 +20,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
+import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
 
 /**
@@ -35,7 +36,7 @@ public class IndexCursor implements Cursor {
     private IndexColumn[] indexColumns;
     private boolean alwaysFalse;
 
-    private SearchRow start, end;
+    private SearchRow start, end, intersects;
     private Cursor cursor;
     private Column inColumn;
     private int inListIndex;
@@ -104,6 +105,7 @@ public class IndexCursor implements Cursor {
                 Value v = condition.getCurrentValue(s);
                 boolean isStart = condition.isStart();
                 boolean isEnd = condition.isEnd();
+                boolean isIntersects = condition.isSpatialIntersects();
                 int columnId = column.getColumnId();
                 if (columnId >= 0) {
                     IndexColumn idxCol = indexColumns[columnId];
@@ -120,6 +122,9 @@ public class IndexCursor implements Cursor {
                 }
                 if (isEnd) {
                     end = getSearchRow(end, columnId, v, false);
+                }
+                if (isIntersects) {
+                    intersects = getSpatialSearchRow(intersects, columnId, v, true);
                 }
                 if (isStart || isEnd) {
                     // an X=? condition will produce less rows than
@@ -142,7 +147,11 @@ public class IndexCursor implements Cursor {
             return;
         }
         if (!alwaysFalse) {
-            cursor = index.find(tableFilter, start, end);
+            if (intersects != null && index instanceof SpatialTreeIndex) {
+                cursor = ((SpatialTreeIndex)index).findByGeometry(tableFilter, intersects);
+            } else {
+                cursor = index.find(tableFilter, start, end);
+            }
         }
     }
 
@@ -163,6 +172,25 @@ public class IndexCursor implements Cursor {
         return idxCol == null || idxCol.column == column;
     }
 
+    private SearchRow getSpatialSearchRow(SearchRow row, int columnId, Value v, boolean isIntersects) {
+        if (row == null) {
+            row = table.getTemplateRow();
+        } else {
+            ValueGeometry vg = (ValueGeometry) row.getValue(columnId);
+            if (isIntersects) {
+                v = ((ValueGeometry) v).intersection(vg);
+            } else {
+                v = ((ValueGeometry) v).union(vg);
+            }
+        }
+        if (columnId < 0) {
+            row.setKey(v.getLong());
+        } else {
+            row.setValue(columnId, v);
+        }
+        return row;
+    }
+    
     private SearchRow getSearchRow(SearchRow row, int columnId, Value v, boolean max) {
         if (row == null) {
             row = table.getTemplateRow();

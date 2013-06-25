@@ -714,6 +714,9 @@ public class PageStore implements CacheWriter {
                 p.moveTo(pageStoreSession, free);
             } finally {
                 changeCount++;
+                if (SysProperties.CHECK && changeCount < 0) {
+                    throw DbException.throwInternalError("changeCount has wrapped");
+                }
             }
         }
         return true;
@@ -1947,6 +1950,9 @@ public class PageStore implements CacheWriter {
      */
     public void incrementChangeCount() {
         changeCount++;
+        if (SysProperties.CHECK && changeCount < 0) {
+            throw DbException.throwInternalError("changeCount has wrapped");
+        }
     }
 
     /**

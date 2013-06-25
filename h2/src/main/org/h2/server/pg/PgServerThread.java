@@ -152,10 +152,13 @@ public class PgServerThread implements Runnable {
                 int pid = readInt();
                 int key = readInt();
                 PgServerThread c = server.getThread(pid);
-                if (c != null) {
-                    c.cancelRequest(key);
+                if (c != null && key == c.secret) {
+                    c.cancelRequest();
                 } else {
-                    sendErrorResponse("unknown process: " + pid);
+                    // According to http://www.postgresql.org/docs/9.1/static/protocol-flow.html#AEN91739, 
+                    // when canceling a request, if an invalid secret is provided then no exception
+                    // should be sent back to the client.
+                    server.trace("Invalid CancelRequest: pid=" + pid + ", key=" + key);
                 }
                 close();
             } else if (version == 80877103) {
@@ -550,7 +553,7 @@ public class PgServerThread implements Runnable {
         int col = i + 1;
         int paramLen = readInt();
         if (paramLen == -1) {
-            prep.setNull(i, Types.NULL);
+            prep.setNull(col, Types.NULL);
         } else if (text) {
             // plain text
             byte[] data = DataUtils.newBytes(paramLen);
@@ -958,14 +961,9 @@ public class PgServerThread implements Runnable {
 
     /**
      * Kill a currently running query on this thread.
-     * @param secret the private key of the command
      */
-    private synchronized void cancelRequest(int secret) throws IOException {
+    private synchronized void cancelRequest() {
         if (activeRequest != null) {
-            if (secret != this.secret) {
-                sendErrorResponse("invalid cancel secret");
-                return;
-            }
             try {
                 activeRequest.cancel();
                 activeRequest = null;

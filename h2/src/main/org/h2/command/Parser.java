@@ -2676,6 +2676,10 @@ public class Parser {
         }
         if (readIf("::")) {
             // PostgreSQL compatibility
+            if (isToken("PG_CATALOG")) {
+                read("PG_CATALOG");
+                read(".");
+            }
             if (readIf("REGCLASS")) {
                 FunctionAlias f = findFunctionAlias(Constants.SCHEMA_MAIN, "PG_GET_OID");
                 if (f == null) {

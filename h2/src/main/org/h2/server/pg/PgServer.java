@@ -472,6 +472,25 @@ public class PgServer implements Service {
     }
 
     /**
+     * Check if the current session has access to this table.
+     * This method is called by the database.
+     *
+     * @param pgType the postgres type oid
+     * @param typeMod the type modifier (typically -1)
+     * @return A string name for the given type
+     */
+    public static String formatType(Connection conn, int pgType, int typeMod) throws SQLException {
+        PreparedStatement prep = conn.prepareStatement("select typname from pg_catalog.pg_type where oid = ? and typtypmod = ?");
+        prep.setInt(1, pgType);
+        prep.setInt(2, typeMod);
+        ResultSet rs = prep.executeQuery();
+        if (rs.next()) {
+            return rs.getString(1);
+        }
+        return null;
+    }
+
+    /**
      * Convert the SQL type to a PostgreSQL type
      *
      * @param type the SQL type

@@ -23,9 +23,9 @@ import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 import org.h2.tools.Restore;
-import org.h2.tools.Script;
 import org.h2.util.Task;
 
 /**
@@ -45,7 +45,7 @@ public class TestMVTableEngine extends TestBase {
     @Override
     public void test() throws Exception {
         // testSpeed();
-        // testRecover();
+        testRecover();
         testSeparateKey();
         testRollback();
         testRollbackAfterCrash();
@@ -122,21 +122,28 @@ int test;
         Connection conn;
         Statement stat;
         String url = "mvstore;default_table_engine=org.h2.mvstore.db.MVTableEngine";
+        url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
-        stat.execute("create table test(id int primary key)");
-        stat.execute("insert into test values(1)");
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(1, 'Hello')");
+        stat.execute("create table test2(name varchar)");
+        stat.execute("insert into test2 values('Hello World')");
         conn.close();
         
         Recover.execute(getBaseDir(), "mvstore");
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        Script.execute(url, getUser(), getPassword(), System.out);
+        DeleteDbFiles.execute(getBaseDir(), "mvstore", true);
         conn = getConnection(url);
         stat = conn.createStatement();
+        stat.execute("runscript from '" + getBaseDir() + "/mvstore.h2.sql'");
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
+        assertEquals("Hello", rs.getString(2));
+        rs = stat.executeQuery("select * from test2");
+        assertTrue(rs.next());
+        assertEquals("Hello World", rs.getString(1));
         conn.close();
     }
 

@@ -64,6 +64,7 @@ import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
 import org.h2.value.Value;
+import org.h2.value.ValueArray;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
@@ -501,18 +502,41 @@ public class Recover extends Tool implements DataHandler {
                 String mapName = key.substring("name.".length());
                 String tableId = mapName.substring("table.".length());
                 ValueDataType keyType = new ValueDataType(
-                        null, null, null);
+                        null, this, null);
                 ValueDataType valueType = new ValueDataType(
-                        null, null, null);
+                        null, this, null);
                 MVMap.Builder<Value, Value> mapBuilder = new MVMap.Builder<Value, Value>().
                         keyType(keyType).
                         valueType(valueType);
                 TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, mapBuilder);
                 Iterator<Value> dataIt = dataMap.keyIterator(null);
+                boolean init = false;
                 while (dataIt.hasNext()) {
                     Value rowId = dataIt.next();
-                    Value values = dataMap.get(rowId);
-                    writer.println("-- insert into O_" + tableId + " key=" + rowId + " values=" + values);
+                    Value[] values = ((ValueArray) dataMap.get(rowId)).getList();
+                    recordLength = values.length;
+                    if (!init) {
+                        setStorage(Integer.parseInt(tableId));
+                        // init the column types
+                        for (valueId = 0; valueId < recordLength; valueId++) {
+                            String columnName = storageName + "." + valueId;
+                            getSQL(columnName, values[valueId]);
+                        }
+                        createTemporaryTable(writer);
+                        init = true;
+                    }
+                    StringBuilder buff = new StringBuilder();
+                    buff.append("INSERT INTO O_").append(tableId)
+                            .append(" VALUES(");
+                    for (valueId = 0; valueId < recordLength; valueId++) {
+                        if (valueId > 0) {
+                            buff.append(", ");
+                        }
+                        String columnName = storageName + "." + valueId;
+                        buff.append(getSQL(columnName, values[valueId]));
+                    }
+                    buff.append(");");
+                    writer.println(buff.toString());
                 }
             }
         } catch (Throwable e) {

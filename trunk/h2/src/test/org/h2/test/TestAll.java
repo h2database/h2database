@@ -6,11 +6,6 @@
  */
 package org.h2.test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 import java.util.Properties;
 import org.h2.Driver;
@@ -612,10 +607,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestReadOnly().runTest(this);
         new TestRecursiveQueries().runTest(this);
         new TestRights().runTest(this);
-        if (!mvStore) {
-            // Recover is not yet implemented
-            new TestRunscript().runTest(this);
-        }
+        new TestRunscript().runTest(this);
         new TestSQLInjection().runTest(this);
         new TestSessionsLocks().runTest(this);
         new TestSelectCountNonNullColumn().runTest(this);
@@ -752,7 +744,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestPgServer().runTest(this);
         new TestReader().runTest(this);
         if (!mvStore) {
-            // Recover is not yet implemented
+            // Recover is not yet fully implemented
             new TestRecovery().runTest(this);
         }
         new TestSampleApps().runTest(this);
@@ -764,10 +756,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStreams().runTest(this);
         new TestStringCache().runTest(this);
         new TestStringUtils().runTest(this);
-        if (!mvStore) {
-            // Recover is not yet implemented
-            new TestTools().runTest(this);
-        }
+        new TestTools().runTest(this);
         new TestTraceSystem().runTest(this);
         new TestUpgrade().runTest(this);
         new TestUtils().runTest(this);

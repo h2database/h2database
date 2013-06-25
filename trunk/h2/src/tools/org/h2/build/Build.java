@@ -273,6 +273,8 @@ public class Build extends BuildBase {
                 "66ab449ff3aa5c4adfc82c89025cc983b422eb95", offline);
         downloadOrVerify("ext/org.osgi.enterprise-4.2.0.jar", "org/osgi", "org.osgi.enterprise", "4.2.0",
                 "8634dcb0fc62196e820ed0f1062993c377f74972", offline);
+        downloadOrVerify("ext/jts-1.13.jar", "com.vividsolutions", "jts", "1.13",
+                "3ccfb9b60f04d71add996a666ceb8902904fd805", offline);
     }
 
     private void downloadOrVerify(String target, String group, String artifact,

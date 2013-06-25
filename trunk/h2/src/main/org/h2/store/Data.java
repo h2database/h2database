@@ -38,6 +38,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
+import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLob;
@@ -670,6 +671,20 @@ public class Data {
             }
             break;
         }
+        case Value.GEOMETRY: {
+            writeByte((byte) type);
+            byte[] b = v.getBytes();
+            int len = b.length;
+            if (len < 32) {
+                writeByte((byte) (BYTES_0_31 + len));
+                write(b, 0, b.length);
+            } else {
+                writeByte((byte) type);
+                writeVarInt(b.length);
+                write(b, 0, b.length);
+            }
+            break;
+        }
         default:
             DbException.throwInternalError("type=" + v.getType());
         }
@@ -1073,6 +1088,14 @@ public class Data {
                 throw DbException.convert(e);
             }
             return len;
+        }
+        case Value.GEOMETRY: {
+            byte[] b = v.getBytesNoCopy();
+            int len = b.length;
+            if (len < 32) {
+                return 1 + b.length;
+            }
+            return 1 + getVarIntLen(b.length) + b.length;
         }
         default:
             throw DbException.throwInternalError("type=" + v.getType());

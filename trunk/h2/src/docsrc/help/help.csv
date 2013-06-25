@@ -2335,6 +2335,18 @@ and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the va
 ARRAY
 "
 
+"Data Types","GEOMETRY Type","
+GEOMETRY
+","
+A spatial geometry type, based on the com.vividsolutions.jts library.
+Normally represented in textual format using the WKT (Well Known Text) format.
+
+Use a quoted string containing a KWB formatted string or ""PreparedStatement.setObject()"" to store values,
+and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the values.
+","
+ARRAY
+"
+
 "Functions (Aggregate)","AVG","
 AVG ( [ DISTINCT ] { numeric } )
 ","

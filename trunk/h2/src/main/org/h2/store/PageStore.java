@@ -193,7 +193,7 @@ public class PageStore implements CacheWriter {
      * when using a very small cache size. The value starts at 1 so that
      * pages with change count 0 can be evicted from the cache.
      */
-    private int changeCount = 1;
+    private long changeCount = 1;
 
     private Data emptyPage;
     private long logSizeBase;
@@ -1960,7 +1960,7 @@ public class PageStore implements CacheWriter {
      *
      * @return the change count
      */
-    public int getChangeCount() {
+    public long getChangeCount() {
         return changeCount;
     }
 

@@ -74,7 +74,7 @@ public abstract class Page extends CacheObject {
     /**
      * When this page was changed the last time.
      */
-    protected int changeCount;
+    protected long changeCount;
 
     /**
      * Copy the data to a new location, change the parent to point to the new

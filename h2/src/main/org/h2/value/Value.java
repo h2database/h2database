@@ -152,9 +152,14 @@ public abstract class Value {
     public static final int STRING_FIXED = 21;
 
     /**
+     * The value type for string values with a fixed size.
+     */
+    public static final int GEOMETRY = 22;
+    
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = STRING_FIXED + 1;
+    public static final int TYPE_COUNT = GEOMETRY + 1;
 
     private static SoftReference<Value[]> softCache = new SoftReference<Value[]>(null);
     private static final BigDecimal MAX_LONG_DECIMAL = BigDecimal.valueOf(Long.MAX_VALUE);
@@ -294,6 +299,8 @@ public abstract class Value {
             return 42;
         case JAVA_OBJECT:
             return 43;
+        case GEOMETRY:
+            return 44;
         case ARRAY:
             return 50;
         case RESULT_SET:
@@ -725,6 +732,7 @@ public abstract class Value {
                 case BLOB:
                     return ValueBytes.getNoCopy(getBytesNoCopy());
                 case UUID:
+                case GEOMETRY:
                     return ValueBytes.getNoCopy(getBytes());
                 case BYTE:
                     return ValueBytes.getNoCopy(new byte[]{getByte()});
@@ -781,6 +789,11 @@ public abstract class Value {
                     return ValueUuid.get(getBytesNoCopy());
                 }
             }
+            case GEOMETRY:
+                switch(getType()) {
+                case BYTES:
+                    return ValueGeometry.get(getBytesNoCopy());
+                }
             }
             // conversion by parsing the string value
             String s = getString();
@@ -847,6 +860,8 @@ public abstract class Value {
             }
             case UUID:
                 return ValueUuid.get(s);
+            case GEOMETRY:
+                return ValueGeometry.get(s);
             default:
                 throw DbException.throwInternalError("type=" + targetType);
             }

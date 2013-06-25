@@ -1889,6 +1889,14 @@ public class Parser {
             read(")");
             return new ConditionExists(query);
         }
+        if (readIf("INTERSECTS")) {
+            read("(");
+            Expression r1 = readConcat();
+            read(",");
+            Expression r2 = readConcat();
+            read(")");
+            return new Comparison(session, Comparison.SPATIAL_INTERSECTS, r1, r2);
+        }
         Expression r = readConcat();
         while (true) {
             // special case: NOT NULL is not part of an expression (as in CREATE
@@ -3863,7 +3871,7 @@ public class Parser {
             }
             return parseCreateTable(false, false, cached);
         } else {
-            boolean hash = false, primaryKey = false, unique = false;
+            boolean hash = false, primaryKey = false, unique = false, spatial = false;;
             String indexName = null;
             Schema oldSchema = null;
             boolean ifNotExists = false;
@@ -3885,6 +3893,9 @@ public class Parser {
                 if (readIf("HASH")) {
                     hash = true;
                 }
+                if (readIf("SPATIAL")) {
+                    spatial = true;
+                }
                 if (readIf("INDEX")) {
                     if (!isToken("ON")) {
                         ifNotExists = readIfNoExists();
@@ -3901,6 +3912,7 @@ public class Parser {
             CreateIndex command = new CreateIndex(session, getSchema());
             command.setIfNotExists(ifNotExists);
             command.setHash(hash);
+            command.setSpatial(spatial);
             command.setPrimaryKey(primaryKey);
             command.setTableName(tableName);
             command.setUnique(unique);

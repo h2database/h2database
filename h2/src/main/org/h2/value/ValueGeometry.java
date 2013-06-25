@@ -9,6 +9,7 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.message.DbException;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import com.vividsolutions.jts.io.WKBWriter;
@@ -23,9 +24,9 @@ public class ValueGeometry extends Value {
     /**
      * The value.
      */
-    private final com.vividsolutions.jts.geom.Geometry geometry;
+    private final Geometry geometry;
 
-    private ValueGeometry(com.vividsolutions.jts.geom.Geometry geometry) {
+    private ValueGeometry(Geometry geometry) {
         this.geometry = geometry;
     }
 
@@ -35,7 +36,7 @@ public class ValueGeometry extends Value {
      * @param g the geometry
      * @return the value
      */
-    public static ValueGeometry get(com.vividsolutions.jts.geom.Geometry g) {
+    public static ValueGeometry get(Geometry g) {
         return (ValueGeometry) Value.cache(new ValueGeometry(g));
     }
 
@@ -59,6 +60,22 @@ public class ValueGeometry extends Value {
         return (ValueGeometry) Value.cache(new ValueGeometry(fromWKB(bytes)));
     }
     
+    public Geometry getGeometry() {
+        return geometry;
+    }
+    
+    public boolean intersects(ValueGeometry r) {
+        return geometry.intersects(r.getGeometry());
+    }
+    
+    public Value intersection(ValueGeometry r) {
+        return get(this.geometry.intersection(r.geometry));
+    }
+    
+    public Value union(ValueGeometry r) {
+        return get(this.geometry.union(r.geometry));
+    }
+    
     @Override
     public int getType() {
         return Value.GEOMETRY;
@@ -71,7 +88,7 @@ public class ValueGeometry extends Value {
 
     @Override
     protected int compareSecure(Value v, CompareMode mode) {
-        com.vividsolutions.jts.geom.Geometry g = ((ValueGeometry) v).geometry;
+        Geometry g = ((ValueGeometry) v).geometry;
         return this.geometry.compareTo(g);
     }
 
@@ -139,7 +156,7 @@ public class ValueGeometry extends Value {
     /**
      * Convert from Well-Known-Text format.
      */
-    private static com.vividsolutions.jts.geom.Geometry fromWKT(String s) {
+    private static Geometry fromWKT(String s) {
         WKTReader r = new WKTReader();
         try {
             return r.read(s);
@@ -151,7 +168,7 @@ public class ValueGeometry extends Value {
     /**
      * Convert from Well-Known-Binary format.
      */
-    private static com.vividsolutions.jts.geom.Geometry fromWKB(byte[] bytes) {
+    private static Geometry fromWKB(byte[] bytes) {
         WKBReader r = new WKBReader();
         try {
             return r.read(bytes);

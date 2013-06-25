@@ -31,6 +31,7 @@ import org.h2.index.PageBtreeIndex;
 import org.h2.index.PageDataIndex;
 import org.h2.index.PageDelegateIndex;
 import org.h2.index.ScanIndex;
+import org.h2.index.SpatialTreeIndex;
 import org.h2.index.TreeIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -227,8 +228,10 @@ public class RegularTable extends TableBase {
             if (mainIndexColumn != -1) {
                 mainIndex.setMainIndexColumn(mainIndexColumn);
                 index = new PageDelegateIndex(this, indexId, indexName, indexType, mainIndex, create, session);
-            } else {
+            } else if (!indexType.isSpatial()) {
                 index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, create, session);
+            } else {
+                throw new UnsupportedOperationException();
             }
         } else {
             if (indexType.isHash() && cols.length <= 1) {
@@ -237,8 +240,10 @@ public class RegularTable extends TableBase {
                 } else {
                     index = new NonUniqueHashIndex(this, indexId, indexName, cols, indexType);
                 }
-            } else {
+            } else if (!indexType.isSpatial()) {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
+            } else {
+                index = new SpatialTreeIndex(this, indexId, indexName, cols, indexType);
             }
         }
         if (database.isMultiVersion()) {

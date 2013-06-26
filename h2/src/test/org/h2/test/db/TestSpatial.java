@@ -21,7 +21,7 @@ public class TestSpatial extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -40,23 +40,27 @@ public class TestSpatial extends TestBase {
         deleteDb("spatial");
         Connection conn = getConnection("spatial");
         Statement stat = conn.createStatement();
-        
-        stat.execute("create memory table test(id int primary key, poly geometry)");
+
+        stat.execute("create memory table test(id int primary key, polygon geometry)");
         stat.execute("insert into test values(1, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
         ResultSet rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertEquals("POLYGON ((1 1, 1 2, 2 2, 1 1))", rs.getString(2));
         GeometryFactory f = new GeometryFactory();
-        Polygon poly = f.createPolygon(new Coordinate[] { new Coordinate(1,1), new Coordinate(1,2), new Coordinate(2,2), new Coordinate(1, 1) });
-        assertTrue(poly.equals(rs.getObject(2)));
-       
-        rs = stat.executeQuery("select * from test where poly = 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
+        Polygon polygon = f.createPolygon(new Coordinate[] {
+                new Coordinate(1, 1),
+                new Coordinate(1, 2),
+                new Coordinate(2, 2),
+                new Coordinate(1, 1) });
+        assertTrue(polygon.equals(rs.getObject(2)));
+
+        rs = stat.executeQuery("select * from test where polygon = 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
-        stat.executeQuery("select * from test where poly > 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
-        stat.executeQuery("select * from test where poly < 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
-        
+        stat.executeQuery("select * from test where polygon > 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
+        stat.executeQuery("select * from test where polygon < 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
+
         stat.execute("drop table test");
         conn.close();
         deleteDb("spatial");
@@ -67,30 +71,30 @@ public class TestSpatial extends TestBase {
         deleteDb("spatialIndex");
         Connection conn = getConnection("spatialIndex");
         Statement stat = conn.createStatement();
-        
-        stat.execute("create memory table test(id int primary key, poly geometry)");
-        stat.execute("create spatial index idx_test_poly on test(poly)");
+
+        stat.execute("create memory table test(id int primary key, polygon geometry)");
+        stat.execute("create spatial index idx_test_polygon on test(polygon)");
         stat.execute("insert into test values(1, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
-        
-        ResultSet rs = stat.executeQuery("explain select * from test where poly = 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
+
+        ResultSet rs = stat.executeQuery("explain select * from test where polygon = 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
         rs.next();
-        assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLY: POLY =");
-        
-        // these queries actually have no meaning in the context of a spatial index, but 
-        // check them anyhow
-        stat.executeQuery("select * from test where poly = 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
-        stat.executeQuery("select * from test where poly > 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
-        stat.executeQuery("select * from test where poly < 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
-        
-        rs = stat.executeQuery("select * from test where intersects(poly, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
+        assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON =");
+
+        // these queries actually have no meaning in the context of a spatial index,
+        // just check that the query works
+        stat.executeQuery("select * from test where polygon = 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
+        stat.executeQuery("select * from test where polygon > 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
+        stat.executeQuery("select * from test where polygon < 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
+
+        rs = stat.executeQuery("select * from test where intersects(polygon, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
         assertTrue(rs.next());
-        
-        rs = stat.executeQuery("select * from test where intersects(poly, 'POINT (1 1)')");
+
+        rs = stat.executeQuery("select * from test where intersects(polygon, 'POINT (1 1)')");
         assertTrue(rs.next());
-        
-        rs = stat.executeQuery("select * from test where intersects(poly, 'POINT (0 0)')");
+
+        rs = stat.executeQuery("select * from test where intersects(polygon, 'POINT (0 0)')");
         assertFalse(rs.next());
-        
+
         stat.execute("drop table test");
         conn.close();
         deleteDb("spatialIndex");

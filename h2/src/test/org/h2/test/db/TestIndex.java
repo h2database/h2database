@@ -143,7 +143,7 @@ public class TestIndex extends TestBase {
         }
         stat.execute("drop table test");
     }
-    
+
     private void testNonUniqueHashIndex() throws SQLException {
         reconnect();
         stat.execute("create memory table test(id bigint, data bigint)");

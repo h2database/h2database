@@ -13,11 +13,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/** 
- * Test of compatibility for the SHOW statement 
+/**
+ * Test of compatibility for the SHOW statement.
  */
 public class TestShow extends TestBase {
-    
+
     /**
      * Run just this test.
      *

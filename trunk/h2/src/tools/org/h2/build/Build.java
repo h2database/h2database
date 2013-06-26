@@ -181,6 +181,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/jts-1.13.jar" +
                 File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
         FileList files;
         if (clientOnly) {
@@ -522,7 +523,7 @@ public class Build extends BuildBase {
         mkdir("docs/javadoc");
         javadoc("-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
                 "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
-                "-classpath", "ext/" + getLuceneJar(),
+                "-classpath", "ext/" + getLuceneJar() + File.pathSeparator + "ext/jts-1.13.jar",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");
         copy("docs/javadoc", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
@@ -545,7 +546,8 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar",
+                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/jts-1.13.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
         System.setProperty("h2.interfacesOnly", "false");
@@ -556,7 +558,8 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
-                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar",
+                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/jts-1.13.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",

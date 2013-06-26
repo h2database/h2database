@@ -675,14 +675,8 @@ public class Data {
             writeByte((byte) type);
             byte[] b = v.getBytes();
             int len = b.length;
-            if (len < 32) {
-                writeByte((byte) (BYTES_0_31 + len));
-                write(b, 0, b.length);
-            } else {
-                writeByte((byte) type);
-                writeVarInt(b.length);
-                write(b, 0, b.length);
-            }
+            writeVarInt(len);
+            write(b, 0, len);
             break;
         }
         default:
@@ -853,6 +847,12 @@ public class Data {
                 rs.addRow(o);
             }
             return ValueResultSet.get(rs);
+        }
+        case Value.GEOMETRY: {
+            int len = readVarInt();
+            byte[] b = DataUtils.newBytes(len);
+            read(b, 0, len);
+            return ValueGeometry.get(b);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
@@ -1092,10 +1092,7 @@ public class Data {
         case Value.GEOMETRY: {
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
-            if (len < 32) {
-                return 1 + b.length;
-            }
-            return 1 + getVarIntLen(b.length) + b.length;
+            return 1 + getVarIntLen(len) + len;
         }
         default:
             throw DbException.throwInternalError("type=" + v.getType());

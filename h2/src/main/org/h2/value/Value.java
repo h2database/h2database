@@ -155,7 +155,7 @@ public abstract class Value {
      * The value type for string values with a fixed size.
      */
     public static final int GEOMETRY = 22;
-    
+
     /**
      * The number of value types.
      */

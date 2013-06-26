@@ -194,7 +194,8 @@ Creates a new sequence."
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
 [ ( { columnDefinition | constraint } [,...] ) ]
-[ ENGINE tableEngineName ] [ NOT PERSISTENT ] [ TRANSACTIONAL ]
+[ ENGINE tableEngineName [ WITH tableEngineParamName [,...] ] ]
+[ NOT PERSISTENT ] [ TRANSACTIONAL ]
 [ AS select ]","
 Creates a new table."
 "Commands (DDL)","CREATE TRIGGER","
@@ -273,7 +274,7 @@ Removes all rows from a table."
 "Commands (Other)","CHECKPOINT","
 CHECKPOINT
 ","
-Flushes the data to disk and switches to a new transaction log if possible."
+Flushes the data to disk."
 "Commands (Other)","CHECKPOINT SYNC","
 CHECKPOINT SYNC
 ","
@@ -786,6 +787,10 @@ Universally unique identifier."
 ARRAY
 ","
 An array of values."
+"Data Types","GEOMETRY Type","
+GEOMETRY
+","
+A spatial geometry type, based on the com."
 "Functions (Aggregate)","AVG","
 AVG ( [ DISTINCT ] { numeric } )
 ","
@@ -981,7 +986,7 @@ HASH(algorithmString, dataBytes, iterationInt)
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations."
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ({numeric, digitsInt} | timestamp)
+{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp } )
 ","
 Truncates to a number of digits (to the next value closer to 0)."
 "Functions (Numeric)","COMPRESS","

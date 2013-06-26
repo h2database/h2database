@@ -61,7 +61,7 @@ public class IndexCondition {
      * A bit of a search mask meaning 'spatial intersection'.
      */
     public static final int SPATIAL_INTERSECTS = 16;
-    
+
     private final Column column;
     /**
      * see constants in {@link Comparison}
@@ -319,7 +319,7 @@ public class IndexCondition {
             return false;
         }
     }
-    
+
     public int getCompareType() {
         return compareType;
     }

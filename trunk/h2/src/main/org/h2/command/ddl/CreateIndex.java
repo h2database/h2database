@@ -109,7 +109,7 @@ public class CreateIndex extends SchemaCommand {
     public void setSpatial(boolean b) {
         this.spatial = b;
     }
-    
+
     public void setComment(String comment) {
         this.comment = comment;
     }

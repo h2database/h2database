@@ -90,6 +90,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * Create a duplicate key exception with a message that contains the index
      * name.
      *
+     * @param key the key values
      * @return the exception
      */
     protected DbException getDuplicateKeyException(String key) {

@@ -10,17 +10,21 @@ import org.h2.result.SearchRow;
 import org.h2.table.TableFilter;
 
 /**
- * A spatial index. Spatial indexes are used to speed up searching spatial/geometric data.
+ * A spatial index. Spatial indexes are used to speed up searching
+ * spatial/geometric data.
  */
 public interface SpatialIndex extends Index {
 
     /**
-     * Find a row or a list of rows and create a cursor to iterate over the result.
+     * Find a row or a list of rows and create a cursor to iterate over the
+     * result.
      *
-     * @param filter the table filter (which possibly knows
-     *          about additional conditions)
-     * @param intersection the geometry which values should intersect with, or null for anything
+     * @param filter the table filter (which possibly knows about additional
+     *            conditions)
+     * @param intersection the geometry which values should intersect with, or
+     *            null for anything
      * @return the cursor to iterate over the results
      */
     Cursor findByGeometry(TableFilter filter, SearchRow intersection);
+
 }

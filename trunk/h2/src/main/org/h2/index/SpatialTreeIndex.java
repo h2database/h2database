@@ -74,7 +74,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         root.insert(getEnvelope(row), row);
         rowCount++;
     }
-    
+
     private Envelope getEnvelope(SearchRow row) {
         Value v = row.getValue(columnIds[0]);
         Geometry g = ((ValueGeometry) v).getGeometry();
@@ -104,20 +104,21 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
     @SuppressWarnings("unchecked")
     private Cursor find() {
-        // FIXME: ideally I need external iterators, but let's see if we can get
-        // it working first
-        // FIXME: in the context of a spatial index, a query that uses ">" or "<" has no real meaning, so for now just ignore
+        // TODO use an external iterator,
+        // but let's see if we can get it working first
+        // TODO in the context of a spatial index,
+        // a query that uses ">" or "<" has no real meaning, so for now just ignore
         // it and return all rows
-        java.util.List<Row> list = root.queryAll();
-        return new ListCursor(list, true/*first*/);
+        List<Row> list = root.queryAll();
+        return new ListCursor(list, true /*first*/);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public Cursor findByGeometry(TableFilter filter, SearchRow intersection) {
-        // FIXME: ideally I need external iterators, but let's see if we can get
-        // it working first
-        java.util.List<Row> list;
+        // TODO use an external iterator,
+        // but let's see if we can get it working first
+        List<Row> list;
         if (intersection != null) {
             list = root.query(getEnvelope(intersection));
         } else {
@@ -163,11 +164,11 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
             throw DbException.throwInternalError();
         }
 
-        // FIXME: ideally I need external iterators, but let's see if we can get
-        // it working first
+        // TODO use an external iterator,
+        // but let's see if we can get it working first
         @SuppressWarnings("unchecked")
         List<Row> list = root.queryAll();
-        
+
         return new ListCursor(list, first);
     }
 
@@ -186,6 +187,9 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         return 0;
     }
 
+    /**
+     * A cursor of a fixed list of rows.
+     */
     private static final class ListCursor implements Cursor {
         private final List<Row> rows;
         private int index;

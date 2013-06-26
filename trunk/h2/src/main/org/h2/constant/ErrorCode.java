@@ -215,7 +215,7 @@ public class ErrorCode {
     public static final int NO_DEFAULT_SET_1 = 23507;
 
     /**
-     * The error with code <code>23513</code> is thrown when 
+     * The error with code <code>23513</code> is thrown when
      * a check constraint is violated. Example:
      * <pre>
      * CREATE TABLE TEST(ID INT CHECK ID&gt;0);
@@ -229,7 +229,7 @@ public class ErrorCode {
      * evaluation of a check constraint resulted in a error.
      */
     public static final int CHECK_CONSTRAINT_INVALID = 23514;
-    
+
     // 28: invalid authorization specification
 
     /**

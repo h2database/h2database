@@ -214,7 +214,7 @@ public class TestCompatibility extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("SET MODE PostgreSQL");
         testLog(Math.log10(10), stat);
-        
+
         assertResult("ABC", stat, "SELECT SUBSTRING('ABCDEF' FOR 3)");
         assertResult("ABCD", stat, "SELECT SUBSTRING('0ABCDEF' FROM 2 FOR 4)");
     }

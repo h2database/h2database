@@ -155,7 +155,8 @@ public class PgServerThread implements Runnable {
                 if (c != null && key == c.secret) {
                     c.cancelRequest();
                 } else {
-                    // According to http://www.postgresql.org/docs/9.1/static/protocol-flow.html#AEN91739, 
+                    // According to
+                    // http://www.postgresql.org/docs/9.1/static/protocol-flow.html#AEN91739,
                     // when canceling a request, if an invalid secret is provided then no exception
                     // should be sent back to the client.
                     server.trace("Invalid CancelRequest: pid=" + pid + ", key=" + key);
@@ -548,7 +549,8 @@ public class PgServerThread implements Runnable {
         return clientEncoding;
     }
 
-    private void setParameter(PreparedStatement prep, int pgType, int i, int[] formatCodes) throws SQLException, IOException {
+    private void setParameter(PreparedStatement prep,
+            int pgType, int i, int[] formatCodes) throws SQLException, IOException {
         boolean text = (i >= formatCodes.length) || (formatCodes[i] == 0);
         int col = i + 1;
         int paramLen = readInt();
@@ -711,7 +713,7 @@ public class PgServerThread implements Runnable {
 
     /**
      * Check whether the given type should be formatted as text.
-     * 
+     *
      * @return true for binary
      */
     private static boolean formatAsText(int pgType) {

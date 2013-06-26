@@ -543,7 +543,7 @@ public class JdbcStatement extends TraceObject implements Statement {
 
     /**
      * Check whether the statement was cancelled.
-     * 
+     *
      * @return true if yes
      */
     public boolean wasCancelled() {

@@ -407,7 +407,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     private void testCheckConstraintErrorMessage() throws SQLException {
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
-        
+
         stat.execute("create table companies(id identity)");
         stat.execute("create table departments(id identity, "
                 + "company_id int not null, "
@@ -425,15 +425,15 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("insert into departments(id, company_id) "
                 + "values(20, 1)");
         assertThrows(ErrorCode.CHECK_CONSTRAINT_INVALID, stat)
-             .execute("insert into connections(id, company_id, first, second) "
-                + "values(100, 1, 10, 20)");         
-        
+            .execute("insert into connections(id, company_id, first, second) "
+                + "values(100, 1, 10, 20)");
+
         stat.execute("drop table connections");
         stat.execute("drop table departments");
         stat.execute("drop table companies");
         conn.close();
     }
-    
+
     /**
      * Regression test: we had a bug where the AlterTableAddConstraint class
      * used to sometimes pick the wrong unique index for a foreign key.

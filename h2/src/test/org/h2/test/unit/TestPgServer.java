@@ -280,7 +280,8 @@ public class TestPgServer extends TestBase {
             Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
             Statement stat = conn.createStatement();
 
-            // confirm that we've got the in memory implementation by creating a table and checking flags
+            // confirm that we've got the in memory implementation
+            // by creating a table and checking flags
             stat.execute("create table test(id int primary key, name varchar)");
             ResultSet rs = stat.executeQuery("select storage_type from information_schema.tables where table_name = 'TEST'");
             assertTrue(rs.next());

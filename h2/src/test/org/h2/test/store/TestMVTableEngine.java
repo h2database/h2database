@@ -116,7 +116,7 @@ int test;
 //System.out.println(prof.getTop(10));
         System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
     }
-    
+
     private void testRecover() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -130,7 +130,7 @@ int test;
         stat.execute("create table test2(name varchar)");
         stat.execute("insert into test2 values('Hello World')");
         conn.close();
-        
+
         Recover.execute(getBaseDir(), "mvstore");
         DeleteDbFiles.execute(getBaseDir(), "mvstore", true);
         conn = getConnection(url);

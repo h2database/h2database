@@ -102,6 +102,11 @@ public class RecoverTester implements Recorder {
         out.println("+ write #" + writeCount + " verify #" + verifyCount);
         try {
             IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+            String mvFileName = fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length()) +
+                    Constants.SUFFIX_MV_FILE;
+            if (FileUtils.exists(mvFileName)) {
+                IOUtils.copyFiles(mvFileName, testDatabase + Constants.SUFFIX_MV_FILE);
+            }
             verifyCount++;
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();

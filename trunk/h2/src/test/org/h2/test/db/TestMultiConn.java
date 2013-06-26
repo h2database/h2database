@@ -18,7 +18,7 @@ import org.h2.util.Task;
  */
 public class TestMultiConn extends TestBase {
 
-    private static int wait;
+    static int wait;
 
     /**
      * Run just this test.
@@ -199,6 +199,9 @@ public class TestMultiConn extends TestBase {
 
     }
 
+    /**
+     * A database event listener used in this test.
+     */
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
         @Override

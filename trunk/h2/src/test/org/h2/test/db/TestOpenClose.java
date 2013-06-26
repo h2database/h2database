@@ -201,6 +201,9 @@ public class TestOpenClose extends TestBase {
         return nextId++;
     }
 
+    /**
+     * A database event listener used in this test.
+     */
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
         @Override

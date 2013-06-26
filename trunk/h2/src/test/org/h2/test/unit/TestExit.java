@@ -111,10 +111,13 @@ public class TestExit extends TestBase {
         return DriverManager.getConnection(url, "sa", "");
     }
 
-    private static File getClosedFile() {
+    static File getClosedFile() {
         return new File(TestBase.BASE_TEST_DIR + "/closed.txt");
     }
 
+    /**
+     * A database event listener used in this test.
+     */
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
         
         @Override

@@ -76,15 +76,15 @@ public class TestTableEngines extends TestBase {
         deleteDb("tableEngine");
         Connection conn = getConnection("tableEngine");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + EndlessTableEngine.class.getName() 
-                      + "\" WITH \"param1\", \"param2\"");
+        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" +
+                EndlessTableEngine.class.getName() + "\" WITH \"param1\", \"param2\"");
         assertEquals(2, EndlessTableEngine.createTableData.tableEngineParams.size());
         assertEquals("param1", EndlessTableEngine.createTableData.tableEngineParams.get(0));
         assertEquals("param2", EndlessTableEngine.createTableData.tableEngineParams.get(1));
         conn.close();
         deleteDb("tableEngine");
     }
-    
+
     private void testSimpleQuery() throws SQLException {
 
         deleteDb("tableEngine");
@@ -367,7 +367,7 @@ public class TestTableEngines extends TestBase {
     public static class EndlessTableEngine implements TableEngine {
 
         public static CreateTableData createTableData;
-        
+
         /**
          * A table implementation with one row.
          */

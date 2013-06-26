@@ -39,6 +39,7 @@ MVStore
     - <a href="#encryption">Encrypted Files</a><br />
     - <a href="#tools">Tools</a><br />
     - <a href="#exceptionHandling">Exception Handling</a><br />
+    - <a href="#tableEngine">Table Engine for H2</a><br />
 <a href="#differences">
     Similar Projects and Differences to Other Storage Engines</a><br />
 <a href="#current_state">
@@ -425,6 +426,22 @@ The following exceptions can occur:
 </li><li><code>UnsupportedOperationException</code> if a method was called that is not supported,
     for example trying to modify a read-only map or view.
 </li><li><code>ConcurrentModificationException</code> if the object is modified concurrently.
+</li></ul>
+
+<h3 id="tableEngine">Table Engine for H2</h3>
+<p>
+The plan is to use the MVStore as the default storage engine for the H2 database
+in the future (supporting SQL, JDBC, transactions, MVCC, and so on).
+This is work in progress. To try it out, append
+<code>;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine</code>
+to the database URL. In general, functionality and performance should be
+similar than the current default storage engine (the page store).
+There are a few features that have not been implemented yet or are not complete:
+</p>
+<ul><li>Changing the cache size.
+</li><li>Two-phase commit.
+</li><li>The database metadata is still stored in a <code>.h2.db</code> file.
+</li><li>The database file(s) sometimes do not shrink as expected.
 </li></ul>
 
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>

@@ -176,7 +176,11 @@ public class TestAutoReconnect extends TestBase {
         }
     }
 
+    /**
+     * A database event listener used in this test.
+     */
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
+        
         @Override
         public void closingDatabase() {
             // ignore

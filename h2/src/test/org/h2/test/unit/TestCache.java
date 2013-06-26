@@ -45,7 +45,9 @@ public class TestCache extends TestBase implements CacheWriter {
 
     @Override
     public void test() throws Exception {
-        testTQ();
+        if (!config.mvStore) {
+            testTQ();
+        }
         testMemoryUsage();
         testCache();
         testCacheDb(false);

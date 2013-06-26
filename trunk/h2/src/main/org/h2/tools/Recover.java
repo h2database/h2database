@@ -250,7 +250,7 @@ public class Recover extends Tool implements DataHandler {
         }
         for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-                String mvFile = fileName.substring(0, fileName.length() - 
+                String mvFile = fileName.substring(0, fileName.length() -
                         Constants.SUFFIX_PAGE_FILE.length()) + Constants.SUFFIX_MV_FILE;
                 if (list.contains(mvFile)) {
                     this.mvFile = mvFile;
@@ -259,7 +259,7 @@ public class Recover extends Tool implements DataHandler {
             } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 dumpLob(fileName, false);
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
-                PrintWriter writer = getWriter(fileName, ".mv.txt");
+                PrintWriter writer = getWriter(fileName, ".txt");
                 MVStoreTool.dump(fileName, writer);
                 writer.close();
             }
@@ -485,7 +485,7 @@ public class Recover extends Tool implements DataHandler {
             closeSilently(store);
         }
     }
-    
+
     private void dumpMVStoreFile(PrintWriter writer, String fileName) {
         writer.println("-- mvstore");
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_MV_FILE.length()));
@@ -544,7 +544,7 @@ public class Recover extends Tool implements DataHandler {
         } finally {
             mv.close();
         }
-    }    
+    }
 
     private static String getPageType(int type) {
         switch (type) {

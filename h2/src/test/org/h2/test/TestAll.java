@@ -710,10 +710,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // unit
         new TestAutoReconnect().runTest(this);
-        if (!mvStore) {
-            // Caching is different; cache size not yet implemented
-            new TestCache().runTest(this);
-        }
+        new TestCache().runTest(this);
         new TestClearReferences().runTest(this);
         new TestCollation().runTest(this);
         new TestCompress().runTest(this);
@@ -743,10 +740,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestPattern().runTest(this);
         new TestPgServer().runTest(this);
         new TestReader().runTest(this);
-        if (!mvStore) {
-            // Recover is not yet fully implemented
-            new TestRecovery().runTest(this);
-        }
+        new TestRecovery().runTest(this);
         new TestSampleApps().runTest(this);
         new TestScriptReader().runTest(this);
         runTest("org.h2.test.unit.TestServlet");

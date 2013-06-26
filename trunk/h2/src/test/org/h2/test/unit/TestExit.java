@@ -20,7 +20,7 @@ import org.h2.test.utils.SelfDestructor;
  * Tests the flag db_close_on_exit.
  * A new process is started.
  */
-public class TestExit extends TestBase implements DatabaseEventListener {
+public class TestExit extends TestBase {
 
     public static Connection conn;
 
@@ -92,11 +92,11 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         String url = "";
         switch (action) {
         case OPEN_WITH_CLOSE_ON_EXIT:
-            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + getClass().getName()
+            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + MyDatabaseEventListener.class.getName()
                     + "';db_close_on_exit=true";
             break;
         case OPEN_WITHOUT_CLOSE_ON_EXIT:
-            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + getClass().getName()
+            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + MyDatabaseEventListener.class.getName()
                     + "';db_close_on_exit=false";
             break;
         default:
@@ -111,37 +111,41 @@ public class TestExit extends TestBase implements DatabaseEventListener {
         return DriverManager.getConnection(url, "sa", "");
     }
 
-    @Override
-    public void exceptionThrown(SQLException e, String sql) {
-        // nothing to do
-    }
-
-    @Override
-    public void closingDatabase() {
-        try {
-            getClosedFile().createNewFile();
-        } catch (IOException e) {
-            TestBase.logError("error", e);
-        }
-    }
-
     private static File getClosedFile() {
         return new File(TestBase.BASE_TEST_DIR + "/closed.txt");
     }
 
-    @Override
-    public void setProgress(int state, String name, int x, int max) {
-        // nothing to do
-    }
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
+        
+        @Override
+        public void exceptionThrown(SQLException e, String sql) {
+            // nothing to do
+        }
 
-    @Override
-    public void init(String url) {
-        // nothing to do
-    }
+        @Override
+        public void closingDatabase() {
+            try {
+                getClosedFile().createNewFile();
+            } catch (IOException e) {
+                TestBase.logError("error", e);
+            }
+        }
 
-    @Override
-    public void opened() {
-        // nothing to do
+        @Override
+        public void setProgress(int state, String name, int x, int max) {
+            // nothing to do
+        }
+
+        @Override
+        public void init(String url) {
+            // nothing to do
+        }
+
+        @Override
+        public void opened() {
+            // nothing to do
+        }
+        
     }
 
 }

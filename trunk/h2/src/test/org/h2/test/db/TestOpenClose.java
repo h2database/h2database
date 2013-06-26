@@ -1,8 +1,7 @@
 /*
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.test.db;
 
@@ -24,13 +23,13 @@ import org.h2.util.Task;
 /**
  * Tests opening and closing a database.
  */
-public class TestOpenClose extends TestBase implements DatabaseEventListener {
+public class TestOpenClose extends TestBase {
 
     private int nextId = 10;
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -55,8 +54,8 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         deleteDb("openClose");
         Connection conn;
         conn = getConnection("jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS");
-        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                getConnection("jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS;OPEN_NEW=TRUE");
+        assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).getConnection(
+                "jdbc:h2:" + getBaseDir() + "/openClose;FILE_LOCK=FS;OPEN_NEW=TRUE");
         conn.close();
     }
 
@@ -73,8 +72,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         c.position(c.size() * 2 - 1);
         c.write(ByteBuffer.wrap(new byte[1]));
         c.close();
-        assertThrows(ErrorCode.IO_EXCEPTION_2, this).
-                getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
+        assertThrows(ErrorCode.IO_EXCEPTION_2, this).getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
         FileUtils.delete("split:" + getBaseDir() + "/openClose2.h2.db");
     }
 
@@ -127,8 +125,7 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
 
         deleteDb("openClose");
         String user = getUser(), password = getPassword();
-        String url = getURL("openClose;DATABASE_EVENT_LISTENER='" + TestOpenClose.class.getName()
-                + "'", true);
+        String url = getURL("openClose;DATABASE_EVENT_LISTENER='" + MyDatabaseEventListener.class.getName() + "'", true);
         Connection conn = DriverManager.getConnection(url, user, password);
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
@@ -204,51 +201,54 @@ public class TestOpenClose extends TestBase implements DatabaseEventListener {
         return nextId++;
     }
 
-    @Override
-    public void exceptionThrown(SQLException e, String sql) {
-        throw new AssertionError("unexpected: " + e + " sql: " + sql);
-    }
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
-    @Override
-    public void setProgress(int state, String name, int current, int max) {
-        String stateName;
-        switch (state) {
-        case STATE_SCAN_FILE:
-            stateName = "Scan " + name + " " + current + "/" + max;
-            if (current > 0) {
-                throw new AssertionError("unexpected: " + stateName);
-            }
-            break;
-        case STATE_STATEMENT_START:
-            break;
-        case STATE_CREATE_INDEX:
-            stateName = "Create Index " + name + " " + current + "/" + max;
-            if (!"SYS:SYS_ID".equals(name)) {
-                throw new AssertionError("unexpected: " + stateName);
-            }
-            break;
-        case STATE_RECOVER:
-            stateName = "Recover " + current + "/" + max;
-            break;
-        default:
-            stateName = "?";
+        @Override
+        public void exceptionThrown(SQLException e, String sql) {
+            throw new AssertionError("unexpected: " + e + " sql: " + sql);
         }
-        // System.out.println(": " + stateName);
-    }
 
-    @Override
-    public void closingDatabase() {
-        // nothing to do
-    }
+        @Override
+        public void setProgress(int state, String name, int current, int max) {
+            String stateName;
+            switch (state) {
+            case STATE_SCAN_FILE:
+                stateName = "Scan " + name + " " + current + "/" + max;
+                if (current > 0) {
+                    throw new AssertionError("unexpected: " + stateName);
+                }
+                break;
+            case STATE_STATEMENT_START:
+                break;
+            case STATE_CREATE_INDEX:
+                stateName = "Create Index " + name + " " + current + "/" + max;
+                if (!"SYS:SYS_ID".equals(name)) {
+                    throw new AssertionError("unexpected: " + stateName);
+                }
+                break;
+            case STATE_RECOVER:
+                stateName = "Recover " + current + "/" + max;
+                break;
+            default:
+                stateName = "?";
+            }
+            // System.out.println(": " + stateName);
+        }
 
-    @Override
-    public void init(String url) {
-        // nothing to do
-    }
+        @Override
+        public void closingDatabase() {
+            // nothing to do
+        }
 
-    @Override
-    public void opened() {
-        // nothing to do
+        @Override
+        public void init(String url) {
+            // nothing to do
+        }
+
+        @Override
+        public void opened() {
+            // nothing to do
+        }
     }
 
 }

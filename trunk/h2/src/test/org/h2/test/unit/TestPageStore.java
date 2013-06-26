@@ -1,8 +1,7 @@
 /*
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.test.unit;
 
@@ -31,13 +30,13 @@ import org.h2.util.New;
 /**
  * Test the page store.
  */
-public class TestPageStore extends TestBase implements DatabaseEventListener {
+public class TestPageStore extends TestBase {
 
     static StringBuilder eventBuffer = new StringBuilder();
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -145,11 +144,10 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         stat.execute("set max_log_size 1");
         stat.execute("create table test(x varchar)");
         for (int i = 0; i < 1000; ++i) {
-                stat.execute("insert into test values (space(2000))");
+            stat.execute("insert into test values (space(2000))");
         }
         stat.execute("checkpoint");
-        InputStream in = FileUtils.newInputStream(getBaseDir() +
-                "/pageStoreLogLimitFalsePositive.trace.db");
+        InputStream in = FileUtils.newInputStream(getBaseDir() + "/pageStoreLogLimitFalsePositive.trace.db");
         String s = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
         assertFalse(s.indexOf("Transaction log could not be truncated") > 0);
         conn.close();
@@ -446,11 +444,10 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         Statement stat = conn.createStatement();
         int size = 1500;
         stat.execute("call rand(1)");
-        stat.execute("create table test(id int primary key, data varchar, test int) as " +
-                "select x, '', 123 from system_range(1, " + size + ")");
+        stat.execute("create table test(id int primary key, data varchar, test int) as "
+                + "select x, '', 123 from system_range(1, " + size + ")");
         Random random = new Random(1);
-        PreparedStatement prep = conn.prepareStatement(
-                "update test set data=space(?) where id=?");
+        PreparedStatement prep = conn.prepareStatement("update test set data=space(?) where id=?");
         for (int i = 0; i < 2500; i++) {
             int id = random.nextInt(size);
             int newSize = random.nextInt(6000);
@@ -502,7 +499,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
             // ignore
         }
         eventBuffer.setLength(0);
-        conn = getConnection(url + ";DATABASE_EVENT_LISTENER='" + getClass().getName() + "'");
+        conn = getConnection(url + ";DATABASE_EVENT_LISTENER='" + MyDatabaseEventListener.class.getName() + "'");
         assertEquals("init;opened;", eventBuffer.toString());
         conn.close();
     }
@@ -520,8 +517,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
         conn = getConnection(url);
-        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).
-                execute("INSERT INTO TEST VALUES(2, 'Hello')");
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).execute("INSERT INTO TEST VALUES(2, 'Hello')");
         conn.close();
     }
 
@@ -742,8 +738,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         stat.execute("INSERT INTO TEST VALUES(1)");
         conn.close();
         conn = getConnection("pageStoreUniqueIndex");
-        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).
-                execute("INSERT INTO TEST VALUES(1)");
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).execute("INSERT INTO TEST VALUES(1)");
         conn.close();
     }
 
@@ -761,7 +756,7 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         conn.close();
     }
 
-    private void testFuzzOperations() throws SQLException {
+    private void testFuzzOperations() throws Exception {
         int best = Integer.MAX_VALUE;
         for (int i = 0; i < 10; i++) {
             int x = testFuzzOperationsSeed(i, 10);
@@ -835,43 +830,44 @@ public class TestPageStore extends TestBase implements DatabaseEventListener {
         trace("   " + m);
     }
 
-    @Override
-    public void closingDatabase() {
-        event("closing");
-    }
-
-    @Override
-    public void exceptionThrown(SQLException e, String sql) {
-        event("exceptionThrown " + e + " " + sql);
-    }
-
-    @Override
-    public void init(String url) {
-        event("init");
-    }
-
-    @Override
-    public void opened() {
-        event("opened");
-    }
-
-    @Override
-    public void setProgress(int state, String name, int x, int max) {
-        if (name.startsWith("SYS:SYS_ID")) {
-            // ignore
-            return;
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
+        @Override
+        public void closingDatabase() {
+            event("closing");
         }
-        switch (state) {
-        case DatabaseEventListener.STATE_STATEMENT_START:
-        case DatabaseEventListener.STATE_STATEMENT_END:
-        case DatabaseEventListener.STATE_STATEMENT_PROGRESS:
-            return;
+
+        @Override
+        public void exceptionThrown(SQLException e, String sql) {
+            event("exceptionThrown " + e + " " + sql);
         }
-        event("setProgress " + state + " " + name + " " + x + " " + max);
-    }
 
-    private static void event(String s) {
-        eventBuffer.append(s).append(';');
-    }
+        @Override
+        public void init(String url) {
+            event("init");
+        }
 
+        @Override
+        public void opened() {
+            event("opened");
+        }
+
+        @Override
+        public void setProgress(int state, String name, int x, int max) {
+            if (name.startsWith("SYS:SYS_ID")) {
+                // ignore
+                return;
+            }
+            switch (state) {
+            case DatabaseEventListener.STATE_STATEMENT_START:
+            case DatabaseEventListener.STATE_STATEMENT_END:
+            case DatabaseEventListener.STATE_STATEMENT_PROGRESS:
+                return;
+            }
+            event("setProgress " + state + " " + name + " " + x + " " + max);
+        }
+
+        private static void event(String s) {
+            eventBuffer.append(s).append(';');
+        }
+    }
 }

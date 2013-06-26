@@ -3871,7 +3871,7 @@ public class Parser {
             }
             return parseCreateTable(false, false, cached);
         } else {
-            boolean hash = false, primaryKey = false, unique = false, spatial = false;;
+            boolean hash = false, primaryKey = false, unique = false, spatial = false;
             String indexName = null;
             Schema oldSchema = null;
             boolean ifNotExists = false;

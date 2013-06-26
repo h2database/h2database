@@ -1,8 +1,7 @@
 /*
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.test.db;
 
@@ -10,7 +9,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -18,13 +16,13 @@ import org.h2.util.Task;
 /**
  * Multi-connection tests.
  */
-public class TestMultiConn extends TestBase implements DatabaseEventListener {
+public class TestMultiConn extends TestBase {
 
     private static int wait;
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -141,7 +139,7 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         conn.createStatement().execute("INSERT INTO TEST VALUES(0, 'Hello'), (1, 'World')");
         conn.createStatement().execute("SHUTDOWN");
         conn.close();
-        final String listener = getClass().getName();
+        final String listener = MyDatabaseEventListener.class.getName();
         Runnable r = new Runnable() {
             @Override
             public void run() {
@@ -160,27 +158,6 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
         Connection c2 = getConnection("multiConn;file_lock=socket");
         c2.close();
         thread.join();
-    }
-
-    @Override
-    public void exceptionThrown(SQLException e, String sql) {
-        // do nothing
-    }
-
-    @Override
-    public void setProgress(int state, String name, int x, int max) {
-        if (wait > 0) {
-            try {
-                Thread.sleep(wait);
-            } catch (InterruptedException e) {
-                TestBase.logError("sleep", e);
-            }
-        }
-    }
-
-    @Override
-    public void closingDatabase() {
-        // do nothing
     }
 
     private void testCommitRollback() throws SQLException {
@@ -222,14 +199,38 @@ public class TestMultiConn extends TestBase implements DatabaseEventListener {
 
     }
 
-    @Override
-    public void init(String url) {
-        // do nothing
-    }
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
 
-    @Override
-    public void opened() {
-        // do nothing
+        @Override
+        public void exceptionThrown(SQLException e, String sql) {
+            // do nothing
+        }
+
+        @Override
+        public void setProgress(int state, String name, int x, int max) {
+            if (wait > 0) {
+                try {
+                    Thread.sleep(wait);
+                } catch (InterruptedException e) {
+                    TestBase.logError("sleep", e);
+                }
+            }
+        }
+
+        @Override
+        public void closingDatabase() {
+            // do nothing
+        }
+
+        @Override
+        public void init(String url) {
+            // do nothing
+        }
+
+        @Override
+        public void opened() {
+            // do nothing
+        }
     }
 
 }

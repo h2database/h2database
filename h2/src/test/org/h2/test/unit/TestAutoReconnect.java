@@ -20,7 +20,7 @@ import org.h2.tools.Server;
 /**
  * Tests automatic embedded/server mode.
  */
-public class TestAutoReconnect extends TestBase implements DatabaseEventListener {
+public class TestAutoReconnect extends TestBase {
 
     private String url;
     private boolean autoServer;
@@ -95,7 +95,7 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         }
 
         // test the database event listener
-        conn = DriverManager.getConnection(url + ";DATABASE_EVENT_LISTENER='" + getClass().getName() + "'");
+        conn = DriverManager.getConnection(url + ";DATABASE_EVENT_LISTENER='" + MyDatabaseEventListener.class.getName() + "'");
         conn.close();
 
         Statement stat;
@@ -176,29 +176,30 @@ public class TestAutoReconnect extends TestBase implements DatabaseEventListener
         }
     }
 
-    @Override
-    public void closingDatabase() {
-        // ignore
-    }
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
+        @Override
+        public void closingDatabase() {
+            // ignore
+        }
 
-    @Override
-    public void exceptionThrown(SQLException e, String sql) {
-        // ignore
-    }
+        @Override
+        public void exceptionThrown(SQLException e, String sql) {
+            // ignore
+        }
 
-    @Override
-    public void init(String u) {
-        // ignore
-    }
+        @Override
+        public void init(String u) {
+            // ignore
+        }
 
-    @Override
-    public void opened() {
-        // ignore
-    }
+        @Override
+        public void opened() {
+            // ignore
+        }
 
-    @Override
-    public void setProgress(int state, String name, int x, int max) {
-        // ignore
+        @Override
+        public void setProgress(int state, String name, int x, int max) {
+            // ignore
+        }
     }
-
 }

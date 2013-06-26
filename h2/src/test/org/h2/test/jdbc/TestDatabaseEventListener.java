@@ -20,7 +20,7 @@ import org.h2.test.TestBase;
 /**
  * Tests the DatabaseEventListener interface.
  */
-public class TestDatabaseEventListener extends TestBase implements DatabaseEventListener {
+public class TestDatabaseEventListener extends TestBase {
 
     private static boolean calledOpened, calledClosingDatabase, calledScan, calledCreateIndex;
     private static boolean calledStatementStart, calledStatementEnd, calledStatementProgress;
@@ -136,7 +136,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         conn = DriverManager.getConnection(url, p);
         conn.close();
         calledCreateIndex = false;
-        p.put("DATABASE_EVENT_LISTENER", getClass().getName());
+        p.put("DATABASE_EVENT_LISTENER", MyDatabaseEventListener.class.getName());
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
         assertTrue(!calledCreateIndex);
@@ -168,7 +168,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         stat.execute("insert into test select 1");
         conn.close();
         calledCreateIndex = false;
-        p.put("DATABASE_EVENT_LISTENER", getClass().getName());
+        p.put("DATABASE_EVENT_LISTENER", MyDatabaseEventListener.class.getName());
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
         assertTrue(!calledCreateIndex);
@@ -195,7 +195,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
 
         calledOpened = false;
         calledScan = false;
-        p.put("DATABASE_EVENT_LISTENER", getClass().getName());
+        p.put("DATABASE_EVENT_LISTENER", MyDatabaseEventListener.class.getName());
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
         if (calledOpened) {
@@ -209,7 +209,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         p.setProperty("password", "sa");
         calledOpened = false;
         calledClosingDatabase = false;
-        p.put("DATABASE_EVENT_LISTENER", getClass().getName());
+        p.put("DATABASE_EVENT_LISTENER", MyDatabaseEventListener.class.getName());
         org.h2.Driver.load();
         String url = "jdbc:h2:mem:databaseEventListener";
         Connection conn = org.h2.Driver.load().connect(url, p);
@@ -225,7 +225,7 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         calledStatementStart = false;
         calledStatementEnd = false;
         calledStatementProgress = false;
-        p.put("DATABASE_EVENT_LISTENER", getClass().getName());
+        p.put("DATABASE_EVENT_LISTENER", MyDatabaseEventListener.class.getName());
         org.h2.Driver.load();
         String url = "jdbc:h2:mem:databaseEventListener";
         Connection conn = org.h2.Driver.load().connect(url, p);
@@ -238,51 +238,55 @@ public class TestDatabaseEventListener extends TestBase implements DatabaseEvent
         assertTrue(calledStatementProgress);
     }
 
-    @Override
-    public void closingDatabase() {
-        calledClosingDatabase = true;
-    }
-
-    @Override
-    public void exceptionThrown(SQLException e, String sql) {
-        // nothing to do
-    }
-
-    @Override
-    public void init(String url) {
-        // nothing to do
-    }
-
-    @Override
-    public void opened() {
-        calledOpened = true;
-    }
-
-    @Override
-    public void setProgress(int state, String name, int x, int max) {
-        if (state == DatabaseEventListener.STATE_SCAN_FILE) {
-            calledScan = true;
+    public static final class MyDatabaseEventListener implements DatabaseEventListener {
+        
+        @Override
+        public void closingDatabase() {
+            calledClosingDatabase = true;
         }
-        if (state == DatabaseEventListener.STATE_CREATE_INDEX) {
-            if (!name.startsWith("SYS:")) {
-                calledCreateIndex = true;
+
+        @Override
+        public void exceptionThrown(SQLException e, String sql) {
+            // nothing to do
+        }
+
+        @Override
+        public void init(String url) {
+            // nothing to do
+        }
+
+        @Override
+        public void opened() {
+            calledOpened = true;
+        }
+
+        @Override
+        public void setProgress(int state, String name, int x, int max) {
+            if (state == DatabaseEventListener.STATE_SCAN_FILE) {
+                calledScan = true;
+            }
+            if (state == DatabaseEventListener.STATE_CREATE_INDEX) {
+                if (!name.startsWith("SYS:")) {
+                    calledCreateIndex = true;
+                }
+            }
+            if (state == STATE_STATEMENT_START) {
+                if (name.equals("select * from test")) {
+                    calledStatementStart = true;
+                }
+            }
+            if (state == STATE_STATEMENT_END) {
+                if (name.equals("select * from test")) {
+                    calledStatementEnd = true;
+                }
+            }
+            if (state == STATE_STATEMENT_PROGRESS) {
+                if (name.equals("select * from test")) {
+                    calledStatementProgress = true;
+                }
             }
         }
-        if (state == STATE_STATEMENT_START) {
-            if (name.equals("select * from test")) {
-                calledStatementStart = true;
-            }
-        }
-        if (state == STATE_STATEMENT_END) {
-            if (name.equals("select * from test")) {
-                calledStatementEnd = true;
-            }
-        }
-        if (state == STATE_STATEMENT_PROGRESS) {
-            if (name.equals("select * from test")) {
-                calledStatementProgress = true;
-            }
-        }
+        
     }
 
 }

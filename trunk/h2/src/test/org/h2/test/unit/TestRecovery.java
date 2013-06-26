@@ -38,12 +38,16 @@ public class TestRecovery extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testRecoverTestMode();
+        if (!config.mvStore) {
+            testRecoverTestMode();
+        }
         testRecoverClob();
         testRecoverFulltext();
-        testRedoTransactions();
-        testCorrupt();
-        testWithTransactionLog();
+        if (!config.mvStore) {
+            testRedoTransactions();
+            testCorrupt();
+            testWithTransactionLog();
+        }
         testCompressedAndUncompressed();
         testRunScript();
     }

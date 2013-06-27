@@ -23,7 +23,7 @@ public class TestView extends TestBase {
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -41,6 +41,7 @@ public class TestView extends TestBase {
         testInSelect();
         testUnionReconnect();
         testManyViews();
+        testReferenceView();
         deleteDb("view");
     }
 
@@ -83,8 +84,8 @@ public class TestView extends TestBase {
         // assertTrue(rs.next());
         // assertFalse(rs.next());
         // rs = stat.executeQuery("select VIEW_DEFINITION " +
-        //     "from information_schema.views " +
-        //     "where TABLE_NAME='TEST_VIEW'");
+        // "from information_schema.views " +
+        // "where TABLE_NAME='TEST_VIEW'");
         // rs.next();
         // assertEquals("...", rs.getString(1));
         conn.close();
@@ -112,7 +113,7 @@ public class TestView extends TestBase {
 
     /**
      * This method is called via reflection from the database.
-     *
+     * 
      * @return the static value x
      */
     public static int getX() {
@@ -189,6 +190,18 @@ public class TestView extends TestBase {
         }
         conn.close();
         conn = getConnection("view");
+        conn.close();
+        deleteDb("view");
+    }
+
+    private void testReferenceView() throws SQLException {
+        deleteDb("view");
+        Connection conn = getConnection("view");
+        Statement s = conn.createStatement();
+        s.execute("create table t0(id int primary key)");
+        s.execute("create view t1 as select * from t0");
+        assertThrows(50100, s).execute(
+                "create table t2(id int primary key, col1 int not null, foreign key (col1) references t1(id))");
         conn.close();
         deleteDb("view");
     }

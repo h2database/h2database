@@ -88,7 +88,7 @@ public abstract class Value {
     public static final int FLOAT = 8;
 
     /**
-     * The value type for INT values.
+     * The value type for TIME values.
      */
     public static final int TIME = 9;
 

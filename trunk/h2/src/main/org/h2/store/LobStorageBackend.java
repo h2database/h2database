@@ -673,7 +673,7 @@ public class LobStorageBackend implements LobStorageInterface {
             if (length > Integer.MAX_VALUE) {
                 return Integer.MAX_VALUE;
             }
-            return (int) length;
+            return MathUtils.convertLongToInt(length);
         }
         
         @Override

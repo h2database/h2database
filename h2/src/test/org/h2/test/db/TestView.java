@@ -200,7 +200,7 @@ public class TestView extends TestBase {
         Statement s = conn.createStatement();
         s.execute("create table t0(id int primary key)");
         s.execute("create view t1 as select * from t0");
-        assertThrows(50100, s).execute(
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, s).execute(
                 "create table t2(id int primary key, col1 int not null, foreign key (col1) references t1(id))");
         conn.close();
         deleteDb("view");

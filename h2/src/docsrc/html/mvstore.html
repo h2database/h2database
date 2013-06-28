@@ -438,9 +438,10 @@ to the database URL. In general, functionality and performance should be
 similar than the current default storage engine (the page store).
 There are a few features that have not been implemented yet or are not complete:
 </p>
-<ul><li>Changing the cache size.
-</li><li>Two-phase commit.
-</li><li>The database metadata is still stored in a <code>.h2.db</code> file.
+<ul><li>Changing the cache size is currently not supported.
+</li><li>The database metadata is still stored in a <code>.h2.db</code> file,
+    and the <code>.lock.db</code> file is still used to lock a database
+    (long term, the plan is to no longer use those files).
 </li><li>The database file(s) sometimes do not shrink as expected.
 </li></ul>
 

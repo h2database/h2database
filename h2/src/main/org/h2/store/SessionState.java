@@ -31,7 +31,7 @@ class SessionState {
     /**
      * The in-doubt transaction if there is one.
      */
-    public InDoubtTransaction inDoubtTransaction;
+    public PageStoreInDoubtTransaction inDoubtTransaction;
 
     /**
      * Check if this session state is already committed at this point.

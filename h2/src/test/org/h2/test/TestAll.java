@@ -620,10 +620,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestTempTables().runTest(this);
         new TestTransaction().runTest(this);
         new TestTriggersConstraints().runTest(this);
-        if (!mvStore) {
-            // Two-Phase commit is not yet implemented
-            new TestTwoPhaseCommit().runTest(this);
-        }
+        new TestTwoPhaseCommit().runTest(this);
         new TestView().runTest(this);
         new TestViewAlterTable().runTest(this);
         new TestViewDropView().runTest(this);
@@ -659,10 +656,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestConnectionPool().runTest(this);
         new TestDataSource().runTest(this);
         new TestXA().runTest(this);
-        if (!mvStore) {
-            // Two-Phase commit is not yet implemented
-            new TestXASimple().runTest(this);
-        }
+        new TestXASimple().runTest(this);
 
         // server
         new TestAutoServer().runTest(this);

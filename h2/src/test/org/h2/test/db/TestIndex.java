@@ -139,7 +139,7 @@ public class TestIndex extends TestBase {
             String m = ex.getMessage();
             int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
             String s = m.substring(start + 1, end);
-            assertEquals("IDX_TEST_NAME ON PUBLIC.TEST(NAME) VALUES ( /* 2 */ 'Hello' )", s);
+            assertEquals("IDX_TEST_NAME ON PUBLIC.TEST(NAME) VALUES ('Hello', 1)", s);
         }
         stat.execute("drop table test");
     }

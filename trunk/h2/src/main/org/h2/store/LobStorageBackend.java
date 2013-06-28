@@ -669,6 +669,14 @@ public class LobStorageBackend implements LobStorageInterface {
         }
 
         @Override
+        public int available() throws IOException {
+            if (length > Integer.MAX_VALUE) {
+                return Integer.MAX_VALUE;
+            }
+            return (int) length;
+        }
+        
+        @Override
         public int read(byte[] buff) throws IOException {
             return readFully(buff, 0, buff.length);
         }

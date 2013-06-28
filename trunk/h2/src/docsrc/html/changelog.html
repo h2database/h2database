@@ -26,6 +26,7 @@ Change Log
     is no longer supported. This is to simplify the MVTableEngine.
 </li><li>New column "information_schema.tables.row_count_estimate".
 </li><li>Issue 468: trunc(timestamp) could return the wrong value (+12 hours), and trunc(number) throw a NullPointerException.
+</li><li>The expression trunc(number) threw a NullPointerException.
 </li><li>Fixed a deadlock when updating LOB's concurrently. See TestLob.testDeadlock2().
 </li><li>Fixed a deadlock related to very large temporary result sets.
 </li><li>Add "-list" command line option to Shell tool so that result-list-mode can be triggered when reading from a file.

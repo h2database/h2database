@@ -1600,36 +1600,44 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * [Not supported] Set a client property.
+     * Set a client property. 
      */
     @Override
     public void setClientInfo(String name, String value)
             throws SQLClientInfoException {
+        checkClosed();
+        // we don't have any client properties, so just throw
         throw new SQLClientInfoException();
     }
 
     /**
-     * [Not supported] Set the client properties.
+     * Set the client properties.
      */
     @Override
     public void setClientInfo(Properties properties) throws SQLClientInfoException {
+        checkClosed();
+        // we don't have any client properties, so just throw
         throw new SQLClientInfoException();
     }
 
     /**
-     * [Not supported] Get the client properties.
+     * Get the client properties.
      */
     @Override
     public Properties getClientInfo() throws SQLClientInfoException {
-        throw new SQLClientInfoException();
+        checkClosed();
+        // we don't have any client properties, so return null
+        return null;
     }
 
     /**
-     * [Not supported] Set a client property.
+     * Set a client property.
      */
     @Override
     public String getClientInfo(String name) throws SQLException {
-        throw unsupported("clientInfo");
+        checkClosed();
+        // we don't have any client properties, so just throw
+        throw new SQLClientInfoException();
     }
 
     /**

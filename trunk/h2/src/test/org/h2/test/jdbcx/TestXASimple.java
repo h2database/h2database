@@ -45,6 +45,7 @@ public class TestXASimple extends TestBase {
         // testTwoPhase(false, false);
         testTwoPhase("xaSimple2a", true, true);
         testTwoPhase("xaSimple2b", true, false);
+        
     }
 
     private void testTwoPhase(String db, boolean shutdown, boolean commit) throws Exception {
@@ -81,6 +82,8 @@ public class TestXASimple extends TestBase {
         } else {
             xa.getXAResource().rollback(list[0]);
         }
+        conn = xa.getConnection();
+        conn.createStatement().executeQuery("select * from test");
         if (shutdown) {
             shutdown(ds);
         }

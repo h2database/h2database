@@ -13,8 +13,11 @@ import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
+import org.h2.engine.Session;
+import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore.Transaction;
+import org.h2.store.InDoubtTransaction;
 import org.h2.table.RegularTable;
 import org.h2.table.TableBase;
 import org.h2.util.New;
@@ -155,10 +158,76 @@ public class MVTableEngine implements TableEngine {
         public void rollback() {
             List<Transaction> list = transactionStore.getOpenTransactions();
             for (Transaction t : list) {
-                t.rollback();
+                if (t.getStatus() != Transaction.STATUS_PREPARED) {
+                    t.rollback();
+                }
             }
         }
+        
+        public void prepareCommit(Session session, String transactionName) {
+            Transaction t = session.getTransaction();
+            t.setName(transactionName);
+            t.prepare();
+            store.store();
+        }
 
+        public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
+            List<Transaction> list = transactionStore.getOpenTransactions();
+            ArrayList<InDoubtTransaction> result = New.arrayList();
+            for (Transaction t : list) {
+                if (t.getStatus() == Transaction.STATUS_PREPARED) {
+                    result.add(new MVInDoubtTransaction(store, t));
+                }
+            }
+            return result;
+        }
+
+    }
+    
+    /**
+     * An in-doubt transaction.
+     */
+    private static class MVInDoubtTransaction implements InDoubtTransaction {
+        
+        private final MVStore store;
+        private final Transaction transaction;
+        private int state = InDoubtTransaction.IN_DOUBT;
+        
+        MVInDoubtTransaction(MVStore store, Transaction transaction) {
+            this.store = store;
+            this.transaction = transaction;
+        }
+
+        @Override
+        public void setState(int state) {
+            if (state == InDoubtTransaction.COMMIT) {
+                transaction.commit();
+            } else {
+                transaction.rollback();
+            }
+            store.store();
+            this.state = state;
+        }
+
+        @Override
+        public String getState() {
+            switch(state) {
+            case IN_DOUBT:
+                return "IN_DOUBT";
+            case COMMIT:
+                return "COMMIT";
+            case ROLLBACK:
+                return "ROLLBACK";
+            default:
+                throw DbException.throwInternalError("state="+state);
+            }
+        }
+        
+        @Override
+        public String getTransactionName() {
+            return transaction.getName();
+        }
+        
     }
 
 }

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
+
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -1305,7 +1306,7 @@ public class MetaTable extends Table {
                 for (InDoubtTransaction prep : prepared) {
                     add(rows,
                             // TRANSACTION
-                            prep.getTransaction(),
+                            prep.getTransactionName(),
                             // STATE
                             prep.getState()
                     );

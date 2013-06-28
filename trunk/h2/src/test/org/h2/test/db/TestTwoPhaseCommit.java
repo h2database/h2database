@@ -45,7 +45,9 @@ public class TestTwoPhaseCommit extends TestBase {
         openWith(false);
         test(false);
 
-        testLargeTransactionName();
+        if (!config.mvStore) {
+            testLargeTransactionName();
+        }
         deleteDb("twoPhaseCommit");
     }
 

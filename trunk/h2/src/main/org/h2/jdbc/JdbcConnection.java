@@ -1600,7 +1600,8 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Set a client property. 
+     * Set a client property.
+     * This method always throws a SQLClientInfoException.
      */
     @Override
     public void setClientInfo(String name, String value)
@@ -1612,6 +1613,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Set the client properties.
+     * This method always throws a SQLClientInfoException.
      */
     @Override
     public void setClientInfo(Properties properties) throws SQLClientInfoException {
@@ -1622,6 +1624,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Get the client properties.
+     * This method always returns null.
      */
     @Override
     public Properties getClientInfo() throws SQLClientInfoException {
@@ -1632,6 +1635,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Set a client property.
+     * This method always throws a SQLClientInfoException.
      */
     @Override
     public String getClientInfo(String name) throws SQLException {

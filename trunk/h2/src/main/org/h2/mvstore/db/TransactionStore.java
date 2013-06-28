@@ -492,7 +492,7 @@ public class TransactionStore {
         }
 
         public void setName(String name) {
-            checkOpen();
+            checkNotClosed();
             this.name = name;
             store.storeTransaction(this);
         }
@@ -507,7 +507,7 @@ public class TransactionStore {
          * @return the savepoint id
          */
         public long setSavepoint() {
-            checkOpen();
+            checkNotClosed();
             return logId;
         }
 
@@ -532,7 +532,7 @@ public class TransactionStore {
          * @return the transaction map
          */
         public <K, V> TransactionMap<K, V> openMap(String name) {
-            checkOpen();
+            checkNotClosed();
             return new TransactionMap<K, V>(this, name, new ObjectDataType(),
                     new ObjectDataType());
         }
@@ -547,7 +547,7 @@ public class TransactionStore {
          * @return the transaction map
          */
         public <K, V> TransactionMap<K, V> openMap(String name, Builder<K, V> builder) {
-            checkOpen();
+            checkNotClosed();
             DataType keyType = builder.getKeyType();
             if (keyType == null) {
                 keyType = new ObjectDataType();
@@ -564,7 +564,7 @@ public class TransactionStore {
          * committed or rolled back.
          */
         public void prepare() {
-            checkOpen();
+            checkNotClosed();
             status = STATUS_PREPARED;
             store.storeTransaction(this);
         }
@@ -584,7 +584,7 @@ public class TransactionStore {
          * @param savepointId the savepoint id
          */
         public void rollbackToSavepoint(long savepointId) {
-            checkOpen();
+            checkNotClosed();
             store.rollbackTo(this, logId, savepointId);
             logId = savepointId;
         }
@@ -609,15 +609,6 @@ public class TransactionStore {
          */
         public Iterator<Change> getChanges(long savepointId) {
             return store.getChanges(this, logId, savepointId);
-        }
-
-        /**
-         * Check whether this transaction is still open.
-         */
-        void checkOpen() {
-            if (status != STATUS_OPEN) {
-                throw DataUtils.newIllegalStateException("Transaction is closed");
-            }
         }
 
         /**
@@ -746,7 +737,7 @@ public class TransactionStore {
         }
 
         private V set(K key, V value) {
-            transaction.checkOpen();
+            transaction.checkNotClosed();
             long start = 0;
             while (true) {
                 V old = get(key);
@@ -933,7 +924,7 @@ public class TransactionStore {
          */
         @SuppressWarnings("unchecked")
         public V get(K key, long maxLogId) {
-            transaction.checkOpen();
+            transaction.checkNotClosed();
             VersionedValue data = getValue(key, maxLogId);
             return data == null ? null : (V) data.value;
         }

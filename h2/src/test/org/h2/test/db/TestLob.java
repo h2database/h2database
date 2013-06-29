@@ -357,6 +357,9 @@ public class TestLob extends TestBase {
     }
 
     private void testDeadlock2() throws Exception {
+        if (config.mvcc) {
+            return;
+        }
         deleteDb("lob");
         Connection conn = getDeadlock2Connection();
         Statement stat = conn.createStatement();

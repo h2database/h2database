@@ -163,7 +163,13 @@ public class MVTableEngine implements TableEngine {
                 }
             }
         }
-        
+
+        /**
+         * Prepare a transaction.
+         *
+         * @param session the session
+         * @param transactionName the transaction name (may be null)
+         */
         public void prepareCommit(Session session, String transactionName) {
             Transaction t = session.getTransaction();
             t.setName(transactionName);
@@ -183,16 +189,16 @@ public class MVTableEngine implements TableEngine {
         }
 
     }
-    
+
     /**
      * An in-doubt transaction.
      */
     private static class MVInDoubtTransaction implements InDoubtTransaction {
-        
+
         private final MVStore store;
         private final Transaction transaction;
         private int state = InDoubtTransaction.IN_DOUBT;
-        
+
         MVInDoubtTransaction(MVStore store, Transaction transaction) {
             this.store = store;
             this.transaction = transaction;
@@ -222,12 +228,12 @@ public class MVTableEngine implements TableEngine {
                 throw DbException.throwInternalError("state="+state);
             }
         }
-        
+
         @Override
         public String getTransactionName() {
             return transaction.getName();
         }
-        
+
     }
 
 }

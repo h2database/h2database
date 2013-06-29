@@ -32,11 +32,14 @@ import org.h2.util.New;
  */
 public class TestPageStore extends TestBase {
 
+    /**
+     * The events log.
+     */
     static StringBuilder eventBuffer = new StringBuilder();
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -834,7 +837,7 @@ public class TestPageStore extends TestBase {
      * A database event listener used in this test.
      */
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
-        
+
         @Override
         public void closingDatabase() {
             event("closing");

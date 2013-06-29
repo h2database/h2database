@@ -18,11 +18,14 @@ import org.h2.util.Task;
  */
 public class TestMultiConn extends TestBase {
 
+    /**
+     * How long to wait in milliseconds.
+     */
     static int wait;
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {

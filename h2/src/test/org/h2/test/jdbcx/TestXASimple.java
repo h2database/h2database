@@ -45,7 +45,7 @@ public class TestXASimple extends TestBase {
         // testTwoPhase(false, false);
         testTwoPhase("xaSimple2a", true, true);
         testTwoPhase("xaSimple2b", true, false);
-        
+
     }
 
     private void testTwoPhase(String db, boolean shutdown, boolean commit) throws Exception {

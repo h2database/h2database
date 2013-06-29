@@ -48,5 +48,5 @@ public interface InDoubtTransaction {
      * @return the transaction name
      */
     String getTransactionName();
-    
+
 }

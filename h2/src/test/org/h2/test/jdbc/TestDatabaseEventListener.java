@@ -22,8 +22,11 @@ import org.h2.test.TestBase;
  */
 public class TestDatabaseEventListener extends TestBase {
 
-    private static boolean calledOpened, calledClosingDatabase, calledScan, calledCreateIndex;
-    private static boolean calledStatementStart, calledStatementEnd, calledStatementProgress;
+    /**
+     * A flag to mark that the given method was called.
+     */
+    static boolean calledOpened, calledClosingDatabase, calledScan, calledCreateIndex, 
+        calledStatementStart, calledStatementEnd, calledStatementProgress;
 
     /**
      * Run just this test.
@@ -238,8 +241,11 @@ public class TestDatabaseEventListener extends TestBase {
         assertTrue(calledStatementProgress);
     }
 
+    /**
+     * The database event listener for this test.
+     */
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
-        
+
         @Override
         public void closingDatabase() {
             calledClosingDatabase = true;
@@ -286,7 +292,7 @@ public class TestDatabaseEventListener extends TestBase {
                 }
             }
         }
-        
+
     }
 
 }

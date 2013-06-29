@@ -22,9 +22,9 @@ import org.h2.test.utils.SelfDestructor;
  */
 public class TestExit extends TestBase {
 
-    public static Connection conn;
+    private static Connection conn;
 
-    static final int OPEN_WITH_CLOSE_ON_EXIT = 1, OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
+    private static final int OPEN_WITH_CLOSE_ON_EXIT = 1, OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
 
     @Override
     public void test() throws Exception {
@@ -104,6 +104,8 @@ public class TestExit extends TestBase {
         conn = open(url);
         Connection conn2 = open(url);
         conn2.close();
+        // do not close
+        conn.isClosed();
     }
 
     private static Connection open(String url) throws SQLException {
@@ -119,7 +121,7 @@ public class TestExit extends TestBase {
      * A database event listener used in this test.
      */
     public static final class MyDatabaseEventListener implements DatabaseEventListener {
-        
+
         @Override
         public void exceptionThrown(SQLException e, String sql) {
             // nothing to do
@@ -148,7 +150,7 @@ public class TestExit extends TestBase {
         public void opened() {
             // nothing to do
         }
-        
+
     }
 
 }

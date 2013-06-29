@@ -23,7 +23,7 @@ public class TestView extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -113,7 +113,7 @@ public class TestView extends TestBase {
 
     /**
      * This method is called via reflection from the database.
-     * 
+     *
      * @return the static value x
      */
     public static int getX() {

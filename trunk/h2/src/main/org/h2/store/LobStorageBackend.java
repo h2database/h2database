@@ -675,7 +675,7 @@ public class LobStorageBackend implements LobStorageInterface {
             }
             return MathUtils.convertLongToInt(length);
         }
-        
+
         @Override
         public int read(byte[] buff) throws IOException {
             return readFully(buff, 0, buff.length);

@@ -26,6 +26,7 @@ import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 import org.h2.tools.Restore;
+import org.h2.util.JdbcUtils;
 import org.h2.util.Task;
 
 /**
@@ -204,6 +205,7 @@ int test;
         conn.setAutoCommit(false);
         stat.execute("insert into test values(1)");
         stat.execute("shutdown immediately");
+        JdbcUtils.closeSilently(conn);
 
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -219,6 +221,7 @@ int test;
         stat.execute("delete from test");
         stat.execute("checkpoint");
         stat.execute("shutdown immediately");
+        JdbcUtils.closeSilently(conn);
 
         conn = getConnection(url);
         stat = conn.createStatement();

@@ -137,9 +137,10 @@ public class TestIndex extends TestBase {
         } catch (SQLException ex) {
             assertEquals(ErrorCode.DUPLICATE_KEY_1, ex.getErrorCode());
             String m = ex.getMessage();
-            int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
-            String s = m.substring(start + 1, end);
-            assertEquals("IDX_TEST_NAME ON PUBLIC.TEST(NAME) VALUES ('Hello', 1)", s);
+            // The format of the VALUES clause varies a little depending on the type
+            // of the index, so just test that we're getting useful info back.
+            assertContains(m, "IDX_TEST_NAME ON PUBLIC.TEST(NAME)");
+            assertContains(m, "'Hello'");
         }
         stat.execute("drop table test");
     }

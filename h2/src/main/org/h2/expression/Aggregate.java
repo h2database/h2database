@@ -123,9 +123,9 @@ public class Aggregate extends Expression {
     private final boolean distinct;
 
     private Expression on;
-    private Expression separator;
-    private ArrayList<SelectOrderBy> orderList;
-    private SortOrder sort;
+    private Expression groupConcatSeparator;
+    private ArrayList<SelectOrderBy> groupConcatOrderList;
+    private SortOrder groupConcatSort;
     private int dataType, scale;
     private long precision;
     private int displaySize;
@@ -189,29 +189,29 @@ public class Aggregate extends Expression {
     }
 
     /**
-     * Set the order for GROUP_CONCAT.
+     * Set the order for GROUP_CONCAT() aggregate.
      *
      * @param orderBy the order by list
      */
-    public void setOrder(ArrayList<SelectOrderBy> orderBy) {
-        this.orderList = orderBy;
+    public void setGroupConcatOrder(ArrayList<SelectOrderBy> orderBy) {
+        this.groupConcatOrderList = orderBy;
     }
 
     /**
-     * Set the separator for GROUP_CONCAT.
+     * Set the separator for the GROUP_CONCAT() aggregate.
      *
      * @param separator the separator expression
      */
-    public void setSeparator(Expression separator) {
-        this.separator = separator;
+    public void setGroupConcatSeparator(Expression separator) {
+        this.groupConcatSeparator = separator;
     }
 
     private SortOrder initOrder(Session session) {
-        int size = orderList.size();
+        int size = groupConcatOrderList.size();
         int[] index = new int[size];
         int[] sortType = new int[size];
         for (int i = 0; i < size; i++) {
-            SelectOrderBy o = orderList.get(i);
+            SelectOrderBy o = groupConcatOrderList.get(i);
             index[i] = i + 1;
             int order = o.descending ? SortOrder.DESCENDING : SortOrder.ASCENDING;
             sortType[i] = order;
@@ -247,12 +247,12 @@ public class Aggregate extends Expression {
         if (type == GROUP_CONCAT) {
             if (v != ValueNull.INSTANCE) {
                 v = v.convertTo(Value.STRING);
-                if (orderList != null) {
-                    int size = orderList.size();
+                if (groupConcatOrderList != null) {
+                    int size = groupConcatOrderList.size();
                     Value[] array = new Value[1 + size];
                     array[0] = v;
                     for (int i = 0; i < size; i++) {
-                        SelectOrderBy o = orderList.get(i);
+                        SelectOrderBy o = groupConcatOrderList.get(i);
                         array[i + 1] = o.expression.getValue(session);
                     }
                     v = ValueArray.get(array);
@@ -305,8 +305,8 @@ public class Aggregate extends Expression {
             if (list == null || list.size() == 0) {
                 return ValueNull.INSTANCE;
             }
-            if (orderList != null) {
-                final SortOrder sortOrder = sort;
+            if (groupConcatOrderList != null) {
+                final SortOrder sortOrder = groupConcatSort;
                 Collections.sort(list, new Comparator<Value>() {
                     @Override
                     public int compare(Value v1, Value v2) {
@@ -317,7 +317,7 @@ public class Aggregate extends Expression {
                 });
             }
             StatementBuilder buff = new StatementBuilder();
-            String sep = separator == null ? "," : separator.getValue(session).getString();
+            String sep = groupConcatSeparator == null ? "," : groupConcatSeparator.getValue(session).getString();
             for (Value val : list) {
                 String s;
                 if (val.getType() == Value.ARRAY) {
@@ -348,13 +348,13 @@ public class Aggregate extends Expression {
         if (on != null) {
             on.mapColumns(resolver, level);
         }
-        if (orderList != null) {
-            for (SelectOrderBy o : orderList) {
+        if (groupConcatOrderList != null) {
+            for (SelectOrderBy o : groupConcatOrderList) {
                 o.expression.mapColumns(resolver, level);
             }
         }
-        if (separator != null) {
-            separator.mapColumns(resolver, level);
+        if (groupConcatSeparator != null) {
+            groupConcatSeparator.mapColumns(resolver, level);
         }
     }
 
@@ -367,14 +367,14 @@ public class Aggregate extends Expression {
             precision = on.getPrecision();
             displaySize = on.getDisplaySize();
         }
-        if (orderList != null) {
-            for (SelectOrderBy o : orderList) {
+        if (groupConcatOrderList != null) {
+            for (SelectOrderBy o : groupConcatOrderList) {
                 o.expression = o.expression.optimize(session);
             }
-            sort = initOrder(session);
+            groupConcatSort = initOrder(session);
         }
-        if (separator != null) {
-            separator = separator.optimize(session);
+        if (groupConcatSeparator != null) {
+            groupConcatSeparator = groupConcatSeparator.optimize(session);
         }
         switch (type) {
         case GROUP_CONCAT:
@@ -445,13 +445,13 @@ public class Aggregate extends Expression {
         if (on != null) {
             on.setEvaluatable(tableFilter, b);
         }
-        if (orderList != null) {
-            for (SelectOrderBy o : orderList) {
+        if (groupConcatOrderList != null) {
+            for (SelectOrderBy o : groupConcatOrderList) {
                 o.expression.setEvaluatable(tableFilter, b);
             }
         }
-        if (separator != null) {
-            separator.setEvaluatable(tableFilter, b);
+        if (groupConcatSeparator != null) {
+            groupConcatSeparator.setEvaluatable(tableFilter, b);
         }
     }
 
@@ -476,9 +476,9 @@ public class Aggregate extends Expression {
             buff.append("DISTINCT ");
         }
         buff.append(on.getSQL());
-        if (orderList != null) {
+        if (groupConcatOrderList != null) {
             buff.append(" ORDER BY ");
-            for (SelectOrderBy o : orderList) {
+            for (SelectOrderBy o : groupConcatOrderList) {
                 buff.appendExceptFirst(", ");
                 buff.append(o.expression.getSQL());
                 if (o.descending) {
@@ -486,8 +486,8 @@ public class Aggregate extends Expression {
                 }
             }
         }
-        if (separator != null) {
-            buff.append(" SEPARATOR ").append(separator.getSQL());
+        if (groupConcatSeparator != null) {
+            buff.append(" SEPARATOR ").append(groupConcatSeparator.getSQL());
         }
         return buff.append(')').toString();
     }
@@ -584,12 +584,12 @@ public class Aggregate extends Expression {
         if (on != null && !on.isEverything(visitor)) {
             return false;
         }
-        if (separator != null && !separator.isEverything(visitor)) {
+        if (groupConcatSeparator != null && !groupConcatSeparator.isEverything(visitor)) {
             return false;
         }
-        if (orderList != null) {
-            for (int i = 0, size = orderList.size(); i < size; i++) {
-                SelectOrderBy o = orderList.get(i);
+        if (groupConcatOrderList != null) {
+            for (int i = 0, size = groupConcatOrderList.size(); i < size; i++) {
+                SelectOrderBy o = groupConcatOrderList.get(i);
                 if (!o.expression.isEverything(visitor)) {
                     return false;
                 }

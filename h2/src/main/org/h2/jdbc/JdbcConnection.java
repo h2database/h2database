@@ -1609,9 +1609,26 @@ public class JdbcConnection extends TraceObject implements Connection {
     @Override
     public void setClientInfo(String name, String value)
             throws SQLClientInfoException {
-        checkClosed();
-        // we don't have any client properties, so just throw
-        throw new SQLClientInfoException();
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setClientInfo("
+                        +quote(name)+", "
+                        +quote(value)+");");
+            }
+            checkClosed();
+            // we don't have any client properties, so just throw
+            throw new SQLClientInfoException();
+        } catch (Exception e) {
+            throw convertToClientInfoException(logAndConvert(e));
+        }
+    }
+    
+    private static SQLClientInfoException convertToClientInfoException(SQLException x) {
+        if (x instanceof SQLClientInfoException) {
+            return (SQLClientInfoException) x;
+        }
+        return new SQLClientInfoException(
+                x.getMessage(), x.getSQLState(), x.getErrorCode(), null, null);
     }
 
     /**
@@ -1622,9 +1639,16 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     @Override
     public void setClientInfo(Properties properties) throws SQLClientInfoException {
-        checkClosed();
-        // we don't have any client properties, so just throw
-        throw new SQLClientInfoException();
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setClientInfo(properties);");
+            }
+            checkClosed();
+            // we don't have any client properties, so just throw
+            throw new SQLClientInfoException();
+        } catch (Exception e) {
+            throw convertToClientInfoException(logAndConvert(e));
+        }
     }
 
     /**
@@ -1634,10 +1658,14 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @return always null
      */
     @Override
-    public Properties getClientInfo() throws SQLClientInfoException {
-        checkClosed();
-        // we don't have any client properties, so return null
-        return null;
+    public Properties getClientInfo() throws SQLException {
+        try {
+            debugCode("getClientInfo();");
+            // we don't have any client properties, so return null
+            return null;
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -1649,9 +1677,14 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     @Override
     public String getClientInfo(String name) throws SQLException {
-        checkClosed();
-        // we don't have any client properties, so just throw
-        throw new SQLClientInfoException();
+        try {
+            debugCodeCall("getClientInfo", name);
+            checkClosed();
+            // we don't have any client properties, so just throw
+            throw new SQLClientInfoException();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

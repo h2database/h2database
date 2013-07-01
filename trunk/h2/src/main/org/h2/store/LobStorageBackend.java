@@ -670,9 +670,6 @@ public class LobStorageBackend implements LobStorageInterface {
 
         @Override
         public int available() throws IOException {
-            if (remainingBytes > Integer.MAX_VALUE) {
-                return Integer.MAX_VALUE;
-            }
             return MathUtils.convertLongToInt(remainingBytes);
         }
 

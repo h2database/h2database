@@ -2110,10 +2110,10 @@ public class Parser {
             Aggregate agg = new Aggregate(Aggregate.GROUP_CONCAT, readExpression(), currentSelect, distinct);
             if (readIf("ORDER")) {
                 read("BY");
-                agg.setOrder(parseSimpleOrderList());
+                agg.setGroupConcatOrder(parseSimpleOrderList());
             }
             if (readIf("SEPARATOR")) {
-                agg.setSeparator(readExpression());
+                agg.setGroupConcatSeparator(readExpression());
             }
             r = agg;
         } else {

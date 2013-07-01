@@ -616,7 +616,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
         public LobInputStream(long lob, long byteCount) {
             this.lob = lob;
-            remainingBytes = byteCount;
+            this.remainingBytes = byteCount;
             this.length = byteCount;
         }
 
@@ -670,10 +670,10 @@ public class LobStorageBackend implements LobStorageInterface {
 
         @Override
         public int available() throws IOException {
-            if (length > Integer.MAX_VALUE) {
+            if (remainingBytes > Integer.MAX_VALUE) {
                 return Integer.MAX_VALUE;
             }
-            return MathUtils.convertLongToInt(length);
+            return MathUtils.convertLongToInt(remainingBytes);
         }
 
         @Override

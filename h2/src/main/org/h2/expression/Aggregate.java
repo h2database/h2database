@@ -240,7 +240,7 @@ public class Aggregate extends Expression {
 
         AggregateData data = (AggregateData) group.get(this);
         if (data == null) {
-            data = new AggregateData(type, dataType);
+            data = AggregateData.create(type, dataType);
             group.put(this, data);
         }
         Value v = on == null ? null : on.getValue(session);
@@ -297,11 +297,11 @@ public class Aggregate extends Expression {
         }
         AggregateData data = (AggregateData) group.get(this);
         if (data == null) {
-            data = new AggregateData(type, dataType);
+            data = AggregateData.create(type, dataType);
         }
         Value v = data.getValue(session.getDatabase(), distinct);
         if (type == GROUP_CONCAT) {
-            ArrayList<Value> list = data.getList();
+            ArrayList<Value> list = ((AggregateDataGroupConcat)data).getList();
             if (list == null || list.size() == 0) {
                 return ValueNull.INSTANCE;
             }

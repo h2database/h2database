@@ -507,6 +507,9 @@ public class Transfer {
             }
             break;
         }
+        case Value.GEOMETRY:
+            writeString(v.getString());
+            break;
         default:
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
@@ -671,6 +674,8 @@ public class Transfer {
             }
             return ValueResultSet.get(rs);
         }
+        case Value.GEOMETRY:
+            return ValueGeometry.get(readString());
         default:
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }

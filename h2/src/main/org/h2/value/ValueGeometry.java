@@ -149,7 +149,7 @@ public class ValueGeometry extends Value {
 
     @Override
     public int getMemory() {
-        return toWKB().length + 24;
+        return toWKB().length * 20 + 24;
     }
 
     @Override

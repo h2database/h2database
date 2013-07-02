@@ -116,8 +116,8 @@ public class UploadBuild {
             }
         }
         String sql = "insert into item(title, issued, desc) values('Build " + now +
-            (error ? " [FAILED]" : "") +
-            (coverageFailed ? " [COVERAGE]" : "") +
+            (error ? " (FAILED)" : "") +
+            (coverageFailed ? " (COVERAGE)" : "") +
             "', '" + ts + "', '<a href=\"http://www.h2database.com/html/testOutput.html\">Output</a>" +
             " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>" +
             " - <a href=\"http://www.h2database.com/automated/h2-latest.jar\">Jar</a>');\n";

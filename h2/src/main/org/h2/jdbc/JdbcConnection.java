@@ -1622,7 +1622,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             throw convertToClientInfoException(logAndConvert(e));
         }
     }
-    
+
     private static SQLClientInfoException convertToClientInfoException(SQLException x) {
         if (x instanceof SQLClientInfoException) {
             return (SQLClientInfoException) x;

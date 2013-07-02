@@ -25,7 +25,7 @@ public class TestDatabaseEventListener extends TestBase {
     /**
      * A flag to mark that the given method was called.
      */
-    static boolean calledOpened, calledClosingDatabase, calledScan, calledCreateIndex, 
+    static boolean calledOpened, calledClosingDatabase, calledScan, calledCreateIndex,
         calledStatementStart, calledStatementEnd, calledStatementProgress;
 
     /**

@@ -22,7 +22,7 @@ class AggregateDataGroupConcat extends AggregateData {
     AggregateDataGroupConcat() {}
 
     @Override
-    void add(Database database, boolean distinct, Value v) {
+    void add(Database database, int dataType, boolean distinct, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
@@ -40,9 +40,9 @@ class AggregateDataGroupConcat extends AggregateData {
     }
 
     @Override
-    Value getValue(Database database, boolean distinct) {
+    Value getValue(Database database, int dataType, boolean distinct) {
         if (distinct) {
-            groupDistinct(database);
+            groupDistinct(database, dataType);
         }
         return null;
     }
@@ -51,12 +51,12 @@ class AggregateDataGroupConcat extends AggregateData {
         return list;
     }
 
-    private void groupDistinct(Database database) {
+    private void groupDistinct(Database database, int dataType) {
         if (distinctValues == null) {
             return;
         }
         for (Value v : distinctValues.keys()) {
-            add(database, false, v);
+            add(database, dataType, false, v);
         }
     }
 }

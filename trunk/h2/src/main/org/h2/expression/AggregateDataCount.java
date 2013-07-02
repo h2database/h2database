@@ -15,26 +15,13 @@ import org.h2.value.ValueNull;
  * Data stored while calculating an aggregate.
  */
 class AggregateDataCount extends AggregateData {
-    private final int dataType;
     private long count;
     private ValueHashMap<AggregateDataCount> distinctValues;
 
-    /**
-     * @param dataType the datatype of the computed result
-     */
-    AggregateDataCount(int dataType) {
-        this.dataType = dataType;
-    }
+    AggregateDataCount() {}
 
-    /**
-     * Add a value to this aggregate.
-     * 
-     * @param database the database
-     * @param distinct if the calculation should be distinct
-     * @param v the value
-     */
     @Override
-    void add(Database database, boolean distinct, Value v) {
+    void add(Database database, int dataType, boolean distinct, Value v) {
         if (v == ValueNull.INSTANCE) {
             return;
         }
@@ -48,15 +35,8 @@ class AggregateDataCount extends AggregateData {
         }
     }
 
-    /**
-     * Get the aggregate result.
-     * 
-     * @param database the database
-     * @param distinct if distinct is used
-     * @return the value
-     */
     @Override
-    Value getValue(Database database, boolean distinct) {
+    Value getValue(Database database, int dataType, boolean distinct) {
         if (distinct) {
             if (distinctValues != null) {
                 count = distinctValues.size();

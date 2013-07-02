@@ -18,21 +18,20 @@ abstract class AggregateData {
      * Create an AggregateData object of the correct subtype.
      * 
      * @param aggregateType the type of the aggregate operation
-     * @param dataType the datatype of the computed result
      */
-    static AggregateData create(int aggregateType, int dataType) {
+    static AggregateData create(int aggregateType) {
         if (aggregateType == Aggregate.SELECTIVITY) {
-            return new AggregateDataSelectivity(dataType);
+            return new AggregateDataSelectivity();
         } else if (aggregateType == Aggregate.GROUP_CONCAT) {
              return new AggregateDataGroupConcat();
         } else if (aggregateType == Aggregate.COUNT_ALL) {
-            return new AggregateDataCountAll(dataType);
+            return new AggregateDataCountAll();
         } else if (aggregateType == Aggregate.COUNT) {
-            return new AggregateDataCount(dataType);
+            return new AggregateDataCount();
         } else if (aggregateType == Aggregate.HISTOGRAM) {
-            return new AggregateDataHistogram(dataType);
+            return new AggregateDataHistogram();
         } else {
-            return new AggregateDataDefault(aggregateType, dataType);
+            return new AggregateDataDefault(aggregateType);
         }
     }
 
@@ -40,17 +39,19 @@ abstract class AggregateData {
      * Add a value to this aggregate.
      *
      * @param database the database
+     * @param dataType the datatype of the computed result
      * @param distinct if the calculation should be distinct
      * @param v the value
      */
-    abstract void add(Database database, boolean distinct, Value v);
+    abstract void add(Database database, int dataType, boolean distinct, Value v);
     
     /**
      * Get the aggregate result.
      *
      * @param database the database
+     * @param dataType the datatype of the computed result
      * @param distinct if distinct is used
      * @return the value
      */
-    abstract Value getValue(Database database, boolean distinct);
+    abstract Value getValue(Database database, int dataType, boolean distinct);
 }

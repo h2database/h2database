@@ -24,22 +24,24 @@ MVStore
     Store Builder</a><br />
 <a href="#r_tree">
     R-Tree</a><br />
+
 <a href="#features">
     Features</a><br />
-    - <a href="#maps">Maps</a><br />
-    - <a href="#versions">Versions</a><br />
-    - <a href="#transactions">Transactions</a><br />
-    - <a href="#inMemory">In-Memory Performance and Usage</a><br />
-    - <a href="#dataTypes">Pluggable Data Types</a><br />
-    - <a href="#blob">BLOB Support</a><br />
-    - <a href="#pluggableMap">R-Tree and Pluggable Map Implementations</a><br />
-    - <a href="#caching">Concurrent Operations and Caching</a><br />
-    - <a href="#logStructured">Log Structured Storage</a><br />
-    - <a href="#fileSystem">File System Abstraction, File Locking and Online Backup</a><br />
-    - <a href="#encryption">Encrypted Files</a><br />
-    - <a href="#tools">Tools</a><br />
-    - <a href="#exceptionHandling">Exception Handling</a><br />
-    - <a href="#tableEngine">Table Engine for H2</a><br />
+<a href="#maps">- Maps</a><br />
+<a href="#versions">- Versions</a><br />
+<a href="#transactions">- Transactions</a><br />
+<a href="#inMemory">- In-Memory Performance and Usage</a><br />
+<a href="#dataTypes">- Pluggable Data Types</a><br />
+<a href="#blob">- BLOB Support</a><br />
+<a href="#pluggableMap">- R-Tree and Pluggable Map Implementations</a><br />
+<a href="#caching">- Concurrent Operations and Caching</a><br />
+<a href="#logStructured">- Log Structured Storage</a><br />
+<a href="#fileSystem">- File System Abstraction, File Locking and Online Backup</a><br />
+<a href="#encryption">- Encrypted Files</a><br />
+<a href="#tools">- Tools</a><br />
+<a href="#exceptionHandling">- Exception Handling</a><br />
+<a href="#tableEngine">- Table Engine for H2</a><br />
+
 <a href="#differences">
     Similar Projects and Differences to Other Storage Engines</a><br />
 <a href="#current_state">
@@ -438,8 +440,7 @@ to the database URL. In general, functionality and performance should be
 similar than the current default storage engine (the page store).
 There are a few features that have not been implemented yet or are not complete:
 </p>
-<ul><li>Changing the cache size is currently not supported.
-</li><li>The database metadata is still stored in a <code>.h2.db</code> file,
+<ul><li>The database metadata is still stored in a <code>.h2.db</code> file,
     and the <code>.lock.db</code> file is still used to lock a database
     (long term, the plan is to no longer use those files).
 </li><li>The database file(s) sometimes do not shrink as expected.

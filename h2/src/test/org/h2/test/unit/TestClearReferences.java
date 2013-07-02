@@ -115,7 +115,7 @@ public class TestClearReferences extends TestBase {
             try {
                 clazz = Class.forName(className);
             } catch (ClassNotFoundException e) {
-                System.out.println("Could not load " + className + ": " + e.toString());
+                fail("Could not load " + className + ": " + e.toString());
             }
             if (clazz != null) {
                 classes.add(clazz);

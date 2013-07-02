@@ -18,8 +18,6 @@ class AggregateDataCount extends AggregateData {
     private long count;
     private ValueHashMap<AggregateDataCount> distinctValues;
 
-    AggregateDataCount() {}
-
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
         if (v == ValueNull.INSTANCE) {

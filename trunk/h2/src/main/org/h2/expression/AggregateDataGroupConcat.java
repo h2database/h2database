@@ -19,8 +19,6 @@ class AggregateDataGroupConcat extends AggregateData {
     private ArrayList<Value> list;
     private ValueHashMap<AggregateDataGroupConcat> distinctValues;
 
-    AggregateDataGroupConcat() {}
-
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
         if (v == ValueNull.INSTANCE) {

@@ -20,8 +20,6 @@ class AggregateDataSelectivity extends AggregateData {
     private IntIntHashMap distinctHashes;
     private double m2;
 
-    AggregateDataSelectivity() {}
-
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
         count++;
@@ -37,7 +35,7 @@ class AggregateDataSelectivity extends AggregateData {
         // the value -1 is not supported
         distinctHashes.put(hash, 1);
     }
-    
+
     @Override
     Value getValue(Database database, int dataType, boolean distinct) {
         if (distinct) {

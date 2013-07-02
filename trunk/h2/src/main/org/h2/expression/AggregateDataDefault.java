@@ -32,7 +32,7 @@ class AggregateDataDefault extends AggregateData {
     AggregateDataDefault(int aggregateType) {
         this.aggregateType = aggregateType;
     }
-    
+
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
         if (v == ValueNull.INSTANCE) {

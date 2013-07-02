@@ -13,17 +13,18 @@ import org.h2.value.Value;
  * Abstract class for the computation of an aggregate.
  */
 abstract class AggregateData {
-    
+
     /**
-     * Create an AggregateData object of the correct subtype.
-     * 
+     * Create an AggregateData object of the correct sub-type.
+     *
      * @param aggregateType the type of the aggregate operation
+     * @return the aggregate data object of the specified type
      */
     static AggregateData create(int aggregateType) {
         if (aggregateType == Aggregate.SELECTIVITY) {
             return new AggregateDataSelectivity();
         } else if (aggregateType == Aggregate.GROUP_CONCAT) {
-             return new AggregateDataGroupConcat();
+            return new AggregateDataGroupConcat();
         } else if (aggregateType == Aggregate.COUNT_ALL) {
             return new AggregateDataCountAll();
         } else if (aggregateType == Aggregate.COUNT) {
@@ -44,7 +45,7 @@ abstract class AggregateData {
      * @param v the value
      */
     abstract void add(Database database, int dataType, boolean distinct, Value v);
-    
+
     /**
      * Get the aggregate result.
      *

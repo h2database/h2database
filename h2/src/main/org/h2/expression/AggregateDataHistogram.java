@@ -22,8 +22,6 @@ class AggregateDataHistogram extends AggregateData {
     private long count;
     private ValueHashMap<AggregateDataHistogram> distinctValues;
 
-    AggregateDataHistogram() {}
-
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
         if (distinctValues == null) {

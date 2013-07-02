@@ -17,8 +17,6 @@ import org.h2.value.ValueNull;
 class AggregateDataCountAll extends AggregateData {
     private long count;
 
-    AggregateDataCountAll() {}
-
     @Override
     void add(Database database, int dataType, boolean distinct, Value v) {
         if (distinct) {

@@ -301,7 +301,7 @@ public class Aggregate extends Expression {
         }
         Value v = data.getValue(session.getDatabase(), dataType, distinct);
         if (type == GROUP_CONCAT) {
-            ArrayList<Value> list = ((AggregateDataGroupConcat)data).getList();
+            ArrayList<Value> list = ((AggregateDataGroupConcat) data).getList();
             if (list == null || list.size() == 0) {
                 return ValueNull.INSTANCE;
             }

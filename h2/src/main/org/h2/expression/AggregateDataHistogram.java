@@ -19,30 +19,20 @@ import org.h2.value.ValueLong;
  * Data stored while calculating a HISTOGRAM aggregate.
  */
 class AggregateDataHistogram extends AggregateData {
-    private final int dataType;
     private long count;
     private ValueHashMap<AggregateDataHistogram> distinctValues;
 
-    AggregateDataHistogram(int dataType) {
-        this.dataType = dataType;
-    }
+    AggregateDataHistogram() {}
 
-    /**
-     * Add a value to this aggregate.
-     * 
-     * @param database the database
-     * @param distinct if the calculation should be distinct
-     * @param v the value
-     */
     @Override
-    void add(Database database, boolean distinct, Value v) {
+    void add(Database database, int dataType, boolean distinct, Value v) {
         if (distinctValues == null) {
             distinctValues = ValueHashMap.newInstance();
         }
         AggregateDataHistogram a = distinctValues.get(v);
         if (a == null) {
             if (distinctValues.size() < Constants.SELECTIVITY_DISTINCT_COUNT) {
-                a = new AggregateDataHistogram(dataType);
+                a = new AggregateDataHistogram();
                 distinctValues.put(v, a);
             }
         }
@@ -51,18 +41,11 @@ class AggregateDataHistogram extends AggregateData {
         }
     }
 
-    /**
-     * Get the aggregate result.
-     * 
-     * @param database the database
-     * @param distinct if distinct is used
-     * @return the value
-     */
     @Override
-    Value getValue(Database database, boolean distinct) {
+    Value getValue(Database database, int dataType, boolean distinct) {
         if (distinct) {
             count = 0;
-            groupDistinct(database);
+            groupDistinct(database, dataType);
         }
         ValueArray[] values = new ValueArray[distinctValues.size()];
         int i = 0;
@@ -84,13 +67,13 @@ class AggregateDataHistogram extends AggregateData {
         return v.convertTo(dataType);
     }
 
-    private void groupDistinct(Database database) {
+    private void groupDistinct(Database database, int dataType) {
         if (distinctValues == null) {
             return;
         }
         count = 0;
         for (Value v : distinctValues.keys()) {
-            add(database, false, v);
+            add(database, dataType, false, v);
         }
     }
 

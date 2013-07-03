@@ -271,7 +271,7 @@ public class PageBtreeIndex extends PageIndex {
             PageBtree root = getPage(rootPageId);
             root.freeRecursive();
             root = PageBtreeLeaf.create(this, rootPageId, PageBtree.ROOT);
-            store.removeRecord(rootPageId);
+            store.removeFromCache(rootPageId);
             store.update(root);
             rowCount = 0;
         } finally {

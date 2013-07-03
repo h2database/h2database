@@ -128,9 +128,8 @@ public class PageFreeList extends Page {
      * Mark a page as used.
      *
      * @param pageId the page id
-     * @return the page id, or -1
      */
-    int allocate(int pageId) {
+    void allocate(int pageId) {
         int idx = pageId - getPos();
         if (idx >= 0 && !used.get(idx)) {
             // set the bit first, because logUndo can
@@ -140,7 +139,6 @@ public class PageFreeList extends Page {
             store.logUndo(this, data);
             store.update(this);
         }
-        return pageId;
     }
 
     /**

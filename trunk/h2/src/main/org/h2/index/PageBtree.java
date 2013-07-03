@@ -206,7 +206,7 @@ public abstract class PageBtree extends Page {
     void setPageId(int id) {
         changeCount = index.getPageStore().getChangeCount();
         written = false;
-        index.getPageStore().removeRecord(getPos());
+        index.getPageStore().removeFromCache(getPos());
         setPos(id);
         index.getPageStore().logUndo(this, null);
         remapChildren();

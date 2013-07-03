@@ -391,7 +391,7 @@ public class PageDataIndex extends PageIndex {
             PageData root = getPage(rootPageId, 0);
             root.freeRecursive();
             root = PageDataLeaf.create(this, rootPageId, PageData.ROOT);
-            store.removeRecord(rootPageId);
+            store.removeFromCache(rootPageId);
             store.update(root);
             rowCount = 0;
             lastKey = 0;

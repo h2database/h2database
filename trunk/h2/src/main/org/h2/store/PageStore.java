@@ -1339,7 +1339,7 @@ public class PageStore implements CacheWriter {
      *
      * @param pageId the page id
      */
-    public synchronized void removeRecord(int pageId) {
+    public synchronized void removeFromCache(int pageId) {
         cache.remove(pageId);
     }
 

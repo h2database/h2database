@@ -162,7 +162,7 @@ abstract class PageData extends Page {
      */
     void setPageId(int id) {
         int old = getPos();
-        index.getPageStore().removeRecord(getPos());
+        index.getPageStore().removeFromCache(getPos());
         setPos(id);
         index.getPageStore().logUndo(this, null);
         remapChildren(old);

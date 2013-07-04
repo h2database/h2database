@@ -15,6 +15,7 @@ import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.PageBtreeIndex;
+import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -152,22 +153,26 @@ public class ResultTempTable implements ResultExternal {
             return;
         }
         try {
-            table.truncate(session);
             Database database = session.getDatabase();
-            synchronized (database) {
-                // This session may not lock the sys table (except if it already has locked it)
-                // because it must be committed immediately,
-                // otherwise other threads can not access the sys table.
-                // If the table is not removed now, it will be when the database
-                // is opened the next time.
-                // (the table is truncated, so this is just one record)
-                if (!database.isSysTableLocked()) {
-                    Session sysSession = database.getSystemSession();
-                    index.removeChildrenAndResources(sysSession);
-                    table.removeChildrenAndResources(sysSession);
-                    // the transaction must be committed immediately
-                    sysSession.commit(false);
+            // Need to lock because not all of the code-paths that reach here have already taken this lock,
+            // notably via the close() paths.
+            synchronized(session) {
+                synchronized (database) {
+                    table.truncate(session);
                 }
+            }
+            // This session may not lock the sys table (except if it already has locked it)
+            // because it must be committed immediately,
+            // otherwise other threads can not access the sys table.
+            // If the table is not removed now, it will be when the database
+            // is opened the next time.
+            // (the table is truncated, so this is just one record)
+            if (!database.isSysTableLocked()) {
+                Session sysSession = database.getSystemSession();
+                index.removeChildrenAndResources(sysSession);
+                table.removeChildrenAndResources(sysSession);
+                // the transaction must be committed immediately
+                sysSession.commit(false);
             }
         } finally {
             table = null;

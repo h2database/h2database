@@ -48,47 +48,54 @@ public class SelfDestructor extends Thread {
                             // ignore
                         }
                     }
-                    String time = new Timestamp(System.currentTimeMillis()).toString();
-                    System.out.println(time + " Killing the process after " + minutes + " minute(s)");
                     try {
-                        Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
-                        for (Map.Entry<Thread, StackTraceElement[]> en : map.entrySet()) {
-                            System.out.println(en.getKey());
-                            for (StackTraceElement el : en.getValue()) {
-                                System.out.println("  " + el);
+                        String time = new Timestamp(System.currentTimeMillis()).toString();
+                        System.out.println(time + " Killing the process after " + minutes + " minute(s)");
+                        try {
+                            Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
+                            for (Map.Entry<Thread, StackTraceElement[]> en : map.entrySet()) {
+                                System.out.println(en.getKey());
+                                for (StackTraceElement el : en.getValue()) {
+                                    System.out.println("  " + el);
+                                }
                             }
+                            System.out.println();
+                            System.out.flush();
+                            try {
+                                Thread.sleep(1000);
+                            } catch (Exception e) {
+                                // ignore
+                            }
+                            int activeCount = Thread.activeCount();
+                            Thread[] threads = new Thread[activeCount + 100];
+                            int len = Thread.enumerate(threads);
+                            Method stop = Thread.class.getMethod("stop", Throwable.class);
+                            for (int i = 0; i < len; i++) {
+                                Thread t = threads[i];
+                                String threadName = "Thread #" + i + ": " + t.getName();
+                                Error e = new Error(threadName);
+                                if (t != Thread.currentThread()) {
+                                    stop.invoke(t, e);
+                                    t.interrupt();
+                                }
+                            }
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                            // ignore
                         }
-                        System.out.println();
-                        System.out.flush();
                         try {
                             Thread.sleep(1000);
                         } catch (Exception e) {
                             // ignore
                         }
-                        int activeCount = Thread.activeCount();
-                        Thread[] threads = new Thread[activeCount + 100];
-                        int len = Thread.enumerate(threads);
-                        Method stop = Thread.class.getMethod("stop", Throwable.class);
-                        for (int i = 0; i < len; i++) {
-                            Thread t = threads[i];
-                            String threadName = "Thread #" + i + ": " + t.getName();
-                            Error e = new Error(threadName);
-                            if (t != Thread.currentThread()) {
-                                stop.invoke(t, e);
-                                t.interrupt();
-                            }
-                        }
+                        System.out.println("Killing the process now");
                     } catch (Throwable t) {
-                        t.printStackTrace();
-                        // ignore
+                        try {
+                            t.printStackTrace(System.out);
+                        } catch (Throwable t2) {
+                            // ignore (out of memory)
+                        }
                     }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (Exception e) {
-                        // ignore
-                    }
-                    System.out.println("Killing the process now");
-
                     Runtime.getRuntime().halt(1);
                 }
             };

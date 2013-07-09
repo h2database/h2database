@@ -112,12 +112,12 @@ public class UploadBuild {
             int end = testOutput.indexOf("<br />", idx);
             if (end >= 0) {
                 String result = testOutput.substring(idx + "Statements per second: ".length(), end);
-                now += " (" + result + " op/s)";
+                now += " " + result + " op/s";
             }
         }
         String sql = "insert into item(title, issued, desc) values('Build " + now +
-            (error ? " (FAILED)" : "") +
-            (coverageFailed ? " (COVERAGE)" : "") +
+            (error ? " FAILED" : "") +
+            (coverageFailed ? " COVERAGE" : "") +
             "', '" + ts + "', '<a href=\"http://www.h2database.com/html/testOutput.html\">Output</a>" +
             " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>" +
             " - <a href=\"http://www.h2database.com/automated/h2-latest.jar\">Jar</a>');\n";

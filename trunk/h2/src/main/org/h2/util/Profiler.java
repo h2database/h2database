@@ -106,7 +106,7 @@ public class Profiler implements Runnable {
     private void run(String... args) {
         if (args.length == 0) {
             System.out.println("Show profiling data");
-            System.out.println("Usage: " + getClass().getName() + " <pid>");
+            System.out.println("Usage: java " + getClass().getName() + " <pid>");
             System.out.println("Processes:");
             String processes = exec("jps", "-l");
             System.out.println(processes);

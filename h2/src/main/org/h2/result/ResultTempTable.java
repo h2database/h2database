@@ -15,7 +15,6 @@ import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.PageBtreeIndex;
-import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
@@ -156,7 +155,7 @@ public class ResultTempTable implements ResultExternal {
             Database database = session.getDatabase();
             // Need to lock because not all of the code-paths that reach here have already taken this lock,
             // notably via the close() paths.
-            synchronized(session) {
+            synchronized (session) {
                 synchronized (database) {
                     table.truncate(session);
                 }

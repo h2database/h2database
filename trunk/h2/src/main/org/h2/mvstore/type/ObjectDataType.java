@@ -148,7 +148,9 @@ public class ObjectDataType implements DataType {
         case TYPE_SERIALIZED_OBJECT:
             return new SerializedObjectType(this);
         }
-        throw DataUtils.newIllegalStateException("Unsupported type {0}", typeId);
+        throw DataUtils.newIllegalStateException(
+                DataUtils.ERROR_INTERNAL,
+                "Unsupported type {0}", typeId);
     }
 
     @Override
@@ -201,7 +203,9 @@ public class ObjectDataType implements DataType {
                 } else if (tag >= TAG_BYTE_ARRAY_0_15 && tag <= TAG_BYTE_ARRAY_0_15 + 15) {
                     typeId = TYPE_ARRAY;
                 } else {
-                    throw DataUtils.newIllegalStateException("Unknown tag {0}", tag);
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_FILE_CORRUPT,
+                            "Unknown tag {0}", tag);
                 }
             }
         }
@@ -416,7 +420,9 @@ public class ObjectDataType implements DataType {
 
         @Override
         public final Object read(ByteBuffer buff) {
-            throw DataUtils.newIllegalStateException("Internal error");
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL,
+                    "Internal error");
         }
 
         /**
@@ -1403,6 +1409,7 @@ public class ObjectDataType implements DataType {
                     clazz = Class.forName(componentType);
                 } catch (Exception e) {
                     throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_SERIALIZATION,
                             "Could not get class {0}",
                             componentType, e);
                 }
@@ -1414,6 +1421,7 @@ public class ObjectDataType implements DataType {
                 obj = Array.newInstance(clazz, len);
             } catch (Exception e) {
                 throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_SERIALIZATION,
                         "Could not create array of type {0} length {1}",
                         clazz, len, e);
             }

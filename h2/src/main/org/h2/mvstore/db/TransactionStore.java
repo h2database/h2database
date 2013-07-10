@@ -111,7 +111,9 @@ public class TransactionStore {
         }
         Long lastKey = preparedTransactions.lastKey();
         if (lastKey != null && lastKey.longValue() > lastTransactionId) {
-            throw DataUtils.newIllegalStateException("Last transaction not stored");
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_CORRUPT,
+                    "Last transaction not stored");
         }
         if (undoLog.size() > 0) {
             long[] key = undoLog.firstKey();
@@ -616,7 +618,8 @@ public class TransactionStore {
          */
         void checkNotClosed() {
             if (status == STATUS_CLOSED) {
-                throw DataUtils.newIllegalStateException("Transaction is closed");
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_CLOSED, "Transaction is closed");
             }
         }
 
@@ -749,14 +752,16 @@ public class TransactionStore {
                 // wait until it is committed, or until the lock timeout
                 long timeout = transaction.store.lockTimeout;
                 if (timeout == 0) {
-                    throw DataUtils.newIllegalStateException("Lock timeout");
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_TRANSACTION_LOCK_TIMEOUT, "Lock timeout");
                 }
                 if (start == 0) {
                     start = System.currentTimeMillis();
                 } else {
                     long t = System.currentTimeMillis() - start;
                     if (t > timeout) {
-                        throw DataUtils.newIllegalStateException("Lock timeout");
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_TRANSACTION_LOCK_TIMEOUT, "Lock timeout");
                     }
                     // TODO use wait/notify instead, or remove the feature
                     try {

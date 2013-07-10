@@ -8,8 +8,8 @@ package org.h2.mvstore.rtree;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import org.h2.mvstore.Cursor;
 import org.h2.mvstore.CursorPos;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
@@ -63,7 +63,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      */
     public Iterator<SpatialKey> findIntersectingKeys(SpatialKey x) {
         checkOpen();
-        return new RTreeCursor(this, root, x) {
+        return new RTreeCursor(root, x) {
             @Override
             protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
                 return keyType.isOverlap(key, test);
@@ -79,7 +79,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      */
     public Iterator<SpatialKey> findContainedKeys(SpatialKey x) {
         checkOpen();
-        return new RTreeCursor(this, root, x) {
+        return new RTreeCursor(root, x) {
             @Override
             protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
                 if (leaf) {
@@ -479,21 +479,116 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     /**
      * A cursor to iterate over a subset of the keys.
      */
-    static class RTreeCursor extends Cursor<SpatialKey> {
+    static class RTreeCursor implements Iterator<SpatialKey> {
+        
+        private final SpatialKey filter;
+        private CursorPos pos;
+        private SpatialKey current;
+        private final Page root;
+        private boolean initialized;
 
-        protected RTreeCursor(MVRTreeMap<?> map, Page root, SpatialKey from) {
-            super(map, root, from);
+        protected RTreeCursor(Page root, SpatialKey filter) {
+            this.root = root;
+            this.filter = filter;
         }
-
+        
         @Override
-        public void skip(long n) {
-            if (!hasNext()) {
-                return;
+        public boolean hasNext() {
+            if (!initialized) {
+                // init
+                pos = new CursorPos(root, 0, null);
+                fetchNext();
+                initialized = true;
             }
-            while (n-- > 0) {
+            return current != null;
+        }
+        
+        public void skip(long n) {
+            while (hasNext() && n-- > 0) {
                 fetchNext();
             }
         }
+
+        @Override
+        public SpatialKey next() {
+            if (!hasNext()) {
+                return null;
+            }
+            SpatialKey c = current;
+            fetchNext();
+            return c;
+        }
+        
+        @Override
+        public void remove() {
+            throw DataUtils.newUnsupportedOperationException(
+                    "Removing is not supported");
+        }
+        
+        /**
+         * Fetch the next entry if there is one.
+         */
+        protected void fetchNext() {
+            while (pos != null) {
+                Page p = pos.page;
+                if (p.isLeaf()) {
+                    while (pos.index < p.getKeyCount()) {
+                        SpatialKey c = (SpatialKey) p.getKey(pos.index++);
+                        if (filter == null || check(true, c, filter)) {
+                            current = c;
+                            return;
+                        }
+                    }
+                } else {
+                    boolean found = false;
+                    while (pos.index < p.getKeyCount()) {
+                        int index = pos.index++;
+                        SpatialKey c = (SpatialKey) p.getKey(index);
+                        if (filter == null || check(false, c, filter)) {
+                            Page child = pos.page.getChildPage(index);
+                            pos = new CursorPos(child, 0, pos);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        continue;
+                    }
+                }
+                // parent
+                pos = pos.parent;
+            }
+            current = null;
+        }
+                    
+//                      if(pos==null || pos.page != p) {
+//                          pos = new CursorPos(p, i + 1, pos);
+//                      } else {
+//                          pos.index = i + 1;
+//                      }
+//                      p = p.getChildPage(i);
+//                      found = true;
+//                      break;
+//                  }
+//              }
+                    
+//                    
+//                    if (pos.index < pos.page.getKeyCount()) {
+//                        pos.index++;
+//                    }
+//                        current = (SpatialKey) pos.page.getKey(pos.index++);
+//                        return;
+//                    }
+//                pos = pos.parent;
+//                if (pos == null) {
+//                    break;
+//                }
+//                if (pos.index < m.getChildPageCount(pos.page)) {
+//                    min(pos.page.getChildPage(pos.index++), null);
+//                }
+//            }
+//            current = null;
+//        }
 
         /**
          * Check a given key.
@@ -507,50 +602,100 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             return true;
         }
 
-        @Override
-        protected void min(Page p, SpatialKey x) {
-            while (true) {
-                if (p.isLeaf()) {
-                    pos = new CursorPos(p, 0, pos);
-                    return;
-                }
-                boolean found = false;
-                for (int i = 0; i < p.getKeyCount(); i++) {
-                    if (check(false, (SpatialKey) p.getKey(i), x)) {
-                        pos = new CursorPos(p, i + 1, pos);
-                        p = p.getChildPage(i);
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    break;
-                }
-            }
-            fetchNext();
-        }
-
-        @Override
-        protected void fetchNext() {
-            while (pos != null) {
-                while (pos.index < pos.page.getKeyCount()) {
-                    SpatialKey k = (SpatialKey) pos.page.getKey(pos.index++);
-                    if (check(true, k, from)) {
-                        current = k;
-                        return;
-                    }
-                }
-                pos = pos.parent;
-                if (pos == null) {
-                    break;
-                }
-                MVRTreeMap<?> m = (MVRTreeMap<?>) map;
-                if (pos.index < m.getChildPageCount(pos.page)) {
-                    min(pos.page.getChildPage(pos.index++), from);
-                }
-            }
-            current = null;
-        }
+////        @Override
+//        protected void min2(Page p, SpatialKey x) {
+//            while (true) {
+//                if (p.isLeaf()) {
+//                    pos = new CursorPos(p, 0, pos);
+//                    return;
+//                } else if(pos != null && pos.page != p ) {
+//                    pos = new CursorPos(p, 0, pos);
+//                }
+//                boolean found = false;
+//                int firstChildIndex = 0;
+//                if(pos!=null && pos.page == p) {
+//                    firstChildIndex = pos.index;
+//                }
+//                for (int i = firstChildIndex; i < p.getKeyCount(); i++) {
+//                    if (check(false, (SpatialKey) p.getKey(i), x)) {
+//                        if(pos==null || pos.page != p) {
+//                            pos = new CursorPos(p, i + 1, pos);
+//                        } else {
+//                            pos.index = i + 1;
+//                        }
+//                        p = p.getChildPage(i);
+//                        found = true;
+//                        break;
+//                    }
+//                }
+//                if (!found) {
+//                    if(pos==null || pos.page.isLeaf()) {
+//                        break;
+//                    } else {
+//                        pos = pos.parent;
+//                        if(pos!=null) {
+//                            p = pos.page;
+//                        } else {
+//                            //No more entries
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//        }        
+//        
+//        @Override
+//        protected void min(Page p, SpatialKey x) {
+//            // x
+//        }
+//        
+//        protected void min3(Page p, SpatialKey x) {
+//            while (true) {
+//                if (p.isLeaf()) {
+//                    pos = new CursorPos(p, 0, pos);
+//                    return;
+//                }
+//                boolean found = false;
+//                for (int i = 0; i < p.getKeyCount(); i++) {
+//                    if (check(false, (SpatialKey) p.getKey(i), x)) {
+//                        pos = new CursorPos(p, i + 1, pos);
+//                        p = p.getChildPage(i);
+//                        found = true;
+//                        break;
+//                    }
+//                }
+//                if (!found) {
+//                    if (pos == null) {
+//                        return;
+//                    }
+//                    pos = pos.parent;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        @Override
+//        protected void fetchNext() {
+//            while (pos != null) {
+//                while (pos.index < pos.page.getKeyCount()) {
+//                    SpatialKey k = (SpatialKey) pos.page.getKey(pos.index++);
+//                    if (check(true, k, from)) {
+//                        current = k;
+//                        return;
+//                    }
+//                }
+//                pos = pos.parent;
+//                if (pos == null) {
+//                    break;
+//                }
+//                MVRTreeMap<?> m = (MVRTreeMap<?>) map;
+//                if (pos.index < m.getChildPageCount(pos.page)) {
+//                    min(pos.page.getChildPage(pos.index++), from);
+//                }
+//            }
+//            current = null;
+//        }
+        
     }
 
     @Override

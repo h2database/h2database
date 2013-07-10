@@ -11,13 +11,16 @@ import java.util.List;
 
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.store.InDoubtTransaction;
+import org.h2.store.fs.FileUtils;
 import org.h2.table.RegularTable;
 import org.h2.table.TableBase;
 import org.h2.util.New;
@@ -26,13 +29,14 @@ import org.h2.util.New;
  * A table engine that internally uses the MVStore.
  */
 public class MVTableEngine implements TableEngine {
-
-    @Override
-    public TableBase createTable(CreateTableData data) {
-        Database db = data.session.getDatabase();
-        if (!data.persistData || (data.temporary && !data.persistIndexes)) {
-            return new RegularTable(data);
-        }
+    
+    /**
+     * Initialize the MVStore.
+     * 
+     * @param db the database
+     * @return the store
+     */
+    public static Store init(Database db) {
         Store store = db.getMvStore();
         if (store == null) {
             byte[] key = db.getFilePasswordHash();
@@ -41,9 +45,19 @@ public class MVTableEngine implements TableEngine {
             if (dbPath == null) {
                 store = new Store(db, builder.open());
             } else {
-                builder.fileName(dbPath + Constants.SUFFIX_MV_FILE);
+                String fileName = dbPath + Constants.SUFFIX_MV_FILE;
+                builder.fileName(fileName);
                 if (db.isReadOnly()) {
                     builder.readOnly();
+                } else {
+                    // possibly create the directory
+                    boolean exists = FileUtils.exists(fileName);
+                    if (exists && !FileUtils.canWrite(fileName)) {
+                        // read only
+                    } else {
+                        String dir = FileUtils.getParent(fileName);
+                        FileUtils.createDirectories(dir);
+                    }
                 }
                 if (key != null) {
                     char[] password = new char[key.length];
@@ -52,10 +66,32 @@ public class MVTableEngine implements TableEngine {
                     }
                     builder.encryptionKey(password);
                 }
-                store = new Store(db, builder.open());
+                try {
+                    store = new Store(db, builder.open());
+                } catch (IllegalStateException e) {
+                    int errorCode = DataUtils.getErrorCode(e.getMessage());
+                    if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
+                        if (key != null) {
+                            throw DbException.get(ErrorCode.FILE_ENCRYPTION_ERROR_1, fileName);
+                        }
+                    } else if (errorCode == DataUtils.ERROR_FILE_LOCKED) {
+                        throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, fileName);
+                    }
+                    throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName);
+                }
             }
             db.setMvStore(store);
         }
+        return store;
+    }
+
+    @Override
+    public TableBase createTable(CreateTableData data) {
+        Database db = data.session.getDatabase();
+        if (!data.persistData || (data.temporary && !data.persistIndexes)) {
+            return new RegularTable(data);
+        }
+        Store store = init(db);
         MVTable table = new MVTable(data, store);
         store.openTables.add(table);
         table.init(data.session);
@@ -186,6 +222,10 @@ public class MVTableEngine implements TableEngine {
                 }
             }
             return result;
+        }
+
+        public void setCacheSize(int kb) {
+            store.setCacheSize(kb * 1024);
         }
 
     }

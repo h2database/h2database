@@ -53,6 +53,7 @@ public class FreeSpaceList {
             }
         }
         throw DataUtils.newIllegalStateException(
+                DataUtils.ERROR_INTERNAL,
                 "Could not find a free page to allocate");
     }
 
@@ -75,10 +76,12 @@ public class FreeSpaceList {
         }
         if (found == null) {
             throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL,
                     "Cannot find spot to mark chunk as used in free list: {0}", c);
         }
         if (chunkStart + required > found.start + found.length) {
             throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL,
                     "Chunk runs over edge of free space: {0}", c);
         }
         if (found.start == chunkStart) {
@@ -127,6 +130,7 @@ public class FreeSpaceList {
         }
         if (found == null) {
             throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL,
                     "Cannot find spot to mark chunk as unused in free list: {0}", c);
         }
         if (chunkStart + required + 1 == found.start) {

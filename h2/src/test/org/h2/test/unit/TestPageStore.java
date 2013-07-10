@@ -112,6 +112,9 @@ public class TestPageStore extends TestBase {
     }
 
     private void testLogLimit() throws Exception {
+        if (config.mvStore) {
+            return;
+        }
         deleteDb("pageStoreLogLimit");
         Connection conn, conn2;
         Statement stat, stat2;

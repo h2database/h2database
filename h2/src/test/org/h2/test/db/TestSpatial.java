@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.test.TestBase;
+import org.h2.value.DataType;
+
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
@@ -30,10 +32,12 @@ public class TestSpatial extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        deleteDb("spatial");
-        testSpatialValues();
-        testMemorySpatialIndex();
-        deleteDb("spatial");
+        if (DataType.GEOMETRY_CLASS != null) {
+            deleteDb("spatial");
+            testSpatialValues();
+            testMemorySpatialIndex();
+            deleteDb("spatial");
+        }
     }
 
     private void testSpatialValues() throws SQLException {

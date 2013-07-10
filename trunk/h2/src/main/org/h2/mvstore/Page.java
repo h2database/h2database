@@ -429,6 +429,7 @@ public class Page {
             }
             if (check != totalCount) {
                 throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_INTERNAL,
                         "Expected: {0} got: {1}", check, totalCount);
             }
         }
@@ -694,6 +695,7 @@ public class Page {
         int pageLength = buff.getInt();
         if (pageLength > maxLength) {
             throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupted, expected length =< {0}, got {1}",
                     maxLength, pageLength);
         }
@@ -701,6 +703,7 @@ public class Page {
         int mapId = DataUtils.readVarInt(buff);
         if (mapId != map.getId()) {
             throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupted, expected map id {0}, got {1}",
                     map.getId(), mapId);
         }
@@ -709,6 +712,7 @@ public class Page {
                 ^ DataUtils.getCheckValue(pageLength);
         if (check != (short) checkTest) {
             throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupted, expected check value {0}, got {1}",
                     checkTest, check);
         }
@@ -818,7 +822,8 @@ public class Page {
                 ^ DataUtils.getCheckValue(pageLength);
         buff.putShort(start + 4, (short) check);
         if (pos != 0) {
-            throw DataUtils.newIllegalStateException("Page already stored");
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL, "Page already stored");
         }
         pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
         long max = DataUtils.getPageMaxLength(pos);
@@ -901,7 +906,8 @@ public class Page {
     public int getMemory() {
         if (MVStore.ASSERT) {
             if (memory != calculateMemory()) {
-                throw DataUtils.newIllegalStateException("Memory calculation error");
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_INTERNAL, "Memory calculation error");
             }
         }
         return memory;

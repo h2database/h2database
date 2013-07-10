@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -436,6 +437,10 @@ public class MVStore {
 
     /**
      * Open the store.
+     * 
+     * @throws IllegalStateException if the file is corrupt, or an exception
+     *             occurred while opening
+     * @throws IllegalArgumentException if the directory does not exist
      */
     void open() {
         meta = new MVMapConcurrent<String, String>(StringDataType.INSTANCE, StringDataType.INSTANCE);
@@ -476,11 +481,13 @@ public class MVStore {
      * Try to open the file in read or write mode.
      *
      * @return if opening the file was successful, and false if the file could
-     *         not be opened in write mode because the write file format it too
-     *         high (in which case the file can be opened in read-only mode)
-     * @throw IllegalStateException if the file could not be opened at all
+     *          not be opened in write mode because the write file format it too
+     *          high (in which case the file can be opened in read-only mode)
+     * @throw IllegalStateException if the file could not be opened
+     *          because of an IOException or file format error
      */
     private boolean openFile() {
+        IllegalStateException exception;
         try {
             log("file open");
             FilePath f = FilePath.get(fileName);
@@ -493,16 +500,19 @@ public class MVStore {
                 file = new FilePathCrypt.FileCrypt(fileName, password, file);
             }
             file = FilePathCache.wrap(file);
-            if (readOnly) {
-                fileLock = file.tryLock(0, Long.MAX_VALUE, true);
-                if (fileLock == null) {
-                    throw new IOException("The file is locked: " + fileName);
+            try {
+                if (readOnly) {
+                    fileLock = file.tryLock(0, Long.MAX_VALUE, true);
+                } else {
+                    fileLock = file.tryLock();
                 }
-            } else {
-                fileLock = file.tryLock();
-                if (fileLock == null) {
-                    throw new IOException("The file is locked: " + fileName);
-                }
+            } catch (OverlappingFileLockException e) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_LOCKED, "The file is locked: {0}", fileName, e);
+            }
+            if (fileLock == null) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_LOCKED, "The file is locked: {0}", fileName);
             }
             fileSize = file.size();
             if (fileSize == 0) {
@@ -521,8 +531,9 @@ public class MVStore {
                 int formatRead = x == null ? formatWrite : Integer.parseInt(x);
                 if (formatRead > FORMAT_READ) {
                     throw DataUtils.newIllegalStateException(
-                        "The file format {0} is larger than the supported format {1}",
-                        formatRead, FORMAT_READ);
+                            DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                            "The file format {0} is larger than the supported format {1}",
+                            formatRead, FORMAT_READ);
                 }
                 if (formatWrite > FORMAT_WRITE) {
                     readOnly = true;
@@ -533,14 +544,21 @@ public class MVStore {
                     readMeta();
                 }
             }
-        } catch (Exception e) {
+            exception = null;
+        } catch (IOException e) {
+            exception = DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_READING_FAILED,
+                    "Could not open file {0}", fileName, e);
+        } catch (IllegalStateException e) {
+            exception = e;
+        }
+        if (exception != null) {
             try {
                 closeFile(false);
             } catch (Exception e2) {
                 // ignore
             }
-            throw DataUtils.newIllegalStateException(
-                    "Could not open file {0}", fileName, e);
+            throw exception;
         }
         return true;
     }
@@ -603,7 +621,12 @@ public class MVStore {
         for (int i = 0; i < 3 * BLOCK_SIZE; i += BLOCK_SIZE) {
             String s = new String(buff.array(), i, BLOCK_SIZE, Constants.UTF8)
                     .trim();
-            HashMap<String, String> m = DataUtils.parseMap(s);
+            HashMap<String, String> m;
+            try {
+                m = DataUtils.parseMap(s);
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
             String f = m.remove("fletcher");
             if (f == null) {
                 continue;
@@ -630,7 +653,8 @@ public class MVStore {
             }
         }
         if (currentVersion < 0) {
-            throw DataUtils.newIllegalStateException("File header is corrupt");
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT, "File header is corrupt: {0}", fileName);
         }
         lastStoredVersion = -1;
     }
@@ -645,8 +669,11 @@ public class MVStore {
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
         DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
         bytes = buff.toString().getBytes(Constants.UTF8);
-        DataUtils.checkArgument(bytes.length <= BLOCK_SIZE,
-                "File header too large: {0}", buff);
+        if (bytes.length > BLOCK_SIZE) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    "File header too large: {0}", buff);
+        }
         return bytes;
     }
 
@@ -720,6 +747,7 @@ public class MVStore {
                 maps.clear();
             } catch (Exception e) {
                 throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_WRITING_FAILED,
                         "Closing failed for file {0}", fileName, e);
             } finally {
                 file = null;
@@ -799,7 +827,8 @@ public class MVStore {
             return currentVersion;
         }
         if (readOnly) {
-            throw DataUtils.newIllegalStateException("This store is read-only");
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
         }
         int currentUnsavedPageCount = unsavedPageCount;
         long storeVersion = currentStoreVersion = currentVersion;
@@ -893,7 +922,8 @@ public class MVStore {
 
         if (ASSERT) {
             if (freedPages.size() > 0) {
-                throw DataUtils.newIllegalStateException("Temporary freed chunks");
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_INTERNAL, "Temporary freed chunks");
             }
         }
 
@@ -1002,14 +1032,17 @@ public class MVStore {
                         c.pageCountLive += f.pageCountLive;
                         if (c.pageCountLive < 0) {
                             throw DataUtils.newIllegalStateException(
+                                    DataUtils.ERROR_INTERNAL,
                                     "Corrupt page count {0}", c.pageCountLive);
                         }
                         if (c.maxLengthLive < 0) {
                             throw DataUtils.newIllegalStateException(
+                                    DataUtils.ERROR_INTERNAL,
                                     "Corrupt max length {0}", c.maxLengthLive);
                         }
                         if (c.pageCount == 0 && c.maxLengthLive > 0) {
                             throw DataUtils.newIllegalStateException(
+                                    DataUtils.ERROR_INTERNAL,
                                     "Corrupt max length {0}", c.maxLengthLive);
                         }
                         modified.add(c);
@@ -1060,6 +1093,7 @@ public class MVStore {
             file.truncate(used);
         } catch (IOException e) {
             throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_WRITING_FAILED,
                     "Could not truncate file {0} to size {1}",
                     fileName, used, e);
         }
@@ -1259,6 +1293,7 @@ public class MVStore {
             Chunk c = getChunk(pos);
             if (c == null) {
                 throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT,
                         "Chunk {0} not found",
                         DataUtils.getPageChunkId(pos));
             }
@@ -1682,7 +1717,8 @@ public class MVStore {
 
     private void checkOpen() {
         if (closed) {
-            throw DataUtils.newIllegalStateException("This store is closed");
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_CLOSED, "This store is closed");
         }
     }
 
@@ -1739,6 +1775,15 @@ public class MVStore {
             return;
         }
         store(true);
+    }
+
+    /**
+     * Set the read cache size in MB.
+     * 
+     * @param mb the cache size in MB.
+     */
+    public void setCacheSize(long mb) {
+        cache.setMaxMemory(mb * 1024 * 1024);
     }
 
     public boolean isReadOnly() {

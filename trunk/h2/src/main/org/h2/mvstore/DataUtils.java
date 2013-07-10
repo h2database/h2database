@@ -25,6 +25,57 @@ import org.h2.util.New;
 public class DataUtils {
 
     /**
+     * An error occurred while reading from the file.
+     */
+    public static final int ERROR_READING_FAILED = 1;
+    
+    /**
+     * An error occurred when trying to write to the file.
+     */
+    public static final int ERROR_WRITING_FAILED = 2;
+    
+    /**
+     * An internal error occurred. This could be a bug, or a memory corruption
+     * (for example caused by out of memory).
+     */
+    public static final int ERROR_INTERNAL = 3;
+    
+    /**
+     * The object is already closed.
+     */
+    public static final int ERROR_CLOSED = 4;
+    
+    /**
+     * The file format is not supported.
+     */
+    public static final int ERROR_UNSUPPORTED_FORMAT = 5;
+    
+    /**
+     * The file is corrupt or (for encrypted files) the encryption key is wrong.
+     */
+    public static final int ERROR_FILE_CORRUPT = 6;
+    
+    /**
+     * The file is locked.
+     */
+    public static final int ERROR_FILE_LOCKED = 7;
+    
+    /**
+     * An error occurred when serializing or de-serializing.
+     */
+    public static final int ERROR_SERIALIZATION = 8;
+    
+    /**
+     * The transaction store is corrupt.
+     */
+    public static final int ERROR_TRANSACTION_CORRUPT = 100;
+    
+    /**
+     * A lock timeout occurred.
+     */
+    public static final int ERROR_TRANSACTION_LOCK_TIMEOUT = 101;
+
+    /**
      * The type for leaf page.
      */
     public static final int PAGE_TYPE_LEAF = 0;
@@ -332,6 +383,7 @@ public class DataUtils {
             dst.rewind();
         } catch (IOException e) {
             throw newIllegalStateException(
+                    ERROR_READING_FAILED,
                     "Reading from {0} failed; length {1} at {2}",
                     file, dst.remaining(), pos, e);
         }
@@ -353,6 +405,7 @@ public class DataUtils {
             } while (src.remaining() > 0);
         } catch (IOException e) {
             throw newIllegalStateException(
+                    ERROR_WRITING_FAILED,
                     "Writing to {0} failed; length {1} at {2}",
                     file, src.remaining(), pos, e);
         }
@@ -518,13 +571,17 @@ public class DataUtils {
      *
      * @param s the list
      * @return the map
+     * @throws IllegalStateException if parsing failed
      */
     public static HashMap<String, String> parseMap(String s) {
         HashMap<String, String> map = New.hashMap();
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
             i = s.indexOf(':', i);
-            checkArgument(i >= 0, "Not a map");
+            if (i < 0) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+            }
             String key = s.substring(startKey, i++);
             StringBuilder buff = new StringBuilder();
             while (i < size) {
@@ -596,7 +653,7 @@ public class DataUtils {
     public static IllegalArgumentException newIllegalArgumentException(
             String message, Object... arguments) {
         return initCause(new IllegalArgumentException(
-                MessageFormat.format(message, arguments) + " " + getVersion()),
+                formatMessage(0, message, arguments)),
                 arguments);
     }
 
@@ -608,16 +665,18 @@ public class DataUtils {
      */
     public static UnsupportedOperationException newUnsupportedOperationException(
             String message) {
-        return new UnsupportedOperationException(message + " " + getVersion());
+        return new UnsupportedOperationException(formatMessage(0, message));
     }
 
     /**
      * Create a new ConcurrentModificationException.
      *
+     * @param message the message
      * @return the exception
      */
-    public static ConcurrentModificationException newConcurrentModificationException() {
-        return new ConcurrentModificationException(getVersion());
+    public static ConcurrentModificationException newConcurrentModificationException(
+            String message) {
+        return new ConcurrentModificationException(formatMessage(0, message));
     }
 
     /**
@@ -628,9 +687,9 @@ public class DataUtils {
      * @return the exception
      */
     public static IllegalStateException newIllegalStateException(
-            String message, Object... arguments) {
+            int errorCode, String message, Object... arguments) {
         return initCause(new IllegalStateException(
-                MessageFormat.format(message, arguments) + " " + getVersion()),
+                formatMessage(errorCode, message, arguments)),
                 arguments);
     }
 
@@ -644,10 +703,35 @@ public class DataUtils {
         }
         return e;
     }
+    
+    private static String formatMessage(int errorCode, String message, Object... arguments) {
+        return MessageFormat.format(message, arguments) + " " + getVersionAndCode(errorCode);
+    }
 
-    private static String getVersion() {
+    private static String getVersionAndCode(int errorCode) {
         return "[" + Constants.VERSION_MAJOR + "." +
-                Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "]";
+                Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "/" + errorCode + "]";
+    }
+    
+    /**
+     * Get the error code from an exception message.
+     * 
+     * @param m the message
+     * @return the error code, or 0 if none
+     */
+    public static int getErrorCode(String m) {
+        if (m.endsWith("]")) {
+            int dash = m.lastIndexOf('/');
+            if (dash >= 0) {
+                String s = m.substring(dash + 1, m.length() - 1);
+                try {
+                    return Integer.parseInt(s);
+                } catch (NumberFormatException e) {
+                    // no error code
+                }
+            }
+        }
+        return 0;
     }
 
     /**

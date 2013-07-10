@@ -15,25 +15,17 @@ import java.util.Iterator;
  */
 public class Cursor<K> implements Iterator<K> {
 
-    protected final MVMap<K, ?> map;
-    protected final K from;
-    protected CursorPos pos;
-    protected K current;
+    private final MVMap<K, ?> map;
+    private final K from;
+    private CursorPos pos;
+    private K current;
     private final Page root;
     private boolean initialized;
 
-    protected Cursor(MVMap<K, ?> map, Page root, K from) {
+    Cursor(MVMap<K, ?> map, Page root, K from) {
         this.map = map;
         this.root = root;
         this.from = from;
-    }
-
-    @Override
-    public K next() {
-        hasNext();
-        K c = current;
-        fetchNext();
-        return c;
     }
 
     @Override
@@ -44,6 +36,14 @@ public class Cursor<K> implements Iterator<K> {
             fetchNext();
         }
         return current != null;
+    }
+
+    @Override
+    public K next() {
+        hasNext();
+        K c = current;
+        fetchNext();
+        return c;
     }
 
     /**
@@ -82,7 +82,7 @@ public class Cursor<K> implements Iterator<K> {
      * @param p the page to start
      * @param from the key to search
      */
-    protected void min(Page p, K from) {
+    private void min(Page p, K from) {
         while (true) {
             if (p.isLeaf()) {
                 int x = from == null ? 0 : p.binarySearch(from);
@@ -107,7 +107,7 @@ public class Cursor<K> implements Iterator<K> {
      * Fetch the next entry if there is one.
      */
     @SuppressWarnings("unchecked")
-    protected void fetchNext() {
+    private void fetchNext() {
         while (pos != null) {
             if (pos.index < pos.page.getKeyCount()) {
                 current = (K) pos.page.getKey(pos.index++);

@@ -907,7 +907,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     protected void checkOpen() {
         if (closed) {
-            throw DataUtils.newIllegalStateException("This map is closed");
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_CLOSED, "This map is closed");
         }
     }
 
@@ -937,7 +938,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (writing) {
             // try to detect concurrent modification
             // on a best-effort basis
-            throw DataUtils.newConcurrentModificationException();
+            throw DataUtils.newConcurrentModificationException(getName());
         }
     }
 
@@ -1004,7 +1005,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public MVMap<K, V> openVersion(long version) {
         if (readOnly) {
             throw DataUtils.newUnsupportedOperationException(
-                    "This map is read-only - need to call the method on the writable map");
+                    "This map is read-only; need to call the method on the writable map");
         }
         DataUtils.checkArgument(version >= createVersion,
                 "Unknown version {0}; this map was created in version is {1}",

@@ -248,8 +248,7 @@ public abstract class TestBase {
         String url;
         if (name.startsWith("jdbc:")) {
             if (config.mvStore) {
-                name = addOption(name, "DEFAULT_TABLE_ENGINE",
-                        "org.h2.mvstore.db.MVTableEngine");
+                name = addOption(name, "MV_STORE", "true");
             }
             return name;
         }
@@ -274,8 +273,7 @@ public abstract class TestBase {
             url = name;
         }
         if (config.mvStore) {
-            url = addOption(url, "DEFAULT_TABLE_ENGINE",
-                    "org.h2.mvstore.db.MVTableEngine");
+            url = addOption(name, "MV_STORE", "true");
         }
         if (!config.memory) {
             if (config.smallLog && admin) {

@@ -81,7 +81,7 @@ public class TestScalability implements Database.DatabaseTest {
         dbs.add(createDbEntry(id++, "H2", 50, h2Url));
         dbs.add(createDbEntry(id++, "H2", 100, h2Url));
 
-        final String mvUrl = "jdbc:h2:data/mvTest;LOCK_TIMEOUT=10000;DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine";
+        final String mvUrl = "jdbc:h2:data/mvTest;LOCK_TIMEOUT=10000;MV_STORE=TRUE";
         dbs.add(createDbEntry(id++, "MV", 1, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 10, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 20, mvUrl));

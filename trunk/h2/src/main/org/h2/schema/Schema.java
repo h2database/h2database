@@ -23,6 +23,7 @@ import org.h2.engine.User;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.mvstore.db.MVTableEngine;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
@@ -548,6 +549,11 @@ public class Schema extends DbObjectBase {
                 database.lockMeta(data.session);
             }
             data.schema = this;
+            if (data.tableEngine == null) {
+                if (database.getSettings().mvStore) {
+                    data.tableEngine = MVTableEngine.class.getName();
+                }
+            }
             if (data.tableEngine != null) {
                 TableEngine engine;
                 try {

@@ -7,6 +7,8 @@
 package org.h2.table;
 
 import org.h2.command.ddl.CreateTableData;
+import org.h2.constant.DbSettings;
+import org.h2.mvstore.db.MVTableEngine;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
@@ -70,7 +72,11 @@ public abstract class TableBase extends Table {
         }
         buff.append("\n)");
         if (tableEngine != null) {
-            String d = getDatabase().getSettings().defaultTableEngine;
+            DbSettings s = getDatabase().getSettings();
+            String d = s.defaultTableEngine;
+            if (d == null && s.mvStore) {
+                d = MVTableEngine.class.getName();
+            }
             if (d == null || !tableEngine.endsWith(d)) {
                 buff.append("\nENGINE \"");
                 buff.append(tableEngine);

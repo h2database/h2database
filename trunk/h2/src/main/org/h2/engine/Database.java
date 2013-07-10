@@ -1687,6 +1687,9 @@ public class Database implements DataHandler {
         if (pageStore != null) {
             pageStore.getCache().setMaxMemory(kb);
         }
+        if (mvStore != null) {
+            mvStore.setCacheSize(Math.max(1, kb / 1024));
+        }
     }
 
     public synchronized void setMasterUser(User user) {
@@ -2151,6 +2154,9 @@ public class Database implements DataHandler {
     }
 
     public PageStore getPageStore() {
+        if (dbSettings.mvStore && mvStore == null) {
+            mvStore = MVTableEngine.init(this);
+        }
         if (pageStore == null) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
             if (pageSize != Constants.DEFAULT_PAGE_SIZE) {

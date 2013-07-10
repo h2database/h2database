@@ -492,8 +492,8 @@ public class Recover extends Tool implements DataHandler {
         MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open();
         TransactionStore store = new TransactionStore(mv);
         try {
-            MVMap<String, String> meta = mv.getMetaMap();
-            Iterator<String> it = meta.keyIterator(null);
+            MVMap<String, String> metaMap = mv.getMetaMap();
+            Iterator<String> it = metaMap.keyIterator(null);
             while (it.hasNext()) {
                 String key = it.next();
                 if (!key.startsWith("name.table.")) {
@@ -537,6 +537,20 @@ public class Recover extends Tool implements DataHandler {
                     }
                     buff.append(");");
                     writer.println(buff.toString());
+                    if (storageId == 0) {
+                        try {
+                            SimpleRow r = new SimpleRow(values);
+                            MetaRecord meta = new MetaRecord(r);
+                            schema.add(meta);
+                            if (meta.getObjectType() == DbObject.TABLE_OR_VIEW) {
+                                String sql = values[3].getString();
+                                String name = extractTableOrViewName(sql);
+                                tableMap.put(meta.getId(), name);
+                            }
+                        } catch (Throwable t) {
+                            writeError(writer, t);
+                        }
+                    }
                 }
             }
         } catch (Throwable e) {

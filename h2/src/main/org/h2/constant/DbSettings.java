@@ -321,6 +321,13 @@ public class DbSettings extends SettingsBase {
      */
     public String defaultTableEngine = get("DEFAULT_TABLE_ENGINE", null);
 
+    /**
+     * Database setting <code>MV_STORE</code>
+     * (default: false).<br />
+     * Use the MVStore storage engine.
+     */
+    public final boolean mvStore = get("MV_STORE", false);
+
     private DbSettings(HashMap<String, String> s) {
         super(s);
     }

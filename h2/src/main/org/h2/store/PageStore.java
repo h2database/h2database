@@ -120,7 +120,7 @@ public class PageStore implements CacheWriter {
     public static final int LOG_MODE_SYNC = 2;
     private static final int PAGE_ID_FREE_LIST_ROOT = 3;
     private static final int PAGE_ID_META_ROOT = 4;
-    private static final int MIN_PAGE_COUNT = 6;
+    private static final int MIN_PAGE_COUNT = 5;
     private static final int INCREMENT_KB = 1024;
     private static final int INCREMENT_PERCENT_MIN = 35;
     private static final int READ_VERSION = 3;

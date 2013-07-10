@@ -35,10 +35,14 @@ public class ValueGeometry extends Value {
     /**
      * Get or create a geometry value for the given geometry.
      *
-     * @param g the geometry
+     * @param o the geometry object (of type com.vividsolutions.jts.geom.Geometry)
      * @return the value
      */
-    public static ValueGeometry get(Geometry g) {
+    public static ValueGeometry getFromGeometry(Object o) {
+        return get((Geometry) o);
+    }
+    
+    private static ValueGeometry get(Geometry g) {
         return (ValueGeometry) Value.cache(new ValueGeometry(g));
     }
 

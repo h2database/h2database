@@ -40,13 +40,21 @@ import org.h2.util.Utils;
  * and can convert between Java objects and Values.
  */
 public class DataType {
-
+    
     /**
      * This constant is used to represent the type of a ResultSet. There is no
      * equivalent java.sql.Types value, but Oracle uses it to represent a
      * ResultSet (OracleTypes.CURSOR = -10).
      */
     public static final int TYPE_RESULT_SET = -10;
+    
+    /**
+     * The Geometry class. This object is null if the jts jar file is not in the
+     * classpath.
+     */
+    public static final Class<?> GEOMETRY_CLASS;
+    
+    private static final String GEOMETRY_CLASS_NAME = "com.vividsolutions.jts.geom.Geometry";
 
     /**
      * The list of types. An ArrayList so that Tomcat doesn't set it to null
@@ -161,6 +169,17 @@ public class DataType {
      * The number of bytes required for an object.
      */
     public int memory;
+    
+    static {
+        Class<?> g;
+        try {
+            g = Utils.loadUserClass(GEOMETRY_CLASS_NAME);
+        } catch (Exception e) {
+            // class is not in the classpath - ignore
+            g = null;
+        }
+        GEOMETRY_CLASS = g;
+    }
 
     static {
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
@@ -599,11 +618,11 @@ public class DataType {
                 return ValueResultSet.get(rs);
             }
             case Value.GEOMETRY: {
-                com.vividsolutions.jts.geom.Geometry x = (com.vividsolutions.jts.geom.Geometry) rs.getObject(columnIndex);
+                Object x = rs.getObject(columnIndex);
                 if (x == null) {
                     return ValueNull.INSTANCE;
                 }
-                return ValueGeometry.get(x);
+                return ValueGeometry.getFromGeometry(x);
             }
             default:
                 throw DbException.throwInternalError("type="+type);
@@ -683,7 +702,7 @@ public class DataType {
         case Value.RESULT_SET:
             return ResultSet.class.getName();
         case Value.GEOMETRY:
-            return com.vividsolutions.jts.geom.Geometry.class.getName();
+            return GEOMETRY_CLASS_NAME;
         default:
             throw DbException.throwInternalError("type="+type);
         }
@@ -845,7 +864,7 @@ public class DataType {
         } else if (Object[].class.isAssignableFrom(x)) {
             // this includes String[] and so on
             return Value.ARRAY;
-        } else if (com.vividsolutions.jts.geom.Geometry.class.isAssignableFrom(x)) {
+        } else if (isGeometry(x)) {
             return Value.GEOMETRY;
         } else {
             return Value.JAVA_OBJECT;
@@ -935,11 +954,18 @@ public class DataType {
             return ValueArray.get(x.getClass().getComponentType(), v);
         } else if (x instanceof Character) {
             return ValueStringFixed.get(((Character) x).toString());
-        } else if (x instanceof com.vividsolutions.jts.geom.Geometry) {
-            return ValueGeometry.get((com.vividsolutions.jts.geom.Geometry) x);
+        } else if (isGeometry(x)) {
+            return ValueGeometry.getFromGeometry(x);
         } else {
             return ValueJavaObject.getNoCopy(x, null);
         }
+    }
+    
+    private static boolean isGeometry(Object x) {
+        if (x == null || GEOMETRY_CLASS == null) {
+            return false;
+        }
+        return GEOMETRY_CLASS.isAssignableFrom(x.getClass());
     }
 
     /**

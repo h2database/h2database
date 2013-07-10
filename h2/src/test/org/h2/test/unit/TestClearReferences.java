@@ -114,6 +114,10 @@ public class TestClearReferences extends TestBase {
             Class<?> clazz = null;
             try {
                 clazz = Class.forName(className);
+            } catch (NoClassDefFoundError e) {
+                if (e.toString().indexOf("lucene") >= 0) {
+                    // Lucene is not in the classpath, OK
+                }
             } catch (ClassNotFoundException e) {
                 fail("Could not load " + className + ": " + e.toString());
             }
@@ -129,7 +133,23 @@ public class TestClearReferences extends TestBase {
      * @param clazz the class to clear
      */
     private void clearClass(Class<?> clazz) throws Exception {
-        for (Field field : clazz.getDeclaredFields()) {
+        Field[] fields;
+        try {
+            fields = clazz.getDeclaredFields();
+        } catch (NoClassDefFoundError e) {
+            if (e.toString().indexOf("lucene") >= 0) {
+                // Lucene is not in the classpath, OK
+                return;
+            } else if (e.toString().indexOf("jts") >= 0) {
+                // JTS is not in the classpath, OK
+                return;
+            } else if (e.toString().indexOf("slf4j") >= 0) {
+                // slf4j is not in the classpath, OK
+                return;
+            }
+            throw e;
+        }
+        for (Field field : fields) {
             if (field.getType().isPrimitive() || field.getName().indexOf("$") != -1) {
                 continue;
             }

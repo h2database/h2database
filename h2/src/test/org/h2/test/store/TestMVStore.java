@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.TreeMap;
 
 import org.h2.mvstore.Cursor;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.type.DataType;
@@ -265,7 +266,8 @@ public class TestMVStore extends TestBase {
                     encryptionKey(passwordChars).open();
             fail();
         } catch (IllegalStateException e) {
-            assertTrue(e.getCause() != null);
+            assertEquals(DataUtils.ERROR_FILE_CORRUPT, 
+                    DataUtils.getErrorCode(e.getMessage()));
         }
         assertEquals(0, passwordChars[0]);
         assertEquals(0, passwordChars[1]);
@@ -303,7 +305,8 @@ public class TestMVStore extends TestBase {
             openStore(fileName).close();
             fail();
         } catch (IllegalStateException e) {
-            assertTrue(e.getCause() != null);
+            assertEquals(DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                    DataUtils.getErrorCode(e.getMessage()));
         }
         FileUtils.delete(fileName);
     }

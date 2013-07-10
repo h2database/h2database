@@ -51,6 +51,7 @@ public class TestMVRTree extends TestMVStore {
         testMany();
         testSimple();
         testRandom();
+        testRandomFind();
     }
 
     private void testExample() {
@@ -272,6 +273,51 @@ public class TestMVRTree extends TestMVStore {
         testRandom(true);
         testRandom(false);
     }
+    
+    private void testRandomFind() {
+        MVStore s = openStore(null);
+        MVRTreeMap<Integer> m = s.openMap("data",
+                new MVRTreeMap.Builder<Integer>());
+        int max = 100;
+        for (int x = 0; x < max; x++) {
+            for (int y = 0; y < max; y++) {
+                int id = x * max + y;
+                SpatialKey k = new SpatialKey(id, x, x, y, y);
+                m.put(k, id);
+            }            
+        }
+        Random rand = new Random(1);
+        int operationCount = 1000;
+        for (int i = 0; i < operationCount; i++) {
+            int x1 = rand.nextInt(max), y1 = rand.nextInt(10);
+            int x2 = rand.nextInt(10), y2 = rand.nextInt(10);
+            int intersecting = Math.max(0, x2 - x1 + 1) * Math.max(0, y2 - y1 + 1);
+            int contained = Math.max(0, x2 - x1 - 1) * Math.max(0, y2 - y1 - 1);
+            SpatialKey k = new SpatialKey(0, x1, x2, y1, y2);
+            Iterator<SpatialKey> it = m.findContainedKeys(k);
+            int count = 0;
+            while (it.hasNext()) {
+                SpatialKey t = it.next();
+                assertTrue(t.min(0) > x1);
+                assertTrue(t.min(1) > y1);
+                assertTrue(t.max(0) < x2);
+                assertTrue(t.max(1) < y2);
+                count++;
+            }
+            assertEquals(contained, count);
+            it = m.findIntersectingKeys(k);
+            count = 0;
+            while (it.hasNext()) {
+                SpatialKey t = it.next();
+                assertTrue(t.min(0) >= x1);
+                assertTrue(t.min(1) >= y1);
+                assertTrue(t.max(0) <= x2);
+                assertTrue(t.max(1) <= y2);
+                count++;
+            }
+            assertEquals(intersecting, count);
+        }        
+    }
 
     private void testRandom(boolean quadraticSplit) {
         String fileName = getBaseDir() + "/testRandom.h3";
@@ -284,8 +330,8 @@ public class TestMVRTree extends TestMVStore {
         m.setQuadraticSplit(quadraticSplit);
         HashMap<SpatialKey, String> map = new HashMap<SpatialKey, String>();
         Random rand = new Random(1);
-        int operationCount = 1000;
-        int maxValue = 30;
+        int operationCount = 10000;
+        int maxValue = 300;
         for (int i = 0; i < operationCount; i++) {
             int key = rand.nextInt(maxValue);
             Random rk = new Random(key);
@@ -293,7 +339,8 @@ public class TestMVRTree extends TestMVStore {
             float p = (float) (rk.nextFloat() * 0.000001);
             SpatialKey k = new SpatialKey(key, x - p, x + p, y - p, y + p);
             String v = "" + rand.nextInt();
-            switch (rand.nextInt(3)) {
+            Iterator<SpatialKey> it;
+            switch (rand.nextInt(5)) {
             case 0:
                 log(i + ": put " + k + " = " + v + " " + m.size());
                 m.put(k, v);
@@ -304,6 +351,28 @@ public class TestMVRTree extends TestMVStore {
                 m.remove(k);
                 map.remove(k);
                 break;
+            case 2: {
+                p = (float) (rk.nextFloat() * 0.01);
+                k = new SpatialKey(key, x - p, x + p, y - p, y + p);
+                it = m.findIntersectingKeys(k);
+                while (it.hasNext()) {
+                    SpatialKey n = it.next();
+                    String a = map.get(n);
+                    assertFalse(a == null);
+                }
+                break;
+            }
+            case 3: {
+                p = (float) (rk.nextFloat() * 0.01);
+                k = new SpatialKey(key, x - p, x + p, y - p, y + p);
+                it = m.findContainedKeys(k);
+                while (it.hasNext()) {
+                    SpatialKey n = it.next();
+                    String a = map.get(n);
+                    assertFalse(a == null);
+                }
+                break;
+            }
             default:
                 String a = map.get(k);
                 String b = m.get(k);

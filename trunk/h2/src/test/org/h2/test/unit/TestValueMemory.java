@@ -24,6 +24,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
@@ -81,7 +82,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
             trace(s);
         }
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
-            assertEquals(i, create(i).getType());
+            Value v = create(i);
+            if (v == ValueNull.INSTANCE && i == Value.GEOMETRY) {
+                // jts not in the classpath, OK
+                continue;
+            }
+            assertEquals(i, v.getType());
             testType(i);
         }
     }
@@ -188,6 +194,9 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.STRING_FIXED:
             return ValueStringFixed.get(randomString(random.nextInt(100)));
         case Value.GEOMETRY:
+            if (DataType.GEOMETRY_CLASS == null) {
+                return ValueNull.INSTANCE;
+            }
             return ValueGeometry.get("POINT (" + random.nextInt(100) + " "+random.nextInt(100)+")");
         default:
             throw new AssertionError("type=" + type);

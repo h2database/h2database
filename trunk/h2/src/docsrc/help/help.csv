@@ -1913,6 +1913,7 @@ SELECT -1.4e-10
 summand [ { || summand } [...] ]
 ","
 A value or a concatenation of values.
+In the default mode, the result is NULL if either parameter is NULL.
 ","
 'Hi' || ' Eva'
 "
@@ -2929,6 +2930,8 @@ CHAR(65)
 CONCAT(string, string [,...])
 ","
 Combines strings.
+Unlike with the operator ""||"", NULL parameters are ignored, 
+and do not cause the result to become NULL.
 This method returns a string.
 ","
 CONCAT(NAME, '!')
@@ -2938,6 +2941,8 @@ CONCAT(NAME, '!')
 CONCAT_WS(separatorString, string, string [,...])
 ","
 Combines strings with separator.
+Unlike with the operator ""||"", NULL parameters are ignored, 
+and do not cause the result to become NULL.
 This method returns a string.
 ","
 CONCAT_WS(',', NAME, '!')

@@ -80,6 +80,7 @@ public class TestLob extends TestBase {
         testTempFilesDeleted(false);
         testAddLobRestart();
         testLobServerMemory();
+        testUpdatingLobRow();
         if (config.memory) {
             return;
         }
@@ -1447,4 +1448,24 @@ public class TestLob extends TestBase {
         return new ByteArrayInputStream(buff);
     }
 
-}
+    /** test the combination of updating a table which contains an LOB, and reading from the LOB at the same time */
+    private void testUpdatingLobRow() throws Exception {
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name clob, counter int)");
+        stat.execute("insert into test(id, name) select x, space(100000) from system_range(1, 3)");
+
+        ResultSet rs = stat.executeQuery("select name from test where id = 1");
+        rs.next();
+        Reader r = rs.getClob("name").getCharacterStream();
+        Random random = new Random();
+        char[] tmp = new char[256];
+        while ( r.read(tmp) > 0) {
+            stat.execute("update test set counter = " + random.nextInt(1000) + " where id = 1");
+        }
+        r.close();
+        conn.close();
+    }
+    
+ }

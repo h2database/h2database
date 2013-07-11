@@ -155,7 +155,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Remove all LOBs for this table.
-     *
+     * 
      * @param tableId the table id
      */
     public void removeAllForTable(int tableId) {
@@ -184,25 +184,22 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Read a block of data from the given LOB.
-     *
-     * @param lob the lob id
-     * @param seq the block sequence number
+     * 
+     * @param block the block number
      * @return the block (expanded if stored compressed)
      */
-    byte[] readBlock(long lob, int seq) throws SQLException {
+    byte[] readBlock(long block) throws SQLException {
         // we have to take the lock on the session
         // before the lock on the database to prevent ABBA deadlocks
         synchronized (conn.getSession()) {
             synchronized (database) {
-                String sql = "SELECT COMPRESSED, DATA FROM " + LOB_MAP + " M " +
-                        "INNER JOIN " + LOB_DATA + " D ON M.BLOCK = D.BLOCK " +
-                        "WHERE M.LOB = ? AND M.SEQ = ?";
+                String sql = "SELECT COMPRESSED, DATA FROM " + LOB_DATA + " WHERE BLOCK = ?";
                 PreparedStatement prep = prepare(sql);
-                prep.setLong(1, lob);
-                prep.setInt(2, seq);
+                prep.setLong(1, block);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry: "+ lob + "/" + seq).getSQLException();
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry, block: " + block)
+                            .getSQLException();
                 }
                 int compressed = rs.getInt(1);
                 byte[] buffer = rs.getBytes(2);
@@ -219,7 +216,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * Retrieve the sequence id and position that is smaller than the requested
      * position. Those values can be used to quickly skip to a given position
      * without having to read all data.
-     *
+     * 
      * @param lob the lob
      * @param pos the required position
      * @return null if the data is not available, or an array of two elements:
@@ -316,27 +313,12 @@ public class LobStorageBackend implements LobStorageInterface {
 
     @Override
     public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
-        init();
-        if (byteCount == -1) {
-            synchronized (conn.getSession()) {
-                synchronized (database) {
-                    try {
-                        String sql = "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?";
-                        PreparedStatement prep = prepare(sql);
-                        prep.setLong(1, lobId);
-                        ResultSet rs = prep.executeQuery();
-                        if (!rs.next()) {
-                            throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob: " + lobId).getSQLException();
-                        }
-                        byteCount = rs.getLong(1);
-                        reuse(sql, prep);
-                    } catch (SQLException e) {
-                        throw DbException.convertToIOException(e);
-                    }
-                }
-            }
+        try {
+            init();
+            return new LobInputStream(lobId, byteCount);
+        } catch (SQLException e) {
+            throw DbException.convertToIOException(e);
         }
-        return new LobInputStream(lobId, byteCount);
     }
 
     private ValueLobDb addLob(InputStream in, long maxLength, int type) {
@@ -482,7 +464,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Store a block in the LOB storage.
-     *
+     * 
      * @param lobId the lob id
      * @param seq the sequence number
      * @param pos the position within the lob
@@ -585,10 +567,16 @@ public class LobStorageBackend implements LobStorageInterface {
     public class LobInputStream extends InputStream {
 
         /**
-         * The size of the lob.
+         * Data from the LOB_MAP table. We cache this to prevent other updates
+         * to the table that contains the LOB column from changing the data under us.
          */
-        private final long length;
-
+        private final long[] lobMapBlocks;
+        
+        /**
+         * index into the lobMapBlocks array.
+         */
+        private int lobMapIndex = 0;
+        
         /**
          * The remaining bytes in the lob.
          */
@@ -602,22 +590,52 @@ public class LobStorageBackend implements LobStorageInterface {
         /**
          * The position within the buffer.
          */
-        private int pos;
+        private int bufferPos;
 
-        /**
-         * The lob id.
-         */
-        private final long lob;
 
-        /**
-         * The lob sequence id.
-         */
-        private int seq;
+        public LobInputStream(long lobId, long byteCount) throws SQLException {
 
-        public LobInputStream(long lob, long byteCount) {
-            this.lob = lob;
-            this.remainingBytes = byteCount;
-            this.length = byteCount;
+            // we have to take the lock on the session
+            // before the lock on the database to prevent ABBA deadlocks
+            synchronized (conn.getSession()) {
+                synchronized (database) {
+                    if (byteCount == -1) {
+                        String sql = "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?";
+                        PreparedStatement prep = prepare(sql);
+                        prep.setLong(1, lobId);
+                        ResultSet rs = prep.executeQuery();
+                        if (!rs.next()) {
+                            throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry: " + lobId).getSQLException();
+                        }
+                        byteCount = rs.getLong(1);
+                        reuse(sql, prep);
+                    }
+                    this.remainingBytes = byteCount;
+                    
+                    String sql = "SELECT COUNT(*) FROM " + LOB_MAP + " WHERE LOB = ?";
+                    PreparedStatement prep = prepare(sql);
+                    prep.setLong(1, lobId);
+                    ResultSet rs = prep.executeQuery();
+                    if (!rs.next()) {
+                        throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry: " + lobId).getSQLException();
+                    }
+                    int lobMapCount = rs.getInt(1);
+                    reuse(sql, prep);
+
+                    this.lobMapBlocks = new long[lobMapCount];
+
+                    sql = "SELECT BLOCK FROM " + LOB_MAP + " WHERE LOB = ? ORDER BY SEQ";
+                    prep = prepare(sql);
+                    prep.setLong(1, lobId);
+                    rs = prep.executeQuery();
+                    int i = 0;
+                    while (rs.next()) {
+                        this.lobMapBlocks[i] = rs.getLong(1);
+                        i++;
+                    }
+                    reuse(sql, prep);
+                }
+            }
         }
 
         @Override
@@ -627,29 +645,23 @@ public class LobStorageBackend implements LobStorageInterface {
                 return -1;
             }
             remainingBytes--;
-            return buffer[pos++] & 255;
+            return buffer[bufferPos++] & 255;
         }
 
         @Override
         public long skip(long n) throws IOException {
+            if (n <= 0) {
+                return 0;
+            }
             long remaining = n;
             remaining -= skipSmall(remaining);
             if (remaining > BLOCK_LENGTH) {
-                long toPos = length - remainingBytes + remaining;
-                try {
-                    long[] seqPos = skipBuffer(lob, toPos);
-                    if (seqPos == null) {
-                        remaining -= super.skip(remaining);
-                        return n - remaining;
-                    }
-                    seq = (int) seqPos[0];
-                    long p = seqPos[1];
-                    remainingBytes = length - p;
-                    remaining = toPos - p;
-                } catch (SQLException e) {
-                    throw DbException.convertToIOException(e);
+                while (remaining > BLOCK_LENGTH) {
+                    remaining -= BLOCK_LENGTH;
+                    remainingBytes -= BLOCK_LENGTH;
+                    lobMapIndex++;
                 }
-                pos = 0;
+                bufferPos = 0;
                 buffer = null;
             }
             fillBuffer();
@@ -659,9 +671,9 @@ public class LobStorageBackend implements LobStorageInterface {
         }
 
         private int skipSmall(long n) {
-            if (n > 0 && buffer != null && pos < buffer.length) {
-                int x = MathUtils.convertLongToInt(Math.min(n, buffer.length - pos));
-                pos += x;
+            if (buffer != null && bufferPos < buffer.length) {
+                int x = MathUtils.convertLongToInt(Math.min(n, buffer.length - bufferPos));
+                bufferPos += x;
                 remainingBytes -= x;
                 return x;
             }
@@ -694,9 +706,9 @@ public class LobStorageBackend implements LobStorageInterface {
                     break;
                 }
                 int len = (int) Math.min(length, remainingBytes);
-                len = Math.min(len, buffer.length - pos);
-                System.arraycopy(buffer, pos, buff, off, len);
-                pos += len;
+                len = Math.min(len, buffer.length - bufferPos);
+                System.arraycopy(buffer, bufferPos, buff, off, len);
+                bufferPos += len;
                 read += len;
                 remainingBytes -= len;
                 off += len;
@@ -706,15 +718,16 @@ public class LobStorageBackend implements LobStorageInterface {
         }
 
         private void fillBuffer() throws IOException {
-            if (buffer != null && pos < buffer.length) {
+            if (buffer != null && bufferPos < buffer.length) {
                 return;
             }
             if (remainingBytes <= 0) {
                 return;
             }
             try {
-                buffer = readBlock(lob, seq++);
-                pos = 0;
+                buffer = readBlock(lobMapBlocks[lobMapIndex]);
+                lobMapIndex++;
+                bufferPos = 0;
             } catch (SQLException e) {
                 throw DbException.convertToIOException(e);
             }

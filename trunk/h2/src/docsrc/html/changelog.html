@@ -55,7 +55,8 @@ Change Log
 </li><li>Fix corruption resulting from a mix of the "WRITE_DELAY=0" option and "SELECT DISTINCT" queries
 </li><li>Fix the combination of updating a table which contains an LOB, and reading from the LOB at the same time.
     Previously it would throw an exception, now it works.
-</li><li>Issue 484: Console workaround for H2, patch from "mgcodeact"/"cumer d"
+</li><li>Issue 484: In the H2 Console tool, all schemas starting with "INFO" where hidden.
+    Now they are hidden only if the database is not H2. Patch from "mgcodeact"/"cumer d"
 </li><li>MySQL compatibiltity, support the "AUTO_INCREMENT=3" part of the CREATE TABLE statement.
 </li></ul>
 

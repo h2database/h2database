@@ -6,6 +6,7 @@
  */
 package org.h2.mvstore.db;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.store.InDoubtTransaction;
+import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.RegularTable;
 import org.h2.table.TableBase;
@@ -226,6 +228,10 @@ public class MVTableEngine implements TableEngine {
 
         public void setCacheSize(int kb) {
             store.setCacheSize(kb * 1024);
+        }
+
+        public InputStream getInputStream() {
+            return new FileChannelInputStream(store.getFile());
         }
 
     }

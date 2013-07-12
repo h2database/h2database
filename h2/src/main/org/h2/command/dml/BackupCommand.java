@@ -82,7 +82,8 @@ public class BackupCommand extends Prepared {
                         backupFile(out, base, n);
                     }
                     if (n.endsWith(Constants.SUFFIX_MV_FILE)) {
-                        backupFile(out, base, n);
+                        InputStream in = db.getMvStore().getInputStream();
+                        backupFile(out, base, n, in);
                     }
                 }
             }
@@ -115,6 +116,11 @@ public class BackupCommand extends Prepared {
     }
 
     private static void backupFile(ZipOutputStream out, String base, String fn) throws IOException {
+        InputStream in = FileUtils.newInputStream(fn);
+        backupFile(out, base, fn, in);
+    }
+
+    private static void backupFile(ZipOutputStream out, String base, String fn, InputStream in) throws IOException {
         String f = FileUtils.toRealPath(fn);
         base = FileUtils.toRealPath(base);
         if (!f.startsWith(base)) {
@@ -123,7 +129,6 @@ public class BackupCommand extends Prepared {
         f = f.substring(base.length());
         f = correctFileName(f);
         out.putNextEntry(new ZipEntry(f));
-        InputStream in = FileUtils.newInputStream(fn);
         IOUtils.copyAndCloseInput(in, out);
         out.closeEntry();
     }

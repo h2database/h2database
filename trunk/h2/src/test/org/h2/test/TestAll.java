@@ -680,10 +680,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestRandomCompare().runTest(this);
         new TestKillRestart().runTest(this);
         new TestKillRestartMulti().runTest(this);
-        if (!mvStore) {
-            // concurrent modification of the undoLog 
-            new TestMultiThreaded().runTest(this);
-        }
+        new TestMultiThreaded().runTest(this);
         new TestOuterJoins().runTest(this);
         new TestNestedJoins().runTest(this);
 

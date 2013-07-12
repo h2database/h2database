@@ -78,6 +78,7 @@ public class IndexCursor implements Cursor {
         inColumn = null;
         inResult = null;
         inResultTested = null;
+        intersects = null;
         // don't use enhanced for loop to avoid creating objects
         for (int i = 0, size = indexConditions.size(); i < size; i++) {
             IndexCondition condition = indexConditions.get(i);

@@ -64,14 +64,16 @@ public class DbSchema {
         this.name = name;
         this.quotedName =  contents.quoteIdentifier(name);
         this.isDefault = isDefault;
-        if (contents.isH2) {
-            isSystem = StringUtils.toUpperEnglish(name).startsWith("INFORMATION_SCHEMA");
-        } else if (contents.isPostgreSQL) {
-            isSystem = StringUtils.toUpperEnglish(name).startsWith("PG_");
-        } else if (contents.isDerby) {
-            isSystem = name.startsWith("SYS");
+        if (name.equals("INFORMATION_SCHEMA")) {
+            isSystem = true;
+        } else if (!contents.isH2 && StringUtils.toUpperEnglish(name).startsWith("INFO")) {
+            isSystem = true;
+        } else if (contents.isPostgreSQL && StringUtils.toUpperEnglish(name).startsWith("PG_")) {
+            isSystem = true;
+        } else if (contents.isDerby && name.startsWith("SYS")) {
+            isSystem = true;
         } else {
-            isSystem = StringUtils.toUpperEnglish(name).startsWith("INFO");
+            isSystem = false;
         }
     }
 

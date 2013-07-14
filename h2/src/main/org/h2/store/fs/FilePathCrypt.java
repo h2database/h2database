@@ -77,7 +77,7 @@ public class FilePathCrypt extends FilePathWrapper {
 
     @Override
     public InputStream newInputStream() throws IOException {
-        return new FileChannelInputStream(open("r"));
+        return new FileChannelInputStream(open("r"), true);
     }
 
     /**

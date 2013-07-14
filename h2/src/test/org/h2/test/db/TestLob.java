@@ -358,7 +358,7 @@ public class TestLob extends TestBase {
     }
 
     private void testDeadlock2() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.memory) {
             return;
         }
         deleteDb("lob");
@@ -1448,8 +1448,14 @@ public class TestLob extends TestBase {
         return new ByteArrayInputStream(buff);
     }
 
-    /** test the combination of updating a table which contains an LOB, and reading from the LOB at the same time */
+    /**
+     * Test the combination of updating a table which contains an LOB, and
+     * reading from the LOB at the same time
+     */
     private void testUpdatingLobRow() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
@@ -1461,7 +1467,7 @@ public class TestLob extends TestBase {
         Reader r = rs.getClob("name").getCharacterStream();
         Random random = new Random();
         char[] tmp = new char[256];
-        while ( r.read(tmp) > 0) {
+        while (r.read(tmp) > 0) {
             stat.execute("update test set counter = " + random.nextInt(1000) + " where id = 1");
         }
         r.close();

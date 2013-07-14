@@ -245,7 +245,7 @@ public class FilePathZip2 extends FilePath {
 
     @Override
     public InputStream newInputStream() throws IOException {
-        return new FileChannelInputStream(open("r"));
+        return new FileChannelInputStream(open("r"), true);
     }
 
     @Override

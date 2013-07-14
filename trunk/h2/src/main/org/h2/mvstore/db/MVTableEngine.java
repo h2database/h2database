@@ -231,7 +231,7 @@ public class MVTableEngine implements TableEngine {
         }
 
         public InputStream getInputStream() {
-            return new FileChannelInputStream(store.getFile());
+            return new FileChannelInputStream(store.getFile(), false);
         }
 
     }

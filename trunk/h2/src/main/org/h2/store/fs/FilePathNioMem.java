@@ -162,7 +162,7 @@ public class FilePathNioMem extends FilePath {
     public InputStream newInputStream() {
         FileNioMemData obj = getMemoryFile();
         FileNioMem m = new FileNioMem(obj, true);
-        return new FileChannelInputStream(m);
+        return new FileChannelInputStream(m, true);
     }
 
     @Override

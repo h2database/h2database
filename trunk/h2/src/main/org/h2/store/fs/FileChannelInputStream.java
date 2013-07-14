@@ -17,15 +17,18 @@ import java.nio.channels.FileChannel;
 public class FileChannelInputStream extends InputStream {
 
     private final FileChannel channel;
+    private final boolean closeChannel;
     private final byte[] buffer = { 0 };
 
     /**
      * Create a new file object input stream from the file channel.
      *
      * @param channel the file channel
+     * @param closeChannel whether closing the stream should close the channel
      */
-    public FileChannelInputStream(FileChannel channel) {
+    public FileChannelInputStream(FileChannel channel, boolean closeChannel) {
         this.channel = channel;
+        this.closeChannel = closeChannel;
     }
 
     @Override
@@ -53,7 +56,9 @@ public class FileChannelInputStream extends InputStream {
 
     @Override
     public void close() throws IOException {
-        channel.close();
+        if (closeChannel) {
+            channel.close();
+        }
     }
 
 }

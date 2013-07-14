@@ -162,7 +162,7 @@ public class FilePathMem extends FilePath {
     public InputStream newInputStream() {
         FileMemData obj = getMemoryFile();
         FileMem m = new FileMem(obj, true);
-        return new FileChannelInputStream(m);
+        return new FileChannelInputStream(m, true);
     }
 
     @Override

@@ -231,7 +231,7 @@ public class RegularTable extends TableBase {
             } else if (!indexType.isSpatial()) {
                 index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, create, session);
             } else {
-                throw new UnsupportedOperationException();
+                throw new UnsupportedOperationException("Spatial index only supported with the MVStore");
             }
         } else {
             if (indexType.isHash() && cols.length <= 1) {

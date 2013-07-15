@@ -38,6 +38,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
+import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLob;
@@ -440,6 +441,15 @@ public class ValueDataType implements DataType {
             }
             break;
         }
+        case Value.GEOMETRY: {
+            buff.put((byte) type);
+            byte[] b = v.getBytes();
+            int len = b.length;
+            writeVarInt(buff, len);
+            buff = DataUtils.ensureCapacity(buff, len);
+            buff.put(b, 0, len);
+            break;
+        }
         default:
             DbException.throwInternalError("type=" + v.getType());
         }
@@ -650,6 +660,12 @@ public class ValueDataType implements DataType {
                 rs.addRow(o);
             }
             return ValueResultSet.get(rs);
+        }
+        case Value.GEOMETRY: {
+            int len = readVarInt(buff);
+            byte[] b = DataUtils.newBytes(len);
+            buff.get(b, 0, len);
+            return ValueGeometry.get(b);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {

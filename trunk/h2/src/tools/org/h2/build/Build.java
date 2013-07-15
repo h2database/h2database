@@ -126,7 +126,7 @@ public class Build extends BuildBase {
                 "-cp", "temp",
                 "-sp", "src/main",
                 "-r", "html,txt",
-                "-ix", "-org.h2.test.*,-org.h2.dev.*,-org.h2.jaqu.*,-org.h2.mode.*",
+                "-ix", "-org.h2.test.*,-org.h2.dev.*,-org.h2.jaqu.*,-org.h2.mode.*,-org.h2.server.pg.*",
                 "org.h2.test.TestAll"));
     }
 

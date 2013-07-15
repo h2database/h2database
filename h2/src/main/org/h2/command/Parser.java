@@ -5404,6 +5404,7 @@ public class Parser {
             }
             read();
         }
+        readIf("DEFAULT");
         if (readIf("CHARSET")) {
             read("=");
             read("UTF8");

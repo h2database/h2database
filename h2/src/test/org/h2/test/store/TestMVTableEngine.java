@@ -27,7 +27,6 @@ import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 import org.h2.tools.Restore;
 import org.h2.util.JdbcUtils;
-import org.h2.util.Profiler;
 import org.h2.util.Task;
 
 /**
@@ -46,7 +45,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
-        // testSpeed();
+        // testShrinkDatabaseFile();
         testRecover();
         testSeparateKey();
         testRollback();
@@ -65,58 +64,28 @@ public class TestMVTableEngine extends TestBase {
         testSimple();
     }
 
-    private void testSpeed() throws Exception {
-        String dbName;
-        for (int i = 0; i < 10; i++) {
-            dbName = "mvstore";
-            dbName += ";LOCK_MODE=0";
-//            dbName += ";LOG=0";
-            testSpeed(dbName);
-int test;
-Profiler prof = new Profiler().startCollecting();
-            dbName = "mvstore" +
-                    ";MV_STORE=TRUE";
-            dbName += ";LOCK_MODE=0";
-            dbName += ";LOG=0";
-            testSpeed(dbName);
-System.out.println(prof.getTop(10));
-        }
+    private void testShrinkDatabaseFile() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
-    }
-
-    private void testSpeed(String dbName) throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
+        String dbName = "mvstore" +
+                ";MV_STORE=TRUE";
         Connection conn;
         Statement stat;
-        String url = getURL(dbName, true);
-        String user = getUser();
-        String password = getPassword();
-
-//Profiler prof = new Profiler();
-//prof.sumClasses=true;
-//prof.startCollecting();
-
-        conn = DriverManager.getConnection(url, user, password);
-        stat = conn.createStatement();
-        long time = System.currentTimeMillis();
-//        stat.execute(
-//                "create table test(id int primary key, name varchar(255))" +
-//                "as select x, 'Hello World' from system_range(1, 200000)");
-        stat.execute("create table test(id int primary key, name varchar)");
-        PreparedStatement prep = conn
-                .prepareStatement("insert into test values(?, ?)");
-
-        prep.setString(2, new String(new char[10]).replace((char) 0, 'x'));
-//        for (int i = 0; i < 20000; i++) {
-        for (int i = 0; i < 800000; i++) {
-
-            prep.setInt(1, i);
-            prep.execute();
+        long maxSize = 0;
+        for (int i = 0; i < 20; i++) {
+            conn = getConnection(dbName);
+            stat = conn.createStatement();
+            stat.execute("create table test(id int primary key, data varchar)");
+            stat.execute("insert into test select x, space(1000) from system_range(1, 1000)");
+            stat.execute("drop table test");
+            conn.close();
+            long size = FileUtils.size(getBaseDir() + "/mvstore"
+                    + Constants.SUFFIX_MV_FILE);
+            if (i < 10) {
+                maxSize = (int) (Math.max(size, maxSize) * 1.1);
+            } else if (size > maxSize) {
+                fail(i + " size: " + size + " max: " + maxSize);
+            }
         }
-        System.out.println((System.currentTimeMillis() - time) + " " + dbName + " before");
-        conn.close();
-//System.out.println(prof.getTop(10));
-        System.out.println((System.currentTimeMillis() - time) + " " + dbName + " after");
     }
 
     private void testRecover() throws Exception {

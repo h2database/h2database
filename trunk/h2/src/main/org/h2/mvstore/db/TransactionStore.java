@@ -236,6 +236,10 @@ public class TransactionStore {
                 commitIfNeeded();
                 long[] undoKey = new long[] { t.getId(), logId };
                 Object[] op = undoLog.get(undoKey);
+                if (op == null) {
+                    int todoImprove;
+                    continue;
+                }
                 int opType = (Integer) op[0];
                 if (opType == Transaction.OP_REMOVE) {
                     int mapId = (Integer) op[1];
@@ -337,6 +341,10 @@ public class TransactionStore {
                 commitIfNeeded();
                 long[] undoKey = new long[] { t.getId(), logId };
                 Object[] op = undoLog.get(undoKey);
+                if (op == null) {
+                    int todoImprove;
+                    continue;
+                }
                 int mapId = ((Integer) op[1]).intValue();
                 MVMap<Object, VersionedValue> map = openMap(mapId);
                 if (map != null) {
@@ -379,11 +387,15 @@ public class TransactionStore {
                     while (logId >= toLogId) {
                         Object[] op = undoLog.get(new long[] {
                                 t.getId(), logId });
+                        logId--;
+                        if (op == null) {
+                            int todoImprove;
+                            continue;
+                        }
                         int mapId = ((Integer) op[1]).intValue();
                         // TODO open map by id if possible
                         Map<String, String> meta = store.getMetaMap();
                         String m = meta.get("map." + mapId);
-                        logId--;
                         if (m == null) {
                             // map was removed later on
                         } else {

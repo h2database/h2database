@@ -264,7 +264,8 @@ public class TestCompatibility extends TestBase {
         stat.execute("CREATE TABLE TEST_2(ID INT PRIMARY KEY) ENGINE=MyISAM");
         stat.execute("CREATE TABLE TEST_3(ID INT PRIMARY KEY) ENGINE=InnoDb charset=UTF8");
         stat.execute("CREATE TABLE TEST_4(ID INT PRIMARY KEY) charset=UTF8");
-        stat.execute("CREATE TABLE TEST_5(ID INT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 charset=UTF8");
+        stat.execute("CREATE TABLE TEST_5(ID INT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 default charset=UTF8");
+        stat.execute("CREATE TABLE TEST_6(ID INT PRIMARY KEY) ENGINE=InnoDb auto_increment=3 charset=UTF8");
 
         // Check if mysql comments are supported, ensure clean connection
         conn.close();

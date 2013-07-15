@@ -59,13 +59,14 @@ public class LobStorageBackend implements LobStorageInterface {
      */
     private static final int HASH_CACHE_SIZE = 4 * 1024;
 
-    private JdbcConnection conn;
+    JdbcConnection conn;
+    final Database database;
+    
     private final HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
     private final CompressTool compress = CompressTool.getInstance();
     private long[] hashBlocks;
 
-    private final Database database;
     private boolean init;
 
     public LobStorageBackend(Database database) {
@@ -243,7 +244,7 @@ public class LobStorageBackend implements LobStorageInterface {
         }
     }
 
-    private PreparedStatement prepare(String sql) throws SQLException {
+    PreparedStatement prepare(String sql) throws SQLException {
         if (SysProperties.CHECK2) {
             if (!Thread.holdsLock(database)) {
                 throw DbException.throwInternalError();
@@ -256,7 +257,7 @@ public class LobStorageBackend implements LobStorageInterface {
         return prep;
     }
 
-    private void reuse(String sql, PreparedStatement prep) {
+    void reuse(String sql, PreparedStatement prep) {
         if (SysProperties.CHECK2) {
             if (!Thread.holdsLock(database)) {
                 throw DbException.throwInternalError();
@@ -575,7 +576,7 @@ public class LobStorageBackend implements LobStorageInterface {
         /**
          * index into the lobMapBlocks array.
          */
-        private int lobMapIndex = 0;
+        private int lobMapIndex;
         
         /**
          * The remaining bytes in the lob.

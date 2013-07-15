@@ -41,13 +41,23 @@ public class TestPgServer extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testPGAdapter();
+        testPgAdapter();
         testKeyAlias();
         testCancelQuery();
         testBinaryTypes();
     }
+    
+    private boolean getPgJdbcDriver() {
+        try {
+            Class.forName("org.postgresql.Driver");
+            return true;
+        } catch (ClassNotFoundException e) {
+            println("PostgreSQL JDBC driver not found - PgServer not tested");
+            return false;
+        }
+    }
 
-    private void testPGAdapter() throws SQLException {
+    private void testPgAdapter() throws SQLException {
         deleteDb("test");
         Server server = Server.createPgServer("-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
         assertEquals(5535, server.getPort());
@@ -55,23 +65,24 @@ public class TestPgServer extends TestBase {
         server.start();
         assertStartsWith(server.getStatus(), "PG server running at pg://");
         try {
-            Class.forName("org.postgresql.Driver");
-            testPgClient();
-        } catch (ClassNotFoundException e) {
-            println("PostgreSQL JDBC driver not found - PgServer not tested");
+            if (getPgJdbcDriver()) {
+                testPgClient();
+            }
         } finally {
             server.stop();
         }
     }
 
     private void testCancelQuery() throws Exception {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+
         Server server = Server.createPgServer("-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
         server.start();
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
-            Class.forName("org.postgresql.Driver");
-
             Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
             final Statement stat = conn.createStatement();
             stat.execute("create alias sleep for \"java.lang.Thread.sleep\"");
@@ -101,8 +112,6 @@ public class TestPgServer extends TestBase {
             } finally {
                 conn.close();
             }
-        } catch (ClassNotFoundException e) {
-            println("PostgreSQL JDBC driver not found - PgServer not tested");
         } finally {
             server.stop();
             executor.shutdown();
@@ -119,6 +128,7 @@ public class TestPgServer extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("create index idx_test_name on test(name, id)");
         stat.execute("grant all on test to test");
+        stat.close();
         conn.close();
 
         conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "test", "test");
@@ -131,7 +141,13 @@ public class TestPgServer extends TestBase {
         assertEquals(6, rs.getInt(1));
         stat.execute("deallocate test");
 
-        PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
+        PreparedStatement prep;
+        prep = conn.prepareStatement("select * from test where name = ?");
+        prep.setNull(1, Types.VARCHAR);
+        rs = prep.executeQuery();
+        assertFalse(rs.next());
+        
+        prep = conn.prepareStatement("insert into test values(?, ?)");
         ParameterMetaData meta = prep.getParameterMetaData();
         assertEquals(2, meta.getParameterCount());
         prep.setInt(1, 1);
@@ -272,11 +288,12 @@ public class TestPgServer extends TestBase {
     }
 
     private void testKeyAlias() throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
         Server server = Server.createPgServer("-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
         server.start();
         try {
-            Class.forName("org.postgresql.Driver");
-
             Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
             Statement stat = conn.createStatement();
 
@@ -288,19 +305,19 @@ public class TestPgServer extends TestBase {
             assertEquals("MEMORY", rs.getString(1));
 
             conn.close();
-        } catch (ClassNotFoundException e) {
-            println("PostgreSQL JDBC driver not found - PgServer not tested");
         } finally {
             server.stop();
         }
     }
 
     private void testBinaryTypes() throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+        
         Server server = Server.createPgServer("-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
         server.start();
         try {
-            Class.forName("org.postgresql.Driver");
-
             Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
             Statement stat = conn.createStatement();
 
@@ -335,8 +352,6 @@ public class TestPgServer extends TestBase {
                     rs.getBytes(10));
 
             conn.close();
-        } catch (ClassNotFoundException e) {
-            println("PostgreSQL JDBC driver not found - PgServer not tested");
         } finally {
             server.stop();
         }

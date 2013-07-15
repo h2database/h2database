@@ -115,7 +115,7 @@ public class PgServerThread implements Runnable {
         return dataIn.readInt();
     }
 
-    private int readShort() throws IOException {
+    private short readShort() throws IOException {
         return dataIn.readShort();
     }
 
@@ -143,7 +143,7 @@ public class PgServerThread implements Runnable {
         byte[] data = DataUtils.newBytes(len);
         dataInRaw.readFully(data, 0, len);
         dataIn = new DataInputStream(new ByteArrayInputStream(data, 0, len));
-        switchBlock: switch (x) {
+        switch (x) {
         case 0:
             server.trace("Init");
             int version = readInt();
@@ -269,7 +269,7 @@ public class PgServerThread implements Runnable {
                 }
             } catch (Exception e) {
                 sendErrorResponse(e);
-                break switchBlock;
+                break;
             }
             int resultCodeCount = readShort();
             portal.resultColumnFormat = new int[resultCodeCount];
@@ -509,11 +509,11 @@ public class PgServerThread implements Runnable {
             switch (pgType) {
             case PgServer.PG_TYPE_INT2:
                 writeInt(2);
-                dataOut.writeShort(rs.getShort(column));
+                writeShort(rs.getShort(column));
                 break;
             case PgServer.PG_TYPE_INT4:
                 writeInt(4);
-                dataOut.writeInt(rs.getInt(column));
+                writeInt(rs.getInt(column));
                 break;
             case PgServer.PG_TYPE_INT8:
                 writeInt(8);
@@ -565,33 +565,23 @@ public class PgServerThread implements Runnable {
             // binary
             switch (pgType) {
             case PgServer.PG_TYPE_INT2:
-                if (paramLen != 4) {
-                    throw DbException.getInvalidValueException("paramLen", paramLen);
-                }
-                prep.setShort(col, dataIn.readShort());
+                checkParamLength(4, paramLen);
+                prep.setShort(col, readShort());
                 break;
             case PgServer.PG_TYPE_INT4:
-                if (paramLen != 4) {
-                    throw DbException.getInvalidValueException("paramLen", paramLen);
-                }
-                prep.setInt(col, dataIn.readInt());
+                checkParamLength(4, paramLen);
+                prep.setInt(col, readInt());
                 break;
             case PgServer.PG_TYPE_INT8:
-                if (paramLen != 8) {
-                    throw DbException.getInvalidValueException("paramLen", paramLen);
-                }
+                checkParamLength(8, paramLen);
                 prep.setLong(col, dataIn.readLong());
                 break;
             case PgServer.PG_TYPE_FLOAT4:
-                if (paramLen != 4) {
-                    throw DbException.getInvalidValueException("paramLen", paramLen);
-                }
+                checkParamLength(4, paramLen);
                 prep.setFloat(col, dataIn.readFloat());
                 break;
             case PgServer.PG_TYPE_FLOAT8:
-                if (paramLen != 8) {
-                    throw DbException.getInvalidValueException("paramLen", paramLen);
-                }
+                checkParamLength(8, paramLen);
                 prep.setDouble(col, dataIn.readDouble());
                 break;
             case PgServer.PG_TYPE_BYTEA:
@@ -605,6 +595,12 @@ public class PgServerThread implements Runnable {
                 readFully(d2);
                 prep.setString(col, new String(d2, getEncoding()));
             }
+        }
+    }
+    
+    private static void checkParamLength(int expected, int got) {
+        if (expected != got) {
+            throw DbException.getInvalidValueException("paramLen", got);
         }
     }
 

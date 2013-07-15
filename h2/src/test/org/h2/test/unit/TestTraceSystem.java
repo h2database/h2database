@@ -35,8 +35,11 @@ public class TestTraceSystem extends TestBase {
 
     private static void testAdapter() {
         TraceSystem ts = new TraceSystem(null);
+        ts.setName("test");
         ts.setLevelFile(TraceSystem.ADAPTER);
+        ts.getTrace("test").debug("test");
         ts.getTrace("test").info("test");
+        ts.getTrace("test").error(new Exception(), "test");
         ts.close();
     }
 

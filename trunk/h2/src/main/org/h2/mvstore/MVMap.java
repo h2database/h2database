@@ -74,7 +74,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     /**
      * Create a copy of a page, if the write version is higher than the current
-     * version.
+     * version. If a copy is created, the old page is marked as deleted.
      *
      * @param p the page
      * @param writeVersion the write version
@@ -674,7 +674,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (p.getKeyCount() == 0) {
                 p.setChild(index, c);
                 p.setCounts(index, c);
-                removePage(p.getPos());
+                p.removePage();
             } else {
                 p.remove(index);
             }

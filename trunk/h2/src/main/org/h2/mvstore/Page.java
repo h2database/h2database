@@ -273,7 +273,7 @@ public class Page {
      * @return a page with the given version
      */
     public Page copy(long version) {
-        map.removePage(pos);
+        removePage();
         Page newPage = create(map, version,
                 keyCount, keys, values, children, childrenPages,
                 counts, totalCount,
@@ -552,7 +552,7 @@ public class Page {
                 }
             }
         }
-        map.removePage(pos);
+        removePage();
     }
 
     /**
@@ -932,6 +932,13 @@ public class Page {
 
     void setVersion(long version) {
         this.version = version;
+    }
+
+    /**
+     * Remove the page.
+     */
+    public void removePage() {
+        map.removePage(pos);
     }
 
 }

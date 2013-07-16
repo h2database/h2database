@@ -176,6 +176,7 @@ public class Database implements DataHandler {
     private final int reconnectCheckDelay;
     private int logMode;
     private MVTableEngine.Store mvStore;
+    private DbException backgroundException;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -1798,6 +1799,16 @@ public class Database implements DataHandler {
      * @param session the session
      */
     synchronized void commit(Session session) {
+        if (backgroundException != null) {
+            // we don't care too much about concurrency here,
+            // we just want to make sure the exception is _normally_
+            // not just logged to the .trace.db file
+            DbException b = backgroundException;
+            backgroundException = null;
+            if (b != null) {
+                throw b;
+            }
+        }
         if (readOnly) {
             return;
         }
@@ -1818,7 +1829,12 @@ public class Database implements DataHandler {
             pageStore.flushLog();
         }
         if (mvStore != null) {
-            mvStore.store();
+            try {
+                mvStore.store();
+            } catch (RuntimeException e) {
+                backgroundException = DbException.convert(e);
+                throw e;
+            }
         }
     }
 

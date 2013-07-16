@@ -5164,6 +5164,10 @@ public class Parser {
                 read("(");
             }
             command.setIndexColumns(parseIndexColumnList());
+            // MySQL compatibility
+            if (readIf("USING")) {
+                read("BTREE");
+            }
             return command;
         }
         AlterTableAddConstraint command;

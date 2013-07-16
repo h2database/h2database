@@ -4706,6 +4706,10 @@ public class Parser {
                 // HSQLDB compatibility
                 currentToken = SetTypes.getTypeName(SetTypes.MAX_LOG_SIZE);
             }
+            if (isToken("FOREIGN_KEY_CHECKS")) {
+                // MySQL compatibility
+                currentToken = SetTypes.getTypeName(SetTypes.REFERENTIAL_INTEGRITY);
+            }
             int type = SetTypes.getType(currentToken);
             if (type < 0) {
                 throw getSyntaxError();

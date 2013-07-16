@@ -920,13 +920,6 @@ public class MVStore {
 
         meta.put("chunk." + c.id, c.asString());
 
-        if (ASSERT) {
-            if (freedPages.size() > 0) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_INTERNAL, "Temporary freed chunks");
-            }
-        }
-
         // this will modify maxLengthLive, but
         // the correct value is written in the chunk header
         buff = meta.getRoot().writeUnsavedRecursive(c, buff);
@@ -1581,11 +1574,13 @@ public class MVStore {
         for (MVMap<?, ?> m : maps.values()) {
             m.rollbackTo(version);
         }
-        for (long v = currentVersion; v >= version; v--) {
-            if (freedPages.size() == 0) {
-                break;
+        synchronized (freedPages) {
+            for (long v = currentVersion; v >= version; v--) {
+                if (freedPages.size() == 0) {
+                    break;
+                }
+                freedPages.remove(v);
             }
-            freedPages.remove(v);
         }
         meta.rollbackTo(version);
         metaChanged = false;

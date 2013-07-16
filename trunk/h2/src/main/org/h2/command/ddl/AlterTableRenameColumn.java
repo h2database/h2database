@@ -11,6 +11,7 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.expression.Expression;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
@@ -46,7 +47,11 @@ public class AlterTableRenameColumn extends DefineCommand {
         Database db = session.getDatabase();
         session.getUser().checkRight(table, Right.ALL);
         table.checkSupportAlter();
+        // we need to update CHECK constraint since it might reference the name of the column
+        Expression newCheckExpr = column.getCheckConstraint(session, newName);
         table.renameColumn(column, newName);
+        column.removeCheckConstraint();
+        column.addCheckConstraint(session, newCheckExpr);
         table.setModified();
         db.update(session, table);
         for (DbObject child : table.getChildren()) {

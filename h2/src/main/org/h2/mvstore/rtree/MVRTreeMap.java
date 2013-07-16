@@ -155,7 +155,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     result = p.getValue(i);
                     p.remove(i);
                     if (p.getKeyCount() == 0) {
-                        removePage(p.getPos());
+                        p.removePage();
                     }
                     break;
                 }
@@ -165,9 +165,14 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         for (int i = 0; i < p.getKeyCount(); i++) {
             if (contains(p, i, key)) {
                 Page cOld = p.getChildPage(i);
+                // this will mark the old page as deleted
+                // so we need to update the parent in any case
+                // (otherwise the old page might be deleted again)
                 Page c = copyOnWrite(cOld, writeVersion);
                 long oldSize = c.getTotalCount();
                 result = remove(c, writeVersion, key);
+                p.setChild(i, c);
+                p.setCounts(i, c);
                 if (oldSize == c.getTotalCount()) {
                     continue;
                 }
@@ -175,7 +180,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     // this child was deleted
                     p.remove(i);
                     if (p.getKeyCount() == 0) {
-                        removePage(p.getPos());
+                        p.removePage();
                     }
                     break;
                 }
@@ -183,8 +188,6 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 if (!keyType.isInside(key, oldBounds)) {
                     p.setKey(i, getBounds(c));
                 }
-                p.setChild(i, c);
-                p.setCounts(i, c);
                 break;
             }
         }

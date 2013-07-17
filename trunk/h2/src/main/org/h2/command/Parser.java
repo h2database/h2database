@@ -3795,9 +3795,7 @@ public class Parser {
                 column.setSelectivity(selectivity);
             }
             Expression checkConstraint = templateColumn.getCheckConstraint(session, columnName);
-            if (checkConstraint != null) {
-                column.addCheckConstraint(session, checkConstraint);
-            }
+            column.addCheckConstraint(session, checkConstraint);
         }
         column.setComment(comment);
         column.setOriginalSQL(original);

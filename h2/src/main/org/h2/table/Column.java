@@ -537,6 +537,9 @@ public class Column {
      * @param expr the (additional) constraint
      */
     public void addCheckConstraint(Session session, Expression expr) {
+        if (expr == null) {
+            return;
+        }
         resolver = new SingleColumnResolver(this);
         synchronized (this) {
             String oldName = name;

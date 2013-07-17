@@ -5189,6 +5189,10 @@ public class Parser {
                 String indexName = readIdentifierWithSchema();
                 command.setIndex(getSchema().findIndex(session, indexName));
             }
+            // MySQL compatibility
+            if (readIf("USING")) {
+                read("BTREE");
+            }
         } else if (readIf("FOREIGN")) {
             command = new AlterTableAddConstraint(session, schema, ifNotExists);
             command.setType(CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL);

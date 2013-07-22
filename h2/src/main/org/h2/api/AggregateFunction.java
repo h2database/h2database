@@ -28,7 +28,7 @@ public interface AggregateFunction {
      * the input data. The method should check here if the number of parameters
      * passed is correct, and if not it should throw an exception.
      *
-     * @param inputTypes the SQL type of the parameters
+     * @param inputTypes the SQL type of the parameters, {@link java.sql.Types} 
      * @return the SQL type of the result
      */
     int getType(int[] inputTypes) throws SQLException;

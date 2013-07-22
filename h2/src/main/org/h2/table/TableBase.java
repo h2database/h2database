@@ -6,6 +6,8 @@
  */
 package org.h2.table;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.DbSettings;
 import org.h2.mvstore.db.MVTableEngine;
@@ -24,13 +26,18 @@ public abstract class TableBase extends Table {
      * The table engine used (null for regular tables).
      */
     private final String tableEngine;
-
+    /** Provided table parameters */
+    private List<String> tableEngineParams = new ArrayList<String>();
+    
     private final boolean globalTemporary;
 
     public TableBase(CreateTableData data) {
         super(data.schema, data.id, data.tableName, data.persistIndexes, data.persistData);
         this.tableEngine = data.tableEngine;
         this.globalTemporary = data.globalTemporary;
+        if(data.tableEngineParams != null) {
+            this.tableEngineParams = data.tableEngineParams;
+        }
         setTemporary(data.temporary);
         Column[] cols = new Column[data.columns.size()];
         data.columns.toArray(cols);
@@ -81,6 +88,14 @@ public abstract class TableBase extends Table {
                 buff.append("\nENGINE \"");
                 buff.append(tableEngine);
                 buff.append('\"');
+            }
+        }
+        if(!tableEngineParams.isEmpty()) {
+            buff.append("\nWITH ");
+            buff.resetCount();
+            for (String parameter : tableEngineParams) {
+                buff.appendExceptFirst(", ");
+                buff.append("\""+parameter+"\"");
             }
         }
         if (!isPersistIndexes() && !isPersistData()) {

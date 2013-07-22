@@ -14,6 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
@@ -541,18 +543,20 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
     }
 
-    private void testBigDatabase(boolean withCache) {
+    private void testBigDatabase(boolean withCache) throws InterruptedException {
         boolean longRun = false;
         final int howMuchRows = longRun ? 2000000 : 500000;
         deleteDb("fileLockSerialized");
         int cacheSizeKb = withCache ? 5000 : 0;
 
+        final CountDownLatch importFinishedLatch = new CountDownLatch(1);
+        final CountDownLatch select1FinishedLatch = new CountDownLatch(1);
+
         final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized" +
                 ";FILE_LOCK=SERIALIZED" +
                 ";OPEN_NEW=TRUE" +
                 ";CACHE_SIZE=" + cacheSizeKb;
-        final boolean[] importFinished = { false };
-        final Task importUpdate = new Task() {
+        final Task importUpdateTask = new Task() {
             @Override
             public void call() throws Exception {
                 Connection conn = DriverManager.getConnection(url);
@@ -561,33 +565,32 @@ public class TestFileLockSerialized extends TestBase {
                 for (int i = 0; i < howMuchRows; i++) {
                     stat.execute("insert into test values(" + i + ", " + i + ")");
                 }
-                importFinished[0] = true;
-                Thread.sleep(5000);
+                importFinishedLatch.countDown();
+                
+                select1FinishedLatch.await();
+
                 stat.execute("update test set id2=999 where id=500");
                 conn.close();
-                importFinished[0] = true;
             }
         };
-        importUpdate.execute();
+        importUpdateTask.execute();
 
-        Task select = new Task() {
+        Task selectTask = new Task() {
             @Override
             public void call() throws Exception {
                 Connection conn = DriverManager.getConnection(url);
                 Statement stat = conn.createStatement();
-                while (!importFinished[0]) {
-                    Thread.sleep(100);
-                }
-                Thread.sleep(1000);
+                importFinishedLatch.await();
+
                 ResultSet rs = stat.executeQuery("select id2 from test where id=500");
                 assertTrue(rs.next());
                 assertEquals(500, rs.getInt(1));
                 rs.close();
+                select1FinishedLatch.countDown();
 
-                // wait until the task finished
-                importUpdate.get();
+                // wait until the other task finished
+                importUpdateTask.get();
 
-                Thread.sleep(1000);
                 // can't use the exact same query, otherwise it would use
                 // the query cache
                 rs = stat.executeQuery("select id2 from test where id=500+0");
@@ -597,9 +600,10 @@ public class TestFileLockSerialized extends TestBase {
                 conn.close();
             }
         };
-        select.execute();
-        importUpdate.get();
-        select.get();
+        selectTask.execute();
+        
+        importUpdateTask.get();
+        selectTask.get();
         deleteDb("fileLockSerialized");
     }
 

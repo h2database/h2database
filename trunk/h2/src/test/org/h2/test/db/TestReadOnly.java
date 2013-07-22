@@ -106,7 +106,7 @@ public class TestReadOnly extends TestBase {
         stat.execute("create table a(id int)");
         stat.execute("create index ai on a(id)");
         conn.close();
-        conn = getConnection("readOnlyDbCreate;ACCESS_MODE_DATA=r");
+        conn = getConnection("readonlyDbCreate;ACCESS_MODE_DATA=r");
         stat = conn.createStatement();
         stat.execute("create table if not exists a(id int)");
         stat.execute("create index if not exists ai on a(id)");

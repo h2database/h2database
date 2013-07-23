@@ -607,6 +607,7 @@ directory is used as a starting point. The case sensitivity of the path and data
 operating system, however it is recommended to use lowercase letters only.
 The database name must be at least three characters long
 (a limitation of <code>File.createTempFile</code>).
+The database name must not contain a semicolon.
 To point to the user home directory, use <code>~/</code>, as in: <code>jdbc:h2:~/test</code>.
 </p>
 

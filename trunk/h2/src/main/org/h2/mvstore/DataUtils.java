@@ -705,14 +705,19 @@ public class DataUtils {
     }
     
     private static String formatMessage(int errorCode, String message, Object... arguments) {
-        return MessageFormat.format(message, arguments) + " " + getVersionAndCode(errorCode);
+        // convert arguments to strings, to avoid locale specific formatting
+        for (int i = 0; i < arguments.length; i++) {
+            Object a = arguments[i];
+            if (!(a instanceof Exception)) {
+                arguments[i] = a == null ? "null" : a.toString();
+            }
+        }
+        return MessageFormat.format(message, arguments) + 
+                " [" + Constants.VERSION_MAJOR + "." +
+                Constants.VERSION_MINOR + "." + Constants.BUILD_ID + 
+                "/" + errorCode + "]"; 
     }
 
-    private static String getVersionAndCode(int errorCode) {
-        return "[" + Constants.VERSION_MAJOR + "." +
-                Constants.VERSION_MINOR + "." + Constants.BUILD_ID + "/" + errorCode + "]";
-    }
-    
     /**
      * Get the error code from an exception message.
      * 

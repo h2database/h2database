@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Server mode: if there was an error while reading from a LOB, the session was closed in some cases.
+<ul><li>Support empty statements that just contains a comment.
+</li><li>Server mode: if there was an error while reading from a LOB, the session was closed in some cases.
 </li><li>Issue 463: Driver name and version are now the same in OsgiDataSourceFactory and JdbcDatabaseMetaData.
 </li><li>JaQu: The data type VARCHAR is now (again) used for Strings
     (no longer TEXT, except when explicitly set).
@@ -52,8 +53,10 @@ Change Log
 </li><li>Fix a NullPointerException when attempting to add foreign key reference to a view.
 </li><li>Add sufficient ClientInfo support to our javax.sql.Connection implementation to make WebSphere happy.
 </li><li>Issue 482: class LobStorageBackend$LobInputStream does not override the method InputStream.available().
-</li><li>Fix corruption resulting from a mix of the "WRITE_DELAY=0" option and "SELECT DISTINCT" queries
-</li><li>Fix the combination of updating a table which contains an LOB, and reading from the LOB at the same time.
+</li><li>Fix corruption resulting from a mix of the "WRITE_DELAY=0" option 
+    and "SELECT DISTINCT" queries that don't fit in memory.
+</li><li>Fix the combination of updating a table which contains an LOB, 
+    and reading from the LOB at the same time.
     Previously it would throw an exception, now it works.
 </li><li>Issue 484: In the H2 Console tool, all schemas starting with "INFO" where hidden.
     Now they are hidden only if the database is not H2. Patch from "mgcodeact"/"cumer d"

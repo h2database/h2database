@@ -439,6 +439,9 @@ public class Parser {
                     c = parseWith();
                 }
                 break;
+            case ';':
+                c = new NoOperation(session);
+                break;
             default:
                 throw getSyntaxError();
             }

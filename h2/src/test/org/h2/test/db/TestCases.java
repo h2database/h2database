@@ -39,6 +39,7 @@ public class TestCases extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testEmptyStatements();
         testViewParameters();
         testLargeKeys();
         testExtraSemicolonInDatabaseURL();
@@ -99,6 +100,16 @@ public class TestCases extends TestBase {
         testCollation();
         testBinaryCollation();
         deleteDb("cases");
+    }
+    
+    private void testEmptyStatements() throws SQLException {
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;");
+        stat.execute("");
+        stat.execute(";");
+        stat.execute(" ;");
+        conn.close();
     }
 
     private void testViewParameters() throws SQLException {

@@ -35,7 +35,7 @@ public abstract class TableBase extends Table {
         super(data.schema, data.id, data.tableName, data.persistIndexes, data.persistData);
         this.tableEngine = data.tableEngine;
         this.globalTemporary = data.globalTemporary;
-        if(data.tableEngineParams != null) {
+        if (data.tableEngineParams != null) {
             this.tableEngineParams = data.tableEngineParams;
         }
         setTemporary(data.temporary);
@@ -85,17 +85,16 @@ public abstract class TableBase extends Table {
                 d = MVTableEngine.class.getName();
             }
             if (d == null || !tableEngine.endsWith(d)) {
-                buff.append("\nENGINE \"");
-                buff.append(tableEngine);
-                buff.append('\"');
+                buff.append("\nENGINE ");
+                buff.append(StringUtils.quoteIdentifier(tableEngine));
             }
         }
-        if(!tableEngineParams.isEmpty()) {
+        if (!tableEngineParams.isEmpty()) {
             buff.append("\nWITH ");
             buff.resetCount();
             for (String parameter : tableEngineParams) {
                 buff.appendExceptFirst(", ");
-                buff.append("\""+parameter+"\"");
+                buff.append(StringUtils.quoteIdentifier(parameter));
             }
         }
         if (!isPersistIndexes() && !isPersistData()) {

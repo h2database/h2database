@@ -82,13 +82,15 @@ public class TestTableEngines extends TestBase {
         assertEquals("param1", EndlessTableEngine.createTableData.tableEngineParams.get(0));
         assertEquals("param2", EndlessTableEngine.createTableData.tableEngineParams.get(1));
         conn.close();
-        // Test serialisation of table parameters
-        EndlessTableEngine.createTableData.tableEngineParams.clear();
-        conn = getConnection("tableEngine");
-        assertEquals(2, EndlessTableEngine.createTableData.tableEngineParams.size());
-        assertEquals("param1", EndlessTableEngine.createTableData.tableEngineParams.get(0));
-        assertEquals("param2", EndlessTableEngine.createTableData.tableEngineParams.get(1));
-        conn.close();
+        if (!config.memory) {
+            // Test serialisation of table parameters
+            EndlessTableEngine.createTableData.tableEngineParams.clear();
+            conn = getConnection("tableEngine");
+            assertEquals(2, EndlessTableEngine.createTableData.tableEngineParams.size());
+            assertEquals("param1", EndlessTableEngine.createTableData.tableEngineParams.get(0));
+            assertEquals("param2", EndlessTableEngine.createTableData.tableEngineParams.get(1));
+            conn.close();
+        }
         deleteDb("tableEngine");
     }
 

@@ -15,7 +15,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore;
 import org.h2.mvstore.db.TransactionStore.Change;
@@ -24,6 +26,7 @@ import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
+import org.h2.util.Task;
 
 /**
  * Test concurrent transactions.
@@ -42,6 +45,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
+        testStopWhileCommitting();
         testGetModifiedMaps();
         testKeyIterator();
         testMultiStatement();
@@ -50,6 +54,70 @@ public class TestTransactionStore extends TestBase {
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+    }
+    
+    private void testStopWhileCommitting() throws Exception {
+        String fileName = getBaseDir() + "/testStopWhileCommitting.h3";
+        FileUtils.delete(fileName);
+
+        for (int i = 0; i < 10;) {
+            MVStore s;
+            TransactionStore ts;
+            Transaction tx;
+            TransactionMap<Integer, String> m;
+
+            s = MVStore.open(fileName);
+            ts = new TransactionStore(s);
+            tx = ts.begin();
+            s.setReuseSpace(false);
+            m = tx.openMap("test");
+            final String value = "x" + i;
+            for (int j = 0; j < 1000; j++) {
+                m.put(j, value);
+            }
+            final AtomicInteger state = new AtomicInteger();
+            final MVStore store = s;
+            final MVMap<Integer, String> other = s.openMap("other");
+            Task task = new Task() {
+
+                @Override
+                public void call() throws Exception {
+                    for (int i = 0; state.get() < Integer.MAX_VALUE; i++) {
+                        state.set(i);
+                        other.put(i, value);
+                        store.store();
+                    }
+                }
+            };
+            task.execute();
+            // wait for the task to start
+            while (state.get() < 1) {
+                Thread.yield();
+            }
+            // commit while writing in the task
+            tx.commit();
+            // stop writing
+            state.set(Integer.MAX_VALUE);
+            // wait for the task to stop
+            task.get();
+            store.close();
+            s = MVStore.open(fileName);
+            ts = new TransactionStore(s);
+            List<Transaction> list = ts.getOpenTransactions();
+            if (list.size() != 0) {
+                tx = list.get(0);
+                if (tx.getStatus() == Transaction.STATUS_COMITTING) {
+                    i++;
+                }
+            }
+            s.close();
+            FileUtils.delete(fileName);
+            assertFalse(FileUtils.exists(fileName));
+            FileUtils.delete(fileName);
+            assertFalse(FileUtils.exists(fileName));
+            s.close();
+            FileUtils.delete(fileName);        
+        }
     }
 
     private void testGetModifiedMaps() {

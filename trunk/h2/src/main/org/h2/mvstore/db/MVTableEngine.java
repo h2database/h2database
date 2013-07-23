@@ -191,12 +191,15 @@ public class MVTableEngine implements TableEngine {
         }
 
         /**
-         * Rollback all open transactions.
+         * Commit all transactions that are in the committing state, and
+         * rollback all open transactions.
          */
-        public void rollback() {
+        public void initTransactions() {
             List<Transaction> list = transactionStore.getOpenTransactions();
             for (Transaction t : list) {
-                if (t.getStatus() != Transaction.STATUS_PREPARED) {
+                if (t.getStatus() == Transaction.STATUS_COMITTING) {
+                    t.commit();
+                } else if (t.getStatus() != Transaction.STATUS_PREPARED) {
                     t.rollback();
                 }
             }

@@ -51,7 +51,7 @@ TransactionStore:
 - support reading the undo log
 
 MVStore:
-- rolling docs review: at convert "Features" to top-level (linked) entries
+- rolling docs review: at "Features"
 - additional test async write / read algorithm for speed and errors
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
     and settings that are persistent (setStoreVersion)
@@ -61,7 +61,7 @@ MVStore:
 - maybe split database into multiple files, to speed up compact
 - auto-compact from time to time and on close
 - test and possibly improve compact operation (for large dbs)
-- possibly split chunk data into immutable and mutable
+- possibly split chunk metadata into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - chunk header: store changed chunk data as row; maybe after the root
@@ -69,8 +69,8 @@ MVStore:
 - is there a better name for the file header,
 -- if it's no longer always at the beginning of a file? store header?
 - on insert, if the child page is already full, don't load and modify it
--- split directly (for leaves with 1 entry)
-- maybe let a chunk point to possible next chunks
+-- split directly (specially for leaves with one large entry)
+- maybe let a chunk point to a list of potential next chunks
 -- (so no fixed location header is needed)
 - support stores that span multiple files (chunks stored in other files)
 - triggers (can be implemented with a custom map)
@@ -107,6 +107,7 @@ MVStore:
 - unit test for the FreeSpaceList; maybe find a simpler implementation
 - support opening (existing) maps by id
 - more consistent null handling (keys/values sometimes may be null)
+- logging mechanism, specially for operations in a background thread
 
 */
 
@@ -959,6 +960,7 @@ public class MVStore {
         buff.position(0);
         fileWriteCount++;
         DataUtils.writeFully(file, filePos, buff);
+        
         fileSize = Math.max(fileSize, filePos + buff.position());
         if (buff.capacity() <= 4 * 1024 * 1024) {
             writeBuffer = buff;
@@ -1846,7 +1848,13 @@ public class MVStore {
                         // ignore
                     }
                 }
-                store.storeInBackground();
+                try {
+                    store.storeInBackground();
+                } catch (Exception e) {
+                    int todo;
+                    // TODO throw the exception in the main thread
+                    // at some point, or log the problem
+                }
             }
         }
 

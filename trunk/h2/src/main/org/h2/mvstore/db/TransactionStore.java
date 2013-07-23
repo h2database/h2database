@@ -44,6 +44,8 @@ public class TransactionStore {
 
     /**
      * The undo log.
+     * If the first entry for a transaction doesn't have a logId of 0, then
+     * the transaction is committing (partially committed). 
      * Key: [ transactionId, logId ], value: [ opType, mapId, key, oldValue ].
      */
     final MVMap<long[], Object[]> undoLog;
@@ -141,7 +143,12 @@ public class TransactionStore {
                 int status;
                 String name;
                 if (data == null) {
-                    status = Transaction.STATUS_OPEN;
+                    key[1] = 0;
+                    if (undoLog.containsKey(key)) {
+                        status = Transaction.STATUS_OPEN;
+                    } else {
+                        status = Transaction.STATUS_COMITTING;
+                    }
                     name = null;
                 } else {
                     status = (Integer) data[0];
@@ -232,12 +239,18 @@ public class TransactionStore {
             return;
         }
         synchronized (undoLog) {
+            t.setStatus(Transaction.STATUS_COMITTING);
             for (long logId = 0; logId < maxLogId; logId++) {
                 commitIfNeeded();
                 long[] undoKey = new long[] { t.getId(), logId };
                 Object[] op = undoLog.get(undoKey);
                 if (op == null) {
-                    int todoImprove;
+                    // partially committed: load next
+                    undoKey = undoLog.ceilingKey(undoKey);
+                    if (undoKey == null || undoKey[0] != t.getId()) {
+                        break;
+                    }
+                    logId = undoKey[1] - 1;
                     continue;
                 }
                 int opType = (Integer) op[0];
@@ -342,7 +355,12 @@ public class TransactionStore {
                 long[] undoKey = new long[] { t.getId(), logId };
                 Object[] op = undoLog.get(undoKey);
                 if (op == null) {
-                    int todoImprove;
+                    // partially rolled back: load previous
+                    undoKey = undoLog.floorKey(undoKey);
+                    if (undoKey == null || undoKey[0] != t.getId()) {
+                        break;
+                    }
+                    logId = undoKey[1] + 1;
                     continue;
                 }
                 int mapId = ((Integer) op[1]).intValue();
@@ -385,11 +403,16 @@ public class TransactionStore {
             private void fetchNext() {
                 synchronized (undoLog) {
                     while (logId >= toLogId) {
-                        Object[] op = undoLog.get(new long[] {
-                                t.getId(), logId });
+                        long[] undoKey = new long[] { t.getId(), logId };
+                        Object[] op = undoLog.get(undoKey);
                         logId--;
                         if (op == null) {
-                            int todoImprove;
+                            // partially rolled back: load previous
+                            undoKey = undoLog.floorKey(undoKey);
+                            if (undoKey == null || undoKey[0] != t.getId()) {
+                                break;
+                            }
+                            logId = undoKey[1];
                             continue;
                         }
                         int mapId = ((Integer) op[1]).intValue();
@@ -461,19 +484,27 @@ public class TransactionStore {
     public static class Transaction {
 
         /**
+         * The status of a closed transaction (committed or rolled back).
+         */
+        public static final int STATUS_CLOSED = 0;
+
+        /**
          * The status of an open transaction.
          */
-        public static final int STATUS_OPEN = 0;
+        public static final int STATUS_OPEN = 1;
 
         /**
          * The status of a prepared transaction.
          */
-        public static final int STATUS_PREPARED = 1;
+        public static final int STATUS_PREPARED = 2;
 
         /**
-         * The status of a closed transaction (committed or rolled back).
+         * The status of a transaction that is being committed, but possibly not
+         * yet finished. A transactions can go into this state when the store is
+         * closed while the transaction is committing. When opening a store,
+         * such transactions should be committed.
          */
-        public static final int STATUS_CLOSED = 2;
+        public static final int STATUS_COMITTING = 3;
 
         /**
          * The operation type for changes in a map.

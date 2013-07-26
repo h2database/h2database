@@ -323,7 +323,7 @@ public class Aggregate extends Expression {
                 if (val.getType() == Value.ARRAY) {
                     s = ((ValueArray) val).getList()[0].getString();
                 } else {
-                    s = val.convertTo(Value.STRING).getString();
+                    s = val.getString();
                 }
                 if (s == null) {
                     continue;

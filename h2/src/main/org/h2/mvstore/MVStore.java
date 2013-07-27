@@ -6,6 +6,7 @@
  */
 package org.h2.mvstore;
 
+import java.beans.ExceptionListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -104,7 +105,6 @@ MVStore:
 - maybe rename 'rollback' to 'revert' to distinguish from transactions
 - support other compression algorithms (deflate, LZ4,...)
 - only retain the last version, unless explicitly set (setRetainVersion)
-- unit test for the FreeSpaceList; maybe find a simpler implementation
 - support opening (existing) maps by id
 - more consistent null handling (keys/values sometimes may be null)
 - logging mechanism, specially for operations in a background thread
@@ -161,11 +161,12 @@ public class MVStore {
      */
     private final ConcurrentHashMap<Integer, Chunk> chunks =
             new ConcurrentHashMap<Integer, Chunk>();
+    
     /**
-     * The list of free spaces between the chunks.
+     * The free spaces between the chunks. The first block to use is block 2
+     * (the first two blocks are the file header).
      */
-    private FreeSpaceList freeSpaceList = new FreeSpaceList();
-
+    private FreeSpaceBitSet freeSpace = new FreeSpaceBitSet(2, BLOCK_SIZE);
 
     /**
      * The map of temporarily removed pages. The key is the unsaved version, the
@@ -234,6 +235,8 @@ public class MVStore {
      * The delay in milliseconds to automatically store changes.
      */
     private int writeDelay = 1000;
+    
+    private ExceptionListener backgroundExceptionListener;
 
     MVStore(HashMap<String, Object> config) {
         String f = (String) config.get("fileName");
@@ -598,12 +601,13 @@ public class MVStore {
             }
         }
         // rebuild the free space list
-        freeSpaceList.clear();
+        freeSpace.clear();
         for (Chunk c : chunks.values()) {
             if (c.start == Long.MAX_VALUE) {
                 continue;
             }
-            freeSpaceList.markUsed(c);
+            int len = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
+            freeSpace.markUsed(c.start, len);
         }
     }
 
@@ -710,6 +714,7 @@ public class MVStore {
 
     /**
      * Close the file and the store, without writing anything.
+     * This will stop the background thread.
      */
     public void closeImmediately() {
         closeFile(false);
@@ -743,7 +748,7 @@ public class MVStore {
                 }
                 meta = null;
                 chunks.clear();
-                freeSpaceList.clear();
+                freeSpace.clear();
                 cache.clear();
                 maps.clear();
             } catch (Exception e) {
@@ -927,6 +932,8 @@ public class MVStore {
 
         int chunkLength = buff.position();
 
+        // round to the next block, 
+        // and one additional block for the file header
         int length = MathUtils.roundUpInt(chunkLength, BLOCK_SIZE) + BLOCK_SIZE;
         if (length > buff.capacity()) {
             buff = DataUtils.ensureCapacity(buff, length - buff.capacity());
@@ -934,17 +941,22 @@ public class MVStore {
         buff.limit(length);
 
         long fileSizeUsed = getFileSizeUsed();
-        long filePos = reuseSpace ? allocateChunk(length) : fileSizeUsed;
+        long filePos;
+        if (reuseSpace) {
+            filePos = freeSpace.allocate(length);
+        } else {
+            filePos = fileSizeUsed;
+            freeSpace.markUsed(fileSizeUsed, length);
+        }
         boolean storeAtEndOfFile = filePos + length >= fileSizeUsed;
 
         // free up the space of unused chunks now
         for (Chunk x : removedChunks) {
-            freeSpaceList.markFree(x);
+            freeSpace.free(x.start, x.length);
         }
 
         c.start = filePos;
         c.length = chunkLength;
-        freeSpaceList.markUsed(c);
         c.metaRootPos = meta.getRoot().getPos();
         buff.position(0);
         c.writeHeader(buff);
@@ -1105,10 +1117,6 @@ public class MVStore {
             size = Math.max(size, MathUtils.roundUpLong(x, BLOCK_SIZE) + BLOCK_SIZE);
         }
         return size;
-    }
-
-    private long allocateChunk(long length) {
-        return ((long) freeSpaceList.allocatePages(length)) * BLOCK_SIZE;
     }
 
     /**
@@ -1449,6 +1457,20 @@ public class MVStore {
         }
         return v;
     }
+    
+    /**
+     * Set the listener to be used for exceptions that occur in the background thread.
+     * 
+     * @param backgroundExceptionListener the listener
+     */
+    public void setBackgroundExceptionListener(
+            ExceptionListener backgroundExceptionListener) {
+        this.backgroundExceptionListener = backgroundExceptionListener;
+    }
+
+    public ExceptionListener getBackgroundExceptionListener() {
+        return backgroundExceptionListener;
+    }
 
     /**
      * Check whether all data can be read from this version. This requires that
@@ -1561,7 +1583,7 @@ public class MVStore {
             }
             meta.clear();
             chunks.clear();
-            freeSpaceList.clear();
+            freeSpace.clear();
             maps.clear();
             synchronized (freedPages) {
                 freedPages.clear();
@@ -1594,7 +1616,7 @@ public class MVStore {
                 loadFromFile = true;
                 do {
                     last = chunks.remove(lastChunkId);
-                    freeSpaceList.markFree(last);
+                    freeSpace.free(last.start, last.length);
                     lastChunkId--;
                 } while (last.version > version && chunks.size() > 0);
                 rootChunkStart = last.start;
@@ -1771,7 +1793,13 @@ public class MVStore {
         if (time <= lastStoreTime + writeDelay) {
             return;
         }
-        store(true);
+        try {
+            store(true);
+        } catch (Exception e) {
+            if (backgroundExceptionListener != null) {
+                backgroundExceptionListener.exceptionThrown(e);
+            }
+        }
     }
 
     /**
@@ -1780,7 +1808,9 @@ public class MVStore {
      * @param mb the cache size in MB.
      */
     public void setCacheSize(long mb) {
-        cache.setMaxMemory(mb * 1024 * 1024);
+        if (cache != null) {
+            cache.setMaxMemory(mb * 1024 * 1024);
+        }
     }
 
     public boolean isReadOnly() {
@@ -1848,13 +1878,7 @@ public class MVStore {
                         // ignore
                     }
                 }
-                try {
-                    store.storeInBackground();
-                } catch (Exception e) {
-                    int todo;
-                    // TODO throw the exception in the main thread
-                    // at some point, or log the problem
-                }
+                store.storeInBackground();
             }
         }
 

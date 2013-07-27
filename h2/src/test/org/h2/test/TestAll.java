@@ -110,6 +110,7 @@ import org.h2.test.store.TestCacheLIRS;
 import org.h2.test.store.TestCacheLongKeyLIRS;
 import org.h2.test.store.TestConcurrent;
 import org.h2.test.store.TestDataUtils;
+import org.h2.test.store.TestFreeSpace;
 import org.h2.test.store.TestMVRTree;
 import org.h2.test.store.TestMVStore;
 import org.h2.test.store.TestMVTableEngine;
@@ -448,10 +449,17 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         } else {
             test.runTests();
             Profiler prof = new Profiler();
-            prof.depth = 4;
+            prof.depth = 8;
             prof.interval = 1;
             prof.startCollecting();
-            TestPerformance.main("-init", "-db", "1");
+            if (test.mvStore) {
+                TestPerformance.main("-init", "-db", "9", "-size", "1000");
+                TestPerformance.main("-init", "-db", "1", "-size", "1000");
+                TestPerformance.main("-init", "-db", "9", "-size", "1000");
+                TestPerformance.main("-init", "-db", "1", "-size", "1000");
+            } else {
+                TestPerformance.main("-init", "-db", "1");
+            }
             prof.stopCollecting();
             System.out.println(prof.getTop(3));
 //            Recover.execute("data", null);
@@ -694,6 +702,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestCacheLongKeyLIRS().runTest(this);
         new TestConcurrent().runTest(this);
         new TestDataUtils().runTest(this);
+        new TestFreeSpace().runTest(this);
         new TestMVRTree().runTest(this);
         new TestMVStore().runTest(this);
         new TestMVTableEngine().runTest(this);

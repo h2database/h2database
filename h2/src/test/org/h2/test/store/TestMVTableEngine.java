@@ -46,6 +46,7 @@ public class TestMVTableEngine extends TestBase {
     @Override
     public void test() throws Exception {
         // testShrinkDatabaseFile();
+        testTwoPhaseCommit();
         testRecover();
         testSeparateKey();
         testRollback();
@@ -86,6 +87,33 @@ public class TestMVTableEngine extends TestBase {
                 fail(i + " size: " + size + " max: " + maxSize);
             }
         }
+    }
+    
+    private void testTwoPhaseCommit() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore;MV_STORE=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("set write_delay 0");
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values(1, 'Hello')");
+        stat.execute("prepare commit test_tx");
+        stat.execute("shutdown immediately");
+        JdbcUtils.closeSilently(conn);
+
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        ResultSet rs;
+        rs = stat.executeQuery("select * from information_schema.in_doubt");
+        assertTrue(rs.next());
+        stat.execute("commit transaction test_tx");
+        rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        conn.close();
     }
 
     private void testRecover() throws Exception {

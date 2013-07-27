@@ -116,7 +116,7 @@ public class Chunk {
     }
 
     /**
-     * Write the header.
+     * Write the chunk header.
      *
      * @param buff the target buffer
      */

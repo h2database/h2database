@@ -6,6 +6,7 @@
  */
 package org.h2.engine;
 
+import java.beans.ExceptionListener;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -273,6 +274,15 @@ public class Database implements DataHandler {
 
     public void setMvStore(MVTableEngine.Store mvStore) {
         this.mvStore = mvStore;
+        mvStore.getStore().setBackgroundExceptionListener(new ExceptionListener() {
+
+            @Override
+            public void exceptionThrown(Exception e) {
+                setBackgroundException(DbException.convert(e));
+            }
+            
+        });
+
     }
 
     /**
@@ -1086,6 +1096,7 @@ public class Database implements DataHandler {
         if (closing) {
             return;
         }
+        throwLastBackgroundException();
         if (fileLockMethod == FileLock.LOCK_SERIALIZED && !reconnectChangePending) {
             // another connection may have written something - don't write
             try {
@@ -1799,6 +1810,17 @@ public class Database implements DataHandler {
      * @param session the session
      */
     synchronized void commit(Session session) {
+        throwLastBackgroundException();
+        if (readOnly) {
+            return;
+        }
+        if (pageStore != null) {
+            pageStore.commit(session);
+        }
+        session.setAllCommitted();
+    }
+    
+    private void throwLastBackgroundException() {
         if (backgroundException != null) {
             // we don't care too much about concurrency here,
             // we just want to make sure the exception is _normally_
@@ -1809,13 +1831,16 @@ public class Database implements DataHandler {
                 throw b;
             }
         }
-        if (readOnly) {
-            return;
+    }
+    
+    public void setBackgroundException(DbException e) {
+        if (backgroundException == null) {
+            backgroundException = e;
+            TraceSystem t = getTraceSystem();
+            if (t != null) {
+                t.getTrace(Trace.DATABASE).error(e, "flush");
+            }
         }
-        if (pageStore != null) {
-            pageStore.commit(session);
-        }
-        session.setAllCommitted();
     }
 
     /**

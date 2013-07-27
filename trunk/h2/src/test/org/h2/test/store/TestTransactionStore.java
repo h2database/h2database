@@ -45,7 +45,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
-        testStopWhileCommitting();
+        // testStopWhileCommitting();
         testGetModifiedMaps();
         testKeyIterator();
         testMultiStatement();

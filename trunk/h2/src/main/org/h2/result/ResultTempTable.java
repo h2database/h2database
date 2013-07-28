@@ -153,7 +153,8 @@ public class ResultTempTable implements ResultExternal {
         }
         try {
             Database database = session.getDatabase();
-            // Need to lock because not all of the code-paths that reach here have already taken this lock,
+            // Need to lock because not all of the code-paths
+            // that reach here have already taken this lock,
             // notably via the close() paths.
             synchronized (session) {
                 synchronized (database) {

@@ -45,7 +45,7 @@ public class TransactionStore {
     /**
      * The undo log.
      * If the first entry for a transaction doesn't have a logId of 0, then
-     * the transaction is committing (partially committed). 
+     * the transaction is committing (partially committed).
      * Key: [ transactionId, logId ], value: [ opType, mapId, key, oldValue ].
      */
     final MVMap<long[], Object[]> undoLog;
@@ -147,7 +147,7 @@ public class TransactionStore {
                     if (undoLog.containsKey(key)) {
                         status = Transaction.STATUS_OPEN;
                     } else {
-                        status = Transaction.STATUS_COMITTING;
+                        status = Transaction.STATUS_COMMITTING;
                     }
                     name = null;
                 } else {
@@ -239,7 +239,7 @@ public class TransactionStore {
             return;
         }
         synchronized (undoLog) {
-            t.setStatus(Transaction.STATUS_COMITTING);
+            t.setStatus(Transaction.STATUS_COMMITTING);
             for (long logId = 0; logId < maxLogId; logId++) {
                 commitIfNeeded();
                 long[] undoKey = new long[] { t.getId(), logId };
@@ -504,7 +504,7 @@ public class TransactionStore {
          * closed while the transaction is committing. When opening a store,
          * such transactions should be committed.
          */
-        public static final int STATUS_COMITTING = 3;
+        public static final int STATUS_COMMITTING = 3;
 
         /**
          * The operation type for changes in a map.

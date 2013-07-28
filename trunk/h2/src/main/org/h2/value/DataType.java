@@ -40,20 +40,20 @@ import org.h2.util.Utils;
  * and can convert between Java objects and Values.
  */
 public class DataType {
-    
+
     /**
      * This constant is used to represent the type of a ResultSet. There is no
      * equivalent java.sql.Types value, but Oracle uses it to represent a
      * ResultSet (OracleTypes.CURSOR = -10).
      */
     public static final int TYPE_RESULT_SET = -10;
-    
+
     /**
      * The Geometry class. This object is null if the jts jar file is not in the
      * classpath.
      */
     public static final Class<?> GEOMETRY_CLASS;
-    
+
     private static final String GEOMETRY_CLASS_NAME = "com.vividsolutions.jts.geom.Geometry";
 
     /**
@@ -169,7 +169,7 @@ public class DataType {
      * The number of bytes required for an object.
      */
     public int memory;
-    
+
     static {
         Class<?> g;
         try {
@@ -960,7 +960,7 @@ public class DataType {
             return ValueJavaObject.getNoCopy(x, null);
         }
     }
-    
+
     private static boolean isGeometry(Object x) {
         if (x == null || GEOMETRY_CLASS == null) {
             return false;

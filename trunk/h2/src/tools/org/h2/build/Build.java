@@ -524,8 +524,8 @@ public class Build extends BuildBase {
         mkdir("docs/javadoc");
         javadoc("-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
                 "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
-                "-classpath", 
-                "ext/" + getLuceneJar() + 
+                "-classpath",
+                "ext/" + getLuceneJar() +
                 File.pathSeparator + "ext/jts-1.13.jar",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");

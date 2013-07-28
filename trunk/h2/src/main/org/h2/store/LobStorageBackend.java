@@ -61,7 +61,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     JdbcConnection conn;
     final Database database;
-    
+
     private final HashMap<String, PreparedStatement> prepared = New.hashMap();
     private long nextBlock;
     private final CompressTool compress = CompressTool.getInstance();
@@ -156,7 +156,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Remove all LOBs for this table.
-     * 
+     *
      * @param tableId the table id
      */
     public void removeAllForTable(int tableId) {
@@ -185,7 +185,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Read a block of data from the given LOB.
-     * 
+     *
      * @param block the block number
      * @return the block (expanded if stored compressed)
      */
@@ -217,7 +217,7 @@ public class LobStorageBackend implements LobStorageInterface {
      * Retrieve the sequence id and position that is smaller than the requested
      * position. Those values can be used to quickly skip to a given position
      * without having to read all data.
-     * 
+     *
      * @param lob the lob
      * @param pos the required position
      * @return null if the data is not available, or an array of two elements:
@@ -244,6 +244,12 @@ public class LobStorageBackend implements LobStorageInterface {
         }
     }
 
+    /**
+     * Create a prepared statement, or re-use an existing one.
+     *
+     * @param sql the SQL statement
+     * @return the prepared statement
+     */
     PreparedStatement prepare(String sql) throws SQLException {
         if (SysProperties.CHECK2) {
             if (!Thread.holdsLock(database)) {
@@ -257,6 +263,12 @@ public class LobStorageBackend implements LobStorageInterface {
         return prep;
     }
 
+    /**
+     * Allow to re-use the prepared statement.
+     *
+     * @param sql the SQL statement
+     * @param prep the prepared statement
+     */
     void reuse(String sql, PreparedStatement prep) {
         if (SysProperties.CHECK2) {
             if (!Thread.holdsLock(database)) {
@@ -465,7 +477,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     /**
      * Store a block in the LOB storage.
-     * 
+     *
      * @param lobId the lob id
      * @param seq the sequence number
      * @param pos the position within the lob
@@ -572,12 +584,12 @@ public class LobStorageBackend implements LobStorageInterface {
          * to the table that contains the LOB column from changing the data under us.
          */
         private final long[] lobMapBlocks;
-        
+
         /**
          * index into the lobMapBlocks array.
          */
         private int lobMapIndex;
-        
+
         /**
          * The remaining bytes in the lob.
          */
@@ -612,7 +624,7 @@ public class LobStorageBackend implements LobStorageInterface {
                         reuse(sql, prep);
                     }
                     this.remainingBytes = byteCount;
-                    
+
                     String sql = "SELECT COUNT(*) FROM " + LOB_MAP + " WHERE LOB = ?";
                     PreparedStatement prep = prepare(sql);
                     prep.setLong(1, lobId);

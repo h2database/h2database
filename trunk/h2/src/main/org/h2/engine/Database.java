@@ -280,7 +280,7 @@ public class Database implements DataHandler {
             public void exceptionThrown(Exception e) {
                 setBackgroundException(DbException.convert(e));
             }
-            
+
         });
 
     }
@@ -1819,7 +1819,7 @@ public class Database implements DataHandler {
         }
         session.setAllCommitted();
     }
-    
+
     private void throwLastBackgroundException() {
         if (backgroundException != null) {
             // we don't care too much about concurrency here,
@@ -1832,7 +1832,7 @@ public class Database implements DataHandler {
             }
         }
     }
-    
+
     public void setBackgroundException(DbException e) {
         if (backgroundException == null) {
             backgroundException = e;

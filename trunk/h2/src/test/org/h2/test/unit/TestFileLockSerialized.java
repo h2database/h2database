@@ -566,7 +566,7 @@ public class TestFileLockSerialized extends TestBase {
                     stat.execute("insert into test values(" + i + ", " + i + ")");
                 }
                 importFinishedLatch.countDown();
-                
+
                 select1FinishedLatch.await();
 
                 stat.execute("update test set id2=999 where id=500");
@@ -601,7 +601,7 @@ public class TestFileLockSerialized extends TestBase {
             }
         };
         selectTask.execute();
-        
+
         importUpdateTask.get();
         selectTask.get();
         deleteDb("fileLockSerialized");

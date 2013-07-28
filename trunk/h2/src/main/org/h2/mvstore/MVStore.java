@@ -161,7 +161,7 @@ public class MVStore {
      */
     private final ConcurrentHashMap<Integer, Chunk> chunks =
             new ConcurrentHashMap<Integer, Chunk>();
-    
+
     /**
      * The free spaces between the chunks. The first block to use is block 2
      * (the first two blocks are the file header).
@@ -235,7 +235,7 @@ public class MVStore {
      * The delay in milliseconds to automatically store changes.
      */
     private int writeDelay = 1000;
-    
+
     private ExceptionListener backgroundExceptionListener;
 
     MVStore(HashMap<String, Object> config) {
@@ -441,7 +441,7 @@ public class MVStore {
 
     /**
      * Open the store.
-     * 
+     *
      * @throws IllegalStateException if the file is corrupt, or an exception
      *             occurred while opening
      * @throws IllegalArgumentException if the directory does not exist
@@ -932,7 +932,7 @@ public class MVStore {
 
         int chunkLength = buff.position();
 
-        // round to the next block, 
+        // round to the next block,
         // and one additional block for the file header
         int length = MathUtils.roundUpInt(chunkLength, BLOCK_SIZE) + BLOCK_SIZE;
         if (length > buff.capacity()) {
@@ -972,7 +972,7 @@ public class MVStore {
         buff.position(0);
         fileWriteCount++;
         DataUtils.writeFully(file, filePos, buff);
-        
+
         fileSize = Math.max(fileSize, filePos + buff.position());
         if (buff.capacity() <= 4 * 1024 * 1024) {
             writeBuffer = buff;
@@ -1457,10 +1457,11 @@ public class MVStore {
         }
         return v;
     }
-    
+
     /**
-     * Set the listener to be used for exceptions that occur in the background thread.
-     * 
+     * Set the listener to be used for exceptions that occur in the background
+     * thread.
+     *
      * @param backgroundExceptionListener the listener
      */
     public void setBackgroundExceptionListener(
@@ -1804,7 +1805,7 @@ public class MVStore {
 
     /**
      * Set the read cache size in MB.
-     * 
+     *
      * @param mb the cache size in MB.
      */
     public void setCacheSize(long mb) {

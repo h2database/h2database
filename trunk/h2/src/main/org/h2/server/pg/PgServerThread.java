@@ -597,7 +597,7 @@ public class PgServerThread implements Runnable {
             }
         }
     }
-    
+
     private static void checkParamLength(int expected, int got) {
         if (expected != got) {
             throw DbException.getInvalidValueException("paramLen", got);

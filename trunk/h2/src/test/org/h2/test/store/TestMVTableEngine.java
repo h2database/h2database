@@ -88,7 +88,7 @@ public class TestMVTableEngine extends TestBase {
             }
         }
     }
-    
+
     private void testTwoPhaseCommit() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -204,7 +204,7 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("insert into test values(1)");
         stat.execute("shutdown immediately");
         JdbcUtils.closeSilently(conn);
-        
+
         conn = getConnection(url);
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select row_count_estimate " +

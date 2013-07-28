@@ -211,12 +211,13 @@ public class SourceCompiler {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
             ProcessBuilder builder = new ProcessBuilder();
-            // The javac executable allows some of it's flags to be smuggled in via environment variables.
-            // But if it sees those flags, it will write out a message to stderr, which messes up our
-            // parsing of the output.
+            // The javac executable allows some of it's flags
+            // to be smuggled in via environment variables.
+            // But if it sees those flags, it will write out a message
+            // to stderr, which messes up our parsing of the output.
             builder.environment().remove("JAVA_TOOL_OPTIONS");
             builder.command(args);
-            
+
             Process p = builder.start();
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);

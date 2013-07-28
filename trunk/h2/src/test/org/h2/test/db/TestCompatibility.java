@@ -272,7 +272,7 @@ public class TestCompatibility extends TestBase {
         // this maps to SET REFERENTIAL_INTEGRITY TRUE/FALSE
         stat.execute("SET foreign_key_checks = 0");
         stat.execute("SET foreign_key_checks = 1");
-        
+
         // Check if mysql comments are supported, ensure clean connection
         conn.close();
         conn = getConnection("compatibility;MODE=MYSQL");

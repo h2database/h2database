@@ -55,7 +55,7 @@ public class TestTransactionStore extends TestBase {
         testSingleConnection();
         testCompareWithPostgreSQL();
     }
-    
+
     private void testStopWhileCommitting() throws Exception {
         String fileName = getBaseDir() + "/testStopWhileCommitting.h3";
         FileUtils.delete(fileName);
@@ -106,7 +106,7 @@ public class TestTransactionStore extends TestBase {
             List<Transaction> list = ts.getOpenTransactions();
             if (list.size() != 0) {
                 tx = list.get(0);
-                if (tx.getStatus() == Transaction.STATUS_COMITTING) {
+                if (tx.getStatus() == Transaction.STATUS_COMMITTING) {
                     i++;
                 }
             }
@@ -116,7 +116,7 @@ public class TestTransactionStore extends TestBase {
             FileUtils.delete(fileName);
             assertFalse(FileUtils.exists(fileName));
             s.close();
-            FileUtils.delete(fileName);        
+            FileUtils.delete(fileName);
         }
     }
 

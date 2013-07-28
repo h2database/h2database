@@ -26,20 +26,20 @@ public class TestFreeSpace extends TestBase {
         testMemoryUsage();
         testPerformance();
     }
-    
+
     @Override
     public void test() throws Exception {
         testSimple();
         testRandomized();
     }
-    
+
     private static void testPerformance() {
         for (int i = 0; i < 10; i++) {
             long t = System.currentTimeMillis();
-            
+
             FreeSpaceBitSet f = new FreeSpaceBitSet(0, 4096);
             // 75 ms
-            
+
             // FreeSpaceList f = new FreeSpaceList(0, 4096);
             // 13868 ms
 
@@ -58,18 +58,18 @@ public class TestFreeSpace extends TestBase {
             System.out.println(System.currentTimeMillis() - t);
         }
     }
-    
+
     private static void testMemoryUsage() {
-        
+
         // 16 GB file size
         long size = 16L * 1024 * 1024 * 1024;
         System.gc();
         System.gc();
-        long first = Utils.getMemoryUsed();        
-        
+        long first = Utils.getMemoryUsed();
+
         FreeSpaceBitSet f = new FreeSpaceBitSet(0, 4096);
         // 512 KB
-        
+
         // FreeSpaceTree f = new FreeSpaceTree(0, 4096);
         // 64 MB
 
@@ -105,7 +105,7 @@ public class TestFreeSpace extends TestBase {
         assertEquals(f1.toString(), f2.toString());
         assertEquals(f1.toString(), f3.toString());
     }
-    
+
     private void testRandomized() {
         FreeSpaceBitSet f1 = new FreeSpaceBitSet(2, 8);
         FreeSpaceList f2 = new FreeSpaceList(2, 8);

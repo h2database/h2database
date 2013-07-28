@@ -15,12 +15,12 @@ import org.h2.util.MathUtils;
  * A list that maintains ranges of free space (in blocks) in a file.
  */
 public class FreeSpaceTree {
-    
+
     /**
      * The first usable block.
      */
     private final int firstFreeBlock;
-    
+
     /**
      * The block size in bytes.
      */
@@ -45,7 +45,7 @@ public class FreeSpaceTree {
      */
     public synchronized void clear() {
         freeSpace.clear();
-        freeSpace.add(new BlockRange(firstFreeBlock, 
+        freeSpace.add(new BlockRange(firstFreeBlock,
                 Integer.MAX_VALUE - firstFreeBlock));
     }
 
@@ -73,7 +73,13 @@ public class FreeSpaceTree {
         }
         return pos;
     }
-    
+
+    /**
+     * Mark the space as in use.
+     *
+     * @param pos the position in bytes
+     * @param length the number of bytes
+     */
     public synchronized void markUsed(long pos, int length) {
         int start = getBlock(pos);
         int blocks = getBlockCount(length);
@@ -103,7 +109,13 @@ public class FreeSpaceTree {
             prev.blocks = start - prev.start;
         }
     }
-    
+
+    /**
+     * Mark the space as free.
+     *
+     * @param pos the position in bytes
+     * @param length the number of bytes
+     */
     public synchronized void free(long pos, int length) {
         int start = getBlock(pos);
         int blocks = getBlockCount(length);
@@ -134,15 +146,15 @@ public class FreeSpaceTree {
         }
         freeSpace.add(x);
     }
-    
+
     private long getPos(int block) {
         return (long) block * (long) blockSize;
     }
-    
+
     private int getBlock(long pos) {
         return (int) (pos / blockSize);
     }
-    
+
     private int getBlockCount(int length) {
         if (length <= 0) {
             throw DataUtils.newIllegalStateException(
@@ -175,7 +187,7 @@ public class FreeSpaceTree {
             this.start = start;
             this.blocks = blocks;
         }
-        
+
         @Override
         public int compareTo(BlockRange o) {
             return start < o.start ? -1 : start > o.start ? 1 : 0;

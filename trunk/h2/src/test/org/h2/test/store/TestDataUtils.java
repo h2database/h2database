@@ -81,7 +81,7 @@ public class TestDataUtils extends TestBase {
         assertEquals("1,2", m.get("c"));
         assertEquals("\"test\"", m.get("d"));
     }
-        
+
     private void testMapRandomized() {
         Random r = new Random(1);
         String chars = "a_1,\\\":";

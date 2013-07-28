@@ -128,7 +128,7 @@ public class TestAlter extends TestBase {
             execute("insert into test values(3)");
         stat.execute("drop table test");
     }
-    
+
     private void testAlterTableDropIdentityColumn() throws SQLException {
         stat.execute("create table test(id int auto_increment, name varchar)");
         stat.execute("alter table test drop column id");

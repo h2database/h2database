@@ -36,6 +36,7 @@ Import-Package: javax.management,
  org.h2.jdbcx;version="[${version},1.4.0)",
  org.h2.tools;version="[${version},1.4.0)",
  org.h2.util;version="[${version},1.4.0)",
+ org.h2.value;version="[${version},1.4.0)",
  org.osgi.framework;version="1.5",
  org.osgi.service.jdbc;version="1.0",
  org.slf4j;version="[1.6.0,1.7.0)";resolution:=optional
@@ -46,5 +47,6 @@ Export-Package: org.h2;version="${version}",
  org.h2.jdbc;version="${version}",
  org.h2.jdbcx;version="${version}",
  org.h2.tools;version="${version}",
- org.h2.util;version="${version}"
+ org.h2.util;version="${version}",
+ org.h2.value;version="${version}"
 Premain-Class: org.h2.util.Profiler

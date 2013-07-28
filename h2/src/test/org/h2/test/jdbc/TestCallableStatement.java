@@ -17,6 +17,7 @@ import java.sql.Types;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Utils;
 
 /**
  * Tests for the CallableStatement class.
@@ -39,6 +40,7 @@ public class TestCallableStatement extends TestBase {
         testCallWithResultSet(conn);
         testCallWithResult(conn);
         testPrepare(conn);
+        testClassLoader(conn);
         conn.close();
         deleteDb("callableStatement");
     }
@@ -147,6 +149,28 @@ public class TestCallableStatement extends TestBase {
                 getString("X");
     }
 
+    private void testClassLoader(Connection conn) throws SQLException {
+        Utils.ClassFactory myFactory = new TestClassFactory();
+        Utils.addClassFactory(myFactory);
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE ALIAS TCLASSLOADER FOR \"TestClassFactory.testClassF\"");
+            ResultSet rs = stat.executeQuery("SELECT TCLASSLOADER(true)");
+            assertTrue(rs.next());
+            assertEquals(false, rs.getBoolean(1));
+        } finally {
+            Utils.removeClassFactory(myFactory);
+        }
+    }
+
+    /**
+     * Class factory unit test
+     * @param b boolean value
+     * @return !b
+     */
+    public static Boolean testClassF(Boolean b) {
+        return !b;
+    }
     /**
      * This method is called via reflection from the database.
      *
@@ -167,5 +191,20 @@ public class TestCallableStatement extends TestBase {
         rs.addRow(a * 2, b.toUpperCase(), new Timestamp(c.getTime() + 1));
         return rs;
     }
+    
+    /**
+     * A class factory used for testing.
+     */
+    static class TestClassFactory implements Utils.ClassFactory {
+        
+        @Override
+        public boolean match(String name) {
+            return name.equals("TestClassFactory");
+        }
 
+        @Override
+        public Class<?> loadClass(String name) throws ClassNotFoundException {
+            return TestCallableStatement.class;
+        }
+    }
 }

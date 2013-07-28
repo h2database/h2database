@@ -21,8 +21,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 import org.h2.api.JavaObjectSerializer;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -61,6 +63,10 @@ public class Utils {
 
     private static boolean allowAllClasses;
     private static HashSet<String> allowedClassNames;
+    /**
+     *  In order to manage more than one class loader
+     */
+    private static List<ClassFactory> userClassFactories = new ArrayList<ClassFactory>();
     private static String[] allowedClassNamePrefixes;
 
     static {
@@ -73,11 +79,27 @@ public class Utils {
             }
         }
     }
-
+    
     private Utils() {
         // utility class
     }
 
+    /**
+     * Add a class factory in order to manage more than one class loader.
+     * @param classFactory An object that implements ClassFactory
+     */
+    public static void addClassFactory(ClassFactory classFactory) {
+        userClassFactories.add(classFactory);
+    }
+
+    /**
+     * Remove a class factory
+     * @param classFactory Already inserted class factory instance
+     */
+    public static void removeClassFactory(ClassFactory classFactory) {
+        userClassFactories.remove(classFactory);
+    }
+    
     private static int readInt(byte[] buff, int pos) {
         return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
     }
@@ -569,18 +591,20 @@ public class Utils {
                 throw DbException.get(ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
             }
         }
-        // the following code might be better for OSGi (need to verify):
-        /*
-        try {
-            return Utils.class.getClassLoader().loadClass(className);
-        } catch (Throwable e) {
-            try {
-                return Thread.currentThread().getContextClassLoader().loadClass(className);
-            } catch (Throwable e2) {
-                DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+        // Use provided class factory first.
+        for (ClassFactory classFactory : userClassFactories) {
+            if (classFactory.match(className)) {
+                try {
+                    Class<?> userClass = classFactory.loadClass(className);
+                    if (!(userClass == null)) {
+                        return userClass;
+                    }
+                } catch (Exception e) {
+                    throw DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+                }
             }
         }
-        */
+        // Use local ClassLoader
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
@@ -878,4 +902,31 @@ public class Utils {
         return defaultValue;
     }
 
+    /**
+     * The utility methods will try to use the provided class factories to
+     * convert binary name of class to Class object. Used by H2 OSGi Activator
+     * in order to provide a class from another bundle ClassLoader.
+     */
+    public interface ClassFactory {
+        
+        /**
+         * Check whether the factory can return the named class.
+         * 
+         * @param name the binary name of the class
+         * @return true if this factory can return a valid class for the
+         *         provided class name
+         */
+        boolean match(String name);
+        
+        /**
+         * Load the class.
+         * 
+         * @param name the binary name of the class
+         * @return the class object
+         * @throws ClassNotFoundException If the class is not handle by this
+         *             factory
+         */
+        Class<?> loadClass(String name)
+                throws ClassNotFoundException;
+    }
 }

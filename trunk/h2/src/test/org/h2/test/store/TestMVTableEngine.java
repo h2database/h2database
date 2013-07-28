@@ -72,7 +72,7 @@ public class TestMVTableEngine extends TestBase {
         Connection conn;
         Statement stat;
         long maxSize = 0;
-        // TODO does not shrink for 45 seconds; 
+        // TODO does not shrink for 45 seconds;
         // need an option to configure that
         for (int i = 0; i < 20; i++) {
             conn = getConnection(dbName);

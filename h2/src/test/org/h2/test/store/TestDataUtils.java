@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Random;
+
 import org.h2.mvstore.DataUtils;
 import org.h2.test.TestBase;
 
@@ -32,6 +34,7 @@ public class TestDataUtils extends TestBase {
         testEncodeLength();
         testFletcher();
         testMap();
+        testMapRandomized();
         testMaxShortVarIntVarLong();
         testVarIntVarLong();
         testCheckValue();
@@ -77,6 +80,24 @@ public class TestDataUtils extends TestBase {
         assertEquals(",", m.get("b"));
         assertEquals("1,2", m.get("c"));
         assertEquals("\"test\"", m.get("d"));
+    }
+        
+    private void testMapRandomized() {
+        Random r = new Random(1);
+        String chars = "a_1,\\\":";
+        for (int i = 0; i < 1000; i++) {
+            StringBuilder buff = new StringBuilder();
+            for (int j = 0; j < 20; j++) {
+                buff.append(chars.charAt(r.nextInt(chars.length())));
+            }
+            try {
+                HashMap<String, String> map = DataUtils.parseMap(buff.toString());
+                assertFalse(map == null);
+                // ok
+            } catch (IllegalStateException e) {
+                // ok - but not another exception
+            }
+        }
     }
 
     private void testMaxShortVarIntVarLong() {

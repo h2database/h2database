@@ -19,7 +19,7 @@ public class JavaProcessKiller {
 
     /**
      * Kill a certain Java process. The JDK (jps) needs to be in the path.
-     * 
+     *
      * @param args the Java process name as listed by jps -l. If not set the
      *            Java processes are listed
      */
@@ -27,7 +27,7 @@ public class JavaProcessKiller {
     public static void main(String... args) {
         new JavaProcessKiller().run(args);
     }
-        
+
     private void run(String... args) {
         TreeMap<Integer, String> map = getProcesses();
         System.out.println("Processes:");
@@ -67,7 +67,7 @@ public class JavaProcessKiller {
         System.out.println("Processes now:");
         System.out.println(map);
     }
-    
+
     private static TreeMap<Integer, String> getProcesses() {
         String processList = exec("jps", "-l");
         String[] processes = processList.split("\n");
@@ -83,7 +83,7 @@ public class JavaProcessKiller {
         }
         return map;
     }
-    
+
     private static String exec(String... args) {
         ByteArrayOutputStream err = new ByteArrayOutputStream();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -122,5 +122,5 @@ public class JavaProcessKiller {
             }
         }.run();
     }
-    
+
 }

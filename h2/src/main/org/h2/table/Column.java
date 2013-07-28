@@ -563,11 +563,14 @@ public class Column {
         checkConstraintSQL = getCheckConstraintSQL(session, name);
     }
 
+    /**
+     * Remove the check constraint if there is one.
+     */
     public void removeCheckConstraint() {
         checkConstraint = null;
         checkConstraintSQL = null;
     }
-    
+
     /**
      * Get the check constraint expression for this column if set.
      *

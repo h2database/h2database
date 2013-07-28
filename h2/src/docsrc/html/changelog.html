@@ -53,15 +53,15 @@ Change Log
 </li><li>Fix a NullPointerException when attempting to add foreign key reference to a view.
 </li><li>Add sufficient ClientInfo support to our javax.sql.Connection implementation to make WebSphere happy.
 </li><li>Issue 482: class LobStorageBackend$LobInputStream does not override the method InputStream.available().
-</li><li>Fix corruption resulting from a mix of the "WRITE_DELAY=0" option 
+</li><li>Fix corruption resulting from a mix of the "WRITE_DELAY=0" option
     and "SELECT DISTINCT" queries that don't fit in memory.
-</li><li>Fix the combination of updating a table which contains an LOB, 
+</li><li>Fix the combination of updating a table which contains an LOB,
     and reading from the LOB at the same time.
     Previously it would throw an exception, now it works.
 </li><li>Issue 484: In the H2 Console tool, all schemas starting with "INFO" where hidden.
     Now they are hidden only if the database is not H2. Patch from "mgcodeact"/"cumer d"
-</li><li>MySQL compatibiltity, support the "AUTO_INCREMENT=3" part of the CREATE TABLE statement.
-</li><li>Issue 486: MySQL compatibiltity, support the "DEFAULT CHARSET" part of the CREATE TABLE statement.
+</li><li>MySQL compatibility, support the "AUTO_INCREMENT=3" part of the CREATE TABLE statement.
+</li><li>Issue 486: MySQL compatibility, support the "DEFAULT CHARSET" part of the CREATE TABLE statement.
 </li><li>Issue 487: support the MySQL "SET foreign_key_checks = 0" command
 </li><li>Issue 490: support MySQL "USING BTREE" index declaration
 </li><li>Issue 485: Database get corrupted when column is renamed for which check constraint was defined inside create table statement.

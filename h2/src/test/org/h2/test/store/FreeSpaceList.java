@@ -16,12 +16,12 @@ import org.h2.util.MathUtils;
  * A list that maintains ranges of free space (in blocks).
  */
 public class FreeSpaceList {
-    
+
     /**
      * The first usable block.
      */
     private final int firstFreeBlock;
-    
+
     /**
      * The block size in bytes.
      */
@@ -43,10 +43,10 @@ public class FreeSpaceList {
      */
     public synchronized void clear() {
         freeSpaceList.clear();
-        freeSpaceList.add(new BlockRange(firstFreeBlock, 
+        freeSpaceList.add(new BlockRange(firstFreeBlock,
                 Integer.MAX_VALUE - firstFreeBlock));
     }
-    
+
     /**
      * Allocate a number of blocks and mark them as used.
      *
@@ -67,6 +67,12 @@ public class FreeSpaceList {
                 "Could not find a free page to allocate");
     }
 
+    /**
+     * Mark the space as in use.
+     *
+     * @param pos the position in bytes
+     * @param length the number of bytes
+     */
     public synchronized void markUsed(long pos, int length) {
         int start = (int) (pos / blockSize);
         int required = getBlockCount(length);
@@ -112,6 +118,12 @@ public class FreeSpaceList {
         }
     }
 
+    /**
+     * Mark the space as free.
+     *
+     * @param pos the position in bytes
+     * @param length the number of bytes
+     */
     public synchronized void free(long pos, int length) {
         int start = (int) (pos / blockSize);
         int required = getBlockCount(length);
@@ -158,7 +170,7 @@ public class FreeSpaceList {
         BlockRange newRange = new BlockRange(start, required);
         freeSpaceList.add(i, newRange);
     }
-    
+
     private int getBlockCount(int length) {
         if (length <= 0) {
             throw DataUtils.newIllegalStateException(
@@ -199,7 +211,7 @@ public class FreeSpaceList {
             }
             return start + "-" + (start + length - 1);
         }
-        
+
     }
 
 }

@@ -46,7 +46,7 @@ public class TestPgServer extends TestBase {
         testCancelQuery();
         testBinaryTypes();
     }
-    
+
     private boolean getPgJdbcDriver() {
         try {
             Class.forName("org.postgresql.Driver");
@@ -146,7 +146,7 @@ public class TestPgServer extends TestBase {
         prep.setNull(1, Types.VARCHAR);
         rs = prep.executeQuery();
         assertFalse(rs.next());
-        
+
         prep = conn.prepareStatement("insert into test values(?, ?)");
         ParameterMetaData meta = prep.getParameterMetaData();
         assertEquals(2, meta.getParameterCount());
@@ -314,7 +314,7 @@ public class TestPgServer extends TestBase {
         if (!getPgJdbcDriver()) {
             return;
         }
-        
+
         Server server = Server.createPgServer("-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
         server.start();
         try {

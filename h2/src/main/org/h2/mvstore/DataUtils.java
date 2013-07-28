@@ -28,48 +28,48 @@ public class DataUtils {
      * An error occurred while reading from the file.
      */
     public static final int ERROR_READING_FAILED = 1;
-    
+
     /**
      * An error occurred when trying to write to the file.
      */
     public static final int ERROR_WRITING_FAILED = 2;
-    
+
     /**
      * An internal error occurred. This could be a bug, or a memory corruption
      * (for example caused by out of memory).
      */
     public static final int ERROR_INTERNAL = 3;
-    
+
     /**
      * The object is already closed.
      */
     public static final int ERROR_CLOSED = 4;
-    
+
     /**
      * The file format is not supported.
      */
     public static final int ERROR_UNSUPPORTED_FORMAT = 5;
-    
+
     /**
      * The file is corrupt or (for encrypted files) the encryption key is wrong.
      */
     public static final int ERROR_FILE_CORRUPT = 6;
-    
+
     /**
      * The file is locked.
      */
     public static final int ERROR_FILE_LOCKED = 7;
-    
+
     /**
      * An error occurred when serializing or de-serializing.
      */
     public static final int ERROR_SERIALIZATION = 8;
-    
+
     /**
      * The transaction store is corrupt.
      */
     public static final int ERROR_TRANSACTION_CORRUPT = 100;
-    
+
     /**
      * A lock timeout occurred.
      */
@@ -687,6 +687,7 @@ public class DataUtils {
     /**
      * Create a new IllegalStateException.
      *
+     * @param errorCode the error code
      * @param message the message
      * @param arguments the arguments
      * @return the exception
@@ -708,7 +709,7 @@ public class DataUtils {
         }
         return e;
     }
-    
+
     private static String formatMessage(int errorCode, String message, Object... arguments) {
         // convert arguments to strings, to avoid locale specific formatting
         for (int i = 0; i < arguments.length; i++) {
@@ -717,15 +718,15 @@ public class DataUtils {
                 arguments[i] = a == null ? "null" : a.toString();
             }
         }
-        return MessageFormat.format(message, arguments) + 
+        return MessageFormat.format(message, arguments) +
                 " [" + Constants.VERSION_MAJOR + "." +
-                Constants.VERSION_MINOR + "." + Constants.BUILD_ID + 
-                "/" + errorCode + "]"; 
+                Constants.VERSION_MINOR + "." + Constants.BUILD_ID +
+                "/" + errorCode + "]";
     }
 
     /**
      * Get the error code from an exception message.
-     * 
+     *
      * @param m the message
      * @return the error code, or 0 if none
      */

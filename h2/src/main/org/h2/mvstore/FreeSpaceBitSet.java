@@ -19,20 +19,20 @@ public class FreeSpaceBitSet {
      * The first usable block.
      */
     private final int firstFreeBlock;
-    
+
     /**
      * The block size in bytes.
      */
     private final int blockSize;
-    
+
     /**
      * The bit set.
      */
     private final BitSet set = new BitSet();
-    
+
     /**
      * Create a new free space map.
-     * 
+     *
      * @param firstFreeBlock the first free block
      * @param blockSize the block size
      */
@@ -41,7 +41,7 @@ public class FreeSpaceBitSet {
         this.blockSize = blockSize;
         clear();
     }
-    
+
     /**
      * Reset the list.
      */
@@ -49,10 +49,10 @@ public class FreeSpaceBitSet {
         set.clear();
         set.set(0, firstFreeBlock);
     }
-    
+
     /**
      * Check whether one of the blocks is in use.
-     * 
+     *
      * @param pos the position in bytes
      * @param length the number of bytes
      * @return true if a block is in use
@@ -67,10 +67,10 @@ public class FreeSpaceBitSet {
         }
         return true;
     }
-    
+
     /**
      * Check whether one of the blocks is free.
-     * 
+     *
      * @param pos the position in bytes
      * @param length the number of bytes
      * @return true if a block is free
@@ -99,48 +99,48 @@ public class FreeSpaceBitSet {
             int end = set.nextSetBit(start + 1);
             if (end < 0 || end - start >= blocks) {
                 set.set(start, start + blocks);
-                return getPos(start); 
+                return getPos(start);
             }
             i = end;
         }
     }
-    
+
     /**
      * Mark the space as in use.
-     * 
+     *
      * @param pos the position in bytes
      * @param length the number of bytes
      */
     public synchronized void markUsed(long pos, int length) {
         int start = getBlock(pos);
-        int blocks = getBlockCount(length);    
+        int blocks = getBlockCount(length);
         set.set(start, start + blocks);
     }
-    
+
     /**
      * Mark the space as free.
-     * 
+     *
      * @param pos the position in bytes
      * @param length the number of bytes
      */
     public synchronized void free(long pos, int length) {
         int start = getBlock(pos);
-        int blocks = getBlockCount(length);    
+        int blocks = getBlockCount(length);
         set.clear(start, start + blocks);
     }
-    
+
     private long getPos(int block) {
         return (long) block * (long) blockSize;
     }
-    
+
     private int getBlock(long pos) {
         return (int) (pos / blockSize);
     }
-    
+
     private int getBlockCount(int length) {
         return MathUtils.roundUpInt(length, blockSize) / blockSize;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder buff = new StringBuilder("[");

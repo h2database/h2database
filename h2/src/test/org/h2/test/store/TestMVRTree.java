@@ -273,7 +273,7 @@ public class TestMVRTree extends TestMVStore {
         testRandom(true);
         testRandom(false);
     }
-    
+
     private void testRandomFind() {
         MVStore s = openStore(null);
         MVRTreeMap<Integer> m = s.openMap("data",
@@ -284,7 +284,7 @@ public class TestMVRTree extends TestMVStore {
                 int id = x * max + y;
                 SpatialKey k = new SpatialKey(id, x, x, y, y);
                 m.put(k, id);
-            }            
+            }
         }
         Random rand = new Random(1);
         int operationCount = 1000;
@@ -316,7 +316,7 @@ public class TestMVRTree extends TestMVStore {
                 count++;
             }
             assertEquals(intersecting, count);
-        }        
+        }
     }
 
     private void testRandom(boolean quadraticSplit) {

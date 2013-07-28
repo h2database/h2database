@@ -2930,7 +2930,7 @@ CHAR(65)
 CONCAT(string, string [,...])
 ","
 Combines strings.
-Unlike with the operator ""||"", NULL parameters are ignored, 
+Unlike with the operator ""||"", NULL parameters are ignored,
 and do not cause the result to become NULL.
 This method returns a string.
 ","
@@ -2941,7 +2941,7 @@ CONCAT(NAME, '!')
 CONCAT_WS(separatorString, string, string [,...])
 ","
 Combines strings with separator.
-Unlike with the operator ""||"", NULL parameters are ignored, 
+Unlike with the operator ""||"", NULL parameters are ignored,
 and do not cause the result to become NULL.
 This method returns a string.
 ","

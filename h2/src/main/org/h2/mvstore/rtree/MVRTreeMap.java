@@ -8,6 +8,7 @@ package org.h2.mvstore.rtree;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import org.h2.mvstore.CursorPos;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -61,7 +62,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @param x the rectangle
      * @return the iterator
      */
-    public Iterator<SpatialKey> findIntersectingKeys(SpatialKey x) {
+    public RTreeCursor findIntersectingKeys(SpatialKey x) {
         checkOpen();
         return new RTreeCursor(root, x) {
             @Override
@@ -77,7 +78,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @param x the rectangle
      * @return the iterator
      */
-    public Iterator<SpatialKey> findContainedKeys(SpatialKey x) {
+    public RTreeCursor findContainedKeys(SpatialKey x) {
         checkOpen();
         return new RTreeCursor(root, x) {
             @Override
@@ -483,7 +484,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * A cursor to iterate over a subset of the keys.
      */
     static class RTreeCursor implements Iterator<SpatialKey> {
-        
+
         private final SpatialKey filter;
         private CursorPos pos;
         private SpatialKey current;
@@ -494,7 +495,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             this.root = root;
             this.filter = filter;
         }
-        
+
         @Override
         public boolean hasNext() {
             if (!initialized) {
@@ -505,7 +506,13 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             }
             return current != null;
         }
-        
+
+        /**
+         * Skip over that many entries. This method is relatively fast (for this map
+         * implementation) even if many entries need to be skipped.
+         *
+         * @param n the number of entries to skip
+         */
         public void skip(long n) {
             while (hasNext() && n-- > 0) {
                 fetchNext();
@@ -521,13 +528,13 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             fetchNext();
             return c;
         }
-        
+
         @Override
         public void remove() {
             throw DataUtils.newUnsupportedOperationException(
                     "Removing is not supported");
         }
-        
+
         /**
          * Fetch the next entry if there is one.
          */
@@ -563,7 +570,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             }
             current = null;
         }
-                    
+
 //                      if(pos==null || pos.page != p) {
 //                          pos = new CursorPos(p, i + 1, pos);
 //                      } else {
@@ -574,8 +581,8 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 //                      break;
 //                  }
 //              }
-                    
-//                    
+
+//
 //                    if (pos.index < pos.page.getKeyCount()) {
 //                        pos.index++;
 //                    }
@@ -645,13 +652,13 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 //                    }
 //                }
 //            }
-//        }        
-//        
+//        }
+//
 //        @Override
 //        protected void min(Page p, SpatialKey x) {
 //            // x
 //        }
-//        
+//
 //        protected void min3(Page p, SpatialKey x) {
 //            while (true) {
 //                if (p.isLeaf()) {
@@ -698,7 +705,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 //            }
 //            current = null;
 //        }
-        
+
     }
 
     @Override

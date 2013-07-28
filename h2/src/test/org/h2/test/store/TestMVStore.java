@@ -266,7 +266,7 @@ public class TestMVStore extends TestBase {
                     encryptionKey(passwordChars).open();
             fail();
         } catch (IllegalStateException e) {
-            assertEquals(DataUtils.ERROR_FILE_CORRUPT, 
+            assertEquals(DataUtils.ERROR_FILE_CORRUPT,
                     DataUtils.getErrorCode(e.getMessage()));
         }
         assertEquals(0, passwordChars[0]);

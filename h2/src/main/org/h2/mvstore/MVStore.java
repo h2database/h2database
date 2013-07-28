@@ -952,7 +952,8 @@ public class MVStore {
 
         // free up the space of unused chunks now
         for (Chunk x : removedChunks) {
-            freeSpace.free(x.start, x.length);
+            int len = MathUtils.roundUpInt(x.length, BLOCK_SIZE) + BLOCK_SIZE;
+            freeSpace.free(x.start, len);
         }
 
         c.start = filePos;
@@ -1617,7 +1618,8 @@ public class MVStore {
                 loadFromFile = true;
                 do {
                     last = chunks.remove(lastChunkId);
-                    freeSpace.free(last.start, last.length);
+                    int len = MathUtils.roundUpInt(last.length, BLOCK_SIZE) + BLOCK_SIZE;
+                    freeSpace.free(last.start, len);
                     lastChunkId--;
                 } while (last.version > version && chunks.size() > 0);
                 rootChunkStart = last.start;

@@ -3,6 +3,9 @@
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
+ * 
+ * N. Fortin,  Atelier SIG - IRSTV CNRS 2488:
+ * Support for the operator "&&" as an alias for SPATIAL_INTERSECTS.
  */
 package org.h2.command;
 
@@ -161,6 +164,7 @@ public class Parser {
     private static final int MINUS = 13, PLUS = 14, STRING_CONCAT = 15;
     private static final int OPEN = 16, CLOSE = 17, NULL = 18, TRUE = 19, FALSE = 20;
     private static final int CURRENT_TIMESTAMP = 21, CURRENT_DATE = 22, CURRENT_TIME = 23, ROWNUM = 24;
+    private static final int SPATIAL_INTERSECTS = 25;
 
     private final Database database;
     private final Session session;
@@ -3255,6 +3259,7 @@ public class Parser {
             case '|':
             case '=':
             case ':':
+            case '&':
             case '~':
                 type = CHAR_SPECIAL_2;
                 break;
@@ -3422,6 +3427,11 @@ public class Parser {
             case '|':
                 if ("||".equals(s)) {
                     return STRING_CONCAT;
+                }
+                break;
+            case '&':
+                if ("&&".equals(s)) {
+                    return SPATIAL_INTERSECTS;
                 }
                 break;
             }
@@ -5471,6 +5481,8 @@ public class Parser {
             return Comparison.SMALLER_EQUAL;
         case NOT_EQUAL:
             return Comparison.NOT_EQUAL;
+        case SPATIAL_INTERSECTS:
+            return Comparison.SPATIAL_INTERSECTS;
         default:
             return -1;
         }

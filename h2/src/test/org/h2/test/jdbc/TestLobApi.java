@@ -48,7 +48,7 @@ public class TestLobApi extends TestBase {
         testLobStaysOpenUntilCommitted();
         testInputStreamThrowsException(true);
         testInputStreamThrowsException(false);
-        conn = getConnection("lob");
+        conn = (JdbcConnection) getConnection("lob");
         stat = conn.createStatement();
         stat.execute("create table test(id int, x blob)");
         testBlob(0);

@@ -101,7 +101,7 @@ public class Comparison extends Condition {
     public static final int IN_QUERY = 10;
 
     /**
-     * This is a pseudo comparison type that is only used for spatial index
+     * This is a comparison type that is only used for spatial index
      * conditions.
      */
     public static final int SPATIAL_INTERSECTS = 11;

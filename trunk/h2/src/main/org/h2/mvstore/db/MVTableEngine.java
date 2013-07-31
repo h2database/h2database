@@ -6,6 +6,7 @@
  */
 package org.h2.mvstore.db;
 
+import java.beans.ExceptionListener;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,52 +39,61 @@ public class MVTableEngine implements TableEngine {
      * @param db the database
      * @return the store
      */
-    public static Store init(Database db) {
+    public static Store init(final Database db) {
         Store store = db.getMvStore();
-        if (store == null) {
-            byte[] key = db.getFilePasswordHash();
-            String dbPath = db.getDatabasePath();
-            MVStore.Builder builder = new MVStore.Builder();
-            if (dbPath == null) {
-                store = new Store(db, builder.open());
+        if (store != null) {
+            return store;
+        }
+        byte[] key = db.getFilePasswordHash();
+        String dbPath = db.getDatabasePath();
+        MVStore.Builder builder = new MVStore.Builder();
+        if (dbPath == null) {
+            store = new Store(db, builder.open());
+        } else {
+            String fileName = dbPath + Constants.SUFFIX_MV_FILE;
+            builder.fileName(fileName);
+            if (db.isReadOnly()) {
+                builder.readOnly();
             } else {
-                String fileName = dbPath + Constants.SUFFIX_MV_FILE;
-                builder.fileName(fileName);
-                if (db.isReadOnly()) {
-                    builder.readOnly();
+                // possibly create the directory
+                boolean exists = FileUtils.exists(fileName);
+                if (exists && !FileUtils.canWrite(fileName)) {
+                    // read only
                 } else {
-                    // possibly create the directory
-                    boolean exists = FileUtils.exists(fileName);
-                    if (exists && !FileUtils.canWrite(fileName)) {
-                        // read only
-                    } else {
-                        String dir = FileUtils.getParent(fileName);
-                        FileUtils.createDirectories(dir);
-                    }
-                }
-                if (key != null) {
-                    char[] password = new char[key.length];
-                    for (int i = 0; i < key.length; i++) {
-                        password[i] = (char) key[i];
-                    }
-                    builder.encryptionKey(password);
-                }
-                try {
-                    store = new Store(db, builder.open());
-                } catch (IllegalStateException e) {
-                    int errorCode = DataUtils.getErrorCode(e.getMessage());
-                    if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
-                        if (key != null) {
-                            throw DbException.get(ErrorCode.FILE_ENCRYPTION_ERROR_1, fileName);
-                        }
-                    } else if (errorCode == DataUtils.ERROR_FILE_LOCKED) {
-                        throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, fileName);
-                    }
-                    throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName);
+                    String dir = FileUtils.getParent(fileName);
+                    FileUtils.createDirectories(dir);
                 }
             }
-            db.setMvStore(store);
+            if (key != null) {
+                char[] password = new char[key.length];
+                for (int i = 0; i < key.length; i++) {
+                    password[i] = (char) key[i];
+                }
+                builder.encryptionKey(password);
+            }
+            builder.backgroundExceptionListener(new ExceptionListener() {
+
+                @Override
+                public void exceptionThrown(Exception e) {
+                    db.setBackgroundException(DbException.convert(e));
+                }
+
+            });
+            try {
+                store = new Store(db, builder.open());
+            } catch (IllegalStateException e) {
+                int errorCode = DataUtils.getErrorCode(e.getMessage());
+                if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
+                    if (key != null) {
+                        throw DbException.get(ErrorCode.FILE_ENCRYPTION_ERROR_1, fileName);
+                    }
+                } else if (errorCode == DataUtils.ERROR_FILE_LOCKED) {
+                    throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, fileName);
+                }
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, fileName);
+            }
         }
+        db.setMvStore(store);
         return store;
     }
 

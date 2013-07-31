@@ -26,5 +26,6 @@ Newsletter: prepare (always to BCC)
 Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
 Add to http://freecode.com/
 Add to http://twitter.com
+- tweet: add @geospatialnews for the new geometry type and disk spatial index
 Close bugs: http://code.google.com/p/h2database/issues/list
 

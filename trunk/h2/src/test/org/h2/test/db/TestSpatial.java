@@ -16,10 +16,6 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
-import org.h2.engine.Database;
-import org.h2.engine.Session;
-import org.h2.jdbc.JdbcConnection;
-import org.h2.mvstore.MVStore;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
@@ -101,7 +97,8 @@ public class TestSpatial extends TestBase {
     }
 
     /**
-     * Generate a random linestring under the given bounding box
+     * Generate a random linestring under the given bounding box.
+     * 
      * @param minX Bounding box min x
      * @param maxX Bounding box max x
      * @param minY Bounding box min y
@@ -109,18 +106,23 @@ public class TestSpatial extends TestBase {
      * @param maxLength LineString maximum length
      * @return A segment within this bounding box
      */
-    public static Geometry getRandomGeometry(Random geometryRand,double minX,double maxX,double minY, double maxY, double maxLength) {
+    public static Geometry getRandomGeometry(Random geometryRand, 
+            double minX, double maxX, 
+            double minY, double maxY, double maxLength) {
         GeometryFactory factory = new GeometryFactory();
         // Create the start point
-        Coordinate start = new Coordinate(geometryRand.nextDouble()*(maxX-minX)+minX,
-                geometryRand.nextDouble()*(maxY-minY)+minY);
+        Coordinate start = new Coordinate(
+                geometryRand.nextDouble() * (maxX - minX) + minX, 
+                geometryRand.nextDouble() * (maxY - minY) + minY);
         // Compute an angle
         double angle = geometryRand.nextDouble() * Math.PI * 2;
         // Compute length
         double length = geometryRand.nextDouble() * maxLength;
         // Compute end point
-        Coordinate end = new Coordinate(start.x + Math.cos(angle) * length, start.y + Math.sin(angle) * length);
-        return factory.createLineString(new Coordinate[]{start,end});
+        Coordinate end = new Coordinate(
+                start.x + Math.cos(angle) * length,
+                start.y + Math.sin(angle) * length);
+        return factory.createLineString(new Coordinate[] { start, end });
     }
 
     private void testRandom() throws SQLException {
@@ -131,52 +133,64 @@ public class TestSpatial extends TestBase {
         conn.close();
     }
     
-   private void testRandom(Connection conn, long seed,long size) throws SQLException {
+   private void testRandom(Connection conn, long seed, long size) throws SQLException {
        Statement stat = conn.createStatement();
        stat.execute("drop table if exists test");
        Random geometryRand = new Random(seed);
        // Generate a set of geometry
        // It is marked as random, but it generate always the same geometry set, given the same seed
-       stat.execute("create memory table test(id long primary key auto_increment, poly geometry)");
+       stat.execute("create memory table test(" + 
+               "id long primary key auto_increment, poly geometry)");
        // Create segment generation bounding box
-       Envelope bbox = ValueGeometry.get("POLYGON ((301804.1049793153 2251719.1222191923," +
-               " 301804.1049793153 2254747.2888244865, 304646.87362918374 2254747.2888244865," +
-               " 304646.87362918374 2251719.1222191923, 301804.1049793153 2251719.1222191923))")
+       Envelope bbox = ValueGeometry.get("POLYGON ((" + 
+               "301804.1049793153 2251719.1222191923, " +
+               "301804.1049793153 2254747.2888244865, " + 
+               "304646.87362918374 2254747.2888244865, " +
+               "304646.87362918374 2251719.1222191923, " + 
+               "301804.1049793153 2251719.1222191923))")
                .getGeometry().getEnvelopeInternal();
        // Create overlap test bounding box
-       String testBBoxString = "POLYGON ((302215.44416332216 2252748, 302215.44416332216 2253851.781225762," +
-               " 303582.85796541866 2253851.781225762, 303582.85796541866 2252748.526908161," +
-               " 302215.44416332216 2252748))";
+       String testBBoxString = "POLYGON ((" + 
+               "302215.44416332216 2252748, " + 
+               "302215.44416332216 2253851.781225762, " +
+               "303582.85796541866 2253851.781225762, " + 
+               "303582.85796541866 2252748.526908161, " +
+               "302215.44416332216 2252748))";
        Envelope testBBox = ValueGeometry.get(testBBoxString).getGeometry().getEnvelopeInternal();
 
-       PreparedStatement ps = conn.prepareStatement("insert into test(poly) values (?)");
+       PreparedStatement ps = conn.prepareStatement(
+               "insert into test(poly) values (?)");
        long overlapCount = 0;
-       Set<Integer> overlaps = new HashSet<Integer>(680);
-       for(int i=1;i<=size;i++) {
-           Geometry geometry = getRandomGeometry(geometryRand,bbox.getMinX(),bbox.getMaxX(),bbox.getMinY(),bbox.getMaxY(),200);
-           ps.setObject(1,geometry);
-           ps.execute();
-           ResultSet keys = ps.getGeneratedKeys();
-           keys.next();
-           if(geometry.getEnvelopeInternal().intersects(testBBox)) {
-               overlapCount++;
-               overlaps.add(keys.getInt(1));
-           }
+        Set<Integer> overlaps = new HashSet<Integer>(680);
+        for (int i = 1; i <= size; i++) {
+            Geometry geometry = getRandomGeometry(
+                    geometryRand, 
+                    bbox.getMinX(), bbox.getMaxX(), 
+                    bbox.getMinY(), bbox.getMaxY(), 200);
+            ps.setObject(1, geometry);
+            ps.execute();
+            ResultSet keys = ps.getGeneratedKeys();
+            keys.next();
+            if (geometry.getEnvelopeInternal().intersects(testBBox)) {
+                overlapCount++;
+                overlaps.add(keys.getInt(1));
+            }
        }
        ps.close();
        // Create index
        stat.execute("create spatial index idx_test_poly on test(poly)");
        // Must find the same overlap count with index
-       ps = conn.prepareStatement("select id from test where poly && ?::Geometry");
-       ps.setString(1,testBBoxString);
-       ResultSet rs = ps.executeQuery();
-       long found = 0;
-       while(rs.next()) {
-           overlaps.remove(rs.getInt(1));
-           found++;
-       }
-       // Index count must be the same as sequential count
-       assertEquals(overlapCount,found);
+       ps = conn.prepareStatement(
+               "select id from test where poly && ?::Geometry");
+        ps.setString(1, testBBoxString);
+        ResultSet rs = ps.executeQuery();
+        long found = 0;
+        while (rs.next()) {
+            overlaps.remove(rs.getInt(1));
+            found++;
+        }
+        // Index count must be the same as sequential count
+        assertEquals(overlapCount, found);
        // Missing id still in overlaps map
        assertTrue(overlaps.isEmpty());
        stat.execute("drop table if exists test");
@@ -191,9 +205,11 @@ public class TestSpatial extends TestBase {
             stat.execute("insert into test values(2, 'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
             stat.execute("insert into test values(3, 'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
 
-            ResultSet rs = stat.executeQuery("select * from test where poly && 'POINT (1.5 1.5)'::Geometry");
+            ResultSet rs = stat.executeQuery(
+                    "select * from test " + 
+                    "where poly && 'POINT (1.5 1.5)'::Geometry");
             assertTrue(rs.next());
-            assertEquals(1,rs.getInt("id"));
+            assertEquals(1, rs.getInt("id"));
             assertFalse(rs.next());
             stat.execute("drop table test");
         } finally {
@@ -211,14 +227,19 @@ public class TestSpatial extends TestBase {
             stat.execute("insert into test values(3, 'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
             stat.execute("create spatial index on test(poly)");
 
-            ResultSet rs = stat.executeQuery("select * from test where poly && 'POINT (1.5 1.5)'::Geometry");
+            ResultSet rs = stat.executeQuery(
+                    "select * from test " + 
+                    "where poly && 'POINT (1.5 1.5)'::Geometry");
             assertTrue(rs.next());
             assertEquals(1, rs.getInt("id"));
             assertFalse(rs.next());
             rs.close();
 
             // Test with multiple operator
-            rs = stat.executeQuery("select * from test where poly && 'POINT (1.5 1.5)'::Geometry AND poly && 'POINT (1.7 1.75)'::Geometry");
+            rs = stat.executeQuery(
+                    "select * from test " + 
+                    "where poly && 'POINT (1.5 1.5)'::Geometry " + 
+                    "AND poly && 'POINT (1.7 1.75)'::Geometry");
             assertTrue(rs.next());
             assertEquals(1, rs.getInt("id"));
             assertFalse(rs.next());
@@ -231,9 +252,11 @@ public class TestSpatial extends TestBase {
         conn = getConnection("spatial_pers");
         try {
             Statement stat = conn.createStatement();
-            ResultSet rs = stat.executeQuery("select * from test where poly && 'POINT (1.5 1.5)'::Geometry");
+            ResultSet rs = stat.executeQuery(
+                    "select * from test " + 
+                    "where poly && 'POINT (1.5 1.5)'::Geometry");
             assertTrue(rs.next());
-            assertEquals(1,rs.getInt("id"));
+            assertEquals(1, rs.getInt("id"));
             assertFalse(rs.next());
             stat.execute("drop table test");
         } finally {
@@ -251,11 +274,13 @@ public class TestSpatial extends TestBase {
             stat.execute("insert into test values(2, 'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
             stat.execute("insert into test values(3, 'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
 
-            ResultSet rs = stat.executeQuery("select * from test where NOT poly && 'POINT (1.5 1.5)'::Geometry");
+            ResultSet rs = stat.executeQuery(
+                    "select * from test " + 
+                    "where NOT poly && 'POINT (1.5 1.5)'::Geometry");
             assertTrue(rs.next());
-            assertEquals(2,rs.getInt("id"));
+            assertEquals(2, rs.getInt("id"));
             assertTrue(rs.next());
-            assertEquals(3,rs.getInt("id"));
+            assertEquals(3, rs.getInt("id"));
             assertFalse(rs.next());
             stat.execute("drop table test");
         } finally {
@@ -297,25 +322,29 @@ public class TestSpatial extends TestBase {
         deleteDb("spatial");
     }
     private void testRoadAndArea(Statement stat) throws SQLException {
-        ResultSet rs = stat.executeQuery("select idarea, COUNT(idroad) roadscount from area,roads where area.the_geom && roads.the_geom GROUP BY idarea ORDER BY idarea");
+        ResultSet rs = stat.executeQuery(
+                "select idarea, COUNT(idroad) roadscount " + 
+                "from area, roads " + 
+                "where area.the_geom && roads.the_geom " + 
+                "GROUP BY idarea ORDER BY idarea");
         assertTrue(rs.next());
-        assertEquals(1,rs.getInt("idarea"));
-        assertEquals(3,rs.getInt("roadscount"));
+        assertEquals(1, rs.getInt("idarea"));
+        assertEquals(3, rs.getInt("roadscount"));
         assertTrue(rs.next());
-        assertEquals(2,rs.getInt("idarea"));
-        assertEquals(4,rs.getInt("roadscount"));
+        assertEquals(2, rs.getInt("idarea"));
+        assertEquals(4, rs.getInt("roadscount"));
         assertTrue(rs.next());
-        assertEquals(3,rs.getInt("idarea"));
-        assertEquals(1,rs.getInt("roadscount"));
+        assertEquals(3, rs.getInt("idarea"));
+        assertEquals(1, rs.getInt("roadscount"));
         assertTrue(rs.next());
-        assertEquals(4,rs.getInt("idarea"));
-        assertEquals(2,rs.getInt("roadscount"));
+        assertEquals(4, rs.getInt("idarea"));
+        assertEquals(2, rs.getInt("roadscount"));
         assertTrue(rs.next());
-        assertEquals(5,rs.getInt("idarea"));
-        assertEquals(3,rs.getInt("roadscount"));
+        assertEquals(5, rs.getInt("idarea"));
+        assertEquals(3, rs.getInt("roadscount"));
         assertTrue(rs.next());
-        assertEquals(6,rs.getInt("idarea"));
-        assertEquals(1,rs.getInt("roadscount"));
+        assertEquals(6, rs.getInt("idarea"));
+        assertEquals(1, rs.getInt("roadscount"));
         assertFalse(rs.next());
         rs.close();
     }
@@ -331,25 +360,29 @@ public class TestSpatial extends TestBase {
             // Remove a row but do not commit
             stat.execute("delete from roads where idroad=7");
             // Check if index is updated
-            ResultSet rs = stat.executeQuery("select idarea, COUNT(idroad) roadscount from area,roads where area.the_geom && roads.the_geom GROUP BY idarea ORDER BY idarea");
+            ResultSet rs = stat.executeQuery(
+                    "select idarea, COUNT(idroad) roadscount " + 
+                    "from area, roads " + 
+                    "where area.the_geom && roads.the_geom " + 
+                    "GROUP BY idarea ORDER BY idarea");
             assertTrue(rs.next());
-            assertEquals(1,rs.getInt("idarea"));
-            assertEquals(3,rs.getInt("roadscount"));
+            assertEquals(1, rs.getInt("idarea"));
+            assertEquals(3, rs.getInt("roadscount"));
             assertTrue(rs.next());
-            assertEquals(2,rs.getInt("idarea"));
-            assertEquals(4,rs.getInt("roadscount"));
+            assertEquals(2, rs.getInt("idarea"));
+            assertEquals(4, rs.getInt("roadscount"));
             assertTrue(rs.next());
-            assertEquals(3,rs.getInt("idarea"));
-            assertEquals(1,rs.getInt("roadscount"));
+            assertEquals(3, rs.getInt("idarea"));
+            assertEquals(1, rs.getInt("roadscount"));
             assertTrue(rs.next());
-            assertEquals(4,rs.getInt("idarea"));
-            assertEquals(1,rs.getInt("roadscount"));
+            assertEquals(4, rs.getInt("idarea"));
+            assertEquals(1, rs.getInt("roadscount"));
             assertTrue(rs.next());
-            assertEquals(5,rs.getInt("idarea"));
-            assertEquals(2,rs.getInt("roadscount"));
+            assertEquals(5, rs.getInt("idarea"));
+            assertEquals(2, rs.getInt("roadscount"));
             assertTrue(rs.next());
-            assertEquals(6,rs.getInt("idarea"));
-            assertEquals(1,rs.getInt("roadscount"));
+            assertEquals(6, rs.getInt("idarea"));
+            assertEquals(1, rs.getInt("roadscount"));
             assertFalse(rs.next());
             rs.close();
             conn.rollback(sp);
@@ -380,7 +413,9 @@ public class TestSpatial extends TestBase {
                 "and polygon && 'POLYGON ((10 10, 10 20, 20 20, 10 10))'::Geometry");
         assertFalse(rs.next());
         
-        rs = stat.executeQuery("explain select * from test where polygon && 'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
+        rs = stat.executeQuery(
+                "explain select * from test " + 
+                "where polygon && 'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON &&");
 
@@ -395,13 +430,19 @@ public class TestSpatial extends TestBase {
         stat.executeQuery("select * from test where polygon > 'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
         stat.executeQuery("select * from test where polygon < 'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
 
-        rs = stat.executeQuery("select * from test where intersects(polygon, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
+        rs = stat.executeQuery(
+                "select * from test " + 
+                "where intersects(polygon, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
         assertTrue(rs.next());
 
-        rs = stat.executeQuery("select * from test where intersects(polygon, 'POINT (1 1)')");
+        rs = stat.executeQuery(
+                "select * from test " + 
+                "where intersects(polygon, 'POINT (1 1)')");
         assertTrue(rs.next());
 
-        rs = stat.executeQuery("select * from test where intersects(polygon, 'POINT (0 0)')");
+        rs = stat.executeQuery(
+                "select * from test " + 
+                "where intersects(polygon, 'POINT (0 0)')");
         assertFalse(rs.next());
 
         stat.execute("drop table test");
@@ -438,8 +479,11 @@ public class TestSpatial extends TestBase {
         Connection conn = getConnection("spatialIndex");
         try {
             Statement stat = conn.createStatement();
-            stat.execute("CREATE ALIAS T_RANDOM_GEOM_TABLE FOR \"" + TestSpatial.class.getName() + ".getRandomGeometryTable\"");
-            stat.execute("create table test as select * from T_RANDOM_GEOM_TABLE(42,20,-100,100,-100,100,4)");
+            stat.execute("CREATE ALIAS T_RANDOM_GEOM_TABLE FOR \"" + 
+                    TestSpatial.class.getName() + ".getRandomGeometryTable\"");
+            stat.execute(
+                    "create table test as " + 
+                    "select * from T_RANDOM_GEOM_TABLE(42,20,-100,100,-100,100,4)");
             stat.execute("DROP ALIAS T_RANDOM_GEOM_TABLE");
             ResultSet rs = stat.executeQuery("select count(*) cpt from test");
             assertTrue(rs.next());
@@ -450,35 +494,55 @@ public class TestSpatial extends TestBase {
         deleteDb("spatialIndex");
     }
 
-
-    public static ResultSet getRandomGeometryTable(final long seed,final long rowCount, final double minX,final double maxX,final double minY, final double maxY, final double maxLength) {
+    /**
+     * Generate a result set with random geometry data.
+     * 
+     * @param seed the random seed
+     * @param rowCount the number of rows
+     * @param minX the smallest x
+     * @param maxX the largest x
+     * @param minY the smallest y
+     * @param maxY the largest y
+     * @param maxLength the maximum length
+     * @return a result set
+     */
+    public static ResultSet getRandomGeometryTable(
+            final long seed, final long rowCount, 
+            final double minX, final double maxX,
+            final double minY, final double maxY, final double maxLength) {
+        
         SimpleResultSet rs = new SimpleResultSet(new SimpleRowSource() {
-            private final Random rnd = new Random(seed);
-            private int cpt = 0;
+            
+            private final Random random = new Random(seed);
+            private int currentRow;
+
             @Override
             public Object[] readRow() throws SQLException {
-                if(cpt++<rowCount) {
-                    return new Object[]{getRandomGeometry(rnd,minX,maxX,minY,maxY,maxLength)};  //To change body of implemented methods use File | Settings | File Templates.
-                } else {
-                    return null;
+                if (currentRow++ < rowCount) {
+                    return new Object[] { 
+                            getRandomGeometry(random, 
+                                    minX, maxX, minY, maxY, maxLength) }; 
                 }
+                return null;
             }
 
             @Override
             public void close() {
+                // nothing to do
             }
 
             @Override
             public void reset() throws SQLException {
-                rnd.setSeed(seed);
+                random.setSeed(seed);
             }
         });
-        rs.addColumn("the_geom", Types.OTHER,Integer.MAX_VALUE,0);
+        rs.addColumn("the_geom", Types.OTHER, Integer.MAX_VALUE, 0);
         return rs;
     }
 
     /**
-     *
+     * Convert the text to a geometry object.
+     * 
      * @param text Geometry in Well Known Text
      * @param srid Projection ID
      * @return Geometry object

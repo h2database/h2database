@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import java.beans.ExceptionListener;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -274,15 +273,6 @@ public class Database implements DataHandler {
 
     public void setMvStore(MVTableEngine.Store mvStore) {
         this.mvStore = mvStore;
-        mvStore.getStore().setBackgroundExceptionListener(new ExceptionListener() {
-
-            @Override
-            public void exceptionThrown(Exception e) {
-                setBackgroundException(DbException.convert(e));
-            }
-
-        });
-
     }
 
     /**

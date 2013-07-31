@@ -687,6 +687,9 @@ public class Build extends BuildBase {
         if (!clientOnly) {
             java("org.h2.build.doc.GenerateHelp", null);
             javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
+                    "-classpath",
+                    "ext/" + getLuceneJar() +
+                    File.pathSeparator + "ext/jts-1.13.jar",
                     "-docletpath", "bin" + File.pathSeparator + "temp",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }

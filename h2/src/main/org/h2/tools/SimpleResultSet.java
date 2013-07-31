@@ -33,6 +33,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 
 /**
@@ -623,7 +624,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     @Override
     public byte[] getBytes(int columnIndex) throws SQLException {
-        return (byte[]) get(columnIndex);
+        Object o = get(columnIndex);
+        return o instanceof byte[] ? (byte[]) o : Utils.serialize(o);
     }
 
     /**

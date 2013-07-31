@@ -56,15 +56,14 @@ public class TestSpatial extends TestBase {
     public void test() throws SQLException {
         if (DataType.GEOMETRY_CLASS != null) {
             deleteDb("spatial");
-//            testSpatialValues();
-//            testOverlap();
-//            testNotOverlap();
-//            testPersistentSpatialIndex();
-//            testSpatialIndexQueryMultipleTable();
-//            testIndexTransaction();
-//            testJavaAlias();
-//            testJavaAliasTableFunction();
-            // testPersistentSpatialIndex2();
+            testSpatialValues();
+            testOverlap();
+            testNotOverlap();
+            testPersistentSpatialIndex();
+            testSpatialIndexQueryMultipleTable();
+            testIndexTransaction();
+            testJavaAlias();
+            testJavaAliasTableFunction();
             testMemorySpatialIndex();
             testRandom();
             deleteDb("spatial");
@@ -492,41 +491,6 @@ public class TestSpatial extends TestBase {
             return geom;
         } catch (ParseException ex) {
             throw new SQLException(ex);
-        }
-    }
-    /**
-     * Not really a test case but show that something go crazy (in mvstore) after some seconds.
-     * @throws SQLException
-     */
-    private void testPersistentSpatialIndex2() throws SQLException {
-        deleteDb("spatial_pers");
-        final long count = 150000;
-        Connection conn = getConnection("spatial_pers");
-        try {
-            Statement stat = conn.createStatement();
-            stat.execute("create table test(id int primary key auto_increment, the_geom geometry)");
-            PreparedStatement ps = conn.prepareStatement("insert into test(the_geom) values(?)");
-            Random rnd = new Random(44);
-            for(int i=0;i<count;i++) {
-                ps.setObject(1,getRandomGeometry(rnd,0,100,-50,50,3));
-                ps.execute();
-            }
-            stat.execute("create spatial index on test(the_geom)");
-            Database db = ((Session)((JdbcConnection) conn).getSession()).getDatabase();
-            MVStore store = db.getMvStore().getStore();
-            int cpt=0;
-            while(cpt<46) {
-                try {
-                    // First it shows 610, then 5 until cpt==44, finally at cpt==45 it shows an unsaved 688 with a trace in spatial_pers.trace.db
-                    System.out.println((cpt++)+" store.getUnsavedPageCount()=="+store.getUnsavedPageCount());
-                    Thread.sleep(1000);
-                } catch (InterruptedException ex) {
-                    throw new SQLException(ex);
-                }
-            }
-        } finally {
-            // Close the database
-            conn.close();
         }
     }
     

@@ -87,6 +87,19 @@ public class ValueGeometry extends Value {
         // it is useless to cache the envelope as the Geometry object do this already
         return geometry.getEnvelopeInternal().intersects(r.getGeometry().getEnvelopeInternal());
     }
+    
+    /**
+     * Get the union.
+     * 
+     * @param r the other geometry
+     * @return the union of this geometry envelope and another geometry envelope
+     */
+    public Value getEnvelopeUnion(ValueGeometry r) {
+        GeometryFactory gf = new GeometryFactory();
+        Envelope mergedEnvelope = new Envelope(geometry.getEnvelopeInternal());
+        mergedEnvelope.expandToInclude(r.getGeometry().getEnvelopeInternal());
+        return get(gf.toGeometry(mergedEnvelope));
+    }    
 
     /**
      * Get the intersection.

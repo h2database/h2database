@@ -107,7 +107,8 @@ MVStore:
 - only retain the last version, unless explicitly set (setRetainVersion)
 - support opening (existing) maps by id
 - more consistent null handling (keys/values sometimes may be null)
-- logging mechanism, specially for operations in a background thread
+- autocommit (to avoid having to call commit, 
+    as it could be called too often or it is easily forgotten)
 
 */
 
@@ -140,7 +141,7 @@ public class MVStore {
     private final String fileName;
     private final char[] filePassword;
 
-    private int pageSize = 6 * 1024;
+    private final int pageSize;
 
     private FileChannel file;
     private FileLock fileLock;
@@ -194,6 +195,8 @@ public class MVStore {
     private final Compressor compressor = new CompressLZF();
 
     private final boolean compress;
+    
+    private final ExceptionListener backgroundExceptionListener;
 
     private long currentVersion;
 
@@ -236,8 +239,6 @@ public class MVStore {
      */
     private int writeDelay = 1000;
 
-    private ExceptionListener backgroundExceptionListener;
-
     MVStore(HashMap<String, Object> config) {
         String f = (String) config.get("fileName");
         if (f != null && f.indexOf(':') < 0) {
@@ -249,8 +250,12 @@ public class MVStore {
         this.fileName = f;
         this.readOnly = config.containsKey("readOnly");
         this.compress = config.containsKey("compress");
+        Object o = config.get("pageSize");
+        pageSize = o == null ? 6 * 1024 : (Integer) o;
+        o = config.get("backgroundExceptionListener");
+        this.backgroundExceptionListener = (ExceptionListener) o;
         if (fileName != null) {
-            Object o = config.get("cacheSize");
+            o = config.get("cacheSize");
             int mb = o == null ? 16 : (Integer) o;
             int maxMemoryBytes = mb * 1024 * 1024;
             int averageMemory = pageSize / 2;
@@ -1368,33 +1373,16 @@ public class MVStore {
         // System.out.println(string);
     }
 
-    /**
-     * Set the amount of memory a page should contain at most, in bytes. Larger
-     * pages are split. The default is 6 KB. This is not a limit in the page
-     * size (pages with one entry can get larger), it is just the point where
-     * pages are split.
-     *
-     * @param pageSize the page size
-     */
-    public void setPageSize(int pageSize) {
-        this.pageSize = pageSize;
-    }
-
-    /**
-     * Get the page size, in bytes.
-     *
-     * @return the page size
-     */
-    public int getPageSize() {
-        return pageSize;
-    }
-
     Compressor getCompressor() {
         return compressor;
     }
 
     boolean getCompress() {
         return compress;
+    }
+    
+    public int getPageSize() {
+        return pageSize;
     }
 
     public boolean getReuseSpace() {
@@ -1457,21 +1445,6 @@ public class MVStore {
             v = Math.min(v, currentStoreVersion);
         }
         return v;
-    }
-
-    /**
-     * Set the listener to be used for exceptions that occur in the background
-     * thread.
-     *
-     * @param backgroundExceptionListener the listener
-     */
-    public void setBackgroundExceptionListener(
-            ExceptionListener backgroundExceptionListener) {
-        this.backgroundExceptionListener = backgroundExceptionListener;
-    }
-
-    public ExceptionListener getBackgroundExceptionListener() {
-        return backgroundExceptionListener;
     }
 
     /**
@@ -2002,6 +1975,29 @@ public class MVStore {
          */
         public Builder writeDelay(int millis) {
             return set("writeDelay", millis);
+        }
+
+        /**
+         * Set the amount of memory a page should contain at most, in bytes. Larger
+         * pages are split. The default is 6 KB. This is not a limit in the page
+         * size (pages with one entry can get larger), it is just the point where
+         * pages are split.
+         *
+         * @param pageSize the page size
+         */
+        public Builder pageSize(int pageSize) {
+            return set("pageSize", pageSize);
+        }
+        
+        /**
+         * Set the listener to be used for exceptions that occur in the background
+         * thread.
+         *
+         * @param backgroundExceptionListener the listener
+         */
+        public Builder backgroundExceptionListener(
+                ExceptionListener backgroundExceptionListener) {
+            return set("backgroundExceptionListener", backgroundExceptionListener);
         }
 
         /**

@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -63,10 +62,12 @@ public class Utils {
 
     private static boolean allowAllClasses;
     private static HashSet<String> allowedClassNames;
+    
     /**
      *  In order to manage more than one class loader
      */
-    private static List<ClassFactory> userClassFactories = new ArrayList<ClassFactory>();
+    private static ArrayList<ClassFactory> userClassFactories = new ArrayList<ClassFactory>();
+    
     private static String[] allowedClassNamePrefixes;
 
     static {
@@ -86,18 +87,29 @@ public class Utils {
 
     /**
      * Add a class factory in order to manage more than one class loader.
+     * 
      * @param classFactory An object that implements ClassFactory
      */
     public static void addClassFactory(ClassFactory classFactory) {
-        userClassFactories.add(classFactory);
+        getUserClassFactories().add(classFactory);
     }
 
     /**
      * Remove a class factory
+     * 
      * @param classFactory Already inserted class factory instance
      */
     public static void removeClassFactory(ClassFactory classFactory) {
-        userClassFactories.remove(classFactory);
+        getUserClassFactories().remove(classFactory);
+    }
+    
+    private static ArrayList<ClassFactory> getUserClassFactories() {
+        if (userClassFactories == null) {
+            // initially, it is empty
+            // but Apache Tomcat may clear the fields as well
+            userClassFactories = new ArrayList<ClassFactory>();
+        }
+        return userClassFactories;
     }
     
     private static int readInt(byte[] buff, int pos) {
@@ -592,7 +604,7 @@ public class Utils {
             }
         }
         // Use provided class factory first.
-        for (ClassFactory classFactory : userClassFactories) {
+        for (ClassFactory classFactory : getUserClassFactories()) {
             if (classFactory.match(className)) {
                 try {
                     Class<?> userClass = classFactory.loadClass(className);

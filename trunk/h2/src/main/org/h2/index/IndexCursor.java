@@ -182,9 +182,9 @@ public class IndexCursor implements Cursor {
         if (row == null) {
             row = table.getTemplateRow();
         } else if (row.getValue(columnId) != null) {
-            // the intersection of the two envelopes
+            // the union of the two envelopes
             ValueGeometry vg = (ValueGeometry) row.getValue(columnId).convertTo(Value.GEOMETRY);
-            v = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeIntersection(vg);
+            v = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeUnion(vg);
         }
         if (columnId < 0) {
             row.setKey(v.getLong());

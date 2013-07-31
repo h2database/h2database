@@ -42,6 +42,7 @@ public class TestClearReferences extends TestBase {
         "org.h2.util.StringUtils.softCache",
         "org.h2.util.Utils.allowedClassNames",
         "org.h2.util.Utils.allowedClassNamePrefixes",
+        "org.h2.util.Utils.userClassFactories",
         "org.h2.value.CompareMode.lastUsed",
         "org.h2.value.Value.softCache",
     };

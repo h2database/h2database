@@ -11,7 +11,9 @@ import java.sql.SQLException;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
 
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import com.vividsolutions.jts.io.WKBWriter;
@@ -20,6 +22,10 @@ import com.vividsolutions.jts.io.WKTWriter;
 
 /**
  * Implementation of the GEOMETRY data type.
+ * 
+ * @author Thomas Mueller
+ * @author Noel Grandin
+ * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class ValueGeometry extends Value {
 
@@ -71,35 +77,37 @@ public class ValueGeometry extends Value {
     }
 
     /**
-     * Check whether two values intersect.
-     *
-     * @param r the second value
-     * @return true if they intersect
+     * Test if this geometry envelope intersects with the other geometry
+     * envelope.
+     * 
+     * @param r the other geometry
+     * @return true if the two envelopes overlaps
      */
-    public boolean intersects(ValueGeometry r) {
-        return geometry.intersects(r.getGeometry());
+    public boolean intersectsBoundingBox(ValueGeometry r) {
+        // it is useless to cache the envelope as the Geometry object do this already
+        return geometry.getEnvelopeInternal().intersects(r.getGeometry().getEnvelopeInternal());
     }
 
     /**
-     * Get the intersection of two values.
-     *
-     * @param r the second value
-     * @return the intersection
+     * Get the intersection.
+     * 
+     * @param r the other geometry
+     * @return the intersection of this geometry envelope and another geometry envelope
      */
-    public Value intersection(ValueGeometry r) {
-        return get(geometry.intersection(r.geometry));
+    public ValueGeometry getEnvelopeIntersection(ValueGeometry r) {
+        Envelope e1 = geometry.getEnvelopeInternal();
+        Envelope e2 = r.getGeometry().getEnvelopeInternal();
+        Envelope e3 = e1.intersection(e2);
+        // try to re-use the object
+        if (e3 == e1) {
+            return this;
+        } else if (e3 == e2) {
+            return r;
+        }
+        GeometryFactory gf = new GeometryFactory();
+        return get(gf.toGeometry(e3));
     }
-
-    /**
-     * Get the union of two values.
-     *
-     * @param r the second value
-     * @return the union
-     */
-    public Value union(ValueGeometry r) {
-        return get(geometry.union(r.geometry));
-    }
-
+    
     @Override
     public int getType() {
         return Value.GEOMETRY;
@@ -107,7 +115,7 @@ public class ValueGeometry extends Value {
 
     @Override
     public String getSQL() {
-        return StringUtils.quoteStringSQL(toWKT());
+        return StringUtils.quoteStringSQL(toWKT()) + "'::Geometry";
     }
 
     @Override
@@ -142,6 +150,11 @@ public class ValueGeometry extends Value {
     }
 
     @Override
+    public byte[] getBytesNoCopy() {
+        return toWKB();
+    }
+
+    @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
         prep.setObject(parameterIndex, geometry);
     }
@@ -167,18 +180,16 @@ public class ValueGeometry extends Value {
      * @return the well-known-text
      */
     public String toWKT() {
-        WKTWriter w = new WKTWriter();
-        return w.write(geometry);
+        return new WKTWriter().write(geometry);
     }
 
     /**
-     * Convert to value to the Well-Known-Binary format.
+     * Convert to Well-Known-Binary format.
      *
      * @return the well-known-binary
      */
     public byte[] toWKB() {
-        WKBWriter w = new WKBWriter();
-        return w.write(geometry);
+        return new WKBWriter().write(geometry);
     }
 
     /**
@@ -188,9 +199,8 @@ public class ValueGeometry extends Value {
      * @return the Geometry object
      */
     private static Geometry fromWKT(String s) {
-        WKTReader r = new WKTReader();
         try {
-            return r.read(s);
+            return new WKTReader().read(s);
         } catch (ParseException ex) {
             throw DbException.convert(ex);
         }
@@ -203,9 +213,8 @@ public class ValueGeometry extends Value {
      * @return the Geometry object
      */
     private static Geometry fromWKB(byte[] bytes) {
-        WKBReader r = new WKBReader();
         try {
-            return r.read(bytes);
+            return new WKBReader().read(bytes);
         } catch (ParseException ex) {
             throw DbException.convert(ex);
         }

@@ -56,6 +56,10 @@ import org.h2.value.ValueUuid;
 
 /**
  * This class represents a byte buffer that contains persistent data of a page.
+ * 
+ * @author Thomas Mueller
+ * @author Noel Grandin
+ * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class Data {
 
@@ -520,11 +524,13 @@ public class Data {
             }
             break;
         }
+        case Value.GEOMETRY:
         case Value.JAVA_OBJECT: {
             writeByte((byte) type);
             byte[] b = v.getBytesNoCopy();
-            writeVarInt(b.length);
-            write(b, 0, b.length);
+            int len = b.length;
+            writeVarInt(len);
+            write(b, 0, len);
             break;
         }
         case Value.BYTES: {
@@ -532,11 +538,11 @@ public class Data {
             int len = b.length;
             if (len < 32) {
                 writeByte((byte) (BYTES_0_31 + len));
-                write(b, 0, b.length);
+                write(b, 0, len);
             } else {
                 writeByte((byte) type);
-                writeVarInt(b.length);
-                write(b, 0, b.length);
+                writeVarInt(len);
+                write(b, 0, len);
             }
             break;
         }
@@ -671,14 +677,6 @@ public class Data {
             }
             break;
         }
-        case Value.GEOMETRY: {
-            writeByte((byte) type);
-            byte[] b = v.getBytes();
-            int len = b.length;
-            writeVarInt(len);
-            write(b, 0, len);
-            break;
-        }
         default:
             DbException.throwInternalError("type=" + v.getType());
         }
@@ -764,6 +762,12 @@ public class Data {
             read(b, 0, len);
             return ValueBytes.getNoCopy(b);
         }
+        case Value.GEOMETRY: {
+            int len = readVarInt();
+            byte[] b = DataUtils.newBytes(len);
+            read(b, 0, len);
+            return ValueGeometry.get(b);
+        }
         case Value.JAVA_OBJECT: {
             int len = readVarInt();
             byte[] b = DataUtils.newBytes(len);
@@ -847,12 +851,6 @@ public class Data {
                 rs.addRow(o);
             }
             return ValueResultSet.get(rs);
-        }
-        case Value.GEOMETRY: {
-            int len = readVarInt();
-            byte[] b = DataUtils.newBytes(len);
-            read(b, 0, len);
-            return ValueGeometry.get(b);
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
@@ -999,6 +997,7 @@ public class Data {
             Timestamp ts = v.getTimestamp();
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) + getVarIntLen(ts.getNanos());
         }
+        case Value.GEOMETRY:
         case Value.JAVA_OBJECT: {
             byte[] b = v.getBytesNoCopy();
             return 1 + getVarIntLen(b.length) + b.length;
@@ -1088,11 +1087,6 @@ public class Data {
                 throw DbException.convert(e);
             }
             return len;
-        }
-        case Value.GEOMETRY: {
-            byte[] b = v.getBytesNoCopy();
-            int len = b.length;
-            return 1 + getVarIntLen(len) + len;
         }
         default:
             throw DbException.throwInternalError("type=" + v.getType());

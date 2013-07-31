@@ -34,6 +34,10 @@ import org.h2.util.Utils;
 /**
  * This is the base class for all value classes.
  * It provides conversion and comparison methods.
+ * 
+ * @author Thomas Mueller
+ * @author Noel Grandin
+ * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public abstract class Value {
 
@@ -793,6 +797,11 @@ public abstract class Value {
                 switch(getType()) {
                 case BYTES:
                     return ValueGeometry.get(getBytesNoCopy());
+                case JAVA_OBJECT:
+                    Object object = Utils.deserialize(getBytesNoCopy());
+                    if (DataType.isGeometry(object)) {
+                        return ValueGeometry.getFromGeometry(object);
+                    }
                 }
             }
             // conversion by parsing the string value

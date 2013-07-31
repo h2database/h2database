@@ -26,6 +26,10 @@ import org.h2.value.ValueNull;
 /**
  * The filter used to walk through an index. This class supports IN(..)
  * and IN(SELECT ...) optimizations.
+ * 
+ * @author Thomas Mueller
+ * @author Noel Grandin
+ * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class IndexCursor implements Cursor {
 
@@ -125,7 +129,7 @@ public class IndexCursor implements Cursor {
                     end = getSearchRow(end, columnId, v, false);
                 }
                 if (isIntersects) {
-                    intersects = getSpatialSearchRow(intersects, columnId, v, true);
+                    intersects = getSpatialSearchRow(intersects, columnId, v);
                 }
                 if (isStart || isEnd) {
                     // an X=? condition will produce less rows than
@@ -148,8 +152,8 @@ public class IndexCursor implements Cursor {
             return;
         }
         if (!alwaysFalse) {
-            if (intersects != null && index instanceof SpatialTreeIndex) {
-                cursor = ((SpatialTreeIndex) index).findByGeometry(tableFilter,
+            if (intersects != null && index instanceof SpatialIndex) {
+                cursor = ((SpatialIndex) index).findByGeometry(tableFilter,
                         intersects);
             } else {
                 cursor = index.find(tableFilter, start, end);
@@ -174,16 +178,13 @@ public class IndexCursor implements Cursor {
         return idxCol == null || idxCol.column == column;
     }
 
-    private SearchRow getSpatialSearchRow(SearchRow row, int columnId, Value v, boolean isIntersects) {
+    private SearchRow getSpatialSearchRow(SearchRow row, int columnId, Value v) {
         if (row == null) {
             row = table.getTemplateRow();
-        } else {
-            ValueGeometry vg = (ValueGeometry) row.getValue(columnId);
-            if (isIntersects) {
-                v = ((ValueGeometry) v).intersection(vg);
-            } else {
-                v = ((ValueGeometry) v).union(vg);
-            }
+        } else if (row.getValue(columnId) != null) {
+            // the intersection of the two envelopes
+            ValueGeometry vg = (ValueGeometry) row.getValue(columnId).convertTo(Value.GEOMETRY);
+            v = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeIntersection(vg);
         }
         if (columnId < 0) {
             row.setKey(v.getLong());

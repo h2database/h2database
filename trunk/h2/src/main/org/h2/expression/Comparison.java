@@ -22,6 +22,10 @@ import org.h2.value.ValueNull;
 
 /**
  * Example comparison expressions are ID=1, NAME=NAME, NAME IS NULL.
+ * 
+ * @author Thomas Mueller
+ * @author Noel Grandin
+ * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class Comparison extends Condition {
 
@@ -102,7 +106,7 @@ public class Comparison extends Condition {
 
     /**
      * This is a comparison type that is only used for spatial index
-     * conditions.
+     * conditions (operator "&&").
      */
     public static final int SPATIAL_INTERSECTS = 11;
 
@@ -161,6 +165,8 @@ public class Comparison extends Condition {
             return "<>";
         case NOT_EQUAL_NULL_SAFE:
             return "IS NOT";
+        case SPATIAL_INTERSECTS:
+            return "&&";
         default:
             throw DbException.throwInternalError("compareType=" + compareType);
         }
@@ -285,7 +291,7 @@ public class Comparison extends Condition {
         case SPATIAL_INTERSECTS: {
             ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
             ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
-            result = lg.intersects(rg);
+            result = lg.intersectsBoundingBox(rg);
             break;
         }
         default:
@@ -300,6 +306,7 @@ public class Comparison extends Condition {
         case EQUAL_NULL_SAFE:
         case NOT_EQUAL:
         case NOT_EQUAL_NULL_SAFE:
+        case SPATIAL_INTERSECTS:
             return type;
         case BIGGER_EQUAL:
             return SMALLER_EQUAL;
@@ -314,6 +321,15 @@ public class Comparison extends Condition {
         }
     }
 
+    @Override
+    public Expression getNotIfPossible(Session session) {
+        if (compareType == SPATIAL_INTERSECTS) {
+            return null;
+        }
+        int type = getNotCompareType();
+        return new Comparison(session, type, left, right);
+    }
+    
     private int getNotCompareType() {
         switch (compareType) {
         case EQUAL:
@@ -339,12 +355,6 @@ public class Comparison extends Condition {
         default:
             throw DbException.throwInternalError("type=" + compareType);
         }
-    }
-
-    @Override
-    public Expression getNotIfPossible(Session session) {
-        int type = getNotCompareType();
-        return new Comparison(session, type, left, right);
     }
 
     @Override

@@ -961,7 +961,13 @@ public class DataType {
         }
     }
 
-    private static boolean isGeometry(Object x) {
+    /**
+     * Check whether a given object is a Geometry object.
+     * 
+     * @param x the the object
+     * @return true if it is a Geometry object
+     */
+    public static boolean isGeometry(Object x) {
         if (x == null || GEOMETRY_CLASS == null) {
             return false;
         }

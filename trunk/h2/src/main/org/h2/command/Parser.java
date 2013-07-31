@@ -4,8 +4,8 @@
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  * 
- * N. Fortin,  Atelier SIG - IRSTV CNRS 2488:
- * Support for the operator "&&" as an alias for SPATIAL_INTERSECTS.
+ * Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
+ * Support for the operator "&&" as an alias for SPATIAL_INTERSECTS
  */
 package org.h2.command;
 
@@ -149,6 +149,10 @@ import org.h2.value.ValueTimestamp;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
+ * 
+ * @author Thomas Mueller
+ * @author Noel Grandin
+ * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class Parser {
 

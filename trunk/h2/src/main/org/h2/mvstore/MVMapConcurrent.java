@@ -46,11 +46,11 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
             // even if the result is the same, we still update the value
             // (otherwise compact doesn't work)
             get(key);
-            long writeVersion = store.getCurrentVersion();
+            long v = writeVersion;
             synchronized (this) {
-                Page p = copyOnWrite(root, writeVersion);
-                p = splitRootIfNeeded(p, writeVersion);
-                V result = (V) put(p, writeVersion, key, value);
+                Page p = copyOnWrite(root, v);
+                p = splitRootIfNeeded(p, v);
+                V result = (V) put(p, v, key, value);
                 newRoot(p);
                 return result;
             }
@@ -73,10 +73,10 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
             if (result == null) {
                 return null;
             }
-            long writeVersion = store.getCurrentVersion();
+            long v = writeVersion;
             synchronized (this) {
-                Page p = copyOnWrite(root, writeVersion);
-                result = (V) remove(p, writeVersion, key);
+                Page p = copyOnWrite(root, v);
+                result = (V) remove(p, v, key);
                 newRoot(p);
             }
             return result;

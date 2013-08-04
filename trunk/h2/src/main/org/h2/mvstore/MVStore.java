@@ -49,7 +49,7 @@ TODO:
 TestMVStoreDataLoss
 
 TransactionStore:
-- support reading the undo log
+- write to the undo log _before_ a change (WAL style)
 
 MVStore:
 - rolling docs review: at "Features"
@@ -109,6 +109,8 @@ MVStore:
 - more consistent null handling (keys/values sometimes may be null)
 - autocommit (to avoid having to call commit, 
     as it could be called too often or it is easily forgotten)
+- remove features that are not really needed; simplify the code
+- rename "store" to "save", as store collides with storeVersion
 
 */
 
@@ -405,9 +407,9 @@ public class MVStore {
     private Chunk getChunkForVersion(long version) {
         for (int chunkId = lastChunkId;; chunkId--) {
             Chunk x = chunks.get(chunkId);
-            if (x == null || x.version < version) {
+            if (x == null) {
                 return null;
-            } else if (x.version == version) {
+            } else if (x.version <= version) {
                 return x;
             }
         }
@@ -619,7 +621,9 @@ public class MVStore {
     private void readFileHeader() {
         // we don't have a valid header yet
         currentVersion = -1;
-        // read the last block of the file, and then two first blocks
+        // we don't know which chunk is the newest
+        long newestChunk = -1;
+        // read the last block of the file, and then the two first blocks
         ByteBuffer buff = ByteBuffer.allocate(3 * BLOCK_SIZE);
         buff.limit(BLOCK_SIZE);
         fileReadCount++;
@@ -653,25 +657,28 @@ public class MVStore {
             if (check != checksum) {
                 continue;
             }
-            long version = Long.parseLong(m.get("version"));
-            if (version > currentVersion) {
+            long chunk = Long.parseLong(m.get("chunk"));
+            if (chunk > newestChunk) {
+                newestChunk = chunk;
                 fileHeader = m;
                 rootChunkStart = Long.parseLong(m.get("rootChunk"));
                 creationTime = Long.parseLong(m.get("creationTime"));
-                currentVersion = version;
                 lastMapId = Integer.parseInt(m.get("lastMapId"));
+                currentVersion = Long.parseLong(m.get("version"));
             }
         }
         if (currentVersion < 0) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT, "File header is corrupt: {0}", fileName);
         }
+        setWriteVersion(currentVersion);
         lastStoredVersion = -1;
     }
 
     private byte[] getFileHeaderBytes() {
         StringBuilder buff = new StringBuilder();
         fileHeader.put("lastMapId", "" + lastMapId);
+        fileHeader.put("chunk", "" + lastChunkId);
         fileHeader.put("rootChunk", "" + rootChunkStart);
         fileHeader.put("version", "" + currentVersion);
         DataUtils.appendMap(buff, fileHeader);
@@ -709,8 +716,10 @@ public class MVStore {
             return;
         }
         if (!readOnly) {
-            if (hasUnsavedChanges()) {
+            stopBackgroundThread();
+            if (hasUnsavedChanges() || lastCommittedVersion != currentVersion) {
                 rollbackTo(lastCommittedVersion);
+                metaChanged = true;
                 store(false);
             }
         }
@@ -718,11 +727,17 @@ public class MVStore {
     }
 
     /**
-     * Close the file and the store, without writing anything.
-     * This will stop the background thread.
+     * Close the file and the store, without writing anything. This will stop
+     * the background thread. This method ignores all errors.
      */
     public void closeImmediately() {
-        closeFile(false);
+        try {
+            closeFile(false);
+        } catch (Exception e) {
+            if (backgroundExceptionListener != null) {
+                backgroundExceptionListener.exceptionThrown(e);
+            }
+        }
     }
 
     private void closeFile(boolean shrinkIfPossible) {
@@ -782,7 +797,16 @@ public class MVStore {
      * @return the new version
      */
     public long incrementVersion() {
-        return ++currentVersion;
+        long v = ++currentVersion;
+        setWriteVersion(v);
+        return v;
+    }
+    
+    private void setWriteVersion(long version) {
+        for (MVMap<?, ?> map : maps.values()) {
+            map.setWriteVersion(version);
+        }
+        meta.setWriteVersion(version);
     }
 
     /**
@@ -796,7 +820,7 @@ public class MVStore {
      * @return the new version
      */
     public long commit() {
-        long v = ++currentVersion;
+        long v = incrementVersion();
         lastCommittedVersion = v;
         if (writeDelay == 0) {
             store(false);
@@ -842,12 +866,12 @@ public class MVStore {
                     DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
         }
         int currentUnsavedPageCount = unsavedPageCount;
-        long storeVersion = currentStoreVersion = currentVersion;
-        long version = incrementVersion();
-
+        currentStoreVersion = currentVersion;
         if (file == null) {
-            return version;
+            return incrementVersion();
         }
+        long storeVersion = currentStoreVersion;
+        long version = ++currentVersion;
         long time = getTime();
         lastStoreTime = time;
         if (temp) {
@@ -867,6 +891,7 @@ public class MVStore {
             meta.remove("rollbackOnOpen");
             retainChunk = null;
         }
+        
         // the last chunk was not completely correct in the last store()
         // this needs to be updated now (it's better not to update right after
         // storing, because that would modify the meta map again)
@@ -890,6 +915,7 @@ public class MVStore {
         ArrayList<MVMap<?, ?>> changed = New.arrayList();
         for (MVMap<?, ?> m : list) {
             if (m != meta) {
+                m.setWriteVersion(version);
                 long v = m.getVersion();
                 if (v >= 0 && m.getVersion() >= lastStoredVersion) {
                     MVMap<?, ?> r = m.openVersion(storeVersion);
@@ -930,8 +956,9 @@ public class MVStore {
         }
 
         meta.put("chunk." + c.id, c.asString());
-
-        // this will modify maxLengthLive, but
+        meta.setWriteVersion(version);
+        
+        // this will (again) modify maxLengthLive, but
         // the correct value is written in the chunk header
         buff = meta.getRoot().writeUnsavedRecursive(c, buff);
 
@@ -1001,8 +1028,10 @@ public class MVStore {
         // some pages might have been changed in the meantime (in the newest version)
         unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
         currentStoreVersion = -1;
-        metaChanged = false;
-        lastStoredVersion = storeVersion;
+        if (!temp) {
+            metaChanged = false;
+            lastStoredVersion = storeVersion;
+        }
         return version;
     }
 
@@ -1138,7 +1167,7 @@ public class MVStore {
         for (MVMap<?, ?> m : maps.values()) {
             if (!m.isClosed()) {
                 long v = m.getVersion();
-                if (v >= 0 && v >= lastStoredVersion) {
+                if (v >= 0 && v > lastStoredVersion) {
                     return true;
                 }
             }
@@ -1564,6 +1593,8 @@ public class MVStore {
                 freedPages.clear();
             }
             currentVersion = version;
+            setWriteVersion(version);
+            lastCommittedVersion = version;
             metaChanged = false;
             return;
         }
@@ -1584,31 +1615,46 @@ public class MVStore {
         meta.rollbackTo(version);
         metaChanged = false;
         boolean loadFromFile = false;
-        Chunk last = chunks.get(lastChunkId);
-        if (last != null) {
-            if (last.version >= version) {
-                revertTemp(version);
-                loadFromFile = true;
-                do {
-                    last = chunks.remove(lastChunkId);
-                    int len = MathUtils.roundUpInt(last.length, BLOCK_SIZE) + BLOCK_SIZE;
-                    freeSpace.free(last.start, len);
-                    lastChunkId--;
-                } while (last.version > version && chunks.size() > 0);
-                rootChunkStart = last.start;
-                writeFileHeader();
-                // need to write the header at the end of the file as well,
-                // so that the old end header is not used
-                byte[] bytes = getFileHeaderBytes();
-                ByteBuffer header = ByteBuffer.allocate(BLOCK_SIZE);
-                header.put(bytes);
-                header.rewind();
-                fileWriteCount++;
-                DataUtils.writeFully(file,  fileSize, header);
-                fileSize += BLOCK_SIZE;
-                readFileHeader();
-                readMeta();
+        // get the largest chunk with a version 
+        // higher or equal the requested version
+        int removeChunksNewerThan = -1;
+        for (int chunkId = lastChunkId;; chunkId--) {
+            Chunk x = chunks.get(chunkId);
+            if (x == null) {
+                break;
+            } else if (x.version >= version) {
+                removeChunksNewerThan = x.id;
             }
+        }
+        if (removeChunksNewerThan >= 0 && lastChunkId > removeChunksNewerThan) {
+            revertTemp(version);
+            loadFromFile = true;
+            Chunk last = null;
+            while (true) {
+                last = chunks.get(lastChunkId);
+                if (last == null) {
+                    break;
+                } else if (last.id <= removeChunksNewerThan) {
+                    break;
+                }
+                chunks.remove(lastChunkId);
+                int len = MathUtils.roundUpInt(last.length, BLOCK_SIZE) + BLOCK_SIZE;
+                freeSpace.free(last.start, len);
+                lastChunkId--;
+            }
+            rootChunkStart = last.start;
+            writeFileHeader();
+            // need to write the header at the end of the file as well,
+            // so that the old end header is not used
+            byte[] bytes = getFileHeaderBytes();
+            ByteBuffer header = ByteBuffer.allocate(BLOCK_SIZE);
+            header.put(bytes);
+            header.rewind();
+            fileWriteCount++;
+            DataUtils.writeFully(file,  fileSize, header);
+            fileSize += BLOCK_SIZE;
+            readFileHeader();
+            readMeta();
         }
         for (MVMap<?, ?> m : New.arrayList(maps.values())) {
             int id = m.getId();
@@ -1622,8 +1668,11 @@ public class MVStore {
                     m.setRootPos(root, -1);
                 }
             }
+            
         }
-        this.currentVersion = version;
+        currentVersion = version;
+        setWriteVersion(version);
+        lastCommittedVersion = version;
     }
 
     private void revertTemp(long storeVersion) {
@@ -1727,16 +1776,15 @@ public class MVStore {
         checkOpen();
         DataUtils.checkArgument(map != meta,
                 "Renaming the meta map is not allowed");
-        if (map.getName().equals(newName)) {
+        int id = map.getId();
+        String oldName = getMapName(id);
+        if (oldName.equals(newName)) {
             return;
         }
         DataUtils.checkArgument(
                 !meta.containsKey("name." + newName),
                 "A map named {0} already exists", newName);
-        int id = map.getId();
-        String oldName = getMapName(id);
         markMetaChanged();
-        meta.remove("map." + id);
         meta.remove("name." + oldName);
         meta.put("map." + id, map.asString(newName));
         meta.put("name." + newName, Integer.toString(id));
@@ -1762,11 +1810,14 @@ public class MVStore {
         }
         // could also store when there are many unsaved pages,
         // but according to a test it doesn't really help
-        if (lastCommittedVersion >= currentVersion) {
+        if (lastStoredVersion >= lastCommittedVersion) {
             return;
         }
         long time = getTime();
         if (time <= lastStoreTime + writeDelay) {
+            return;
+        }
+        if (!hasUnsavedChanges()) {
             return;
         }
         try {

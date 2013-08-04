@@ -441,7 +441,7 @@ public class TestTransactionStore extends TestBase {
             return;
         }
         statements.get(0).execute(
-                "drop table if exists test");
+                "drop table if exists test cascade");
         statements.get(0).execute(
                 "create table test(id int primary key, name varchar(255))");
 

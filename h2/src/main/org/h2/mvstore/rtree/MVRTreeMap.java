@@ -223,30 +223,30 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     private Object putOrAdd(SpatialKey key, V value, boolean alwaysAdd) {
         beforeWrite();
         try {
-            long writeVersion = store.getCurrentVersion();
-            Page p = copyOnWrite(root, writeVersion);
+            long v = writeVersion;
+            Page p = copyOnWrite(root, v);
             Object result;
             if (alwaysAdd || get(key) == null) {
                 if (p.getMemory() > store.getPageSize() && p.getKeyCount() > 1) {
                     // only possible if this is the root, else we would have split earlier
                     // (this requires maxPageSize is fixed)
                     long totalCount = p.getTotalCount();
-                    Page split = split(p, writeVersion);
+                    Page split = split(p, v);
                     Object k1 = getBounds(p);
                     Object k2 = getBounds(split);
                     Object[] keys = { k1, k2 };
                     long[] children = { p.getPos(), split.getPos(), 0 };
                     Page[] childrenPages = { p, split, null };
                     long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
-                    p = Page.create(this, writeVersion, 2,
+                    p = Page.create(this, v, 2,
                             keys, null, children, childrenPages, counts,
                             totalCount, 0, 0);
                     // now p is a node; continues
                 }
-                add(p, writeVersion, key, value);
+                add(p, v, key, value);
                 result = null;
             } else {
-                result = set(p, writeVersion, key, value);
+                result = set(p, v, key, value);
             }
             newRoot(p);
             return result;

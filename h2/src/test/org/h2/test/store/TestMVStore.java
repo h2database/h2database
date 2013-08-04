@@ -123,7 +123,7 @@ public class TestMVStore extends TestBase {
         assertTrue(e != null);
         assertEquals(DataUtils.ERROR_WRITING_FAILED, DataUtils.getErrorCode(e.getMessage()));
 
-        s.close();
+        s.closeImmediately();
         FileUtils.delete(fileName);
     }
 
@@ -237,7 +237,14 @@ public class TestMVStore extends TestBase {
         m.put(2, "World");
         Thread.sleep(5);
         // must not store, as nothing has been committed yet
-        assertEquals(v, s.getCurrentVersion());
+        s.closeImmediately();
+        s = new MVStore.Builder().
+                writeDelay(1).
+                fileName(fileName).
+                open();
+        m = s.openMap("data");
+        assertEquals(null, m.get(2));
+        m.put(2, "World");
         s.commit();
         m.put(3, "!");
 
@@ -251,20 +258,7 @@ public class TestMVStore extends TestBase {
             Thread.sleep(1);
         }
         s.close();
-        s = new MVStore.Builder().
-                fileName(fileName).
-                open();
-        m = s.openMap("data");
-        assertEquals("Hello", m.get(1));
-        assertEquals("World", m.get(2));
-        assertFalse(m.containsKey(3));
-
-        String data = new String(new char[1000]).replace((char) 0, 'x');
-        for (int i = 0; i < 1000; i++) {
-            m.put(i, data);
-        }
-        s.close();
-
+        
         s = new MVStore.Builder().
                 fileName(fileName).
                 open();
@@ -472,13 +466,21 @@ public class TestMVStore extends TestBase {
         s.close();
     }
 
-    private void testFileHeaderCorruption() throws IOException {
+    private void testFileHeaderCorruption() throws Exception {
         String fileName = getBaseDir() + "/testFileHeader.h3";
         MVStore s = openStore(fileName);
+        s.setRetentionTime(10);
         MVMap<Integer, Integer> map = s.openMap("test");
+        for (int i = 0; i < 5; i++) {
+            s.setStoreVersion(i);
+            s.store();
+        }
+        // ensure the oldest chunks can be overwritten
+        Thread.sleep(11);
+        s.compact(50);
         map.put(10, 100);
-        FilePath f = FilePath.get(s.getFileName());
         s.store();
+        FilePath f = FilePath.get(s.getFileName());
         s.close();
         int blockSize = 4 * 1024;
         // test corrupt file headers
@@ -652,13 +654,13 @@ public class TestMVStore extends TestBase {
         s.setStoreVersion(1);
         s.close();
         s = MVStore.open(fileName);
-        assertEquals(0, s.getCurrentVersion());
+        assertEquals(1, s.getCurrentVersion());
         assertEquals(0, s.getStoreVersion());
         s.setStoreVersion(1);
         s.store();
         s.close();
         s = MVStore.open(fileName);
-        assertEquals(1, s.getCurrentVersion());
+        assertEquals(2, s.getCurrentVersion());
         assertEquals(1, s.getStoreVersion());
         s.close();
     }
@@ -698,6 +700,7 @@ public class TestMVStore extends TestBase {
         map.put(new Object[1], new Object[]{1, "2"});
         s.store();
         s.close();
+
         s = new MVStore.Builder().fileName(fileName).open();
         map = s.openMap("test");
         assertEquals("Hello", map.get(1).toString());
@@ -938,6 +941,8 @@ public class TestMVStore extends TestBase {
         s.rollbackTo(1);
         assertEquals(1, s.getCurrentVersion());
         assertEquals("Hello", m.get("1"));
+        // so a new version is created
+        m.put("1", "Hello");
 
         long v2 = s.store();
         assertEquals(2, v2);

@@ -913,6 +913,11 @@ public class TransactionStore {
             newValue.value = value;
             if (current == null) {
                 // a new value
+                
+                int todo;
+                // either write the log before the data (and handle this case in rollback)
+                // or ensure/document concurrent commits are not allowed
+                
                 VersionedValue old = map.putIfAbsent(key, newValue);
                 if (old == null) {
                     transaction.log(opType, mapId, key, current);

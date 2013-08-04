@@ -38,6 +38,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * The current root page (may not be null).
      */
     protected volatile Page root;
+    
+    /**
+     * The version used for writing.
+     */
+    protected long writeVersion;
 
     private int id;
     private long createVersion;
@@ -70,6 +75,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.id = Integer.parseInt(config.get("id"));
         String x = config.get("createVersion");
         this.createVersion = x == null ? 0 : Long.parseLong(x);
+        this.writeVersion = store.getCurrentVersion();
     }
 
     /**
@@ -100,10 +106,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         DataUtils.checkArgument(value != null, "The value may not be null");
         beforeWrite();
         try {
-            long writeVersion = store.getCurrentVersion();
-            Page p = copyOnWrite(root, writeVersion);
-            p = splitRootIfNeeded(p, writeVersion);
-            Object result = put(p, writeVersion, key, value);
+            long v = writeVersion;
+            Page p = copyOnWrite(root, v);
+            p = splitRootIfNeeded(p, v);
+            Object result = put(p, v, key, value);
             newRoot(p);
             return (V) result;
         } finally {
@@ -496,7 +502,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         beforeWrite();
         try {
             root.removeAllRecursive();
-            newRoot(Page.createEmpty(this, store.getCurrentVersion()));
+            newRoot(Page.createEmpty(this, writeVersion));
         } finally {
             afterWrite();
         }
@@ -544,10 +550,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public V remove(Object key) {
         beforeWrite();
         try {
-            long writeVersion = store.getCurrentVersion();
-            Page p = copyOnWrite(root, writeVersion);
+            long v = writeVersion;
+            Page p = copyOnWrite(root, v);
             @SuppressWarnings("unchecked")
-            V result = (V) remove(p, writeVersion, key);
+            V result = (V) remove(p, v, key);
             newRoot(p);
             return result;
         } finally {
@@ -1014,7 +1020,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         // need to copy because it can change
         Page r = root;
         if (version >= r.getVersion() &&
-                (version == store.getCurrentVersion() ||
+                (version == writeVersion ||
                 r.getVersion() >= 0 ||
                 version <= createVersion ||
                 store.getFile() == null)) {
@@ -1127,6 +1133,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         } finally {
             afterWrite();
         }
+    }
+    
+    void setWriteVersion(long writeVersion) {
+        this.writeVersion = writeVersion;
     }
 
     @Override

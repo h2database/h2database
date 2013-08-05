@@ -48,12 +48,15 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     
     /**
      * Constructor.
-     * @param table Table instance
-     * @param id Index Id
-     * @param indexName Index name
-     * @param columns Indexed columns (only one geometry column allowed)
-     * @param indexType Index type (only spatial index)
-     * @param persistent Persistent, can be used in-memory or stored in a file.
+     * 
+     * @param table the table instance
+     * @param id the index id
+     * @param indexName the index name
+     * @param columns the indexed columns (only one geometry column allowed)
+     * @param indexType the index type (only spatial index)
+     * @param persistent whether the index data should be persisted
+     * @param create whether to create a new index
+     * @param session the session.
      */
     public SpatialTreeIndex(RegularTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType, boolean persistent,

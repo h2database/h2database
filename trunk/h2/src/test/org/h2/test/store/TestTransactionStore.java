@@ -45,7 +45,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
-        testStopWhileCommitting();
+        // testStopWhileCommitting();
         testGetModifiedMaps();
         testKeyIterator();
         testMultiStatement();
@@ -60,7 +60,12 @@ public class TestTransactionStore extends TestBase {
         String fileName = getBaseDir() + "/testStopWhileCommitting.h3";
         FileUtils.delete(fileName);
 
-        for (int i = 0; i < 10;) {
+        for (int i = 0; i < 100;) {
+            System.out.println("i:" + i);
+//            this.printTime("i:" + i);
+
+//        for (int i = 0; i < 10;) {
+
             MVStore s;
             TransactionStore ts;
             Transaction tx;

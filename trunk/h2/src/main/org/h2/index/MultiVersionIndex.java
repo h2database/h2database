@@ -7,6 +7,8 @@
 package org.h2.index;
 
 import java.util.ArrayList;
+
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -40,6 +42,9 @@ public class MultiVersionIndex implements Index {
         this.base = base;
         this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);
+        if (base instanceof SpatialIndex) {
+            throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "MVCC & spatial index");
+        }
         this.delta = new TreeIndex(table, -1, "DELTA", base.getIndexColumns(), deltaIndexType);
         delta.setMultiVersion(true);
         this.sync = base.getDatabase();

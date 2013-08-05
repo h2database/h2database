@@ -625,7 +625,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     @Override
     public byte[] getBytes(int columnIndex) throws SQLException {
         Object o = get(columnIndex);
-        return o instanceof byte[] ? (byte[]) o : Utils.serialize(o);
+        if (o == null || o instanceof byte[]) {
+            return (byte[]) o;
+        }
+        return Utils.serialize(o);
     }
 
     /**

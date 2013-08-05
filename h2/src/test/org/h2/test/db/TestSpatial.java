@@ -50,6 +50,9 @@ public class TestSpatial extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        if (config.mvcc) {
+            return;
+        }
         if (DataType.GEOMETRY_CLASS != null) {
             deleteDb("spatial");
             testSpatialValues();
@@ -247,6 +250,10 @@ public class TestSpatial extends TestBase {
         } finally {
             // Close the database
             conn.close();
+        }
+        
+        if (config.memory) {
+            return;
         }
 
         conn = getConnection("spatial_pers");

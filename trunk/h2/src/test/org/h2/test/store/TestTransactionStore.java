@@ -45,7 +45,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
-        // testStopWhileCommitting();
+        testStopWhileCommitting();
         testGetModifiedMaps();
         testKeyIterator();
         testMultiStatement();
@@ -60,12 +60,7 @@ public class TestTransactionStore extends TestBase {
         String fileName = getBaseDir() + "/testStopWhileCommitting.h3";
         FileUtils.delete(fileName);
 
-        for (int i = 0; i < 100;) {
-            System.out.println("i:" + i);
-//            this.printTime("i:" + i);
-
-//        for (int i = 0; i < 10;) {
-
+        for (int i = 0; i < 10;) {
             MVStore s;
             TransactionStore ts;
             Transaction tx;
@@ -87,7 +82,7 @@ public class TestTransactionStore extends TestBase {
 
                 @Override
                 public void call() throws Exception {
-                    for (int i = 0; state.get() < Integer.MAX_VALUE; i++) {
+                    for (int i = 0; !stop; i++) {
                         state.set(i);
                         other.put(i, value);
                         store.store();
@@ -101,8 +96,6 @@ public class TestTransactionStore extends TestBase {
             }
             // commit while writing in the task
             tx.commit();
-            // stop writing
-            state.set(Integer.MAX_VALUE);
             // wait for the task to stop
             task.get();
             store.close();

@@ -43,9 +43,13 @@ public class TransactionStore {
     final MVMap<Long, Object[]> preparedTransactions;
 
     /**
-     * The undo log.
-     * If the first entry for a transaction doesn't have a logId of 0, then
-     * the transaction is committing (partially committed).
+     * The undo log. 
+     * <p>
+     * If the first entry for a transaction doesn't have a logId
+     * of 0, then the transaction is partially committed (which means rollback
+     * is not possible). Log entries are written before the data is changed
+     * (write-ahead). 
+     * <p>
      * Key: [ transactionId, logId ], value: [ opType, mapId, key, oldValue ].
      */
     final MVMap<long[], Object[]> undoLog;
@@ -225,6 +229,19 @@ public class TransactionStore {
         }
         if (firstOpenTransaction == -1 || t.getId() < firstOpenTransaction) {
             firstOpenTransaction = t.getId();
+        }
+    }
+
+    /**
+     * Remove a log entry.
+     * 
+     * @param t the transaction
+     * @param logId the log id
+     */
+    public void logUndo(Transaction t, long logId) {
+        long[] undoKey = { t.getId(), logId };
+        synchronized (undoLog) {
+            undoLog.remove(undoKey);
         }
     }
 
@@ -581,6 +598,13 @@ public class TransactionStore {
         void log(int opType, int mapId, Object key, Object oldValue) {
             store.log(this, logId++, opType, mapId, key, oldValue);
         }
+        
+        /**
+         * Remove the last log entry.
+         */
+        void logUndo() {
+            store.logUndo(this, --logId);
+        }
 
         /**
          * Open a data map.
@@ -867,7 +891,7 @@ public class TransactionStore {
          * @param value the new value (null to remove the value)
          * @param onlyIfUnchanged only set the value if it was not changed (by
          *            this or another transaction) since the map was opened
-         * @return true if the value was set
+         * @return true if the value was set, false if there was a concurrent update
          */
         public boolean trySet(K key, V value, boolean onlyIfUnchanged) {
             VersionedValue current = map.get(key);
@@ -913,40 +937,38 @@ public class TransactionStore {
             newValue.value = value;
             if (current == null) {
                 // a new value
-                
-                int todo;
-                // either write the log before the data (and handle this case in rollback)
-                // or ensure/document concurrent commits are not allowed
-                
+                transaction.log(opType, mapId, key, current);
                 VersionedValue old = map.putIfAbsent(key, newValue);
-                if (old == null) {
-                    transaction.log(opType, mapId, key, current);
-                    return true;
+                if (old != null) {
+                    transaction.logUndo();
+                    return false;
                 }
-                return false;
+                return true;
             }
             long tx = current.transactionId;
             if (tx == transaction.transactionId) {
                 // added or updated by this transaction
-                if (map.replace(key, current, newValue)) {
-                    transaction.log(opType, mapId, key, current);
-                    return true;
+                transaction.log(opType, mapId, key, current);
+                if (!map.replace(key, current, newValue)) {
+                    // strange, somebody overwrite the value
+                    // even thought the change was not committed
+                    transaction.logUndo();
+                    return false;
                 }
-                // strange, somebody overwrite the value
-                // even thought the change was not committed
-                return false;
+                return true;
             }
             // added or updated by another transaction
             boolean open = transaction.store.isTransactionOpen(tx);
             if (!open) {
+                transaction.log(opType, mapId, key, current);
                 // the transaction is committed:
                 // overwrite the value
-                if (map.replace(key, current, newValue)) {
-                    transaction.log(opType, mapId, key, current);
-                    return true;
+                if (!map.replace(key, current, newValue)) {
+                    // somebody else was faster
+                    transaction.logUndo();
+                    return false;
                 }
-                // somebody else was faster
-                return false;
+                return true;
             }
             // the transaction is not yet committed
             return false;

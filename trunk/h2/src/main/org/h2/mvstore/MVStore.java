@@ -49,17 +49,15 @@ TODO:
 TestMVStoreDataLoss
 
 TransactionStore:
-- write to the undo log _before_ a change (WAL style)
 
 MVStore:
 - rolling docs review: at "Features"
-- additional test async write / read algorithm for speed and errors
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
     and settings that are persistent (setStoreVersion)
-- test meta rollback: it is changed after save; could rollback break it?
 - automated 'kill process' and 'power failure' test
 - update checkstyle
 - maybe split database into multiple files, to speed up compact
+    and allow using trim (by truncating / deleting empty files)
 - auto-compact from time to time and on close
 - test and possibly improve compact operation (for large dbs)
 - possibly split chunk metadata into immutable and mutable
@@ -68,17 +66,16 @@ MVStore:
 - chunk header: store changed chunk data as row; maybe after the root
 - chunk checksum (header, last page, 2 bytes per page?)
 - is there a better name for the file header,
--- if it's no longer always at the beginning of a file? store header?
+    if it's no longer always at the beginning of a file? store header?
 - on insert, if the child page is already full, don't load and modify it
--- split directly (specially for leaves with one large entry)
+    split directly (specially for leaves with one large entry)
 - maybe let a chunk point to a list of potential next chunks
--- (so no fixed location header is needed)
+    (so no fixed location header is needed), similar to a skip list
 - support stores that span multiple files (chunks stored in other files)
 - triggers (can be implemented with a custom map)
 - store number of write operations per page (maybe defragment
--- if much different than count)
+    if much different than count)
 - r-tree: nearest neighbor search
-- chunk metadata: do not store default values
 - support maps without values (just existence of the key)
 - support maps without keys (counted b-tree features)
 - use a small object cache (StringCache), test on Android
@@ -88,19 +85,19 @@ MVStore:
 - StreamStore optimization: avoid copying bytes
 - unlimited transaction size
 - MVStoreTool.shrink to shrink a store (create, copy, rename, delete)
--- and for MVStore on Windows, auto-detect renamed file
+    and for MVStore on Windows, auto-detect renamed file
 - ensure data is overwritten eventually if the system doesn't have a timer
 - SSD-friendly write (always in blocks of 4 MB / 1 second?)
 - close the file on out of memory or disk write error (out of disk space or so)
 - implement a sharded map (in one store, multiple stores)
--- to support concurrent updates and writes, and very large maps
+    to support concurrent updates and writes, and very large maps
 - implement an off-heap file system
 - remove change cursor, or add support for writing to branches
 - support pluggable logging or remove log
 - maybe add an optional finalizer and exit hook
     to store committed changes
 - to save space when persisting very small transactions,
--- use a transaction log where only the deltas are stored
+    use a transaction log where only the deltas are stored
 - serialization for lists, sets, sets, sorted sets, maps, sorted maps
 - maybe rename 'rollback' to 'revert' to distinguish from transactions
 - support other compression algorithms (deflate, LZ4,...)
@@ -110,6 +107,7 @@ MVStore:
 - autocommit (to avoid having to call commit, 
     as it could be called too often or it is easily forgotten)
 - remove features that are not really needed; simplify the code
+    possibly using a layering / tool mechanism
 - rename "store" to "save", as store collides with storeVersion
 
 */
@@ -914,15 +912,13 @@ public class MVStore {
         ArrayList<MVMap<?, ?>> list = New.arrayList(maps.values());
         ArrayList<MVMap<?, ?>> changed = New.arrayList();
         for (MVMap<?, ?> m : list) {
-            if (m != meta) {
-                m.setWriteVersion(version);
-                long v = m.getVersion();
-                if (v >= 0 && m.getVersion() >= lastStoredVersion) {
-                    MVMap<?, ?> r = m.openVersion(storeVersion);
-                    r.waitUntilWritten(r.getRoot());
-                    if (r.getRoot().getPos() == 0) {
-                        changed.add(r);
-                    }
+            m.setWriteVersion(version);
+            long v = m.getVersion();
+            if (v >= 0 && v >= lastStoredVersion) {
+                m.waitUntilWritten(storeVersion);
+                MVMap<?, ?> r = m.openVersion(storeVersion);
+                if (r.getRoot().getPos() == 0) {
+                    changed.add(r);
                 }
             }
         }
@@ -1359,10 +1355,12 @@ public class MVStore {
             unsavedPageCount = Math.max(0, unsavedPageCount - 1);
             return;
         }
-        // this could result in a cache miss
-        // if the operation is rolled back,
-        // but we don't optimize for rollback
+        
+        // This could result in a cache miss if the operation is rolled back,
+        // but we don't optimize for rollback.
+        // We could also keep the page in the cache, as somebody could read it.
         cache.remove(pos);
+        
         Chunk c = getChunk(pos);
         long version = currentVersion;
         if (map == meta && currentStoreVersion >= 0) {

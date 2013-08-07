@@ -60,7 +60,7 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
     }
 
     @Override
-    protected void waitUntilWritten(Page root) {
+    protected void waitUntilWritten(long version) {
         // no need to wait
     }
 

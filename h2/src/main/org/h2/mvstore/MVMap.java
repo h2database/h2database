@@ -38,11 +38,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * The current root page (may not be null).
      */
     protected volatile Page root;
-    
+
     /**
      * The version used for writing.
      */
-    protected long writeVersion;
+    protected volatile long writeVersion;
+
+    /**
+     * This version is set during a write operation.
+     */
+    protected volatile long currentWriteVersion = -1;
 
     private int id;
     private long createVersion;
@@ -52,11 +57,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     private boolean closed;
     private boolean readOnly;
-
-    /**
-     * This flag is set during a write operation.
-     */
-    private volatile boolean writing;
 
     protected MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
@@ -934,14 +934,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         checkConcurrentWrite();
         store.beforeWrite();
-        writing = true;
+        currentWriteVersion = writeVersion;
     }
-
+    
     /**
      * Check that no write operation is in progress.
      */
     protected void checkConcurrentWrite() {
-        if (writing) {
+        if (currentWriteVersion != -1) {
             // try to detect concurrent modification
             // on a best-effort basis
             throw DataUtils.newConcurrentModificationException(getName());
@@ -953,17 +953,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * operation was successful).
      */
     protected void afterWrite() {
-        writing = false;
+        currentWriteVersion = -1;
     }
 
     /**
      * If there is a concurrent update to the given version, wait until it is
      * finished.
      *
-     * @param root the root page
+     * @param version the read version
      */
-    protected void waitUntilWritten(Page root) {
-        while (writing && root == this.root) {
+    protected void waitUntilWritten(long version) {
+        if (readOnly) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL, "Waiting for writes to a read-only map");
+        }
+        while (currentWriteVersion == version) {
             Thread.yield();
         }
     }
@@ -1136,6 +1140,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
     
     void setWriteVersion(long writeVersion) {
+        if (readOnly) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_INTERNAL, "Trying to write to a read-only map");
+        }
         this.writeVersion = writeVersion;
     }
 

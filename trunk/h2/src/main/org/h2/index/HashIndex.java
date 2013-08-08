@@ -25,7 +25,7 @@ public class HashIndex extends BaseIndex {
     /**
      * The index of the indexed column.
      */
-    protected final int indexColumn;
+    private final int indexColumn;
 
     private final RegularTable tableData;
     private ValueHashMap<Long> rows;

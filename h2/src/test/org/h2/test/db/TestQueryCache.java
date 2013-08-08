@@ -1,8 +1,7 @@
 /*
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
 package org.h2.test.db;
 
@@ -10,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -19,7 +19,7 @@ public class TestQueryCache extends TestBase {
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -29,6 +29,12 @@ public class TestQueryCache extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("queryCache");
+        test1();
+        testClearingCacheWithTableStructureChanges();
+        deleteDb("queryCache");
+    }
+
+    private void test1() throws Exception {
         Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar) as select x, space(100) from system_range(1, 1000)");
@@ -56,8 +62,16 @@ public class TestQueryCache extends TestBase {
                 assertSmaller(time, first);
             }
         }
+        stat.execute("drop table test");
         conn.close();
-        deleteDb("queryCache");
     }
 
+    private void testClearingCacheWithTableStructureChanges() throws Exception {
+        Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10");
+        conn.createStatement().executeUpdate("CREATE TABLE TEST(col1 bigint, col2 varchar(255))");
+        conn.prepareStatement("SELECT * FROM TEST");
+        conn.createStatement().executeUpdate("DROP TABLE TEST");
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, conn).prepareStatement("SELECT * FROM TEST");
+        conn.close();
+    }
 }

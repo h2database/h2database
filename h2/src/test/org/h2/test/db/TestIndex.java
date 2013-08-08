@@ -40,56 +40,56 @@ public class TestIndex extends TestBase {
     public void test() throws SQLException {
         deleteDb("index");
         testHashIndexOnMemoryTable();
-//        testErrorMessage();
-//        testDuplicateKeyException();
-//        testNonUniqueHashIndex();
-//        testRenamePrimaryKey();
-//        testRandomized();
-//        testDescIndex();
-//        testHashIndex();
-//
-//        if (config.networked && config.big) {
-//            return;
-//        }
-//
-//        random.setSeed(100);
-//
-//        deleteDb("index");
-//        testWideIndex(147);
-//        testWideIndex(313);
-//        testWideIndex(979);
-//        testWideIndex(1200);
-//        testWideIndex(2400);
-//        if (config.big) {
-//            Random r = new Random();
-//            for (int j = 0; j < 10; j++) {
-//                int i = r.nextInt(3000);
-//                if ((i % 100) == 0) {
-//                    println("width: " + i);
-//                }
-//                testWideIndex(i);
-//            }
-//        }
-//
-//        testLike();
-//        reconnect();
-//        testConstraint();
-//        testLargeIndex();
-//        testMultiColumnIndex();
-//        // long time;
-//        // time = System.currentTimeMillis();
-//        testHashIndex(true, false);
-//
-//        testHashIndex(false, false);
-//        // System.out.println("b-tree="+(System.currentTimeMillis()-time));
-//        // time = System.currentTimeMillis();
-//        testHashIndex(true, true);
-//        testHashIndex(false, true);
-//        // System.out.println("hash="+(System.currentTimeMillis()-time));
-//
-//        testMultiColumnHashIndex();
-//
-//        conn.close();
+        testErrorMessage();
+        testDuplicateKeyException();
+        testNonUniqueHashIndex();
+        testRenamePrimaryKey();
+        testRandomized();
+        testDescIndex();
+        testHashIndex();
+
+        if (config.networked && config.big) {
+            return;
+        }
+
+        random.setSeed(100);
+
+        deleteDb("index");
+        testWideIndex(147);
+        testWideIndex(313);
+        testWideIndex(979);
+        testWideIndex(1200);
+        testWideIndex(2400);
+        if (config.big) {
+            Random r = new Random();
+            for (int j = 0; j < 10; j++) {
+                int i = r.nextInt(3000);
+                if ((i % 100) == 0) {
+                    println("width: " + i);
+                }
+                testWideIndex(i);
+            }
+        }
+
+        testLike();
+        reconnect();
+        testConstraint();
+        testLargeIndex();
+        testMultiColumnIndex();
+        // long time;
+        // time = System.currentTimeMillis();
+        testHashIndex(true, false);
+
+        testHashIndex(false, false);
+        // System.out.println("b-tree="+(System.currentTimeMillis()-time));
+        // time = System.currentTimeMillis();
+        testHashIndex(true, true);
+        testHashIndex(false, true);
+        // System.out.println("hash="+(System.currentTimeMillis()-time));
+
+        testMultiColumnHashIndex();
+
+        conn.close();
         deleteDb("index");
     }
 

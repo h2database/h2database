@@ -11,6 +11,8 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
+import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.util.New;
@@ -22,14 +24,19 @@ import org.h2.value.Value;
  *
  * @author Sergi Vladykin
  */
-public class NonUniqueHashIndex extends HashIndex {
+public class NonUniqueHashIndex extends BaseIndex {
 
+    /**
+     * The index of the indexed column.
+     */
+    private final int indexColumn;
     private ValueHashMap<ArrayList<Long>> rows;
     private final RegularTable tableData;
     private long rowCount;
 
     public NonUniqueHashIndex(RegularTable table, int id, String indexName, IndexColumn[] columns, IndexType indexType) {
-        super(table, id, indexName, columns, indexType);
+        initBaseIndex(table, id, indexName, columns, indexType);
+        this.indexColumn = columns[0].column.getColumnId();
         this.tableData = table;
         reset();
     }
@@ -97,5 +104,58 @@ public class NonUniqueHashIndex extends HashIndex {
     public long getRowCountApproximation() {
         return rowCount;
     }
+
+    @Override
+    public long getDiskSpaceUsed() {
+        return 0;
+    }
+
+    @Override
+    public void close(Session session) {
+        // nothing to do
+    }
+
+    @Override
+    public void remove(Session session) {
+        // nothing to do
+    }
+
+    @Override
+    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+        for (Column column : columns) {
+            int index = column.getColumnId();
+            int mask = masks[index];
+            if ((mask & IndexCondition.EQUALITY) != IndexCondition.EQUALITY) {
+                return Long.MAX_VALUE;
+            }
+        }
+        return 2;
+    }
+
+    @Override
+    public void checkRename() {
+        // ok
+    }
+
+    @Override
+    public boolean needRebuild() {
+        return true;
+    }
+
+    @Override
+    public boolean canGetFirstOrLast() {
+        return false;
+    }
+
+    @Override
+    public Cursor findFirstOrLast(Session session, boolean first) {
+        throw DbException.getUnsupportedException("HASH");
+    }
+
+    @Override
+    public boolean canScan() {
+        return false;
+    }
+
 
 }

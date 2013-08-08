@@ -504,7 +504,7 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 "
 
 "Commands (DDL)","CREATE LINKED TABLE","
-CREATE [ [ GLOBAL | LOCAL ] TEMPORARY ] LINKED TABLE [ IF NOT EXISTS ]
+CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ] LINKED TABLE [ IF NOT EXISTS ]
 name ( driverString, urlString, userString, passwordString,
 [ originalSchemaString, ] originalTableString ) [ EMIT UPDATES | READONLY ]
 ","
@@ -512,10 +512,14 @@ Creates a table link to an external table. The driver name may be empty if the
 driver is already loaded. If the schema name is not set, only one table with
 that name may exist in the target database.
 
-Usually, for update statements, the old rows are deleted first and then the new
+FORCE - Create the LINKED TABLE even if the remote database/table does not exist.
+
+EMIT UPDATES - Usually, for update statements, the old rows are deleted first and then the new
 rows are inserted. It is possible to emit update statements (except on
 rollback), however in this case multi-row unique key updates may not always
 work. Linked tables to the same database share one connection.
+
+READONLY - is set, the remote table may not be updated. This is enforced by H2.
 
 If the connection to the source database is lost, the connection is re-opened
 (this is a workaround for MySQL that disconnects after 8 hours of inactivity by default).

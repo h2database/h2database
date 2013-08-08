@@ -21,7 +21,7 @@ import org.h2.value.Value;
 
 /**
  * A non-unique index based on an in-memory hash map.
- *
+ * 
  * @author Sergi Vladykin
  */
 public class NonUniqueHashIndex extends BaseIndex {
@@ -91,7 +91,15 @@ public class NonUniqueHashIndex extends BaseIndex {
                 throw DbException.throwInternalError();
             }
         }
-        ArrayList<Long> positions = rows.get(first.getValue(indexColumn));
+        Value v = first.getValue(indexColumn);
+        /*
+         * Sometimes the incoming search is a similar, but not the same type
+         * e.g. the search value is INT, but the index column is LONG. In which
+         * case, we need to convert otherwise the ValueHashMap will not find the
+         * result.
+         */
+        v = v.convertTo(tableData.getColumn(indexColumn).getType());
+        ArrayList<Long> positions = rows.get(v);
         return new NonUniqueHashCursor(session, tableData, positions);
     }
 
@@ -156,6 +164,5 @@ public class NonUniqueHashIndex extends BaseIndex {
     public boolean canScan() {
         return false;
     }
-
 
 }

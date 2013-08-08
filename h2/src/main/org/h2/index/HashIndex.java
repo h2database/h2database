@@ -68,8 +68,16 @@ public class HashIndex extends BaseIndex {
             // TODO hash index: should additionally check if values are the same
             throw DbException.throwInternalError();
         }
+        Value v = first.getValue(indexColumn);
+        /*
+         * Sometimes the incoming search is a similar, but not the same type
+         * e.g. the search value is INT, but the index column is LONG. In which
+         * case, we need to convert otherwise the ValueHashMap will not find the
+         * result.
+         */
+        v = v.convertTo(tableData.getColumn(indexColumn).getType());
         Row result;
-        Long pos = rows.get(first.getValue(indexColumn));
+        Long pos = rows.get(v);
         if (pos == null) {
             result = null;
         } else {

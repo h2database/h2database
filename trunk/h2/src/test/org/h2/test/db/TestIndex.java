@@ -510,6 +510,10 @@ public class TestIndex extends TestBase {
         stat.execute("create memory table hash_index_test as select x as id, x % 10 as data from (select *  from system_range(1, 100))");
         stat.execute("create hash index idx2 on hash_index_test(data)");
         assertEquals(10, getValue("select count(*) from hash_index_test where data = 1"));
+        
+        stat.execute("drop index idx2");
+        stat.execute("create unique hash index idx2 on hash_index_test(id)");
+        assertEquals(1, getValue("select count(*) from hash_index_test where id = 1"));
     }
     
     private int getValue(String sql) throws SQLException {

@@ -22,7 +22,7 @@ import com.vividsolutions.jts.io.WKTWriter;
 
 /**
  * Implementation of the GEOMETRY data type.
- * 
+ *
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
@@ -79,18 +79,18 @@ public class ValueGeometry extends Value {
     /**
      * Test if this geometry envelope intersects with the other geometry
      * envelope.
-     * 
+     *
      * @param r the other geometry
-     * @return true if the two envelopes overlaps
+     * @return true if the two overlap
      */
     public boolean intersectsBoundingBox(ValueGeometry r) {
-        // it is useless to cache the envelope as the Geometry object do this already
+        // the Geometry object caches the envelope
         return geometry.getEnvelopeInternal().intersects(r.getGeometry().getEnvelopeInternal());
     }
-    
+
     /**
      * Get the union.
-     * 
+     *
      * @param r the other geometry
      * @return the union of this geometry envelope and another geometry envelope
      */
@@ -99,13 +99,13 @@ public class ValueGeometry extends Value {
         Envelope mergedEnvelope = new Envelope(geometry.getEnvelopeInternal());
         mergedEnvelope.expandToInclude(r.getGeometry().getEnvelopeInternal());
         return get(gf.toGeometry(mergedEnvelope));
-    }    
+    }
 
     /**
      * Get the intersection.
-     * 
+     *
      * @param r the other geometry
-     * @return the intersection of this geometry envelope and another geometry envelope
+     * @return the intersection of this geometry envelope and another
      */
     public ValueGeometry getEnvelopeIntersection(ValueGeometry r) {
         Envelope e1 = geometry.getEnvelopeInternal();
@@ -120,7 +120,7 @@ public class ValueGeometry extends Value {
         GeometryFactory gf = new GeometryFactory();
         return get(gf.toGeometry(e3));
     }
-    
+
     @Override
     public int getType() {
         return Value.GEOMETRY;

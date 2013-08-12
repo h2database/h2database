@@ -62,12 +62,12 @@ public class Utils {
 
     private static boolean allowAllClasses;
     private static HashSet<String> allowedClassNames;
-    
+
     /**
      *  In order to manage more than one class loader
      */
     private static ArrayList<ClassFactory> userClassFactories = new ArrayList<ClassFactory>();
-    
+
     private static String[] allowedClassNamePrefixes;
 
     static {
@@ -80,14 +80,14 @@ public class Utils {
             }
         }
     }
-    
+
     private Utils() {
         // utility class
     }
 
     /**
      * Add a class factory in order to manage more than one class loader.
-     * 
+     *
      * @param classFactory An object that implements ClassFactory
      */
     public static void addClassFactory(ClassFactory classFactory) {
@@ -96,13 +96,13 @@ public class Utils {
 
     /**
      * Remove a class factory
-     * 
+     *
      * @param classFactory Already inserted class factory instance
      */
     public static void removeClassFactory(ClassFactory classFactory) {
         getUserClassFactories().remove(classFactory);
     }
-    
+
     private static ArrayList<ClassFactory> getUserClassFactories() {
         if (userClassFactories == null) {
             // initially, it is empty
@@ -111,7 +111,7 @@ public class Utils {
         }
         return userClassFactories;
     }
-    
+
     private static int readInt(byte[] buff, int pos) {
         return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
     }
@@ -920,19 +920,19 @@ public class Utils {
      * in order to provide a class from another bundle ClassLoader.
      */
     public interface ClassFactory {
-        
+
         /**
          * Check whether the factory can return the named class.
-         * 
+         *
          * @param name the binary name of the class
          * @return true if this factory can return a valid class for the
          *         provided class name
          */
         boolean match(String name);
-        
+
         /**
          * Load the class.
-         * 
+         *
          * @param name the binary name of the class
          * @return the class object
          * @throws ClassNotFoundException If the class is not handle by this

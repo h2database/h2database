@@ -26,7 +26,7 @@ import org.h2.value.ValueNull;
 /**
  * The filter used to walk through an index. This class supports IN(..)
  * and IN(SELECT ...) optimizations.
- * 
+ *
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
@@ -182,7 +182,9 @@ public class IndexCursor implements Cursor {
         if (row == null) {
             row = table.getTemplateRow();
         } else if (row.getValue(columnId) != null) {
-            // the union of the two envelopes
+            // if an object needs to overlap with both a and b,
+            // then it needs to overlap with the the union of a and b
+            // (not the intersection)
             ValueGeometry vg = (ValueGeometry) row.getValue(columnId).convertTo(Value.GEOMETRY);
             v = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getEnvelopeUnion(vg);
         }

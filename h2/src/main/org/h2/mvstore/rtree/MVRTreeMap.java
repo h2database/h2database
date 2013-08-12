@@ -227,9 +227,9 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             Page p = copyOnWrite(root, v);
             Object result;
             if (alwaysAdd || get(key) == null) {
-                if (p.getMemory() > store.getPageSize() && p.getKeyCount() > 1) {
+                if (p.getMemory() > store.getPageSplitSize() && p.getKeyCount() > 1) {
                     // only possible if this is the root, else we would have split earlier
-                    // (this requires maxPageSize is fixed)
+                    // (this requires pageSplitSize is fixed)
                     long totalCount = p.getTotalCount();
                     Page split = split(p, v);
                     Object k1 = getBounds(p);
@@ -313,7 +313,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             }
         }
         Page c = copyOnWrite(p.getChildPage(index), writeVersion);
-        if (c.getMemory() > store.getPageSize() && c.getKeyCount() > 1) {
+        if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 1) {
             // split on the way down
             Page split = split(c, writeVersion);
             p = copyOnWrite(p, writeVersion);

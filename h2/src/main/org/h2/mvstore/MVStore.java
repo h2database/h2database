@@ -51,7 +51,7 @@ TestMVStoreDataLoss
 TransactionStore:
 
 MVStore:
-- rolling docs review: at "Features"
+- rolling docs review: at "Transactions"
 - move setters to the builder, except for setRetainVersion, setReuseSpace,
     and settings that are persistent (setStoreVersion)
 - automated 'kill process' and 'power failure' test
@@ -104,11 +104,13 @@ MVStore:
 - only retain the last version, unless explicitly set (setRetainVersion)
 - support opening (existing) maps by id
 - more consistent null handling (keys/values sometimes may be null)
-- autocommit (to avoid having to call commit, 
+- autocommit (to avoid having to call commit,
     as it could be called too often or it is easily forgotten)
 - remove features that are not really needed; simplify the code
-    possibly using a layering / tool mechanism
-- rename "store" to "save", as store collides with storeVersion
+    possibly using a separate layer or tools
+- rename "store" to "save", as "store" is used in "storeVersion"
+- MVStoreTool.dump should dump the data if possible;
+    possibly using a callback for serialization
 
 */
 
@@ -141,7 +143,7 @@ public class MVStore {
     private final String fileName;
     private final char[] filePassword;
 
-    private final int pageSize;
+    private final int pageSplitSize;
 
     private FileChannel file;
     private FileLock fileLock;
@@ -195,7 +197,7 @@ public class MVStore {
     private final Compressor compressor = new CompressLZF();
 
     private final boolean compress;
-    
+
     private final ExceptionListener backgroundExceptionListener;
 
     private long currentVersion;
@@ -250,15 +252,15 @@ public class MVStore {
         this.fileName = f;
         this.readOnly = config.containsKey("readOnly");
         this.compress = config.containsKey("compress");
-        Object o = config.get("pageSize");
-        pageSize = o == null ? 6 * 1024 : (Integer) o;
+        Object o = config.get("pageSplitSize");
+        pageSplitSize = o == null ? 6 * 1024 : (Integer) o;
         o = config.get("backgroundExceptionListener");
         this.backgroundExceptionListener = (ExceptionListener) o;
         if (fileName != null) {
             o = config.get("cacheSize");
             int mb = o == null ? 16 : (Integer) o;
             int maxMemoryBytes = mb * 1024 * 1024;
-            int averageMemory = pageSize / 2;
+            int averageMemory = pageSplitSize / 2;
             int segmentCount = 16;
             int stackMoveDistance = maxMemoryBytes / averageMemory * 2 / 100;
             cache = new CacheLongKeyLIRS<Page>(
@@ -267,7 +269,7 @@ public class MVStore {
             o = config.get("writeBufferSize");
             mb = o == null ? 4 : (Integer) o;
             int writeBufferSize =  mb * 1024 * 1024;
-            maxUnsavedPages = writeBufferSize / pageSize;
+            maxUnsavedPages = writeBufferSize / pageSplitSize;
             o = config.get("writeDelay");
             writeDelay = o == null ? 1000 : (Integer) o;
         } else {
@@ -742,14 +744,14 @@ public class MVStore {
         if (closed) {
             return;
         }
-        closed = true;
-        if (file == null) {
-            return;
-        }
         // can not synchronize on this yet, because
         // the thread also synchronized on this, which
         // could result in a deadlock
         stopBackgroundThread();
+        closed = true;
+        if (file == null) {
+            return;
+        }
         synchronized (this) {
             try {
                 if (shrinkIfPossible) {
@@ -799,7 +801,7 @@ public class MVStore {
         setWriteVersion(v);
         return v;
     }
-    
+
     private void setWriteVersion(long version) {
         for (MVMap<?, ?> map : maps.values()) {
             map.setWriteVersion(version);
@@ -889,7 +891,7 @@ public class MVStore {
             meta.remove("rollbackOnOpen");
             retainChunk = null;
         }
-        
+
         // the last chunk was not completely correct in the last store()
         // this needs to be updated now (it's better not to update right after
         // storing, because that would modify the meta map again)
@@ -953,7 +955,7 @@ public class MVStore {
 
         meta.put("chunk." + c.id, c.asString());
         meta.setWriteVersion(version);
-        
+
         // this will (again) modify maxLengthLive, but
         // the correct value is written in the chunk header
         buff = meta.getRoot().writeUnsavedRecursive(c, buff);
@@ -1355,12 +1357,12 @@ public class MVStore {
             unsavedPageCount = Math.max(0, unsavedPageCount - 1);
             return;
         }
-        
+
         // This could result in a cache miss if the operation is rolled back,
         // but we don't optimize for rollback.
         // We could also keep the page in the cache, as somebody could read it.
         cache.remove(pos);
-        
+
         Chunk c = getChunk(pos);
         long version = currentVersion;
         if (map == meta && currentStoreVersion >= 0) {
@@ -1407,9 +1409,9 @@ public class MVStore {
     boolean getCompress() {
         return compress;
     }
-    
-    public int getPageSize() {
-        return pageSize;
+
+    public int getPageSplitSize() {
+        return pageSplitSize;
     }
 
     public boolean getReuseSpace() {
@@ -1613,7 +1615,7 @@ public class MVStore {
         meta.rollbackTo(version);
         metaChanged = false;
         boolean loadFromFile = false;
-        // get the largest chunk with a version 
+        // get the largest chunk with a version
         // higher or equal the requested version
         int removeChunksNewerThan = -1;
         for (int chunkId = lastChunkId;; chunkId--) {
@@ -1666,7 +1668,7 @@ public class MVStore {
                     m.setRootPos(root, -1);
                 }
             }
-            
+
         }
         currentVersion = version;
         setWriteVersion(version);
@@ -2027,22 +2029,24 @@ public class MVStore {
         }
 
         /**
-         * Set the amount of memory a page should contain at most, in bytes. Larger
-         * pages are split. The default is 6 KB. This is not a limit in the page
-         * size (pages with one entry can get larger), it is just the point where
-         * pages are split.
+         * Set the amount of memory a page should contain at most, in bytes,
+         * before it is split. The default is 6 KB. This is not a limit in the
+         * page size, as pages with one entry can get larger. It is just the
+         * point where pages that contain more than one entry are split.
          *
-         * @param pageSize the page size
+         * @param pageSplitSize the page size
+         * @return this
          */
-        public Builder pageSize(int pageSize) {
-            return set("pageSize", pageSize);
+        public Builder pageSplitSize(int pageSplitSize) {
+            return set("pageSplitSize", pageSplitSize);
         }
-        
+
         /**
          * Set the listener to be used for exceptions that occur in the background
          * thread.
          *
          * @param backgroundExceptionListener the listener
+         * @return this
          */
         public Builder backgroundExceptionListener(
                 ExceptionListener backgroundExceptionListener) {

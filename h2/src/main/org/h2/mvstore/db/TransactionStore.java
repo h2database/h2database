@@ -43,12 +43,12 @@ public class TransactionStore {
     final MVMap<Long, Object[]> preparedTransactions;
 
     /**
-     * The undo log. 
+     * The undo log.
      * <p>
      * If the first entry for a transaction doesn't have a logId
      * of 0, then the transaction is partially committed (which means rollback
      * is not possible). Log entries are written before the data is changed
-     * (write-ahead). 
+     * (write-ahead).
      * <p>
      * Key: [ transactionId, logId ], value: [ opType, mapId, key, oldValue ].
      */
@@ -234,7 +234,7 @@ public class TransactionStore {
 
     /**
      * Remove a log entry.
-     * 
+     *
      * @param t the transaction
      * @param logId the log id
      */
@@ -598,7 +598,7 @@ public class TransactionStore {
         void log(int opType, int mapId, Object key, Object oldValue) {
             store.log(this, logId++, opType, mapId, key, oldValue);
         }
-        
+
         /**
          * Remove the last log entry.
          */

@@ -125,7 +125,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the new sibling
      */
     protected Page splitRootIfNeeded(Page p, long writeVersion) {
-        if (p.getMemory() <= store.getPageSize() || p.getKeyCount() <= 1) {
+        if (p.getMemory() <= store.getPageSplitSize() || p.getKeyCount() <= 1) {
             return p;
         }
         int at = p.getKeyCount() / 2;
@@ -167,7 +167,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             index++;
         }
         Page c = copyOnWrite(p.getChildPage(index), writeVersion);
-        if (c.getMemory() > store.getPageSize() && c.getKeyCount() > 1) {
+        if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 1) {
             // split on the way down
             int at = c.getKeyCount() / 2;
             Object k = c.getKey(at);
@@ -936,7 +936,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         store.beforeWrite();
         currentWriteVersion = writeVersion;
     }
-    
+
     /**
      * Check that no write operation is in progress.
      */
@@ -1138,7 +1138,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             afterWrite();
         }
     }
-    
+
     void setWriteVersion(long writeVersion) {
         if (readOnly) {
             throw DataUtils.newIllegalStateException(

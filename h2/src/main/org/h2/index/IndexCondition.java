@@ -29,7 +29,7 @@ import org.h2.value.Value;
  * A index condition object is made for each condition that can potentially use
  * an index. This class does not extend expression, but in general there is one
  * expression that maps to each index condition.
- * 
+ *
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888

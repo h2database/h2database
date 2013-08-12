@@ -22,7 +22,7 @@ import org.h2.value.ValueNull;
 
 /**
  * Example comparison expressions are ID=1, NAME=NAME, NAME IS NULL.
- * 
+ *
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
@@ -329,7 +329,7 @@ public class Comparison extends Condition {
         int type = getNotCompareType();
         return new Comparison(session, type, left, right);
     }
-    
+
     private int getNotCompareType() {
         switch (compareType) {
         case EQUAL:

@@ -3,7 +3,7 @@
  * Version 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
- * 
+ *
  * Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  * Support for the operator "&&" as an alias for SPATIAL_INTERSECTS
  */
@@ -149,7 +149,7 @@ import org.h2.value.ValueTimestamp;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
- * 
+ *
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888

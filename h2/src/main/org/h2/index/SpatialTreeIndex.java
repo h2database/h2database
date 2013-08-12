@@ -35,7 +35,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
-    
+
     private static final String MAP_PREFIX  = "RTREE_";
 
     private final MVRTreeMap<Long> treeMap;
@@ -45,10 +45,10 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     private boolean closed;
     private boolean needRebuild;
     private boolean persistent;
-    
+
     /**
      * Constructor.
-     * 
+     *
      * @param table the table instance
      * @param id the index id
      * @param indexName the index name
@@ -127,13 +127,13 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         }
         treeMap.add(getEnvelope(row), row.getKey());
     }
-    
+
     private SpatialKey getEnvelope(SearchRow row) {
         Value v = row.getValue(columnIds[0]);
         Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometry();
         Envelope env = g.getEnvelopeInternal();
-        return new SpatialKey(row.getKey(), 
-                (float) env.getMinX(), (float) env.getMaxX(), 
+        return new SpatialKey(row.getKey(),
+                (float) env.getMinX(), (float) env.getMaxX(),
                 (float) env.getMinY(), (float) env.getMaxY());
     }
 
@@ -160,7 +160,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     private Cursor find(Session session) {
         return new SpatialCursor(treeMap.keySet().iterator(), tableData, session);
     }
-    
+
     @Override
     public Cursor findByGeometry(TableFilter filter, SearchRow intersection) {
         if (intersection == null) {
@@ -250,7 +250,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
      * A cursor to iterate over spatial keys.
      */
     private static final class SpatialCursor implements Cursor {
-        
+
         private final Iterator<SpatialKey> it;
         private SpatialKey current;
         private final RegularTable tableData;

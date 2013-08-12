@@ -154,8 +154,8 @@ public class TestCallableStatement extends TestBase {
         Utils.addClassFactory(myFactory);
         try {
             Statement stat = conn.createStatement();
-            stat.execute("CREATE ALIAS TCLASSLOADER FOR \"TestClassFactory.testClassF\"");
-            ResultSet rs = stat.executeQuery("SELECT TCLASSLOADER(true)");
+            stat.execute("CREATE ALIAS T_CLASSLOADER FOR \"TestClassFactory.testClassF\"");
+            ResultSet rs = stat.executeQuery("SELECT T_CLASSLOADER(true)");
             assertTrue(rs.next());
             assertEquals(false, rs.getBoolean(1));
         } finally {
@@ -191,12 +191,12 @@ public class TestCallableStatement extends TestBase {
         rs.addRow(a * 2, b.toUpperCase(), new Timestamp(c.getTime() + 1));
         return rs;
     }
-    
+
     /**
      * A class factory used for testing.
      */
     static class TestClassFactory implements Utils.ClassFactory {
-        
+
         @Override
         public boolean match(String name) {
             return name.equals("TestClassFactory");

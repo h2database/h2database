@@ -67,8 +67,7 @@ But it can be also directly within an application, without using JDBC or SQL.
 
 <h2 id="example_code">Example Code</h2>
 <p>
-The following sample code show how to create a store,
-open a map, add some data, and access the current and an old version:
+The following sample code show how to use the tool:
 </p>
 <pre>
 import org.h2.mvstore.*;
@@ -79,40 +78,14 @@ MVStore s = MVStore.open(fileName);
 // create/get the map named "data"
 MVMap&lt;Integer, String&gt; map = s.openMap("data");
 
-// add some data
-map.put(1, "Hello");
-map.put(2, "World");
-
-// get the current version, for later use
-long oldVersion = s.getCurrentVersion();
-
-// from now on, the old version is read-only
-s.incrementVersion();
-
-// more changes, in the new version
-// changes can be rolled back if required
-// changes always go into "head" (the newest version)
-map.put(1, "Hi");
-map.remove(2);
-
-// access the old data (before incrementVersion)
-MVMap&lt;Integer, String&gt; oldMap =
-        map.openVersion(oldVersion);
+// add and read some data
+map.put(1, "Hello World");
+System.out.println(map.get(1));
 
 // mark the changes as committed
 s.commit();
 
-// print the old version (can be done
-// concurrently with further modifications)
-// this will print "Hello" and "World":
-System.out.println(oldMap.get(1));
-System.out.println(oldMap.get(2));
-oldMap.close();
-
-// print the newest version ("Hi")
-System.out.println(map.get(1));
-
-// close the store - this doesn't write to disk
+// close the store (this will store committed changes)
 s.close();
 </pre>
 
@@ -124,23 +97,28 @@ The following code contains all supported configuration options:
 </p>
 <pre>
 MVStore s = new MVStore.Builder().
+    backgroundExceptionListener(listener).
     cacheSize(10).
     compressData().
     encryptionKey("007".toCharArray()).
     fileName(fileName).
+    pageSplitSize(6 * 1024).
     readOnly().
     writeBufferSize(8).
     writeDelay(100).
     open();
 </pre>
-<ul><li>cacheSizeMB: the cache size in MB.
+<ul><li>backgroundExceptionListener: a listener for
+    exceptions that could occur while writing in the background.
+</li><li>cacheSize: the cache size in MB.
 </li><li>compressData: compress the data when storing.
 </li><li>encryptionKey: the encryption key for file encryption.
 </li><li>fileName: the name of the file, for file based stores.
+</li><li>pageSplitSize: the point where pages are split.
 </li><li>readOnly: open the file in read-only mode.
 </li><li>writeBufferSize: the size of the write buffer in MB.
-</li><li>writeDelay: the maximum delay until committed
-    changes are stored (unless stored explicitly).
+</li><li>writeDelay: the maximum delay in milliseconds
+    until committed changes are stored in the background.
 </li></ul>
 
 <h2 id="r_tree">R-Tree</h2>
@@ -181,15 +159,15 @@ The minimum number of dimensions is 1, the maximum is 255.
 
 <h3 id="maps">Maps</h3>
 <p>
-Each store supports a set of named maps.
+Each store contains a set of named maps.
 A map is sorted by key, and supports the common lookup operations,
 including access to the first and last key, iterate over some or all keys, and so on.
 </p><p>
 Also supported, and very uncommon for maps, is fast index lookup:
-the keys of the map can be accessed like a list
-(get the key at the given index, get the index of a certain key).
-That means getting the median of two keys is trivial,
-and range of keys can be counted very quickly.
+the entries of the map can be be efficiently accessed like a random-access list
+(get the entry at the given index), and the index of a key can be calculated efficiently.
+That also means getting the median of two keys is very fast,
+and a range of keys can be counted very quickly.
 The iterator supports fast skipping.
 This is possible because internally, each map is organized in the form of a counted B+-tree.
 </p><p>
@@ -203,34 +181,68 @@ the key of the map must also contain the primary key).
 <p>
 Multiple versions are supported.
 A version is a snapshot of all the data of all maps at a given point in time.
-A transaction is a number of actions between two versions.
-</p><p>
 Versions are not immediately persisted; instead, only the version counter is incremented.
 If there is a change after switching to a new version, a snapshot of the old version is kept in memory,
 so that it can still be read.
-</p><p>
 Old persisted versions are readable until the old data was explicitly overwritten.
 Creating a snapshot is fast: only the pages that are changed after a snapshot are copied.
 This behavior is also called COW (copy on write).
-</p><p>
 Rollback is supported (rollback to any old in-memory version or an old persisted version).
+</p><p>
+The following sample code show how to create a store, open a map, add some data,
+and access the current and an old version:
 </p>
+<pre>
+// create/get the map named "data"
+MVMap&lt;Integer, String&gt; map = s.openMap("data");
+
+// add some data
+map.put(1, "Hello");
+map.put(2, "World");
+
+// get the current version, for later use
+long oldVersion = s.getCurrentVersion();
+
+// from now on, the old version is read-only
+s.incrementVersion();
+
+// more changes, in the new version
+// changes can be rolled back if required
+// changes always go into "head" (the newest version)
+map.put(1, "Hi");
+map.remove(2);
+
+// access the old data (before incrementVersion)
+MVMap&lt;Integer, String&gt; oldMap =
+        map.openVersion(oldVersion);
+
+// mark the changes as committed
+s.commit();
+
+// print the old version (can be done
+// concurrently with further modifications)
+// this will print "Hello" and "World":
+System.out.println(oldMap.get(1));
+System.out.println(oldMap.get(2));
+oldMap.close();
+
+// print the newest version ("Hi")
+System.out.println(map.get(1));
+</pre>
 
 <h3 id="transactions">Transactions</h3>
 <p>
-The multi-version support is the basis for the transaction support.
-In the simple case, when only one transaction is open at a time,
-rolling back the transaction only requires to revert to an old version.
-</p><p>
 To support multiple concurrent open transactions, a transaction utility is included,
 the <code>TransactionStore</code>.
-This utility stores the changed entries in a separate map, similar to a transaction log
-(except that only the key of a changed row is stored,
-and the entries of a transaction are removed when the transaction is committed).
-The storage overhead of this utility is very small compared to the overhead of a regular transaction log.
-The tool supports PostgreSQL style "read committed" transaction isolation.
-There is no limit on the size of a transaction (the log is not kept in memory).
-The tool supports savepoints, two-phase commit, and other features typically available in a database.
+The tool supports PostgreSQL style "read committed" transaction isolation
+with savepoints, two-phase commit, and other features typically available in a database.
+There is no limit on the size of a transaction
+(the log is written to disk for large or long running transactions).
+</p><p>
+Internally, this utility stores the old versions of changed entries in a separate map, similar to a transaction log
+(except that entries of a closed transaction are removed,
+and the log is usually not stored for short transactions).
+For common use cases, the storage overhead of this utility is very small compared to the overhead of a regular transaction log.
 </p>
 
 <h3 id="inMemory">In-Memory Performance and Usage</h3>
@@ -240,8 +252,7 @@ Performance of in-memory operations is comparable with <code>java.util.TreeMap</
 </p><p>
 The memory overhead for large maps is slightly better than for the regular
 map implementations, but there is a higher overhead per map.
-For maps with less than 25 entries, the regular map implementations
-use less memory on average.
+For maps with less than about 25 entries, the regular map implementations need less memory.
 </p><p>
 If no file name is specified, the store operates purely in memory.
 Except for persisting data, all features are supported in this mode
@@ -271,15 +282,15 @@ Due to using a log structured storage, there is no special case handling for lar
 There is a mechanism that stores large binary objects by splitting them into smaller blocks.
 This allows to store objects that don't fit in memory.
 Streaming as well as random access reads on such objects are supported.
-This tool is written on top of the store (only using the map interface).
+This tool is written on top of the store, using only the map interface.
 </p>
 
 <h3 id="pluggableMap">R-Tree and Pluggable Map Implementations</h3>
 <p>
 The map implementation is pluggable.
 In addition to the default <code>MVMap</code> (multi-version map),
-there is a multi-version R-tree map implementation
-for spatial operations (contain and intersection; nearest neighbor is not yet implemented).
+there is a map that supports concurrent write operations,
+and a multi-version R-tree map implementation for spatial operations.
 </p>
 
 <h3 id="caching">Concurrent Operations and Caching</h3>
@@ -287,8 +298,8 @@ for spatial operations (contain and intersection; nearest neighbor is not yet im
 The default map implementation supports concurrent reads on old versions of the data.
 All such read operations can occur in parallel. Concurrent reads from the page cache,
 as well as concurrent reads from the file system are supported.
-</p><p>
-Storing changes can occur concurrently to modifying the data, as it operates on a snapshot.
+Writing changes to the file can occur concurrently to modifying the data,
+as writing operates on a snapshot.
 </p><p>
 Caching is done on the page level.
 The page cache is a concurrent LIRS cache, which should be resistant against scan operations.
@@ -313,16 +324,16 @@ The plan is to add such a mechanism later when needed.
 
 <h3 id="logStructured">Log Structured Storage</h3>
 <p>
-Changes are buffered in memory, and once enough changes have accumulated,
+Internally, changes are buffered in memory, and once enough changes have accumulated,
 they are written in one continuous disk write operation.
-(According to a test, write throughput of a common SSD gets higher the larger the block size,
+(According to a test, write throughput of a common SSD increases with write block size,
 until a block size of 2 MB, and then does not further increase.)
 By default, committed changes are automatically written once every second
 in a background thread, even if only little data was changed.
 Changes can also be written explicitly by calling <code>store()</code>.
-To avoid out of memory, uncommitted changes are also written when needed,
+To avoid running out of memory, uncommitted changes are also written when needed,
 however they are rolled back when closing the store,
-or at the latest (when the store was not correctly closed) when opening the store.
+or at the latest (when the store was not closed normally) when opening the store.
 </p><p>
 When storing, all changed pages are serialized,
 optionally compressed using the LZF algorithm,
@@ -330,7 +341,7 @@ and written sequentially to a free area of the file.
 Each such change set is called a chunk.
 All parent pages of the changed B-trees are stored in this chunk as well,
 so that each chunk also contains the root of each changed map
-(which is the entry point to read this version of the data).
+(which is the entry point for reading this version of the data).
 There is no separate index: all data is stored as a list of pages.
 Per store, there is one additional map that contains the metadata (the list of
 maps, where the root page of each map is stored, and the list of chunks).
@@ -338,15 +349,14 @@ maps, where the root page of each map is stored, and the list of chunks).
 There are usually two write operations per chunk:
 one to store the chunk data (the pages), and one to update the file header (so it points to the latest chunk).
 If the chunk is appended at the end of the file, the file header is only written at the end of the chunk.
-</p><p>
 There is no transaction log, no undo log,
-and there are no in-place updates (however unused chunks are overwritten by default).
+and there are no in-place updates (however, unused chunks are overwritten by default).
 </p><p>
 Old data is kept for at least 45 seconds (configurable),
-so that there are no explicit sync operations required to guarantee data consistency,
-but an application can also sync explicitly when needed.
+so that there are no explicit sync operations required to guarantee data consistency.
+An application can also sync explicitly when needed.
 To reuse disk space, the chunks with the lowest amount of live data are compacted
-(the live data is simply stored again in the next chunk).
+(the live data is stored again in the next chunk).
 To improve data locality and disk space usage, the plan is to automatically defragment and compact data.
 </p><p>
 Compared to traditional storage engines (that use a transaction log, undo log, and main storage area),
@@ -424,6 +434,8 @@ The following exceptions can occur:
     an IO exception occurred, for example if the file was locked, is already closed,
     could not be opened or closed, if reading or writing failed,
     if the file is corrupt, or if there is an internal error in the tool.
+    For such exceptions, an error code is added to the exception
+    so that the application can distinguish between different error cases.
 </li><li><code>IllegalArgumentException</code> if a method was called with an illegal argument.
 </li><li><code>UnsupportedOperationException</code> if a method was called that is not supported,
     for example trying to modify a read-only map or view.
@@ -456,13 +468,13 @@ The MVStore is somewhat similar to the Berkeley DB Java Edition
 because it is also written in Java,
 and is also a log structured storage, but the H2 license is more liberal.
 </p><p>
-Like SQLite, the MVStore keeps all data in one file.
-Unlike SQLite, the MVStore uses is a log structured storage.
-The plan is to make the MVStore both easier to use as well as faster than SQLite.
-In a recent (very simple) test, the MVStore was about twice as fast as SQLite on Android.
+Like SQLite 3, the MVStore keeps all data in one file.
+Unlike SQLite 3, the MVStore uses is a log structured storage.
+The plan is to make the MVStore both easier to use as well as faster than SQLite 3.
+In a recent (very simple) test, the MVStore was about twice as fast as SQLite 3 on Android.
 </p><p>
 The API of the MVStore is similar to MapDB (previously known as JDBM) from Jan Kotek,
-and some code is shared between MapDB and JDBM.
+and some code is shared between MVStore and MapDB.
 However, unlike MapDB, the MVStore uses is a log structured storage.
 The MVStore does not have a record size limit.
 </p>

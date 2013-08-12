@@ -46,6 +46,7 @@ public class TestMVTableEngine extends TestBase {
     @Override
     public void test() throws Exception {
         // testShrinkDatabaseFile();
+        testTransactionLogUsuallyNotStored();
         testTwoPhaseCommit();
         testRecover();
         testSeparateKey();
@@ -89,6 +90,10 @@ public class TestMVTableEngine extends TestBase {
                 fail(i + " size: " + size + " max: " + maxSize);
             }
         }
+    }
+
+    private void testTransactionLogUsuallyNotStored() {
+        int todo;
     }
 
     private void testTwoPhaseCommit() throws Exception {

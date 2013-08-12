@@ -47,7 +47,8 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
-
+        testPerformanceCompareWithTreeMapHashMap();
+        testMemoryUsage();
         testBackgroundExceptionListener();
         testOldVersion();
         testAtomicOperations();
@@ -68,6 +69,7 @@ public class TestMVStore extends TestBase {
         testIterateOldVersion();
         testObjects();
         testExample();
+        testExampleMvcc();
         testOpenStoreCloseLoop();
         testVersion();
         testTruncateFile();
@@ -90,7 +92,15 @@ public class TestMVStore extends TestBase {
 
         testLargerThan2G();
     }
-    
+
+    private void testPerformanceCompareWithTreeMapHashMap() {
+        int todo;
+    }
+
+    private void testMemoryUsage() {
+        int todo;
+    }
+
     private void testBackgroundExceptionListener() throws Exception {
         String fileName = getBaseDir() + "/testBackgroundExceptionListener.h3";
         FileUtils.delete(fileName);
@@ -105,7 +115,7 @@ public class TestMVStore extends TestBase {
                     public void exceptionThrown(Exception e) {
                         exRef.set(e);
                     }
-                    
+
                 }).
                 open();
         MVMap<Integer, String> m;
@@ -258,7 +268,7 @@ public class TestMVStore extends TestBase {
             Thread.sleep(1);
         }
         s.close();
-        
+
         s = new MVStore.Builder().
                 fileName(fileName).
                 open();
@@ -722,6 +732,27 @@ public class TestMVStore extends TestBase {
         // create/get the map named "data"
         MVMap<Integer, String> map = s.openMap("data");
 
+        // add and read some data
+        map.put(1, "Hello World");
+        // System.out.println(map.get(1));
+
+        // mark the changes as committed
+        s.commit();
+
+        // close the store
+        s.close();
+    }
+
+    private void testExampleMvcc() {
+        String fileName = getBaseDir() + "/testExampleMvcc.h3";
+        FileUtils.delete(fileName);
+
+        // open the store (in-memory if fileName is null)
+        MVStore s = MVStore.open(fileName);
+
+        // create/get the map named "data"
+        MVMap<Integer, String> map = s.openMap("data");
+
         // add some data
         map.put(1, "Hello");
         map.put(2, "World");
@@ -742,9 +773,6 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, String> oldMap =
                 map.openVersion(oldVersion);
 
-        // mark the changes as committed
-        s.commit();
-
         // print the old version (can be done
         // concurrently with further modifications)
         // this will print "Hello" and "World":
@@ -758,7 +786,7 @@ public class TestMVStore extends TestBase {
         // System.out.println(map.get(1));
         assertEquals("Hi", map.get(1));
 
-        // close the store - this doesn't write to disk
+        // close the store
         s.close();
     }
 
@@ -1477,17 +1505,17 @@ public class TestMVStore extends TestBase {
     protected static MVStore openStore(String fileName) {
         return openStore(fileName, 1000);
     }
-    
+
     /**
      * Open a store for the given file name, using a small page size.
      *
      * @param fileName the file name (null for in-memory)
-     * @param pageSize the page size
+     * @param pageSplitSize the page split size
      * @return the store
      */
-    protected static MVStore openStore(String fileName, int pageSize) {
+    protected static MVStore openStore(String fileName, int pageSplitSize) {
         MVStore store = new MVStore.Builder().
-                fileName(fileName).pageSize(pageSize).open();
+                fileName(fileName).pageSplitSize(pageSplitSize).open();
         return store;
     }
 

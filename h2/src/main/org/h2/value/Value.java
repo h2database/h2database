@@ -34,7 +34,7 @@ import org.h2.util.Utils;
 /**
  * This is the base class for all value classes.
  * It provides conversion and comparison methods.
- * 
+ *
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888

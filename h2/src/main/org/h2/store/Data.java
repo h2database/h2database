@@ -56,7 +56,7 @@ import org.h2.value.ValueUuid;
 
 /**
  * This class represents a byte buffer that contains persistent data of a page.
- * 
+ *
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888

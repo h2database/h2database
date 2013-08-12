@@ -19,7 +19,7 @@ import java.util.Properties;
  * is unloaded when stopping the bundle.
  */
 public class DbDriverActivator implements BundleActivator {
-    
+
     private OSGIClassFactory osgiClassFactory;
     private OSGIServiceClassFactory osgiServiceClassFactory;
 
@@ -47,7 +47,7 @@ public class DbDriverActivator implements BundleActivator {
      * Stop the bundle. This will unload the database driver. The
      * DataSourceFactory service is implicitly un-registered by the OSGi
      * framework.
-     * 
+     *
      * @param bundleContext the bundle context
      */
     @Override
@@ -65,7 +65,7 @@ public class DbDriverActivator implements BundleActivator {
      * BundleSymbolicName:BundleVersion:BinaryClassName
      */
     private static class OSGIClassFactory implements Utils.ClassFactory {
-        
+
         /**
          * Separator character to merge bundle name,version and class binary
          * name
@@ -78,7 +78,7 @@ public class DbDriverActivator implements BundleActivator {
 
         /**
          * Constructor
-         * 
+         *
          * @param bundleContext Valid bundleContext instance
          */
         OSGIClassFactory(BundleContext bundleContext) {
@@ -114,21 +114,23 @@ public class DbDriverActivator implements BundleActivator {
                     + parts[BUNDLE_VERSION_INDEX]);
         }
     }
-    
+
     /**
-     * Extend the H2 class loading in order to find class defined in other bundles.
+     * Extend the H2 class loading in order to find class defined in other
+     * bundles.
      *
-     * The Class must be registered as a service.
+     * The class must be registered as a service.
      *
-     * The main difference with {@link OSGIClassFactory} is that it does not rely to a specific bundle.
-     * OSGIServiceClassFactory is the preferred way to register function used in table constraints,
-     * theses functions should not be removed of the DataBase.
+     * The main difference with {@link OSGIClassFactory} is that it does not
+     * rely to a specific bundle. OSGIServiceClassFactory is the preferred way
+     * to register function used in table constraints, these functions should
+     * not be removed from the database.
      *
-     * The class format for bundle service class is the following :
+     * The class format for bundle service class is the following:
      * OSGI:BinaryClassNameService
      */
     private static class OSGIServiceClassFactory implements Utils.ClassFactory {
-        
+
         /**
          * Separator character to merge bundle name, version and class binary
          * name
@@ -136,7 +138,7 @@ public class DbDriverActivator implements BundleActivator {
         public static final String SEPARATOR = "=";
 
         private static final int BINARY_CLASS_NAME_INDEX = 1;
-        
+
         private BundleContext bundleContext;
 
         /**
@@ -168,5 +170,5 @@ public class DbDriverActivator implements BundleActivator {
             throw new ClassNotFoundException("OSGi Service not found "+parts[BINARY_CLASS_NAME_INDEX]);
         }
     }
-    
+
 }

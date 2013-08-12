@@ -174,7 +174,7 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentIterate() {
-        MVStore s = new MVStore.Builder().pageSize(3).open();
+        MVStore s = new MVStore.Builder().pageSplitSize(3).open();
         final MVMap<Integer, Integer> map = s.openMap("test");
         final int len = 10;
         final Random r = new Random();

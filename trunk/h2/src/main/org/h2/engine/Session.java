@@ -110,6 +110,7 @@ public class Session extends SessionWithState {
     private int objectId;
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
+    private long modificationMetaID = -1;
 
     private Transaction transaction;
     private long startStatement = -1;
@@ -416,7 +417,13 @@ public class Session extends SessionWithState {
         if (queryCacheSize > 0) {
             if (queryCache == null) {
                 queryCache = SmallLRUCache.newInstance(queryCacheSize);
+                modificationMetaID = database.getModificationMetaId();
             } else {
+                long newModificationMetaID = database.getModificationMetaId();
+                if (newModificationMetaID != modificationMetaID) {
+                    queryCache.clear();
+                    modificationMetaID = newModificationMetaID;
+                }
                 command = queryCache.get(sql);
                 if (command != null && command.canReuse()) {
                     command.reuse();

@@ -57,7 +57,7 @@ public class TestSQLInjection extends TestBase {
         stat.execute("CALL 123");
         assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
                 execute("CALL 'Hello'");
-        assertThrows(ErrorCode.SYNTAX_ERROR_1, stat).
+        assertThrows(ErrorCode.LITERALS_ARE_NOT_ALLOWED, stat).
                 execute("CALL $$Hello World$$");
         stat.execute("SET ALLOW_LITERALS NONE");
         try {

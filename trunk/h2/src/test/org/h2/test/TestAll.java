@@ -81,6 +81,7 @@ import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestDriver;
 import org.h2.test.jdbc.TestJavaObject;
+import org.h2.test.jdbc.TestJavaObjectSerializer;
 import org.h2.test.jdbc.TestLimitUpdates;
 import org.h2.test.jdbc.TestLobApi;
 import org.h2.test.jdbc.TestManyJdbcObjects;
@@ -91,6 +92,7 @@ import org.h2.test.jdbc.TestResultSet;
 import org.h2.test.jdbc.TestStatement;
 import org.h2.test.jdbc.TestTransactionIsolation;
 import org.h2.test.jdbc.TestUpdatableResultSet;
+import org.h2.test.jdbc.TestUrlJavaObjectSerializer;
 import org.h2.test.jdbc.TestZloty;
 import org.h2.test.jdbcx.TestConnectionPool;
 import org.h2.test.jdbcx.TestDataSource;
@@ -347,6 +349,8 @@ java org.h2.test.TestAll timer
     String cacheType;
 
     private Server server;
+
+    public String javaObjectSerializer;
 
     /**
      * Run all tests.
@@ -648,6 +652,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestDatabaseEventListener().runTest(this);
         new TestDriver().runTest(this);
         new TestJavaObject().runTest(this);
+        new TestJavaObjectSerializer().runTest(this);
+        new TestUrlJavaObjectSerializer().runTest(this);
+
         new TestLimitUpdates().runTest(this);
         new TestLobApi().runTest(this);
         new TestManyJdbcObjects().runTest(this);

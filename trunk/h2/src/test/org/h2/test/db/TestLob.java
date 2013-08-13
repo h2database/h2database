@@ -1394,7 +1394,7 @@ public class TestLob extends TestBase {
 
     private void testJavaObject() throws SQLException {
         deleteDb("lob");
-        Connection conn = getConnection("lob");
+        JdbcConnection conn = (JdbcConnection) getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA OTHER)");
         PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, ?)");
@@ -1413,7 +1413,7 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("drop table test");
         stat.execute("create table test(value other)");
         prep = conn.prepareStatement("insert into test values(?)");
-        prep.setObject(1, Utils.serialize(""));
+        prep.setObject(1, Utils.serialize("", conn.getSession().getDataHandler()));
         prep.execute();
         rs = stat.executeQuery("select value from test");
         while (rs.next()) {

@@ -15,8 +15,8 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
-
 import org.h2.api.DatabaseEventListener;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.DbSettings;
@@ -178,6 +178,10 @@ public class Database implements DataHandler {
     private MVTableEngine.Store mvStore;
     private DbException backgroundException;
 
+    private JavaObjectSerializer javaObjectSerializer;
+    private String javaObjectSerializerFQN;
+    private volatile boolean javaObjectSerializerInitialized;
+
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
         this.dbSettings = ci.getDbSettings();
@@ -212,6 +216,8 @@ public class Database implements DataHandler {
         }
         this.multiVersion = ci.getProperty("MVCC", false);
         this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
+        this.javaObjectSerializerFQN = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
+
         boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
         int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
@@ -2498,4 +2504,39 @@ public class Database implements DataHandler {
         return filePasswordHash;
     }
 
+    @Override
+    public JavaObjectSerializer getJavaObjectSerializer() {
+        initJavaObjectSerializer();
+        return javaObjectSerializer;
+    }
+
+    private void initJavaObjectSerializer() {
+        if (javaObjectSerializerInitialized) {
+            return;
+        }
+        synchronized (this) {
+            if (javaObjectSerializerInitialized) {
+                return;
+            }
+            String serializerFQN = javaObjectSerializerFQN;
+            if (serializerFQN != null) {
+                serializerFQN = serializerFQN.trim();
+                if (!serializerFQN.isEmpty() && !serializerFQN.equals("null")) {
+                    try {
+                        javaObjectSerializer = (JavaObjectSerializer) Utils.loadUserClass(serializerFQN).newInstance();
+                    } catch (Exception e) {
+                        throw DbException.convert(e);
+                    }
+                }
+            }
+            javaObjectSerializerInitialized = true;
+        }
+    }
+    
+    public void setJavaObjectSerializerFQN(String javaObjectSerializerFQN) {
+        this.javaObjectSerializerFQN = javaObjectSerializerFQN;
+        synchronized (this) {
+            javaObjectSerializerInitialized = false;
+        }
+    }
 }

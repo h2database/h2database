@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Random;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
@@ -188,7 +189,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.RESULT_SET:
             return ValueResultSet.get(new SimpleResultSet());
         case Value.JAVA_OBJECT:
-            return ValueJavaObject.getNoCopy(null, randomBytes(random.nextInt(100)));
+            return ValueJavaObject.getNoCopy(null, randomBytes(random.nextInt(100)), this);
         case Value.UUID:
             return ValueUuid.get(random.nextLong(), random.nextLong());
         case Value.STRING_FIXED:
@@ -286,4 +287,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
         return -1;
     }
 
+    @Override
+    public JavaObjectSerializer getJavaObjectSerializer() {
+        return null;
+    }
 }

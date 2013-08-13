@@ -8,6 +8,7 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.util.Random;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorageBackend;
@@ -192,6 +193,11 @@ public class TestFile extends TestBase implements DataHandler {
     @Override
     public int readLob(long lobId,  byte[] hmac, long offset, byte[] buff, int off, int length) {
         return -1;
+    }
+
+    @Override
+    public JavaObjectSerializer getJavaObjectSerializer() {
+        return null;
     }
 
 }

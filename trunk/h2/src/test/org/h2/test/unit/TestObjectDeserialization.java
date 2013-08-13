@@ -45,7 +45,7 @@ public class TestObjectDeserialization extends TestBase {
         usesThreadContextClassLoader = false;
         Thread.currentThread().setContextClassLoader(new TestClassLoader());
         try {
-            Utils.deserialize(StringUtils.convertHexToBytes(OBJECT));
+            Utils.deserialize(StringUtils.convertHexToBytes(OBJECT), null);
             fail();
         } catch (DbException e) {
             // expected

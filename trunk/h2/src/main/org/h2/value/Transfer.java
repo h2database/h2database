@@ -530,7 +530,7 @@ public class Transfer {
         case Value.UUID:
             return ValueUuid.get(readLong(), readLong());
         case Value.JAVA_OBJECT:
-            return ValueJavaObject.getNoCopy(null, readBytes());
+            return ValueJavaObject.getNoCopy(null, readBytes(), session.getDataHandler());
         case Value.BOOLEAN:
             return ValueBoolean.get(readBoolean());
         case Value.BYTE:

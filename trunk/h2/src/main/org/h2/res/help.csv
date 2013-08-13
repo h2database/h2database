@@ -387,6 +387,11 @@ SET IGNORECASE { TRUE | FALSE }
 ","
 If IGNORECASE is enabled, text columns in newly created tables will be
 case-insensitive."
+"Commands (Other)","SET JAVA_OBJECT_SERIALIZER","
+SET JAVA_OBJECT_SERIALIZER
+{ null | className }
+","
+Sets the object used to serialize and deserialize java objects being stored in column of type OTHER."
 "Commands (Other)","SET LOG","
 SET LOG int
 ","

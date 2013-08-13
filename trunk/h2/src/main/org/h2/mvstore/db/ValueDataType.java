@@ -580,7 +580,7 @@ public class ValueDataType implements DataType {
             int len = readVarInt(buff);
             byte[] b = DataUtils.newBytes(len);
             buff.get(b, 0, len);
-            return ValueJavaObject.getNoCopy(null, b);
+            return ValueJavaObject.getNoCopy(null, b, handler);
         }
         case Value.UUID:
             return ValueUuid.get(buff.getLong(), buff.getLong());

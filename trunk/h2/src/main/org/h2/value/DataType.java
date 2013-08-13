@@ -586,10 +586,10 @@ public class DataType {
             case Value.JAVA_OBJECT: {
                 if (SysProperties.serializeJavaObject) {
                     byte[] buff = rs.getBytes(columnIndex);
-                    v = buff == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(null, buff);
+                    v = buff == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(null, buff, session.getDataHandler());
                 } else {
                     Object o = rs.getObject(columnIndex);
-                    v = o == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(o, null);
+                    v = o == null ? ValueNull.INSTANCE : ValueJavaObject.getNoCopy(o, null, session.getDataHandler());
                 }
                 break;
             }
@@ -884,7 +884,7 @@ public class DataType {
             return ValueNull.INSTANCE;
         }
         if (type == Value.JAVA_OBJECT) {
-            return ValueJavaObject.getNoCopy(x, null);
+            return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
         if (x instanceof String) {
             return ValueString.get((String) x);
@@ -957,7 +957,7 @@ public class DataType {
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
         } else {
-            return ValueJavaObject.getNoCopy(x, null);
+            return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
     }
 
@@ -1096,7 +1096,8 @@ public class DataType {
             return new JdbcClob(conn, v, 0);
         }
         if (v.getType() == Value.JAVA_OBJECT) {
-            Object o = SysProperties.serializeJavaObject ? Utils.deserialize(v.getBytes()) : v.getObject();
+            Object o = SysProperties.serializeJavaObject ? Utils.deserialize(v.getBytes(),
+                    conn.getSession().getDataHandler()) : v.getObject();
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
             }

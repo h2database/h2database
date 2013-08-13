@@ -160,7 +160,8 @@ public class Select extends Query {
     private void queryGroupSorted(int columnCount, ResultTarget result) {
         int rowNumber = 0;
         setCurrentRowNumber(0);
-        Value[] previousKeyValues = null;
+        currentGroup = null;
+        Value[] previousKeyValues = null;    
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
@@ -312,6 +313,7 @@ public class Select extends Query {
         ValueHashMap<HashMap<Expression, Object>> groups = ValueHashMap.newInstance();
         int rowNumber = 0;
         setCurrentRowNumber(0);
+        currentGroup = null;
         ValueArray defaultGroup = ValueArray.get(new Value[0]);
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
@@ -602,8 +604,6 @@ public class Select extends Query {
                 throw DbException.getUnsupportedException("FOR UPDATE && DISTINCT");
             } else if (isQuickAggregateQuery) {
                 throw DbException.getUnsupportedException("FOR UPDATE && AGGREGATE");
-            } else if (topTableFilter.getJoin() != null) {
-                throw DbException.getUnsupportedException("FOR UPDATE && JOIN");
             } else if (topTableFilter.getJoin() != null) {
                 throw DbException.getUnsupportedException("FOR UPDATE && JOIN");
             }

@@ -320,6 +320,9 @@ public abstract class TestBase {
         if (config.nestedJoins) {
             url = addOption(url, "NESTED_JOINS", "TRUE");
         }
+        if (config.javaObjectSerializer!=null) {
+            url = addOption(url, "JAVA_OBJECT_SERIALIZER", config.javaObjectSerializer);
+        }
         return "jdbc:h2:" + url;
     }
 

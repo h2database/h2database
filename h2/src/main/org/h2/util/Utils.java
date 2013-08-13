@@ -28,6 +28,7 @@ import org.h2.api.JavaObjectSerializer;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
+import org.h2.store.DataHandler;
 
 /**
  * This utility class contains miscellaneous functions.
@@ -331,9 +332,31 @@ public class Utils {
      *
      * @param obj the object to serialize
      * @return the byte array
+     *
+     * @deprecated use {@link #serialize(Object, DataHandler)} instead
      */
+    @Deprecated
     public static byte[] serialize(Object obj) {
+        return serialize(obj, null);
+    }
+
+    /**
+     * Serialize the object to a byte array, eventually using the serializer
+     * specified by the connection info.
+     *
+     * @param obj the object to serialize
+     * @param dataHandler provides the object serializer (may be null)
+     * @return the byte array
+     */
+    public static byte[] serialize(Object obj, DataHandler dataHandler) {
         try {
+            JavaObjectSerializer dbJavaObjectSerializer = null;
+            if (dataHandler != null) {
+                dbJavaObjectSerializer = dataHandler.getJavaObjectSerializer();
+            }
+            if (dbJavaObjectSerializer != null) {
+                return dbJavaObjectSerializer.serialize(obj);
+            }
             if (serializer != null) {
                 return serializer.serialize(obj);
             }
@@ -352,9 +375,32 @@ public class Utils {
      * @param data the byte array
      * @return the object
      * @throws DbException if serialization fails
+     *
+     * @deprecated use {@link #deserialize(byte[], DataHandler)} instead
      */
+    @Deprecated
     public static Object deserialize(byte[] data) {
+        return deserialize(data, null);
+    }
+
+    /**
+     * De-serialize the byte array to an object, eventually using the serializer
+     * specified by the connection info.
+     *
+     * @param data the byte array
+     * @param dataHandler provides the object serializer (may be null)
+     * @return the object
+     * @throws DbException if serialization fails
+     */
+    public static Object deserialize(byte[] data, DataHandler dataHandler) {
         try {
+            JavaObjectSerializer dbJavaObjectSerializer = null;
+            if (dataHandler != null) {
+                dbJavaObjectSerializer = dataHandler.getJavaObjectSerializer();
+            }
+            if (dbJavaObjectSerializer != null) {
+                return dbJavaObjectSerializer.deserialize(data);
+            }
             if (serializer != null) {
                 return serializer.deserialize(data);
             }

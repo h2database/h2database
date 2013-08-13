@@ -200,9 +200,14 @@ public class SetTypes {
     public static final int REDO_LOG_BINARY = 37;
 
     /**
-     * The type of a SET BINARY_COLLATION  statement.
+     * The type of a SET BINARY_COLLATION statement.
      */
     public static final int BINARY_COLLATION = 38;
+
+    /**
+     * The type of a SET JAVA_OBJECT_SERIALIZER statement.
+     */
+    public static final int JAVA_OBJECT_SERIALIZER = 39;
 
     private static final ArrayList<String> TYPES = New.arrayList();
 
@@ -251,6 +256,7 @@ public class SetTypes {
         list.add(QUERY_TIMEOUT, "QUERY_TIMEOUT");
         list.add(REDO_LOG_BINARY, "REDO_LOG_BINARY");
         list.add(BINARY_COLLATION, "BINARY_COLLATION");
+        list.add(JAVA_OBJECT_SERIALIZER, "JAVA_OBJECT_SERIALIZER");
     }
 
     /**

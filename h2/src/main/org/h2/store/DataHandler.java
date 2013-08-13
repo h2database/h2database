@@ -7,6 +7,7 @@
 package org.h2.store;
 
 import java.sql.Connection;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.message.DbException;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
@@ -112,4 +113,12 @@ public interface DataHandler {
      */
     int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length);
 
+    /**
+     * Return the serializer to be used for java objects being stored in
+     * column of type OTHER.
+     *
+     * @return the serializer to be used for java objects being stored in
+     * column of type OTHER
+     */
+    JavaObjectSerializer getJavaObjectSerializer();
 }

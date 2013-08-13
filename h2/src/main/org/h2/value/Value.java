@@ -776,7 +776,7 @@ public abstract class Value {
                 switch(getType()) {
                 case BYTES:
                 case BLOB:
-                    return ValueJavaObject.getNoCopy(null, getBytesNoCopy());
+                    return ValueJavaObject.getNoCopy(null, getBytesNoCopy(), getDataHandler());
                 }
                 break;
             }
@@ -798,7 +798,7 @@ public abstract class Value {
                 case BYTES:
                     return ValueGeometry.get(getBytesNoCopy());
                 case JAVA_OBJECT:
-                    Object object = Utils.deserialize(getBytesNoCopy());
+                    Object object = Utils.deserialize(getBytesNoCopy(), getDataHandler());
                     if (DataType.isGeometry(object)) {
                         return ValueGeometry.getFromGeometry(object);
                     }
@@ -844,7 +844,7 @@ public abstract class Value {
             case BYTES:
                 return ValueBytes.getNoCopy(StringUtils.convertHexToBytes(s.trim()));
             case JAVA_OBJECT:
-                return ValueJavaObject.getNoCopy(null, StringUtils.convertHexToBytes(s.trim()));
+                return ValueJavaObject.getNoCopy(null, StringUtils.convertHexToBytes(s.trim()), getDataHandler());
             case STRING:
                 return ValueString.get(s);
             case STRING_IGNORECASE:
@@ -1097,6 +1097,15 @@ public abstract class Value {
         rs.addColumn("X", DataType.convertTypeToSQLType(getType()), MathUtils.convertLongToInt(getPrecision()), getScale());
         rs.addRow(getObject());
         return rs;
+    }
+
+    /**
+     * Return the data handler for the values that support it
+     * (actually only Java objects).
+     * @return the data handler
+     */
+    protected DataHandler getDataHandler() {
+        return null;
     }
 
     /**

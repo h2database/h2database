@@ -220,6 +220,16 @@ public class Set extends Prepared {
             }
             break;
         }
+        case SetTypes.JAVA_OBJECT_SERIALIZER: {
+            session.getUser().checkAdmin();
+            Table table = database.getFirstUserTable();
+            if (table != null) {
+                throw DbException.get(ErrorCode.JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE, table.getSQL());
+            }
+            database.setJavaObjectSerializerFQN (stringValue);
+            addOrUpdateSetting(name, stringValue, 0);
+            break;
+        }
         case SetTypes.IGNORECASE:
             session.getUser().checkAdmin();
             database.setIgnoreCase(getIntValue() == 1);

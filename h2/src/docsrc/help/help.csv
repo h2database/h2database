@@ -1207,6 +1207,26 @@ This setting can be appended to the database URL: ""jdbc:h2:test;IGNORECASE=TRUE
 SET IGNORECASE TRUE
 "
 
+"Commands (Other)","SET JAVA_OBJECT_SERIALIZER","
+SET JAVA_OBJECT_SERIALIZER
+{ null | className }
+","
+Sets the object used to serialize and deserialize java objects being stored in column of type OTHER.
+The serializer class must be public and implement ""org.h2.api.JavaObjectSerializer"".
+Inner classes are not supported.
+The class must be available in the classpath of the database engine
+(when using the server mode, it must be both in the classpath of the server and the client).
+This command can only be executed if there are no tables defined.
+
+Admin rights are required to execute this command.
+This command commits an open transaction.
+This setting is persistent.
+This setting can be appended to the database URL: ""jdbc:h2:test;JAVA_OBJECT_SERIALIZER='com.acme.SerializerClassName'""
+","
+SET JAVA_OBJECT_SERIALIZER 'com.acme.SerializerClassName'
+"
+
+
 "Commands (Other)","SET LOG","
 SET LOG int
 ","

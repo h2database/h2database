@@ -1860,8 +1860,18 @@ public class ErrorCode {
      */
     public static final int RESULT_SET_READONLY = 90140;
 
+
+    /**
+     * The error with code <code>90141</code> is thrown when
+     * trying to change the java object serializer while there was already data in
+     * the database. The serializer of the database must be set when the
+     * database is empty.
+     */
+    public static final int JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE = 90141;
+
+
     // next are 90006, 90009, 90010, 90011, 90021, 90039,
-    // 90051, 90056, 90110, 90122, 90141
+    // 90051, 90056, 90110, 90122, 90142
 
     private ErrorCode() {
         // utility class

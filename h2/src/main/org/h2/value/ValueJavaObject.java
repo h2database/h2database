@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import org.h2.constant.SysProperties;
+import org.h2.store.DataHandler;
 import org.h2.util.Utils;
 
 /**
@@ -18,10 +19,12 @@ import org.h2.util.Utils;
  */
 public class ValueJavaObject extends ValueBytes {
 
-    private static final ValueJavaObject EMPTY = new ValueJavaObject(Utils.EMPTY_BYTES);
+    private static final ValueJavaObject EMPTY = new ValueJavaObject(Utils.EMPTY_BYTES, null);
+    private final DataHandler dataHandler;
 
-    protected ValueJavaObject(byte[] v) {
+    protected ValueJavaObject(byte[] v, DataHandler dataHandler) {
         super(v);
+        this.dataHandler = dataHandler;
     }
 
     /**
@@ -30,20 +33,21 @@ public class ValueJavaObject extends ValueBytes {
      *
      * @param javaObject the object
      * @param b the byte array
+     * @param dataHandler provides the object serializer
      * @return the value
      */
-    public static ValueJavaObject getNoCopy(Object javaObject, byte[] b) {
+    public static ValueJavaObject getNoCopy(Object javaObject, byte[] b, DataHandler dataHandler) {
         if (b != null && b.length == 0) {
             return EMPTY;
         }
         ValueJavaObject obj;
         if (SysProperties.serializeJavaObject) {
             if (b == null) {
-                b = Utils.serialize(javaObject);
+                b = Utils.serialize(javaObject, dataHandler);
             }
-            obj = new ValueJavaObject(b);
+            obj = new ValueJavaObject(b, dataHandler);
         } else {
-            obj = new NotSerialized(javaObject, b);
+            obj = new NotSerialized(javaObject, b, dataHandler);
         }
         if (b == null || b.length > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
@@ -58,7 +62,7 @@ public class ValueJavaObject extends ValueBytes {
 
     @Override
     public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
-        Object obj = Utils.deserialize(getBytesNoCopy());
+        Object obj = Utils.deserialize(getBytesNoCopy(), getDataHandler());
         prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);
     }
 
@@ -74,8 +78,8 @@ public class ValueJavaObject extends ValueBytes {
 
         private int displaySize = -1;
 
-        NotSerialized(Object javaObject, byte[] v) {
-            super(v);
+        NotSerialized(Object javaObject, byte[] v, DataHandler dataHandler) {
+            super(v, dataHandler);
             this.javaObject = javaObject;
         }
 
@@ -87,7 +91,7 @@ public class ValueJavaObject extends ValueBytes {
         @Override
         public byte[] getBytesNoCopy() {
             if (value == null) {
-                value = Utils.serialize(javaObject);
+                value = Utils.serialize(javaObject, null);
             }
             return value;
         }
@@ -155,7 +159,7 @@ public class ValueJavaObject extends ValueBytes {
         @Override
         public Object getObject() {
             if (javaObject == null) {
-                javaObject = Utils.deserialize(value);
+                javaObject = Utils.deserialize(value, getDataHandler());
             }
             return javaObject;
         }
@@ -192,5 +196,10 @@ public class ValueJavaObject extends ValueBytes {
         public Value convertPrecision(long precision, boolean force) {
             return this;
         }
+    }
+
+    @Override
+    protected DataHandler getDataHandler() {
+        return dataHandler;
     }
 }

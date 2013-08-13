@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.CRC32;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.compress.CompressLZF;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -1536,4 +1537,8 @@ public class Recover extends Tool implements DataHandler {
         throw DbException.throwInternalError();
     }
 
+    @Override
+    public JavaObjectSerializer getJavaObjectSerializer() {
+        return null;
+    }
 }

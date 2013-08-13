@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
+
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.DbSettings;
 import org.h2.constant.ErrorCode;
@@ -602,7 +603,7 @@ public class ConnectionInfo implements Cloneable {
         this.name = serverKey;
     }
 
-    DbSettings getDbSettings() {
+    public DbSettings getDbSettings() {
         DbSettings defaultSettings = DbSettings.getInstance(null);
         HashMap<String, String> s = null;
         for (Object k : prop.keySet()) {

@@ -4716,6 +4716,9 @@ public class Parser {
             list.toArray(schemaNames);
             command.setStringArray(schemaNames);
             return command;
+        } else if (readIf("JAVA_OBJECT_SERIALIZER")) {
+            readIfEqualOrTo();
+            return parseSetJavaObjectSerializer();
         } else {
             if (isToken("LOGSIZE")) {
                 // HSQLDB compatibility
@@ -4773,6 +4776,13 @@ public class Parser {
             return command;
         }
         throw DbException.getInvalidValueException("BINARY_COLLATION", name);
+    }
+
+    private Set parseSetJavaObjectSerializer() {
+        Set command = new Set(session, SetTypes.JAVA_OBJECT_SERIALIZER);
+        String name = readString();
+        command.setString(name);
+        return command;
     }
 
     private RunScriptCommand parseRunScript() {

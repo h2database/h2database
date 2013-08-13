@@ -19,6 +19,7 @@ import org.h2.util.Utils;
  * Tests {@link JavaObjectSerializer}.
  *
  * @author Sergi Vladykin
+ * @author Davide Cavestro
  */
 public class TestJavaObjectSerializer extends TestBase {
 
@@ -39,6 +40,13 @@ public class TestJavaObjectSerializer extends TestBase {
 
     @Override
     public void test() throws Exception {
+        deleteDb("javaSerializer");
+        testStaticGlobalSerializer();
+        testDbLevelJavaObjectSerializer();
+        deleteDb("javaSerializer");
+    }
+    
+    public void testStaticGlobalSerializer() throws Exception {
         Utils.serializer = new JavaObjectSerializer() {
             @Override
             public byte[] serialize(Object obj) throws Exception {
@@ -58,6 +66,7 @@ public class TestJavaObjectSerializer extends TestBase {
         try {
             deleteDb("javaSerializer");
             Connection conn = getConnection("javaSerializer");
+            
             Statement stat = conn.createStatement();
             stat.execute("create table t(id identity, val other)");
 
@@ -74,9 +83,65 @@ public class TestJavaObjectSerializer extends TestBase {
             assertEquals(100500, ((Integer) rs.getObject(1)).intValue());
             assertEquals(new byte[] { 1, 2, 3 }, rs.getBytes(1));
 
+            conn.close();
             deleteDb("javaSerializer");
         } finally {
             Utils.serializer = null;
         }
+    }
+
+    /**
+    * Tests per-db {@link JavaObjectSerializer} when set through the related
+    * SET command.
+    */
+    public void testDbLevelJavaObjectSerializer() throws Exception {
+        DbLevelJavaObjectSerializer.testBaseRef = this;
+        try {
+            deleteDb("javaSerializer");
+            Connection conn = getConnection("javaSerializer");
+
+            conn.createStatement().execute("SET JAVA_OBJECT_SERIALIZER '"+DbLevelJavaObjectSerializer.class.getName()+"'");
+
+            Statement stat = conn.createStatement();
+            stat.execute("create table t1(id identity, val other)");
+
+            PreparedStatement ins = conn.prepareStatement("insert into t1(val) values(?)");
+
+            ins.setObject(1, 100500, Types.JAVA_OBJECT);
+            assertEquals(1, ins.executeUpdate());
+
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery("select val from t1");
+
+            assertTrue(rs.next());
+
+            assertEquals(100500, ((Integer) rs.getObject(1)).intValue());
+            assertEquals(new byte[] { 1, 2, 3 }, rs.getBytes(1));
+
+            conn.close();
+            deleteDb("javaSerializer");
+        } finally {
+            DbLevelJavaObjectSerializer.testBaseRef = null;
+        }
+    }
+
+    public static class DbLevelJavaObjectSerializer implements JavaObjectSerializer {
+
+        private static TestBase testBaseRef;
+
+        @Override
+        public byte[] serialize(Object obj) throws Exception {
+            testBaseRef.assertEquals(100500, ((Integer) obj).intValue());
+
+            return new byte[] { 1, 2, 3 };
+        }
+
+        @Override
+        public Object deserialize(byte[] bytes) throws Exception {
+            testBaseRef.assertEquals(new byte[] { 1, 2, 3 }, bytes);
+
+            return 100500;
+        }
+
     }
 }

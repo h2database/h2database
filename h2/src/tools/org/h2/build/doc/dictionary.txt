@@ -35,7 +35,7 @@ balance balancing bananas band banking bar barcelona base based baseline basic
 basically basis bat batch bbalance bcc bcdfghklmnprstwz bdata bdfghklmnpqrst
 bdquo beans became because become becomes becoming been before begin beginning
 behalf behave behavior behaviour behind being bel believes belong belongs below
-bench benchmark benchmarks beneficial bennet berlini best beta better between
+bench benchmark benchmarks beneficial bennet berlini best beta better between beware
 beyond bfff bgcolor bid big bigger biggest bigint biginteger billion bin binary
 bind biological biondi birth birthday bit bitand bitmap bitor bits bitxor
 blank blind blob blobs block blocked blockquote blocks blocksize blog
@@ -52,7 +52,7 @@ calling calls cally camel can cancel canceled cancels cannot canonical cap
 capabilities capability capacity capone caps capture car cardinality care careful
 carriage carrier cars cartesian cascade cascading case cases casesensitive
 casewhen casqueiro cast cat catalog catalogs catch catcher catches caucho cause
-caused causes cayenne cbc ccc ccedil cdata cdd cddl cdup cedil ceil ceiling cell
+caused causes cavestro cayenne cbc ccc ccedil cdata cdd cddl cdup cedil ceil ceiling cell
 cellpadding cells cellspacing cent center central cert certain certificate
 certificates certified certs cet cfg cgi chain chained chaining chair challenge
 challenger chance change changed changelog changes changing channel channels char
@@ -98,11 +98,11 @@ createtable creating creation creatively credential credit criteria critical crl
 cross cruncher crypt cryptographic cryptographically cryptoloop css csv csvread
 csvwrite cte ctid ctor ctrl ctx cuaz cube cup curation curdate cure curly curren
 currency current currently currval cursor cursors curtime curtimestamp curve
-curves custom customer customerid customers cut cvs cwd cycle cyclic daemon
+curves custom customizable customer customerid customers cut cvs cwd cycle cyclic daemon
 daffodil dagger damage damages dangerous darr darwin dash dashes dat data
 database databaseaccess databases datalink datanamic datapage datasource
 datastore datatype datatypes date dateadd datediff dates datestyle datetime
-datetimes datum david day dayname dayofmonth dayofweek dayofyear days dba dbcopy
+datetimes datum david davide day dayname dayofmonth dayofweek dayofyear days dba dbcopy
 dbcopyplugin dbcp dbev dbid dbmonster dbms dbname dbo dbs dbserv ddl ddlutils
 deadlock deadlocks deal dealing deallocate death debug debugging dec december
 decimal deck declaration declaratory declare declared decode decoder decodes
@@ -171,7 +171,7 @@ floating floor florent flower fluent flush flushed flushes flushing fly focus
 focusable folder follow followed following follows font foo footer footprint for
 forall force forcefully forces forcing foreign forever forge forget forgotten
 form format formatdatetime formats formatted formatting formed forms forth
-forward found foundation four fourth fowler fox frac fractional frame frameborder
+forward found foundation four fourth fowler fox fqn frac fractional frame frameborder
 frames frameset framespacing framework frameworks fran france frank frasl free
 freed french frequently fresh freshmeat friendly from front frontend fsutil fsync
 ftl ftp ftps fukushima fulfill fulfilled fulfils full fulltext fully fulvio fun

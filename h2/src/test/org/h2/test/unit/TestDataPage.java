@@ -12,6 +12,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
@@ -167,8 +168,8 @@ public class TestDataPage extends TestBase implements DataHandler {
         testValue(ValueTime.get(new Time(0)));
         testValue(ValueTimestamp.get(new Timestamp(System.currentTimeMillis())));
         testValue(ValueTimestamp.get(new Timestamp(0)));
-        testValue(ValueJavaObject.getNoCopy(null, new byte[0]));
-        testValue(ValueJavaObject.getNoCopy(null, new byte[100]));
+        testValue(ValueJavaObject.getNoCopy(null, new byte[0], this));
+        testValue(ValueJavaObject.getNoCopy(null, new byte[100], this));
         for (int i = 0; i < 300; i++) {
             testValue(ValueBytes.getNoCopy(new byte[i]));
         }
@@ -338,6 +339,11 @@ public class TestDataPage extends TestBase implements DataHandler {
     @Override
     public int readLob(long lobId,  byte[] hmac, long offset, byte[] buff, int off, int length) {
         return -1;
+    }
+
+    @Override
+    public JavaObjectSerializer getJavaObjectSerializer() {
+        return null;
     }
 
 }

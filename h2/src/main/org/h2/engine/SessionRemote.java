@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
+import org.h2.api.JavaObjectSerializer;
 import org.h2.command.CommandInterface;
 import org.h2.command.CommandRemote;
 import org.h2.command.dml.SetTypes;
@@ -20,6 +21,7 @@ import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
+import org.h2.result.ResultInterface;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.LobStorageFrontend;
@@ -33,6 +35,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
 import org.h2.value.Transfer;
+import org.h2.value.Value;
 
 /**
  * The client side part of a session when using the server mode. This object
@@ -86,6 +89,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private LobStorageFrontend lobStorage;
     private boolean cluster;
     private TempFileDeleter tempFileDeleter;
+
+    private JavaObjectSerializer javaObjectSerializer;
+    private volatile boolean javaObjectSerializerInitialized;
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
@@ -749,4 +755,52 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         return 1;
     }
 
+    @Override
+    public JavaObjectSerializer getJavaObjectSerializer() {
+        initJavaObjectSerializer();
+        return javaObjectSerializer;
+    }
+    
+    private void initJavaObjectSerializer() {
+        if (javaObjectSerializerInitialized) {
+            return;
+        }
+        synchronized (this) {
+            if (javaObjectSerializerInitialized) {
+                return;
+            }
+            String serializerFQN = readSerializationSettings();
+            if (serializerFQN != null) {
+                serializerFQN = serializerFQN.trim();
+                if (!serializerFQN.isEmpty() && !serializerFQN.equals("null")) {
+                    try {
+                        javaObjectSerializer = (JavaObjectSerializer) Utils.loadUserClass(serializerFQN).newInstance();
+                    } catch (Exception e) {
+                        throw DbException.convert(e);
+                    }
+                }
+            }
+            javaObjectSerializerInitialized = true;
+        }
+    }
+
+    /**
+     * Read needed persistent db settings
+     */
+    private String readSerializationSettings () {
+        String javaObjectSerializerFQN = null;
+        CommandInterface ci = prepareCommand(
+                "SELECT * FROM INFORMATION_SCHEMA.SETTINGS "+
+                " WHERE NAME='JAVA_OBJECT_SERIALIZER'", Integer.MAX_VALUE);
+        try {
+            ResultInterface result = ci.executeQuery(0, false);
+            if (result.next()) {
+                Value[] row = result.currentRow();
+                javaObjectSerializerFQN = row[1].getString();
+            }
+        } finally {
+            ci.close();
+        }
+        return javaObjectSerializerFQN;
+    }
 }

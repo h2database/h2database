@@ -179,7 +179,7 @@ public class Database implements DataHandler {
     private DbException backgroundException;
 
     private JavaObjectSerializer javaObjectSerializer;
-    private String javaObjectSerializerFQN;
+    private String javaObjectSerializerName;
     private volatile boolean javaObjectSerializerInitialized;
 
     public Database(ConnectionInfo ci, String cipher) {
@@ -216,7 +216,7 @@ public class Database implements DataHandler {
         }
         this.multiVersion = ci.getProperty("MVCC", false);
         this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
-        this.javaObjectSerializerFQN = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
+        this.javaObjectSerializerName = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
 
         boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
         int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
@@ -2518,12 +2518,12 @@ public class Database implements DataHandler {
             if (javaObjectSerializerInitialized) {
                 return;
             }
-            String serializerFQN = javaObjectSerializerFQN;
-            if (serializerFQN != null) {
-                serializerFQN = serializerFQN.trim();
-                if (!serializerFQN.isEmpty() && !serializerFQN.equals("null")) {
+            String serializerName = javaObjectSerializerName;
+            if (serializerName != null) {
+                serializerName = serializerName.trim();
+                if (!serializerName.isEmpty() && !serializerName.equals("null")) {
                     try {
-                        javaObjectSerializer = (JavaObjectSerializer) Utils.loadUserClass(serializerFQN).newInstance();
+                        javaObjectSerializer = (JavaObjectSerializer) Utils.loadUserClass(serializerName).newInstance();
                     } catch (Exception e) {
                         throw DbException.convert(e);
                     }
@@ -2532,11 +2532,11 @@ public class Database implements DataHandler {
             javaObjectSerializerInitialized = true;
         }
     }
-    
-    public void setJavaObjectSerializerFQN(String javaObjectSerializerFQN) {
-        this.javaObjectSerializerFQN = javaObjectSerializerFQN;
+
+    public void setJavaObjectSerializerName(String serializerName) {
         synchronized (this) {
             javaObjectSerializerInitialized = false;
+            javaObjectSerializerName = serializerName;
         }
     }
 }

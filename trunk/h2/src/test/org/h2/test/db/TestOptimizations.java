@@ -74,7 +74,7 @@ public class TestOptimizations extends TestBase {
         testConvertOrToIn();
         deleteDb("optimizations");
     }
-    
+
     private void testGroupSubquery() throws Exception {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -84,7 +84,7 @@ public class TestOptimizations extends TestBase {
         stat.execute("insert into t2 values(2), (3)");
         stat.execute("create index t1id_index on t1(id)");
         ResultSet rs;
-        rs = stat.executeQuery("select id, (select count(*) from t2 " + 
+        rs = stat.executeQuery("select id, (select count(*) from t2 " +
                 "where t2.id = t1.id) cc from t1 group by id order by id");
         rs.next();
         assertEquals(2, rs.getInt(1));

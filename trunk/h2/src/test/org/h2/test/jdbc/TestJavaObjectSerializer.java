@@ -45,8 +45,8 @@ public class TestJavaObjectSerializer extends TestBase {
         testDbLevelJavaObjectSerializer();
         deleteDb("javaSerializer");
     }
-    
-    public void testStaticGlobalSerializer() throws Exception {
+
+    private void testStaticGlobalSerializer() throws Exception {
         Utils.serializer = new JavaObjectSerializer() {
             @Override
             public byte[] serialize(Object obj) throws Exception {
@@ -66,7 +66,7 @@ public class TestJavaObjectSerializer extends TestBase {
         try {
             deleteDb("javaSerializer");
             Connection conn = getConnection("javaSerializer");
-            
+
             Statement stat = conn.createStatement();
             stat.execute("create table t(id identity, val other)");
 
@@ -91,11 +91,12 @@ public class TestJavaObjectSerializer extends TestBase {
     }
 
     /**
-    * Tests per-db {@link JavaObjectSerializer} when set through the related
-    * SET command.
-    */
+     * Tests per-database serializer when set through the related SET command.
+     */
     public void testDbLevelJavaObjectSerializer() throws Exception {
+
         DbLevelJavaObjectSerializer.testBaseRef = this;
+
         try {
             deleteDb("javaSerializer");
             Connection conn = getConnection("javaSerializer");
@@ -125,9 +126,15 @@ public class TestJavaObjectSerializer extends TestBase {
         }
     }
 
+    /**
+     * The serializer to use for this test.
+     */
     public static class DbLevelJavaObjectSerializer implements JavaObjectSerializer {
 
-        private static TestBase testBaseRef;
+        /**
+         * The test.
+         */
+        static TestBase testBaseRef;
 
         @Override
         public byte[] serialize(Object obj) throws Exception {

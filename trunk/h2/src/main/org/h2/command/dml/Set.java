@@ -226,7 +226,7 @@ public class Set extends Prepared {
             if (table != null) {
                 throw DbException.get(ErrorCode.JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE, table.getSQL());
             }
-            database.setJavaObjectSerializerFQN (stringValue);
+            database.setJavaObjectSerializerName(stringValue);
             addOrUpdateSetting(name, stringValue, 0);
             break;
         }

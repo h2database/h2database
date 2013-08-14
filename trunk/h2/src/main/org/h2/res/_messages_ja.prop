@@ -159,6 +159,7 @@
 90138=不正なデータベース名: {0}
 90139=public staticであるJavaメソッドが見つかりません: {0}
 90140=リザルトセットは読み込み専用です。conn.createStatement(.., ResultSet.CONCUR_UPDATABLE) を使う必要があるかもしれません
+90141=#Serializer cannot be changed because there is a data table: {0}
 HY000=一般エラー: {0}
 HY004=不明なデータ型: {0}
 HYC00=機能はサポートされていません: {0}

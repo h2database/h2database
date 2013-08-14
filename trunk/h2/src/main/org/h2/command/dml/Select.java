@@ -161,7 +161,7 @@ public class Select extends Query {
         int rowNumber = 0;
         setCurrentRowNumber(0);
         currentGroup = null;
-        Value[] previousKeyValues = null;    
+        Value[] previousKeyValues = null;
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {

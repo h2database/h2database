@@ -21,7 +21,7 @@ import org.h2.value.Value;
 
 /**
  * A non-unique index based on an in-memory hash map.
- * 
+ *
  * @author Sergi Vladykin
  */
 public class NonUniqueHashIndex extends BaseIndex {

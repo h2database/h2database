@@ -760,7 +760,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         initJavaObjectSerializer();
         return javaObjectSerializer;
     }
-    
+
     private void initJavaObjectSerializer() {
         if (javaObjectSerializerInitialized) {
             return;
@@ -785,18 +785,20 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     }
 
     /**
-     * Read needed persistent db settings
+     * Read the serializer name from the persistent database settings.
+     *
+     * @return the serializer
      */
-    private String readSerializationSettings () {
+    private String readSerializationSettings() {
         String javaObjectSerializerFQN = null;
         CommandInterface ci = prepareCommand(
-                "SELECT * FROM INFORMATION_SCHEMA.SETTINGS "+
+                "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS "+
                 " WHERE NAME='JAVA_OBJECT_SERIALIZER'", Integer.MAX_VALUE);
         try {
             ResultInterface result = ci.executeQuery(0, false);
             if (result.next()) {
                 Value[] row = result.currentRow();
-                javaObjectSerializerFQN = row[1].getString();
+                javaObjectSerializerFQN = row[0].getString();
             }
         } finally {
             ci.close();

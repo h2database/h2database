@@ -628,7 +628,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         if (o == null || o instanceof byte[]) {
             return (byte[]) o;
         }
-        return Utils.serialize(o);
+        return Utils.serialize(o, null);
     }
 
     /**

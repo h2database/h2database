@@ -19,7 +19,7 @@ public class TestQueryCache extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {

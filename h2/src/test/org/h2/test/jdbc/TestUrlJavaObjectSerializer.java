@@ -31,7 +31,6 @@ public class TestUrlJavaObjectSerializer extends TestBase {
         test.config.traceTest = true;
         test.config.memory = true;
         test.config.networked = true;
-        test.config.javaObjectSerializer = FakeJavaObjectSerializer.class.getName();
         test.config.beforeTest();
         test.test();
         test.config.afterTest();
@@ -68,9 +67,15 @@ public class TestUrlJavaObjectSerializer extends TestBase {
         }
     }
 
+    /**
+     * The serializer to use for this test.
+     */
     public static class FakeJavaObjectSerializer implements JavaObjectSerializer {
 
-        private static TestBase testBaseRef;
+        /**
+         * The test.
+         */
+        static TestBase testBaseRef;
 
         @Override
         public byte[] serialize(Object obj) throws Exception {

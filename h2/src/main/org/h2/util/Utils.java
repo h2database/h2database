@@ -328,21 +328,8 @@ public class Utils {
     }
 
     /**
-     * Serialize the object to a byte array.
-     *
-     * @param obj the object to serialize
-     * @return the byte array
-     *
-     * @deprecated use {@link #serialize(Object, DataHandler)} instead
-     */
-    @Deprecated
-    public static byte[] serialize(Object obj) {
-        return serialize(obj, null);
-    }
-
-    /**
-     * Serialize the object to a byte array, eventually using the serializer
-     * specified by the connection info.
+     * Serialize the object to a byte array, using the serializer specified by
+     * the connection info if set, or the default serializer.
      *
      * @param obj the object to serialize
      * @param dataHandler provides the object serializer (may be null)
@@ -350,12 +337,12 @@ public class Utils {
      */
     public static byte[] serialize(Object obj, DataHandler dataHandler) {
         try {
-            JavaObjectSerializer dbJavaObjectSerializer = null;
+            JavaObjectSerializer handlerSerializer = null;
             if (dataHandler != null) {
-                dbJavaObjectSerializer = dataHandler.getJavaObjectSerializer();
+                handlerSerializer = dataHandler.getJavaObjectSerializer();
             }
-            if (dbJavaObjectSerializer != null) {
-                return dbJavaObjectSerializer.serialize(obj);
+            if (handlerSerializer != null) {
+                return handlerSerializer.serialize(obj);
             }
             if (serializer != null) {
                 return serializer.serialize(obj);

@@ -159,6 +159,7 @@
 90138=无效数据库名称: {0}
 90139=找不到公用Java静态方法: {0}
 90140=结果集是只读的. 你可以使用 conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
+90141=#Serializer cannot be changed because there is a data table: {0}
 HY000=常规错误: {0}
 HY004=位置数据类型: {0}
 HYC00=不支持的特性: {0}

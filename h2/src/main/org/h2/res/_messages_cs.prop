@@ -159,6 +159,7 @@
 90138=Neplatný název databáze: {0}
 90139=Nenalezena veřejná statická Java metoda: {0}
 90140=Vrácený výsledek je pouze pro čtení. Možná budete muset použít conn.createStatement(..., ResultSet.CONCUR_UPDATABLE).
+90141=#Serializer cannot be changed because there is a data table: {0}
 HY000=Obecná chyba: {0}
 HY004=Neznámý datový typ: {0}
 HYC00=Vlastnost není podporována: {0}

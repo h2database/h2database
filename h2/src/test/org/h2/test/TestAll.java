@@ -350,8 +350,6 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
-    public String javaObjectSerializer;
-
     /**
      * Run all tests.
      *

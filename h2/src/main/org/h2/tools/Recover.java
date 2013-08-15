@@ -109,12 +109,12 @@ public class Recover extends Tool implements DataHandler {
         /**
          * The number of bytes used for data.
          */
-        int pageDataRows;
+        long pageDataRows;
 
         /**
          * The number of bytes used for the page headers.
          */
-        int pageDataHead;
+        long pageDataHead;
 
         /**
          * The count per page type.

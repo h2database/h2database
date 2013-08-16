@@ -40,6 +40,7 @@ public class TestOptimizations extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("optimizations");
+        testOrderByExpression();
         testGroupSubquery();
         testAnalyzeLob();
         testLike();
@@ -73,6 +74,24 @@ public class TestOptimizations extends TestBase {
         testOrderedIndexes();
         testConvertOrToIn();
         deleteDb("optimizations");
+    }
+    
+    private void testOrderByExpression() throws Exception {
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar)");
+        stat.execute("insert into test values(1, 'Hello'), (2, 'Hello'), (3, 'Hello')");
+        ResultSet rs;
+        rs = stat.executeQuery(
+                "explain select name from test where name='Hello' order by name");
+        rs.next();
+        String plan = rs.getString(1);
+        
+        int todoNeedsToBeFixed;
+        // assertTrue(plan, plan.indexOf("tableScan") >= 0);
+        
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testGroupSubquery() throws Exception {

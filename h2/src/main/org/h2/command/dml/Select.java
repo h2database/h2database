@@ -391,7 +391,7 @@ public class Select extends Query {
             return null;
         }
         ArrayList<Column> sortColumns = New.arrayList();
-        for (int idx : sort.getIndexes()) {
+        for (int idx : sort.getQueryColumnIndexes()) {
             if (idx < 0 || idx >= expressions.size()) {
                 throw DbException.getInvalidValueException("ORDER BY", idx + 1);
             }

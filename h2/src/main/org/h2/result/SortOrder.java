@@ -51,19 +51,24 @@ public class SortOrder implements Comparator<Value[]> {
     private static final int DEFAULT_NULL_SORT = SysProperties.SORT_NULLS_HIGH ? 1 : -1;
 
     private final Database database;
-    private final int[] indexes;
+    
+    /**
+     * The column indexes of the order by expressions within the query.
+     */
+    private final int[] queryColumnIndexes;
+    
     private final int[] sortTypes;
 
     /**
      * Construct a new sort order object.
      *
      * @param database the database
-     * @param index the column index list
+     * @param queryColumnIndexes the column index list
      * @param sortType the sort order bit masks
      */
-    public SortOrder(Database database, int[] index, int[] sortType) {
+    public SortOrder(Database database, int[] queryColumnIndexes, int[] sortType) {
         this.database = database;
-        this.indexes = index;
+        this.queryColumnIndexes = queryColumnIndexes;
         this.sortTypes = sortType;
     }
 
@@ -78,7 +83,7 @@ public class SortOrder implements Comparator<Value[]> {
     public String getSQL(Expression[] list, int visible) {
         StatementBuilder buff = new StatementBuilder();
         int i = 0;
-        for (int idx : indexes) {
+        for (int idx : queryColumnIndexes) {
             buff.appendExceptFirst(", ");
             if (idx < visible) {
                 buff.append(idx + 1);
@@ -127,8 +132,8 @@ public class SortOrder implements Comparator<Value[]> {
      */
     @Override
     public int compare(Value[] a, Value[] b) {
-        for (int i = 0, len = indexes.length; i < len; i++) {
-            int idx = indexes[i];
+        for (int i = 0, len = queryColumnIndexes.length; i < len; i++) {
+            int idx = queryColumnIndexes[i];
             int type = sortTypes[i];
             Value ao = a[idx];
             Value bo = b[idx];
@@ -186,12 +191,18 @@ public class SortOrder implements Comparator<Value[]> {
     }
 
     /**
-     * Get the column index list.
-     *
+     * Get the column index list. This is the column indexes of the order by
+     * expressions within the query.
+     * <p>
+     * For the query "select name, id from test order by id, name" this is {1,
+     * 0} as the first order by expression (the column "id") is the second
+     * column of the query, and the second order by expression ("name") is the
+     * first column of the query.
+     * 
      * @return the list
      */
-    public int[] getIndexes() {
-        return indexes;
+    public int[] getQueryColumnIndexes() {
+        return queryColumnIndexes;
     }
 
     /**

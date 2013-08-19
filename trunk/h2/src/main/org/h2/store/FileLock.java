@@ -80,6 +80,11 @@ public class FileLock implements Runnable {
     private volatile ServerSocket serverSocket;
 
     /**
+     * Whether the file is locked.
+     */
+    private volatile boolean locked;
+    
+    /**
      * The number of milliseconds to sleep after checking a file.
      */
     private final int sleep;
@@ -96,7 +101,6 @@ public class FileLock implements Runnable {
 
     private String method, ipAddress;
     private Properties properties;
-    private boolean locked;
     private String uniqueId;
     private Thread watchdog;
 
@@ -152,6 +156,7 @@ public class FileLock implements Runnable {
         try {
             if (watchdog != null) {
                 watchdog.interrupt();
+                watchdog.join();
             }
         } catch (Exception e) {
             trace.debug(e, "unlock");
@@ -484,7 +489,7 @@ public class FileLock implements Runnable {
     @Override
     public void run() {
         try {
-            while (fileName != null) {
+            while (locked && fileName != null) {
                 // trace.debug("watchdog check");
                 try {
                     if (!FileUtils.exists(fileName) || FileUtils.lastModified(fileName) != lastWrite) {

@@ -138,6 +138,8 @@ public class Recover extends Tool implements DataHandler {
      * <td>The database name (all databases if not set)</td></tr>
      * <tr><td>[-trace]</td>
      * <td>Print additional trace information</td></tr>
+     * <tr><td>[-transactionLog]</td>
+     * <td>Print the transaction log</td></tr>
      * </table>
      * Encrypted databases need to be decrypted first.
      * @h2.resource

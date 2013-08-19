@@ -102,7 +102,7 @@ public class TestSpatial extends TestBase {
      * @param maxLength LineString maximum length
      * @return A segment within this bounding box
      */
-    public static Geometry getRandomGeometry(Random geometryRand,
+    static Geometry getRandomGeometry(Random geometryRand,
             double minX, double maxX,
             double minY, double maxY, double maxLength) {
         GeometryFactory factory = new GeometryFactory();
@@ -441,6 +441,7 @@ public class TestSpatial extends TestBase {
 
     /**
      * Generate a result set with random geometry data.
+     * Used as an ALIAS function.
      *
      * @param seed the random seed
      * @param rowCount the number of rows

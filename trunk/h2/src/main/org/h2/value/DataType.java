@@ -864,7 +864,7 @@ public class DataType {
         } else if (Object[].class.isAssignableFrom(x)) {
             // this includes String[] and so on
             return Value.ARRAY;
-        } else if (isGeometry(x)) {
+        } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
         } else {
             return Value.JAVA_OBJECT;
@@ -967,7 +967,7 @@ public class DataType {
      * @param x the class
      * @return true if it is a Geometry class
      */
-    public static boolean isGeometry(Class<?> x) {
+    public static boolean isGeometryClass(Class<?> x) {
         if (x == null || GEOMETRY_CLASS == null) {
             return false;
         }
@@ -984,7 +984,7 @@ public class DataType {
         if (x == null) {
             return false;
         }
-        return isGeometry(x.getClass());
+        return isGeometryClass(x.getClass());
     }
 
     /**

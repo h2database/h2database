@@ -6,24 +6,17 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Types;
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
-
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
 import org.h2.value.DataType;
-import org.h2.value.ValueGeometry;
-
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
@@ -64,7 +57,6 @@ public class TestSpatial extends TestBase {
             testJavaAlias();
             testJavaAliasTableFunction();
             testMemorySpatialIndex();
-            testRandom();
             deleteDb("spatial");
         }
     }
@@ -127,76 +119,6 @@ public class TestSpatial extends TestBase {
                 start.x + Math.cos(angle) * length,
                 start.y + Math.sin(angle) * length);
         return factory.createLineString(new Coordinate[] { start, end });
-    }
-
-    private void testRandom() throws SQLException {
-        deleteDb("spatial");
-        Connection conn = getConnection("spatial");
-        testRandom(conn, 69, 3500);
-        testRandom(conn, 44, 3500);
-        conn.close();
-    }
-
-    private void testRandom(Connection conn, long seed, long size) throws SQLException {
-        Statement stat = conn.createStatement();
-        stat.execute("drop table if exists test");
-        Random geometryRand = new Random(seed);
-        // generate a set of geometry (always the same set, given the same seed)
-        stat.execute("create memory table test(" +
-                "id long primary key auto_increment, poly geometry)");
-        // Create segment generation bounding box
-        Envelope boundingBox = ValueGeometry.get("POLYGON ((" +
-                "301804.1049793153 2251719.1222191923, " +
-                "301804.1049793153 2254747.2888244865, " +
-                "304646.87362918374 2254747.2888244865, " +
-                "304646.87362918374 2251719.1222191923, " +
-                "301804.1049793153 2251719.1222191923))")
-                .getGeometry().getEnvelopeInternal();
-        // Create overlap test bounding box
-        String testBoundingBoxString = "POLYGON ((" +
-                "302215.44416332216 2252748, " +
-                "302215.44416332216 2253851.781225762, " +
-                "303582.85796541866 2253851.781225762, " +
-                "303582.85796541866 2252748.526908161, " +
-                "302215.44416332216 2252748))";
-        Envelope testBBox = ValueGeometry.get(testBoundingBoxString).
-                getGeometry().getEnvelopeInternal();
-
-        PreparedStatement ps = conn.prepareStatement(
-                "insert into test(poly) values (?)");
-        long overlapCount = 0;
-        Set<Integer> overlaps = new HashSet<Integer>(680);
-        for (int i = 1; i <= size; i++) {
-            Geometry geometry = getRandomGeometry(
-                    geometryRand,
-                    boundingBox.getMinX(), boundingBox.getMaxX(),
-                    boundingBox.getMinY(), boundingBox.getMaxY(), 200);
-            ps.setObject(1, geometry);
-            ps.execute();
-            ResultSet keys = ps.getGeneratedKeys();
-            keys.next();
-            if (geometry.getEnvelopeInternal().intersects(testBBox)) {
-                overlapCount++;
-                overlaps.add(keys.getInt(1));
-            }
-        }
-        ps.close();
-        // Create index
-        stat.execute("create spatial index idx_test_poly on test(poly)");
-        // Must find the same overlap count with index
-        ps = conn.prepareStatement("select id from test where poly && ?::Geometry");
-        ps.setString(1, testBoundingBoxString);
-        ResultSet rs = ps.executeQuery();
-        long found = 0;
-        while (rs.next()) {
-            overlaps.remove(rs.getInt(1));
-            found++;
-        }
-        // Index count must be the same as sequential count
-        assertEquals(overlapCount, found);
-        // Missing id still in overlaps map
-        assertTrue(overlaps.isEmpty());
-        stat.execute("drop table if exists test");
     }
 
     private void testOverlap() throws SQLException {

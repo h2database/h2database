@@ -17,6 +17,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.TableFilter;
 import org.h2.table.TableLink;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -140,8 +141,8 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
-        return 100 + getCostRangeIndex(masks, rowCount + Constants.COST_ROW_OFFSET, sortOrder);
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+        return 100 + getCostRangeIndex(masks, rowCount + Constants.COST_ROW_OFFSET, filter, sortOrder);
     }
 
     @Override

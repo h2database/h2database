@@ -13,6 +13,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
+import org.h2.table.TableFilter;
 
 /**
  * An index for a function that returns a result set. This index can only scan
@@ -51,7 +52,7 @@ public class FunctionIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         if (masks != null) {
             throw DbException.getUnsupportedException("ALIAS");
         }

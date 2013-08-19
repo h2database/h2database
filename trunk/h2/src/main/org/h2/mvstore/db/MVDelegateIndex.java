@@ -16,6 +16,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.TableFilter;
 
 /**
  * An index that delegates indexing to another index.
@@ -73,8 +74,8 @@ public class MVDelegateIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
-        return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(), sortOrder);
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+        return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(), filter, sortOrder);
     }
 
     @Override

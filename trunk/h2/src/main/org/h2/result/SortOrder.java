@@ -9,9 +9,14 @@ package org.h2.result;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+
+import org.h2.command.dml.SelectOrderBy;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
+import org.h2.table.Column;
+import org.h2.table.TableFilter;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -57,7 +62,15 @@ public class SortOrder implements Comparator<Value[]> {
      */
     private final int[] queryColumnIndexes;
     
+    /**
+     * The sort type bit mask (DESCENDING, NULLS_FIRST, NULLS_LAST).
+     */
     private final int[] sortTypes;
+    
+    /**
+     * The order list.
+     */
+    private final ArrayList<SelectOrderBy> orderList;
 
     /**
      * Construct a new sort order object.
@@ -65,11 +78,13 @@ public class SortOrder implements Comparator<Value[]> {
      * @param database the database
      * @param queryColumnIndexes the column index list
      * @param sortType the sort order bit masks
+     * @param orderList the original query order list (if this is a query)
      */
-    public SortOrder(Database database, int[] queryColumnIndexes, int[] sortType) {
+    public SortOrder(Database database, int[] queryColumnIndexes, int[] sortType, ArrayList<SelectOrderBy> orderList) {
         this.database = database;
         this.queryColumnIndexes = queryColumnIndexes;
         this.sortTypes = sortType;
+        this.orderList = orderList;
     }
 
     /**
@@ -203,6 +218,33 @@ public class SortOrder implements Comparator<Value[]> {
      */
     public int[] getQueryColumnIndexes() {
         return queryColumnIndexes;
+    }
+    
+    /**
+     * Get the column for the given table filter, if the sort column is for this filter.
+     * 
+     * @param index the column index (0-based)
+     * @param filter the table filter
+     * @return the column, or null
+     */
+    public Column getColumn(int index, TableFilter filter) {
+        if (orderList == null) {
+            return null;
+        }
+        SelectOrderBy order = orderList.get(index);
+        Expression expr = order.expression;
+        expr = expr.getNonAliasExpression();
+        if (expr.isConstant()) {
+            return null;
+        }
+        if (!(expr instanceof ExpressionColumn)) {
+            return null;
+        }
+        ExpressionColumn exprCol = (ExpressionColumn) expr;
+        if (exprCol.getTableFilter() != filter) {
+            return null;
+        }
+        return exprCol.getColumn();
     }
 
     /**

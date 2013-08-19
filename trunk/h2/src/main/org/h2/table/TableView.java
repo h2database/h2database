@@ -202,9 +202,9 @@ public class TableView extends Table {
     }
 
     @Override
-    public synchronized PlanItem getBestPlanItem(Session session, int[] masks, SortOrder sortOrder) {
+    public synchronized PlanItem getBestPlanItem(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
-        item.cost = index.getCost(session, masks, sortOrder);
+        item.cost = index.getCost(session, masks, filter, sortOrder);
         IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
         SynchronizedVerifier.check(indexCache);
         ViewIndex i2 = indexCache.get(masksArray);
@@ -374,7 +374,7 @@ public class TableView extends Table {
             String msg = createException.getMessage();
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, createException, getSQL(), msg);
         }
-        PlanItem item = getBestPlanItem(session, null, null);
+        PlanItem item = getBestPlanItem(session, null, null, null);
         return item.getIndex();
     }
 

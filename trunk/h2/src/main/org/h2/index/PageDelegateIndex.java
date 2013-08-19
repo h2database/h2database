@@ -15,6 +15,7 @@ import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
+import org.h2.table.TableFilter;
 
 /**
  * An index that delegates indexing to the page data index.
@@ -94,8 +95,8 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
-        return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session), sortOrder);
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+        return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session), filter, sortOrder);
     }
 
     @Override

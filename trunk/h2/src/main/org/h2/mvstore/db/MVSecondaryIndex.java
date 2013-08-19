@@ -24,6 +24,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -162,9 +163,9 @@ public class MVSecondaryIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         try {
-            return 10 * getCostRangeIndex(masks, dataMap.map.getSize(), sortOrder);
+            return 10 * getCostRangeIndex(masks, dataMap.map.getSize(), filter, sortOrder);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }

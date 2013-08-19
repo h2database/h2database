@@ -80,10 +80,11 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @param masks per-column comparison bit masks, null means 'always false',
      *              see constants in IndexCondition
+     * @param filter the table filter
      * @param sortOrder the sort order
      * @return the estimated cost
      */
-    double getCost(Session session, int[] masks, SortOrder sortOrder);
+    double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder);
 
     /**
      * Remove the index.

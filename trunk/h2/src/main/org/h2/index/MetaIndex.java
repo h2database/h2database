@@ -15,6 +15,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
+import org.h2.table.TableFilter;
 
 /**
  * The index implementation for meta data tables.
@@ -52,11 +53,11 @@ public class MetaIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         if (scan) {
             return 10 * MetaTable.ROW_COUNT_APPROXIMATION;
         }
-        return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION, sortOrder);
+        return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION, filter, sortOrder);
     }
 
     @Override

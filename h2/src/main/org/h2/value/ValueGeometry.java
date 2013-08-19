@@ -224,7 +224,7 @@ public class ValueGeometry extends Value {
     /**
      * Convert a Well-Known-Binary to a Geometry object.
      *
-     * @param s the well-known-binary
+     * @param bytes the well-known-binary
      * @return the Geometry object
      */
     private static Geometry fromWKB(byte[] bytes) {

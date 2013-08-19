@@ -202,13 +202,13 @@ public class ValueGeometry extends Value {
      * @return the well-known-binary
      */
     public byte[] toWKB() {
-        int outputDimension = getNoDimensions();
+        int dimensionCount = getDimensionCount();
         boolean includeSRID = geometry.getSRID() != 0;
-        WKBWriter writer = new WKBWriter(outputDimension, includeSRID);
+        WKBWriter writer = new WKBWriter(dimensionCount, includeSRID);
         return writer.write(geometry);
     }
 
-    private int getNoDimensions() {
+    private int getDimensionCount() {
         Coordinate[] coordinates = geometry.getCoordinates();
         if (coordinates == null) {
             return 2;

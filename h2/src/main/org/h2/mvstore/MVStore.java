@@ -111,6 +111,8 @@ MVStore:
 - rename "store" to "save", as "store" is used in "storeVersion"
 - MVStoreTool.dump should dump the data if possible;
     possibly using a callback for serialization
+- optional pluggable checksum mechanism (per page), which
+    requires that everything is a page (including headers)
 
 */
 

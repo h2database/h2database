@@ -16,6 +16,7 @@ import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
 import org.h2.value.DataType;
+import org.h2.value.Value;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -57,6 +58,7 @@ public class TestSpatial extends TestBase {
             testJavaAlias();
             testJavaAliasTableFunction();
             testMemorySpatialIndex();
+            testGeometryDataType();
             deleteDb("spatial");
         }
     }
@@ -504,4 +506,9 @@ public class TestSpatial extends TestBase {
         }
     }
 
+    private void testGeometryDataType() {
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Geometry geometry = geometryFactory.createPoint(new Coordinate(0, 0));
+        assertEquals(Value.GEOMETRY, DataType.getTypeFromClass(geometry.getClass()));
+    }
 }

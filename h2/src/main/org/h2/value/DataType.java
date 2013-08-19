@@ -962,16 +962,29 @@ public class DataType {
     }
 
     /**
+     * Check whether a given class matches the Geometry class.
+     *
+     * @param x the class
+     * @return true if it is a Geometry class
+     */
+    public static boolean isGeometry(Class<?> x) {
+        if (x == null || GEOMETRY_CLASS == null) {
+            return false;
+        }
+        return GEOMETRY_CLASS.isAssignableFrom(x);
+    }
+
+    /**
      * Check whether a given object is a Geometry object.
      *
      * @param x the the object
      * @return true if it is a Geometry object
      */
     public static boolean isGeometry(Object x) {
-        if (x == null || GEOMETRY_CLASS == null) {
+        if (x == null) {
             return false;
         }
-        return GEOMETRY_CLASS.isAssignableFrom(x.getClass());
+        return isGeometry(x.getClass());
     }
 
     /**

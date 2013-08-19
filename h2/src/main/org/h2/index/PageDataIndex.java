@@ -25,6 +25,7 @@ import org.h2.store.PageStore;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
+import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
@@ -307,7 +308,7 @@ public class PageDataIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         long cost = 10 * (tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET);
         return cost;
     }

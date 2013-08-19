@@ -14,6 +14,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
+import org.h2.table.TableFilter;
 import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 
@@ -112,7 +113,7 @@ public class HashIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         for (Column column : columns) {
             int index = column.getColumnId();
             int mask = masks[index];

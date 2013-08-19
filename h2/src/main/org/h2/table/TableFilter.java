@@ -161,7 +161,7 @@ public class TableFilter implements ColumnResolver {
         if (indexConditions.size() == 0) {
             item = new PlanItem();
             item.setIndex(table.getScanIndex(s));
-            item.cost = item.getIndex().getCost(s, null, null);
+            item.cost = item.getIndex().getCost(s, null, null, null);
         } else {
             int len = table.getColumns().length;
             int[] masks = new int[len];
@@ -181,7 +181,7 @@ public class TableFilter implements ColumnResolver {
             if (select != null) {
                 sortOrder = select.getSortOrder();
             }
-            item = table.getBestPlanItem(s, masks, sortOrder);
+            item = table.getBestPlanItem(s, masks, this, sortOrder);
             // The more index conditions, the earlier the table.
             // This is to ensure joins without indexes run quickly:
             // x (x.a=10); y (x.b=y.b) - see issue 113

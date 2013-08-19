@@ -148,10 +148,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *
      * @param masks the search mask
      * @param rowCount the number of rows in the index
+     * @param filter the table filter
      * @param sortOrder the sort order
      * @return the estimated cost
      */
-    protected long getCostRangeIndex(int[] masks, long rowCount, SortOrder sortOrder) {
+    protected long getCostRangeIndex(int[] masks, long rowCount, TableFilter filter, SortOrder sortOrder) {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;
         long rows = rowCount;
@@ -191,36 +192,72 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         // if the ORDER BY clause matches the ordering of this index,
         // it will be cheaper than another index, so adjust the cost accordingly
         if (sortOrder != null) {
-            int[] columnIndexes = new int[ indexColumns.length ];
-            int[] columnSortTypes = new int[ indexColumns.length ];
-            for (int i = 0, len = indexColumns.length; i < len; i++) {
-                columnIndexes[i] = indexColumns[i].column.getColumnId();
-                columnSortTypes[i] = indexColumns[i].sortType;
-            }
             boolean sortOrderMatches = true;
-            int[] sortOrderQueryColumnIndexes = sortOrder.getQueryColumnIndexes();
             int coveringCount = 0;
-            
-            int theFollowingNeedsToBeFixedAndTested;
-            // see also the method Select.getSortIndex()
-            for (int i = 0, len = sortOrderQueryColumnIndexes.length; i < len; i++) {
-                if (i >= columnIndexes.length) {
-                    // we can still use this index if we are sorting by more than it's columns
+            int[] sortTypes = sortOrder.getSortTypes();
+            for (int i = 0, len = sortTypes.length; i < len; i++) {
+                if (i >= indexColumns.length) {
+                    // we can still use this index if we are sorting by more
+                    // than it's columns, it's just that the coveringCount
+                    // is lower than with an index that contains
+                    // more of the order by columns
                     break;
                 }
-                if (columnIndexes[i] != sortOrderQueryColumnIndexes[i] || columnSortTypes[i] != sortOrder.getSortTypes()[i]) {
+                Column col = sortOrder.getColumn(i, filter);
+                if (col == null) {
+                    sortOrderMatches = false;
+                    break;
+                }
+                IndexColumn indexCol = indexColumns[i];
+                if (col != indexCol.column) {
+                    sortOrderMatches = false;
+                    break;
+                }
+                int sortType = sortTypes[i];
+                if (sortType != indexCol.sortType) {
                     sortOrderMatches = false;
                     break;
                 }
                 coveringCount++;
             }
-            
             if (sortOrderMatches) {
                 // "coveringCount" makes sure that when we have two
                 // or more covering indexes, we choose the one
                 // that covers more
                 cost -= coveringCount;
             }
+            
+//            
+//            int[] columnIndexes = new int[indexColumns.length];
+//            int[] columnSortTypes = new int[indexColumns.length];
+//            for (int i = 0, len = indexColumns.length; i < len; i++) {
+//                columnIndexes[i] = indexColumns[i].column.getColumnId();
+//                columnSortTypes[i] = indexColumns[i].sortType;
+//            }
+//            boolean sortOrderMatches = true;
+//            int[] sortOrderQueryColumnIndexes = sortOrder.getQueryColumnIndexes();
+//            int coveringCount = 0;
+//            
+//            int theFollowingNeedsToBeFixedAndTested;
+//            // see also the method Select.getSortIndex()
+//            for (int i = 0, len = sortOrderQueryColumnIndexes.length; i < len; i++) {
+//                if (i >= columnIndexes.length) {
+//                    // we can still use this index if we are sorting by more than it's columns
+//                    break;
+//                }
+//                if (columnIndexes[i] != sortOrderQueryColumnIndexes[i] || columnSortTypes[i] != sortOrder.getSortTypes()[i]) {
+//                    sortOrderMatches = false;
+//                    break;
+//                }
+//                coveringCount++;
+//            }
+//            
+//            if (sortOrderMatches) {
+//                // "coveringCount" makes sure that when we have two
+//                // or more covering indexes, we choose the one
+//                // that covers more
+//                cost -= coveringCount;
+//            }
         }
         return cost;
     }

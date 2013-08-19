@@ -479,7 +479,7 @@ public abstract class Query extends Prepared {
             }
             sortType[i] = type;
         }
-        return new SortOrder(session.getDatabase(), index, sortType);
+        return new SortOrder(session.getDatabase(), index, sortType, orderList);
     }
 
     public void setOffset(Expression offset) {

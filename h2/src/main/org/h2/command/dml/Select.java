@@ -775,12 +775,7 @@ public class Select extends Query {
         }
         // map columns in select list and condition
         for (TableFilter f : filters) {
-            for (Expression expr : expressions) {
-                expr.mapColumns(f, 0);
-            }
-            if (condition != null) {
-                condition.mapColumns(f, 0);
-            }
+            mapColumns(f, 0);
         }
         if (havingIndex >= 0) {
             Expression expr = expressions.get(havingIndex);
@@ -1132,6 +1127,11 @@ public class Select extends Query {
         }
         if (condition != null) {
             condition.mapColumns(resolver, level);
+        }
+        if (orderList != null) {
+            for (SelectOrderBy order : orderList) {
+                order.expression.mapColumns(resolver, level);
+            }
         }
     }
 

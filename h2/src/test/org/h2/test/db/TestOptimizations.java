@@ -86,10 +86,7 @@ public class TestOptimizations extends TestBase {
                 "explain select name from test where name='Hello' order by name");
         rs.next();
         String plan = rs.getString(1);
-        
-        int todoNeedsToBeFixed;
-        // assertTrue(plan, plan.indexOf("tableScan") >= 0);
-        
+        assertContains(plan, "tableScan");
         stat.execute("drop table test");
         conn.close();
     }
@@ -837,9 +834,10 @@ public class TestOptimizations extends TestBase {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE my_table(K1 INT, K2 INT, VAL VARCHAR, PRIMARY KEY(K1,K2))");
-        stat.execute("CREATE INDEX my_index ON my_table(K1,VAL);");
-        ResultSet rs = stat.executeQuery("EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 ORDER BY K1,VAL");
+        stat.execute("CREATE TABLE my_table(K1 INT, K2 INT, VAL VARCHAR, PRIMARY KEY(K1, K2))");
+        stat.execute("CREATE INDEX my_index ON my_table(K1, VAL)");
+        ResultSet rs = stat.executeQuery(
+                "EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 ORDER BY K1, VAL");
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX: K1 = 7 */");
 
@@ -848,9 +846,10 @@ public class TestOptimizations extends TestBase {
         // where we have two covering indexes, make sure
         // we choose the one that covers more
         stat.execute("CREATE TABLE my_table(K1 INT, K2 INT, VAL VARCHAR)");
-        stat.execute("CREATE INDEX my_index1 ON my_table(K1,K2);");
-        stat.execute("CREATE INDEX my_index2 ON my_table(K1,K2,VAL);");
-        rs = stat.executeQuery("EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 ORDER BY K1,K2,VAL");
+        stat.execute("CREATE INDEX my_index1 ON my_table(K1, K2)");
+        stat.execute("CREATE INDEX my_index2 ON my_table(K1, K2, VAL)");
+        rs = stat.executeQuery(
+                "EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 ORDER BY K1, K2, VAL");
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX2: K1 = 7 */");
 

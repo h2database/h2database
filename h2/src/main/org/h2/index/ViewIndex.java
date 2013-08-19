@@ -22,6 +22,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
 import org.h2.util.New;
@@ -114,7 +115,7 @@ public class ViewIndex extends BaseIndex {
     }
 
     @Override
-    public synchronized double getCost(Session session, int[] masks, SortOrder sortOrder) {
+    public synchronized double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         if (recursive) {
             return 1000;
         }

@@ -13,6 +13,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
+import org.h2.table.TableFilter;
 
 /**
  * An index for the SYSTEM_RANGE table.
@@ -60,7 +61,7 @@ public class RangeIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         return 1;
     }
 

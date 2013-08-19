@@ -1382,6 +1382,10 @@ public class Session extends SessionWithState {
         closeTemporaryResults();
     }
 
+    public int getUndoLogSize() {
+        return undoLog.size();
+    }
+    
     /**
      * Represents a savepoint (a position in a transaction to where one can roll
      * back to).

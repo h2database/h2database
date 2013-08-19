@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved spatial index and data type.
+<ul><li>Closing the file lock will now wait until the background thread is stopped.
+</li><li>In version 1.3.172, a performance regression was introduced when
+    fixing the issue 389 (when there is a multi-column primary key, 
+    H2 does not seem to always pick the right index). This was related to
+    boosting an index that matches the "order by" column list
+    (the wrong index was used in some cases).
+</li><li>Improved spatial index and data type.
 </li><li>Issue 467: OSGi Class Loader (ability to create reference to class
     in other ClassLoader, for example in another OSGi bundle).
 </li><li>Queries "group by" that contain a subquery with an aggregate function

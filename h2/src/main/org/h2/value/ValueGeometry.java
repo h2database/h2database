@@ -10,7 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
-
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -202,11 +202,25 @@ public class ValueGeometry extends Value {
      * @return the well-known-binary
      */
     public byte[] toWKB() {
+        int outputDimension = getNoDimensions();
         boolean includeSRID = geometry.getSRID() != 0;
-        WKBWriter writer = new WKBWriter(geometry.getDimension(), includeSRID);
+        WKBWriter writer = new WKBWriter(outputDimension, includeSRID);
         return writer.write(geometry);
     }
 
+    private int getNoDimensions() {
+        Coordinate[] coordinates = geometry.getCoordinates();
+        if (coordinates == null) {
+            return 2;
+        }
+        for (Coordinate coordinate : coordinates) {
+            if (!Double.isNaN(coordinate.z)) {
+                return 3;
+            }
+        }
+        return 2;
+    }
+    
     /**
      * Convert a Well-Known-Text to a Geometry object.
      *

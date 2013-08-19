@@ -202,7 +202,9 @@ public class ValueGeometry extends Value {
      * @return the well-known-binary
      */
     public byte[] toWKB() {
-        return new WKBWriter().write(geometry);
+        boolean includeSRID = geometry.getSRID() != 0;
+        WKBWriter writer = new WKBWriter(geometry.getDimension(), includeSRID);
+        return writer.write(geometry);
     }
 
     /**

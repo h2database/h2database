@@ -1130,7 +1130,10 @@ public class Select extends Query {
         }
         if (orderList != null) {
             for (SelectOrderBy order : orderList) {
-                order.expression.mapColumns(resolver, level);
+                Expression e = order.expression;
+                if (e != null) {
+                    e.mapColumns(resolver, level);
+                }
             }
         }
     }

@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Closing the file lock will now wait until the background thread is stopped.
+<ul><li>The method TableEngine.createTable() now returns a Table object.
+</li><li>For read-only databases, for the trace level "debug",
+    the trace info is written to the temp directory.
+</li><li>Closing the file lock will now wait until the background thread is stopped.
 </li><li>In version 1.3.172, a performance regression was introduced when
     fixing the issue 389 (when there is a multi-column primary key, 
     H2 does not seem to always pick the right index). This was related to

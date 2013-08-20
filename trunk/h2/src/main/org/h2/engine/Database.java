@@ -534,7 +534,12 @@ public class Database implements DataHandler {
                 readOnly = true;
             }
             if (readOnly) {
-                traceSystem = new TraceSystem(null);
+                if (traceLevelFile >= TraceSystem.DEBUG) {
+                    String traceFile = Utils.getProperty("java.io.tmpdir", ".") + "/" + "h2_" + System.currentTimeMillis();
+                    traceSystem = new TraceSystem(traceFile + Constants.SUFFIX_TRACE_FILE);
+                } else {
+                    traceSystem = new TraceSystem(null);
+                }
             } else {
                 traceSystem = new TraceSystem(databaseName + Constants.SUFFIX_TRACE_FILE);
             }

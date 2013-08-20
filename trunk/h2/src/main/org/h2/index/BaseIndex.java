@@ -226,38 +226,6 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                 // that covers more
                 cost -= coveringCount;
             }
-            
-//            
-//            int[] columnIndexes = new int[indexColumns.length];
-//            int[] columnSortTypes = new int[indexColumns.length];
-//            for (int i = 0, len = indexColumns.length; i < len; i++) {
-//                columnIndexes[i] = indexColumns[i].column.getColumnId();
-//                columnSortTypes[i] = indexColumns[i].sortType;
-//            }
-//            boolean sortOrderMatches = true;
-//            int[] sortOrderQueryColumnIndexes = sortOrder.getQueryColumnIndexes();
-//            int coveringCount = 0;
-//            
-//            int theFollowingNeedsToBeFixedAndTested;
-//            // see also the method Select.getSortIndex()
-//            for (int i = 0, len = sortOrderQueryColumnIndexes.length; i < len; i++) {
-//                if (i >= columnIndexes.length) {
-//                    // we can still use this index if we are sorting by more than it's columns
-//                    break;
-//                }
-//                if (columnIndexes[i] != sortOrderQueryColumnIndexes[i] || columnSortTypes[i] != sortOrder.getSortTypes()[i]) {
-//                    sortOrderMatches = false;
-//                    break;
-//                }
-//                coveringCount++;
-//            }
-//            
-//            if (sortOrderMatches) {
-//                // "coveringCount" makes sure that when we have two
-//                // or more covering indexes, we choose the one
-//                // that covers more
-//                cost -= coveringCount;
-//            }
         }
         return cost;
     }

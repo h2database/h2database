@@ -115,6 +115,7 @@ import org.h2.test.store.TestDataUtils;
 import org.h2.test.store.TestFreeSpace;
 import org.h2.test.store.TestMVRTree;
 import org.h2.test.store.TestMVStore;
+import org.h2.test.store.TestMVStoreBenchmark;
 import org.h2.test.store.TestMVTableEngine;
 import org.h2.test.store.TestObjectDataType;
 import org.h2.test.store.TestSpinLock;
@@ -710,6 +711,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestFreeSpace().runTest(this);
         new TestMVRTree().runTest(this);
         new TestMVStore().runTest(this);
+        new TestMVStoreBenchmark().runTest(this);
         new TestMVTableEngine().runTest(this);
         new TestObjectDataType().runTest(this);
         new TestSpinLock().runTest(this);

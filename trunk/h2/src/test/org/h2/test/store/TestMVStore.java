@@ -47,8 +47,6 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
-        testPerformanceCompareWithTreeMapHashMap();
-        testMemoryUsage();
         testBackgroundExceptionListener();
         testOldVersion();
         testAtomicOperations();
@@ -91,14 +89,6 @@ public class TestMVStore extends TestBase {
         // longer running tests
 
         testLargerThan2G();
-    }
-
-    private void testPerformanceCompareWithTreeMapHashMap() {
-        int todo;
-    }
-
-    private void testMemoryUsage() {
-        int todo;
     }
 
     private void testBackgroundExceptionListener() throws Exception {

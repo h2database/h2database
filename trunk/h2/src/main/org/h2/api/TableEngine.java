@@ -6,7 +6,7 @@
  */
 package org.h2.api;
 
-import org.h2.table.TableBase;
+import org.h2.table.Table;
 import org.h2.command.ddl.CreateTableData;
 
 /**
@@ -23,6 +23,6 @@ public interface TableEngine {
      * @param data the data to construct the table
      * @return the created table
      */
-    TableBase createTable(CreateTableData data);
+    Table createTable(CreateTableData data);
 
 }

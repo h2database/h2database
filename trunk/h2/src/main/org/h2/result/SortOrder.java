@@ -221,9 +221,10 @@ public class SortOrder implements Comparator<Value[]> {
     }
     
     /**
-     * Get the column for the given table filter, if the sort column is for this filter.
+     * Get the column for the given table filter, if the sort column is for this
+     * filter.
      * 
-     * @param index the column index (0-based)
+     * @param index the column index (0, 1,..)
      * @param filter the table filter
      * @return the column, or null
      */

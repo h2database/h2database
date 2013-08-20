@@ -402,6 +402,15 @@ public abstract class TestBase {
      * @return the used megabytes
      */
     public static int getMemoryUsed() {
+        return (int) (getMemoryUsedBytes() / 1024 / 1024);
+    }
+
+    /**
+     * Get the number of bytes heap memory in use.
+     *
+     * @return the used bytes
+     */
+    public static long getMemoryUsedBytes() {
         Runtime rt = Runtime.getRuntime();
         long memory = Long.MAX_VALUE;
         for (int i = 0; i < 8; i++) {
@@ -412,8 +421,7 @@ public abstract class TestBase {
             }
             memory = memNow;
         }
-        int mb = (int) (memory / 1024 / 1024);
-        return mb;
+        return memory;
     }
 
     /**

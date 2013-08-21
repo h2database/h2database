@@ -489,7 +489,7 @@ public class MetaTable extends Table {
                     "SESSION_START",
                     "STATEMENT",
                     "STATEMENT_START",
-                    "UNDO_LOG_SIZE"
+                    "CONTAINS_UNCOMMITTED"
             );
             break;
         }
@@ -1549,8 +1549,8 @@ public class MetaTable extends Table {
                             command == null ? null : command.toString(),
                             // STATEMENT_START
                             new Timestamp(start).toString(),
-                            // UNDO_LOG_SIZE
-                            "" + s.getUndoLogSize()
+                            // CONTAINS_UNCOMMITTED
+                            "" + s.containsUncommitted()
                     );
                 }
             }

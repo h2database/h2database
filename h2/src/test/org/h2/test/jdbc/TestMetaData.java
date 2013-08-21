@@ -981,14 +981,14 @@ public class TestMetaData extends TestBase {
         for (int i = 0; i < 6; i++) {
             stat.execute("insert into test values (1)");
         }
-        ResultSet rs = stat.executeQuery("select undo_log_size from INFORMATION_SCHEMA.SESSIONS");
+        ResultSet rs = stat.executeQuery("select contains_uncommitted from INFORMATION_SCHEMA.SESSIONS");
         rs.next();
-        assertEquals(6, rs.getInt(1));
+        assertEquals(true, rs.getBoolean(1));
         rs.close();
         stat.execute("commit");
-        rs = stat.executeQuery("select undo_log_size from INFORMATION_SCHEMA.SESSIONS");
+        rs = stat.executeQuery("select contains_uncommitted from INFORMATION_SCHEMA.SESSIONS");
         rs.next();
-        assertEquals(0, rs.getInt(1));
+        assertEquals(false, rs.getBoolean(1));
         conn.close();
         deleteDb("metaData");
     }

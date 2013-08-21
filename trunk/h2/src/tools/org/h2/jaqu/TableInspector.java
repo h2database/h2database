@@ -152,9 +152,6 @@ public class TableInspector {
      * the model between databases), and if to automatically trim strings for
      * those that have a maximum length.
      * <p>
-     * @param packageName
-     * @param annotateSchema
-     * @param trimStrings
      * @return a complete model (class definition) for this table as a string
      */
     String generateModel(String packageName, boolean annotateSchema,
@@ -255,7 +252,6 @@ public class TableInspector {
 
     /**
      * Generates the specified index annotation.
-     * @param ap
      */
     void generateIndexAnnotations(AnnotationBuilder ap, String parameter, IndexType type) {
         List<IndexInspector> list = getIndexes(type);
@@ -367,8 +363,8 @@ public class TableInspector {
      * warnings, and errors about the model. The caller may choose to have
      * validate throw an exception on any validation ERROR.
      *
-     * @param <T>
-     * @param def
+     * @param <T> the table type
+     * @param def the table definition
      * @param throwError whether or not to throw an exception if an error was
      *            found
      * @return a list if validation remarks

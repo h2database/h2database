@@ -46,7 +46,6 @@ public class JdbcBlob extends TraceObject implements Blob {
      * Returns the length.
      *
      * @return the length
-     * @throws SQLException
      */
     @Override
     public long length() throws SQLException {
@@ -69,7 +68,6 @@ public class JdbcBlob extends TraceObject implements Blob {
      * [Not supported] Truncates the object.
      *
      * @param len the new length
-     * @throws SQLException
      */
     @Override
     public void truncate(long len) throws SQLException {
@@ -82,7 +80,6 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @param pos the index, the first byte is at position 1
      * @param length the number of bytes
      * @return the bytes, at most length bytes
-     * @throws SQLException
      */
     @Override
     public byte[] getBytes(long pos, int length) throws SQLException {
@@ -139,7 +136,6 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @param offset the bytes offset
      * @param len the number of bytes to write
      * @return how many bytes have been written
-     * @throws SQLException
      */
     @Override
     public int setBytes(long pos, byte[] bytes, int offset, int len) throws SQLException {
@@ -150,7 +146,6 @@ public class JdbcBlob extends TraceObject implements Blob {
      * Returns the input stream.
      *
      * @return the input stream
-     * @throws SQLException
      */
     @Override
     public InputStream getBinaryStream() throws SQLException {
@@ -218,7 +213,6 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @param pattern the pattern to search
      * @param start the index, the first byte is at position 1
      * @return the position (first byte is at position 1), or -1 for not found
-     * @throws SQLException
      */
     @Override
     public long position(byte[] pattern, long start) throws SQLException {
@@ -274,7 +268,6 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @param blobPattern the pattern to search
      * @param start the index, the first byte is at position 1
      * @return the position (first byte is at position 1), or -1 for not found
-     * @throws SQLException
      */
     @Override
     public long position(Blob blobPattern, long start) throws SQLException {
@@ -319,7 +312,6 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @param pos where to start reading
      * @param length the number of bytes that will be read
      * @return the input stream to read
-     * @throws SQLException
      */
     @Override
     public InputStream getBinaryStream(long pos, long length) throws SQLException {

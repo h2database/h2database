@@ -93,7 +93,6 @@ public class CreateCluster extends Tool {
      * @param user the user name
      * @param password the password
      * @param serverList the server list
-     * @throws SQLException
      */
     public void execute(String urlSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {

@@ -130,7 +130,6 @@ public class Csv implements SimpleRowSource {
      * @param writer the writer
      * @param rs the result set
      * @return the number of rows written
-     * @throws SQLException
      */
     public int write(Writer writer, ResultSet rs) throws SQLException {
         this.output = writer;
@@ -153,7 +152,6 @@ public class Csv implements SimpleRowSource {
      * @param charset the charset or null to use the system default charset
      *          (see system property file.encoding)
      * @return the number of rows written
-     * @throws SQLException
      */
     public int write(String outputFileName, ResultSet rs, String charset) throws SQLException {
         init(outputFileName, charset);
@@ -174,7 +172,6 @@ public class Csv implements SimpleRowSource {
      * @param charset the charset or null to use the system default charset
      *          (see system property file.encoding)
      * @return the number of rows written
-     * @throws SQLException
      */
     public int write(Connection conn, String outputFileName, String sql, String charset) throws SQLException {
         Statement stat = conn.createStatement();
@@ -201,7 +198,6 @@ public class Csv implements SimpleRowSource {
      * @param charset the charset or null to use the system default charset
      *          (see system property file.encoding)
      * @return the result set
-     * @throws SQLException
      */
     public ResultSet read(String inputFileName, String[] colNames, String charset) throws SQLException {
         init(inputFileName, charset);
@@ -220,7 +216,6 @@ public class Csv implements SimpleRowSource {
      * @param reader the reader
      * @param colNames or null if the column names should be read from the CSV file
      * @return the result set
-     * @throws IOException
      */
     public ResultSet read(Reader reader, String[] colNames) throws IOException {
         init(null, null);

@@ -178,8 +178,6 @@ public abstract class TriggerAdapter implements Trigger {
      * If the method throws an exception, it will be logged, but
      * closing the database will continue.
      * The default implementation does nothing.
-     *
-     * @throws SQLException
      */
     @Override
     public void remove() throws SQLException {
@@ -189,8 +187,6 @@ public abstract class TriggerAdapter implements Trigger {
     /**
      * This method is called when the trigger is dropped.
      * The default implementation does nothing.
-     *
-     * @throws SQLException
      */
     @Override
     public void close() throws SQLException {

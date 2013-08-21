@@ -79,15 +79,11 @@ public interface Trigger {
      * This method is called when the database is closed.
      * If the method throws an exception, it will be logged, but
      * closing the database will continue.
-     *
-     * @throws SQLException
      */
     void close() throws SQLException;
 
     /**
      * This method is called when the trigger is dropped.
-     *
-     * @throws SQLException
      */
     void remove() throws SQLException;
 

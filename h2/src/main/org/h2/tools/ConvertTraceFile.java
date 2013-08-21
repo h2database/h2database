@@ -107,10 +107,6 @@ public class ConvertTraceFile extends Tool {
 
     /**
      * Converts a trace file to a Java class file and a script file.
-     *
-     * @param traceFileName
-     * @param javaClassName
-     * @throws IOException
      */
     private void convertFile(String traceFileName, String javaClassName, String script) throws IOException {
         LineNumberReader reader = new LineNumberReader(IOUtils.getBufferedReader(

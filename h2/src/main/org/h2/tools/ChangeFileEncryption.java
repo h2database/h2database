@@ -120,7 +120,6 @@ public class ChangeFileEncryption extends Tool {
      * @param decryptPassword the decryption password as a char array
      * @param encryptPassword the encryption password as a char array
      * @param quiet don't print progress information
-     * @throws SQLException
      */
     public static void execute(String dir, String db, String cipher,
             char[] decryptPassword, char[] encryptPassword, boolean quiet) throws SQLException {

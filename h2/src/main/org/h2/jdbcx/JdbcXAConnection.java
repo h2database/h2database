@@ -69,8 +69,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
     /**
      * Close the physical connection.
      * This method is usually called by the connection pool.
-     *
-     * @throws SQLException
      */
     @Override
     public void close() throws SQLException {
@@ -188,7 +186,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * @param flag TMSTARTRSCAN, TMENDRSCAN, or TMNOFLAGS. If no other flags are set,
      *  TMNOFLAGS must be used.
      *  @return zero or more Xid objects
-     * @throws XAException
      */
     @Override
     public Xid[] recover(int flag) throws XAException {
@@ -226,7 +223,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param xid the transaction id
      * @return XA_OK
-     * @throws XAException
      */
     @Override
     public int prepare(Xid xid) throws XAException {
@@ -268,7 +264,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      * Roll back a transaction.
      *
      * @param xid the transaction id
-     * @throws XAException
      */
     @Override
     public void rollback(Xid xid) throws XAException {
@@ -299,7 +294,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param xid the transaction id
      * @param flags TMSUCCESS, TMFAIL, or TMSUSPEND
-     * @throws XAException
      */
     @Override
     public void end(Xid xid, int flags) throws XAException {
@@ -321,7 +315,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param xid the transaction id
      * @param flags TMNOFLAGS, TMJOIN, or TMRESUME
-     * @throws XAException
      */
     @Override
     public void start(Xid xid, int flags) throws XAException {
@@ -352,7 +345,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
      *
      * @param xid the transaction id
      * @param onePhase use a one-phase protocol if true
-     * @throws XAException
      */
     @Override
     public void commit(Xid xid, boolean onePhase) throws XAException {

@@ -756,7 +756,7 @@ public class DataUtils {
      *
      * @param len the number of bytes requested
      * @return the byte array
-     * @throws OutOfMemoryError
+     * @throws OutOfMemoryError if the allocation was too large
      */
     public static byte[] newBytes(int len) {
         if (len == 0) {

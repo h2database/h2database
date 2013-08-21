@@ -156,7 +156,6 @@ public class FileLock implements Runnable {
         try {
             if (watchdog != null) {
                 watchdog.interrupt();
-                watchdog.join();
             }
         } catch (Exception e) {
             trace.debug(e, "unlock");
@@ -175,6 +174,15 @@ public class FileLock implements Runnable {
         } finally {
             fileName = null;
             serverSocket = null;
+        }
+        try {
+            if (watchdog != null) {
+                watchdog.join();
+            }
+        } catch (Exception e) {
+            trace.debug(e, "unlock");
+        } finally {
+            watchdog = null;
         }
     }
 

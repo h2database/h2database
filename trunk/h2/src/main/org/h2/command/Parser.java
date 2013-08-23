@@ -499,7 +499,7 @@ public class Parser {
             buff.appendExceptFirst(", ");
             buff.append(e);
         }
-        return DbException.getSyntaxError(sqlCommand, parseIndex, buff.toString());
+        return DbException.getSyntaxError(sqlCommand, parseIndex, buff.toString(), expectedList);
     }
 
     private Prepared parseBackup() {

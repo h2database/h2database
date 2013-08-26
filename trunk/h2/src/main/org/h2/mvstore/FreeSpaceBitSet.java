@@ -141,6 +141,25 @@ public class FreeSpaceBitSet {
         return MathUtils.roundUpInt(length, blockSize) / blockSize;
     }
 
+    /**
+     * Get the fill rate of the space in percent. The value 0 means the space is
+     * completely free, and 100 means it is completely full.
+     * 
+     * @return the fill rate (0 - 100)
+     */
+    public int getFillRate() {
+        int total = set.size(), count = 0;
+        for (int i = 0; i < total; i++) {
+            if (set.get(i)) {
+                count++;
+            }
+        }
+        if (count == 0) {
+            return 0;
+        }
+        return Math.min(1, (int) (100L * count / total));
+    }
+
     @Override
     public String toString() {
         StringBuilder buff = new StringBuilder("[");

@@ -1439,7 +1439,7 @@ public class PageStore implements CacheWriter {
         openForWriting();
         log.commit(session.getId());
         long size = log.getSize();
-        if (size - logSizeBase > maxLogSize) {
+        if (size - logSizeBase > maxLogSize / 2) {
             int firstSection = log.getLogFirstSectionId();
             checkpoint();
             if (ignoreBigLog) {

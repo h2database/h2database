@@ -64,11 +64,23 @@ public class DropDatabase extends DefineCommand {
                 db.removeSchemaObject(session, t);
             }
         }
-        for (Table t : tables) {
-            if (t.getName() != null && Table.TABLE.equals(t.getTableType()) && !t.isHidden()) {
-                db.removeSchemaObject(session, t);
+        
+        // There can be dependencies between tables e.g. using computed columns,
+        // so we might need to loop over them multiple times.
+        boolean runLoopAgain = false;
+        do {
+            runLoopAgain = false;
+            for (Table t : tables) {
+                if (t.getName() != null && Table.TABLE.equals(t.getTableType()) && !t.isHidden()) {
+                    if (db.getDependentTable(t, t) == null) {
+                        db.removeSchemaObject(session, t);
+                    } else {
+                        runLoopAgain = true;
+                    }
+                }
             }
-        }
+        } while (runLoopAgain);
+        
         for (Table t : tables) {
             if (t.getName() != null && Table.EXTERNAL_TABLE_ENGINE.equals(t.getTableType()) && !t.isHidden()) {
                 db.removeSchemaObject(session, t);

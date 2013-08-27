@@ -120,10 +120,30 @@ public class Schema extends DbObjectBase {
             Constraint obj = (Constraint) constraints.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
-        while (tablesAndViews != null && tablesAndViews.size() > 0) {
-            Table obj = (Table) tablesAndViews.values().toArray()[0];
+        while (constraints != null && constraints.size() > 0) {
+            Constraint obj = (Constraint) constraints.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
+        // There can be dependencies between tables e.g. using computed columns,
+        // so we might need to loop over them multiple times.
+        boolean runLoopAgain = false;
+        do {
+            runLoopAgain = false;
+            if (tablesAndViews != null) {
+                // Loop over a copy because the map is modified underneath us.
+                for (Table obj : New.arrayList(tablesAndViews.values())) {
+                    // Check for null because multiple tables might be deleted in one go
+                    // underneath us.
+                    if (obj.getName() != null) {
+                        if (database.getDependentTable(obj, obj) == null) {
+                            database.removeSchemaObject(session, obj);
+                        } else {
+                            runLoopAgain = true;
+                        }
+                    }
+                }
+            }
+        } while (runLoopAgain);
         while (indexes != null && indexes.size() > 0) {
             Index obj = (Index) indexes.values().toArray()[0];
             database.removeSchemaObject(session, obj);

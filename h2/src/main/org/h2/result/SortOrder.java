@@ -234,6 +234,9 @@ public class SortOrder implements Comparator<Value[]> {
         }
         SelectOrderBy order = orderList.get(index);
         Expression expr = order.expression;
+        if (expr == null) {
+            return null;
+        }
         expr = expr.getNonAliasExpression();
         if (expr.isConstant()) {
             return null;

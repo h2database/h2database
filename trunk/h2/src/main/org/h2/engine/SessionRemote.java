@@ -805,4 +805,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         }
         return javaObjectSerializerFQN;
     }
+    
+    @Override
+    public void addTemporaryLob(Value v) {
+        // do nothing
+    }
 }

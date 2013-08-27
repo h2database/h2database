@@ -1493,6 +1493,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 Value v = session.getDataHandler().getLobStorage().createClob(
                         new InputStreamReader(
                         new ByteArrayInputStream(Utils.EMPTY_BYTES)), 0);
+                session.addTemporaryLob(v);
                 return new JdbcClob(this, v, id);
             } finally {
                 afterWriting();
@@ -1516,6 +1517,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             try {
                 Value v = session.getDataHandler().getLobStorage().createBlob(
                         new ByteArrayInputStream(Utils.EMPTY_BYTES), 0);
+                session.addTemporaryLob(v);
                 return new JdbcBlob(this, v, id);
             } finally {
                 afterWriting();
@@ -1540,6 +1542,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 Value v = session.getDataHandler().getLobStorage().createClob(
                         new InputStreamReader(
                         new ByteArrayInputStream(Utils.EMPTY_BYTES)), 0);
+                session.addTemporaryLob(v);
                 return new JdbcClob(this, v, id);
             } finally {
                 afterWriting();
@@ -1723,6 +1726,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             length = -1;
         }
         Value v = session.getDataHandler().getLobStorage().createClob(x, length);
+        session.addTemporaryLob(v);
         return v;
     }
 
@@ -1742,6 +1746,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             length = -1;
         }
         Value v = session.getDataHandler().getLobStorage().createBlob(x, length);
+        session.addTemporaryLob(v);
         return v;
     }
 

@@ -111,6 +111,7 @@ public class Session extends SessionWithState {
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
+    private ArrayList<Value> temporaryLobs;
 
     private Transaction transaction;
     private long startStatement = -1;
@@ -474,6 +475,14 @@ public class Session extends SessionWithState {
             // need to commit even if rollback is not possible
             // (create/drop table and so on)
             database.commit(this);
+        }
+        if (temporaryLobs != null) {
+            for (Value v : temporaryLobs) {
+                if (!v.isLinked()) {
+                    v.close();
+                }
+            }
+            temporaryLobs.clear();
         }
         if (undoLog.size() > 0) {
             // commit the rows when using MVCC
@@ -1380,6 +1389,13 @@ public class Session extends SessionWithState {
     public void endStatement() {
         startStatement = -1;
         closeTemporaryResults();
+    }
+    
+    public void addTemporaryLob(Value v) {
+        if (temporaryLobs == null) {
+            temporaryLobs = new ArrayList<Value>();                    
+        }
+        temporaryLobs.add(v);
     }
 
     /**

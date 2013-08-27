@@ -10,6 +10,7 @@ import java.io.Closeable;
 import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
+import org.h2.value.Value;
 
 /**
  * A local or remote session. A session represents a database connection.
@@ -116,5 +117,7 @@ public interface SessionInterface extends Closeable {
      * @param autoCommit the new value
      */
     void setAutoCommit(boolean autoCommit);
+    
+    void addTemporaryLob(Value v);
 
 }

@@ -47,6 +47,8 @@ Change Log
 </li><li>When the H2 parser fails to parse a SQL statement, throw a more specific exception that
     contains extra information to make it possible for smart editors to do autocomplete. Patch from Nicolas Fortin.
 </li><li>Fix DROP ALL OBJECTS and DROP SCHEMA in the presence of tables with computed column dependencies.
+</li><li>Session-temporary LOB's could sometimes accumulate, increasing the size of the DB file until shutdown.
+    Now they are cleared out at every commit.
 </li></ul>
 
 <h2>Version 1.3.173 (2013-07-28)</h2>

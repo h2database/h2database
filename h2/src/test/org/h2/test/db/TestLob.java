@@ -81,6 +81,7 @@ public class TestLob extends TestBase {
         testAddLobRestart();
         testLobServerMemory();
         testUpdatingLobRow();
+        testLobCleanupSessionTemporaries();
         if (config.memory) {
             return;
         }
@@ -685,6 +686,33 @@ public class TestLob extends TestBase {
         assertEquals(0, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
     }
 
+    private void testLobCleanupSessionTemporaries() throws SQLException {
+        if (!SysProperties.LOB_IN_DATABASE) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(data clob)");
+        
+        ResultSet rs = stat.executeQuery("select count(*) from INFORMATION_SCHEMA.LOBS");
+        assertTrue(rs.next());
+        assertEquals(0, rs.getInt(1));
+        rs.close();
+        
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO test(data) VALUES(?)");
+        final String name = "A veeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeery long string generated only to insert enough data to reproduce the increasing db size PITA ";
+        prep.setString(1, name);
+        prep.execute();
+        prep.close();
+        
+        rs = stat.executeQuery("select count(*) from INFORMATION_SCHEMA.LOBS");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        rs.close();
+        conn.close();
+    }
+    
     private void testLobServerMemory() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");

@@ -209,6 +209,11 @@ public class SetTypes {
      */
     public static final int JAVA_OBJECT_SERIALIZER = 39;
 
+    /**
+     * The type of a SET RETENTION_TIME statement.
+     */
+    public static final int RETENTION_TIME = 40;
+    
     private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {
@@ -257,6 +262,7 @@ public class SetTypes {
         list.add(REDO_LOG_BINARY, "REDO_LOG_BINARY");
         list.add(BINARY_COLLATION, "BINARY_COLLATION");
         list.add(JAVA_OBJECT_SERIALIZER, "JAVA_OBJECT_SERIALIZER");
+        list.add(RETENTION_TIME, "RETENTION_TIME");
     }
 
     /**

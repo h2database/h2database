@@ -883,6 +883,7 @@ public class MetaTable extends Table {
             add(rows, "MULTI_THREADED", database.isMultiThreaded() ? "1" : "0");
             add(rows, "MVCC", database.isMultiVersion() ? "TRUE" : "FALSE");
             add(rows, "QUERY_TIMEOUT", "" + session.getQueryTimeout());
+            add(rows, "RETENTION_TIME", "" + database.getRetentionTime());
             add(rows, "LOG", "" + database.getLogMode());
             // database settings
             ArrayList<String> settingNames = New.arrayList();

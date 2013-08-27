@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The method TableEngine.createTable() now returns a Table object.
+<ul><li>A checkpoint is now done every MAX_LOG_SIZE / 2 instead of every
+    MAX_LOG_SIZE, so that the transaction log doesn't grow as large.
+</li><li>MVStore table engine: new setting "retention_time" to configure the 
+    time to retain old data. The default is 45 seconds.
+</li><li>The method TableEngine.createTable() now returns a Table object.
 </li><li>For read-only databases, for the trace level "debug",
     the trace info is written to the temp directory.
 </li><li>Closing the file lock will now wait until the background thread is stopped.

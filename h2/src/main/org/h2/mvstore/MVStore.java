@@ -46,14 +46,15 @@ H:3,...
 
 TODO:
 
+Documentation
+- rolling docs review: at "Transactions"
+
 TestMVStoreDataLoss
 
 TransactionStore:
 
 MVStore:
-- rolling docs review: at "Transactions"
-- move setters to the builder, except for setRetainVersion, setReuseSpace,
-    and settings that are persistent (setStoreVersion)
+- in-place compact (first, move chunks to end of file, then move to start)
 - automated 'kill process' and 'power failure' test
 - update checkstyle
 - maybe split database into multiple files, to speed up compact
@@ -67,6 +68,7 @@ MVStore:
 - chunk checksum (header, last page, 2 bytes per page?)
 - is there a better name for the file header,
     if it's no longer always at the beginning of a file? store header?
+    root pointer?
 - on insert, if the child page is already full, don't load and modify it
     split directly (specially for leaves with one large entry)
 - maybe let a chunk point to a list of potential next chunks
@@ -79,11 +81,9 @@ MVStore:
 - support maps without values (just existence of the key)
 - support maps without keys (counted b-tree features)
 - use a small object cache (StringCache), test on Android
-- dump values
+- dump values (using a callback)
 - map split / merge (fast if no overlap)
-- auto-save if there are too many changes (required for StreamStore)
 - StreamStore optimization: avoid copying bytes
-- unlimited transaction size
 - MVStoreTool.shrink to shrink a store (create, copy, rename, delete)
     and for MVStore on Windows, auto-detect renamed file
 - ensure data is overwritten eventually if the system doesn't have a timer
@@ -113,6 +113,9 @@ MVStore:
     possibly using a callback for serialization
 - optional pluggable checksum mechanism (per page), which
     requires that everything is a page (including headers)
+- rename setStoreVersion to setDataVersion or similar
+- to save space for small chunks, combine the last partial
+    block with the header
 
 */
 
@@ -935,13 +938,7 @@ public class MVStore {
             }
         }
         Set<Chunk> removedChunks = applyFreedPages(storeVersion, time);
-        ByteBuffer buff;
-        if (writeBuffer != null) {
-            buff = writeBuffer;
-            buff.clear();
-        } else {
-            buff = ByteBuffer.allocate(1024 * 1024);
-        }
+        ByteBuffer buff = getWriteBuffer();
         // need to patch the header later
         c.writeHeader(buff);
         c.maxLength = 0;
@@ -1033,6 +1030,23 @@ public class MVStore {
             lastStoredVersion = storeVersion;
         }
         return version;
+    }
+    
+    /**
+     * Get a buffer for writing. This caller must synchronize on the store
+     * before calling the method and until after using the buffer.
+     * 
+     * @return the buffer
+     */
+    private ByteBuffer getWriteBuffer() {
+        ByteBuffer buff;
+        if (writeBuffer != null) {
+            buff = writeBuffer;
+            buff.clear();
+        } else {
+            buff = ByteBuffer.allocate(1024 * 1024);
+        }
+        return buff;
     }
 
     private boolean canOverwriteChunk(Chunk c, long time) {
@@ -1182,19 +1196,77 @@ public class MVStore {
         buff.rewind();
         return Chunk.fromHeader(buff, start);
     }
+    
+    /**
+     * Compact the store by moving all chunks.
+     * 
+     * @return if anything was written
+     */
+    public synchronized boolean compactFully() {
+        checkOpen();
+        if (chunks.size() == 0) {
+            // nothing to do
+            return false;
+        }
+        if (freeSpace.getFillRate() == 100) {
+            boolean allFull = true;
+            for (Chunk c : chunks.values()) {
+                if (c.maxLength == c.maxLengthLive) {
+                    allFull = false;
+                    break;
+                }
+            }
+            if (allFull) {
+                return false;
+            }
+        }
+        long firstFree = freeSpace.getFirstFree();
+        ArrayList<Chunk> move = New.arrayList();
+        for (Chunk c : chunks.values()) {
+            if (c.start < firstFree) {
+                move.add(c);
+            }
+        }
+        ByteBuffer buff = getWriteBuffer();
+        for (Chunk c : move) {
+            int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
+            buff = DataUtils.ensureCapacity(buff, length);
+            DataUtils.readFully(file, c.start, buff);
+            long pos = getFileSizeUsed();
+            freeSpace.markUsed(pos, length);
+            buff.position(0);
+            c.start = pos;
+            c.writeHeader(buff);
+            buff.position(buff.limit() - BLOCK_SIZE);
+            byte[] header = getFileHeaderBytes();
+            buff.put(header);
+            // fill the header with zeroes
+            buff.put(new byte[BLOCK_SIZE - header.length]);
+            buff.position(0);
+            buff.limit(length);
+            // file.write(buff);
+        }
+        
+        int todo;
+        return false;
+    }
 
     /**
-     * Try to reduce the file size. Chunks with a low number of live items will
-     * be re-written. If the current fill rate is higher than the target fill
-     * rate, no optimization is done.
-     *
+     * Try to reduce the file size by re-writing partially full chunks. Chunks
+     * with a low number of live items are re-written. If the current fill rate
+     * is higher than the target fill rate, nothing is done.
+     * <p>
+     * Only data of open maps can be moved. For maps that are not open, the old
+     * chunk is still referenced. Therefore, it is recommended to open all maps
+     * before calling this method.
+     * 
      * @param fillRate the minimum percentage of live entries
      * @return if anything was written
      */
-    public boolean compact(int fillRate) {
+    public synchronized boolean compact(int fillRate) {
         checkOpen();
         if (chunks.size() == 0) {
-            // avoid division by 0
+            // nothing to do
             return false;
         }
         long maxLengthSum = 0, maxLengthLiveSum = 0;
@@ -1206,8 +1278,10 @@ public class MVStore {
             // avoid division by 0
             maxLengthSum = 1;
         }
-        int percentTotal = (int) (100 * maxLengthLiveSum / maxLengthSum);
-        if (percentTotal > fillRate) {
+        // the fill rate of all chunks combined
+        int totalChunkFillRate = (int) (100 * maxLengthLiveSum / maxLengthSum);
+        
+        if (totalChunkFillRate > fillRate) {
             return false;
         }
 
@@ -1284,6 +1358,9 @@ public class MVStore {
             @SuppressWarnings("unchecked")
             MVMap<Object, Object> map = (MVMap<Object, Object>) getMap(mapId);
             if (map == null) {
+                // pages of maps that are not open or that have been removed
+                // later on are not moved (for maps that are not open, the live
+                // counter is not decremented, so the chunk is not removed)
                 buff.position(start + pageLength);
                 continue;
             }
@@ -1449,7 +1526,8 @@ public class MVStore {
      * be dangerous, unless the file system and hard disk flush the buffers
      * earlier. To manually flush the buffers, use
      * <code>MVStore.getFile().force(true)</code>, however please note that
-     * according to various tests this does not always work as expected.
+     * according to various tests this does not always work as expected
+     * depending on the operating system and hardware.
      * <p>
      * This setting is not persisted.
      *

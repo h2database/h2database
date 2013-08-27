@@ -7,11 +7,13 @@
 package org.h2.mvstore.db;
 
 import java.beans.ExceptionListener;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.h2.api.TableEngine;
+import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
@@ -245,6 +247,28 @@ public class MVTableEngine implements TableEngine {
 
         public InputStream getInputStream() {
             return new FileChannelInputStream(store.getFile(), false);
+        }
+        
+        /**
+         * Force the changes to disk.
+         */
+        public void sync() {
+            store();
+            try {
+                store.getFile().force(true);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, "Could not sync");
+            }
+        }
+
+        public void compact(boolean defrag) {
+            sync();
+            store.setRetentionTime(0);
+            while (store.compact(90)) {
+                System.out.println("compact");
+                sync();
+            }
+            System.out.println("compact done");
         }
 
     }

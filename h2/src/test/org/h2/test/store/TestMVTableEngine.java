@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -21,6 +22,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.mvstore.MVStoreTool;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
@@ -45,7 +47,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
-        // testShrinkDatabaseFile();
+        testShrinkDatabaseFile();
         testTransactionLogUsuallyNotStored();
         testTwoPhaseCommit();
         testRecover();
@@ -73,11 +75,23 @@ public class TestMVTableEngine extends TestBase {
         Connection conn;
         Statement stat;
         long maxSize = 0;
-        // TODO does not shrink for 45 seconds;
-        // need an option to configure that
+        // by default, the database does not shrink for 45 seconds
+        int retentionTime = 45000;
         for (int i = 0; i < 20; i++) {
+            // the first 10 times, keep the default retention time
+            // then switch to 0, at which point the database file
+            // should stop to grow
             conn = getConnection(dbName);
             stat = conn.createStatement();
+            if (i == 10) {
+                stat.execute("set retention_time 0");
+                retentionTime = 0;
+            }
+            ResultSet rs = stat.executeQuery(
+                    "select value from information_schema.settings " + 
+                    "where name='RETENTION_TIME'");
+            assertTrue(rs.next());
+            assertEquals(retentionTime, rs.getInt(1));
             stat.execute("create table test(id int primary key, data varchar)");
             stat.execute("insert into test select x, space(1000) from system_range(1, 1000)");
             stat.execute("drop table test");
@@ -90,6 +104,17 @@ public class TestMVTableEngine extends TestBase {
                 fail(i + " size: " + size + " max: " + maxSize);
             }
         }
+        int todo;
+//        conn = getConnection(dbName);
+//        stat = conn.createStatement();
+//        stat.execute("shutdown compact");
+//        conn.close();
+//        
+//        MVStoreTool.dump(getBaseDir() + "/mvstore.mv.db", new PrintWriter(System.out));
+//        
+//        long size = FileUtils.size(getBaseDir() + "/mvstore"
+//                + Constants.SUFFIX_MV_FILE);
+//        assertTrue(size < 16 * 1024);
     }
 
     private void testTransactionLogUsuallyNotStored() {

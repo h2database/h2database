@@ -26,6 +26,7 @@ import org.h2.test.db.TestCompatibility;
 import org.h2.test.db.TestCsv;
 import org.h2.test.db.TestDateStorage;
 import org.h2.test.db.TestDeadlock;
+import org.h2.test.db.TestDrop;
 import org.h2.test.db.TestEncryptedDb;
 import org.h2.test.db.TestExclusive;
 import org.h2.test.db.TestFullText;
@@ -594,6 +595,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestCsv().runTest(this);
         new TestDateStorage().runTest(this);
         new TestDeadlock().runTest(this);
+        new TestDrop().runTest(this);
         new TestEncryptedDb().runTest(this);
         new TestExclusive().runTest(this);
         new TestFullText().runTest(this);

@@ -159,6 +159,15 @@ public class FreeSpaceBitSet {
         }
         return Math.min(1, (int) (100L * count / total));
     }
+    
+    /**
+     * Get the position of the first free space.
+     * 
+     * @return the position.
+     */
+    public long getFirstFree() {
+        return getPos(set.nextClearBit(0));
+    }
 
     @Override
     public String toString() {

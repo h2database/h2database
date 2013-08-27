@@ -47,6 +47,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+
         testBackgroundExceptionListener();
         testOldVersion();
         testAtomicOperations();
@@ -78,7 +79,8 @@ public class TestMVStore extends TestBase {
         testInMemory();
         testLargeImport();
         testBtreeStore();
-        testDefragment();
+        testCompact();
+        testCompactMapNotOpen();
         testReuseSpace();
         testRandom();
         testKeyValueClasses();
@@ -87,7 +89,6 @@ public class TestMVStore extends TestBase {
         testSimple();
 
         // longer running tests
-
         testLargerThan2G();
     }
 
@@ -1220,9 +1221,64 @@ public class TestMVStore extends TestBase {
         }
         s.close();
     }
+    
+    private void testCompactMapNotOpen() {
+        String fileName = getBaseDir() + "/testCompactNotOpen.h3";
+        FileUtils.delete(fileName);
+        MVStore s = openStore(fileName, 1000);
+        MVMap<Integer, String> m = s.openMap("data");
+        int factor = 100;
+        for (int j = 0; j < 10; j++) {
+            for (int i = j * factor; i < 10 * factor; i++) {
+                m.put(i, "Hello" + j);
+            }
+            s.store();
+        }
+        s.close();
+        
+        s = openStore(fileName);
+        s.setRetentionTime(0);
+        
+        Map<String, String> meta = s.getMetaMap();
+        int chunkCount1 = 0;
+        for (String k : meta.keySet()) {
+            if (k.startsWith("chunk.")) {
+                chunkCount1++;
+            }
+        }
 
-    private void testDefragment() {
-        String fileName = getBaseDir() + "/testDefragment.h3";
+        assertTrue(s.compact(80));
+        assertTrue(s.compact(80));
+
+        int chunkCount2 = 0;
+        for (String k : meta.keySet()) {
+            if (k.startsWith("chunk.")) {
+                chunkCount2++;
+            }
+        }
+        assertTrue(chunkCount2 >= chunkCount1);
+
+        m = s.openMap("data");
+        assertTrue(s.compact(80));
+        assertTrue(s.compact(80));
+
+        int chunkCount3 = 0;
+        for (String k : meta.keySet()) {
+            if (k.startsWith("chunk.")) {
+                chunkCount3++;
+            }
+        }
+
+        assertTrue(chunkCount3 < chunkCount1);
+
+        for (int i = 0; i < 10 * factor; i++) {
+            assertEquals("x" + i, "Hello" + (i / factor), m.get(i));
+        }
+        s.close();
+    }
+
+    private void testCompact() {
+        String fileName = getBaseDir() + "/testCompact.h3";
         FileUtils.delete(fileName);
         long initialLength = 0;
         for (int j = 0; j < 20; j++) {

@@ -59,6 +59,7 @@ public class Set extends Prepared {
         case SetTypes.THROTTLE:
         case SetTypes.SCHEMA:
         case SetTypes.SCHEMA_SEARCH_PATH:
+        case SetTypes.RETENTION_TIME:
             return true;
         default:
         }
@@ -409,6 +410,15 @@ public class Set extends Prepared {
             }
             session.getUser().checkAdmin();
             database.setWriteDelay(getIntValue());
+            addOrUpdateSetting(name, null, getIntValue());
+            break;
+        }
+        case SetTypes.RETENTION_TIME: {
+            if (getIntValue() < 0) {
+                throw DbException.getInvalidValueException("RETENTION_TIME", getIntValue());
+            }
+            session.getUser().checkAdmin();
+            database.setRetentionTime(getIntValue());
             addOrUpdateSetting(name, null, getIntValue());
             break;
         }

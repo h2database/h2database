@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.JavaObjectSerializer;
+import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.DbSettings;
@@ -176,6 +177,7 @@ public class Database implements DataHandler {
     private final int reconnectCheckDelay;
     private int logMode;
     private MVTableEngine.Store mvStore;
+    private int retentionTime;
     private DbException backgroundException;
 
     private JavaObjectSerializer javaObjectSerializer;
@@ -279,6 +281,7 @@ public class Database implements DataHandler {
 
     public void setMvStore(MVTableEngine.Store mvStore) {
         this.mvStore = mvStore;
+        this.retentionTime = mvStore.getStore().getRetentionTime();
     }
 
     /**
@@ -1249,6 +1252,11 @@ public class Database implements DataHandler {
         }
         reconnectModified(false);
         if (mvStore != null) {
+            if (!readOnly) {
+                if (compactMode != 0) {
+                    mvStore.compact(compactMode == CommandInterface.SHUTDOWN_DEFRAG);
+                }
+            }
             mvStore.close();
         }
         closeFiles();
@@ -1765,6 +1773,17 @@ public class Database implements DataHandler {
             mvStore.setWriteDelay(value);
         }
     }
+    
+    public int getRetentionTime() {
+        return retentionTime;
+    }
+    
+    public void setRetentionTime(int value) {
+        retentionTime = value;
+        if (mvStore != null) {
+            mvStore.getStore().setRetentionTime(value);
+        }
+    }
 
     /**
      * Check if flush-on-each-commit is enabled.
@@ -1926,10 +1945,15 @@ public class Database implements DataHandler {
      * executing the SQL statement CHECKPOINT SYNC.
      */
     public synchronized void sync() {
-        if (readOnly || pageStore == null) {
+        if (readOnly) {
             return;
         }
-        pageStore.sync();
+        if (mvStore != null) {
+            mvStore.sync();
+        }
+        if (pageStore != null) {
+            pageStore.sync();
+        }
     }
 
     public int getMaxMemoryRows() {
@@ -2544,4 +2568,5 @@ public class Database implements DataHandler {
             javaObjectSerializerName = serializerName;
         }
     }
+
 }

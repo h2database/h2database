@@ -81,10 +81,10 @@ public class TestLob extends TestBase {
         testAddLobRestart();
         testLobServerMemory();
         testUpdatingLobRow();
-        testLobCleanupSessionTemporaries();
         if (config.memory) {
             return;
         }
+        testLobCleanupSessionTemporaries();
         testLobUpdateMany();
         testLobDeleteTemp();
         testLobDelete();

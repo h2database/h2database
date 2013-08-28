@@ -50,7 +50,7 @@ public class TestMetaData extends TestBase {
         testStatic();
         testGeneral();
         testAllowLiteralsNone();
-        testSessions();
+        testSessionsUncommitted();
     }
 
     private void testColumnResultSetMeta() throws SQLException {
@@ -972,7 +972,10 @@ public class TestMetaData extends TestBase {
         deleteDb("metaData");
     }
 
-    private void testSessions() throws SQLException {
+    private void testSessionsUncommitted() throws SQLException {
+        if (config.mvcc) {
+            return;
+        }
         Connection conn = getConnection("metaData");
         conn.setAutoCommit(false);
         Statement stat = conn.createStatement();

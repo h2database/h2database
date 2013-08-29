@@ -1128,14 +1128,6 @@ public class Select extends Query {
         if (condition != null) {
             condition.mapColumns(resolver, level);
         }
-        if (orderList != null) {
-            for (SelectOrderBy order : orderList) {
-                Expression e = order.expression;
-                if (e != null) {
-                    e.mapColumns(resolver, level);
-                }
-            }
-        }
     }
 
     @Override

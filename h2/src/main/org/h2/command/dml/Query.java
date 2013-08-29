@@ -393,9 +393,7 @@ public abstract class Query extends Prepared {
                         if (ec2 instanceof ExpressionColumn) {
                             ExpressionColumn c2 = (ExpressionColumn) ec2;
                             String ta = exprCol.getSQL();
-                            // exprCol.getTableAlias();
                             String tb = c2.getSQL();
-                            // getTableAlias();
                             String s2 = c2.getColumnName();
                             found = db.equalsIdentifiers(col, s2);
                             if (!db.equalsIdentifiers(ta, tb)) {
@@ -431,6 +429,7 @@ public abstract class Query extends Prepared {
                 expressionSQL.add(sql);
             }
             o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
+            o.expression = expressions.get(idx);
         }
     }
 

@@ -243,10 +243,10 @@ public class RegularTable extends TableBase {
                 } else {
                     index = new NonUniqueHashIndex(this, indexId, indexName, cols, indexType);
                 }
-            } else if (!indexType.isSpatial()) {
-                index = new TreeIndex(this, indexId, indexName, cols, indexType);
-            } else {
+            } else if (indexType.isSpatial()) {
                 index = new SpatialTreeIndex(this, indexId, indexName, cols, indexType, false, true, session);
+            } else {
+                index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
         }
         if (database.isMultiVersion()) {

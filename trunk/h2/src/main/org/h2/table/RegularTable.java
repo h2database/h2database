@@ -234,7 +234,10 @@ public class RegularTable extends TableBase {
                 index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, create, session);
             }
         } else {
-            if (indexType.isHash() && cols.length <= 1) {
+            if (indexType.isHash()) {
+                if (cols.length != 1) {
+                    throw DbException.getUnsupportedException("hash indexes may index only one column");
+                }
                 if (indexType.isUnique()) {
                     index = new HashIndex(this, indexId, indexName, cols, indexType);
                 } else {

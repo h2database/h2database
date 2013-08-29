@@ -973,7 +973,7 @@ public class TestMetaData extends TestBase {
     }
 
     private void testSessionsUncommitted() throws SQLException {
-        if (config.mvcc) {
+        if (config.mvcc || config.memory) {
             return;
         }
         Connection conn = getConnection("metaData");

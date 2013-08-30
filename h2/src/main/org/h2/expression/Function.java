@@ -1138,8 +1138,11 @@ public class Function extends Expression implements FunctionCall {
         }
         case REGEXP_REPLACE: {
             String regexp = v1.getString();
+            String replacement = v2.getString();
             try {
-                result = ValueString.get(v0.getString().replaceAll(regexp, v2.getString()));
+                result = ValueString.get(v0.getString().replaceAll(regexp, replacement));
+            } catch (StringIndexOutOfBoundsException e) {
+                throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
             } catch (PatternSyntaxException e) {
                 throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
             }

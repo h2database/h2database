@@ -1,3 +1,5 @@
+select a.x from dual a, dual b order by x;
+> 1;
 select trunc(1.3);
 > 1.0;
 select trunc(timestamp '2001-01-01 14:00:00.0');

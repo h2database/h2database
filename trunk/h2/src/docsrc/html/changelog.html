@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>A checkpoint is now done every MAX_LOG_SIZE / 2 instead of every
+<ul><li>The function "regexp_replace" threw the wrong kind of exception if the
+    replacement string was invalid.
+</li><li>A checkpoint is now done every MAX_LOG_SIZE / 2 instead of every
     MAX_LOG_SIZE, so that the transaction log doesn't grow as large.
 </li><li>MVStore table engine: new setting "retention_time" to configure the 
     time to retain old data. The default is 45 seconds.

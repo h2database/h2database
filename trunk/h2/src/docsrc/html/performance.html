@@ -729,6 +729,7 @@ The data is stored in the database as follows:
 </table>
 <p>
 Access by row id is fast because the data is sorted by this key.
+Please note the row id is not available until after the row was added (that means, it can not be used in computed columns or constraints).
 If the query condition does not contain the row id (and if no other index can be used), then all rows of the table are scanned.
 A table scan iterates over all rows in the table, in the order of the row id.
 To find out what strategy the database uses to retrieve the data, use <code>EXPLAIN SELECT</code>:

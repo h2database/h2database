@@ -48,6 +48,8 @@ TODO:
 
 Documentation
 - rolling docs review: at "Transactions"
+- better document that writes are in background thread
+- better document how to do non-unique indexes
 
 TestMVStoreDataLoss
 
@@ -116,6 +118,11 @@ MVStore:
 - rename setStoreVersion to setDataVersion or similar
 - to save space for small chunks, combine the last partial
     block with the header
+- off-heap storage (with lower default retention time)
+- object value cache for default serialization
+- temporary file storage
+- simple rollback method (rollback to last committed version)
+- MVMap to implement SortedMap, then NavigableMap
 
 */
 
@@ -1004,9 +1011,7 @@ public class MVStore {
         DataUtils.writeFully(file, filePos, buff);
 
         fileSize = Math.max(fileSize, filePos + buff.position());
-        if (buff.capacity() <= 4 * 1024 * 1024) {
-            writeBuffer = buff;
-        }
+        releaseWriteBuffer(buff);
 
         // overwrite the header if required
         if (!storeAtEndOfFile) {
@@ -1047,6 +1052,18 @@ public class MVStore {
             buff = ByteBuffer.allocate(1024 * 1024);
         }
         return buff;
+    }
+
+    /**
+     * Release a buffer for writing. This caller must synchronize on the store
+     * before calling the method and until after using the buffer.
+     * 
+     * @param buff the buffer than can be re-used
+     */
+    private void releaseWriteBuffer(ByteBuffer buff) {
+        if (buff.capacity() <= 4 * 1024 * 1024) {
+            writeBuffer = buff;
+        }
     }
 
     private boolean canOverwriteChunk(Chunk c, long time) {
@@ -1198,42 +1215,66 @@ public class MVStore {
     }
     
     /**
-     * Compact the store by moving all chunks.
+     * Compact the store by moving all chunks next to each other, if there is
+     * free space between chunks. This might temporarily double the file size.
      * 
      * @return if anything was written
      */
-    public synchronized boolean compactFully() {
+    public synchronized boolean compactMoveChunks() {
         checkOpen();
         if (chunks.size() == 0) {
             // nothing to do
             return false;
         }
         if (freeSpace.getFillRate() == 100) {
-            boolean allFull = true;
-            for (Chunk c : chunks.values()) {
-                if (c.maxLength == c.maxLengthLive) {
-                    allFull = false;
-                    break;
-                }
-            }
-            if (allFull) {
-                return false;
-            }
+            return false;
         }
         long firstFree = freeSpace.getFirstFree();
         ArrayList<Chunk> move = New.arrayList();
         for (Chunk c : chunks.values()) {
-            if (c.start < firstFree) {
+            if (c.start > firstFree) {
                 move.add(c);
             }
         }
-        ByteBuffer buff = getWriteBuffer();
         for (Chunk c : move) {
+            ByteBuffer buff = getWriteBuffer();
             int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
             buff = DataUtils.ensureCapacity(buff, length);
+            buff.limit(length);
             DataUtils.readFully(file, c.start, buff);
             long pos = getFileSizeUsed();
             freeSpace.markUsed(pos, length);
+            freeSpace.free(c.start, length);
+            c.start = pos;
+            buff.position(0);
+            c.writeHeader(buff);
+            buff.position(buff.limit() - BLOCK_SIZE);
+            byte[] header = getFileHeaderBytes();
+            buff.put(header);
+            // fill the header with zeroes
+            buff.put(new byte[BLOCK_SIZE - header.length]);
+            buff.position(0);
+            fileWriteCount++;
+            DataUtils.writeFully(file, pos, buff);
+            fileSize = Math.max(fileSize, pos + buff.position());
+            releaseWriteBuffer(buff);
+            meta.put("chunk." + c.id, c.asString());
+        }
+        boolean oldReuse = reuseSpace;
+        
+        // update the metadata (store at the end of the file)
+        reuseSpace = false;
+        store();
+        
+        // now re-use the empty space
+        reuseSpace = true;
+        for (Chunk c : move) {
+            ByteBuffer buff = getWriteBuffer();
+            int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
+            buff = DataUtils.ensureCapacity(buff, length);
+            DataUtils.readFully(file, c.start, buff);
+            long pos = freeSpace.allocate(length);
+            freeSpace.free(c.start, length);
             buff.position(0);
             c.start = pos;
             c.writeHeader(buff);
@@ -1242,13 +1283,19 @@ public class MVStore {
             buff.put(header);
             // fill the header with zeroes
             buff.put(new byte[BLOCK_SIZE - header.length]);
-            buff.position(0);
             buff.limit(length);
-            // file.write(buff);
+            buff.position(0);
+            fileWriteCount++;
+            DataUtils.writeFully(file, pos, buff);
+            fileSize = Math.max(fileSize, pos + buff.position());
+            releaseWriteBuffer(buff);
+            meta.put("chunk." + c.id, c.asString());
         }
         
-        int todo;
-        return false;
+        // update the metadata (within the file)
+        store();
+        reuseSpace = oldReuse;
+        return true;
     }
 
     /**

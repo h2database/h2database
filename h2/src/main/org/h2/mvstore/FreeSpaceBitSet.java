@@ -148,7 +148,7 @@ public class FreeSpaceBitSet {
      * @return the fill rate (0 - 100)
      */
     public int getFillRate() {
-        int total = set.size(), count = 0;
+        int total = set.length(), count = 0;
         for (int i = 0; i < total; i++) {
             if (set.get(i)) {
                 count++;
@@ -157,7 +157,7 @@ public class FreeSpaceBitSet {
         if (count == 0) {
             return 0;
         }
-        return Math.min(1, (int) (100L * count / total));
+        return Math.max(1, (int) (100L * count / total));
     }
     
     /**

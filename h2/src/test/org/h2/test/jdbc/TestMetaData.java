@@ -51,6 +51,7 @@ public class TestMetaData extends TestBase {
         testGeneral();
         testAllowLiteralsNone();
         testSessionsUncommitted();
+        testQueryStatistics();
     }
 
     private void testColumnResultSetMeta() throws SQLException {
@@ -848,6 +849,8 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("LOCKS", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("QUERY_STATISTICS", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("RIGHTS", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("ROLES", rs.getString("TABLE_NAME"));
@@ -992,6 +995,27 @@ public class TestMetaData extends TestBase {
         rs = stat.executeQuery("select contains_uncommitted from INFORMATION_SCHEMA.SESSIONS");
         rs.next();
         assertEquals(false, rs.getBoolean(1));
+        conn.close();
+        deleteDb("metaData");
+    }
+    
+    private void testQueryStatistics() throws SQLException {
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar) as select x, space(1000) from system_range(1, 2000)");
+        
+        ResultSet rs = stat.executeQuery("select * from INFORMATION_SCHEMA.QUERY_STATISTICS");
+        assertFalse(rs.next());
+        rs.close();
+        stat.execute("SET QUERY_STATISTICS TRUE");
+        stat.execute("select * from test limit 10");
+        stat.execute("select * from test limit 10");
+        rs = stat.executeQuery("select * from INFORMATION_SCHEMA.QUERY_STATISTICS");
+        assertTrue(rs.next());
+        assertEquals("select * from test limit 10", rs.getString("SQL_STATEMENT"));
+        assertEquals(2, rs.getInt("EXECUTION_COUNT"));
+        assertEquals(20, rs.getInt("CUMULATIVE_ROW_COUNT"));
+        rs.close();
         conn.close();
         deleteDb("metaData");
     }

@@ -179,10 +179,11 @@ public class Database implements DataHandler {
     private MVTableEngine.Store mvStore;
     private int retentionTime;
     private DbException backgroundException;
-
     private JavaObjectSerializer javaObjectSerializer;
     private String javaObjectSerializerName;
     private volatile boolean javaObjectSerializerInitialized;
+    private boolean queryStatistics;
+    private QueryStatisticsData queryStatisticsData;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -2080,6 +2081,32 @@ public class Database implements DataHandler {
         return referentialIntegrity;
     }
 
+    public void setQueryStatistics(boolean b) {
+        queryStatistics = b;
+        synchronized (this) {
+            queryStatisticsData = null;
+        }
+    }
+
+    public boolean getQueryStatistics() {
+        return queryStatistics;
+    }
+    
+    public QueryStatisticsData getQueryStatisticsData() {
+        if (queryStatistics) {
+            if (queryStatisticsData == null) {
+                synchronized (this) {
+                    if (queryStatisticsData == null) {
+                        queryStatisticsData = new QueryStatisticsData();
+                    }
+                }
+            }
+            return queryStatisticsData;
+        } else {
+            return null;
+        }
+    }
+    
     /**
      * Check if the database is currently opening. This is true until all stored
      * SQL statements have been executed.

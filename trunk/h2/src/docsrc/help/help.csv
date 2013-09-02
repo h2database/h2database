@@ -1429,6 +1429,19 @@ This command commits an open transaction.
 SET PASSWORD 'abcstzri!.5'
 "
 
+"Commands (Other)","SET QUERY_STATISTICS","
+SET QUERY_STATISTICS { TRUE | FALSE }
+","
+Disabled or enables query statistics gathering for the whole database.
+The statistics are reflected in the INFORMATION_SCHEMA.QUERY_STATISTICS meta-table.
+
+This setting is not persistent.
+This command commits an open transaction.
+Admin rights are required to execute this command, as it affects all connections.
+","
+SET QUERY_STATISTICS FALSE
+"
+
 "Commands (Other)","SET QUERY_TIMEOUT","
 SET QUERY_TIMEOUT int
 ","

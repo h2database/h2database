@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
-
+import java.util.Map;
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -27,6 +27,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
+import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
@@ -103,7 +104,8 @@ public class MetaTable extends Table {
     private static final int SESSIONS = 25;
     private static final int LOCKS = 26;
     private static final int SESSION_STATE = 27;
-    private static final int META_TABLE_TYPE_COUNT = SESSION_STATE + 1;
+    private static final int QUERY_STATISTICS = 28;
+    private static final int META_TABLE_TYPE_COUNT = QUERY_STATISTICS + 1;
 
     private final int type;
     private final int indexColumn;
@@ -508,6 +510,24 @@ public class MetaTable extends Table {
             cols = createColumns(
                     "KEY",
                     "SQL"
+            );
+            break;
+        }
+        case QUERY_STATISTICS: {
+            setObjectName("QUERY_STATISTICS");
+            cols = createColumns(
+                    "SQL_STATEMENT",
+                    "EXECUTION_COUNT INT",
+                    "MIN_EXECUTION_TIME LONG",
+                    "MAX_EXECUTION_TIME LONG",
+                    "CUMULATIVE_EXECUTION_TIME LONG",
+                    "AVERAGE_EXECUTION_TIME DOUBLE",
+                    "STD_DEV_EXECUTION_TIME DOUBLE",
+                    "MIN_ROW_COUNT INT",
+                    "MAX_ROW_COUNT INT",
+                    "CUMULATIVE_ROW_COUNT LONG",
+                    "AVERAGE_ROW_COUNT DOUBLE",
+                    "STD_DEV_ROW_COUNT DOUBLE"
             );
             break;
         }
@@ -1616,6 +1636,42 @@ public class MetaTable extends Table {
                         // SQL
                         "SET SCHEMA " + StringUtils.quoteIdentifier(schema)
                 );
+            }
+            break;
+        }
+        case QUERY_STATISTICS: {
+            QueryStatisticsData control = database.getQueryStatisticsData();
+            if (control != null) {
+                HashMap<String, QueryStatisticsData.QueryEntry> map = control.getQueryMap();
+                for (Map.Entry<String, QueryStatisticsData.QueryEntry> mapEntry : map.entrySet()) {
+                    QueryStatisticsData.QueryEntry entry = mapEntry.getValue();
+                    add(rows,
+                            // SQL_STATEMENT
+                            mapEntry.getKey(),
+                            // EXECUTION_COUNT
+                            "" + entry.count,
+                            // MIN_EXECUTION_TIME
+                            "" + entry.executionTimeMin,
+                            // MAX_EXECUTION_TIME
+                            "" + entry.executionTimeMax,
+                            // CUMULATIVE_EXECUTION_TIME
+                            "" + entry.executionTimeCumulative,
+                            // AVERAGE_EXECUTION_TIME
+                            "" + entry.executionTimeMean,
+                            // STD_DEV_EXECUTION_TIME
+                            "" + entry.getExecutionTimeStandardDeviation(),
+                            // MIN_ROW_COUNT
+                            "" + entry.rowCountMin,
+                            // MAX_ROW_COUNT
+                            "" + entry.rowCountMax,
+                            // CUMULATIVE_ROW_COUNT
+                            "" + entry.rowCountCumulative,
+                            // AVERAGE_ROW_COUNT
+                            "" + entry.rowCountMean,
+                            // STD_DEV_ROW_COUNT
+                            "" + entry.getRowCountStandardDeviation()
+                    );
+                }
             }
             break;
         }

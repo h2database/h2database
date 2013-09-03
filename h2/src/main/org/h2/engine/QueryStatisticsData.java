@@ -21,40 +21,24 @@ import java.util.Map;
 public class QueryStatisticsData {
 
     private static final int MAX_QUERY_ENTRIES = 100;
-
-    public static final class QueryEntry {
-        public String sqlStatement;
-
-        public long lastUpdateTime;
-        public int count;
-        public long executionTimeMin;
-        public long executionTimeMax;
-        public long executionTimeCumulative;
-        public int rowCountMin;
-        public int rowCountMax;
-        public long rowCountCumulative;
-        
-        // Using Welford's method, see also
-        // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
-        // http://www.johndcook.com/standard_deviation.html
-        public double executionTimeMean;
-        public double executionTimeM2;
-        public double rowCountMean;
-        public double rowCountM2;
-        
-        public double getExecutionTimeStandardDeviation() {
-            // population standard deviation
-            return Math.sqrt(executionTimeM2 / count);
+    
+    private static final Comparator<QueryEntry> QUERY_ENTRY_COMPARATOR = new Comparator<QueryEntry>() {
+        @Override
+        public int compare(QueryEntry o1, QueryEntry o2) {
+            return (int) Math.signum(o1.lastUpdateTime - o2.lastUpdateTime);
         }
-        
-        public double getRowCountStandardDeviation() {
-            // population standard deviation
-            return Math.sqrt(rowCountM2 / count);
-        }
-
-    }
-
+    };
+    
     private final HashMap<String, QueryEntry> map = new HashMap<String, QueryEntry>();
+    
+    public synchronized List<QueryEntry> getQueries() {
+        // return a copy of the map so we don't have to worry about external synchronization
+        ArrayList<QueryEntry> list = new ArrayList<QueryEntry>();
+        list.addAll(map.values());
+        // only return the newest 100 entries
+        Collections.sort(list, QUERY_ENTRY_COMPARATOR);
+        return list.subList(0, Math.min(list.size(), MAX_QUERY_ENTRIES));
+    }
 
     /**
      * Update query statistics.
@@ -68,15 +52,12 @@ public class QueryStatisticsData {
         if (entry == null) {
             entry = new QueryEntry();
             entry.sqlStatement = sqlStatement;
-            entry.count = 1;
             entry.executionTimeMin = executionTime;
             entry.executionTimeMax = executionTime;
             entry.rowCountMin = rowCount;
             entry.rowCountMax = rowCount;
             entry.executionTimeMean = executionTime;
-            entry.executionTimeM2 = 0;
             entry.rowCountMean = rowCount;
-            entry.rowCountM2 = 0;
             map.put(sqlStatement, entry);
         } else {
             entry.count++;
@@ -117,19 +98,40 @@ public class QueryStatisticsData {
         }
     }
     
-    public synchronized List<QueryEntry> getQueries() {
-        // return a copy of the map so we don't have to worry about external synchronization
-        ArrayList<QueryEntry> list = new ArrayList<QueryEntry>();
-        list.addAll(map.values());
-        // only return the newest 100 entries
-        Collections.sort(list, QUERY_ENTRY_COMPARATOR);
-        return list.subList(0, Math.min(list.size(), MAX_QUERY_ENTRIES));
-    }
+    /**
+     * The collected statistics for one query.
+     */
+    public static final class QueryEntry {
+        
+        public String sqlStatement;
 
-    private static final Comparator<QueryEntry> QUERY_ENTRY_COMPARATOR = new Comparator<QueryEntry>() {
-        @Override
-        public int compare(QueryEntry o1, QueryEntry o2) {
-            return (int) Math.signum(o1.lastUpdateTime - o2.lastUpdateTime);
+        public int count = 1;
+        public long lastUpdateTime;
+        public long executionTimeMin;
+        public long executionTimeMax;
+        public long executionTimeCumulative;
+        public int rowCountMin;
+        public int rowCountMax;
+        public long rowCountCumulative;
+        
+        // Using Welford's method, see also
+        // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+        // http://www.johndcook.com/standard_deviation.html
+        public double executionTimeMean;
+        public double executionTimeM2;
+        public double rowCountMean;
+        public double rowCountM2;
+        
+        public double getExecutionTimeStandardDeviation() {
+            // population standard deviation
+            return Math.sqrt(executionTimeM2 / count);
         }
-    };
+        
+        public double getRowCountStandardDeviation() {
+            // population standard deviation
+            return Math.sqrt(rowCountM2 / count);
+        }
+
+    }
+    
 }

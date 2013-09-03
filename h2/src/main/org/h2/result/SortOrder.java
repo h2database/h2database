@@ -56,17 +56,17 @@ public class SortOrder implements Comparator<Value[]> {
     private static final int DEFAULT_NULL_SORT = SysProperties.SORT_NULLS_HIGH ? 1 : -1;
 
     private final Database database;
-    
+
     /**
      * The column indexes of the order by expressions within the query.
      */
     private final int[] queryColumnIndexes;
-    
+
     /**
      * The sort type bit mask (DESCENDING, NULLS_FIRST, NULLS_LAST).
      */
     private final int[] sortTypes;
-    
+
     /**
      * The order list.
      */
@@ -213,17 +213,17 @@ public class SortOrder implements Comparator<Value[]> {
      * 0} as the first order by expression (the column "id") is the second
      * column of the query, and the second order by expression ("name") is the
      * first column of the query.
-     * 
+     *
      * @return the list
      */
     public int[] getQueryColumnIndexes() {
         return queryColumnIndexes;
     }
-    
+
     /**
      * Get the column for the given table filter, if the sort column is for this
      * filter.
-     * 
+     *
      * @param index the column index (0, 1,..)
      * @param filter the table filter
      * @return the column, or null

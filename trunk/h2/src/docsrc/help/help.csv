@@ -1474,9 +1474,9 @@ SET RETENTION_TIME int
 This property is only used when using the MVStore storage engine.
 How long to retain old, persisted data, in milliseconds.
 The default is 45000 (45 seconds), 0 means overwrite data as early as possible.
-It is assumed that a file system and hard disk will flush all write buffers within this time. 
-Using a lower value might be dangerous, unless the file system and hard disk flush the buffers earlier. 
-To manually flush the buffers, use CHECKPOINT SYNC, 
+It is assumed that a file system and hard disk will flush all write buffers within this time.
+Using a lower value might be dangerous, unless the file system and hard disk flush the buffers earlier.
+To manually flush the buffers, use CHECKPOINT SYNC,
 however please note that according to various tests this does not always work as expected
 depending on the operating system and hardware.
 

@@ -11,11 +11,10 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.text.MessageFormat;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Properties;
-import org.h2.api.JdbcParseSQLException;
+
 import org.h2.constant.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.SortedProperties;
@@ -93,7 +92,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Get the SQLException object.
-     * 
+     *
      * @return the exception
      */
     public SQLException getSQLException() {
@@ -102,7 +101,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Get the error code.
-     * 
+     *
      * @return the error code
      */
     public int getErrorCode() {
@@ -112,7 +111,7 @@ public class DbException extends RuntimeException {
     /**
      * Set the SQL statement of the given exception.
      * This method may create a new object.
-     * 
+     *
      * @param sql the SQL statement
      * @return the exception
      */
@@ -131,7 +130,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Create a database exception for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @return the exception
      */
@@ -141,7 +140,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Create a database exception for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @param p1 the first parameter of the message
      * @return the exception
@@ -152,7 +151,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Create a database exception for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @param cause the cause of the exception
      * @param params the list of parameters of the message
@@ -164,7 +163,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Create a database exception for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @param params the list of parameters of the message
      * @return the exception
@@ -175,7 +174,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Create a syntax error exception.
-     * 
+     *
      * @param sql the SQL statement
      * @param index the position of the error in the SQL statement
      * @return the exception
@@ -187,32 +186,20 @@ public class DbException extends RuntimeException {
 
     /**
      * Create a syntax error exception.
-     * 
+     *
      * @param sql the SQL statement
      * @param index the position of the error in the SQL statement
-     * @param expected the expected keyword at the given position
+     * @param message the message
      * @return the exception
      */
-    public static DbException getSyntaxError(String sql, int index, String expected) {
-        return getSyntaxError(sql, index, expected, java.util.Arrays.asList(expected));
-    }
-
-    /**
-     * Create a syntax error exception.
-     * 
-     * @param sql the SQL statement
-     * @param index the position of the error in the SQL statement
-     * @param expected the expected keyword(s) at the given position
-     * @return the exception
-     */
-    public static DbException getSyntaxError(String sql, int index, String message, List<String> expected) {
+    public static DbException getSyntaxError(String sql, int index, String message) {
         sql = StringUtils.addAsterisk(sql, index);
-        return new DbException(getParseJdbcSQLException(ErrorCode.SYNTAX_ERROR_2, null, index, expected, sql, message));
+        return new DbException(getJdbcSQLException(ErrorCode.SYNTAX_ERROR_2, null, sql, message));
     }
 
     /**
      * Gets a SQL exception meaning this feature is not supported.
-     * 
+     *
      * @param message what exactly is not supported
      * @return the exception
      */
@@ -222,7 +209,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Gets a SQL exception meaning this value is invalid.
-     * 
+     *
      * @param param the name of the parameter
      * @param value the value passed
      * @return the IllegalArgumentException object
@@ -235,7 +222,7 @@ public class DbException extends RuntimeException {
      * Throw an internal error. This method seems to return an exception object,
      * so that it can be used instead of 'return', but in fact it always throws
      * the exception.
-     * 
+     *
      * @param s the message
      * @return the RuntimeException object
      * @throws RuntimeException the exception
@@ -250,7 +237,7 @@ public class DbException extends RuntimeException {
      * Throw an internal error. This method seems to return an exception object,
      * so that it can be used instead of 'return', but in fact it always throws
      * the exception.
-     * 
+     *
      * @return the RuntimeException object
      */
     public static RuntimeException throwInternalError() {
@@ -259,7 +246,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Convert an exception to a SQL exception using the default mapping.
-     * 
+     *
      * @param e the root cause
      * @return the SQL exception object
      */
@@ -274,7 +261,7 @@ public class DbException extends RuntimeException {
      * Convert a throwable to an SQL exception using the default mapping. All
      * errors except the following are re-thrown: StackOverflowError,
      * LinkageError.
-     * 
+     *
      * @param e the root cause
      * @return the exception object
      */
@@ -299,7 +286,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Convert an InvocationTarget exception to a database exception.
-     * 
+     *
      * @param te the root cause
      * @param message the added message or null
      * @return the database exception object
@@ -315,7 +302,7 @@ public class DbException extends RuntimeException {
 
     /**
      * Convert an IO exception to a database exception.
-     * 
+     *
      * @param e the root cause
      * @param message the message or null
      * @return the database exception object
@@ -333,41 +320,21 @@ public class DbException extends RuntimeException {
 
     /**
      * Gets the SQL exception object for a specific error code.
-     * 
+     *
      * @param errorCode the error code
      * @param cause the cause of the exception
      * @param params the list of parameters of the message
      * @return the SQLException object
      */
     private static JdbcSQLException getJdbcSQLException(int errorCode, Throwable cause, String... params) {
-        return getParseJdbcSQLException(errorCode, cause, 0, null, params);
-    }
-
-    /**
-     * Gets the SQL exception object for a specific error code.
-     * 
-     * @param errorCode the error code
-     * @param cause the cause of the exception
-     * @param syntaxErrorPosition Syntax error character index
-     * @param expectedTokens H2 parser expected tokens
-     * @param params the list of parameters of the message
-     * @return the SQLException object
-     */
-    private static JdbcSQLException getParseJdbcSQLException(int errorCode, Throwable cause, int syntaxErrorPosition,
-            List<String> expectedTokens, String... params) {
         String sqlstate = ErrorCode.getState(errorCode);
         String message = translate(sqlstate, params);
-        if (expectedTokens == null) {
-            return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);
-        } else {
-            return new JdbcParseSQLException(message, null, sqlstate, errorCode, cause, null, expectedTokens,
-                    syntaxErrorPosition);
-        }
+        return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);
     }
 
     /**
      * Convert an exception to an IO exception.
-     * 
+     *
      * @param e the root cause
      * @return the IO exception
      */

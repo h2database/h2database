@@ -448,6 +448,10 @@ Set the query timeout of the current session to the given value."
 SET REFERENTIAL_INTEGRITY { TRUE | FALSE }
 ","
 Disabled or enables referential integrity checking for the whole database."
+"Commands (Other)","SET RETENTION_TIME","
+SET RETENTION_TIME int
+","
+This property is only used when using the MVStore storage engine."
 "Commands (Other)","SET SALT HASH","
 SET SALT bytes HASH bytes
 ","

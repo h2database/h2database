@@ -12,6 +12,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,6 +23,8 @@ public class QueryStatisticsData {
     private static final int MAX_QUERY_ENTRIES = 100;
 
     public static final class QueryEntry {
+        public String sqlStatement;
+
         public long lastUpdateTime;
         public int count;
         public long executionTimeMin;
@@ -64,6 +67,7 @@ public class QueryStatisticsData {
         QueryEntry entry = map.get(sqlStatement);
         if (entry == null) {
             entry = new QueryEntry();
+            entry.sqlStatement = sqlStatement;
             entry.count = 1;
             entry.executionTimeMin = executionTime;
             entry.executionTimeMax = executionTime;
@@ -113,9 +117,13 @@ public class QueryStatisticsData {
         }
     }
     
-    public synchronized HashMap<String, QueryEntry> getQueryMap() {
+    public synchronized List<QueryEntry> getQueries() {
         // return a copy of the map so we don't have to worry about external synchronization
-        return new HashMap<String, QueryEntry>(map);
+        ArrayList<QueryEntry> list = new ArrayList<QueryEntry>();
+        list.addAll(map.values());
+        // only return the newest 100 entries
+        Collections.sort(list, QUERY_ENTRY_COMPARATOR);
+        return list.subList(0, Math.min(list.size(), MAX_QUERY_ENTRIES));
     }
 
     private static final Comparator<QueryEntry> QUERY_ENTRY_COMPARATOR = new Comparator<QueryEntry>() {

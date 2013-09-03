@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -1642,12 +1641,10 @@ public class MetaTable extends Table {
         case QUERY_STATISTICS: {
             QueryStatisticsData control = database.getQueryStatisticsData();
             if (control != null) {
-                HashMap<String, QueryStatisticsData.QueryEntry> map = control.getQueryMap();
-                for (Map.Entry<String, QueryStatisticsData.QueryEntry> mapEntry : map.entrySet()) {
-                    QueryStatisticsData.QueryEntry entry = mapEntry.getValue();
+                for (QueryStatisticsData.QueryEntry entry : control.getQueries()) {
                     add(rows,
                             // SQL_STATEMENT
-                            mapEntry.getKey(),
+                            entry.sqlStatement,
                             // EXECUTION_COUNT
                             "" + entry.count,
                             // MIN_EXECUTION_TIME

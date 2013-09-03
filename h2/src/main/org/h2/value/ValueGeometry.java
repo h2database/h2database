@@ -220,7 +220,7 @@ public class ValueGeometry extends Value {
         }
         return 2;
     }
-    
+
     /**
      * Convert a Well-Known-Text to a Geometry object.
      *

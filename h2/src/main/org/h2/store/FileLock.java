@@ -83,7 +83,7 @@ public class FileLock implements Runnable {
      * Whether the file is locked.
      */
     private volatile boolean locked;
-    
+
     /**
      * The number of milliseconds to sleep after checking a file.
      */

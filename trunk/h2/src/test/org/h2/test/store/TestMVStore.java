@@ -47,7 +47,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
-
+        testCompactFully();
         testBackgroundExceptionListener();
         testOldVersion();
         testAtomicOperations();
@@ -90,6 +90,30 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+
+    private void testCompactFully() throws Exception {
+        String fileName = getBaseDir() + "/testCompactFully.h3";
+        FileUtils.delete(fileName);
+        MVStore s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        MVMap<Integer, String> m;
+        for (int i = 0; i < 10; i++) {
+            m = s.openMap("data" + i);
+            m.put(0, "Hello World");
+            s.store();
+        }
+        for (int i = 0; i < 10; i += 2) {
+            m = s.openMap("data" + i);
+            m.removeMap();
+            s.store();
+        }
+        long sizeOld = s.getFile().size();
+        s.compactMoveChunks();
+        long sizeNew = s.getFile().size();
+        assertTrue("old: " + sizeOld + " new: " + sizeNew, sizeNew < sizeOld);
+        s.close();
     }
 
     private void testBackgroundExceptionListener() throws Exception {
@@ -1221,7 +1245,7 @@ public class TestMVStore extends TestBase {
         }
         s.close();
     }
-    
+
     private void testCompactMapNotOpen() {
         String fileName = getBaseDir() + "/testCompactNotOpen.h3";
         FileUtils.delete(fileName);
@@ -1235,10 +1259,10 @@ public class TestMVStore extends TestBase {
             s.store();
         }
         s.close();
-        
+
         s = openStore(fileName);
         s.setRetentionTime(0);
-        
+
         Map<String, String> meta = s.getMetaMap();
         int chunkCount1 = 0;
         for (String k : meta.keySet()) {

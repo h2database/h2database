@@ -8,7 +8,6 @@ package org.h2.test.store;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,7 +21,8 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.mvstore.MVStoreTool;
+import org.h2.mvstore.MVStore;
+import org.h2.mvstore.db.TransactionStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
@@ -47,8 +47,9 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        ;;
+        // testTransactionLogUsuallyNotStored();
         testShrinkDatabaseFile();
-        testTransactionLogUsuallyNotStored();
         testTwoPhaseCommit();
         testRecover();
         testSeparateKey();
@@ -66,6 +67,35 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testTransactionLogUsuallyNotStored() throws Exception {
+        int todo;
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore;MV_STORE=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id identity, name varchar)");
+        conn.setAutoCommit(false);
+        for (int j = 0; j < 100; j++) {
+            for (int i = 0; i < 100; i++) {
+                stat.execute("insert into test(name) values('Hello World')");
+            }
+            conn.commit();
+        }
+        stat.execute("shutdown immediately");
+        JdbcUtils.closeSilently(conn);
+        
+        String file = getBaseDir() + "/mvstore" + Constants.SUFFIX_MV_FILE;
+        
+        MVStore store = MVStore.open(file);
+        TransactionStore t = new TransactionStore(store);
+        assertEquals(0, t.getOpenTransactions().size());
+        
+        store.close();
     }
 
     private void testShrinkDatabaseFile() throws Exception {
@@ -88,7 +118,7 @@ public class TestMVTableEngine extends TestBase {
                 retentionTime = 0;
             }
             ResultSet rs = stat.executeQuery(
-                    "select value from information_schema.settings " + 
+                    "select value from information_schema.settings " +
                     "where name='RETENTION_TIME'");
             assertTrue(rs.next());
             assertEquals(retentionTime, rs.getInt(1));
@@ -104,21 +134,15 @@ public class TestMVTableEngine extends TestBase {
                 fail(i + " size: " + size + " max: " + maxSize);
             }
         }
-        int todo;
-//        conn = getConnection(dbName);
-//        stat = conn.createStatement();
-//        stat.execute("shutdown compact");
-//        conn.close();
-//        
-//        MVStoreTool.dump(getBaseDir() + "/mvstore.mv.db", new PrintWriter(System.out));
-//        
-//        long size = FileUtils.size(getBaseDir() + "/mvstore"
-//                + Constants.SUFFIX_MV_FILE);
-//        assertTrue(size < 16 * 1024);
-    }
-
-    private void testTransactionLogUsuallyNotStored() {
-        int todo;
+        long sizeOld = FileUtils.size(getBaseDir() + "/mvstore"
+                + Constants.SUFFIX_MV_FILE);
+        conn = getConnection(dbName);
+        stat = conn.createStatement();
+        stat.execute("shutdown compact");
+        conn.close();
+        long sizeNew = FileUtils.size(getBaseDir() + "/mvstore"
+                + Constants.SUFFIX_MV_FILE);
+        assertTrue(sizeNew < sizeOld);
     }
 
     private void testTwoPhaseCommit() throws Exception {

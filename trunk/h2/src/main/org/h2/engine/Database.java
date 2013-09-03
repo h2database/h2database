@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.JavaObjectSerializer;
-import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constant.DbSettings;
@@ -1255,7 +1254,7 @@ public class Database implements DataHandler {
         if (mvStore != null) {
             if (!readOnly) {
                 if (compactMode != 0) {
-                    mvStore.compact(compactMode == CommandInterface.SHUTDOWN_DEFRAG);
+                    mvStore.compact();
                 }
             }
             mvStore.close();
@@ -1774,11 +1773,11 @@ public class Database implements DataHandler {
             mvStore.setWriteDelay(value);
         }
     }
-    
+
     public int getRetentionTime() {
         return retentionTime;
     }
-    
+
     public void setRetentionTime(int value) {
         retentionTime = value;
         if (mvStore != null) {
@@ -2093,18 +2092,17 @@ public class Database implements DataHandler {
     }
     
     public QueryStatisticsData getQueryStatisticsData() {
-        if (queryStatistics) {
-            if (queryStatisticsData == null) {
-                synchronized (this) {
-                    if (queryStatisticsData == null) {
-                        queryStatisticsData = new QueryStatisticsData();
-                    }
-                }
-            }
-            return queryStatisticsData;
-        } else {
+        if (!queryStatistics) {
             return null;
         }
+        if (queryStatisticsData == null) {
+            synchronized (this) {
+                if (queryStatisticsData == null) {
+                    queryStatisticsData = new QueryStatisticsData();
+                }
+            }
+        }
+        return queryStatisticsData;
     }
     
     /**

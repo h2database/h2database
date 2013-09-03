@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.h2.api.TableEngine;
-import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
@@ -169,11 +168,13 @@ public class MVTableEngine implements TableEngine {
          * Store all pending changes.
          */
         public void store() {
-            if (!store.isReadOnly()) {
-                store.commit();
-                store.compact(50);
-                store.store();
+            if (store.isReadOnly()) {
+                return;
             }
+            int todo;
+            store.commit();
+            store.compact(50);
+            store.store();
         }
 
         /**
@@ -248,7 +249,7 @@ public class MVTableEngine implements TableEngine {
         public InputStream getInputStream() {
             return new FileChannelInputStream(store.getFile(), false);
         }
-        
+
         /**
          * Force the changes to disk.
          */
@@ -261,14 +262,11 @@ public class MVTableEngine implements TableEngine {
             }
         }
 
-        public void compact(boolean defrag) {
-            sync();
-            store.setRetentionTime(0);
+        public void compact() {
             while (store.compact(90)) {
-                System.out.println("compact");
-                sync();
+                // repeat
             }
-            System.out.println("compact done");
+            store.compactMoveChunks();
         }
 
     }

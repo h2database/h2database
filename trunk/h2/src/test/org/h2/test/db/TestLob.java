@@ -271,7 +271,7 @@ public class TestLob extends TestBase {
         };
         task.execute();
         stat.execute("create table test2(id int primary key, name clob)");
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
             stat.execute("delete from test2");
             stat.execute("insert into test2 values(1, space(10000 + " + i + "))");
         }
@@ -366,34 +366,18 @@ public class TestLob extends TestBase {
         Connection conn = getDeadlock2Connection();
         Statement stat = conn.createStatement();
         stat.execute("create cached table test(id int not null identity, name clob, counter int)");
-        stat.execute("insert into test(id, name) select x, space(100000) from system_range(1, 1000)");
+        stat.execute("insert into test(id, name) select x, space(100000) from system_range(1, 100)");
         Deadlock2Task1 task1 = new Deadlock2Task1();
-        Deadlock2Task1 task2 = new Deadlock2Task1();
-        Deadlock2Task1 task3 = new Deadlock2Task1();
-        Deadlock2Task1 task4 = new Deadlock2Task1();
-        Deadlock2Task2 task5 = new Deadlock2Task2();
-        Deadlock2Task2 task6 = new Deadlock2Task2();
+        Deadlock2Task2 task2 = new Deadlock2Task2();
         task1.execute("task1");
         task2.execute("task2");
-        task3.execute("task3");
-        task4.execute("task4");
-        task5.execute("task5");
-        task6.execute("task6");
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
             stat.execute("insert into test values(null, space(10000 + " + i + "), 1)");
         }
         task1.get();
         task1.conn.close();
         task2.get();
         task2.conn.close();
-        task3.get();
-        task3.conn.close();
-        task4.get();
-        task4.conn.close();
-        task5.get();
-        task5.conn.close();
-        task6.get();
-        task6.conn.close();
         conn.close();
     }
 
@@ -694,25 +678,25 @@ public class TestLob extends TestBase {
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
         stat.execute("create table test(data clob)");
-        
+
         ResultSet rs = stat.executeQuery("select count(*) from INFORMATION_SCHEMA.LOBS");
         assertTrue(rs.next());
         assertEquals(0, rs.getInt(1));
         rs.close();
-        
+
         PreparedStatement prep = conn.prepareStatement("INSERT INTO test(data) VALUES(?)");
-        final String name = "A veeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeery long string generated only to insert enough data to reproduce the increasing db size PITA ";
+        String name = new String(new char[200]).replace((char) 0, 'x');
         prep.setString(1, name);
         prep.execute();
         prep.close();
-        
+
         rs = stat.executeQuery("select count(*) from INFORMATION_SCHEMA.LOBS");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         rs.close();
         conn.close();
     }
-    
+
     private void testLobServerMemory() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");

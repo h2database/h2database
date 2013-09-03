@@ -123,6 +123,10 @@ MVStore:
 - temporary file storage
 - simple rollback method (rollback to last committed version)
 - MVMap to implement SortedMap, then NavigableMap
+- add abstraction ChunkStore,
+    with free space handling, retention time / flush,
+    possibly one file per chunk to support SSD trim on file system level,
+    and free up memory for off-heap storage)
 
 */
 
@@ -850,6 +854,9 @@ public class MVStore {
      * @return the new version (incremented if there were changes)
      */
     public long store() {
+;
+new Exception().printStackTrace(System.out);        
+        
         checkOpen();
         return store(false);
     }
@@ -1036,11 +1043,11 @@ public class MVStore {
         }
         return version;
     }
-    
+
     /**
      * Get a buffer for writing. This caller must synchronize on the store
      * before calling the method and until after using the buffer.
-     * 
+     *
      * @return the buffer
      */
     private ByteBuffer getWriteBuffer() {
@@ -1057,7 +1064,7 @@ public class MVStore {
     /**
      * Release a buffer for writing. This caller must synchronize on the store
      * before calling the method and until after using the buffer.
-     * 
+     *
      * @param buff the buffer than can be re-used
      */
     private void releaseWriteBuffer(ByteBuffer buff) {
@@ -1101,6 +1108,10 @@ public class MVStore {
                     Map<Integer, Chunk> freed = freedPages.get(v);
                     for (Chunk f : freed.values()) {
                         Chunk c = chunks.get(f.id);
+                        if (c == null) {
+                            // already removed
+                            continue;
+                        }
                         c.maxLengthLive += f.maxLengthLive;
                         c.pageCountLive += f.pageCountLive;
                         if (c.pageCountLive < 0) {
@@ -1213,10 +1224,12 @@ public class MVStore {
         buff.rewind();
         return Chunk.fromHeader(buff, start);
     }
-    
+
     /**
      * Compact the store by moving all chunks next to each other, if there is
      * free space between chunks. This might temporarily double the file size.
+     * Chunks are overwritten irrespective of the current retention time. Before
+     * overwriting chunks and before resizing the file, syncFile() is called.
      * 
      * @return if anything was written
      */
@@ -1225,6 +1238,23 @@ public class MVStore {
         if (chunks.size() == 0) {
             // nothing to do
             return false;
+        }
+        int oldRetentionTime = retentionTime;
+        retentionTime = 0;
+        long time = getTime();
+        ArrayList<Chunk> free = New.arrayList();
+        for (Chunk c : chunks.values()) {
+            if (c.maxLengthLive == 0) {
+                if (canOverwriteChunk(c, time)) {
+                    free.add(c);
+                }
+            }
+        }
+        for (Chunk c : free) {
+            chunks.remove(c.id);
+            meta.remove("chunk." + c.id);
+            int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
+            freeSpace.free(c.start, length);
         }
         if (freeSpace.getFillRate() == 100) {
             return false;
@@ -1266,12 +1296,15 @@ public class MVStore {
         reuseSpace = false;
         store();
         
+        syncFile();
+
         // now re-use the empty space
         reuseSpace = true;
         for (Chunk c : move) {
             ByteBuffer buff = getWriteBuffer();
             int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
             buff = DataUtils.ensureCapacity(buff, length);
+            buff.limit(length);
             DataUtils.readFully(file, c.start, buff);
             long pos = freeSpace.allocate(length);
             freeSpace.free(c.start, length);
@@ -1283,7 +1316,6 @@ public class MVStore {
             buff.put(header);
             // fill the header with zeroes
             buff.put(new byte[BLOCK_SIZE - header.length]);
-            buff.limit(length);
             buff.position(0);
             fileWriteCount++;
             DataUtils.writeFully(file, pos, buff);
@@ -1291,11 +1323,30 @@ public class MVStore {
             releaseWriteBuffer(buff);
             meta.put("chunk." + c.id, c.asString());
         }
-        
+
         // update the metadata (within the file)
         store();
+        syncFile();
+        shrinkFileIfPossible(0);
+
         reuseSpace = oldReuse;
+        retentionTime = oldRetentionTime;
+
         return true;
+    }
+    
+    /**
+     * Force all changes to be written to the file. The default implementation
+     * calls FileChannel.force(true).
+     */
+    public void syncFile() {
+        try {
+            file.force(true);
+        } catch (IOException e) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_WRITING_FAILED,
+                    "Could not sync file {0}", fileName, e);
+        }
     }
 
     /**
@@ -1306,7 +1357,7 @@ public class MVStore {
      * Only data of open maps can be moved. For maps that are not open, the old
      * chunk is still referenced. Therefore, it is recommended to open all maps
      * before calling this method.
-     * 
+     *
      * @param fillRate the minimum percentage of live entries
      * @return if anything was written
      */
@@ -1327,7 +1378,7 @@ public class MVStore {
         }
         // the fill rate of all chunks combined
         int totalChunkFillRate = (int) (100 * maxLengthLiveSum / maxLengthSum);
-        
+
         if (totalChunkFillRate > fillRate) {
             return false;
         }

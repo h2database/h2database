@@ -39,17 +39,24 @@ public class TestMVStoreBenchmark extends TestBase {
         if (!config.big) {
             return;
         }
+        if (config.coverage || config.codeCoverage) {
+            // run only when _not_ using a code coverage tool,
+            // because the tool might instrument our code but not
+            // java.util.*
+            return;
+        }
+        
         testPerformanceComparison();
         testMemoryUsageComparison();
     }
-    
+
     private void testMemoryUsageComparison() {
         long[] mem;
         long hash, tree, mv;
         String msg;
-        
+
         mem = getMemoryUsed(10000, 10);
-        hash = mem[0]; 
+        hash = mem[0];
         tree = mem[1];
         mv = mem[2];
         msg = Arrays.toString(mem);
@@ -65,12 +72,12 @@ public class TestMVStoreBenchmark extends TestBase {
         assertTrue(msg, mv < tree);
 
     }
-    
+
     private static long[] getMemoryUsed(int count, int size) {
         long hash, tree, mv;
         ArrayList<Map<Integer, String>> mapList;
         long mem;
-        
+
         mapList = New.arrayList();
         mem = getMemory();
         for (int i = 0; i < count; i++) {
@@ -79,7 +86,7 @@ public class TestMVStoreBenchmark extends TestBase {
         addEntries(mapList, size);
         hash = getMemory() - mem;
         mapList.size();
-        
+
         mapList = New.arrayList();
         mem = getMemory();
         for (int i = 0; i < count; i++) {
@@ -91,7 +98,7 @@ public class TestMVStoreBenchmark extends TestBase {
 
         mapList = New.arrayList();
         mem = getMemory();
-        MVStore store = MVStore.open(null);        
+        MVStore store = MVStore.open(null);
         for (int i = 0; i < count; i++) {
             Map<Integer, String> map = store.openMap("t" + i);
             mapList.add(map);
@@ -99,10 +106,10 @@ public class TestMVStoreBenchmark extends TestBase {
         addEntries(mapList, size);
         mv = getMemory() - mem;
         mapList.size();
-        
+
         return new long[]{hash, tree, mv};
     }
-    
+
     private static void addEntries(List<Map<Integer, String>> mapList, int size) {
         for (Map<Integer, String> map : mapList) {
             for (int i = 0; i < size; i++) {
@@ -110,7 +117,7 @@ public class TestMVStoreBenchmark extends TestBase {
             }
         }
     }
-    
+
     static long getMemory() {
         try {
             LinkedList<byte[]> list = new LinkedList<byte[]>();
@@ -130,7 +137,7 @@ public class TestMVStoreBenchmark extends TestBase {
         }
         return getMemoryUsedBytes();
     }
-    
+
     private void testPerformanceComparison() {
         if (!config.big) {
             return;
@@ -144,14 +151,12 @@ public class TestMVStoreBenchmark extends TestBase {
         MVStore store = MVStore.open(null);
         map = store.openMap("test");
         long mv = testPerformance(map, size);
-        String msg = "mv " + mv + " tree " + tree + " hash " + hash;  
+        String msg = "mv " + mv + " tree " + tree + " hash " + hash;
         assertTrue(msg, hash < tree);
         assertTrue(msg, hash < mv);
-        int todo;
-        // check only when _not_ using a code coverage tool
-        // assertTrue(msg, mv < tree);
+        assertTrue(msg, mv < tree);
     }
-    
+
     private long testPerformance(Map<Integer, String> map, int size) {
         System.gc();
         long time = 0;

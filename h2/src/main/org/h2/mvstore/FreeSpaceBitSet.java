@@ -144,7 +144,7 @@ public class FreeSpaceBitSet {
     /**
      * Get the fill rate of the space in percent. The value 0 means the space is
      * completely free, and 100 means it is completely full.
-     * 
+     *
      * @return the fill rate (0 - 100)
      */
     public int getFillRate() {
@@ -159,10 +159,10 @@ public class FreeSpaceBitSet {
         }
         return Math.max(1, (int) (100L * count / total));
     }
-    
+
     /**
      * Get the position of the first free space.
-     * 
+     *
      * @return the position.
      */
     public long getFirstFree() {

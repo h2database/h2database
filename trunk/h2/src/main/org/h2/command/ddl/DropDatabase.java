@@ -64,7 +64,7 @@ public class DropDatabase extends DefineCommand {
                 db.removeSchemaObject(session, t);
             }
         }
-        
+
         // There can be dependencies between tables e.g. using computed columns,
         // so we might need to loop over them multiple times.
         boolean runLoopAgain = false;
@@ -80,7 +80,7 @@ public class DropDatabase extends DefineCommand {
                 }
             }
         } while (runLoopAgain);
-        
+
         for (Table t : tables) {
             if (t.getName() != null && Table.EXTERNAL_TABLE_ENGINE.equals(t.getTableType()) && !t.isHidden()) {
                 db.removeSchemaObject(session, t);

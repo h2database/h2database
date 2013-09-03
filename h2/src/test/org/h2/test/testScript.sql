@@ -4,7 +4,7 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
-call regexp_replace('x', 'x', '\'); 
+call regexp_replace('x', 'x', '\');
 > exception
 
 select * from dual where x = x + 1 or x in(2, 0);

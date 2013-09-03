@@ -117,7 +117,12 @@ public interface SessionInterface extends Closeable {
      * @param autoCommit the new value
      */
     void setAutoCommit(boolean autoCommit);
-    
+
+    /**
+     * Add a temporary LOB, which is closed when the session commits.
+     *
+     * @param v the value
+     */
     void addTemporaryLob(Value v);
 
 }

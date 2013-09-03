@@ -850,6 +850,11 @@ public class Session extends SessionWithState {
         firstUncommittedPos = Session.LOG_WRITTEN;
     }
 
+    /**
+     * Whether the session contains any uncommitted changes.
+     *
+     * @return true if yes
+     */
     public boolean containsUncommitted() {
         return firstUncommittedLog != Session.LOG_WRITTEN;
     }
@@ -1390,10 +1395,11 @@ public class Session extends SessionWithState {
         startStatement = -1;
         closeTemporaryResults();
     }
-    
+
+    @Override
     public void addTemporaryLob(Value v) {
         if (temporaryLobs == null) {
-            temporaryLobs = new ArrayList<Value>();                    
+            temporaryLobs = new ArrayList<Value>();
         }
         temporaryLobs.add(v);
     }

@@ -225,7 +225,7 @@ public class MVStore {
     private int fileReadCount;
     private int fileWriteCount;
     private int unsavedPageCount;
-    private int maxUnsavedPages;
+    private int unsavedPageCountMax;
 
     /**
      * The time the store was created, in milliseconds since 1970.
@@ -255,7 +255,7 @@ public class MVStore {
     /**
      * The delay in milliseconds to automatically store changes.
      */
-    private int writeDelay = 1000;
+    private int writeDelay;
 
     MVStore(HashMap<String, Object> config) {
         String f = (String) config.get("fileName");
@@ -285,9 +285,8 @@ public class MVStore {
             o = config.get("writeBufferSize");
             mb = o == null ? 4 : (Integer) o;
             int writeBufferSize =  mb * 1024 * 1024;
-            maxUnsavedPages = writeBufferSize / pageSplitSize;
-            o = config.get("writeDelay");
-            writeDelay = o == null ? 1000 : (Integer) o;
+            int div = pageSplitSize;
+            unsavedPageCountMax = writeBufferSize / (div == 0 ? 1 : div);
         } else {
             cache = null;
             filePassword = null;
@@ -501,7 +500,10 @@ public class MVStore {
             rollbackTo(rollback);
         }
         this.lastCommittedVersion = currentVersion;
-        setWriteDelay(writeDelay);
+        
+        // setWriteDelay starts the thread, but only if
+        // the parameter is different than the current value
+        setWriteDelay(1000);
     }
 
     /**
@@ -854,9 +856,6 @@ public class MVStore {
      * @return the new version (incremented if there were changes)
      */
     public long store() {
-;
-new Exception().printStackTrace(System.out);        
-        
         checkOpen();
         return store(false);
     }
@@ -1705,6 +1704,17 @@ new Exception().printStackTrace(System.out);
     }
 
     /**
+     * Get the maximum number of unsaved pages. If this number is exceeded,
+     * the unsaved changes are stored to disk, including uncommitted changes.
+     * Saved uncommitted changes are rolled back when opening the store.
+     *
+     * @return the number of maximum unsaved pages
+     */
+    public int getUnsavedPageCountMax() {
+        return unsavedPageCountMax;
+    }
+
+    /**
      * Increment the number of unsaved pages.
      */
     void registerUnsavedPage() {
@@ -1719,7 +1729,7 @@ new Exception().printStackTrace(System.out);
             // store is possibly called within store, if the meta map changed
             return;
         }
-        if (unsavedPageCount > maxUnsavedPages && maxUnsavedPages > 0) {
+        if (unsavedPageCount > unsavedPageCountMax && unsavedPageCountMax > 0) {
             store(true);
         }
     }
@@ -2041,13 +2051,34 @@ new Exception().printStackTrace(System.out);
             // ignore
         }
     }
-
-    public void setWriteDelay(int value) {
-        writeDelay = value;
+    
+    /**
+     * Set the maximum delay in milliseconds to store committed changes (for
+     * file-based stores).
+     * <p>
+     * The default is 1000, meaning committed changes are stored after at
+     * most one second.
+     * <p>
+     * When the value is set to -1, committed changes are only written when
+     * calling the store method. When the value is set to 0, committed
+     * changes are immediately written on a commit, but please note this
+     * decreases performance and does still not guarantee the disk will
+     * actually write the data.
+     *
+     * @param millis the maximum delay
+     */
+    public void setWriteDelay(int millis) {
+        if (writeDelay == millis) {
+            return;
+        }
+        writeDelay = millis;
+        if (file == null) {
+            return;
+        }
         stopBackgroundThread();
         // start the background thread if needed
-        if (value > 0) {
-            int sleep = Math.max(1, value / 10);
+        if (millis > 0) {
+            int sleep = Math.max(1, millis / 10);
             Writer w = new Writer(this, sleep);
             Thread t = new Thread(w, "MVStore writer " + fileName);
             t.setDaemon(true);
@@ -2184,26 +2215,6 @@ new Exception().printStackTrace(System.out);
          */
         public Builder writeBufferSize(int mb) {
             return set("writeBufferSize", mb);
-        }
-
-        /**
-         * Set the maximum delay in milliseconds to store committed changes (for
-         * file-based stores).
-         * <p>
-         * The default is 1000, meaning committed changes are stored after at
-         * most one second.
-         * <p>
-         * When the value is set to -1, committed changes are only written when
-         * calling the store method. When the value is set to 0, committed
-         * changes are immediately written on a commit, but please note this
-         * decreases performance and does still not guarantee the disk will
-         * actually write the data.
-         *
-         * @param millis the maximum delay
-         * @return this
-         */
-        public Builder writeDelay(int millis) {
-            return set("writeDelay", millis);
         }
 
         /**

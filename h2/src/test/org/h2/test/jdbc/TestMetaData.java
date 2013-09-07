@@ -1010,7 +1010,8 @@ public class TestMetaData extends TestBase {
         stat.execute("SET QUERY_STATISTICS TRUE");
         stat.execute("select * from test limit 10");
         stat.execute("select * from test limit 10");
-        // The "order by" makes the resultset more stable on windows, where the timer resolution is not that great 
+        // The "order by" makes the result set more stable on windows, where the
+        // timer resolution is not that great
         rs = stat.executeQuery("select * from INFORMATION_SCHEMA.QUERY_STATISTICS ORDER BY EXECUTION_COUNT");
         assertTrue(rs.next());
         assertEquals("select * from test limit 10", rs.getString("SQL_STATEMENT"));

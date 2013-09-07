@@ -47,8 +47,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
-        ;;
-        // testTransactionLogUsuallyNotStored();
+        testTransactionLogUsuallyNotStored();
         testShrinkDatabaseFile();
         testTwoPhaseCommit();
         testRecover();
@@ -70,7 +69,6 @@ public class TestMVTableEngine extends TestBase {
     }
     
     private void testTransactionLogUsuallyNotStored() throws Exception {
-        int todo;
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
@@ -80,9 +78,11 @@ public class TestMVTableEngine extends TestBase {
         stat = conn.createStatement();
         stat.execute("create table test(id identity, name varchar)");
         conn.setAutoCommit(false);
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test(name) values(space(10000))");
         for (int j = 0; j < 100; j++) {
             for (int i = 0; i < 100; i++) {
-                stat.execute("insert into test(name) values('Hello World')");
+                prep.execute();
             }
             conn.commit();
         }
@@ -94,7 +94,6 @@ public class TestMVTableEngine extends TestBase {
         MVStore store = MVStore.open(file);
         TransactionStore t = new TransactionStore(store);
         assertEquals(0, t.getOpenTransactions().size());
-        
         store.close();
     }
 
@@ -129,7 +128,7 @@ public class TestMVTableEngine extends TestBase {
             long size = FileUtils.size(getBaseDir() + "/mvstore"
                     + Constants.SUFFIX_MV_FILE);
             if (i < 10) {
-                maxSize = (int) (Math.max(size, maxSize) * 1.1);
+                maxSize = (int) (Math.max(size, maxSize) * 1.2);
             } else if (size > maxSize) {
                 fail(i + " size: " + size + " max: " + maxSize);
             }

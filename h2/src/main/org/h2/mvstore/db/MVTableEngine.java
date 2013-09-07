@@ -171,7 +171,6 @@ public class MVTableEngine implements TableEngine {
             if (store.isReadOnly()) {
                 return;
             }
-            int todo;
             store.commit();
             store.compact(50);
             store.store();
@@ -185,22 +184,6 @@ public class MVTableEngine implements TableEngine {
                 return;
             }
             store.closeImmediately();
-        }
-
-        /**
-         * Close the store. Pending changes are persisted.
-         */
-        public void close() {
-            if (!store.isClosed()) {
-                if (!store.isReadOnly()) {
-                    store.store();
-                }
-                store.close();
-            }
-        }
-
-        public void setWriteDelay(int value) {
-            store.setWriteDelay(value);
         }
 
         /**
@@ -262,11 +245,48 @@ public class MVTableEngine implements TableEngine {
             }
         }
 
-        public void compact() {
+        /**
+         * Compact the database file, that is, compact blocks that have a low
+         * fill rate, and move chunks next to each other. This will typically
+         * shrink the database file. Changes are flushed to the file, and old
+         * chunks are overwritten.
+         * 
+         * @param maxCompactTime the maximum time in milliseconds to compact
+         */
+        public void compactFile(long maxCompactTime) {
+            store.setRetentionTime(0);
+            long start = System.currentTimeMillis();
             while (store.compact(90)) {
-                // repeat
+                store.syncFile();
+                long time = System.currentTimeMillis() - start;
+                if (time > maxCompactTime) {
+                    break;
+                }
             }
             store.compactMoveChunks();
+        }
+        
+        /**
+         * Close the store. Pending changes are persisted. Chunks with a low
+         * fill rate are compacted, but old chunks are kept for some time, so
+         * most likely the database file will not shrink.
+         * 
+         * @param maxCompactTime the maximum time in milliseconds to compact
+         */
+        public void close(long maxCompactTime) {
+            if (!store.isClosed()) {
+                if (!store.isReadOnly()) {
+                    store.store();
+                    long start = System.currentTimeMillis();
+                    while (store.compact(90)) {
+                        long time = System.currentTimeMillis() - start;
+                        if (time > maxCompactTime) {
+                            break;
+                        }
+                    }
+                }
+                store.close();
+            }
         }
 
     }

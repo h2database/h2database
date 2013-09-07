@@ -607,7 +607,11 @@ public class Database implements DataHandler {
                 getPageStore();
             }
             starting = false;
-            writer = WriterThread.create(this, writeDelay);
+            if (mvStore == null) {
+                writer = WriterThread.create(this, writeDelay);
+            } else {
+                setWriteDelay(writeDelay);
+            }
         } else {
             if (autoServerMode) {
                 throw DbException.getUnsupportedException("autoServerMode && inMemory");
@@ -1252,12 +1256,11 @@ public class Database implements DataHandler {
         }
         reconnectModified(false);
         if (mvStore != null) {
-            if (!readOnly) {
-                if (compactMode != 0) {
-                    mvStore.compact();
-                }
+            if (!readOnly && compactMode != 0) {
+                mvStore.compactFile(dbSettings.maxCompactTime);
+            } else {
+                mvStore.close(dbSettings.maxCompactTime);
             }
-            mvStore.close();
         }
         closeFiles();
         if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO && fileLockMethod != FileLock.LOCK_FS) {
@@ -1770,7 +1773,8 @@ public class Database implements DataHandler {
             flushOnEachCommit = writeDelay < Constants.MIN_WRITE_DELAY;
         }
         if (mvStore != null) {
-            mvStore.setWriteDelay(value);
+            int millis = value < 0 ? 0 : value;
+            mvStore.getStore().setWriteDelay(millis);
         }
     }
 

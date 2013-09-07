@@ -356,6 +356,17 @@ public class TransactionStore {
         if (store.getWriteDelay() == 0) {
             store.commit();
         }
+        // to avoid having to store the transaction log,
+        // if there is no open transaction, 
+        // and if there have been many changes, store them now
+        if (undoLog.isEmpty()) {
+            int unsaved = store.getUnsavedPageCount();
+            int max = store.getUnsavedPageCountMax();
+            // save at 3/4 capacity
+            if (unsaved * 4 > max * 3) {
+                store.store();
+            }
+        }
     }
 
     /**

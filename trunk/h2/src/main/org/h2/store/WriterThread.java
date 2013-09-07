@@ -92,8 +92,6 @@ public class WriterThread implements Runnable {
                     traceSystem.getTrace(Trace.DATABASE).error(e, "flush");
                 }
             }
-            // TODO log writer: could also flush the dirty cache
-            // when there is low activity
 
             // wait 0 mean wait forever, which is not what we want
             wait = Math.max(wait, Constants.MIN_WRITE_DELAY);

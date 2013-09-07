@@ -123,7 +123,6 @@ public class TestMVStore extends TestBase {
         final AtomicReference<Exception> exRef = new AtomicReference<Exception>();
         s = new MVStore.Builder().
                 fileName(fileName).
-                writeDelay(2).
                 backgroundExceptionListener(new ExceptionListener() {
 
                     @Override
@@ -133,6 +132,7 @@ public class TestMVStore extends TestBase {
 
                 }).
                 open();
+        s.setWriteDelay(2);
         MVMap<Integer, String> m;
         m = s.openMap("data");
         s.getFile().close();
@@ -238,23 +238,25 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, String> m;
 
         FileUtils.delete(fileName);
-        s = new MVStore.Builder().writeDelay(0).
+        s = new MVStore.Builder().
                 fileName(fileName).open();
+        s.setWriteDelay(0);
         m = s.openMap("data");
         m.put(1, "1");
         s.commit();
         s.close();
-        s = new MVStore.Builder().writeDelay(0).
+        s = new MVStore.Builder().
                 fileName(fileName).open();
+        s.setWriteDelay(0);
         m = s.openMap("data");
         assertEquals(1, m.size());
         s.close();
 
         FileUtils.delete(fileName);
         s = new MVStore.Builder().
-                writeDelay(1).
                 fileName(fileName).
                 open();
+        s.setWriteDelay(1);
         m = s.openMap("data");
         m.put(1, "Hello");
         s.store();
@@ -264,9 +266,9 @@ public class TestMVStore extends TestBase {
         // must not store, as nothing has been committed yet
         s.closeImmediately();
         s = new MVStore.Builder().
-                writeDelay(1).
                 fileName(fileName).
                 open();
+        s.setWriteDelay(1);
         m = s.openMap("data");
         assertEquals(null, m.get(2));
         m.put(2, "World");

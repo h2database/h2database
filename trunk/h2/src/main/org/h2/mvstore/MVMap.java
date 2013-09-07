@@ -988,6 +988,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
     }
 
+    @Override
+    public boolean isEmpty() {
+        checkOpen();
+        return 0 == (root.isLeaf() ? root.getKeyCount() : root.getChildPageCount());
+    }
+
     public long getSize() {
         checkOpen();
         return root.getTotalCount();

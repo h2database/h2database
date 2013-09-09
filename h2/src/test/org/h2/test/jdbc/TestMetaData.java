@@ -998,12 +998,12 @@ public class TestMetaData extends TestBase {
         conn.close();
         deleteDb("metaData");
     }
-    
+
     private void testQueryStatistics() throws SQLException {
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar) as select x, space(1000) from system_range(1, 2000)");
-        
+
         ResultSet rs = stat.executeQuery("select * from INFORMATION_SCHEMA.QUERY_STATISTICS");
         assertFalse(rs.next());
         rs.close();
@@ -1015,7 +1015,7 @@ public class TestMetaData extends TestBase {
         // The "order by" makes the result set more stable on windows, where the
         // timer resolution is not that great
         rs = stat.executeQuery(
-                "select * from INFORMATION_SCHEMA.QUERY_STATISTICS " + 
+                "select * from INFORMATION_SCHEMA.QUERY_STATISTICS " +
                 "ORDER BY EXECUTION_COUNT desc");
         assertTrue(rs.next());
         assertEquals("select * from test limit 10", rs.getString("SQL_STATEMENT"));

@@ -67,7 +67,7 @@ public class TestMVTableEngine extends TestBase {
         testLocking();
         testSimple();
     }
-    
+
     private void testTransactionLogUsuallyNotStored() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -88,9 +88,9 @@ public class TestMVTableEngine extends TestBase {
         }
         stat.execute("shutdown immediately");
         JdbcUtils.closeSilently(conn);
-        
+
         String file = getBaseDir() + "/mvstore" + Constants.SUFFIX_MV_FILE;
-        
+
         MVStore store = MVStore.open(file);
         TransactionStore t = new TransactionStore(store);
         assertEquals(0, t.getOpenTransactions().size());

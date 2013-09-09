@@ -45,7 +45,7 @@ public class TestMVStoreBenchmark extends TestBase {
             // java.util.*
             return;
         }
-        
+
         testPerformanceComparison();
         testMemoryUsageComparison();
     }

@@ -2094,7 +2094,7 @@ public class Database implements DataHandler {
     public boolean getQueryStatistics() {
         return queryStatistics;
     }
-    
+
     public QueryStatisticsData getQueryStatisticsData() {
         if (!queryStatistics) {
             return null;
@@ -2108,7 +2108,7 @@ public class Database implements DataHandler {
         }
         return queryStatisticsData;
     }
-    
+
     /**
      * Check if the database is currently opening. This is true until all stored
      * SQL statements have been executed.

@@ -218,8 +218,7 @@ public class SetTypes {
      * The type of a SET QUERY_STATISTICS_ACTIVE statement.
      */
     public static final int QUERY_STATISTICS = 41;
-    
-    
+
     private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {

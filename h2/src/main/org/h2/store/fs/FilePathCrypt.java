@@ -102,9 +102,9 @@ public class FilePathCrypt extends FilePathWrapper {
     }
 
     /**
-     * Convert a char array to a byte array. The char array is cleared after
-     * use.
-     *
+     * Convert a char array to a byte array, in UTF-16 format. The char array is
+     * not cleared after use (this must be done by the caller).
+     * 
      * @param passwordChars the password characters
      * @return the byte array
      */
@@ -117,7 +117,6 @@ public class FilePathCrypt extends FilePathWrapper {
             password[i + i] = (byte) (c >>> 8);
             password[i + i + 1] = (byte) c;
         }
-        Arrays.fill(passwordChars, (char) 0);
         return password;
     }
 

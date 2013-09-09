@@ -47,6 +47,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testNewerWriteVersion();
         testCompactFully();
         testBackgroundExceptionListener();
         testOldVersion();
@@ -90,6 +91,35 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testNewerWriteVersion() throws Exception {
+        String fileName = getBaseDir() + "/testNewerWriteVersion.h3";
+        FileUtils.delete(fileName);
+        char[] passwordChars;
+        passwordChars = "007".toCharArray();
+        MVStore s = new MVStore.Builder().
+                encryptionKey(passwordChars).
+                fileName(fileName).
+                open();
+        Map<String, String> header = s.getFileHeader();
+        assertEquals("1", header.get("format"));
+        header.put("formatRead", "1");
+        header.put("format", "2");
+        MVMap<Integer, String> m = s.openMap("data");
+        m.put(0, "Hello World");
+        s.store();
+        s.close();
+        
+        passwordChars = "007".toCharArray();
+        s = new MVStore.Builder().
+                encryptionKey(passwordChars).
+                fileName(fileName).
+                open();
+        assertTrue(s.isReadOnly());
+        m = s.openMap("data");
+        assertEquals("Hello World", m.get(0));
+        s.close();        
     }
 
     private void testCompactFully() throws Exception {
@@ -343,6 +373,14 @@ public class TestMVStore extends TestBase {
         m = s.openMap("test");
         assertEquals("Hello", m.get(1));
         s.close();
+        
+        FileUtils.setReadOnly(fileName);
+        passwordChars = "007".toCharArray();
+        s = new MVStore.Builder().
+                fileName(fileName).
+                encryptionKey(passwordChars).open();
+        assertTrue(s.isReadOnly());
+        
         FileUtils.delete(fileName);
         assertFalse(FileUtils.exists(fileName));
     }

@@ -56,7 +56,6 @@ TestMVStoreDataLoss
 TransactionStore:
 
 MVStore:
-- in-place compact (first, move chunks to end of file, then move to start)
 - automated 'kill process' and 'power failure' test
 - update checkstyle
 - maybe split database into multiple files, to speed up compact
@@ -76,17 +75,20 @@ MVStore:
 - maybe let a chunk point to a list of potential next chunks
     (so no fixed location header is needed), similar to a skip list
 - support stores that span multiple files (chunks stored in other files)
-- triggers (can be implemented with a custom map)
+- triggers (can be implemented with a custom map);
+    maybe implement database indexing with triggers
 - store number of write operations per page (maybe defragment
     if much different than count)
 - r-tree: nearest neighbor search
 - support maps without values (just existence of the key)
 - support maps without keys (counted b-tree features)
-- use a small object cache (StringCache), test on Android
-- dump values (using a callback)
+- use a small object value cache (StringCache), test on Android
+    for default serialization
+- MVStoreTool.dump: dump values (using a callback)
 - map split / merge (fast if no overlap)
-- StreamStore optimization: avoid copying bytes
-- MVStoreTool.shrink to shrink a store (create, copy, rename, delete)
+    (use case: partitioning)
+- StreamStore optimization: avoid copying bytes in memory
+- Feature shrink a store (create, copy, rename, delete)
     and for MVStore on Windows, auto-detect renamed file
 - ensure data is overwritten eventually if the system doesn't have a timer
 - SSD-friendly write (always in blocks of 4 MB / 1 second?)
@@ -94,8 +96,7 @@ MVStore:
 - implement a sharded map (in one store, multiple stores)
     to support concurrent updates and writes, and very large maps
 - implement an off-heap file system
-- remove change cursor, or add support for writing to branches
-- support pluggable logging or remove log
+- add support for writing to branches
 - maybe add an optional finalizer and exit hook
     to store committed changes
 - to save space when persisting very small transactions,
@@ -119,7 +120,6 @@ MVStore:
 - to save space for small chunks, combine the last partial
     block with the header
 - off-heap storage (with lower default retention time)
-- object value cache for default serialization
 - temporary file storage
 - simple rollback method (rollback to last committed version)
 - MVMap to implement SortedMap, then NavigableMap
@@ -483,10 +483,10 @@ public class MVStore {
         }
         try {
             if (readOnly) {
-                openFile();
-            } else if (!openFile()) {
+                openFile(true);
+            } else if (!openFile(false)) {
                 readOnly = true;
-                openFile();
+                openFile(true);
             }
         } finally {
             if (filePassword != null) {
@@ -500,7 +500,7 @@ public class MVStore {
             rollbackTo(rollback);
         }
         this.lastCommittedVersion = currentVersion;
-        
+
         // setWriteDelay starts the thread, but only if
         // the parameter is different than the current value
         setWriteDelay(1000);
@@ -510,18 +510,17 @@ public class MVStore {
      * Try to open the file in read or write mode.
      *
      * @return if opening the file was successful, and false if the file could
-     *          not be opened in write mode because the write file format it too
+     *          not be opened in write mode because the write file format is too
      *          high (in which case the file can be opened in read-only mode)
      * @throw IllegalStateException if the file could not be opened
      *          because of an IOException or file format error
      */
-    private boolean openFile() {
+    private boolean openFile(boolean readOnly) {
         IllegalStateException exception;
         try {
-            log("file open");
             FilePath f = FilePath.get(fileName);
             if (f.exists() && !f.canWrite()) {
-                readOnly = true;
+                return false;
             }
             file = f.open(readOnly ? "r" : "rw");
             if (filePassword != null) {
@@ -564,8 +563,7 @@ public class MVStore {
                             "The file format {0} is larger than the supported format {1}",
                             formatRead, FORMAT_READ);
                 }
-                if (formatWrite > FORMAT_WRITE) {
-                    readOnly = true;
+                if (formatWrite > FORMAT_WRITE && !readOnly) {
                     file.close();
                     return false;
                 }
@@ -573,7 +571,7 @@ public class MVStore {
                     readMeta();
                 }
             }
-            exception = null;
+            return true;
         } catch (IOException e) {
             exception = DataUtils.newIllegalStateException(
                     DataUtils.ERROR_READING_FAILED,
@@ -581,17 +579,13 @@ public class MVStore {
         } catch (IllegalStateException e) {
             exception = e;
         }
-        if (exception != null) {
-            try {
-                closeFile(false);
-            } catch (Exception e2) {
-                // ignore
-            }
-            throw exception;
+        try {
+            closeFile(false);
+        } catch (Exception e2) {
+            // ignore
         }
-        return true;
+        throw exception;
     }
-
 
     private void readMeta() {
         Chunk header = readChunkHeader(rootChunkStart);
@@ -775,7 +769,6 @@ public class MVStore {
                 if (shrinkIfPossible) {
                     shrinkFileIfPossible(0);
                 }
-                log("file close");
                 if (fileLock != null) {
                     fileLock.release();
                     fileLock = null;
@@ -1229,7 +1222,7 @@ public class MVStore {
      * free space between chunks. This might temporarily double the file size.
      * Chunks are overwritten irrespective of the current retention time. Before
      * overwriting chunks and before resizing the file, syncFile() is called.
-     * 
+     *
      * @return if anything was written
      */
     public synchronized boolean compactMoveChunks() {
@@ -1290,11 +1283,11 @@ public class MVStore {
             meta.put("chunk." + c.id, c.asString());
         }
         boolean oldReuse = reuseSpace;
-        
+
         // update the metadata (store at the end of the file)
         reuseSpace = false;
         store();
-        
+
         syncFile();
 
         // now re-use the empty space
@@ -1333,7 +1326,7 @@ public class MVStore {
 
         return true;
     }
-    
+
     /**
      * Force all changes to be written to the file. The default implementation
      * calls FileChannel.force(true).
@@ -1416,7 +1409,6 @@ public class MVStore {
             if (move != null && moved + c.maxLengthLive > averageMaxLength) {
                 break;
             }
-            log(" chunk " + c.id + " " + c.getFillRate() + "% full; prio=" + c.collectPriority);
             moved += c.maxLengthLive;
             move = c;
         }
@@ -1476,7 +1468,6 @@ public class MVStore {
                 } else {
                     Chunk c = getChunk(p.getPos());
                     if (old.contains(c)) {
-                        log("       move key:" + k + " chunk:" + c.id);
                         Object value = map.remove(k);
                         map.put(k, value);
                     }
@@ -1566,16 +1557,6 @@ public class MVStore {
             f.maxLengthLive -= maxLengthLive;
             f.pageCountLive -= pageCount;
         }
-    }
-
-    /**
-     * Log the string, if logging is enabled.
-     *
-     * @param string the string to log
-     */
-    void log(String string) {
-        // TODO logging
-        // System.out.println(string);
     }
 
     Compressor getCompressor() {
@@ -2051,7 +2032,7 @@ public class MVStore {
             // ignore
         }
     }
-    
+
     /**
      * Set the maximum delay in milliseconds to store committed changes (for
      * file-based stores).

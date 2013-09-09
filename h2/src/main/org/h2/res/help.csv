@@ -440,6 +440,10 @@ Enabled (1) or disabled (0) the result reuse optimization."
 SET PASSWORD string
 ","
 Changes the password of the current user."
+"Commands (Other)","SET QUERY_STATISTICS","
+SET QUERY_STATISTICS { TRUE | FALSE }
+","
+Disabled or enables query statistics gathering for the whole database."
 "Commands (Other)","SET QUERY_TIMEOUT","
 SET QUERY_TIMEOUT int
 ","

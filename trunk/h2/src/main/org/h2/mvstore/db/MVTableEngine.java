@@ -250,7 +250,7 @@ public class MVTableEngine implements TableEngine {
          * fill rate, and move chunks next to each other. This will typically
          * shrink the database file. Changes are flushed to the file, and old
          * chunks are overwritten.
-         * 
+         *
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
         public void compactFile(long maxCompactTime) {
@@ -265,12 +265,12 @@ public class MVTableEngine implements TableEngine {
             }
             store.compactMoveChunks();
         }
-        
+
         /**
          * Close the store. Pending changes are persisted. Chunks with a low
          * fill rate are compacted, but old chunks are kept for some time, so
          * most likely the database file will not shrink.
-         * 
+         *
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
         public void close(long maxCompactTime) {

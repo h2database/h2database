@@ -357,7 +357,7 @@ public class TransactionStore {
             store.commit();
         }
         // to avoid having to store the transaction log,
-        // if there is no open transaction, 
+        // if there is no open transaction,
         // and if there have been many changes, store them now
         if (undoLog.isEmpty()) {
             int unsaved = store.getUnsavedPageCount();

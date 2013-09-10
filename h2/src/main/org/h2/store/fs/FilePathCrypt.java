@@ -171,7 +171,7 @@ public class FilePathCrypt extends FilePathWrapper {
 
         private final String name;
 
-        public FileCrypt(String name, byte[] passwordBytes, FileChannel base) throws IOException {
+        public FileCrypt(String name, byte[] encryptionKey, FileChannel base) throws IOException {
             this.name = name;
             this.base = base;
             this.size = base.size() - HEADER_LENGTH;
@@ -191,7 +191,7 @@ public class FilePathCrypt extends FilePathWrapper {
                 }
             }
             AES cipher = new AES();
-            cipher.setKey(SHA256.getPBKDF2(passwordBytes, salt, HASH_ITERATIONS, 16));
+            cipher.setKey(SHA256.getPBKDF2(encryptionKey, salt, HASH_ITERATIONS, 16));
             xts = new XTS(cipher);
         }
 

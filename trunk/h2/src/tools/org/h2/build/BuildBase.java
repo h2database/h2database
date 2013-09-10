@@ -133,7 +133,7 @@ public class BuildBase {
                 throw new RuntimeException("Unsupported pattern, may only start or end with *:" + pattern);
             }
             // normalize / and \
-            pattern = replaceAll(pattern, "/", File.separator);
+            pattern = BuildBase.replaceAll(pattern, "/", File.separator);
             FileList list = new FileList();
             for (File f : this) {
                 String path = f.getPath();

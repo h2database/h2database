@@ -52,6 +52,7 @@ public class QueryStatisticsData {
         QueryEntry entry = map.get(sqlStatement);
         if (entry == null) {
             entry = new QueryEntry();
+            entry.sqlStatement = sqlStatement;
             map.put(sqlStatement, entry);
         }
         entry.update(executionTime, rowCount);

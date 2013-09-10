@@ -1271,21 +1271,13 @@ public abstract class TestBase {
      * @return the new test
      */
     public static TestBase createCaller() {
-        return createCaller(new Exception().getStackTrace()[1].getClassName());
-    }
-
-    /**
-     * Create a new object of the given class.
-     *
-     * @param className the class name
-     * @return the new test
-     */
-    public static TestBase createCaller(String className) {
         org.h2.Driver.load();
         try {
-            return (TestBase) Class.forName(className).newInstance();
+            return (TestBase) new SecurityManager() {
+                Class<?> clazz = getClassContext()[2];
+            }.clazz.newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("Can not create object " + className, e);
+            throw new RuntimeException(e);
         }
     }
 

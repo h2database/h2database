@@ -334,6 +334,7 @@ public class JdbcConnectionPool implements DataSource, ConnectionEventListener {
      * [Not supported]
      */
 /*## Java 1.7 ##
+    @Override
     public Logger getParentLogger() {
         return null;
     }

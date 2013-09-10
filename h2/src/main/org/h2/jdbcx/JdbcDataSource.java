@@ -391,6 +391,7 @@ public class JdbcDataSource extends TraceObject
      * [Not supported]
      */
 /*## Java 1.7 ##
+    @Override
     public Logger getParentLogger() {
         return null;
     }

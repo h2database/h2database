@@ -719,7 +719,7 @@ public class ValueLob extends Value {
     }
 
     /**
-     * Store the lob data to a file if the size of the buffer it larger than the
+     * Store the lob data to a file if the size of the buffer is larger than the
      * maximum size for an in-place lob.
      *
      * @param h the data handler

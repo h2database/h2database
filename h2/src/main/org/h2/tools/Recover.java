@@ -339,7 +339,7 @@ public class Recover extends Tool implements DataHandler {
             if (small == null) {
                 String file = lob.getFileName();
                 String type = lob.getType() == Value.BLOB ? "BLOB" : "CLOB";
-                if (lob.useCompression()) {
+                if (lob.isCompressed()) {
                     dumpLob(file, true);
                     file += ".comp";
                 }

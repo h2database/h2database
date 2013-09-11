@@ -25,7 +25,6 @@ import org.h2.result.SortOrder;
 import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.LobStorageFrontend;
-import org.h2.store.LobStorageInterface;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.value.CompareMode;
@@ -613,8 +612,7 @@ public class ValueDataType implements DataType {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);
                 long precision = readVarLong(buff);
-                LobStorageInterface lobStorage = handler.getLobStorage();
-                ValueLobDb lob = ValueLobDb.create(type, lobStorage, tableId, lobId, null, precision);
+                ValueLobDb lob = ValueLobDb.create(type, handler, tableId, lobId, null, precision);
                 return lob;
             } else {
                 int tableId = readVarInt(buff);

@@ -805,8 +805,7 @@ public class Data {
                 int tableId = readVarInt();
                 long lobId = readVarLong();
                 long precision = readVarLong();
-                LobStorageInterface lobStorage = handler.getLobStorage();
-                ValueLobDb lob = ValueLobDb.create(type, lobStorage, tableId, lobId, null, precision);
+                ValueLobDb lob = ValueLobDb.create(type, handler, tableId, lobId, null, precision);
                 return lob;
             } else {
                 int tableId = readVarInt();

@@ -592,7 +592,7 @@ public class Transfer {
                         hmac = null;
                     }
                     long precision = readLong();
-                    return ValueLobDb.create(Value.BLOB, session.getDataHandler().getLobStorage(), tableId, id, hmac, precision);
+                    return ValueLobDb.create(Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
                 }
                 int len = (int) length;
                 byte[] small = new byte[len];
@@ -623,7 +623,7 @@ public class Transfer {
                         hmac = null;
                     }
                     long precision = readLong();
-                    return ValueLobDb.create(Value.CLOB, session.getDataHandler().getLobStorage(), tableId, id, hmac, precision);
+                    return ValueLobDb.create(Value.CLOB, session.getDataHandler(), tableId, id, hmac, precision);
                 }
                 DataReader reader = new DataReader(in);
                 int len = (int) length;

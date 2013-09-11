@@ -62,11 +62,11 @@ public class ValueLob extends Value {
     private boolean linked;
     private byte[] small;
     private int hash;
-    private boolean compression;
+    private boolean compressed;
     private FileStore tempFile;
 
     private ValueLob(int type, DataHandler handler, String fileName, int tableId, int objectId, boolean linked,
-            long precision, boolean compression) {
+            long precision, boolean compressed) {
         this.type = type;
         this.handler = handler;
         this.fileName = fileName;
@@ -74,7 +74,7 @@ public class ValueLob extends Value {
         this.objectId = objectId;
         this.linked = linked;
         this.precision = precision;
-        this.compression = compression;
+        this.compressed = compressed;
     }
 
     private ValueLob(int type, byte[] small) {
@@ -91,7 +91,7 @@ public class ValueLob extends Value {
 
     private static ValueLob copy(ValueLob lob) {
         ValueLob copy = new ValueLob(lob.type, lob.handler, lob.fileName,
-                lob.tableId, lob.objectId, lob.linked, lob.precision, lob.compression);
+                lob.tableId, lob.objectId, lob.linked, lob.precision, lob.compressed);
         copy.small = lob.small;
         copy.hash = lob.hash;
         return copy;
@@ -396,7 +396,7 @@ public class ValueLob extends Value {
         this.small = null;
         this.hash = 0;
         String compressionAlgorithm = h.getLobCompressionAlgorithm(type);
-        this.compression = compressionAlgorithm != null;
+        this.compressed = compressionAlgorithm != null;
         synchronized (h) {
             String path = h.getDatabasePath();
             if ((path != null) && (path.length() == 0)) {
@@ -651,7 +651,7 @@ public class ValueLob extends Value {
         }
         FileStore store = handler.openFile(fileName, "r", true);
         boolean alwaysClose = SysProperties.lobCloseBetweenReads;
-        return new BufferedInputStream(new FileStoreInputStream(store, handler, compression, alwaysClose),
+        return new BufferedInputStream(new FileStoreInputStream(store, handler, compressed, alwaysClose),
                 Constants.IO_BUFFER_SIZE);
     }
 
@@ -747,8 +747,8 @@ public class ValueLob extends Value {
      *
      * @return true if it is
      */
-    public boolean useCompression() {
-        return compression;
+    public boolean isCompressed() {
+        return compressed;
     }
 
     private static synchronized void deleteFile(DataHandler handler, String fileName) {

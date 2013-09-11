@@ -375,7 +375,7 @@ public class ValueDataType implements DataType {
                     writeVarInt(buff, lob.getTableId());
                     writeVarInt(buff, lob.getObjectId());
                     writeVarLong(buff, lob.getPrecision());
-                    buff.put((byte) (lob.useCompression() ? 1 : 0));
+                    buff.put((byte) (lob.isCompressed() ? 1 : 0));
                     if (t == -2) {
                         buff = writeString(buff, lob.getFileName());
                     }

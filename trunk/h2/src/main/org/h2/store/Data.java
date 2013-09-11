@@ -616,7 +616,7 @@ public class Data {
                     writeVarInt(lob.getTableId());
                     writeVarInt(lob.getObjectId());
                     writeVarLong(lob.getPrecision());
-                    writeByte((byte) (lob.useCompression() ? 1 : 0));
+                    writeByte((byte) (lob.isCompressed() ? 1 : 0));
                     if (t == -2) {
                         writeString(lob.getFileName());
                     }

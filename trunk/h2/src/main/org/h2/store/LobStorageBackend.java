@@ -385,7 +385,9 @@ public class LobStorageBackend implements LobStorageInterface {
                     ValueLobDb v = ValueLobDb.createSmallLob(type, small, precision);
                     return v;
                 }
-                return registerLob(type, lobId, LobStorageFrontend.TABLE_TEMP, length);
+                // For a BLOB, precision is length in bytes. For a CLOB, precision is length in chars
+                long precision = countingReaderForClob == null ? length : countingReaderForClob.getLength();
+                return registerLob(type, lobId, LobStorageFrontend.TABLE_TEMP, length, precision);
             } catch (IOException e) {
                 if (lobId != -1) {
                     removeLob(lobId);
@@ -397,7 +399,7 @@ public class LobStorageBackend implements LobStorageInterface {
         }
     }
 
-    private ValueLobDb registerLob(int type, long lobId, int tableId, long byteCount) {
+    private ValueLobDb registerLob(int type, long lobId, int tableId, long byteCount, long precision) {
         synchronized (conn.getSession()) {
             synchronized (database) {
                 try {
@@ -408,7 +410,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     prep.setInt(3, tableId);
                     prep.execute();
                     reuse(sql, prep);
-                    ValueLobDb v = ValueLobDb.create(type, database, tableId, lobId, null, byteCount);
+                    ValueLobDb v = ValueLobDb.create(type, database, tableId, lobId, null, precision);
                     return v;
                 } catch (SQLException e) {
                     throw DbException.convert(e);

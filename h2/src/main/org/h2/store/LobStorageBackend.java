@@ -334,7 +334,7 @@ public class LobStorageBackend implements LobStorageInterface {
         }
     }
 
-    private ValueLobDb addLob(InputStream in, long maxLength, int type) {
+    private ValueLobDb addLob(InputStream in, long maxLength, int type, CountingReaderInputStream countingReaderForClob) {
         try {
             byte[] buff = new byte[BLOCK_LENGTH];
             if (maxLength < 0) {
@@ -380,8 +380,9 @@ public class LobStorageBackend implements LobStorageInterface {
                     small = new byte[0];
                 }
                 if (small != null) {
-                    // CLOB: the precision will be fixed later
-                    ValueLobDb v = ValueLobDb.createSmallLob(type, small, small.length);
+                    // For a BLOB, precision is length in bytes. For a CLOB, precision is length in chars
+                    long precision = countingReaderForClob == null ? small.length : countingReaderForClob.getLength();
+                    ValueLobDb v = ValueLobDb.createSmallLob(type, small, precision);
                     return v;
                 }
                 return registerLob(type, lobId, LobStorageFrontend.TABLE_TEMP, length);
@@ -538,7 +539,7 @@ public class LobStorageBackend implements LobStorageInterface {
     public Value createBlob(InputStream in, long maxLength) {
         if (SysProperties.LOB_IN_DATABASE) {
             init();
-            return addLob(in, maxLength, Value.BLOB);
+            return addLob(in, maxLength, Value.BLOB, null);
         }
         return ValueLob.createBlob(in, maxLength, database);
     }
@@ -549,8 +550,7 @@ public class LobStorageBackend implements LobStorageInterface {
             init();
             long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
             CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
-            ValueLobDb lob = addLob(in, Long.MAX_VALUE, Value.CLOB);
-            lob.setPrecision(in.getLength());
+            ValueLobDb lob = addLob(in, Long.MAX_VALUE, Value.CLOB, in);
             return lob;
         }
         return ValueLob.createClob(reader, maxLength, database);
@@ -755,6 +755,9 @@ public class LobStorageBackend implements LobStorageInterface {
     static class CountingReaderInputStream extends InputStream {
 
         private final Reader reader;
+        /**
+         * total length of Reader data in chars
+         */
         private long length;
         private long remaining;
         private int pos;

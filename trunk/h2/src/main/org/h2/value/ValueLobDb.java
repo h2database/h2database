@@ -41,8 +41,13 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     private final byte[] hmac;
     private final byte[] small;
     private final DataHandler handler;
-    
+
+    /**
+     * For a BLOB, precision is length in bytes.
+     * For a CLOB, precision is length in chars.
+     */
     private long precision;
+    
     private int tableId;
     private int hash;
     private FileStore tempFile;
@@ -405,10 +410,6 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     public long getLobId() {
         return lobId;
-    }
-
-    public void setPrecision(long precision) {
-        this.precision = precision;
     }
 
     @Override

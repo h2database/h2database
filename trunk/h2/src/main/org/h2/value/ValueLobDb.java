@@ -37,29 +37,25 @@ import org.h2.util.Utils;
 public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlob {
 
     private final int type;
+    private final long lobId;
+    private final byte[] hmac;
+    private final byte[] small;
+    private final DataHandler handler;
+    
     private long precision;
     private int tableId;
     private int hash;
-
-    private LobStorageInterface lobStorage;
-    private final long lobId;
-    private final byte[] hmac;
-
-    private final byte[] small;
-
-    private final DataHandler handler;
     private FileStore tempFile;
     private String fileName;
 
-    private ValueLobDb(int type, LobStorageInterface lobStorage, int tableId, long lobId, byte[] hmac, long precision) {
+    private ValueLobDb(int type, DataHandler handler, int tableId, long lobId, byte[] hmac, long precision) {
         this.type = type;
-        this.lobStorage = lobStorage;
+        this.handler = handler;
         this.tableId = tableId;
         this.lobId = lobId;
         this.hmac = hmac;
         this.precision = precision;
         this.small = null;
-        this.handler = null;
     }
 
     private ValueLobDb(int type, byte[] small, long precision) {
@@ -84,16 +80,16 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      * Create a LOB value.
      *
      * @param type the type
-     * @param lobStorage the storage
+     * @param handler the data handler
      * @param tableId the table id
      * @param id the lob id
      * @param hmac the message authentication code
      * @param precision the precision (number of bytes / characters)
      * @return the value
      */
-    public static ValueLobDb create(int type, LobStorageInterface lobStorage,
+    public static ValueLobDb create(int type, DataHandler handler,
             int tableId, long id, byte[] hmac, long precision) {
-        return new ValueLobDb(type, lobStorage, tableId, id, hmac, precision);
+        return new ValueLobDb(type, handler, tableId, id, hmac, precision);
     }
 
     /**
@@ -120,15 +116,15 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
-            if (lobStorage != null) {
-                Value copy = lobStorage.createClob(getReader(), -1);
+            if (handler != null) {
+                Value copy = handler.getLobStorage().createClob(getReader(), -1);
                 return copy;
             } else if (small != null) {
                 return LobStorageFrontend.createSmallLob(t, small);
             }
         } else if (t == Value.BLOB) {
-            if (lobStorage != null) {
-                Value copy = lobStorage.createBlob(getInputStream(), -1);
+            if (handler != null) {
+                Value copy = handler.getLobStorage().createBlob(getInputStream(), -1);
                 return copy;
             } else if (small != null) {
                 return LobStorageFrontend.createSmallLob(t, small);
@@ -159,9 +155,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 FileUtils.delete(fileName);
             }
         }
-        if (lobStorage != null) {
-            lobStorage.removeLob(lobId);
-            lobStorage = null;
+        if (handler != null) {
+            handler.getLobStorage().removeLob(lobId);
         }
     }
 
@@ -180,7 +175,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 database.getLobStorage().setTable(lobId, tabId);
                 this.tableId = tabId;
             } else {
-                return lobStorage.copyLob(type, lobId, tabId, getPrecision());
+                return handler.getLobStorage().copyLob(type, lobId, tabId, getPrecision());
             }
         } else if (small.length > database.getMaxLengthInplaceLob()) {
             LobStorageInterface s = database.getLobStorage();
@@ -323,7 +318,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
         long byteCount = (type == Value.BLOB) ? precision : -1;
         try {
-            return lobStorage.getInputStream(lobId, hmac, byteCount);
+            return handler.getLobStorage().getInputStream(lobId, hmac, byteCount);
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }
@@ -543,7 +538,6 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     private FileStoreOutputStream initTemp() throws IOException {
         this.precision = 0;
-        this.lobStorage = this.handler.getLobStorage();
         String path = this.handler.getDatabasePath();
         if (path.length() == 0) {
             path = SysProperties.PREFIX_TEMP_FILE;

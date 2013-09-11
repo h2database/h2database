@@ -406,7 +406,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     prep.setInt(3, tableId);
                     prep.execute();
                     reuse(sql, prep);
-                    ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, null, byteCount);
+                    ValueLobDb v = ValueLobDb.create(type, database, tableId, lobId, null, byteCount);
                     return v;
                 } catch (SQLException e) {
                     throw DbException.convert(e);
@@ -439,7 +439,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     prep.executeUpdate();
                     reuse(sql, prep);
 
-                    ValueLobDb v = ValueLobDb.create(type, this, tableId, lobId, null, length);
+                    ValueLobDb v = ValueLobDb.create(type, database, tableId, lobId, null, length);
                     return v;
                 } catch (SQLException e) {
                     throw DbException.convert(e);

@@ -41,17 +41,17 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     private final byte[] hmac;
     private final byte[] small;
     private final DataHandler handler;
-
+    
     /**
      * For a BLOB, precision is length in bytes.
      * For a CLOB, precision is length in chars.
      */
-    private long precision;
+    private final long precision;
     
+    private final String fileName;
+    private final FileStore tempFile;
     private int tableId;
     private int hash;
-    private FileStore tempFile;
-    private String fileName;
 
     private ValueLobDb(int type, DataHandler handler, int tableId, long lobId, byte[] hmac, long precision) {
         this.type = type;
@@ -61,6 +61,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.hmac = hmac;
         this.precision = precision;
         this.small = null;
+        this.fileName = null;
+        this.tempFile = null;
     }
 
     private ValueLobDb(int type, byte[] small, long precision) {
@@ -70,15 +72,98 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.lobId = 0;
         this.hmac = null;
         this.handler = null;
+        this.fileName = null;
+        this.tempFile = null;
     }
 
     private ValueLobDb(int type, DataHandler handler) {
         this.type = type;
+        this.handler = handler;
         this.small = null;
         this.precision = 0;
         this.lobId = 0;
         this.hmac = null;
+        this.fileName = null;
+        this.tempFile = null;
+    }
+
+    /**
+     * Create temporary CLOB from Reader.
+     */
+    private ValueLobDb(DataHandler handler, char[] buff, int len, Reader in, long remaining) throws IOException {
+        this.type = Value.CLOB;
         this.handler = handler;
+        this.small = null;
+        this.lobId = 0;
+        this.hmac = null;
+        this.fileName = createTempLobFileName(handler);
+        this.tempFile = this.handler.openFile(fileName, "rw", false);
+        this.tempFile.autoDelete();
+        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);
+        long tmpPrecision = 0;
+        try {
+            while (true) {
+                tmpPrecision += len;
+                byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
+                out.write(b, 0, b.length);
+                remaining -= len;
+                if (remaining <= 0) {
+                    break;
+                }
+                len = getBufferSize(this.handler, false, remaining);
+                len = IOUtils.readFully(in, buff, len);
+                if (len <= 0) {
+                    break;
+                }
+            }
+        } finally {
+            out.close();
+        }
+        this.precision = tmpPrecision;
+    }
+    
+    /**
+     * Create temporary BLOB from InputStream.
+     */
+    private ValueLobDb(DataHandler handler, byte[] buff, int len, InputStream in,
+            long remaining) throws IOException {
+        this.type = Value.BLOB;
+        this.handler = handler;
+        this.small = null;
+        this.lobId = 0;
+        this.hmac = null;
+        this.fileName = createTempLobFileName(handler);
+        this.tempFile = this.handler.openFile(fileName, "rw", false);
+        this.tempFile.autoDelete();
+        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);
+        long tmpPrecision = 0;
+        boolean compress = this.handler.getLobCompressionAlgorithm(Value.BLOB) != null;
+        try {
+            while (true) {
+                tmpPrecision += len;
+                out.write(buff, 0, len);
+                remaining -= len;
+                if (remaining <= 0) {
+                    break;
+                }
+                len = getBufferSize(this.handler, compress, remaining);
+                len = IOUtils.readFully(in, buff, 0, len);
+                if (len <= 0) {
+                    break;
+                }
+            }
+        } finally {
+            out.close();
+        }
+        this.precision = tmpPrecision;
+    }
+    
+    private static String createTempLobFileName(DataHandler handler) throws IOException {
+        String path = handler.getDatabasePath();
+        if (path.length() == 0) {
+            path = SysProperties.PREFIX_TEMP_FILE;
+        }
+        return FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);
     }
 
     /**
@@ -152,7 +237,6 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         if (fileName != null) {
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
-                tempFile = null;
             }
             // synchronize on the database, to avoid concurrent temp file creation /
             // deletion / backup
@@ -447,8 +531,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, len);
             }
-            ValueLobDb lob = new ValueLobDb(Value.CLOB, handler);
-            lob.createTempFromReader(buff, len, in, remaining);
+            ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining);
             return lob;
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
@@ -484,70 +567,11 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
                 System.arraycopy(buff, 0, small, 0, len);
                 return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
             }
-            ValueLobDb lob = new ValueLobDb(Value.BLOB, handler);
-            lob.createTempFromStream(buff, len, in, remaining);
+            ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining);
             return lob;
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }
-    }
-
-    private void createTempFromReader(char[] buff, int len, Reader in, long remaining) throws IOException {
-        FileStoreOutputStream out = initTemp();
-        try {
-            while (true) {
-                precision += len;
-                byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
-                out.write(b, 0, b.length);
-                remaining -= len;
-                if (remaining <= 0) {
-                    break;
-                }
-                len = getBufferSize(this.handler, false, remaining);
-                len = IOUtils.readFully(in, buff, len);
-                if (len <= 0) {
-                    break;
-                }
-            }
-        } finally {
-            out.close();
-        }
-    }
-
-    private void createTempFromStream(byte[] buff, int len, InputStream in,
-            long remaining) throws IOException {
-        FileStoreOutputStream out = initTemp();
-        boolean compress = this.handler.getLobCompressionAlgorithm(Value.BLOB) != null;
-        try {
-            while (true) {
-                precision += len;
-                out.write(buff, 0, len);
-                remaining -= len;
-                if (remaining <= 0) {
-                    break;
-                }
-                len = getBufferSize(this.handler, compress, remaining);
-                len = IOUtils.readFully(in, buff, 0, len);
-                if (len <= 0) {
-                    break;
-                }
-            }
-        } finally {
-            out.close();
-        }
-    }
-
-    private FileStoreOutputStream initTemp() throws IOException {
-        this.precision = 0;
-        String path = this.handler.getDatabasePath();
-        if (path.length() == 0) {
-            path = SysProperties.PREFIX_TEMP_FILE;
-        }
-        fileName = FileUtils.createTempFile(path, Constants.SUFFIX_TEMP_FILE, true, true);
-        tempFile = this.handler.openFile(fileName, "rw", false);
-        tempFile.autoDelete();
-        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);
-        return out;
     }
 
     private static int getBufferSize(DataHandler handler, boolean compress, long remaining) {

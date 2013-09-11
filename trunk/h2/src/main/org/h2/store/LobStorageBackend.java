@@ -353,6 +353,7 @@ public class LobStorageBackend implements LobStorageInterface {
                         break;
                     }
                     maxLength -= len;
+                    // if we had a short read, trim the buffer
                     byte[] b;
                     if (len != buff.length) {
                         b = new byte[len];

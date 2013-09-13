@@ -2475,7 +2475,6 @@ public class Database implements DataHandler {
         return lobStorage;
     }
 
-    @Override
     public JdbcConnection getLobConnection() {
         String url = Constants.CONN_URL_INTERNAL;
         JdbcConnection conn = new JdbcConnection(systemSession, systemUser.getName(), url);

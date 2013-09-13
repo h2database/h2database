@@ -94,13 +94,6 @@ public interface DataHandler {
     LobStorageInterface getLobStorage();
 
     /**
-     * Get a database connection to be used for LOB access.
-     *
-     * @return the connection or null
-     */
-    Connection getLobConnection();
-
-    /**
      * Read from a lob.
      *
      * @param lobId the lob

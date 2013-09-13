@@ -163,11 +163,6 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     }
 
     @Override
-    public Connection getLobConnection() {
-        return null;
-    }
-
-    @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         return -1;
     }

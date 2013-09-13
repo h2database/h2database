@@ -1525,14 +1525,6 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     @Override
-    public Connection getLobConnection() {
-        return null;
-    }
-
-    /**
-     * INTERNAL
-     */
-    @Override
     public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
         throw DbException.throwInternalError();
     }

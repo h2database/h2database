@@ -6,7 +6,6 @@
  */
 package org.h2.store;
 
-import java.sql.Connection;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.message.DbException;
 import org.h2.util.SmallLRUCache;

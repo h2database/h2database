@@ -248,7 +248,7 @@ java org.h2.test.TestAll timer
      * Whether to use the MVStore.
      */
     public boolean mvStore;
-    
+
     /**
      * Whether the test is running with code coverage.
      */
@@ -510,7 +510,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      * Run the tests with a number of different settings.
      */
     private void runTests() throws SQLException {
-        
+
         coverage = isCoverage();
 
         {}
@@ -576,10 +576,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         memory = true;
         test();
     }
-    
+
     /**
      * Check whether this method is running with "Emma" code coverage turned on.
-     * 
+     *
      * @return true if the stack trace contains ".emma."
      */
     private static boolean isCoverage() {

@@ -9,12 +9,9 @@ package org.h2.mvstore.db;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
@@ -26,7 +23,6 @@ import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.LobStorageFrontend;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.DateTimeUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -73,11 +69,6 @@ public class ValueDataType implements DataType {
     private static final int LONG_NEG = 67;
     private static final int STRING_0_31 = 68;
     private static final int BYTES_0_31 = 100;
-    private static final int LOCAL_TIME = 132;
-    private static final int LOCAL_DATE = 133;
-    private static final int LOCAL_TIMESTAMP = 134;
-
-    private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
     final DataHandler handler;
     final CompareMode compareMode;
@@ -238,49 +229,32 @@ public class ValueDataType implements DataType {
             }
             break;
         }
-        case Value.TIME:
-            if (SysProperties.STORE_LOCAL_TIME) {
-                buff.put((byte) LOCAL_TIME);
-                ValueTime t = (ValueTime) v;
-                long nanos = t.getNanos();
-                long millis = nanos / 1000000;
-                nanos -= millis * 1000000;
-                writeVarLong(buff, millis);
-                writeVarLong(buff, nanos);
-            } else {
-                buff.put((byte) type);
-                writeVarLong(buff, DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
-            }
+        case Value.TIME: {
+            buff.put((byte) type);
+            ValueTime t = (ValueTime) v;
+            long nanos = t.getNanos();
+            long millis = nanos / 1000000;
+            nanos -= millis * 1000000;
+            writeVarLong(buff, millis);
+            writeVarLong(buff, nanos);
             break;
+        }
         case Value.DATE: {
-            if (SysProperties.STORE_LOCAL_TIME) {
-                buff.put((byte) LOCAL_DATE);
-                long x = ((ValueDate) v).getDateValue();
-                writeVarLong(buff, x);
-            } else {
-                buff.put((byte) type);
-                long x = DateTimeUtils.getTimeLocalWithoutDst(v.getDate());
-                writeVarLong(buff, x / MILLIS_PER_MINUTE);
-            }
+            buff.put((byte) type);
+            long x = ((ValueDate) v).getDateValue();
+            writeVarLong(buff, x);
             break;
         }
         case Value.TIMESTAMP: {
-            if (SysProperties.STORE_LOCAL_TIME) {
-                buff.put((byte) LOCAL_TIMESTAMP);
-                ValueTimestamp ts = (ValueTimestamp) v;
-                long dateValue = ts.getDateValue();
-                writeVarLong(buff, dateValue);
-                long nanos = ts.getNanos();
-                long millis = nanos / 1000000;
-                nanos -= millis * 1000000;
-                writeVarLong(buff, millis);
-                writeVarLong(buff, nanos);
-            } else {
-                Timestamp ts = v.getTimestamp();
-                buff.put((byte) type);
-                writeVarLong(buff, DateTimeUtils.getTimeLocalWithoutDst(ts));
-                writeVarInt(buff, ts.getNanos());
-            }
+            buff.put((byte) type);
+            ValueTimestamp ts = (ValueTimestamp) v;
+            long dateValue = ts.getDateValue();
+            writeVarLong(buff, dateValue);
+            long nanos = ts.getNanos();
+            long millis = nanos / 1000000;
+            nanos -= millis * 1000000;
+            writeVarLong(buff, millis);
+            writeVarLong(buff, nanos);
             break;
         }
         case Value.JAVA_OBJECT: {
@@ -545,29 +519,17 @@ public class ValueDataType implements DataType {
             BigInteger b = new BigInteger(buff2);
             return ValueDecimal.get(new BigDecimal(b, scale));
         }
-        case LOCAL_DATE: {
+        case Value.DATE: {
             return ValueDate.fromDateValue(readVarLong(buff));
         }
-        case Value.DATE: {
-            long x = readVarLong(buff) * MILLIS_PER_MINUTE;
-            return ValueDate.get(new Date(DateTimeUtils.getTimeUTCWithoutDst(x)));
-        }
-        case LOCAL_TIME: {
+        case Value.TIME: {
             long nanos = readVarLong(buff) * 1000000 + readVarLong(buff);
             return ValueTime.fromNanos(nanos);
         }
-        case Value.TIME:
-            // need to normalize the year, month and day
-            return ValueTime.get(new Time(DateTimeUtils.getTimeUTCWithoutDst(readVarLong(buff))));
-        case LOCAL_TIMESTAMP: {
+        case Value.TIMESTAMP: {
             long dateValue = readVarLong(buff);
             long nanos = readVarLong(buff) * 1000000 + readVarLong(buff);
             return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
-        }
-        case Value.TIMESTAMP: {
-            Timestamp ts = new Timestamp(DateTimeUtils.getTimeUTCWithoutDst(readVarLong(buff)));
-            ts.setNanos(readVarInt(buff));
-            return ValueTimestamp.get(ts);
         }
         case Value.BYTES: {
             int len = readVarInt(buff);

@@ -393,9 +393,7 @@ public class TestDeadlock extends TestBase {
         SQLException e2 = lastException.getNextException();
         if (e2 != null) {
             // we have two exception, but there should only be one
-            SQLException e3 = new SQLException("Expected one exception, got multiple");
-            e3.initCause(e2);
-            throw e3;
+            throw new SQLException("Expected one exception, got multiple", e2);
         }
     }
 

@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class StatementLogger {
 
     public static boolean logStatements;
-    private static final PrintWriter out = new PrintWriter(System.out);
+    private static final PrintWriter OUT = new PrintWriter(System.out);
     private static final AtomicLong SELECT_COUNT = new AtomicLong();
     private static final AtomicLong CREATE_COUNT = new AtomicLong();
     private static final AtomicLong INSERT_COUNT = new AtomicLong();
@@ -61,13 +61,13 @@ public class StatementLogger {
 
     private static void log(String statement) {
         if (logStatements) {
-            out.println(statement);
+            OUT.println(statement);
         }
     }
 
     public static void printStats() {
-        out.println("JaQu Runtime Statistics");
-        out.println("=======================");
+        OUT.println("JaQu Runtime Statistics");
+        OUT.println("=======================");
         printStat("CREATE", CREATE_COUNT);
         printStat("INSERT", INSERT_COUNT);
         printStat("UPDATE", UPDATE_COUNT);
@@ -79,7 +79,7 @@ public class StatementLogger {
     private static void printStat(String name, AtomicLong value) {
         if (value.get() > 0) {
             DecimalFormat df = new DecimalFormat("###,###,###,###");
-            out.println(name + "=" + df.format(CREATE_COUNT.get()));
+            OUT.println(name + "=" + df.format(CREATE_COUNT.get()));
         }
     }
 

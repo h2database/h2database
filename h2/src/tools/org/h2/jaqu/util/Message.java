@@ -47,9 +47,7 @@ public class Message {
         } else {
             message = "General exception";
         }
-        SQLException e2 = new SQLException(message + ": " + e.toString());
-        e2.initCause(e);
-        return e2;
+        return new SQLException(message + ": " + e.toString(), e);
     }
 
 }

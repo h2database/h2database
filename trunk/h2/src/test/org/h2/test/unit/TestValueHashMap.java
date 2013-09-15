@@ -6,12 +6,12 @@
  */
 package org.h2.test.unit;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Random;
+
 import org.h2.api.JavaObjectSerializer;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;

@@ -348,9 +348,7 @@ public class DbException extends RuntimeException {
                 e = e2.getOriginalCause();
             }
         }
-        IOException io = new IOException(e.toString());
-        io.initCause(e);
-        return io;
+        return new IOException(e.toString(), e);
     }
 
     public Object getSource() {

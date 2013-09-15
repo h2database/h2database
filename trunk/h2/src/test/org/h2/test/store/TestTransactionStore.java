@@ -487,8 +487,8 @@ public class TestTransactionStore extends TestBase {
                         size++;
                     }
                     buff.append('\n');
-                    if (size != map.getSize()) {
-                        assertEquals(size, map.getSize());
+                    if (size != map.sizeAsLong()) {
+                        assertEquals(size, map.sizeAsLong());
                     }
                 }
                 int x = r.nextInt(rowCount);

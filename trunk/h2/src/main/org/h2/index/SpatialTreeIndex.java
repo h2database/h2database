@@ -232,12 +232,12 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public long getRowCount(Session session) {
-        return treeMap.getSize();
+        return treeMap.sizeAsLong();
     }
 
     @Override
     public long getRowCountApproximation() {
-        return treeMap.getSize();
+        return treeMap.sizeAsLong();
     }
 
     @Override

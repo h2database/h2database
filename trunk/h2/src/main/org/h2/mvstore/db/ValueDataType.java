@@ -14,12 +14,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
 import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.type.DataType;
 import org.h2.result.SortOrder;
-import org.h2.store.Data;
 import org.h2.store.DataHandler;
 import org.h2.store.LobStorageFrontend;
 import org.h2.tools.SimpleResultSet;
@@ -155,7 +153,6 @@ public class ValueDataType implements DataType {
     }
 
     private ByteBuffer writeValue(ByteBuffer buff, Value v) {
-        int start = buff.position();
         if (v == ValueNull.INSTANCE) {
             buff.put((byte) 0);
             return buff;
@@ -425,12 +422,6 @@ public class ValueDataType implements DataType {
         }
         default:
             DbException.throwInternalError("type=" + v.getType());
-        }
-        if (SysProperties.CHECK2) {
-            if (buff.position() - start != Data.getValueLen(v, handler)) {
-                throw DbException
-                        .throwInternalError("value size error: got " + (buff.position() - start) + " expected " + Data.getValueLen(v, handler));
-            }
         }
         return buff;
     }

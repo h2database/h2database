@@ -165,7 +165,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         try {
-            return 10 * getCostRangeIndex(masks, dataMap.map.getSize(), filter, sortOrder);
+            return 10 * getCostRangeIndex(masks, dataMap.map.sizeAsLong(), filter, sortOrder);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -213,7 +213,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public boolean needRebuild() {
         try {
-            return dataMap.map.getSize() == 0;
+            return dataMap.map.sizeAsLong() == 0;
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -222,13 +222,13 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public long getRowCount(Session session) {
         TransactionMap<Value, Value> map = getMap(session);
-        return map.getSize();
+        return map.sizeAsLong();
     }
 
     @Override
     public long getRowCountApproximation() {
         try {
-            return dataMap.map.getSize();
+            return dataMap.map.sizeAsLong();
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }

@@ -18,7 +18,13 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The function "regexp_replace" threw the wrong kind of exception if the
+<ul><li>To compile user defined functions, the javax.tools.JavaCompiler is now used if available,
+    and no temporary files are created. 
+    This should solve problems when multiple H2 database concurrently compile 
+    the same user defined functions.
+</li><li>Concurrently creating function aliases in different databases
+    could result in the exception "javac: file not found".
+</li><li>The function "regexp_replace" threw the wrong kind of exception if the
     replacement string was invalid.
 </li><li>A checkpoint is now done every MAX_LOG_SIZE / 2 instead of every
     MAX_LOG_SIZE, so that the transaction log doesn't grow as large.
@@ -51,7 +57,7 @@ Change Log
     sessions are creating large transactions.
 </li><li>Some small fixes to the GEOMETRY support, patches by Nicolas Fortin.
 </li><li>The BNF tool and the autocomplete feature are exported in OSGi,
-	which makes it possible for smart editors to do autocomplete. Patch from Nicolas Fortin.
+    which makes it possible for smart editors to do autocomplete. Patch from Nicolas Fortin.
 </li><li>Fix DROP ALL OBJECTS and DROP SCHEMA in the presence of tables with computed column dependencies.
 </li><li>Session-temporary LOB's could sometimes accumulate, increasing the size of the DB file until shutdown.
     Now they are cleared out at every commit.

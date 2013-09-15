@@ -8,7 +8,6 @@ package org.h2.engine;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.sql.Connection;
 import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.JavaObjectSerializer;
@@ -585,8 +584,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             JdbcSQLException s = new JdbcSQLException(message, sql, sqlstate, errorCode, null, stackTrace);
             if (errorCode == ErrorCode.CONNECTION_BROKEN_1) {
                 // allow re-connect
-                IOException e = new IOException(s.toString());
-                e.initCause(s);
+                IOException e = new IOException(s.toString(), s);
                 throw e;
             }
             throw DbException.convert(s);

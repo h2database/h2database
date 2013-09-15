@@ -47,7 +47,6 @@ import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.LobStorageBackend;
 import org.h2.store.LobStorageFrontend;
-import org.h2.store.LobStorageInterface;
 import org.h2.store.Page;
 import org.h2.store.PageFreeList;
 import org.h2.store.PageLog;

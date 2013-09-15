@@ -9,11 +9,11 @@ package org.h2.test.unit;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Random;
+
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
 import org.h2.store.DataHandler;

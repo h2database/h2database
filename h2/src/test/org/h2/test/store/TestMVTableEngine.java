@@ -530,7 +530,7 @@ public class TestMVTableEngine extends TestBase {
         FileUtils.setReadOnly(getBaseDir() + "/mvstore.h2.db");
         conn = getConnection(dbName);
         Database db = (Database) ((JdbcConnection) conn).getSession().getDataHandler();
-        assertTrue(db.getMvStore().getStore().isReadOnly());
+        assertTrue(db.getMvStore().getStore().getFileStore().isReadOnly());
         conn.close();
         FileUtils.deleteRecursive(getBaseDir(), true);
     }

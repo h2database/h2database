@@ -6,9 +6,8 @@
  */
 package org.h2.mvstore.db;
 
-import java.beans.ExceptionListener;
-import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,10 +71,10 @@ public class MVTableEngine implements TableEngine {
                 }
                 builder.encryptionKey(password);
             }
-            builder.backgroundExceptionListener(new ExceptionListener() {
+            builder.backgroundExceptionHandler(new UncaughtExceptionHandler() {
 
                 @Override
-                public void exceptionThrown(Exception e) {
+                public void uncaughtException(Thread t, Throwable e) {
                     db.setBackgroundException(DbException.convert(e));
                 }
 
@@ -168,7 +167,7 @@ public class MVTableEngine implements TableEngine {
          * Store all pending changes.
          */
         public void store() {
-            if (store.isReadOnly()) {
+            if (store.getFileStore().isReadOnly()) {
                 return;
             }
             store.commit();
@@ -230,7 +229,7 @@ public class MVTableEngine implements TableEngine {
         }
 
         public InputStream getInputStream() {
-            return new FileChannelInputStream(store.getFile(), false);
+            return new FileChannelInputStream(store.getFileStore().getFile(), false);
         }
 
         /**
@@ -238,11 +237,7 @@ public class MVTableEngine implements TableEngine {
          */
         public void sync() {
             store();
-            try {
-                store.getFile().force(true);
-            } catch (IOException e) {
-                throw DbException.convertIOException(e, "Could not sync");
-            }
+            store.sync();
         }
 
         /**
@@ -257,7 +252,7 @@ public class MVTableEngine implements TableEngine {
             store.setRetentionTime(0);
             long start = System.currentTimeMillis();
             while (store.compact(90)) {
-                store.syncFile();
+                store.sync();
                 long time = System.currentTimeMillis() - start;
                 if (time > maxCompactTime) {
                     break;
@@ -275,7 +270,7 @@ public class MVTableEngine implements TableEngine {
          */
         public void close(long maxCompactTime) {
             if (!store.isClosed()) {
-                if (!store.isReadOnly()) {
+                if (!store.getFileStore().isReadOnly()) {
                     store.store();
                     long start = System.currentTimeMillis();
                     while (store.compact(90)) {

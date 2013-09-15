@@ -7,7 +7,6 @@
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
@@ -163,7 +162,7 @@ public class Page {
      * @param fileSize the file size (to avoid reading past EOF)
      * @return the page
      */
-    static Page read(FileChannel file, MVMap<?, ?> map,
+    static Page read(FileStore fileStore, MVMap<?, ?> map,
             long pos, long filePos, long fileSize) {
         ByteBuffer buff;
         int maxLength = DataUtils.getPageMaxLength(pos);
@@ -171,12 +170,12 @@ public class Page {
         int length = maxLength;
         if (maxLength == Integer.MAX_VALUE) {
             buff = ByteBuffer.allocate(128);
-            DataUtils.readFully(file, filePos, buff);
+            fileStore.readFully(filePos, buff);
             maxLength = buff.getInt();
             //read the first bytes again
         }
         buff = ByteBuffer.allocate(length);
-        DataUtils.readFully(file, filePos, buff);
+        fileStore.readFully(filePos, buff);
         Page p = new Page(map, 0);
         p.pos = pos;
         int chunkId = DataUtils.getPageChunkId(pos);

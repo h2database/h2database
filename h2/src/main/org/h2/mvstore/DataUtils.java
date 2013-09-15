@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -121,6 +122,11 @@ public class DataUtils {
      * The estimated number of bytes used per child entry.
      */
     public static final int PAGE_MEMORY_CHILD = 16;
+    
+    /**
+     * Name of the character encoding format.
+     */
+    public static final Charset UTF8 = Charset.forName("UTF-8");
 
     /**
      * An 0-size byte array.
@@ -131,7 +137,7 @@ public class DataUtils {
      * The maximum byte to grow a buffer at a time.
      */
     private static final int MAX_GROW = 16 * 1024 * 1024;
-
+    
     /**
      * Get the length of the variable size int.
      *
@@ -731,7 +737,7 @@ public class DataUtils {
      * @return the error code, or 0 if none
      */
     public static int getErrorCode(String m) {
-        if (m.endsWith("]")) {
+        if (m != null && m.endsWith("]")) {
             int dash = m.lastIndexOf('/');
             if (dash >= 0) {
                 String s = m.substring(dash + 1, m.length() - 1);
@@ -795,6 +801,45 @@ public class DataUtils {
         buff.flip();
         temp.put(buff);
         return temp;
+    }
+
+    /**
+     * Parse a string as a number.
+     * 
+     * @param x the number
+     * @param defaultValue if x is null
+     * @return the parsed value
+     * @throws IllegalStateException if parsing fails
+     */
+    public static long parseLong(String x, long defaultValue) {
+        if (x == null) {
+            return defaultValue;
+        }
+        try {
+            return Long.parseLong(x);
+        } catch (NumberFormatException e) {
+            throw newIllegalStateException(ERROR_FILE_CORRUPT, 
+                    "Error parsing the value {0} as a long", x, e);
+        }
+    }
+
+    /**
+     * Try to parse a string as a number.
+     * 
+     * @param x the number
+     * @param defaultValue if x is null
+     * @param errorValue if parsing fails
+     * @return the parsed value if parsing is possible
+     */
+    public static long parseLong(String x, long defaultValue, long errorValue) {
+        if (x == null) {
+            return defaultValue;
+        }
+        try {
+            return Long.parseLong(x);
+        } catch (NumberFormatException e) {
+            return errorValue;
+        }
     }
 
 }

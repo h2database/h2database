@@ -5,8 +5,7 @@
  */
 package org.h2.test.store;
 
-import java.beans.ExceptionListener;
-import java.io.IOException;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Iterator;
@@ -96,13 +95,11 @@ public class TestMVStore extends TestBase {
     private void testNewerWriteVersion() throws Exception {
         String fileName = getBaseDir() + "/testNewerWriteVersion.h3";
         FileUtils.delete(fileName);
-        char[] passwordChars;
-        passwordChars = "007".toCharArray();
         MVStore s = new MVStore.Builder().
-                encryptionKey(passwordChars).
+                encryptionKey("007".toCharArray()).
                 fileName(fileName).
                 open();
-        Map<String, String> header = s.getFileHeader();
+        Map<String, String> header = s.getStoreHeader();
         assertEquals("1", header.get("format"));
         header.put("formatRead", "1");
         header.put("format", "2");
@@ -111,15 +108,36 @@ public class TestMVStore extends TestBase {
         s.store();
         s.close();
         
-        passwordChars = "007".toCharArray();
+        try {
+            s = new MVStore.Builder().
+                    encryptionKey("007".toCharArray()).
+                    fileName(fileName).
+                    open();
+            fail();
+        } catch (IllegalStateException e) {
+            assertEquals(DataUtils.ERROR_UNSUPPORTED_FORMAT, 
+                    DataUtils.getErrorCode(e.getMessage()));
+        }
         s = new MVStore.Builder().
-                encryptionKey(passwordChars).
+                encryptionKey("007".toCharArray()).
+                readOnly().
                 fileName(fileName).
                 open();
-        assertTrue(s.isReadOnly());
+        assertTrue(s.getFileStore().isReadOnly());
         m = s.openMap("data");
         assertEquals("Hello World", m.get(0));
-        s.close();        
+        s.close();     
+        
+        FileUtils.setReadOnly(fileName);
+        s = new MVStore.Builder().
+                encryptionKey("007".toCharArray()).
+                fileName(fileName).
+                open();
+        assertTrue(s.getFileStore().isReadOnly());
+        m = s.openMap("data");
+        assertEquals("Hello World", m.get(0));
+        s.close();     
+
     }
 
     private void testCompactFully() throws Exception {
@@ -139,9 +157,9 @@ public class TestMVStore extends TestBase {
             m.removeMap();
             s.store();
         }
-        long sizeOld = s.getFile().size();
+        long sizeOld = s.getFileStore().size();
         s.compactMoveChunks();
-        long sizeNew = s.getFile().size();
+        long sizeNew = s.getFileStore().size();
         assertTrue("old: " + sizeOld + " new: " + sizeNew, sizeNew < sizeOld);
         s.close();
     }
@@ -150,13 +168,13 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/testBackgroundExceptionListener.h3";
         FileUtils.delete(fileName);
         MVStore s;
-        final AtomicReference<Exception> exRef = new AtomicReference<Exception>();
+        final AtomicReference<Throwable> exRef = new AtomicReference<Throwable>();
         s = new MVStore.Builder().
                 fileName(fileName).
-                backgroundExceptionListener(new ExceptionListener() {
-
+                backgroundExceptionHandler(new UncaughtExceptionHandler() {
+                    
                     @Override
-                    public void exceptionThrown(Exception e) {
+                    public void uncaughtException(Thread t, Throwable e) {
                         exRef.set(e);
                     }
 
@@ -165,7 +183,7 @@ public class TestMVStore extends TestBase {
         s.setWriteDelay(2);
         MVMap<Integer, String> m;
         m = s.openMap("data");
-        s.getFile().close();
+        s.getFileStore().getFile().close();
         m.put(1, "Hello");
         s.commit();
         for (int i = 0; i < 100; i++) {
@@ -174,7 +192,7 @@ public class TestMVStore extends TestBase {
             }
             Thread.sleep(1);
         }
-        Exception e = exRef.get();
+        Throwable e = exRef.get();
         assertTrue(e != null);
         assertEquals(DataUtils.ERROR_WRITING_FAILED, DataUtils.getErrorCode(e.getMessage()));
 
@@ -217,7 +235,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
     }
 
-    private void testWriteBuffer() throws IOException {
+    private void testWriteBuffer() {
         String fileName = getBaseDir() + "/testWriteBuffer.h3";
         FileUtils.delete(fileName);
         MVStore s;
@@ -234,7 +252,7 @@ public class TestMVStore extends TestBase {
             for (int i = 0; i < len; i++) {
                 m.put(i, data);
             }
-            long size = s.getFile().size();
+            long size = s.getFileStore().size();
             assertTrue("last:" + lastSize + " now: " + size, size > lastSize);
             lastSize = size;
             s.close();
@@ -379,7 +397,7 @@ public class TestMVStore extends TestBase {
         s = new MVStore.Builder().
                 fileName(fileName).
                 encryptionKey(passwordChars).open();
-        assertTrue(s.isReadOnly());
+        assertTrue(s.getFileStore().isReadOnly());
         
         FileUtils.delete(fileName);
         assertFalse(FileUtils.exists(fileName));
@@ -393,7 +411,7 @@ public class TestMVStore extends TestBase {
         s = openStore(fileName);
         m = s.openMap("test");
         m.put(1, 1);
-        Map<String, String> header = s.getFileHeader();
+        Map<String, String> header = s.getStoreHeader();
         int format = Integer.parseInt(header.get("format"));
         assertEquals(1, format);
         header.put("format", Integer.toString(format + 1));
@@ -483,7 +501,7 @@ public class TestMVStore extends TestBase {
                 }
             }
             assertEquals(expectedReadsForCacheSize[cacheSize],
-                    s.getFileReadCount());
+                    s.getFileStore().getReadCount());
             s.close();
         }
 
@@ -506,10 +524,10 @@ public class TestMVStore extends TestBase {
         } catch (IllegalStateException e) {
             // expected
         }
-        assertFalse(s.isReadOnly());
+        assertFalse(s.getFileStore().isReadOnly());
         s.close();
         s = new MVStore.Builder().fileName(fileName).readOnly().open();
-        assertTrue(s.isReadOnly());
+        assertTrue(s.getFileStore().isReadOnly());
         s.close();
     }
 
@@ -517,17 +535,17 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/testFileHeader.h3";
         MVStore s = openStore(fileName);
         long time = System.currentTimeMillis();
-        assertEquals("3", s.getFileHeader().get("H"));
-        long creationTime = Long.parseLong(s.getFileHeader()
+        assertEquals("3", s.getStoreHeader().get("H"));
+        long creationTime = Long.parseLong(s.getStoreHeader()
                 .get("creationTime"));
         assertTrue(Math.abs(time - creationTime) < 100);
-        s.getFileHeader().put("test", "123");
+        s.getStoreHeader().put("test", "123");
         MVMap<Integer, Integer> map = s.openMap("test");
         map.put(10, 100);
         s.store();
         s.close();
         s = openStore(fileName);
-        assertEquals("123", s.getFileHeader().get("test"));
+        assertEquals("123", s.getStoreHeader().get("test"));
         s.close();
     }
 
@@ -545,7 +563,7 @@ public class TestMVStore extends TestBase {
         s.compact(50);
         map.put(10, 100);
         s.store();
-        FilePath f = FilePath.get(s.getFileName());
+        FilePath f = FilePath.get(fileName);
         s.close();
         int blockSize = 4 * 1024;
         // test corrupt file headers
@@ -990,7 +1008,7 @@ public class TestMVStore extends TestBase {
         assertEquals(1000, m.size());
         assertEquals(286, s.getUnsavedPageCount());
         s.store();
-        assertEquals(2, s.getFileWriteCount());
+        assertEquals(2, s.getFileStore().getWriteCount());
         s.close();
 
         s = openStore(fileName);
@@ -999,8 +1017,8 @@ public class TestMVStore extends TestBase {
         assertEquals(0, m.size());
         s.store();
         // ensure only nodes are read, but not leaves
-        assertEquals(42, s.getFileReadCount());
-        assertEquals(1, s.getFileWriteCount());
+        assertEquals(42, s.getFileStore().getReadCount());
+        assertEquals(1, s.getFileStore().getWriteCount());
         s.close();
     }
 
@@ -1574,7 +1592,7 @@ public class TestMVStore extends TestBase {
         s.close();
     }
 
-    private void testLargerThan2G() throws IOException {
+    private void testLargerThan2G() {
         if (!config.big) {
             return;
         }
@@ -1592,7 +1610,7 @@ public class TestMVStore extends TestBase {
                 store.setRetainVersion(version);
                 long time = System.currentTimeMillis();
                 if (time - last > 2000) {
-                    long mb = store.getFile().size() / 1024 / 1024;
+                    long mb = store.getFileStore().size() / 1024 / 1024;
                     trace(mb + "/4500");
                     if (mb > 4500) {
                         break;

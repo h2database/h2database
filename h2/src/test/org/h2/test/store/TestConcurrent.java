@@ -121,7 +121,7 @@ public class TestConcurrent extends TestMVStore {
                     s.store();
                     map.clear();
                     s.store();
-                    long len = s.getFile().size();
+                    long len = s.getFileStore().size();
                     if (len > 1024 * 1024) {
                         // slow down writing a lot
                         Thread.sleep(200);
@@ -136,7 +136,7 @@ public class TestConcurrent extends TestMVStore {
         for (int i = 0; i < 10; i++) {
             // System.out.println("test " + i);
             s.setReuseSpace(false);
-            byte[] buff = readFileSlowly(s.getFile(), s.getFile().size());
+            byte[] buff = readFileSlowly(s.getFileStore().getFile(), s.getFileStore().size());
             s.setReuseSpace(true);
             FileOutputStream out = new FileOutputStream(fileNameRestore);
             out.write(buff);

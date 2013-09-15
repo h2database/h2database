@@ -111,10 +111,8 @@ public class TransactionStore {
 
     private synchronized void init() {
         String s = settings.get(LAST_TRANSACTION_ID);
-        if (s != null) {
-            lastTransactionId = Long.parseLong(s);
-            lastTransactionIdStored = lastTransactionId;
-        }
+        lastTransactionId = DataUtils.parseLong(s, 0);
+        lastTransactionIdStored = lastTransactionId;
         Long lastKey = preparedTransactions.lastKey();
         if (lastKey != null && lastKey.longValue() > lastTransactionId) {
             throw DataUtils.newIllegalStateException(
@@ -789,7 +787,7 @@ public class TransactionStore {
          *
          * @return the size
          */
-        public long getSize() {
+        public long sizeAsLong() {
             // TODO this method is very slow
             long size = 0;
             Cursor<K> cursor = map.keyIterator(null);

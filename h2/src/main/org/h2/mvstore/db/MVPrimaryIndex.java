@@ -198,7 +198,7 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         try {
-            long cost = 10 * (dataMap.map.getSize() + Constants.COST_ROW_OFFSET);
+            long cost = 10 * (dataMap.map.sizeAsLong() + Constants.COST_ROW_OFFSET);
             return cost;
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
@@ -256,13 +256,13 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public long getRowCount(Session session) {
         TransactionMap<Value, Value> map = getMap(session);
-        return map.getSize();
+        return map.sizeAsLong();
     }
 
     @Override
     public long getRowCountApproximation() {
         try {
-            return dataMap.map.getSize();
+            return dataMap.map.sizeAsLong();
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }

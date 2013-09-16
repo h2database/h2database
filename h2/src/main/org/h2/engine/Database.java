@@ -113,6 +113,7 @@ public class Database implements DataHandler {
     private int nextTempTableId;
     private User systemUser;
     private Session systemSession;
+    private Session lobSession;
     private Table meta;
     private Index metaIdIndex;
     private FileLock lock;
@@ -628,6 +629,7 @@ public class Database implements DataHandler {
         roles.put(Constants.PUBLIC_ROLE_NAME, publicRole);
         systemUser.setAdmin(true);
         systemSession = new Session(this, systemUser, ++nextSessionId);
+        lobSession = new Session(this, systemUser, ++nextSessionId);
         CreateTableData data = new CreateTableData();
         ArrayList<Column> cols = data.columns;
         Column columnId = new Column("ID", Value.INT);
@@ -1056,11 +1058,11 @@ public class Database implements DataHandler {
                 exclusiveSession = null;
             }
             userSessions.remove(session);
-            if (session != systemSession) {
+            if (session != systemSession && session != lobSession) {
                 trace.info("disconnecting session #{0}", session.getId());
             }
         }
-        if (userSessions.size() == 0 && session != systemSession) {
+        if (userSessions.size() == 0 && session != systemSession && session != lobSession) {
             if (closeDelay == 0) {
                 close(false);
             } else if (closeDelay < 0) {
@@ -1072,7 +1074,7 @@ public class Database implements DataHandler {
                 delayedCloser.start();
             }
         }
-        if (session != systemSession && session != null) {
+        if (session != systemSession && session != lobSession && session != null) {
             trace.info("disconnected session #{0}", session.getId());
         }
     }
@@ -1276,6 +1278,10 @@ public class Database implements DataHandler {
             systemSession.close();
             systemSession = null;
         }
+        if (lobSession != null) {
+            lobSession.close();
+            lobSession = null;
+        }
         if (lock != null) {
             if (fileLockMethod == FileLock.LOCK_SERIALIZED) {
                 // wait before deleting the .lock file,
@@ -1461,8 +1467,12 @@ public class Database implements DataHandler {
         }
         // copy, to ensure the reference is stable
         Session sys = systemSession;
+        Session lob = lobSession;
         if (includingSystemSession && sys != null) {
             list.add(sys);
+        }
+        if (includingSystemSession && lob != null) {
+            list.add(lob);
         }
         Session[] array = new Session[list.size()];
         list.toArray(array);
@@ -2475,13 +2485,20 @@ public class Database implements DataHandler {
         return lobStorage;
     }
 
-    public JdbcConnection getLobConnection() {
+    public JdbcConnection getLobConnectionForInit() {
         String url = Constants.CONN_URL_INTERNAL;
         JdbcConnection conn = new JdbcConnection(systemSession, systemUser.getName(), url);
         conn.setTraceLevel(TraceSystem.OFF);
         return conn;
     }
 
+    public JdbcConnection getLobConnectionForRegularUse() {
+        String url = Constants.CONN_URL_INTERNAL;
+        JdbcConnection conn = new JdbcConnection(lobSession, systemUser.getName(), url);
+        conn.setTraceLevel(TraceSystem.OFF);
+        return conn;
+    }
+    
     public void setLogMode(int log) {
         if (log < 0 || log > 2) {
             throw DbException.getInvalidValueException("LOG", log);

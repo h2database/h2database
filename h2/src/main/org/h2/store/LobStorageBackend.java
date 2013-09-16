@@ -408,24 +408,20 @@ public class LobStorageBackend implements LobStorageInterface {
         }
     }
 
-    private ValueLobDb registerLob(int type, long lobId, int tableId, long byteCount, long precision) {
+    private ValueLobDb registerLob(int type, long lobId, int tableId, long byteCount, long precision) throws SQLException {
         assertNotHolds(conn.getSession());
         // see locking discussion at the top
         synchronized (database) {
             synchronized (conn.getSession()) {
-                try {
-                    String sql = "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)";
-                    PreparedStatement prep = prepare(sql);
-                    prep.setLong(1, lobId);
-                    prep.setLong(2, byteCount);
-                    prep.setInt(3, tableId);
-                    prep.execute();
-                    reuse(sql, prep);
-                    ValueLobDb v = ValueLobDb.create(type, database, tableId, lobId, null, precision);
-                    return v;
-                } catch (SQLException e) {
-                    throw DbException.convert(e);
-                }
+                String sql = "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)";
+                PreparedStatement prep = prepare(sql);
+                prep.setLong(1, lobId);
+                prep.setLong(2, byteCount);
+                prep.setInt(3, tableId);
+                prep.execute();
+                reuse(sql, prep);
+                ValueLobDb v = ValueLobDb.create(type, database, tableId, lobId, null, precision);
+                return v;
             }
         }
     }

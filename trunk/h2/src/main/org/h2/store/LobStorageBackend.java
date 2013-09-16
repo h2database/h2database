@@ -244,39 +244,6 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     /**
-     * Retrieve the sequence id and position that is smaller than the requested
-     * position. Those values can be used to quickly skip to a given position
-     * without having to read all data.
-     *
-     * @param lob the lob
-     * @param pos the required position
-     * @return null if the data is not available, or an array of two elements:
-     *         the sequence, and the offset
-     */
-    long[] skipBuffer(long lob, long pos) throws SQLException {
-        // see locking discussion at the top
-        assertNotHolds(conn.getSession());
-        synchronized (database) {
-            synchronized (conn.getSession()) {
-                String sql = "SELECT MAX(SEQ), MAX(POS) FROM " + LOB_MAP +
-                        " WHERE LOB = ? AND POS < ?";
-                PreparedStatement prep = prepare(sql);
-                prep.setLong(1, lob);
-                prep.setLong(2, pos);
-                ResultSet rs = prep.executeQuery();
-                rs.next();
-                int seq = rs.getInt(1);
-                pos = rs.getLong(2);
-                boolean wasNull = rs.wasNull();
-                rs.close();
-                reuse(sql, prep);
-                // upgraded: offset not set
-                return wasNull ? null : new long[] { seq, pos };
-            }
-        }
-    }
-
-    /**
      * Create a prepared statement, or re-use an existing one.
      *
      * @param sql the SQL statement

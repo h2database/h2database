@@ -11,6 +11,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.Driver;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
@@ -50,6 +51,7 @@ public class TestMetaData extends TestBase {
         testStatic();
         testGeneral();
         testAllowLiteralsNone();
+        testClientInfo();
         testSessionsUncommitted();
         testQueryStatistics();
     }
@@ -975,6 +977,17 @@ public class TestMetaData extends TestBase {
         deleteDb("metaData");
     }
 
+    private void testClientInfo() throws SQLException {
+        Connection conn = getConnection("metaData");
+        assertNull(conn.getClientInfo());
+        assertThrows(SQLClientInfoException.class, conn).getClientInfo("xxx");
+        DatabaseMetaData meta = conn.getMetaData();
+        ResultSet rs = meta.getClientInfoProperties();
+        assertFalse(rs.next());
+        conn.close();
+        deleteDb("metaData");
+    }
+    
     private void testSessionsUncommitted() throws SQLException {
         if (config.mvcc || config.memory) {
             return;

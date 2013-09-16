@@ -16,6 +16,7 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 
@@ -3054,7 +3055,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements DatabaseMetaDat
      */
     @Override
     public ResultSet getClientInfoProperties() throws SQLException {
-        throw unsupported("clientInfoProperties");
+        // we don't have any client properties, so return an empty result set
+        return new SimpleResultSet();
     }
 
     /**

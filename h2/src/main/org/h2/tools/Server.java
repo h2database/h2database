@@ -590,6 +590,13 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             String osName = StringUtils.toLowerEnglish(Utils.getProperty("os.name", "linux"));
             Runtime rt = Runtime.getRuntime();
             String browser = Utils.getProperty(SysProperties.H2_BROWSER, null);
+            if (browser == null) {
+                // under Linux, this will point to the default system browser
+                try {
+                    browser = System.getenv("BROWSER");
+                } catch (SecurityException se) {
+                }
+            }
             if (browser != null) {
                 if (browser.startsWith("call:")) {
                     browser = browser.substring("call:".length());
@@ -632,7 +639,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 // Mac OS: to open a page with Safari, use "open -a Safari"
                 Runtime.getRuntime().exec(new String[] { "open", url });
             } else {
-                String[] browsers = { "google-chrome", "firefox", "mozilla-firefox",
+                String[] browsers = { "chromium", "google-chrome", "firefox", "mozilla-firefox",
                         "mozilla", "konqueror", "netscape", "opera", "midori" };
                 boolean ok = false;
                 for (String b : browsers) {

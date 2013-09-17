@@ -22,24 +22,13 @@ import org.h2.store.fs.FilePathNio;
  */
 public class FileStore {
 
-    private final String fileName;
+    private String fileName;
     private boolean readOnly;
     private FileChannel file;
     private FileLock fileLock;
     private long fileSize;
     private long readCount;
     private long writeCount;
-    
-    public FileStore(String fileName, boolean readOnly) {
-        if (fileName != null && fileName.indexOf(':') < 0) {
-            // NIO is used, unless a different file system is specified
-            // the following line is to ensure the NIO file system is compiled
-            FilePathNio.class.getName();
-            fileName = "nio:" + fileName;
-        }
-        this.fileName = fileName;
-        this.readOnly = readOnly;
-    }
     
     @Override
     public String toString() {
@@ -67,7 +56,14 @@ public class FileStore {
         
     }
     
-    public void open(char[] encryptionKey) {
+    public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+        if (fileName != null && fileName.indexOf(':') < 0) {
+            // NIO is used, unless a different file system is specified
+            // the following line is to ensure the NIO file system is compiled
+            FilePathNio.class.getName();
+            fileName = "nio:" + fileName;
+        }
+        this.fileName = fileName;
         FilePath f = FilePath.get(fileName);
         FilePath parent = f.getParent();
         if (!parent.exists()) {
@@ -76,6 +72,7 @@ public class FileStore {
         if (f.exists() && !f.canWrite()) {
             readOnly = true;
         }
+        this.readOnly = readOnly;
         try {
             file = f.open(readOnly ? "r" : "rw");
             if (encryptionKey != null) {

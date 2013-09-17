@@ -267,8 +267,8 @@ public class MVStore {
             cache = null;
             return;
         }
+        fileStore = new FileStore();
         boolean readOnly = config.containsKey("readOnly");
-        fileStore = new FileStore(f, readOnly);
         o = config.get("cacheSize");
         int mb = o == null ? 16 : (Integer) o;
         int maxMemoryBytes = mb * 1024 * 1024;
@@ -284,7 +284,7 @@ public class MVStore {
         unsavedPageCountMax = writeBufferSize / (div == 0 ? 1 : div);
         char[] encryptionKey = (char[]) config.get("encryptionKey");
         try {
-            fileStore.open(encryptionKey);
+            fileStore.open(f, readOnly, encryptionKey);
             if (fileStore.size() == 0) {
                 creationTime = 0;
                 creationTime = getTime();

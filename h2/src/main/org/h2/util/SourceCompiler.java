@@ -58,6 +58,8 @@ public class SourceCompiler {
      * The class name to byte code map.
      */
     final HashMap<String, Class<?>> compiled = New.hashMap();
+    
+    boolean useJavaSystemCompiler = true;
 
     static {
         JavaCompiler c;
@@ -87,6 +89,15 @@ public class SourceCompiler {
     public void setSource(String className, String source) {
         sources.put(className, source);
         compiled.clear();
+    }
+    
+    /**
+     * Enable or disable the usage of the Java system compiler.
+     * 
+     * @param enabled true to enable
+     */
+    public void setJavaSystemCompiler(boolean enabled) {
+        this.useJavaSystemCompiler = enabled;
     }
 
     /**
@@ -125,7 +136,7 @@ public class SourceCompiler {
                         className = name;
                     }
                     String s = getCompleteSourceCode(packageName, className, source);
-                    if (JAVA_COMPILER != null) {
+                    if (JAVA_COMPILER != null && useJavaSystemCompiler) {
                         classInstance = javaxToolsJavac(packageName, className, s);
                     } else {
                         byte[] data = javacCompile(packageName, className, s);

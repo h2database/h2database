@@ -64,6 +64,7 @@ public class ProxyCodeGenerator {
         cg.write(new PrintWriter(sw));
         String code = sw.toString();
         String proxy = "bytecode."+ c.getSimpleName() + "Proxy";
+        compiler.setJavaSystemCompiler(false);
         compiler.setSource(proxy, code);
         // System.out.println(code);
         Class<?> px = compiler.getClass(proxy);

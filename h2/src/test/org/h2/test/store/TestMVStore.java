@@ -398,6 +398,7 @@ public class TestMVStore extends TestBase {
                 fileName(fileName).
                 encryptionKey(passwordChars).open();
         assertTrue(s.getFileStore().isReadOnly());
+        s.close();
         
         FileUtils.delete(fileName);
         assertFalse(FileUtils.exists(fileName));

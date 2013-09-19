@@ -332,7 +332,7 @@ public class LobStorageBackend implements LobStorageInterface {
             assertNotHolds(conn.getSession());
             // see locking discussion at the top
             synchronized (database) {
-                synchronized(conn.getSession()) {
+                synchronized (conn.getSession()) {
                     return new LobInputStream(lobId, byteCount);
                 }
             }
@@ -504,8 +504,8 @@ public class LobStorageBackend implements LobStorageInterface {
             b = compress.compress(b, compressAlgorithm);
         }
         int hash = Arrays.hashCode(b);
-        assertHolds(conn.getSession());
-        assertHolds(database);
+        assertHoldsLock(conn.getSession());
+        assertHoldsLock(database);
         block = getHashCacheBlock(hash);
         if (block != -1) {
             String sql =  "SELECT COMPRESSED, DATA FROM " + LOB_DATA +
@@ -592,7 +592,7 @@ public class LobStorageBackend implements LobStorageInterface {
         }
     }
 
-    private static void assertHolds(Object lock) {
+    static void assertHoldsLock(Object lock) {
         if (!Thread.holdsLock(lock)) {
             throw DbException.throwInternalError();
         }
@@ -634,8 +634,8 @@ public class LobStorageBackend implements LobStorageInterface {
 
             // we have to take the lock on the session
             // before the lock on the database to prevent ABBA deadlocks
-            assertHolds(conn.getSession());
-            assertHolds(database);
+            assertHoldsLock(conn.getSession());
+            assertHoldsLock(database);
             
             if (byteCount == -1) {
                 String sql = "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?";

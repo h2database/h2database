@@ -101,13 +101,7 @@ public class RegularTable extends TableBase {
         }
     }
 
-    /**
-     * Read the given row.
-     *
-     * @param session the session
-     * @param key unique key
-     * @return the row
-     */
+    @Override
     public Row getRow(Session session, long key) {
         return scanIndex.getRow(session, key);
     }

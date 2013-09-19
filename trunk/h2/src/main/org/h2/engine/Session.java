@@ -856,6 +856,9 @@ public class Session extends SessionWithState {
      * @return true if yes
      */
     public boolean containsUncommitted() {
+        if (database.getMvStore() != null) {
+            return transaction != null;
+        }
         return firstUncommittedLog != Session.LOG_WRITTEN;
     }
 

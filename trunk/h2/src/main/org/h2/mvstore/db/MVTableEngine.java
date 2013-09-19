@@ -269,7 +269,7 @@ public class MVTableEngine implements TableEngine {
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
         public void close(long maxCompactTime) {
-            if (!store.isClosed()) {
+            if (!store.isClosed() && store.getFileStore() != null) {
                 if (!store.getFileStore().isReadOnly()) {
                     store.store();
                     long start = System.currentTimeMillis();

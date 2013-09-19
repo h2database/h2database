@@ -1247,10 +1247,12 @@ public abstract class TestBase {
         ArrayList<String> list2 = new ArrayList<String>();
         while (rs1.next()) {
             String s1 = rs1.getString(1);
+            s1 = removeRowCount(s1);
             if (!rs2.next()) {
                 fail("expected: " + s1);
             }
             String s2 = rs2.getString(1);
+            s2 = removeRowCount(s2);
             if (!s1.equals(s2)) {
                 list1.add(s1);
                 list2.add(s2);
@@ -1258,11 +1260,19 @@ public abstract class TestBase {
         }
         for (String s : list1) {
             if (!list2.remove(s)) {
-                fail("only found in first: " + s);
+                fail("only found in first: " + s + " remaining: " + list2);
             }
         }
-        assertEquals(0, list2.size());
+        assertEquals("remaining: " + list2, 0, list2.size());
         assertFalse(rs2.next());
+    }
+    
+    private static String removeRowCount(String scriptLine) {
+        int index = scriptLine.indexOf("+/-");
+        if (index >= 0) {
+            scriptLine = scriptLine.substring(index);
+        }
+        return scriptLine;
     }
 
     /**

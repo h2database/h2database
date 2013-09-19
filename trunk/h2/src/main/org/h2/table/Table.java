@@ -165,6 +165,17 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment);
+    
+    /**
+     * Get the given row.
+     *
+     * @param session the session
+     * @param key the primary key
+     * @return the row
+     */
+    public Row getRow(Session session, long key) {
+        return null;
+    }
 
     /**
      * Remove a row from the table and all indexes.

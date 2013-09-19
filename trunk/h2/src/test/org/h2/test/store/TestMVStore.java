@@ -18,6 +18,7 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.OffHeapStore;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.mvstore.type.StringDataType;
@@ -46,6 +47,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testOffHeapStorage();
         testNewerWriteVersion();
         testCompactFully();
         testBackgroundExceptionListener();
@@ -90,6 +92,29 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testOffHeapStorage() throws Exception {
+        OffHeapStore offHeap = new OffHeapStore();
+        MVStore s = new MVStore.Builder().
+                fileStore(offHeap).
+                open();
+        Map<Integer, String> map = s.openMap("data");
+        for (int i = 0; i < 1000; i++) {
+            map.put(i, "Hello " + i);
+            s.store();
+        }
+        assertTrue(1000 < offHeap.getWriteCount());
+        // s.close();
+        
+        s = new MVStore.Builder().
+                fileStore(offHeap).
+                open();
+        map = s.openMap("data");
+        for (int i = 0; i < 1000; i++) {
+            assertEquals("Hello " + i, map.get(i));
+        }
+        s.close();
     }
     
     private void testNewerWriteVersion() throws Exception {

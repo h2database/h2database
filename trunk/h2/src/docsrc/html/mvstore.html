@@ -32,6 +32,7 @@ MVStore
 <a href="#transactions">- Transactions</a><br />
 <a href="#inMemory">- In-Memory Performance and Usage</a><br />
 <a href="#dataTypes">- Pluggable Data Types</a><br />
+<a href="#offHeap">- Off-Heap and Pluggable Storage</a><br />
 <a href="#blob">- BLOB Support</a><br />
 <a href="#pluggableMap">- R-Tree and Pluggable Map Implementations</a><br />
 <a href="#caching">- Concurrent Operations and Caching</a><br />
@@ -60,8 +61,11 @@ But it can be also directly within an application, without using JDBC or SQL.
 </li><li>It is intended to be fast, simple to use, and small.
 </li><li>Old versions of the data can be read concurrently with all other operations.
 </li><li>Transaction are supported (including concurrent transactions and 2-phase commit).
-</li><li>The tool is very modular. It supports pluggable data types / serialization,
-    pluggable map implementations (B-tree, R-tree, concurrent B-tree currently), BLOB storage,
+</li><li>The tool is very modular. 
+    It supports pluggable data types / serialization,
+    pluggable storage (to a file, to off-heap memory),
+    pluggable map implementations (B-tree, R-tree, concurrent B-tree currently), 
+    BLOB storage,
     and a file system abstraction to support encrypted files and zip files.
 </li></ul>
 
@@ -102,6 +106,7 @@ MVStore s = new MVStore.Builder().
     compressData().
     encryptionKey("007".toCharArray()).
     fileName(fileName).
+    fileStore(new FileStore()).
     pageSplitSize(6 * 1024).
     readOnly().
     writeBufferSize(8).
@@ -114,6 +119,7 @@ MVStore s = new MVStore.Builder().
 </li><li>compressData: compress the data when storing.
 </li><li>encryptionKey: the encryption key for file encryption.
 </li><li>fileName: the name of the file, for file based stores.
+</li><li>fileStore: the storage implementation to use.
 </li><li>pageSplitSize: the point where pages are split.
 </li><li>readOnly: open the file in read-only mode.
 </li><li>writeBufferSize: the size of the write buffer in MB.
@@ -275,6 +281,19 @@ The storage engine itself does not have any length limits, so that keys, values,
 pages, and chunks can be very big (as big as fits in memory).
 Also, there is no inherent limit to the number of maps and chunks.
 Due to using a log structured storage, there is no special case handling for large keys or pages.
+</p>
+
+<h3 id="offHeap">Off-Heap and Pluggable Storage</h3>
+<p>
+Storage is pluggable. The default storage is to a single file (unless pure in-memory operation is used).
+</p>
+<p>
+An off-heap storage implementation is available. This storage keeps the data in the off-heap memory,
+meaning outside of the regular garbage collected heap. This allows to use very large in-memory
+stores without having to increase the JVM heap (which would increase Java garbage collection 
+cost a lot). Memory is allocated using <code>ByteBuffer.allocateDirect</code>.
+One chunk is allocated at a time (each chunk is usually a few MB large), so that
+allocation cost is low.
 </p>
 
 <h3 id="blob">BLOB Support</h3>

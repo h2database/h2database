@@ -172,7 +172,7 @@ public class Page {
             buff = ByteBuffer.allocate(128);
             fileStore.readFully(filePos, buff);
             maxLength = buff.getInt();
-            //read the first bytes again
+            // read the first bytes again
         }
         buff = ByteBuffer.allocate(length);
         fileStore.readFully(filePos, buff);

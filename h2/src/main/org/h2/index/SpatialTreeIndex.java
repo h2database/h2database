@@ -19,7 +19,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
@@ -41,7 +41,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     private final MVRTreeMap<Long> treeMap;
     private final MVStore store;
 
-    private final RegularTable tableData;
     private boolean closed;
     private boolean needRebuild;
     private boolean persistent;
@@ -58,7 +57,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
      * @param create whether to create a new index
      * @param session the session.
      */
-    public SpatialTreeIndex(RegularTable table, int id, String indexName,
+    public SpatialTreeIndex(Table table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType, boolean persistent,
             boolean create, Session session) {
         if (indexType.isUnique()) {
@@ -82,7 +81,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         initBaseIndex(table, id, indexName, columns, indexType);
         this.needRebuild = create;
         this.persistent = persistent;
-        tableData = table;
+        this.table = table;
         if (!database.isStarting()) {
             if (columns[0].column.getType() != Value.GEOMETRY) {
                 throw DbException.getUnsupportedException("spatial index on non-geometry column, "
@@ -158,7 +157,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     private Cursor find(Session session) {
-        return new SpatialCursor(treeMap.keySet().iterator(), tableData, session);
+        return new SpatialCursor(treeMap.keySet().iterator(), table, session);
     }
 
     @Override
@@ -166,7 +165,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         if (intersection == null) {
             return find(filter.getSession());
         }
-        return new SpatialCursor(treeMap.findIntersectingKeys(getEnvelope(intersection)), tableData, filter.getSession());
+        return new SpatialCursor(treeMap.findIntersectingKeys(getEnvelope(intersection)), table, filter.getSession());
     }
 
     @Override
@@ -189,7 +188,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, tableData.getRowCountApproximation(), filter, sortOrder);
+        return getCostRangeIndex(masks, table.getRowCountApproximation(), filter, sortOrder);
     }
 
     @Override
@@ -253,18 +252,18 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
         private final Iterator<SpatialKey> it;
         private SpatialKey current;
-        private final RegularTable tableData;
+        private final Table table;
         private Session session;
 
-        public SpatialCursor(Iterator<SpatialKey> it, RegularTable tableData, Session session) {
+        public SpatialCursor(Iterator<SpatialKey> it, Table table, Session session) {
             this.it = it;
-            this.tableData = tableData;
+            this.table = table;
             this.session = session;
         }
 
         @Override
         public Row get() {
-            return tableData.getRow(session, current.getId());
+            return table.getRow(session, current.getId());
         }
 
         @Override

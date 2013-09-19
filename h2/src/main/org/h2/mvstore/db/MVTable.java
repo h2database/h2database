@@ -26,6 +26,7 @@ import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
+import org.h2.index.SpatialTreeIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.db.TransactionStore.Transaction;
@@ -354,13 +355,7 @@ public class MVTable extends TableBase {
         // ignore
     }
 
-    /**
-     * Get the given row.
-     *
-     * @param session the session
-     * @param key the primary key
-     * @return the row
-     */
+    @Override
     public Row getRow(Session session, long key) {
         return primaryIndex.getRow(session, key);
     }
@@ -401,6 +396,9 @@ public class MVTable extends TableBase {
             primaryIndex.setMainIndexColumn(mainIndexColumn);
             index = new MVDelegateIndex(this, indexId,
                     indexName, primaryIndex, indexType);
+        } else if (indexType.isSpatial()) {
+            index = new SpatialTreeIndex(this, indexId, indexName, cols, 
+                    indexType, true, create, session);
         } else {
             index = new MVSecondaryIndex(session.getDatabase(),
                     this, indexId,

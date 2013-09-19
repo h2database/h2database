@@ -18,17 +18,28 @@ import org.h2.store.fs.FilePathCrypt;
 import org.h2.store.fs.FilePathNio;
 
 /**
- * The storage mechanism of the MVStore.
+ * The default storage mechanism of the MVStore. This implementation persists
+ * data to a file. The file store is responsible to persist data and for free
+ * space management.
  */
 public class FileStore {
 
-    private String fileName;
-    private boolean readOnly;
-    private FileChannel file;
-    private FileLock fileLock;
-    private long fileSize;
-    private long readCount;
-    private long writeCount;
+    protected long readCount;
+    protected long writeCount;
+    
+    /**
+     * The free spaces between the chunks. The first block to use is block 2
+     * (the first two blocks are the store header).
+     */
+    protected final FreeSpaceBitSet freeSpace = new FreeSpaceBitSet(2, MVStore.BLOCK_SIZE);
+    
+    protected String fileName;
+    protected boolean readOnly;
+
+    protected long fileSize;
+
+    protected FileChannel file;
+    protected FileLock fileLock;
     
     @Override
     public String toString() {
@@ -44,16 +55,6 @@ public class FileStore {
         writeCount++;
         fileSize = Math.max(fileSize, pos + src.remaining());
         DataUtils.writeFully(file, pos, src);
-    }
-    
-    /**
-     * Mark the space within the file as unused.
-     * 
-     * @param pos
-     * @param length
-     */
-    public void free(long pos, int length) {
-        
     }
     
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
@@ -109,6 +110,7 @@ public class FileStore {
                 fileLock = null;
             }
             file.close();
+            freeSpace.clear();
         } catch (Exception e) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_WRITING_FAILED,
@@ -134,6 +136,7 @@ public class FileStore {
     
     public void truncate(long size) {
         try {
+            writeCount++;
             file.truncate(size);
             fileSize = Math.min(fileSize, size);
         } catch (IOException e) {
@@ -176,6 +179,40 @@ public class FileStore {
 
     public boolean isReadOnly() {
         return readOnly;
+    }
+
+    public int getDefaultRetentionTime() {
+        return 45000;
+    }
+
+    public void markUsed(long start, int len) {
+        freeSpace.markUsed(start, len);
+    }
+    
+    public long allocate(int length) {
+        return freeSpace.allocate(length);
+    }
+
+    /**
+     * Mark the space as free.
+     *
+     * @param pos the position in bytes
+     * @param length the number of bytes
+     */
+    public void free(long pos, int length) {
+        freeSpace.free(pos, length);
+    }
+
+    public int getFillRate() {
+        return freeSpace.getFillRate();
+    }
+
+    public long getFirstFree() {
+        return freeSpace.getFirstFree();
+    }
+
+    public void clear() {
+        freeSpace.clear();
     }
 
 }

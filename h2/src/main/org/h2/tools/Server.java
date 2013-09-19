@@ -105,6 +105,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * <td>Only existing databases may be opened (all servers)</td></tr>
      * <tr><td>[-trace]</td>
      * <td>Print additional trace information (all servers)</td></tr>
+     * <tr><td>[-key &lt;from&gt; &lt;to&gt;]</td>
+     * <td>Allows to map a database name to another (all servers)</td></tr>
      * </table>
      * The options -xAllowOthers are potentially risky.
      * <br />
@@ -595,6 +597,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 try {
                     browser = System.getenv("BROWSER");
                 } catch (SecurityException se) {
+                    // ignore
                 }
             }
             if (browser != null) {

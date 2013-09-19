@@ -604,6 +604,15 @@ server.stop();
 By default, only connections from localhost are allowed. To allow remote connections, use
 <code>-pgAllowOthers</code> when starting the server.
 </p>
+<p>
+To map an ODBC database name to a different JDBC database name,
+use the option <code>-key</code> when starting the server.
+Please note only one mapping is allowed. The following will map the ODBC database named
+<code>TEST</code> to the database URL <code>jdbc:h2:~/data/test;cipher=aes</code>:
+</p>
+<pre>
+java org.h2.tools.Server -pg -key TEST "~/data/test;cipher=aes"
+</pre>
 
 <h3>ODBC Configuration</h3>
 <p>

@@ -24,6 +24,7 @@ import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.h2.constant.ErrorCode;
+import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 
@@ -59,7 +60,7 @@ public class SourceCompiler {
      */
     final HashMap<String, Class<?>> compiled = New.hashMap();
     
-    boolean useJavaSystemCompiler = true;
+    boolean useJavaSystemCompiler = SysProperties.JAVA_SYSTEM_COMPILER;
 
     static {
         JavaCompiler c;

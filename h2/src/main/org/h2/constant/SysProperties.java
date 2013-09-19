@@ -175,6 +175,16 @@ public class SysProperties {
      * maximum delay.
      */
     public static final int DELAY_WRONG_PASSWORD_MAX = Utils.getProperty("h2.delayWrongPasswordMax", 4000);
+    
+    /**
+     * System property <code>h2.javaSystemCompiler</code> (default: true).<br />
+     * Whether to use the Java system compiler
+     * (ToolProvider.getSystemJavaCompiler()) if it is available to compile user
+     * defined functions. If disabled or if the system compiler is not
+     * available, the com.sun.tools.javac compiler is used if available, and
+     * "javac" (as an external process) is used if not.
+     */
+    public static final boolean JAVA_SYSTEM_COMPILER = Utils.getProperty("h2.javaSystemCompiler", true);
 
     /**
      * System property <code>h2.lobCloseBetweenReads</code> (default: false).<br />

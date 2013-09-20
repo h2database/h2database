@@ -155,7 +155,7 @@ public class Page {
     /**
      * Read a page.
      *
-     * @param file the file
+     * @param fileStore the file store
      * @param map the map
      * @param pos the page position
      * @param filePos the position in the file

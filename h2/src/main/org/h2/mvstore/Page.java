@@ -169,13 +169,11 @@ public class Page {
         maxLength = (int) Math.min(fileSize - filePos, maxLength);
         int length = maxLength;
         if (maxLength == Integer.MAX_VALUE) {
-            buff = ByteBuffer.allocate(128);
-            fileStore.readFully(filePos, buff);
+            buff = fileStore.readFully(filePos, 128);
             maxLength = buff.getInt();
             // read the first bytes again
         }
-        buff = ByteBuffer.allocate(length);
-        fileStore.readFully(filePos, buff);
+        buff = fileStore.readFully(filePos, length);
         Page p = new Page(map, 0);
         p.pos = pos;
         int chunkId = DataUtils.getPageChunkId(pos);

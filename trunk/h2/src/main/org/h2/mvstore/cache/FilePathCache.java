@@ -87,8 +87,7 @@ public class FilePathCache extends FilePathWrapper {
                 }
             }
             len = Math.min(len, dst.remaining());
-            System.arraycopy(buff.array(), off, dst.array(), dst.position(), len);
-            dst.position(dst.position() + len);
+            dst.put(buff.array(), off, len);
             return len;
         }
 

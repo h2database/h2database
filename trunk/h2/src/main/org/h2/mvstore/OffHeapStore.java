@@ -30,20 +30,22 @@ public class OffHeapStore extends FileStore {
     }
     
     @Override
-    public void readFully(long pos, ByteBuffer dst) {
-        Entry<Long, ByteBuffer> mem = memory.floorEntry(pos);
-        if (mem == null) {
+    public ByteBuffer readFully(long pos, int len) {
+        Entry<Long, ByteBuffer> memEntry = memory.floorEntry(pos);
+        if (memEntry == null) {
             throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED, 
                     "Could not read from position {0}", pos);
         }
         readCount++;
-        ByteBuffer buff = mem.getValue();
-        ByteBuffer read = buff.duplicate();
-        int offset = (int) (pos - mem.getKey());
-        read.position(offset);
-        read.limit(dst.remaining() + offset);
-        dst.put(read);
-        dst.rewind();
+        ByteBuffer buff = memEntry.getValue();
+        int oldLimit = buff.limit();
+        int offset = (int) (pos - memEntry.getKey());
+        buff.position(offset);
+        buff.limit(len + offset);
+        ByteBuffer read = buff.slice();
+        buff.position(0);
+        buff.limit(oldLimit);
+        return read;
     }
     
     @Override

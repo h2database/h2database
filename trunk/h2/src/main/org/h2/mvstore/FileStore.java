@@ -46,9 +46,11 @@ public class FileStore {
         return fileName;
     }
     
-    public void readFully(long pos, ByteBuffer dst) {
+    public ByteBuffer readFully(long pos, int len) {
         readCount++;
+        ByteBuffer dst = ByteBuffer.allocate(len);
         DataUtils.readFully(file, pos, dst);
+        return dst;
     }
 
     public void writeFully(long pos, ByteBuffer src) {

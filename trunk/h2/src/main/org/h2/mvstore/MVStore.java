@@ -112,8 +112,6 @@ MVStore:
 - simple rollback method (rollback to last committed version)
 - MVMap to implement SortedMap, then NavigableMap
 - Test with OSGi
-- avoid copying data from ByteBuffer to another ByteBuffer if possible,
-    specially for the OffHeapStore
 - storage that splits database into multiple files, 
     to speed up compact and allow using trim 
     (by truncating / deleting empty files)
@@ -555,12 +553,11 @@ public class MVStore {
         // we don't know which chunk is the newest
         long newestChunk = -1;
         // read the last block of the file, and then the two first blocks
+        ByteBuffer buffLastBlock = fileStore.readFully(fileStore.size() - BLOCK_SIZE, BLOCK_SIZE);
+        ByteBuffer buffFirst2Blocks = fileStore.readFully(0, BLOCK_SIZE * 2);
         ByteBuffer buff = ByteBuffer.allocate(3 * BLOCK_SIZE);
-        buff.limit(BLOCK_SIZE);
-        fileStore.readFully(fileStore.size() - BLOCK_SIZE, buff);
-        buff.limit(3 * BLOCK_SIZE);
-        buff.position(BLOCK_SIZE);
-        fileStore.readFully(0, buff);
+        buff.put(buffLastBlock);
+        buff.put(buffFirst2Blocks);
         for (int i = 0; i < 3 * BLOCK_SIZE; i += BLOCK_SIZE) {
             String s = new String(buff.array(), i, BLOCK_SIZE, DataUtils.UTF8)
                     .trim();
@@ -1112,9 +1109,7 @@ public class MVStore {
     }
 
     private Chunk readChunkHeader(long start) {
-        ByteBuffer buff = ByteBuffer.allocate(40);
-        fileStore.readFully(start, buff);
-        buff.rewind();
+        ByteBuffer buff = fileStore.readFully(start, 40);
         return Chunk.fromHeader(buff, start);
     }
 
@@ -1164,7 +1159,8 @@ public class MVStore {
             int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
             buff = DataUtils.ensureCapacity(buff, length);
             buff.limit(length);
-            fileStore.readFully(c.start, buff);
+            ByteBuffer buff2 = fileStore.readFully(c.start, length);
+            buff.put(buff2);
             long end = getEndPosition();
             fileStore.markUsed(end, length);
             fileStore.free(c.start, length);
@@ -1196,7 +1192,8 @@ public class MVStore {
             int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
             buff = DataUtils.ensureCapacity(buff, length);
             buff.limit(length);
-            fileStore.readFully(c.start, buff);
+            ByteBuffer buff2 = fileStore.readFully(c.start, length);
+            buff.put(buff2);
             long pos = fileStore.allocate(length);
             fileStore.free(c.start, length);
             buff.position(0);
@@ -1325,8 +1322,7 @@ public class MVStore {
     }
 
     private void copyLive(Chunk chunk, ArrayList<Chunk> old) {
-        ByteBuffer buff = ByteBuffer.allocate(chunk.length);
-        fileStore.readFully(chunk.start, buff);
+        ByteBuffer buff = fileStore.readFully(chunk.start, chunk.length);
         Chunk.fromHeader(buff, chunk.start);
         int chunkLength = chunk.length;
         markMetaChanged();

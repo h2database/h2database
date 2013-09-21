@@ -19,6 +19,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.store.InDoubtTransaction;
@@ -167,7 +168,8 @@ public class MVTableEngine implements TableEngine {
          * Store all pending changes.
          */
         public void store() {
-            if (store.getFileStore().isReadOnly()) {
+            FileStore s = store.getFileStore();
+            if (s == null || s.isReadOnly()) {
                 return;
             }
             store.commit();
@@ -210,7 +212,9 @@ public class MVTableEngine implements TableEngine {
             Transaction t = session.getTransaction();
             t.setName(transactionName);
             t.prepare();
-            store.store();
+            if (store.getFileStore() != null) {
+                store.store();
+            }
         }
 
         public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
@@ -307,7 +311,9 @@ public class MVTableEngine implements TableEngine {
             } else {
                 transaction.rollback();
             }
-            store.store();
+            if (store.getFileStore() != null) {
+                store.store();
+            }
             this.state = state;
         }
 

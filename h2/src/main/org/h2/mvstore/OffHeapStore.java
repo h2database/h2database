@@ -38,14 +38,11 @@ public class OffHeapStore extends FileStore {
         }
         readCount++;
         ByteBuffer buff = memEntry.getValue();
-        int oldLimit = buff.limit();
+        ByteBuffer read = buff.duplicate();
         int offset = (int) (pos - memEntry.getKey());
-        buff.position(offset);
-        buff.limit(len + offset);
-        ByteBuffer read = buff.slice();
-        buff.position(0);
-        buff.limit(oldLimit);
-        return read;
+        read.position(offset);
+        read.limit(len + offset);
+        return read.slice();
     }
     
     @Override

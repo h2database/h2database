@@ -893,7 +893,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         // create a new instance
         // because another thread might iterate over it
-        ArrayList<Page> list = new ArrayList<Page>();
+        int size = oldRoots.size() - i;
+        ArrayList<Page> list = new ArrayList<Page>(size);
         list.addAll(oldRoots.subList(i, oldRoots.size()));
         oldRoots = list;
     }

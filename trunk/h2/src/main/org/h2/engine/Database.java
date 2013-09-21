@@ -1832,9 +1832,9 @@ public class Database implements DataHandler {
         }
         if (mvStore != null) {
             mvStore.prepareCommit(session, transaction);
-            pageStore.flushLog();
             return;
         }
+        pageStore.flushLog();
         pageStore.prepareCommit(session, transaction);
     }
 

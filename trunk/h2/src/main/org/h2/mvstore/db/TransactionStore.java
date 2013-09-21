@@ -190,8 +190,10 @@ public class TransactionStore {
 
     private void commitIfNeeded() {
         if (store.getUnsavedPageCount() > MAX_UNSAVED_PAGES) {
-            store.commit();
-            store.store();
+            if (store.getFileStore() != null) {
+                store.commit();
+                store.store();
+            }
         }
     }
 
@@ -352,6 +354,9 @@ public class TransactionStore {
             firstOpenTransaction = -1;
         }
         if (store.getWriteDelay() == 0) {
+            if (store.getFileStore() == null) {
+                return;
+            }
             store.commit();
         }
         // to avoid having to store the transaction log,

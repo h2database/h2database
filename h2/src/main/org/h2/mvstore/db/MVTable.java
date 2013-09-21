@@ -700,4 +700,10 @@ public class MVTable extends TableBase {
         return true;
     }
 
+    public void commit() {
+        if (database != null) {
+            lastModificationId = database.getNextModificationDataId();
+        }
+    }
+
 }

@@ -63,7 +63,6 @@ public class TestMvcc3 extends TestBase {
             // expected
         }
 
-
         ResultSet rs = s1.executeQuery("select * from test order by id");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));

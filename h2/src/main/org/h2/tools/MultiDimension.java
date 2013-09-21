@@ -201,7 +201,7 @@ public class MultiDimension implements Comparator<long[]> {
      *
      * @param min the minimum value
      * @param max the maximum value
-     * @return the list of ranges (low,high pairs)
+     * @return the list of ranges (low, high pairs)
      */
     private long[][] getMortonRanges(int[] min, int[] max) {
         int len = min.length;
@@ -236,7 +236,7 @@ public class MultiDimension implements Comparator<long[]> {
     /**
      * Combine entries if the size of the list is too large.
      *
-     * @param list list of pairs(low,high) 
+     * @param list list of pairs(low, high) 
      * @param total product of the gap lengths
      */
     private void combineEntries(ArrayList<long[]> list, int total) {

@@ -879,7 +879,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Forget those old versions that are no longer needed.
      */
     void removeUnusedOldVersions() {
-        long oldest = store.getRetainVersion();
+        long oldest = store.getRetainOrStoreVersion();
         if (oldest == -1) {
             return;
         }

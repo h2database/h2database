@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>To compile user defined functions, the javax.tools.JavaCompiler is now used if available,
+<ul><li>To use the MVStore storage engine (which is still work in progress), append
+    ";mv_store=true" to the database URL. Using the MVTableEngine when creating the table
+    is no longer recommended.
+</li><li>To compile user defined functions, the javax.tools.JavaCompiler is now used if available,
     and no temporary files are created. This should solve problems when 
     multiple H2 database concurrently compile the same user defined functions.
     To disable, system the system property "h2.javaSystemCompiler" to false.

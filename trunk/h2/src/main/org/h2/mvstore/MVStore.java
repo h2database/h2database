@@ -47,6 +47,8 @@ TestMVStoreDataLoss
 
 MVTableEngine:
 - use StreamStore
+- when the MVStore was enabled before, use it again
+  (probably by checking existence of the mvstore file)
 
 TransactionStore:
 
@@ -1520,6 +1522,21 @@ public class MVStore {
      * @return the version
      */
     public long getRetainVersion() {
+        long v = retainVersion;
+        long storeVersion = currentStoreVersion;
+        if (storeVersion > -1) {
+            v = Math.min(v, storeVersion);
+        }
+        return v;
+    }
+
+    /**
+     * Get the oldest version to retain in memory, which is the manually set
+     * retain version, or the current store version (whatever is older).
+     * 
+     * @return the version
+     */
+    long getRetainOrStoreVersion() {
         long v = retainVersion;
         long storeVersion = currentStoreVersion;
         if (storeVersion > -1) {

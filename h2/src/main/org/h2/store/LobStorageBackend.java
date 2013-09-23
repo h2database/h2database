@@ -32,21 +32,24 @@ import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 
 /**
- * This class stores LOB objects in the database.
- * This is the back-end i.e. the server side of the LOB storage.
+ * This class stores LOB objects in the database. This is the back-end i.e. the
+ * server side of the LOB storage.
  * <p>
  * Using the system session
  * <p>
- * Why do we use the system session to store the data? Some LOB operations can take a very long time.
- * If we did them on a normal session, we would be locking the LOB tables for long periods of time,
- * which is extremely detrimental to the rest of the system.
- * Perhaps when we shift to the MVStore engine, we can revisit this design decision.
+ * Why do we use the system session to store the data? Some LOB operations can
+ * take a very long time. If we did them on a normal session, we would be
+ * locking the LOB tables for long periods of time, which is extremely
+ * detrimental to the rest of the system. Perhaps when we shift to the MVStore
+ * engine, we can revisit this design decision.
  * <p>
  * Locking Discussion
  * <p>
- * Normally, the locking order in H2 is: first lock the Session object, then lock the Database object.
- * However, in the case of the LOB data, we are using the system session to store the data. 
- * If we locked the normal way, we see deadlocks caused by the following pattern:
+ * Normally, the locking order in H2 is: first lock the Session object, then
+ * lock the Database object. However, in the case of the LOB data, we are using
+ * the system session to store the data. If we locked the normal way, we see
+ * deadlocks caused by the following pattern:
+ *
  * <pre>
  *  Thread 1:
  *     locks normal session
@@ -56,9 +59,11 @@ import org.h2.value.ValueLobDb;
  *      locks system session
  *      waiting to lock database.
  * </pre>
- * So, in this class alone, we do two things: we have our very own dedicated session, the LOB session,
- * and we take the locks in this order: first the Database object, and then the LOB session.
- * Since we own the LOB session, no-one else can lock on it, and we are safe.
+ *
+ * So, in this class alone, we do two things: we have our very own dedicated
+ * session, the LOB session, and we take the locks in this order: first the
+ * Database object, and then the LOB session. Since we own the LOB session,
+ * no-one else can lock on it, and we are safe.
  */
 public class LobStorageBackend implements LobStorageInterface {
 
@@ -389,12 +394,14 @@ public class LobStorageBackend implements LobStorageInterface {
                     small = new byte[0];
                 }
                 if (small != null) {
-                    // For a BLOB, precision is length in bytes. For a CLOB, precision is length in chars
+                    // For a BLOB, precision is length in bytes.
+                    // For a CLOB, precision is length in chars
                     long precision = countingReaderForClob == null ? small.length : countingReaderForClob.getLength();
                     ValueLobDb v = ValueLobDb.createSmallLob(type, small, precision);
                     return v;
                 }
-                // For a BLOB, precision is length in bytes. For a CLOB, precision is length in chars
+                // For a BLOB, precision is length in bytes.
+                // For a CLOB, precision is length in chars
                 long precision = countingReaderForClob == null ? length : countingReaderForClob.getLength();
                 return registerLob(type, lobId, LobStorageFrontend.TABLE_TEMP, length, precision);
             } catch (IOException e) {
@@ -585,19 +592,24 @@ public class LobStorageBackend implements LobStorageInterface {
             }
         }
     }
-    
+
     private static void assertNotHolds(Object lock) {
         if (Thread.holdsLock(lock)) {
             throw DbException.throwInternalError();
         }
     }
 
+    /**
+     * Check whether this thread has synchronized on this object.
+     *
+     * @param lock the object
+     */
     static void assertHoldsLock(Object lock) {
         if (!Thread.holdsLock(lock)) {
             throw DbException.throwInternalError();
         }
     }
-    
+
     /**
      * An input stream that reads from a LOB.
      */
@@ -636,7 +648,7 @@ public class LobStorageBackend implements LobStorageInterface {
             // before the lock on the database to prevent ABBA deadlocks
             assertHoldsLock(conn.getSession());
             assertHoldsLock(database);
-            
+
             if (byteCount == -1) {
                 String sql = "SELECT BYTE_COUNT FROM " + LOBS + " WHERE ID = ?";
                 PreparedStatement prep = prepare(sql);

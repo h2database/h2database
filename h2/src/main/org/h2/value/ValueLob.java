@@ -200,7 +200,7 @@ public class ValueLob extends Value {
         long m = compress ? Constants.IO_BUFFER_SIZE_COMPRESS : Constants.IO_BUFFER_SIZE;
         if (m < remaining && m <= inplace) {
             // using "1L" to force long arithmetic
-            m = Math.min(remaining, inplace + 1L); 
+            m = Math.min(remaining, inplace + 1L);
             // the buffer size must be bigger than the inplace lob, otherwise we can't
             // know if it must be stored in-place or not
             m = MathUtils.roundUpLong(m, Constants.IO_BUFFER_SIZE);

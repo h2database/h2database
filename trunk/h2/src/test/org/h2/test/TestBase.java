@@ -1266,7 +1266,7 @@ public abstract class TestBase {
         assertEquals("remaining: " + list2, 0, list2.size());
         assertFalse(rs2.next());
     }
-    
+
     private static String removeRowCount(String scriptLine) {
         int index = scriptLine.indexOf("+/-");
         if (index >= 0) {

@@ -44,12 +44,15 @@ import javax.tools.ToolProvider;
  */
 public class SourceCompiler {
 
+    /**
+     * The "com.sun.tools.javac.Main" (if available).
+     */
     static final JavaCompiler JAVA_COMPILER;
-    
+
     private static final Class<?> JAVAC_SUN;
-    
+
     private static final String COMPILE_DIR = Utils.getProperty("java.io.tmpdir", ".");
-    
+
     /**
      * The class name to source code map.
      */
@@ -59,7 +62,10 @@ public class SourceCompiler {
      * The class name to byte code map.
      */
     final HashMap<String, Class<?>> compiled = New.hashMap();
-    
+
+    /**
+     * Whether to use the ToolProvider.getSystemJavaCompiler().
+     */
     boolean useJavaSystemCompiler = SysProperties.JAVA_SYSTEM_COMPILER;
 
     static {
@@ -91,10 +97,10 @@ public class SourceCompiler {
         sources.put(className, source);
         compiled.clear();
     }
-    
+
     /**
      * Enable or disable the usage of the Java system compiler.
-     * 
+     *
      * @param enabled true to enable
      */
     public void setJavaSystemCompiler(boolean enabled) {
@@ -221,7 +227,16 @@ public class SourceCompiler {
             classFile.delete();
         }
     }
-    
+
+    /**
+     * Get the complete source code (including package name, imports, and so
+     * on).
+     *
+     * @param packageName the package name
+     * @param className the class name
+     * @param source the (possibly shortened) source code
+     * @return the full source code
+     */
     static String getCompleteSourceCode(String packageName, String className, String source) {
         if (source.startsWith("package ")) {
             return source;
@@ -231,7 +246,7 @@ public class SourceCompiler {
             buff.append("package ").append(packageName).append(";\n");
         }
         int endImport = source.indexOf("@CODE");
-        String importCode = 
+        String importCode =
             "import java.util.*;\n" +
             "import java.math.*;\n" +
             "import java.sql.*;\n";
@@ -246,13 +261,21 @@ public class SourceCompiler {
                 "}\n");
         return buff.toString();
     }
-    
+
+    /**
+     * Compile using the standard java compiler.
+     *
+     * @param packageName the package name
+     * @param className the class name
+     * @param source the source code
+     * @return the class
+     */
     Class<?> javaxToolsJavac(String packageName, String className, String source) {
         String fullClassName = packageName + "." + className;
         StringWriter writer = new StringWriter();
         JavaFileManager fileManager = new
                 ClassFileManager(JAVA_COMPILER
-                    .getStandardFileManager(null, null, null));        
+                    .getStandardFileManager(null, null, null));
         ArrayList<JavaFileObject> compilationUnits = new ArrayList<JavaFileObject>();
         compilationUnits.add(new StringJavaFileObject(fullClassName, source));
         JAVA_COMPILER.getTask(writer, fileManager, null, null,
@@ -344,7 +367,7 @@ public class SourceCompiler {
      * compile-time dependency unnecessarily.
      */
     private static final class GroovyCompiler {
-        
+
         private static final Object LOADER;
         private static final Throwable INIT_FAIL_EXCEPTION;
 
@@ -358,12 +381,12 @@ public class SourceCompiler {
                 Object importCustomizer = Utils.newInstance(
                         "org.codehaus.groovy.control.customizers.ImportCustomizer");
                 // Call the method ImportCustomizer.addImports(String[])
-                String[] importsArray = new String[] { 
-                        "java.sql.Connection", 
-                        "java.sql.Types", 
+                String[] importsArray = new String[] {
+                        "java.sql.Connection",
+                        "java.sql.Types",
                         "java.sql.ResultSet",
-                        "groovy.sql.Sql", 
-                        "org.h2.tools.SimpleResultSet" 
+                        "groovy.sql.Sql",
+                        "org.h2.tools.SimpleResultSet"
                 };
                 Utils.callMethod(importCustomizer, "addImports", new Object[] { importsArray });
 
@@ -373,7 +396,7 @@ public class SourceCompiler {
                 Array.set(importCustomizerArray, 0, importCustomizer);
                 Object configuration = Utils.newInstance(
                         "org.codehaus.groovy.control.CompilerConfiguration");
-                Utils.callMethod(configuration, 
+                Utils.callMethod(configuration,
                         "addCompilationCustomizers", new Object[] { importCustomizerArray });
 
                 ClassLoader parent = GroovyCompiler.class.getClassLoader();
@@ -391,7 +414,7 @@ public class SourceCompiler {
                 throw new RuntimeException("Compile fail: no Groovy jar in the classpath", INIT_FAIL_EXCEPTION);
             }
             try {
-                Object codeSource = Utils.newInstance("groovy.lang.GroovyCodeSource", 
+                Object codeSource = Utils.newInstance("groovy.lang.GroovyCodeSource",
                         source, packageAndClassName + ".groovy", "UTF-8");
                 Utils.callMethod(codeSource, "setCachable", false);
                 Class<?> clazz = (Class<?>) Utils.callMethod(LOADER, "parseClass", codeSource);
@@ -401,7 +424,7 @@ public class SourceCompiler {
             }
         }
     }
-    
+
     /**
      * An in-memory java source file object.
      */
@@ -419,15 +442,15 @@ public class SourceCompiler {
         public CharSequence getCharContent(boolean ignoreEncodingErrors) {
             return sourceCode;
         }
-        
+
     }
-    
-   /**
+
+    /**
      * An in-memory java class object.
      */
     static class JavaClassObject extends SimpleJavaFileObject {
 
-        protected final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         public JavaClassObject(String name, Kind kind) {
             super(URI.create("string:///" + name.replace('.', '/')
@@ -443,12 +466,15 @@ public class SourceCompiler {
             return out;
         }
     }
-    
+
     /**
      * An in-memory class file manager.
      */
     static class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
 
+        /**
+         * The class (only one class is kept).
+         */
         JavaClassObject classObject;
 
         public ClassFileManager(StandardJavaFileManager standardManager) {

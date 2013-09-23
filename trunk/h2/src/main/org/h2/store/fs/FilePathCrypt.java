@@ -104,7 +104,7 @@ public class FilePathCrypt extends FilePathWrapper {
     /**
      * Convert a char array to a byte array, in UTF-16 format. The char array is
      * not cleared after use (this must be done by the caller).
-     * 
+     *
      * @param passwordChars the password characters
      * @return the byte array
      */

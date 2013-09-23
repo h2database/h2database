@@ -41,13 +41,13 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     private final byte[] hmac;
     private final byte[] small;
     private final DataHandler handler;
-    
+
     /**
      * For a BLOB, precision is length in bytes.
      * For a CLOB, precision is length in chars.
      */
     private final long precision;
-    
+
     private final String fileName;
     private final FileStore tempFile;
     private int tableId;
@@ -121,7 +121,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
         this.precision = tmpPrecision;
     }
-    
+
     /**
      * Create temporary BLOB from InputStream.
      */
@@ -157,7 +157,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
         this.precision = tmpPrecision;
     }
-    
+
     private static String createTempLobFileName(DataHandler handler) throws IOException {
         String path = handler.getDatabasePath();
         if (path.length() == 0) {

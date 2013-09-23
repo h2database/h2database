@@ -165,7 +165,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
             boolean create, String indexComment);
-    
+
     /**
      * Get the given row.
      *

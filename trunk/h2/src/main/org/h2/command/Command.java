@@ -235,6 +235,15 @@ public abstract class Command implements CommandInterface {
                         return update();
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
+                    } catch (OutOfMemoryError e) {
+                        ; // TODO avoid duplicate code, and do the same for queries
+                        // there is a serious problem:
+                        // the transaction may be applied partially
+                        // in this case we need to panic:
+                        // close the database
+                        callStop = false;
+                        database.shutdownImmediately();
+                        throw DbException.convert(e);
                     } catch (Throwable e) {
                         throw DbException.convert(e);
                     }
@@ -243,10 +252,7 @@ public abstract class Command implements CommandInterface {
                 e = e.addSQL(sql);
                 SQLException s = e.getSQLException();
                 database.exceptionThrown(s, sql);
-                database.checkPowerOff();
-                if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
-                    session.rollback();
-                } else if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
+                if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
                     // there is a serious problem:
                     // the transaction may be applied partially
                     // in this case we need to panic:
@@ -254,6 +260,10 @@ public abstract class Command implements CommandInterface {
                     callStop = false;
                     database.shutdownImmediately();
                     throw e;
+                }
+                database.checkPowerOff();
+                if (s.getErrorCode() == ErrorCode.DEADLOCK_1) {
+                    session.rollback();
                 } else {
                     session.rollbackTo(rollback, false);
                 }

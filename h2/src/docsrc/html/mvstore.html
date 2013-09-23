@@ -61,10 +61,10 @@ But it can be also directly within an application, without using JDBC or SQL.
 </li><li>It is intended to be fast, simple to use, and small.
 </li><li>Old versions of the data can be read concurrently with all other operations.
 </li><li>Transaction are supported (including concurrent transactions and 2-phase commit).
-</li><li>The tool is very modular. 
+</li><li>The tool is very modular.
     It supports pluggable data types / serialization,
     pluggable storage (to a file, to off-heap memory),
-    pluggable map implementations (B-tree, R-tree, concurrent B-tree currently), 
+    pluggable map implementations (B-tree, R-tree, concurrent B-tree currently),
     BLOB storage,
     and a file system abstraction to support encrypted files and zip files.
 </li></ul>
@@ -290,7 +290,7 @@ Storage is pluggable. The default storage is to a single file (unless pure in-me
 <p>
 An off-heap storage implementation is available. This storage keeps the data in the off-heap memory,
 meaning outside of the regular garbage collected heap. This allows to use very large in-memory
-stores without having to increase the JVM heap (which would increase Java garbage collection 
+stores without having to increase the JVM heap (which would increase Java garbage collection
 cost a lot). Memory is allocated using <code>ByteBuffer.allocateDirect</code>.
 One chunk is allocated at a time (each chunk is usually a few MB large), so that
 allocation cost is low.

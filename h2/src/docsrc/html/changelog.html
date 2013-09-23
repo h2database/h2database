@@ -22,7 +22,7 @@ Change Log
     ";mv_store=true" to the database URL. Using the MVTableEngine when creating the table
     is no longer recommended.
 </li><li>To compile user defined functions, the javax.tools.JavaCompiler is now used if available,
-    and no temporary files are created. This should solve problems when 
+    and no temporary files are created. This should solve problems when
     multiple H2 database concurrently compile the same user defined functions.
     To disable, system the system property "h2.javaSystemCompiler" to false.
 </li><li>Concurrently creating function aliases in different databases

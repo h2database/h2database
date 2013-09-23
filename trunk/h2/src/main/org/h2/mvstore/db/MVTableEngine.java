@@ -8,6 +8,7 @@ package org.h2.mvstore.db;
 
 import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -233,7 +234,11 @@ public class MVTableEngine implements TableEngine {
         }
 
         public InputStream getInputStream() {
-            return new FileChannelInputStream(store.getFileStore().getFile(), false);
+            FileChannel fc = store.getFileStore().getEncryptedFile();
+            if (fc == null) {
+                fc = store.getFileStore().getFile();
+            }
+            return new FileChannelInputStream(fc, false);
         }
 
         /**

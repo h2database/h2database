@@ -79,9 +79,12 @@ public class MVSecondaryIndex extends BaseIndex {
     public void add(Session session, Row row) {
         TransactionMap<Value, Value> map = getMap(session);
         ValueArray array = getKey(row);
+        ValueArray unique = null;
         if (indexType.isUnique()) {
-            array.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
-            ValueArray key = (ValueArray) map.getLatestCeilingKey(array);
+            // this will detect committed entries only
+            unique = getKey(row);
+            unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+            ValueArray key = (ValueArray) map.getLatestCeilingKey(unique);
             if (key != null) {
                 SearchRow r2 = getRow(key.getList());
                 if (compareRows(row, r2) == 0) {
@@ -91,11 +94,34 @@ public class MVSecondaryIndex extends BaseIndex {
                 }
             }
         }
-        array.getList()[keyColumns - 1] = ValueLong.get(row.getKey());
         try {
             map.put(array, ValueLong.get(0));
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+        }
+        if (indexType.isUnique()) {
+            // check if there is another (uncommitted) entry
+            Iterator<Value> it = map.keyIterator(unique, true);
+            while (it.hasNext()) {
+                ValueArray k = (ValueArray) it.next();
+                SearchRow r2 = getRow(k.getList());
+                if (compareRows(row, r2) != 0) {
+                    break;
+                }
+                if (containsNullAndAllowMultipleNull(r2)) {
+                    // this is allowed
+                    continue;
+                }
+                if (map.isSameTransaction(k)) {
+                    continue;
+                }
+                map.remove(array);
+                if (map.get(k) != null) {
+                    // committed
+                    throw getDuplicateKeyException(k.toString());
+                }
+                throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+            }
         }
     }
 

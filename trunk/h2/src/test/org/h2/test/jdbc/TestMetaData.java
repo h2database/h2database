@@ -987,7 +987,7 @@ public class TestMetaData extends TestBase {
         conn.close();
         deleteDb("metaData");
     }
-    
+
     private void testSessionsUncommitted() throws SQLException {
         if (config.mvcc || config.memory) {
             return;

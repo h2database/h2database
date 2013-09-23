@@ -1032,6 +1032,22 @@ public class TransactionStore {
             return data == null ? null : (V) data.value;
         }
 
+        /**
+         * Whether the entry for this key was added or removed from this session.
+         *
+         * @param key the key
+         * @return true if yes
+         */
+        public boolean isSameTransaction(K key) {
+            VersionedValue data = map.get(key);
+            if (data == null) {
+                // doesn't exist or deleted by a committed transaction
+                return false;
+            }
+            long tx = data.transactionId;
+            return tx == transaction.transactionId;
+        }
+
         private VersionedValue getValue(K key, long maxLog) {
             VersionedValue data = map.get(key);
             while (true) {
@@ -1182,7 +1198,7 @@ public class TransactionStore {
          * @return the result
          */
         public K lowerKey(K key) {
-            // TODO Auto-generated method stub
+            // TODO transactional lowerKey
             return map.lowerKey(key);
         }
 
@@ -1193,6 +1209,17 @@ public class TransactionStore {
          * @return the iterator
          */
         public Iterator<K> keyIterator(final K from) {
+            return keyIterator(from, false);
+        }
+
+        /**
+         * Iterate over all keys.
+         *
+         * @param from the first key to return
+         * @param includeUncommitted whether uncommitted entries should be included
+         * @return the iterator
+         */
+        public Iterator<K> keyIterator(final K from, final boolean includeUncommitted) {
             return new Iterator<K>() {
                 private final Cursor<K> cursor = map.keyIterator(from);
                 private K current;
@@ -1204,6 +1231,9 @@ public class TransactionStore {
                 private void fetchNext() {
                     while (cursor.hasNext()) {
                         current = cursor.next();
+                        if (includeUncommitted) {
+                            return;
+                        }
                         if (containsKey(current)) {
                             return;
                         }

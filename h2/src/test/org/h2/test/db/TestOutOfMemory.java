@@ -62,12 +62,18 @@ public class TestOutOfMemory extends TestBase {
             ResultSet rs = stat.executeQuery("select count(*) from stuff");
             rs.next();
             assertEquals(3000, rs.getInt(1));
+        } catch (OutOfMemoryError e) {
+            freeMemory();
+            fail("Out of memory not detected");
         } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                // out of memory will / may close the database
-                assertKnownException(e);
+            freeMemory();
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    // out of memory will / may close the database
+                    assertKnownException(e);
+                }
             }
         }
         deleteDb("outOfMemory");

@@ -48,7 +48,7 @@ TestMVStoreDataLoss
 MVTableEngine:
 - use StreamStore
 - when the MVStore was enabled before, use it again
-  (probably by checking existence of the mvstore file)
+    (probably by checking existence of the mvstore file)
 
 TransactionStore:
 
@@ -62,46 +62,32 @@ MVStore:
 - defragment (re-creating maps, specially those with small pages)
 - chunk header: store changed chunk data as row; maybe after the root
 - chunk checksum (header, last page, 2 bytes per page?)
-- on insert, if the child page is already full, don't load and modify it
-    split directly (specially for leaves with one large entry)
 - maybe let a chunk point to a list of potential next chunks
     (so no fixed location header is needed), similar to a skip list
-- triggers (can be implemented with a custom map);
-    maybe implement database indexing with triggers
 - store number of write operations per page (maybe defragment
     if much different than count)
 - r-tree: nearest neighbor search
-- support maps without values (just existence of the key)
-- support maps without keys (counted b-tree features)
 - use a small object value cache (StringCache), test on Android
     for default serialization
 - MVStoreTool.dump: dump values (using a callback)
-- map split / merge (fast if no overlap)
-    (use case: partitioning)
-- StreamStore optimization: avoid copying bytes in memory
-- Feature shrink a store (create, copy, rename, delete)
-    and for MVStore on Windows, auto-detect renamed file
-- ensure data is overwritten eventually if the system doesn't have a 
-    real-time clock (Raspberry Pi) and if there are few writes per startup 
+- ensure data is overwritten eventually if the system doesn't have a
+    real-time clock (Raspberry Pi) and if there are few writes per startup
 - SSD-friendly write (always in blocks of 4 MB / 1 second?)
 - close the file on out of memory or disk write error (out of disk space or so)
 - implement a sharded map (in one store, multiple stores)
     to support concurrent updates and writes, and very large maps
-- maybe support for writing to branches
-- maybe add an optional finalizer and exit hook
-    to store committed changes
 - to save space when persisting very small transactions,
     use a transaction log where only the deltas are stored
 - serialization for lists, sets, sets, sorted sets, maps, sorted maps
 - maybe rename 'rollback' to 'revert' to distinguish from transactions
 - support other compression algorithms (deflate, LZ4,...)
-- only retain the last version, unless explicitly set (setRetainVersion)
 - support opening (existing) maps by id
 - more consistent null handling (keys/values sometimes may be null)
 - autocommit (to avoid having to call commit,
     as it could be called too often or it is easily forgotten)
 - remove features that are not really needed; simplify the code
     possibly using a separate layer or tools
+    (retainVersion?)
 - rename "store" to "save", as "store" is used in "storeVersion"
 - MVStoreTool.dump should dump the data if possible;
     possibly using a callback for serialization
@@ -114,8 +100,8 @@ MVStore:
 - simple rollback method (rollback to last committed version)
 - MVMap to implement SortedMap, then NavigableMap
 - Test with OSGi
-- storage that splits database into multiple files, 
-    to speed up compact and allow using trim 
+- storage that splits database into multiple files,
+    to speed up compact and allow using trim
     (by truncating / deleting empty files)
 
 */
@@ -138,20 +124,20 @@ public class MVStore {
 
     private static final int FORMAT_WRITE = 1;
     private static final int FORMAT_READ = 1;
-    
+
     /**
      * The background thread, if any.
      */
     volatile Thread backgroundThread;
-    
+
     private volatile boolean reuseSpace = true;
 
     private boolean closed;
-    
+
     private FileStore fileStore;
 
     private final int pageSplitSize;
-    
+
     private long rootChunkStart;
 
     /**
@@ -189,7 +175,7 @@ public class MVStore {
     private ByteBuffer writeBuffer;
 
     private int lastMapId;
-    
+
     private long retainVersion = -1;
 
     /**
@@ -197,7 +183,7 @@ public class MVStore {
      * (old) compressed pages.
      */
     private final boolean compress;
-    
+
     private final Compressor compressor = new CompressLZF();
 
     private final UncaughtExceptionHandler backgroundExceptionHandler;
@@ -208,7 +194,7 @@ public class MVStore {
      * The version of the last stored chunk.
      */
     private long lastStoredVersion;
-    
+
     private int unsavedPageCount;
     private int unsavedPageCountMax;
 
@@ -245,6 +231,7 @@ public class MVStore {
     /**
      * Create and open the store.
      *
+     * @param config the configuration to use
      * @throws IllegalStateException if the file is corrupt, or an exception
      *             occurred while opening
      * @throws IllegalArgumentException if the directory does not exist
@@ -302,7 +289,7 @@ public class MVStore {
                 if (format > FORMAT_WRITE && !fileStore.isReadOnly()) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                            "The write format {0} is larger than the supported format {1}, " + 
+                            "The write format {0} is larger than the supported format {1}, " +
                             "and the file was not opened in read-only mode",
                             format, FORMAT_WRITE);
                 }
@@ -316,7 +303,7 @@ public class MVStore {
                 if (rootChunkStart > 0) {
                     readMeta();
                 }
-            } 
+            }
             long rollback = DataUtils.parseLong(meta.get("rollbackOnOpen"), -1);
             if (rollback != -1) {
                 rollbackTo(rollback);
@@ -682,12 +669,14 @@ public class MVStore {
             if (shrinkIfPossible) {
                 shrinkFileIfPossible(0);
             }
+            // release memory early - this is important when called
+            // because of out of memory
+            cache.clear();
             for (MVMap<?, ?> m : New.arrayList(maps.values())) {
                 m.close();
             }
             meta = null;
             chunks.clear();
-            cache.clear();
             maps.clear();
             try {
                 fileStore.close();
@@ -1074,7 +1063,7 @@ public class MVStore {
 
     /**
      * Get the position of the last used byte.
-     * 
+     *
      * @return the position
      */
     private long getEndPosition() {
@@ -1498,7 +1487,7 @@ public class MVStore {
      * depending on the operating system and hardware.
      * <p>
      * This setting is not persisted.
-     * 
+     *
      * @param ms how many milliseconds to retain old chunks (0 to overwrite them
      *            as early as possible)
      */
@@ -1518,7 +1507,7 @@ public class MVStore {
 
     /**
      * Get the oldest version to retain in memory.
-     * 
+     *
      * @return the version
      */
     public long getRetainVersion() {
@@ -1533,7 +1522,7 @@ public class MVStore {
     /**
      * Get the oldest version to retain in memory, which is the manually set
      * retain version, or the current store version (whatever is older).
-     * 
+     *
      * @return the version
      */
     long getRetainOrStoreVersion() {
@@ -1791,7 +1780,7 @@ public class MVStore {
 
     /**
      * Get the file store.
-     * 
+     *
      * @return the file store
      */
     public FileStore getFileStore() {
@@ -1884,9 +1873,9 @@ public class MVStore {
      *
      * @param mb the cache size in MB.
      */
-    public void setCacheSize(long mb) {
+    public void setCacheSize(int mb) {
         if (cache != null) {
-            cache.setMaxMemory(mb * 1024 * 1024);
+            cache.setMaxMemory((long) mb * 1024 * 1024);
         }
     }
 
@@ -2099,10 +2088,10 @@ public class MVStore {
                 Thread.UncaughtExceptionHandler exceptionHandler) {
             return set("backgroundExceptionHandler", exceptionHandler);
         }
-        
+
         /**
          * Use the provided file store instead of the default one.
-         * 
+         *
          * @param store the file store
          * @return this
          */

@@ -175,7 +175,7 @@ public class SysProperties {
      * maximum delay.
      */
     public static final int DELAY_WRONG_PASSWORD_MAX = Utils.getProperty("h2.delayWrongPasswordMax", 4000);
-    
+
     /**
      * System property <code>h2.javaSystemCompiler</code> (default: true).<br />
      * Whether to use the Java system compiler

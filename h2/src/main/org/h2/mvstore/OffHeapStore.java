@@ -16,24 +16,24 @@ import java.util.TreeMap;
  * memory.
  */
 public class OffHeapStore extends FileStore {
-    
+
     private final TreeMap<Long, ByteBuffer> memory = new TreeMap<Long, ByteBuffer>();
-    
+
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
         // nothing to do
     }
-    
+
     @Override
     public String toString() {
         return memory.toString();
     }
-    
+
     @Override
     public ByteBuffer readFully(long pos, int len) {
         Entry<Long, ByteBuffer> memEntry = memory.floorEntry(pos);
         if (memEntry == null) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED, 
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
                     "Could not read from position {0}", pos);
         }
         readCount++;
@@ -44,20 +44,20 @@ public class OffHeapStore extends FileStore {
         read.limit(len + offset);
         return read.slice();
     }
-    
+
     @Override
     public void free(long pos, int length) {
         freeSpace.free(pos, length);
-        ByteBuffer buff = memory.remove(pos);        
+        ByteBuffer buff = memory.remove(pos);
         if (buff == null) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED, 
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
                     "Could not find entry at position {0}", pos);
         } else if (buff.remaining() != length) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED, 
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
                     "Partial remove is not supported at position {0}", pos);
         }
     }
-    
+
     @Override
     public void writeFully(long pos, ByteBuffer src) {
         fileSize = Math.max(fileSize, pos + src.remaining());
@@ -73,7 +73,7 @@ public class OffHeapStore extends FileStore {
         int length = src.remaining();
         if (prevPos == pos) {
             if (prevLength != length) {
-                throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED, 
+                throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
                         "Could not write to position {0}; partial overwrite is not supported", pos);
             }
             writeCount++;
@@ -82,12 +82,12 @@ public class OffHeapStore extends FileStore {
             return;
         }
         if (prevPos + prevLength > pos) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED, 
+            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
                     "Could not write to position {0}; partial overwrite is not supported", pos);
         }
         writeNewEntry(pos, src);
     }
-    
+
     private void writeNewEntry(long pos, ByteBuffer src) {
         writeCount++;
         int length = src.remaining();
@@ -112,27 +112,27 @@ public class OffHeapStore extends FileStore {
             }
             ByteBuffer buff = memory.get(pos);
             if (buff.capacity() > size) {
-                throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED, 
+                throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
                         "Could not truncate to {0}; partial truncate is not supported", pos);
             }
             it.remove();
         }
     }
-    
+
     @Override
     public void close() {
         truncate(0);
         freeSpace.clear();
     }
-    
+
     @Override
     public void sync() {
         // nothing to do
     }
-    
+
     @Override
     public int getDefaultRetentionTime() {
         return 0;
     }
-    
+
 }

@@ -2498,7 +2498,7 @@ public class Database implements DataHandler {
         conn.setTraceLevel(TraceSystem.OFF);
         return conn;
     }
-    
+
     public void setLogMode(int log) {
         if (log < 0 || log > 2) {
             throw DbException.getInvalidValueException("LOG", log);

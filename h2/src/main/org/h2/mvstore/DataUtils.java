@@ -122,7 +122,7 @@ public class DataUtils {
      * The estimated number of bytes used per child entry.
      */
     public static final int PAGE_MEMORY_CHILD = 16;
-    
+
     /**
      * Name of the character encoding format.
      */
@@ -137,7 +137,7 @@ public class DataUtils {
      * The maximum byte to grow a buffer at a time.
      */
     private static final int MAX_GROW = 16 * 1024 * 1024;
-    
+
     /**
      * Get the length of the variable size int.
      *
@@ -805,7 +805,7 @@ public class DataUtils {
 
     /**
      * Parse a string as a number.
-     * 
+     *
      * @param x the number
      * @param defaultValue if x is null
      * @return the parsed value
@@ -818,14 +818,14 @@ public class DataUtils {
         try {
             return Long.parseLong(x);
         } catch (NumberFormatException e) {
-            throw newIllegalStateException(ERROR_FILE_CORRUPT, 
+            throw newIllegalStateException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0} as a long", x, e);
         }
     }
 
     /**
      * Try to parse a string as a number.
-     * 
+     *
      * @param x the number
      * @param defaultValue if x is null
      * @param errorValue if parsing fails

@@ -93,7 +93,7 @@ public class TestMVStore extends TestBase {
         // longer running tests
         testLargerThan2G();
     }
-    
+
     private void testOffHeapStorage() throws Exception {
         OffHeapStore offHeap = new OffHeapStore();
         MVStore s = new MVStore.Builder().
@@ -106,7 +106,7 @@ public class TestMVStore extends TestBase {
         }
         assertTrue(1000 < offHeap.getWriteCount());
         // s.close();
-        
+
         s = new MVStore.Builder().
                 fileStore(offHeap).
                 open();
@@ -116,7 +116,7 @@ public class TestMVStore extends TestBase {
         }
         s.close();
     }
-    
+
     private void testNewerWriteVersion() throws Exception {
         String fileName = getBaseDir() + "/testNewerWriteVersion.h3";
         FileUtils.delete(fileName);
@@ -132,7 +132,7 @@ public class TestMVStore extends TestBase {
         m.put(0, "Hello World");
         s.store();
         s.close();
-        
+
         try {
             s = new MVStore.Builder().
                     encryptionKey("007".toCharArray()).
@@ -140,7 +140,7 @@ public class TestMVStore extends TestBase {
                     open();
             fail();
         } catch (IllegalStateException e) {
-            assertEquals(DataUtils.ERROR_UNSUPPORTED_FORMAT, 
+            assertEquals(DataUtils.ERROR_UNSUPPORTED_FORMAT,
                     DataUtils.getErrorCode(e.getMessage()));
         }
         s = new MVStore.Builder().
@@ -151,8 +151,8 @@ public class TestMVStore extends TestBase {
         assertTrue(s.getFileStore().isReadOnly());
         m = s.openMap("data");
         assertEquals("Hello World", m.get(0));
-        s.close();     
-        
+        s.close();
+
         FileUtils.setReadOnly(fileName);
         s = new MVStore.Builder().
                 encryptionKey("007".toCharArray()).
@@ -161,7 +161,7 @@ public class TestMVStore extends TestBase {
         assertTrue(s.getFileStore().isReadOnly());
         m = s.openMap("data");
         assertEquals("Hello World", m.get(0));
-        s.close();     
+        s.close();
 
     }
 
@@ -197,7 +197,7 @@ public class TestMVStore extends TestBase {
         s = new MVStore.Builder().
                 fileName(fileName).
                 backgroundExceptionHandler(new UncaughtExceptionHandler() {
-                    
+
                     @Override
                     public void uncaughtException(Thread t, Throwable e) {
                         exRef.set(e);
@@ -416,7 +416,7 @@ public class TestMVStore extends TestBase {
         m = s.openMap("test");
         assertEquals("Hello", m.get(1));
         s.close();
-        
+
         FileUtils.setReadOnly(fileName);
         passwordChars = "007".toCharArray();
         s = new MVStore.Builder().
@@ -424,7 +424,7 @@ public class TestMVStore extends TestBase {
                 encryptionKey(passwordChars).open();
         assertTrue(s.getFileStore().isReadOnly());
         s.close();
-        
+
         FileUtils.delete(fileName);
         assertFalse(FileUtils.exists(fileName));
     }

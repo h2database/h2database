@@ -43,7 +43,8 @@ public class TestStreamStore extends TestBase {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
-        testVeryLarge();
+        testReadCount();
+        testLarge();
         testDetectIllegalId();
         testTreeStructure();
         testFormat();
@@ -51,8 +52,54 @@ public class TestStreamStore extends TestBase {
         testWithFullMap();
         testLoop();
     }
+    
+    private void testReadCount() throws IOException {
+        String fileName = getBaseDir() + "/testReadCount.h3";
+        FileUtils.delete(fileName);
+        MVStore s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        s.setCacheSize(1);
+        StreamStore streamStore = getAutoCommitStreamStore(s);
+        long size = s.getPageSplitSize() * 2;
+        for (int i = 0; i < 100; i++) {
+            streamStore.put(new RandomStream(size, i));
+        }
+        s.store();
+        MVMap<Long, byte[]> map = s.openMap("data");
+        assertTrue("size: " + map.size(), map.sizeAsLong() >= 100);
+        s.close();
+        
+        s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        streamStore = getAutoCommitStreamStore(s);
+        for (int i = 0; i < 100; i++) {
+            streamStore.put(new RandomStream(size, -i));
+        }
+        s.store();
+        long readCount = s.getFileStore().getReadCount();
+        // the read count should be low because new blocks
+        // are appended at the end (not between existing blocks)
+        assertTrue("rc: " + readCount, readCount < 10);
+        map = s.openMap("data");
+        assertTrue("size: " + map.size(), map.sizeAsLong() >= 200);
+        s.close();
+    }
+    
+    private static StreamStore getAutoCommitStreamStore(final MVStore s) {
+        MVMap<Long, byte[]> map = s.openMap("data");
+        return new StreamStore(map) {
+            @Override
+            protected void onStore(int len) {
+                if (s.getUnsavedPageCount() > s.getUnsavedPageCountMax() / 2) {
+                    s.commit();
+                }
+            }
+        };
+    }
 
-    private void testVeryLarge() throws IOException {
+    private void testLarge() throws IOException {
         String fileName = getBaseDir() + "/testVeryLarge.h3";
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().
@@ -101,7 +148,7 @@ public class TestStreamStore extends TestBase {
             }
             len = (int) Math.min(size - pos, len);
             int x = seed, end = off + len;
-            // a very simple pseudo-random number generator
+            // a fast and very simple pseudo-random number generator
             // with a period length of 4 GB
             // also good: x * 9 + 1, shift 6; x * 11 + 1, shift 7
             while (off < end) {

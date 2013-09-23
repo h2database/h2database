@@ -397,7 +397,7 @@ public class MVTable extends TableBase {
             index = new MVDelegateIndex(this, indexId,
                     indexName, primaryIndex, indexType);
         } else if (indexType.isSpatial()) {
-            index = new SpatialTreeIndex(this, indexId, indexName, cols, 
+            index = new SpatialTreeIndex(this, indexId, indexName, cols,
                     indexType, true, create, session);
         } else {
             index = new MVSecondaryIndex(session.getDatabase(),
@@ -700,6 +700,10 @@ public class MVTable extends TableBase {
         return true;
     }
 
+    /**
+     * Mark the transaction as committed, so that the modification counter of
+     * the database is incremented.
+     */
     public void commit() {
         if (database != null) {
             lastModificationId = database.getNextModificationDataId();

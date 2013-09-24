@@ -388,10 +388,16 @@ public class DataUtils {
             } while (dst.remaining() > 0);
             dst.rewind();
         } catch (IOException e) {
+            long size;
+            try {
+                size = file.size();
+            } catch (IOException e2) {
+                size = -1;
+            }
             throw newIllegalStateException(
                     ERROR_READING_FAILED,
-                    "Reading from {0} failed; length {1} at {2}",
-                    file, dst.remaining(), pos, e);
+                    "Reading from {0} failed; file length {1} read length {1} at {2}",
+                    file, size, dst.remaining(), pos, e);
         }
     }
 

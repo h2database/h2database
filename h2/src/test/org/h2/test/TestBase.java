@@ -273,7 +273,7 @@ public abstract class TestBase {
             url = name;
         }
         if (config.mvStore) {
-            url = addOption(name, "MV_STORE", "true");
+            url = addOption(url, "MV_STORE", "true");
         }
         if (!config.memory) {
             if (config.smallLog && admin) {

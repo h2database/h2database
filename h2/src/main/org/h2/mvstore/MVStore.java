@@ -145,7 +145,7 @@ public class MVStore {
      * It is split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    private final CacheLongKeyLIRS<Page> cache;
+    private CacheLongKeyLIRS<Page> cache;
 
     private int lastChunkId;
 
@@ -671,7 +671,7 @@ public class MVStore {
             }
             // release memory early - this is important when called
             // because of out of memory
-            cache.clear();
+            cache = null;
             for (MVMap<?, ?> m : New.arrayList(maps.values())) {
                 m.close();
             }

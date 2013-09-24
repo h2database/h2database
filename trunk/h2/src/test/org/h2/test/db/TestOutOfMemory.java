@@ -64,7 +64,8 @@ public class TestOutOfMemory extends TestBase {
             assertEquals(3000, rs.getInt(1));
         } catch (OutOfMemoryError e) {
             freeMemory();
-            fail("Out of memory not detected");
+            // out of memory not detected
+            throw (Error) new AssertionError("Out of memory not detected").initCause(e);
         } finally {
             freeMemory();
             if (conn != null) {

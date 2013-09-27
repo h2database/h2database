@@ -274,7 +274,7 @@ class FileMem extends FileBase {
             return 0;
         }
         data.touch(readOnly);
-        pos = data.readWrite(pos, src.array(), src.position(), len, true);
+        pos = data.readWrite(pos, src.array(), src.arrayOffset() + src.position(), len, true);
         src.position(src.position() + len);
         return len;
     }
@@ -285,7 +285,7 @@ class FileMem extends FileBase {
         if (len == 0) {
             return 0;
         }
-        long newPos = data.readWrite(pos, dst.array(), dst.position(), len, false);
+        long newPos = data.readWrite(pos, dst.array(), dst.arrayOffset() + dst.position(), len, false);
         len = (int) (newPos - pos);
         if (len <= 0) {
             return -1;

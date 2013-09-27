@@ -46,9 +46,9 @@ public abstract class Query extends Prepared {
     protected Expression offsetExpr;
 
     /**
-     * The sample size
+     * The sample size expression as specified in the SAMPLE_SIZE clause.
      */
-    protected int sampleSize;
+    protected Expression sampleSizeExpr;
 
     /**
      * Whether the result must only contain distinct rows.
@@ -509,8 +509,19 @@ public abstract class Query extends Prepared {
         parameters.add(param);
     }
 
-    public void setSampleSize(int sampleSize) {
-        this.sampleSize = sampleSize;
+    public void setSampleSize(Expression sampleSize) {
+        this.sampleSizeExpr = sampleSize;
+    }
+    
+    protected final int getSampleSizeValue(Session session) {
+        if (sampleSizeExpr == null) {
+            return 0;
+        }
+        Value v = sampleSizeExpr.getValue(session);
+        if (v == ValueNull.INSTANCE) {
+            return 0;
+        }
+        return v.getInt();
     }
 
     public final long getMaxDataModificationId() {

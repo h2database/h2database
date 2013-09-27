@@ -393,8 +393,8 @@ public class SelectUnion extends Query {
                 buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
             }
         }
-        if (sampleSize != 0) {
-            buff.append("\nSAMPLE_SIZE ").append(sampleSize);
+        if (sampleSizeExpr != null) {
+            buff.append("\nSAMPLE_SIZE ").append(StringUtils.unEnclose(sampleSizeExpr.getSQL()));
         }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");

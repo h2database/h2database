@@ -59,7 +59,7 @@ public class TestMemoryUsage extends TestBase {
         deleteDb("memoryUsage");
         conn = getConnection("memoryUsage");
         eatMemory(4000);
-        for (int i = 0; i < 40000; i++) {
+        for (int i = 0; i < 4000; i++) {
             Connection c2 = getConnection("memoryUsage");
             c2.createStatement();
             c2.close();
@@ -105,18 +105,18 @@ public class TestMemoryUsage extends TestBase {
         deleteDb("memoryUsage");
         conn = getConnection("memoryUsage");
         Statement stat = conn.createStatement();
-        stat.execute("SET MAX_LENGTH_INPLACE_LOB 32768");
+        stat.execute("SET MAX_LENGTH_INPLACE_LOB 16384");
         stat.execute("SET CACHE_SIZE 8000");
         stat.execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
         freeSoftReferences();
         try {
             int base = Utils.getMemoryUsed();
             for (int i = 0; i < 4; i++) {
-                stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(32000) FROM SYSTEM_RANGE(1, 200)");
+                stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(16000) FROM SYSTEM_RANGE(1, 400)");
                 freeSoftReferences();
                 int used = Utils.getMemoryUsed();
                 if ((used - base) > 16000) {
-                    fail("Used: " + (used - base));
+                    fail("Used: " + (used - base) + " i: " + i);
                 }
             }
         } finally {

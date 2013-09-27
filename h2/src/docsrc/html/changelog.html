@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>To use the MVStore storage engine (which is still work in progress), append
+<ul><li>File system abstraction: if used directly, some file systems did not work correctly
+    with spliced byte buffers (the database engine doesn't use those).
+</li><li>To use the MVStore storage engine (which is still work in progress), append
     ";mv_store=true" to the database URL. Using the MVTableEngine when creating the table
     is no longer recommended.
 </li><li>To compile user defined functions, the javax.tools.JavaCompiler is now used if available,

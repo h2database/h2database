@@ -21,6 +21,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.result.ResultInterface;
 import org.h2.store.FileLister;
@@ -82,8 +83,15 @@ public class BackupCommand extends Prepared {
                         backupFile(out, base, n);
                     }
                     if (n.endsWith(Constants.SUFFIX_MV_FILE)) {
-                        InputStream in = db.getMvStore().getInputStream();
-                        backupFile(out, base, n, in);
+                        MVStore s = store.getStore();
+                        boolean before = s.getReuseSpace();
+                        s.setReuseSpace(false);
+                        try {
+                            InputStream in = store.getInputStream();
+                            backupFile(out, base, n, in);
+                        } finally {
+                            s.setReuseSpace(before);
+                        }
                     }
                 }
             }

@@ -165,7 +165,6 @@ public class Backup extends Tool {
                     out.println("Processed: " + fileName);
                 }
             }
-            zipOut.closeEntry();
             zipOut.close();
         } catch (IOException e) {
             throw DbException.convertIOException(e, zipFileName);

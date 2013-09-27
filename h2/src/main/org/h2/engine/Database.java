@@ -92,6 +92,7 @@ public class Database implements DataHandler {
     private final String databaseURL;
     private final String cipher;
     private final byte[] filePasswordHash;
+    private final byte[] fileEncryptionKey;
 
     private final HashMap<String, Role> roles = New.hashMap();
     private final HashMap<String, User> users = New.hashMap();
@@ -192,6 +193,7 @@ public class Database implements DataHandler {
         this.compareMode = CompareMode.getInstance(null, 0, false);
         this.persistent = ci.isPersistent();
         this.filePasswordHash = ci.getFilePasswordHash();
+        this.fileEncryptionKey = ci.getFileEncryptionKey();
         this.databaseName = name;
         this.databaseShortName = parseDatabaseShortName();
         this.maxLengthInplaceLob = SysProperties.LOB_IN_DATABASE ?
@@ -2574,8 +2576,8 @@ public class Database implements DataHandler {
         throw DbException.throwInternalError();
     }
 
-    public byte[] getFilePasswordHash() {
-        return filePasswordHash;
+    public byte[] getFileEncryptionKey() {
+        return fileEncryptionKey;
     }
 
     @Override

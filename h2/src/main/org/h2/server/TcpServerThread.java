@@ -84,12 +84,12 @@ public class TcpServerThread implements Runnable {
                 int minClientVersion = transfer.readInt();
                 if (minClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_12) {
-                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_12);
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_13) {
+                    throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2, "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_13);
                 }
                 int maxClientVersion = transfer.readInt();
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_12) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_12;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_13) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_13;
                 } else {
                     clientVersion = minClientVersion;
                 }
@@ -140,6 +140,11 @@ public class TcpServerThread implements Runnable {
                 transfer.writeInt(SessionRemote.STATUS_OK);
                 transfer.writeInt(clientVersion);
                 transfer.flush();
+                if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_13) {
+                    if (ci.getFilePasswordHash() != null) {
+                        ci.setFileEncryptionKey(transfer.readBytes());
+                    }
+                }
                 server.addConnection(threadId, originalURL, ci.getUserName());
                 trace("Connected");
             } catch (Throwable e) {

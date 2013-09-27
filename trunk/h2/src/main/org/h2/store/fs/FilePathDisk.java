@@ -443,7 +443,7 @@ class FileDisk extends FileBase {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        int len = file.read(dst.array(), dst.position(), dst.remaining());
+        int len = file.read(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining());
         if (len > 0) {
             dst.position(dst.position() + len);
         }
@@ -459,7 +459,7 @@ class FileDisk extends FileBase {
     @Override
     public int write(ByteBuffer src) throws IOException {
         int len = src.remaining();
-        file.write(src.array(), src.position(), len);
+        file.write(src.array(), src.arrayOffset() + src.position(), len);
         src.position(src.position() + len);
         return len;
     }

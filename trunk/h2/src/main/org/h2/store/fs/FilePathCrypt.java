@@ -256,7 +256,7 @@ public class FilePathCrypt extends FilePathWrapper {
             readFully(base, position + HEADER_LENGTH, dst);
             long block = position / BLOCK_SIZE;
             while (len > 0) {
-                xts.decrypt(block++, BLOCK_SIZE, dst.array(), x);
+                xts.decrypt(block++, BLOCK_SIZE, dst.array(), dst.arrayOffset() + x);
                 x += BLOCK_SIZE;
                 len -= BLOCK_SIZE;
             }
@@ -317,7 +317,7 @@ public class FilePathCrypt extends FilePathWrapper {
             long block = position / BLOCK_SIZE;
             int x = 0, l = len;
             while (l > 0) {
-                xts.encrypt(block++, BLOCK_SIZE, crypt.array(), x);
+                xts.encrypt(block++, BLOCK_SIZE, crypt.array(), crypt.arrayOffset() + x);
                 x += BLOCK_SIZE;
                 l -= BLOCK_SIZE;
             }

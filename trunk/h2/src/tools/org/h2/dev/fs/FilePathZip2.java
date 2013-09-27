@@ -29,8 +29,7 @@ import org.h2.util.New;
 /**
  * This is a read-only file system that allows to access databases stored in a
  * .zip or .jar file. The problem of this file system is that data is always
- * accessed as a stream. But unlike FileSystemZip, it is possible to stack file
- * systems.
+ * accessed as a stream. This implementation allows to stack file systems.
  */
 public class FilePathZip2 extends FilePath {
 
@@ -363,7 +362,7 @@ class FileZip2 extends FileBase {
     @Override
     public int read(ByteBuffer dst) throws IOException {
         seek();
-        int len = in.read(dst.array(), dst.position(), dst.remaining());
+        int len = in.read(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining());
         if (len > 0) {
             dst.position(dst.position() + len);
             pos += len;
@@ -447,7 +446,7 @@ class FileZip2 extends FileBase {
 
     @Override
     public String toString() {
-        return name;
+        return "zip2:" + name;
     }
 
 }

@@ -22,7 +22,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Random;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import org.h2.dev.fs.FilePathZip2;
 import org.h2.message.DbException;
+import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathCrypt;
 import org.h2.store.fs.FileUtils;
@@ -57,11 +63,16 @@ public class TestFileSystem extends TestBase {
         testDirectories(getBaseDir());
         testMoveTo(getBaseDir());
         testUnsupportedFeatures(getBaseDir());
+        FilePathZip2.register();
+        FilePath.register(new FilePathCache());
+        testZipFileSystem("zip:");
+        testZipFileSystem("cache:zip:");
+        testZipFileSystem("zip2:");
+        testZipFileSystem("cache:zip2:");
         testMemFsDir();
         testClasspath();
         FilePathDebug.register().setTrace(true);
         FilePathCrypt.register();
-        testFileSystem("crypt:0007:" + getBaseDir() + "/fs");
         testSimpleExpandTruncateSize();
         testSplitDatabaseInZip();
         testDatabaseInMemFileSys();
@@ -77,7 +88,10 @@ public class TestFileSystem extends TestBase {
         testUserHome();
         try {
             testFileSystem("nio:" + getBaseDir() + "/fs");
+            testFileSystem("cache:nio:" + getBaseDir() + "/fs");
             testFileSystem("nioMapped:" + getBaseDir() + "/fs");
+            testFileSystem("crypt:0007:" + getBaseDir() + "/fs");
+            testFileSystem("cache:crypt:0007:" + getBaseDir() + "/fs");
             if (!config.splitFileSystem) {
                 testFileSystem("split:" + getBaseDir() + "/fs");
                 testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");
@@ -90,6 +104,98 @@ public class TestFileSystem extends TestBase {
             throw e;
         } finally {
             FileUtils.delete(getBaseDir() + "/fs");
+        }
+    }
+    
+    private void testZipFileSystem(String prefix) throws IOException {
+        Random r = new Random(1);
+        for (int i = 0; i < 5; i++) {
+            testZipFileSystem(prefix, r);
+        }
+    }
+    
+    private void testZipFileSystem(String prefix, Random r) throws IOException {
+        byte[] data = new byte[r.nextInt(16 * 1024)];
+        long x = r.nextLong();
+        FilePath file = FilePath.get(getBaseDir() + "/fs/readonly" + x + ".zip");
+        r.nextBytes(data);
+        OutputStream out = file.newOutputStream(false);
+        ZipOutputStream zipOut = new ZipOutputStream(out);
+        ZipEntry entry = new ZipEntry("data");
+        zipOut.putNextEntry(entry);
+        zipOut.write(data);
+        zipOut.closeEntry();
+        zipOut.close();
+        out.close();
+        FilePath fp = FilePath.get(
+                prefix + getBaseDir() + "/fs/readonly" + x + ".zip!data");
+        FileChannel fc = fp.open("r");
+        StringBuilder buff = new StringBuilder();
+        try {
+            int pos = 0;
+            for (int i = 0; i < 100; i++) {
+                trace("op " + i);
+                switch (r.nextInt(5)) {
+                case 0: {
+                    int p = r.nextInt(data.length);
+                    trace("seek " + p);
+                    buff.append("seek " + p + "\n");
+                    fc.position(p);
+                    pos = p;
+                    break;
+                }
+                case 1: {
+                    int len = r.nextInt(1000);
+                    int offset = r.nextInt(100);
+                    int arrayLen = len + offset;
+                    len = Math.min(len, data.length - pos);
+                    byte[] b1 = new byte[arrayLen];
+                    byte[] b2 = new byte[arrayLen];
+                    trace("readFully " + len);
+                    buff.append("readFully " + len + "\n");
+                    System.arraycopy(data, pos, b1, offset, len);
+                    ByteBuffer byteBuff = createSlicedBuffer(b2, offset, len);
+                    FileUtils.readFully(fc, byteBuff);
+                    assertEquals(b1, b2);
+                    pos += len;
+                    break;
+                }
+                case 2: {
+                    int len = r.nextInt(1000);
+                    int offset = r.nextInt(100);
+                    int arrayLen = len + offset;
+                    int p = r.nextInt(data.length);
+                    len = Math.min(len, data.length - p);
+                    byte[] b1 = new byte[arrayLen];
+                    byte[] b2 = new byte[arrayLen];
+                    trace("readFully " + p + " " + len);
+                    buff.append("readFully " + p + " " + len + "\n");
+                    System.arraycopy(data, p, b1, offset, len);
+                    ByteBuffer byteBuff = createSlicedBuffer(b2, offset, len);
+                    DataUtils.readFully(fc, p, byteBuff);
+                    assertEquals(b1, b2);
+                    break;
+                }
+                case 3: {
+                    trace("getFilePointer");
+                    buff.append("getFilePointer\n");
+                    assertEquals(pos, fc.position());
+                    break;
+                }
+                case 4: {
+                    trace("length " + data.length);
+                    buff.append("length " + data.length + "\n");
+                    assertEquals(data.length, fc.size());
+                    break;
+                }
+                default:
+                }
+            }
+            fc.close();
+            file.delete();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            fail("Exception: " + e + "\n"+ buff.toString());
         }
     }
 
@@ -512,12 +618,16 @@ public class TestFileSystem extends TestBase {
                     break;
                 }
                 case 1: {
-                    byte[] buffer = new byte[random.nextInt(1000)];
+                    int arrayLen = random.nextInt(1000);
+                    int offset = random.nextInt(arrayLen / 10);
+                    int len = random.nextInt(arrayLen - offset);
+                    byte[] buffer = new byte[arrayLen];
+                    ByteBuffer byteBuff = createSlicedBuffer(buffer, offset, len);
                     random.nextBytes(buffer);
-                    trace("write " + buffer.length);
-                    buff.append("write " + buffer.length + "\n");
-                    f.write(ByteBuffer.wrap(buffer));
-                    ra.write(buffer, 0, buffer.length);
+                    trace("write " + offset + " len " + len);
+                    buff.append("write " + offset + " " + len + "\n");
+                    f.write(byteBuff);
+                    ra.write(buffer, offset, len);
                     break;
                 }
                 case 2: {
@@ -534,13 +644,16 @@ public class TestFileSystem extends TestBase {
                 }
                 case 3: {
                     int len = random.nextInt(1000);
+                    int offset = random.nextInt(100);
+                    int arrayLen = len + offset;
                     len = (int) Math.min(len, ra.length() - ra.getFilePointer());
-                    byte[] b1 = new byte[len];
-                    byte[] b2 = new byte[len];
+                    byte[] b1 = new byte[arrayLen];
+                    byte[] b2 = new byte[arrayLen];
                     trace("readFully " + len);
                     buff.append("readFully " + len + "\n");
-                    ra.readFully(b1, 0, len);
-                    FileUtils.readFully(f, ByteBuffer.wrap(b2, 0, len));
+                    ra.readFully(b1, offset, len);
+                    ByteBuffer byteBuff = createSlicedBuffer(b2, offset, len);
+                    FileUtils.readFully(f, byteBuff);
                     assertEquals(b1, b2);
                     break;
                 }
@@ -578,6 +691,15 @@ public class TestFileSystem extends TestBase {
             file.delete();
             FileUtils.delete(s);
         }
+    }
+    
+    private static ByteBuffer createSlicedBuffer(byte[] buffer, int offset, int len) {
+        ByteBuffer byteBuff = ByteBuffer.wrap(buffer);
+        byteBuff.position(offset);
+        // force the arrayOffset to be non-0
+        byteBuff = byteBuff.slice();
+        byteBuff.limit(len);        
+        return byteBuff;
     }
 
     private void testTempFile(String fsBase) throws Exception {

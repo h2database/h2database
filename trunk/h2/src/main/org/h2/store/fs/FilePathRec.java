@@ -178,7 +178,7 @@ class FileRec extends FileBase {
         int len = src.remaining();
         if (src.position() != 0 || len != buff.length) {
             byte[] b = new byte[len];
-            System.arraycopy(buff, src.position(), b, 0, len);
+            System.arraycopy(buff, src.arrayOffset() + src.position(), b, 0, len);
             buff = b;
         }
         int result = channel.write(src);

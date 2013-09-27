@@ -175,7 +175,7 @@ class FileNioMapped extends FileBase {
                 return -1;
             }
             mapped.position(pos);
-            mapped.get(dst.array(), dst.position(), len);
+            mapped.get(dst.array(), dst.arrayOffset() + dst.position(), len);
             dst.position(dst.position() + len);
             pos += len;
             return len;

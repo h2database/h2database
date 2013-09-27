@@ -281,7 +281,7 @@ class FileZip extends FileBase {
     @Override
     public int read(ByteBuffer dst) throws IOException {
         seek();
-        int len = in.read(dst.array(), dst.position(), dst.remaining());
+        int len = in.read(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining());
         if (len > 0) {
             dst.position(dst.position() + len);
             pos += len;

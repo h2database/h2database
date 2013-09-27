@@ -186,6 +186,12 @@ public class TestScriptReader extends TestBase {
         assertEquals(null, source.readStatement());
         source.close();
 
+        // check handling of unclosed block comments
+        s = "/*xxx";
+        source = new ScriptReader(new StringReader(s));
+        assertEquals("/*xxx", source.readStatement());
+        assertTrue(source.isBlockRemark());
+        source.close();
     }
 
 }

@@ -140,7 +140,7 @@ public class ScriptReader {
                 c = read();
                 if (c == '*') {
                     // block comment
-                    startRemark(false);
+                    startRemark(true);
                     while (true) {
                         c = read();
                         if (c < 0) {

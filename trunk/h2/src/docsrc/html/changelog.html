@@ -74,6 +74,8 @@ Change Log
 </li><li>Make Server#openBrowser respect the $BROWSER environment variable. Add "chromium" to the list of browsers tried.
     Patch from Felix Kaiser.
 </li><li>Fix to org.h2.util.ScriptReader when handling unclosed block comments.
+</li><li>Make org.h2.util.ScriptReader throw a better exception when handling broken scripts which generate
+    extremely large statements.
 </li></ul>
 
 <h2>Version 1.3.173 (2013-07-28)</h2>

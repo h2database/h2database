@@ -19,6 +19,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
+import org.h2.store.fs.FilePathCrypt;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
@@ -37,6 +38,7 @@ public class ConnectionInfo implements Cloneable {
     private String url;
     private String user;
     private byte[] filePasswordHash;
+    private byte[] fileEncryptionKey;
     private byte[] userPasswordHash;
 
     /**
@@ -118,6 +120,7 @@ public class ConnectionInfo implements Cloneable {
         ConnectionInfo clone = (ConnectionInfo) super.clone();
         clone.prop = (Properties) prop.clone();
         clone.filePasswordHash = Utils.cloneByteArray(filePasswordHash);
+        clone.fileEncryptionKey = Utils.cloneByteArray(fileEncryptionKey);
         clone.userPasswordHash = Utils.cloneByteArray(userPasswordHash);
         return clone;
     }
@@ -311,6 +314,7 @@ public class ConnectionInfo implements Cloneable {
             System.arraycopy(password, 0, filePassword, 0, space);
             Arrays.fill(password, (char) 0);
             password = np;
+            fileEncryptionKey = FilePathCrypt.getPasswordBytes(filePassword);
             filePasswordHash = hashPassword(passwordHash, "file", filePassword);
         }
         userPasswordHash = hashPassword(passwordHash, user, password);
@@ -398,8 +402,12 @@ public class ConnectionInfo implements Cloneable {
      *
      * @return the password hash or null
      */
-    byte[] getFilePasswordHash() {
+    public byte[] getFilePasswordHash() {
         return filePasswordHash;
+    }
+    
+    byte[] getFileEncryptionKey() {
+        return fileEncryptionKey;   
     }
 
     /**
@@ -540,6 +548,10 @@ public class ConnectionInfo implements Cloneable {
      */
     public void setFilePasswordHash(byte[] hash) {
         this.filePasswordHash = hash;
+    }
+    
+    public void setFileEncryptionKey(byte[] key) {
+        this.fileEncryptionKey = key;
     }
 
     /**

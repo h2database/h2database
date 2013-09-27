@@ -130,9 +130,9 @@ public class FileStore {
         try {
             file = f.open(readOnly ? "r" : "rw");
             if (encryptionKey != null) {
-                byte[] password = FilePathCrypt.getPasswordBytes(encryptionKey);
+                byte[] key = FilePathCrypt.getPasswordBytes(encryptionKey);
                 encryptedFile = file;
-                file = new FilePathCrypt.FileCrypt(fileName, password, file);
+                file = new FilePathCrypt.FileCrypt(fileName, key, file);
             }
             file = FilePathCache.wrap(file);
             fileSize = file.size();

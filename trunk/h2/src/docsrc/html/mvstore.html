@@ -32,11 +32,11 @@ MVStore
 <a href="#transactions">- Transactions</a><br />
 <a href="#inMemory">- In-Memory Performance and Usage</a><br />
 <a href="#dataTypes">- Pluggable Data Types</a><br />
-<a href="#offHeap">- Off-Heap and Pluggable Storage</a><br />
 <a href="#blob">- BLOB Support</a><br />
 <a href="#pluggableMap">- R-Tree and Pluggable Map Implementations</a><br />
 <a href="#caching">- Concurrent Operations and Caching</a><br />
 <a href="#logStructured">- Log Structured Storage</a><br />
+<a href="#offHeap">- Off-Heap and Pluggable Storage</a><br />
 <a href="#fileSystem">- File System Abstraction, File Locking and Online Backup</a><br />
 <a href="#encryption">- Encrypted Files</a><br />
 <a href="#tools">- Tools</a><br />
@@ -283,19 +283,6 @@ Also, there is no inherent limit to the number of maps and chunks.
 Due to using a log structured storage, there is no special case handling for large keys or pages.
 </p>
 
-<h3 id="offHeap">Off-Heap and Pluggable Storage</h3>
-<p>
-Storage is pluggable. The default storage is to a single file (unless pure in-memory operation is used).
-</p>
-<p>
-An off-heap storage implementation is available. This storage keeps the data in the off-heap memory,
-meaning outside of the regular garbage collected heap. This allows to use very large in-memory
-stores without having to increase the JVM heap (which would increase Java garbage collection
-cost a lot). Memory is allocated using <code>ByteBuffer.allocateDirect</code>.
-One chunk is allocated at a time (each chunk is usually a few MB large), so that
-allocation cost is low.
-</p>
-
 <h3 id="blob">BLOB Support</h3>
 <p>
 There is a mechanism that stores large binary objects by splitting them into smaller blocks.
@@ -386,11 +373,25 @@ But temporarily, disk space usage might actually be a bit higher than for a regu
 as disk space is not immediately re-used (there are no in-place updates).
 </p>
 
+<h3 id="offHeap">Off-Heap and Pluggable Storage</h3>
+<p>
+Storage is pluggable. The default storage is to a single file (unless pure in-memory operation is used).
+</p>
+<p>
+An off-heap storage implementation is available. This storage keeps the data in the off-heap memory,
+meaning outside of the regular garbage collected heap. This allows to use very large in-memory
+stores without having to increase the JVM heap (which would increase Java garbage collection
+pauses a lot). Memory is allocated using <code>ByteBuffer.allocateDirect</code>.
+One chunk is allocated at a time (each chunk is usually a few MB large), so that
+allocation cost is low.
+</p>
+
 <h3 id="fileSystem">File System Abstraction, File Locking and Online Backup</h3>
 <p>
 The file system is pluggable (the same file system abstraction is used as H2 uses).
-The file can be encrypted using an encrypting file system.
+The file can be encrypted using a encrypting file system wrapper.
 Other file system implementations support reading from a compressed zip or jar file.
+The file system abstraction closely matches the Java 7 file system API.
 </p>
 <p>
 Each store may only be opened once within a JVM.
@@ -399,11 +400,14 @@ the file can only be changed from within one process.
 Files can be opened in read-only mode, in which case a shared lock is used.
 </p>
 <p>
-The persisted data can be backed up to a different file at any time,
+The persisted data can be backed up at any time,
 even during write operations (online backup).
 To do that, automatic disk space reuse needs to be first disabled, so that
 new data is always appended at the end of the file.
 Then, the file can be copied (the file handle is available to the application).
+It is recommended to use the utility class <code>FileChannelInputStream</code> to do this.
+For encrypted databases, both the encrypted (raw) file content, 
+as well as the clear text content, can be backed up.
 </p>
 
 <h3 id="encryption">Encrypted Files</h3>

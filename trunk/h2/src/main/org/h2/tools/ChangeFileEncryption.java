@@ -6,12 +6,22 @@
  */
 package org.h2.tools;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
 import org.h2.store.FileLister;
 import org.h2.store.FileStore;
+import org.h2.store.fs.FileChannelInputStream;
+import org.h2.store.fs.FileChannelOutputStream;
+import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathCrypt;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.Tool;
 
@@ -28,6 +38,8 @@ public class ChangeFileEncryption extends Tool {
     private String cipherType;
     private byte[] decrypt;
     private byte[] encrypt;
+    private byte[] decryptKey;
+    private byte[] encryptKey;
 
     /**
      * Options are case sensitive. Supported options are:
@@ -140,12 +152,16 @@ public class ChangeFileEncryption extends Tool {
                     throw new SQLException("The file password may not contain spaces");
                 }
             }
+            change.encryptKey = FilePathCrypt.getPasswordBytes(encryptPassword);
+            change.encrypt = getFileEncryptionKey(encryptPassword);
+        }
+        if (decryptPassword != null) {
+            change.decryptKey = FilePathCrypt.getPasswordBytes(decryptPassword);
+            change.decrypt = getFileEncryptionKey(decryptPassword);
         }
         change.out = out;
         change.directory = dir;
         change.cipherType = cipher;
-        change.decrypt = getFileEncryptionKey(decryptPassword);
-        change.encrypt = getFileEncryptionKey(encryptPassword);
 
         ArrayList<String> files = FileLister.getDatabaseFiles(dir, db, true);
         FileLister.tryUnlockDatabase(files, "encryption");
@@ -173,6 +189,14 @@ public class ChangeFileEncryption extends Tool {
     }
 
     private void process(String fileName) {
+        if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
+            try {
+                copy(fileName);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, "Error encrypting / decrypting file " + fileName);
+            }
+            return;
+        }
         FileStore in;
         if (decrypt == null) {
             in = FileStore.open(null, fileName, "r");
@@ -181,6 +205,42 @@ public class ChangeFileEncryption extends Tool {
         }
         in.init();
         copy(fileName, in, encrypt);
+    }
+    
+    private void copy(String fileName) throws IOException {
+        if (FileUtils.isDirectory(fileName)) {
+            return;
+        }
+        FileChannel fileIn = FilePath.get(fileName).open("r");
+        if (decryptKey != null) {
+            fileIn = new FilePathCrypt.FileCrypt(fileName, decryptKey, fileIn);
+        }
+        InputStream inStream = new FileChannelInputStream(fileIn, true);
+        String temp = directory + "/temp.db";
+        FileUtils.delete(temp);
+        FileChannel fileOut = FilePath.get(temp).open("rw");
+        if (encryptKey != null) {
+            fileOut = new FilePathCrypt.FileCrypt(temp, encryptKey, fileOut);
+        }
+        OutputStream outStream = new FileChannelOutputStream(fileOut, true);
+        byte[] buffer = new byte[4 * 1024];
+        long remaining = fileIn.size();
+        long total = remaining;
+        long time = System.currentTimeMillis();
+        while (remaining > 0) {
+            if (System.currentTimeMillis() - time > 1000) {
+                out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
+                time = System.currentTimeMillis();
+            }
+            int len = (int) Math.min(buffer.length, remaining);
+            len = inStream.read(buffer, 0, len);
+            outStream.write(buffer, 0, len);
+            remaining -= len;
+        }
+        inStream.close();
+        outStream.close();
+        FileUtils.delete(fileName);
+        FileUtils.moveTo(temp, fileName);
     }
 
     private void copy(String fileName, FileStore in, byte[] key) {

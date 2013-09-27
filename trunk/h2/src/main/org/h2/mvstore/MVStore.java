@@ -103,6 +103,8 @@ MVStore:
 - storage that splits database into multiple files,
     to speed up compact and allow using trim
     (by truncating / deleting empty files)
+- add new feature to file systems that avoid copying data
+    (reads should return a ByteBuffer, not write into one)
 
 */
 

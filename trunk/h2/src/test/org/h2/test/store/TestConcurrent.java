@@ -9,7 +9,6 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -20,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMapConcurrent;
 import org.h2.mvstore.MVStore;
+import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -155,12 +155,7 @@ public class TestConcurrent extends TestMVStore {
 
     private static byte[] readFileSlowly(FileChannel file, long length) throws Exception {
         file.position(0);
-        InputStream in = new BufferedInputStream(Channels.newInputStream(file)) {
-            @Override
-            public void close() {
-                // don't close
-            }
-        };
+        InputStream in = new BufferedInputStream(new FileChannelInputStream(file, false));
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         for (int j = 0; j < length; j++) {
             int x = in.read();

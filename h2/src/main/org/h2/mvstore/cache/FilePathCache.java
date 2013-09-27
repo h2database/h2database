@@ -80,7 +80,7 @@ public class FilePathCache extends FilePathWrapper {
                 long pos = cachePos;
                 while (true) {
                     int read = base.read(buff, pos);
-                    if (read < 0) {
+                    if (read <= 0) {
                         break;
                     }
                     if (buff.remaining() == 0) {
@@ -92,7 +92,7 @@ public class FilePathCache extends FilePathWrapper {
                 if (read == CACHE_BLOCK_SIZE) {
                     cache.put(cachePos, buff);
                 } else {
-                    if (read < 0) {
+                    if (read <= 0) {
                         return -1;
                     }
                     len = Math.min(len, read - off);

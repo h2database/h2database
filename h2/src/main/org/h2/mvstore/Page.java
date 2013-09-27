@@ -727,7 +727,7 @@ public class Page {
             buff.get(comp);
             int l = compLen + lenAdd;
             buff = ByteBuffer.allocate(l);
-            compressor.expand(comp, 0, compLen, buff.array(), 0, l);
+            compressor.expand(comp, 0, compLen, buff.array(), buff.arrayOffset(), l);
         }
         DataType keyType = map.getKeyType();
         for (int i = 0; i < len; i++) {

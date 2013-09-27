@@ -513,8 +513,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         coverage = isCoverage();
 
-        {}
-        mvStore = false;
+        ;
+        mvStore = true;
 
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
@@ -710,7 +710,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // synth
         new TestBtreeIndex().runTest(this);
         new TestDiskFull().runTest(this);
+        
         new TestCrashAPI().runTest(this);
+        
         new TestFuzzOptimizations().runTest(this);
         new TestLimit().runTest(this);
         new TestRandomSQL().runTest(this);
@@ -755,7 +757,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);
         new TestFileLockProcess().runTest(this);
+        
         new TestFileLockSerialized().runTest(this);
+        
         new TestFtp().runTest(this);
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);

@@ -73,20 +73,31 @@ public class FilePathCache extends FilePathWrapper {
             long cachePos = getCachePos(position);
             int off = (int) (position - cachePos);
             int len = CACHE_BLOCK_SIZE - off;
+            len = Math.min(len, dst.remaining());
             ByteBuffer buff = cache.get(cachePos);
             if (buff == null) {
                 buff = ByteBuffer.allocate(CACHE_BLOCK_SIZE);
-                int read = base.read(buff, cachePos);
+                long pos = cachePos;
+                while (true) {
+                    int read = base.read(buff, pos);
+                    if (read < 0) {
+                        break;
+                    }
+                    if (buff.remaining() == 0) {
+                        break;
+                    }
+                    pos += read;
+                }
+                int read = buff.position();
                 if (read == CACHE_BLOCK_SIZE) {
                     cache.put(cachePos, buff);
                 } else {
                     if (read < 0) {
                         return -1;
                     }
-                    len = Math.min(len, read);
+                    len = Math.min(len, read - off);
                 }
             }
-            len = Math.min(len, dst.remaining());
             dst.put(buff.array(), off, len);
             return len;
         }
@@ -109,6 +120,17 @@ public class FilePathCache extends FilePathWrapper {
 
         @Override
         public int write(ByteBuffer src, long position) throws IOException {
+            clearCache(src, position);
+            return base.write(src, position);
+        }
+
+        @Override
+        public int write(ByteBuffer src) throws IOException {
+            clearCache(src, position());
+            return base.write(src);
+        }
+        
+        private void clearCache(ByteBuffer src, long position) {
             if (cache.size() > 0) {
                 int len = src.remaining();
                 long p = getCachePos(position);
@@ -118,13 +140,6 @@ public class FilePathCache extends FilePathWrapper {
                     len -= CACHE_BLOCK_SIZE;
                 }
             }
-            return base.write(src, position);
-        }
-
-        @Override
-        public int write(ByteBuffer src) throws IOException {
-            throw new UnsupportedOperationException();
-            // return base.write(src);
         }
 
         @Override

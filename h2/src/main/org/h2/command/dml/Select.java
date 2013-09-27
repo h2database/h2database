@@ -315,6 +315,7 @@ public class Select extends Query {
         setCurrentRowNumber(0);
         currentGroup = null;
         ValueArray defaultGroup = ValueArray.get(new Value[0]);
+        int sampleSize = getSampleSizeValue(session);
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
@@ -477,6 +478,7 @@ public class Select extends Query {
         Index index = topTableFilter.getIndex();
         SearchRow first = null;
         int columnIndex = index.getColumns()[0].getColumnId();
+        int sampleSize = getSampleSizeValue(session);
         while (true) {
             setCurrentRowNumber(rowNumber + 1);
             Cursor cursor = index.findNext(session, first, null);
@@ -517,6 +519,7 @@ public class Select extends Query {
         if (isForUpdateMvcc) {
             forUpdateRows = New.arrayList();
         }
+        int sampleSize = getSampleSizeValue(session);
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
             if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
@@ -1066,8 +1069,8 @@ public class Select extends Query {
                 buff.append(" OFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
             }
         }
-        if (sampleSize != 0) {
-            buff.append("\nSAMPLE_SIZE ").append(sampleSize);
+        if (sampleSizeExpr != null) {
+            buff.append("\nSAMPLE_SIZE ").append(StringUtils.unEnclose(sampleSizeExpr.getSQL()));
         }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");

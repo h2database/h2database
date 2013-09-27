@@ -87,6 +87,7 @@ public class TestPreparedStatement extends TestBase {
         testClob(conn);
         testParameterMetaData(conn);
         conn.close();
+        testPreparedStatementWithLiteralsNone();
         deleteDb("preparedStatement");
     }
 
@@ -1168,6 +1169,21 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(conn == prep.getConnection());
     }
 
+    private void testPreparedStatementWithLiteralsNone() throws SQLException {
+        // make sure that when the analyze table kicks in, it works with ALLOW_LITERALS=NONE
+        deleteDb("preparedStatement");
+        Connection conn = getConnection("preparedStatement;ANALYZE_AUTO=100");
+        conn.createStatement().execute("SET ALLOW_LITERALS NONE");
+        conn.prepareStatement("CREATE TABLE test (id INT)").execute();
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO test (id) VALUES (?)");
+        for(int i = 0; i < 200; i++) {
+            ps.setInt(1, i);
+            ps.executeUpdate();
+        }        
+        conn.close();
+        deleteDb("preparedStatement");
+    }
+    
     private void checkBigDecimal(ResultSet rs, String[] value) throws SQLException {
         for (String v : value) {
             assertTrue(rs.next());

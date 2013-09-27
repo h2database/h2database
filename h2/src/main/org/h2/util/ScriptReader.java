@@ -20,13 +20,21 @@ import org.h2.message.DbException;
 public class ScriptReader {
     private final Reader reader;
     private char[] buffer;
+    /** position in the buffer of the next char to be read */
     private int bufferPos;
+    /** position in the buffer of the statement start */
     private int bufferStart = -1;
+    /** position in the buffer of the last available char */
     private int bufferEnd;
+    /** true if we have read past the end of file */
     private boolean endOfFile;
+    /** true if we are inside a comment */
     private boolean insideRemark;
+    /** Only valid if insideRemark is true. True if we are inside a block comment, false if we are inside a line comment */
     private boolean blockRemark;
+    /** true if comments should be skipped completely by this reader. */
     private boolean skipRemarks;
+    /** position in buffer of start of comment */
     private int remarkStart;
 
     /**

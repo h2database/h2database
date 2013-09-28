@@ -49,6 +49,8 @@ MVTableEngine:
 - use StreamStore
 - when the MVStore was enabled before, use it again
     (probably by checking existence of the mvstore file)
+- not use the .h2.db file
+- not use the .lock.db file
 
 TransactionStore:
 
@@ -566,7 +568,7 @@ public class MVStore {
             try {
                 check = (int) Long.parseLong(f, 16);
             } catch (NumberFormatException e) {
-                check = -1;
+                continue;
             }
             s = s.substring(0, s.lastIndexOf("fletcher") - 1);
             byte[] bytes = s.getBytes(DataUtils.UTF8);

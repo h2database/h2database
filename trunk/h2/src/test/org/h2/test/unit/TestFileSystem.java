@@ -619,8 +619,9 @@ public class TestFileSystem extends TestBase {
                 }
                 case 1: {
                     int arrayLen = random.nextInt(1000);
-                    int offset = random.nextInt(arrayLen / 10);
-                    int len = random.nextInt(arrayLen - offset);
+                    int offset = arrayLen / 10;
+                    offset = offset == 0 ? 0 : random.nextInt(offset);
+                    int len = arrayLen == 0 ? 0 : random.nextInt(arrayLen - offset);
                     byte[] buffer = new byte[arrayLen];
                     ByteBuffer byteBuff = createSlicedBuffer(buffer, offset, len);
                     random.nextBytes(buffer);

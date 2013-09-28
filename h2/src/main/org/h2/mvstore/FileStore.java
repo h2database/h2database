@@ -120,7 +120,7 @@ public class FileStore {
         this.fileName = fileName;
         FilePath f = FilePath.get(fileName);
         FilePath parent = f.getParent();
-        if (!parent.exists()) {
+        if (parent != null && !parent.exists()) {
             throw DataUtils.newIllegalArgumentException("Directory does not exist: {0}", parent);
         }
         if (f.exists() && !f.canWrite()) {

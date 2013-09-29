@@ -1382,7 +1382,7 @@ public class Session extends SessionWithState {
     public Transaction getTransaction() {
         if (transaction == null) {
             if (database.getMvStore().getStore().isClosed()) {
-                throw DbException.get(ErrorCode.OBJECT_CLOSED);
+                throw DbException.get(ErrorCode.DATABASE_IS_CLOSED);
             }
             transaction = database.getMvStore().getTransactionStore().begin();
             startStatement = -1;

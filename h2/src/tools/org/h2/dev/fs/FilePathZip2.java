@@ -342,11 +342,7 @@ class FileZip2 extends FileBase {
 
     @Override
     public void implCloseChannel() throws IOException {
-        try {
-            in.close();
-        } catch (IOException e) {
-            // ignore
-        }
+        in.close();
     }
 
     @Override

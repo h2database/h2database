@@ -55,6 +55,7 @@ MVTableEngine:
 TransactionStore:
 
 MVStore:
+- rename FilePathCrypt to FilePathCipher
 - automated 'kill process' and 'power failure' test
 - update checkstyle
 - auto-compact from time to time and on close

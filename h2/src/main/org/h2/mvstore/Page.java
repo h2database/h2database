@@ -267,10 +267,14 @@ public class Page {
      * Create a copy of this page.
      *
      * @param version the new version
+     * @param removeOld whether the old page should be marked as deleted
      * @return a page with the given version
      */
-    public Page copy(long version) {
-        removePage();
+    public Page copy(long version, boolean removeOld) {
+        if (removeOld) {
+            int todoRemoveAtCaller;
+            removePage();
+        }
         Page newPage = create(map, version,
                 keyCount, keys, values, children, childrenPages,
                 counts, totalCount,

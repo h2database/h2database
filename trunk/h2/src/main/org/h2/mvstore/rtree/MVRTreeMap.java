@@ -169,7 +169,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 // this will mark the old page as deleted
                 // so we need to update the parent in any case
                 // (otherwise the old page might be deleted again)
-                Page c = copyOnWrite(cOld, writeVersion);
+                Page c = copyOnWrite(cOld, writeVersion, true);
                 long oldSize = c.getTotalCount();
                 result = remove(c, writeVersion, key);
                 p.setChild(i, c);
@@ -224,7 +224,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         beforeWrite();
         try {
             long v = writeVersion;
-            Page p = copyOnWrite(root, v);
+            Page p = copyOnWrite(root, v, true);
             Object result;
             if (alwaysAdd || get(key) == null) {
                 if (p.getMemory() > store.getPageSplitSize() && p.getKeyCount() > 1) {
@@ -268,13 +268,15 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
-                    Page c = copyOnWrite(p.getChildPage(i), writeVersion);
+                    Page c = copyOnWrite(p.getChildPage(i), writeVersion, true);
                     Object result = set(c, writeVersion, key, value);
-                    if (result != null) {
-                        p.setChild(i, c);
-                        p.setCounts(i, c);
-                        return result;
+                    if (result == null) {
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_INTERNAL, "Key did not exist");
                     }
+                    p.setChild(i, c);
+                    p.setCounts(i, c);
+                    return result;
                 }
             }
         } else {
@@ -312,11 +314,11 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 }
             }
         }
-        Page c = copyOnWrite(p.getChildPage(index), writeVersion);
+        Page c = copyOnWrite(p.getChildPage(index), writeVersion, true);
         if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 1) {
             // split on the way down
             Page split = split(c, writeVersion);
-            p = copyOnWrite(p, writeVersion);
+            p = copyOnWrite(p, writeVersion, true);
             p.setKey(index, getBounds(c));
             p.setChild(index, c);
             p.setCounts(index, c);

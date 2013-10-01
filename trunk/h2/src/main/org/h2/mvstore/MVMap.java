@@ -84,13 +84,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param p the page
      * @param writeVersion the write version
+     * @param removeOld whether the old page should be marked as deleted
      * @return a page with the given write version
      */
-    protected Page copyOnWrite(Page p, long writeVersion) {
+    protected Page copyOnWrite(Page p, long writeVersion, boolean removeOld) {
         if (p.getVersion() == writeVersion) {
             return p;
         }
-        return p.copy(writeVersion);
+        return p.copy(writeVersion, removeOld);
     }
 
     /**
@@ -107,7 +108,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         beforeWrite();
         try {
             long v = writeVersion;
-            Page p = copyOnWrite(root, v);
+            Page p = copyOnWrite(root, v, true);
             p = splitRootIfNeeded(p, v);
             Object result = put(p, v, key, value);
             newRoot(p);
@@ -166,14 +167,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         } else {
             index++;
         }
-        Page c = copyOnWrite(p.getChildPage(index), writeVersion);
+        Page c = copyOnWrite(p.getChildPage(index), writeVersion, true);
         if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 1) {
             // split on the way down
             int at = c.getKeyCount() / 2;
             Object k = c.getKey(at);
             Page split = c.split(at);
             p.setChild(index, split);
-            p.setCounts(index, c);
+            p.setCounts(index, split);
             p.insertNode(index, k, c);
             // now we are not sure where to add
             return put(p, writeVersion, key, value);
@@ -551,7 +552,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         beforeWrite();
         try {
             long v = writeVersion;
-            Page p = copyOnWrite(root, v);
+            Page p = copyOnWrite(root, v, true);
             @SuppressWarnings("unchecked")
             V result = (V) remove(p, v, key);
             newRoot(p);
@@ -670,11 +671,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             index++;
         }
         Page cOld = p.getChildPage(index);
-        Page c = copyOnWrite(cOld, writeVersion);
+        Page c = copyOnWrite(cOld, writeVersion, false);
         result = remove(c, writeVersion, key);
         if (result == null) {
             return null;
         }
+        cOld.removePage();
         if (c.getTotalCount() == 0) {
             // this child was deleted
             if (p.getKeyCount() == 0) {

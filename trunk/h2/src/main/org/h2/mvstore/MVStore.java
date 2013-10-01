@@ -330,7 +330,10 @@ public class MVStore {
 
         // setWriteDelay starts the thread, but only if
         // the parameter is different than the current value
-        setWriteDelay(1000);
+                
+        o = config.get("writeDelay");
+        int writeDelay = o == null ? 1000 : (Integer) o;
+        setWriteDelay(writeDelay);
     }
 
     /**
@@ -2102,6 +2105,20 @@ public class MVStore {
          */
         public Builder fileStore(FileStore store) {
             return set("fileStore", store);
+        }
+
+        /**
+         * Set the initial write delay.
+         *
+         * @param writeDelay the write delay
+         * @return this
+         */
+        public Builder writeDelay(int writeDelay) {
+            // we have a separate config option so that
+            // no thread is started if the write delay is 0
+            // (if we only had a setter in the MVStore,
+            // the thread would need to be started in any case)
+            return set("writeDelay", writeDelay);
         }
 
         /**

@@ -239,9 +239,10 @@ public class ScriptReader {
             if (keep + Constants.IO_BUFFER_SIZE > src.length) {
                 // protect against NegativeArraySizeException
                 if (src.length >= Integer.MAX_VALUE / 2) {
-                    throw new IOException("error in parsing script, statement size exceeds 1G, " +
-                    		"first 80 characters of statement looks like: " +
-                                new String(buffer,bufferStart,80));
+                    throw new IOException("Error in parsing script, " + 
+                            "statement size exceeds 1G, " + 
+                            "first 80 characters of statement looks like: " + 
+                            new String(buffer, bufferStart, 80));
                 }
                 buffer = new char[src.length * 2];
             }

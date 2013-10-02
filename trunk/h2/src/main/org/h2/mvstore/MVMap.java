@@ -84,14 +84,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param p the page
      * @param writeVersion the write version
-     * @param removeOld whether the old page should be marked as deleted
      * @return a page with the given write version
      */
-    protected Page copyOnWrite(Page p, long writeVersion, boolean removeOld) {
+    protected Page copyOnWrite(Page p, long writeVersion) {
         if (p.getVersion() == writeVersion) {
             return p;
         }
-        return p.copy(writeVersion, removeOld);
+        return p.copy(writeVersion);
     }
 
     /**
@@ -108,7 +107,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         beforeWrite();
         try {
             long v = writeVersion;
-            Page p = copyOnWrite(root, v, true);
+            Page p = copyOnWrite(root, v);
             p = splitRootIfNeeded(p, v);
             Object result = put(p, v, key, value);
             newRoot(p);
@@ -167,7 +166,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         } else {
             index++;
         }
-        Page c = copyOnWrite(p.getChildPage(index), writeVersion, true);
+        Page c = copyOnWrite(p.getChildPage(index), writeVersion);
         if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 1) {
             // split on the way down
             int at = c.getKeyCount() / 2;
@@ -552,7 +551,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         beforeWrite();
         try {
             long v = writeVersion;
-            Page p = copyOnWrite(root, v, true);
+            Page p = copyOnWrite(root, v);
             @SuppressWarnings("unchecked")
             V result = (V) remove(p, v, key);
             newRoot(p);
@@ -671,13 +670,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             index++;
         }
         Page cOld = p.getChildPage(index);
-        Page c = copyOnWrite(cOld, writeVersion, false);
+        Page c = copyOnWrite(cOld, writeVersion);
         result = remove(c, writeVersion, key);
-        if (result == null) {
-            return null;
-        }
-        cOld.removePage();
-        if (c.getTotalCount() == 0) {
+        if (result == null || c.getTotalCount() != 0) {
+            // no change, or
+            // there are more nodes
+            p.setChild(index, c);
+            p.setCounts(index, c);
+        } else {
             // this child was deleted
             if (p.getKeyCount() == 0) {
                 p.setChild(index, c);
@@ -686,9 +686,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             } else {
                 p.remove(index);
             }
-        } else {
-            p.setChild(index, c);
-            p.setCounts(index, c);
         }
         return result;
     }
@@ -733,7 +730,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the key type
      */
-    protected DataType getKeyType() {
+    public DataType getKeyType() {
         return keyType;
     }
 
@@ -742,7 +739,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the value type
      */
-    protected DataType getValueType() {
+    public DataType getValueType() {
         return valueType;
     }
 
@@ -1130,7 +1127,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param name the map name (or null)
      * @return the string
      */
-    public String asString(String name) {
+    String asString(String name) {
         StringBuilder buff = new StringBuilder();
         if (name != null) {
             DataUtils.appendMap(buff, "name", name);

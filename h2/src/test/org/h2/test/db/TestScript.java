@@ -19,6 +19,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Random;
+
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -34,7 +36,7 @@ public class TestScript extends TestBase {
 
     private boolean failFast;
 
-    private boolean alwaysReconnect;
+    private boolean reconnectOften;
     private Connection conn;
     private Statement stat;
     private LineNumberReader in;
@@ -44,6 +46,8 @@ public class TestScript extends TestBase {
     private String putBack;
     private StringBuilder errors;
     private ArrayList<String> statements;
+    
+    private Random random = new Random(1);
 
     /**
      * Run just this test.
@@ -72,10 +76,10 @@ public class TestScript extends TestBase {
         if (config.networked && config.big) {
             return;
         }
-        alwaysReconnect = false;
+        reconnectOften = false;
         if (!config.memory) {
             if (config.big) {
-                alwaysReconnect = true;
+                reconnectOften = true;
             }
         }
         testScript();
@@ -158,10 +162,11 @@ public class TestScript extends TestBase {
     }
 
     private void process(String sql) throws Exception {
-        if (alwaysReconnect) {
+        if (reconnectOften) {
             if (!containsTempTables()) {
                 boolean autocommit = conn.getAutoCommit();
-                if (autocommit) {
+                if (autocommit && random.nextInt(10) < 1) {
+                    // reconnect 10% of the time
                     conn.close();
                     conn = getConnection("script");
                     conn.setAutoCommit(autocommit);
@@ -346,7 +351,7 @@ public class TestScript extends TestBase {
         String compare = readLine();
         if (compare != null && compare.startsWith(">")) {
             if (!compare.equals(s)) {
-                if (alwaysReconnect && sql.toUpperCase().startsWith("EXPLAIN")) {
+                if (reconnectOften && sql.toUpperCase().startsWith("EXPLAIN")) {
                     return;
                 }
                 errors.append("line: ");

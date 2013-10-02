@@ -484,6 +484,16 @@ public class MVStore {
         meta.remove("root." + id);
         maps.remove(id);
     }
+    
+    /**
+     * Check whether a given map exists.
+     * 
+     * @param name the map name
+     * @return true if it exists
+     */
+    public boolean hasMap(String name) {
+        return meta.containsKey("name." + name);
+    }
 
     /**
      * Mark a map as changed (containing unsaved changes).

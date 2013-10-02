@@ -5,10 +5,13 @@
  */
 package org.h2.test.store;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.TreeMap;
 
 import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVMapConcurrent;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -19,6 +22,7 @@ import org.h2.test.TestBase;
 public class TestRandomMapOps extends TestBase {
 
     private String fileName;
+    private boolean concurrent;
     private int seed;
     private int op;
 
@@ -33,17 +37,18 @@ public class TestRandomMapOps extends TestBase {
 
     @Override
     public void test() throws Exception {
-        test("memFS:randomOps.h3");
-        int todoTestConcurrentMap;
-        int todoTestMVRTreeMap;
+        concurrent = false;
+        testMap("memFS:randomOps.h3");
+        concurrent = true;
+        testMap("memFS:randomOps.h3");
     }
 
-    public void test(String fileName) {
+    public void testMap(String fileName) {
         this.fileName = fileName;
         int best = Integer.MAX_VALUE;
         int bestSeed = 0;
         Throwable failException = null;
-        for (seed = 0; seed < 1000; seed++) {
+        for (seed = 0; seed < 100; seed++) {
             FileUtils.delete(fileName);
             Throwable ex = null;
             try {
@@ -70,20 +75,23 @@ public class TestRandomMapOps extends TestBase {
     private void testCase() throws Exception {
         FileUtils.delete(fileName);
         MVStore s;
-        MVMap<Integer, byte[]> m;
-
         s = new MVStore.Builder().fileName(fileName).
                 pageSplitSize(50).writeDelay(0).open();
-        m = s.openMap("data");
+        MVMap<Integer, byte[]> m;
+        if (concurrent) {
+            m = s.openMap("data", new MVMapConcurrent.Builder<Integer, byte[]>());
+        } else {
+            m = s.openMap("data");
+        }
         
         Random r = new Random(seed);
         op = 0;
-        int size = getSize(10, 100);
+        int size = getSize(100, 1000);
         TreeMap<Integer, byte[]> map = new TreeMap<Integer, byte[]>();
         for (; op < size; op++) {
             int k = r.nextInt(100);
             byte[] v = new byte[r.nextInt(10) * 10];
-            int type = r.nextInt(11);
+            int type = r.nextInt(13);
             switch (type) {
             case 0:
             case 1:
@@ -105,7 +113,7 @@ public class TestRandomMapOps extends TestBase {
                 break;
             case 7:
                 log(op, k, v, "compact");
-                s.compact(80);
+                s.compact(90);
                 break;
             case 8:
                 log(op, k, v, "clear");
@@ -124,6 +132,22 @@ public class TestRandomMapOps extends TestBase {
                         pageSplitSize(50).writeDelay(0).open();
                 m = s.openMap("data");
                 break;
+            case 11:
+                log(op, k, v, "compactMoveChunks");
+                s.commit();
+                s.compactMoveChunks();
+                break;
+            case 12:
+                log(op, k, v, "getKeyIndex");
+                ArrayList<Integer> keyList = new ArrayList<Integer>(map.keySet());
+                int index = Collections.binarySearch(keyList, k, null);
+                int index2 = (int) m.getKeyIndex(k);
+                assertEquals(index, index2);
+                if (index >= 0) {
+                    int k2 = m.getKey(index);
+                    assertEquals(k2, k);
+                }
+                break;
             }
             assertEqualsMapValues(map.get(k), m.get(k));
             assertEquals(map.ceilingKey(k), m.ceilingKey(k));
@@ -131,8 +155,10 @@ public class TestRandomMapOps extends TestBase {
             assertEquals(map.higherKey(k), m.higherKey(k));
             assertEquals(map.lowerKey(k), m.lowerKey(k));
             assertEquals(map.isEmpty(), m.isEmpty());
-            if (map.size() != m.size()) {
-                assertEquals(map.size(), m.size());
+            assertEquals(map.size(), m.size());
+            if (!map.isEmpty()) {
+                assertEquals(map.firstKey(), m.firstKey());
+                assertEquals(map.lastKey(), m.lastKey());
             }
         }
         s.store();
@@ -149,6 +175,14 @@ public class TestRandomMapOps extends TestBase {
         }
     }
     
+    /**
+     * Log the operation
+     * 
+     * @param op the operation id
+     * @param k the key
+     * @param v the value
+     * @param msg the message
+     */
     private static void log(int op, int k, byte[] v, String msg) {
          // System.out.println(op + ": " + msg + " key: " + k + " value: " + v);
     }

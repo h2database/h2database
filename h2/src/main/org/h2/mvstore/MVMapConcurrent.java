@@ -29,8 +29,8 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
     }
 
     @Override
-    protected Page copyOnWrite(Page p, long writeVersion, boolean removeOld) {
-        return p.copy(writeVersion, removeOld);
+    protected Page copyOnWrite(Page p, long writeVersion) {
+        return p.copy(writeVersion);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
             get(key);
             long v = writeVersion;
             synchronized (this) {
-                Page p = copyOnWrite(root, v, true);
+                Page p = copyOnWrite(root, v);
                 p = splitRootIfNeeded(p, v);
                 V result = (V) put(p, v, key, value);
                 newRoot(p);
@@ -75,7 +75,7 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
             }
             long v = writeVersion;
             synchronized (this) {
-                Page p = copyOnWrite(root, v, true);
+                Page p = copyOnWrite(root, v);
                 result = (V) remove(p, v, key);
                 newRoot(p);
             }

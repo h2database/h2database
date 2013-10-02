@@ -169,7 +169,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 // this will mark the old page as deleted
                 // so we need to update the parent in any case
                 // (otherwise the old page might be deleted again)
-                Page c = copyOnWrite(cOld, writeVersion, true);
+                Page c = copyOnWrite(cOld, writeVersion);
                 long oldSize = c.getTotalCount();
                 result = remove(c, writeVersion, key);
                 p.setChild(i, c);
@@ -224,7 +224,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         beforeWrite();
         try {
             long v = writeVersion;
-            Page p = copyOnWrite(root, v, true);
+            Page p = copyOnWrite(root, v);
             Object result;
             if (alwaysAdd || get(key) == null) {
                 if (p.getMemory() > store.getPageSplitSize() && p.getKeyCount() > 1) {
@@ -268,7 +268,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         if (!p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
-                    Page c = copyOnWrite(p.getChildPage(i), writeVersion, true);
+                    Page c = copyOnWrite(p.getChildPage(i), writeVersion);
                     Object result = set(c, writeVersion, key, value);
                     if (result == null) {
                         throw DataUtils.newIllegalStateException(
@@ -314,11 +314,11 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 }
             }
         }
-        Page c = copyOnWrite(p.getChildPage(index), writeVersion, true);
+        Page c = copyOnWrite(p.getChildPage(index), writeVersion);
         if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 1) {
             // split on the way down
             Page split = split(c, writeVersion);
-            p = copyOnWrite(p, writeVersion, true);
+            p = copyOnWrite(p, writeVersion);
             p.setKey(index, getBounds(c));
             p.setChild(index, c);
             p.setCounts(index, c);

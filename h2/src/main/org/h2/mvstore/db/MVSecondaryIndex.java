@@ -68,6 +68,9 @@ public class MVSecondaryIndex extends BaseIndex {
                 keyType(keyType).
                 valueType(valueType);
         dataMap = mvTable.getTransaction(null).openMap(mapName, mapBuilder);
+        if (keyType != dataMap.map.getKeyType()) {
+            throw DbException.throwInternalError("Incomatible key type");
+        }
     }
 
     @Override

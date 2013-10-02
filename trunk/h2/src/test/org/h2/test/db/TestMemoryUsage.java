@@ -105,14 +105,14 @@ public class TestMemoryUsage extends TestBase {
         deleteDb("memoryUsage");
         conn = getConnection("memoryUsage");
         Statement stat = conn.createStatement();
-        stat.execute("SET MAX_LENGTH_INPLACE_LOB 16384");
+        stat.execute("SET MAX_LENGTH_INPLACE_LOB 8192");
         stat.execute("SET CACHE_SIZE 8000");
         stat.execute("CREATE TABLE TEST(ID IDENTITY, DATA CLOB)");
         freeSoftReferences();
         try {
             int base = Utils.getMemoryUsed();
             for (int i = 0; i < 4; i++) {
-                stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(16000) FROM SYSTEM_RANGE(1, 400)");
+                stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(8000) FROM SYSTEM_RANGE(1, 800)");
                 freeSoftReferences();
                 int used = Utils.getMemoryUsed();
                 if ((used - base) > 16000) {

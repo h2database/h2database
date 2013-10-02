@@ -1176,7 +1176,7 @@ public class TestPreparedStatement extends TestBase {
         conn.createStatement().execute("SET ALLOW_LITERALS NONE");
         conn.prepareStatement("CREATE TABLE test (id INT)").execute();
         PreparedStatement ps = conn.prepareStatement("INSERT INTO test (id) VALUES (?)");
-        for(int i = 0; i < 200; i++) {
+        for (int i = 0; i < 200; i++) {
             ps.setInt(1, i);
             ps.executeUpdate();
         }        

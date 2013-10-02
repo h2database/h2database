@@ -229,6 +229,12 @@ class FileUnstable extends FileBase {
         return channel.write(src);
     }
 
+    @Override
+    public int write(ByteBuffer src, long position) throws IOException {
+        checkError();
+        return channel.write(src, position);
+    }
+
     private void checkError() throws IOException {
         if (closed) {
             throw new IOException("Closed");

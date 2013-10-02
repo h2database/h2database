@@ -156,13 +156,18 @@ public class Engine implements SessionFactory {
         String cipher = ci.removeProperty("CIPHER", null);
         String init = ci.removeProperty("INIT", null);
         Session session;
-        while (true) {
+        for (int i = 0;; i++) {
             session = openSession(ci, ifExists, cipher);
             if (session != null) {
                 break;
             }
             // we found a database that is currently closing
             // wait a bit to avoid a busy loop (the method is synchronized)
+            if (i > 60 * 1000) {
+                // retry at most 1 minute
+                throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, 
+                        "Waited for database closing longer than 1 minute");
+            }
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {

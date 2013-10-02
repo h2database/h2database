@@ -205,6 +205,11 @@ class FileUnstable extends FileBase {
     }
 
     @Override
+    public int read(ByteBuffer dst, long pos) throws IOException {
+        return channel.read(dst, pos);
+    }
+
+    @Override
     public FileChannel position(long pos) throws IOException {
         channel.position(pos);
         return this;

@@ -383,10 +383,7 @@ public class MVTable extends TableBase {
         int mainIndexColumn;
         mainIndexColumn = getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
-            index = new MVSecondaryIndex(session.getDatabase(),
-                    this, indexId,
-                    indexName, cols, indexType);
-            if (index.getRowCountApproximation() != 0) {
+            if (store.store.hasMap("index." + indexId)) {
                 mainIndexColumn = -1;
             }
         } else if (primaryIndex.getRowCount(session) != 0) {

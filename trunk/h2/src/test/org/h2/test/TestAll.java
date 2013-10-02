@@ -552,14 +552,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         defrag = true;
         test();
 
-        traceLevelFile = 2;
-        big = true;
+        traceLevelFile = 0;
         smallLog = true;
         networked = true;
         ssl = true;
         defrag = false;
         test();
 
+        big = true;
         smallLog = false;
         networked = false;
         ssl = false;

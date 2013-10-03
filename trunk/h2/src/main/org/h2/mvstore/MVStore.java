@@ -887,6 +887,12 @@ public class MVStore {
         }
         buff.limit(length);
 
+        // free up the space of unused chunks now
+        for (Chunk x : removedChunks) {
+            int len = MathUtils.roundUpInt(x.length, BLOCK_SIZE) + BLOCK_SIZE;
+            fileStore.free(x.start, len);
+        }
+
         long end = getEndPosition();
         long filePos;
         if (reuseSpace) {
@@ -896,12 +902,6 @@ public class MVStore {
             fileStore.markUsed(end, length);
         }
         boolean storeAtEndOfFile = filePos + length >= end;
-
-        // free up the space of unused chunks now
-        for (Chunk x : removedChunks) {
-            int len = MathUtils.roundUpInt(x.length, BLOCK_SIZE) + BLOCK_SIZE;
-            fileStore.free(x.start, len);
-        }
 
         c.start = filePos;
         c.length = chunkLength;

@@ -83,7 +83,9 @@ public class MVStoreTool {
                         " at " + pos +
                         " length " + chunkLength +
                         " pageCount " + pageCount +
-                        " root " + metaRootPos +
+                        " root " + metaRootPos + 
+                        " chunk " + DataUtils.getPageChunkId(metaRootPos) +
+                        " offset " + DataUtils.getPageOffset(metaRootPos) + 
                         " maxLength " + maxLength +
                         " maxLengthLive " + maxLengthLive);
                 ByteBuffer chunk = ByteBuffer.allocate(chunkLength);

@@ -270,13 +270,11 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 if (contains(p, i, key)) {
                     Page c = copyOnWrite(p.getChildPage(i), writeVersion);
                     Object result = set(c, writeVersion, key, value);
-                    if (result == null) {
-                        throw DataUtils.newIllegalStateException(
-                                DataUtils.ERROR_INTERNAL, "Key did not exist");
+                    if (result != null) {
+                        p.setChild(i, c);
+                        p.setCounts(i, c);
+                        return result;
                     }
-                    p.setChild(i, c);
-                    p.setCounts(i, c);
-                    return result;
                 }
             }
         } else {

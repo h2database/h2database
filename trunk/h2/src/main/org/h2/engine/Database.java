@@ -1261,6 +1261,7 @@ public class Database implements DataHandler {
         reconnectModified(false);
         if (mvStore != null) {
             if (!readOnly && compactMode != 0) {
+                mvStore.store();
                 mvStore.compactFile(dbSettings.maxCompactTime);
             } else {
                 mvStore.close(dbSettings.maxCompactTime);

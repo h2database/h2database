@@ -115,7 +115,7 @@ public class TestMemoryUsage extends TestBase {
                 stat.execute("INSERT INTO TEST(DATA) SELECT SPACE(8000) FROM SYSTEM_RANGE(1, 800)");
                 freeSoftReferences();
                 int used = Utils.getMemoryUsed();
-                if ((used - base) > 16000) {
+                if ((used - base) > 3 * 8192) {
                     fail("Used: " + (used - base) + " i: " + i);
                 }
             }

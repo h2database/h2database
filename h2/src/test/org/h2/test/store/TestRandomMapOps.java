@@ -32,7 +32,9 @@ public class TestRandomMapOps extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.big = true;
+        test.test();
     }
 
     @Override
@@ -184,7 +186,7 @@ public class TestRandomMapOps extends TestBase {
      * @param msg the message
      */
     private static void log(int op, int k, byte[] v, String msg) {
-         // System.out.println(op + ": " + msg + " key: " + k + " value: " + v);
+        // System.out.println(op + ": " + msg + " key: " + k + " value: " + v);
     }
 
 }

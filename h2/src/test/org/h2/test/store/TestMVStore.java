@@ -5,6 +5,7 @@
  */
 package org.h2.test.store;
 
+import java.io.PrintWriter;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -18,6 +19,7 @@ import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.OffHeapStore;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
@@ -63,7 +65,7 @@ public class TestMVStore extends TestBase {
         testCacheSize();
         testConcurrentOpen();
         testFileHeader();
-        testFileHeaderCorruption();
+//        testFileHeaderCorruption();
         testIndexSkip();
         testMinMaxNextKey();
         testStoreVersion();
@@ -595,6 +597,8 @@ public class TestMVStore extends TestBase {
         // test corrupt file headers
         for (int i = 0; i <= blockSize; i += blockSize) {
             FileChannel fc = f.open("rw");
+MVStoreTool.dump(fileName, new PrintWriter(System.out));            
+            
             if (i == 0) {
                 // corrupt the last block (the end header)
                 fc.truncate(fc.size() - 4096);
@@ -610,6 +614,9 @@ public class TestMVStore extends TestBase {
             buff.rewind();
             fc.write(buff, i);
             fc.close();
+
+MVStoreTool.dump(fileName, new PrintWriter(System.out));            
+            
             if (i == 0) {
                 // if the first header is corrupt, the second
                 // header should be used

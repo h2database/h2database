@@ -85,7 +85,7 @@ public class TestKillProcessWhileWriting extends TestBase {
         Random r = new Random(seed);
         int op = 0;
         try {
-            for (; op < 50; op++) {
+            for (; op < 100; op++) {
                 int k = r.nextInt(100);
                 byte[] v = new byte[r.nextInt(100) * 100];
                 int type = r.nextInt(10);

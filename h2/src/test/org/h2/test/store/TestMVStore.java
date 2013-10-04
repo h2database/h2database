@@ -65,7 +65,10 @@ public class TestMVStore extends TestBase {
         testCacheSize();
         testConcurrentOpen();
         testFileHeader();
+        
+        int todoFixTestCase;
 //        testFileHeaderCorruption();
+        
         testIndexSkip();
         testMinMaxNextKey();
         testStoreVersion();

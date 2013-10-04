@@ -108,6 +108,7 @@ MVStore:
     (by truncating / deleting empty files)
 - add new feature to file systems that avoid copying data
     (reads should return a ByteBuffer, not write into one)
+- do we need to store a dummy chunk entry in the chunk itself?
 
 */
 
@@ -513,40 +514,50 @@ public class MVStore {
     }
 
     private void readMeta() {
+        chunks.clear();
         Chunk header = readChunkHeader(rootChunkStart);
         lastChunkId = header.id;
         chunks.put(header.id, header);
         meta.setRootPos(header.metaRootPos, -1);
-        // load chunks in reverse order, because data about previous chunks
-        // might only be available in later chunks
-        // if this is a performance problem when there are many
-        // chunks, the id of the previous / next chunk might need to
-        // be maintained
-        for (int id = lastChunkId; id >= 0; id--) {
-            String s = meta.get("chunk." + id);
-            if (s == null) {
-                continue;
+        String s = meta.get("chunk." + lastChunkId);
+        Chunk h2 = Chunk.fromString(s);
+        h2.start = header.start;
+        h2.length = header.length;
+        h2.metaRootPos = header.metaRootPos;
+        h2.pageCount = header.pageCount;
+        h2.pageCountLive = header.pageCountLive;
+        h2.maxLength = header.maxLength;
+        h2.maxLengthLive = header.maxLengthLive;
+        chunks.put(header.id, h2);
+        // we can load the chunk in any order,
+        // because loading chunk metadata
+        // might recursively load another chunk
+        for (Iterator<String> it = meta.keyIterator("chunk."); it.hasNext();) {
+            s = it.next();
+            if (!s.startsWith("chunk.")) {
+                break;
             }
+            s = meta.get(s);
             Chunk c = Chunk.fromString(s);
-            if (c.id == header.id) {
-                c.start = header.start;
-                c.length = header.length;
-                c.metaRootPos = header.metaRootPos;
-                c.pageCount = header.pageCount;
-                c.pageCountLive = header.pageCountLive;
-                c.maxLength = header.maxLength;
-                c.maxLengthLive = header.maxLengthLive;
-            }
-            lastChunkId = Math.max(c.id, lastChunkId);
-            chunks.put(c.id, c);
-            if (c.pageCountLive == 0) {
-                // remove this chunk in the next save operation
-                registerFreePage(currentVersion, c.id, 0, 0);
+            if (!chunks.containsKey(c.id)) {
+                chunks.put(c.id, c);
             }
         }
         // build the free space list
         for (Chunk c : chunks.values()) {
+            if (c.pageCountLive == 0) {
+                // remove this chunk in the next save operation
+                registerFreePage(currentVersion, c.id, 0, 0);
+            }
+            
+
+            if (c.id > lastChunkId) {
+                System.out.println("strange!");
+            }
+            lastChunkId = Math.max(c.id, lastChunkId);
             if (c.start == Long.MAX_VALUE) {
+            ;;
+                System.out.println("??");
                 continue;
             }
             int len = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
@@ -711,7 +722,20 @@ public class MVStore {
      * @return the chunk
      */
     Chunk getChunk(long pos) {
-        return chunks.get(DataUtils.getPageChunkId(pos));
+        int chunkId = DataUtils.getPageChunkId(pos);
+        Chunk c = chunks.get(chunkId);
+        if (c == null) {
+            String s = meta.get("chunk." + chunkId);
+            if (s == null) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT,
+                        "Chunk {0} not found",
+                        DataUtils.getPageChunkId(pos));
+            }
+            c = Chunk.fromString(s);
+            chunks.put(c.id, c);
+        }
+        return c;
     }
 
     /**
@@ -1358,7 +1382,7 @@ public class MVStore {
                 if (p == null) {
                     // was removed later - ignore
                     // or the chunk no longer exists
-                } else if (p.getPos() < 0) {
+                } else if (p.getPos() == 0) {
                     // temporarily changed - ok
                     // TODO move old data if there is an uncommitted change?
                 } else {
@@ -1390,14 +1414,12 @@ public class MVStore {
         Page p = cache.get(pos);
         if (p == null) {
             Chunk c = getChunk(pos);
-            if (c == null) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT,
-                        "Chunk {0} not found",
-                        DataUtils.getPageChunkId(pos));
-            }
             long filePos = c.start;
             filePos += DataUtils.getPageOffset(pos);
+            if (filePos < 0) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Negative position {0}", filePos);
+            }
             p = Page.read(fileStore, map, pos, filePos, fileStore.size());
             cache.put(pos, p, p.getMemory());
         }

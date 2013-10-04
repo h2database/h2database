@@ -698,7 +698,7 @@ public class Page {
         if (pageLength > maxLength) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted, expected length =< {0}, got {1}",
+                    "File corrupted, expected page length =< {0}, got {1}",
                     maxLength, pageLength);
         }
         short check = buff.getShort();

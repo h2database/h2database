@@ -549,17 +549,6 @@ public class MVStore {
                 // remove this chunk in the next save operation
                 registerFreePage(currentVersion, c.id, 0, 0);
             }
-            
-
-            if (c.id > lastChunkId) {
-                System.out.println("strange!");
-            }
-            lastChunkId = Math.max(c.id, lastChunkId);
-            if (c.start == Long.MAX_VALUE) {
-            ;;
-                System.out.println("??");
-                continue;
-            }
             int len = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
             fileStore.markUsed(c.start, len);
         }
@@ -1221,6 +1210,11 @@ public class MVStore {
         // now re-use the empty space
         reuseSpace = true;
         for (Chunk c : move) {
+            if (!chunks.containsKey(c.id)) {
+                // already removed during the 
+                // previous store operation
+                continue;
+            }
             ByteBuffer buff = getWriteBuffer();
             int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
             buff = DataUtils.ensureCapacity(buff, length);

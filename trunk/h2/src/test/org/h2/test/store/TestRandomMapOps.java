@@ -66,6 +66,7 @@ public class TestRandomMapOps extends TestBase {
                 bestSeed = seed;
                 best = op;
                 failException = ex;
+                // System.out.println("seed:" + seed + " op:" + op);
             }
         }
         if (failException != null) {
@@ -77,15 +78,13 @@ public class TestRandomMapOps extends TestBase {
     private void testCase() throws Exception {
         FileUtils.delete(fileName);
         MVStore s;
-        s = new MVStore.Builder().fileName(fileName).
-                pageSplitSize(50).writeDelay(0).open();
+        s = openStore(fileName);
         MVMap<Integer, byte[]> m;
         if (concurrent) {
             m = s.openMap("data", new MVMapConcurrent.Builder<Integer, byte[]>());
         } else {
             m = s.openMap("data");
         }
-        
         Random r = new Random(seed);
         op = 0;
         int size = getSize(100, 1000);
@@ -99,48 +98,51 @@ public class TestRandomMapOps extends TestBase {
             case 1:
             case 2:
             case 3:
-                log(op, k, v, "put");
+                log(op, k, v, "m.put({0}, {1})");
                 m.put(k, v);
                 map.put(k, v);
                 break;
             case 4:
             case 5:
-                log(op, k, v, "remove");
+                log(op, k, v, "m.remove({0})");
                 m.remove(k);
                 map.remove(k);
                 break;
             case 6:
-                log(op, k, v, "store");
+                log(op, k, v, "s.store()");
                 s.store();
                 break;
             case 7:
-                log(op, k, v, "compact");
+                log(op, k, v, "s.compact(90)");
                 s.compact(90);
                 break;
             case 8:
-                log(op, k, v, "clear");
+                log(op, k, v, "m.clear()");
                 m.clear();
                 map.clear();
                 break;
             case 9:
-                log(op, k, v, "commit");
+                log(op, k, v, "s.commit()");
                 s.commit();
                 break;
             case 10:
-                log(op, k, v, "reopen");
+                log(op, k, v, "s.commit()");
                 s.commit();
+                log(op, k, v, "s.close()");
                 s.close();
-                s = new MVStore.Builder().fileName(fileName).
-                        pageSplitSize(50).writeDelay(0).open();
+                log(op, k, v, "s = openStore(fileName)");
+                s = openStore(fileName);
+                log(op, k, v, "m = s.openMap(\"data\")");
                 m = s.openMap("data");
                 break;
             case 11:
-                log(op, k, v, "compactMoveChunks");
+                log(op, k, v, "s.commit()");
                 s.commit();
+                log(op, k, v, "s.compactMoveChunks()");
                 s.compactMoveChunks();
                 break;
             case 12:
-                log(op, k, v, "getKeyIndex");
+                log(op, k, v, "m.getKeyIndex({0})");
                 ArrayList<Integer> keyList = new ArrayList<Integer>(map.keySet());
                 int index = Collections.binarySearch(keyList, k, null);
                 int index2 = (int) m.getKeyIndex(k);
@@ -167,6 +169,11 @@ public class TestRandomMapOps extends TestBase {
         s.close();
     }
     
+    private static MVStore openStore(String fileName) {
+        return new MVStore.Builder().fileName(fileName).
+                pageSplitSize(50).writeDelay(0).open();    
+    }
+    
     private void assertEqualsMapValues(byte[] x, byte[] y) {
         if (x == null || y == null) {
             if (x != y) {
@@ -186,7 +193,10 @@ public class TestRandomMapOps extends TestBase {
      * @param msg the message
      */
     private static void log(int op, int k, byte[] v, String msg) {
-        // System.out.println(op + ": " + msg + " key: " + k + " value: " + v);
+        // msg = MessageFormat.format(msg, k, 
+        //         v == null ? null : "new byte[" + v.length + "]");
+        // System.out.println(msg + "; // op " + op);
     }
+
 
 }

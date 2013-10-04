@@ -11,6 +11,8 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+
+import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 
 /**
@@ -35,6 +37,15 @@ public class MVStoreTool {
                 dump(fileName, new PrintWriter(System.out));
             }
         }
+    }
+    
+    /**
+     * Read the contents of the file and write them to system out.
+     *
+     * @param fileName the name of the file
+     */
+    public static void dump(String fileName) {
+        dump(fileName, new PrintWriter(System.out));
     }
 
     /**
@@ -83,9 +94,7 @@ public class MVStoreTool {
                         " at " + pos +
                         " length " + chunkLength +
                         " pageCount " + pageCount +
-                        " root " + metaRootPos + 
-                        " chunk " + DataUtils.getPageChunkId(metaRootPos) +
-                        " offset " + DataUtils.getPageOffset(metaRootPos) + 
+                        " root " + getPosString(metaRootPos) +
                         " maxLength " + maxLength +
                         " maxLengthLive " + maxLengthLive);
                 ByteBuffer chunk = ByteBuffer.allocate(chunkLength);
@@ -109,6 +118,40 @@ public class MVStoreTool {
                             "len: " + pageLength + " entries: " + len);
                     p += pageLength;
                     chunkLength -= pageLength;
+                    if (mapId == 0 && !compressed) {
+                        String[] keys = new String[len];
+                        for (int i = 0; i < len; i++) {
+                            String k = StringDataType.INSTANCE.read(chunk);
+                            keys[i] = k;
+                        }
+                        if (node) {
+                            long[] children = new long[len + 1];
+                            for (int i = 0; i <= len; i++) {
+                                children[i] = chunk.getLong();
+                            }
+                            long[] counts = new long[len + 1];
+                            for (int i = 0; i <= len; i++) {
+                                long s = DataUtils.readVarLong(chunk);
+                                counts[i] = s;
+                            }
+                            for (int i = 0; i < len; i++) {
+                                pw.println("          < " + keys[i] + ": " + 
+                                        counts[i] + " -> " + getPosString(children[i]));
+                            }
+                            pw.println("          >= : " + 
+                                    counts[len] + " -> " + getPosString(children[len]));
+                        } else {
+                            // meta map leaf
+                            String[] values = new String[len];
+                            for (int i = 0; i < len; i++) {
+                                String v = StringDataType.INSTANCE.read(chunk);
+                                values[i] = v;
+                            }
+                            for (int i = 0; i < len; i++) {
+                                pw.println("          " + keys[i] + "=" + values[i]);
+                            }
+                        }
+                    }
                 }
             }
         } catch (IOException e) {
@@ -125,6 +168,12 @@ public class MVStoreTool {
         }
         pw.println();
         pw.flush();
+    }
+    
+    private static String getPosString(long pos) {
+        return "pos " + pos + ", chunk " + DataUtils.getPageChunkId(pos) + 
+                ", offset " + DataUtils.getPageOffset(pos);
+
     }
 
 }

@@ -49,6 +49,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testIsEmpty();
         testOffHeapStorage();
         testNewerWriteVersion();
         testCompactFully();
@@ -97,6 +98,22 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testIsEmpty() throws Exception {
+        MVStore s = new MVStore.Builder().
+                pageSplitSize(50).
+                open();
+        Map<Integer, byte[]> m = s.openMap("data");
+        m.put(1, new byte[50]);
+        m.put(2, new byte[50]);
+        m.put(3, new byte[50]);
+        m.remove(1);
+        m.remove(2);
+        m.remove(3);
+        assertEquals(0, m.size());
+        assertTrue(m.isEmpty());
+        s.close();
     }
 
     private void testOffHeapStorage() throws Exception {

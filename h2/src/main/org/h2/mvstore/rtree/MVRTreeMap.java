@@ -155,9 +155,6 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 if (keyType.equals(p.getKey(i), key)) {
                     result = p.getValue(i);
                     p.remove(i);
-                    if (p.getKeyCount() == 0) {
-                        p.removePage();
-                    }
                     break;
                 }
             }
@@ -181,7 +178,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     // this child was deleted
                     p.remove(i);
                     if (p.getKeyCount() == 0) {
-                        p.removePage();
+                        c.removePage();
                     }
                     break;
                 }

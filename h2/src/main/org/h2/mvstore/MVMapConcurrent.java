@@ -77,6 +77,10 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
             synchronized (this) {
                 Page p = copyOnWrite(root, v);
                 result = (V) remove(p, v, key);
+                if (!p.isLeaf() && p.getTotalCount() == 0) {
+                    p.removePage();
+                    p = Page.createEmpty(this,  p.getVersion());
+                }
                 newRoot(p);
             }
             return result;

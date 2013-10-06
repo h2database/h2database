@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.h2.compress.CompressLZF;
@@ -648,6 +649,28 @@ public class MVStore {
         }
         if (fileStore != null && !fileStore.isReadOnly()) {
             stopBackgroundThread();
+
+            ; // TODO this is used for testing only
+            // wait until a pending store operation is finished
+            if (currentStoreVersion >= 0) {
+                System.out.println("Currently storing, waiting...");
+                Map<Thread, StackTraceElement[]> st = Thread.getAllStackTraces();
+                for(Entry<Thread, StackTraceElement[]> e : st.entrySet()) {
+                    System.out.println(e.getKey().toString());
+                    System.out.println(Arrays.toString(e.getValue()));
+                }
+                for (int i=0; i<10000 && currentStoreVersion >= 0; i++) {
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e) {
+                        // ignore
+                    }
+                }           
+                if (currentStoreVersion >= 0) {
+                    System.out.println("Still storing?!");
+                }
+            }
+            
             if (hasUnsavedChanges() || lastCommittedVersion != currentVersion) {
                 rollbackTo(lastCommittedVersion);
                 metaChanged = true;

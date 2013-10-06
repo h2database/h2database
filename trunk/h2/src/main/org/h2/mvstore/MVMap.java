@@ -554,6 +554,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             Page p = copyOnWrite(root, v);
             @SuppressWarnings("unchecked")
             V result = (V) remove(p, v, key);
+            if (!p.isLeaf() && p.getTotalCount() == 0) {
+                p.removePage();
+                p = Page.createEmpty(this,  p.getVersion());
+            }
             newRoot(p);
             return result;
         } finally {
@@ -682,7 +686,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (p.getKeyCount() == 0) {
                 p.setChild(index, c);
                 p.setCounts(index, c);
-                p.removePage();
+               c.removePage();
             } else {
                 p.remove(index);
             }
@@ -1006,8 +1010,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public boolean isEmpty() {
+        // could also use (sizeAsLong() == 0)
         checkOpen();
-        return 0 == (root.isLeaf() ? root.getKeyCount() : root.getChildPageCount());
+        return root.isLeaf() && root.getKeyCount() == 0;
     }
 
     public long getCreateVersion() {

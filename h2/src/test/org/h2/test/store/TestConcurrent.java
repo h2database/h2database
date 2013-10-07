@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMapConcurrent;
 import org.h2.mvstore.MVStore;
@@ -43,11 +44,44 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testConcurrentStoreAndClose();
         testConcurrentOnlineBackup();
         testConcurrentMap();
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+    }
+    
+    private void testConcurrentStoreAndClose() throws InterruptedException {
+        String fileName = getBaseDir() + "/testConcurrentStoreAndClose.h3";
+        final MVStore s = openStore(fileName);
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                int x = 0;
+                while (!stop) {
+                    s.setStoreVersion(x++);
+                    s.store();
+                }
+            }
+        };
+        task.execute();
+        Thread.sleep(1);
+        try {
+            s.close();
+            // sometimes closing works, in which case
+            // storing fails at some point
+            Thread.sleep(1000);
+            Exception e = task.getException();
+            assertEquals(DataUtils.ERROR_CLOSED, 
+                    DataUtils.getErrorCode(e.getMessage()));
+        } catch (IllegalStateException e) {
+            // sometimes storing works, in which case
+            // closing fails
+            assertEquals(DataUtils.ERROR_WRITING_FAILED, 
+                    DataUtils.getErrorCode(e.getMessage()));
+        }
+        s.close();
     }
 
     /**
@@ -105,8 +139,7 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentOnlineBackup() throws Exception {
-        // need to use NIO because we mix absolute and relative operations
-        String fileName = "nio:" + getBaseDir() + "/onlineBackup.h3";
+        String fileName = getBaseDir() + "/onlineBackup.h3";
         String fileNameRestore = getBaseDir() + "/onlineRestore.h3";
         final MVStore s = openStore(fileName);
         final MVMap<Integer, byte[]> map = s.openMap("test");

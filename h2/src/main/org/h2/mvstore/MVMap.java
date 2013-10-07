@@ -527,9 +527,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Close the map, making it read only and release the memory.
+     * Close the map, making it read only and release the memory. This method
+     * may only be called when closing the store or when removing the map, as
+     * further writes are not possible.
      */
-    public void close() {
+    void close() {
         closed = true;
         readOnly = true;
         removeAllOldVersions();
@@ -1162,10 +1164,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     void setWriteVersion(long writeVersion) {
-        if (readOnly) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_INTERNAL, "Trying to write to a read-only map");
-        }
         this.writeVersion = writeVersion;
     }
 

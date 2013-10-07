@@ -15,9 +15,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
@@ -268,7 +268,7 @@ public class MVStore {
         o = config.get("cacheSize");
         int mb = o == null ? 16 : (Integer) o;
         int maxMemoryBytes = mb * 1024 * 1024;
-        int averageMemory = pageSplitSize / 2;
+        int averageMemory = Math.max(10, pageSplitSize / 2);
         int segmentCount = 16;
         int stackMoveDistance = maxMemoryBytes / averageMemory * 2 / 100;
         cache = new CacheLongKeyLIRS<Page>(
@@ -642,6 +642,8 @@ public class MVStore {
      * Close the file and the store. If there are any committed but unsaved
      * changes, they are written to disk first. If any temporary data was
      * written but not committed, this is rolled back. All open maps are closed.
+     * <p>
+     * It is not allowed to concurrently call close and store.
      */
     public void close() {
         if (closed) {
@@ -649,26 +651,12 @@ public class MVStore {
         }
         if (fileStore != null && !fileStore.isReadOnly()) {
             stopBackgroundThread();
-
-            ; // TODO this is used for testing only
-            // wait until a pending store operation is finished
+            
             if (currentStoreVersion >= 0) {
-                System.out.println("Currently storing, waiting...");
-                Map<Thread, StackTraceElement[]> st = Thread.getAllStackTraces();
-                for(Entry<Thread, StackTraceElement[]> e : st.entrySet()) {
-                    System.out.println(e.getKey().toString());
-                    System.out.println(Arrays.toString(e.getValue()));
-                }
-                for (int i=0; i<10000 && currentStoreVersion >= 0; i++) {
-                    try {
-                        Thread.sleep(1);
-                    } catch (InterruptedException e) {
-                        // ignore
-                    }
-                }           
-                if (currentStoreVersion >= 0) {
-                    System.out.println("Still storing?!");
-                }
+                // in this case, store is called manually in another thread
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_WRITING_FAILED, 
+                        "Can not close while storing");
             }
             
             if (hasUnsavedChanges() || lastCommittedVersion != currentVersion) {
@@ -827,8 +815,18 @@ public class MVStore {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_WRITING_FAILED, "This store is read-only");
         }
+        try {
+            currentStoreVersion = currentVersion;
+            return storeNow(temp);
+        } finally {
+            // in any case reset the current store version,
+            // to allow closing the store
+            currentStoreVersion = -1;
+        }
+    }
+ 
+    private long storeNow(boolean temp) {
         int currentUnsavedPageCount = unsavedPageCount;
-        currentStoreVersion = currentVersion;
         long storeVersion = currentStoreVersion;
         long version = ++currentVersion;
         long time = getTime();
@@ -911,7 +909,8 @@ public class MVStore {
 
         // this will (again) modify maxLengthLive, but
         // the correct value is written in the chunk header
-        buff = meta.getRoot().writeUnsavedRecursive(c, buff);
+        Page metaRoot = meta.getRoot();
+        buff = metaRoot.writeUnsavedRecursive(c, buff);
 
         int chunkLength = buff.position();
 
@@ -941,7 +940,7 @@ public class MVStore {
 
         c.start = filePos;
         c.length = chunkLength;
-        c.metaRootPos = meta.getRoot().getPos();
+        c.metaRootPos = metaRoot.getPos();
         buff.position(0);
         c.writeHeader(buff);
         rootChunkStart = filePos;
@@ -970,11 +969,10 @@ public class MVStore {
                 p.writeEnd();
             }
         }
-        meta.getRoot().writeEnd();
+        metaRoot.writeEnd();
 
         // some pages might have been changed in the meantime (in the newest version)
         unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
-        currentStoreVersion = -1;
         if (!temp) {
             metaChanged = false;
             lastStoredVersion = storeVersion;
@@ -1428,6 +1426,10 @@ public class MVStore {
      * @return the page
      */
     Page readPage(MVMap<?, ?> map, long pos) {
+        if (pos == 0) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT, "Position 0");
+        }
         Page p = cache.get(pos);
         if (p == null) {
             Chunk c = getChunk(pos);

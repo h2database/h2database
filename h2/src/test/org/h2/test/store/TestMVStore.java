@@ -5,7 +5,6 @@
  */
 package org.h2.test.store;
 
-import java.io.PrintWriter;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -17,9 +16,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
-import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.OffHeapStore;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
@@ -49,6 +48,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testRemoveMap();
         testIsEmpty();
         testOffHeapStorage();
         testNewerWriteVersion();
@@ -66,10 +66,7 @@ public class TestMVStore extends TestBase {
         testCacheSize();
         testConcurrentOpen();
         testFileHeader();
-        
-        int todoFixTestCase;
-//        testFileHeaderCorruption();
-        
+        testFileHeaderCorruption();
         testIndexSkip();
         testMinMaxNextKey();
         testStoreVersion();
@@ -98,6 +95,30 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testRemoveMap() throws Exception {
+        String fileName = getBaseDir() + "/testCloseMap.h3";
+        FileUtils.delete(fileName);
+        MVStore s = new MVStore.Builder().
+            fileName(fileName).
+            open();
+        MVMap<Integer, Integer> map;
+        
+        map = s.openMap("data");
+        map.put(1, 1);
+        assertEquals(1, map.get(1).intValue());
+        s.store();
+        
+        map.removeMap();
+        s.store();
+        
+        map = s.openMap("data");
+        assertTrue(map.isEmpty());
+        map.put(2, 2);
+        s.store();
+        
+        s.close();
     }
     
     private void testIsEmpty() throws Exception {
@@ -600,25 +621,34 @@ public class TestMVStore extends TestBase {
     private void testFileHeaderCorruption() throws Exception {
         String fileName = getBaseDir() + "/testFileHeader.h3";
         MVStore s = openStore(fileName);
-        s.setRetentionTime(10);
-        MVMap<Integer, Integer> map = s.openMap("test");
-        for (int i = 0; i < 5; i++) {
-            s.setStoreVersion(i);
+        s.setRetentionTime(0);
+        MVMap<Integer, byte[]> map;
+        map = s.openMap("test");
+        map.put(0, new byte[100]);
+        for (int i = 0; i < 10; i++) {
+            map = s.openMap("test" + i);
+            map.put(0, new byte[1000]);
             s.store();
         }
-        // ensure the oldest chunks can be overwritten
-        Thread.sleep(11);
-        s.compact(50);
-        map.put(10, 100);
-        s.store();
-        FilePath f = FilePath.get(fileName);
+        FileStore fs = s.getFileStore();
+        long size = fs.getFile().size();
+        for (int i = 0; i < 10; i++) {
+            map = s.openMap("test" + i);
+            map.removeMap();
+            s.store();
+            s.commit();
+            s.compact(100);
+            if (fs.getFile().size() <= size) {
+                break;
+            }
+        }
         s.close();
+        
+        FilePath f = FilePath.get(fileName);
         int blockSize = 4 * 1024;
         // test corrupt file headers
         for (int i = 0; i <= blockSize; i += blockSize) {
             FileChannel fc = f.open("rw");
-MVStoreTool.dump(fileName, new PrintWriter(System.out));            
-            
             if (i == 0) {
                 // corrupt the last block (the end header)
                 fc.truncate(fc.size() - 4096);
@@ -635,14 +665,12 @@ MVStoreTool.dump(fileName, new PrintWriter(System.out));
             fc.write(buff, i);
             fc.close();
 
-MVStoreTool.dump(fileName, new PrintWriter(System.out));            
-            
             if (i == 0) {
                 // if the first header is corrupt, the second
                 // header should be used
                 s = openStore(fileName);
                 map = s.openMap("test");
-                assertEquals(100, map.get(10).intValue());
+                assertEquals(100, map.get(0).length);
                 s.close();
             } else {
                 // both headers are corrupt
@@ -906,7 +934,6 @@ MVStoreTool.dump(fileName, new PrintWriter(System.out));
         assertEquals("Hello", oldMap.get(1));
         // System.out.println(oldMap.get(2));
         assertEquals("World", oldMap.get(2));
-        oldMap.close();
 
         // print the newest version ("Hi")
         // System.out.println(map.get(1));

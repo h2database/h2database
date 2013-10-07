@@ -170,8 +170,10 @@ public class TestRandomMapOps extends TestBase {
     }
     
     private static MVStore openStore(String fileName) {
-        return new MVStore.Builder().fileName(fileName).
+        MVStore s = new MVStore.Builder().fileName(fileName).
                 pageSplitSize(50).writeDelay(0).open();    
+        s.setRetentionTime(0);
+        return s;
     }
     
     private void assertEqualsMapValues(byte[] x, byte[] y) {

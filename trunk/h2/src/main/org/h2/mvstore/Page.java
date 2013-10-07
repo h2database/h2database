@@ -871,6 +871,10 @@ public class Page {
             for (int i = 0; i < len; i++) {
                 Page p = childrenPages[i];
                 if (p != null) {
+                    if (p.getPos() == 0) {
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_INTERNAL, "Page not written");
+                    }
                     p.writeEnd();
                     childrenPages[i] = null;
                 }

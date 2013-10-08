@@ -18,13 +18,13 @@ public class FileChannelInputStream extends InputStream {
 
     private final FileChannel channel;
     private final boolean closeChannel;
-    
+
     private ByteBuffer buffer;
     private long pos;
 
     /**
      * Create a new file object input stream from the file channel.
-     * 
+     *
      * @param channel the file channel
      * @param closeChannel whether closing the stream should close the channel
      */
@@ -36,7 +36,7 @@ public class FileChannelInputStream extends InputStream {
     @Override
     public int read() throws IOException {
         if (buffer == null) {
-            buffer = ByteBuffer.allocate(1);            
+            buffer = ByteBuffer.allocate(1);
         }
         buffer.rewind();
         int len = channel.read(buffer, pos++);

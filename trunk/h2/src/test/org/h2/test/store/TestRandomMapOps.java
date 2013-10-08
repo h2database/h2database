@@ -28,7 +28,7 @@ public class TestRandomMapOps extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -168,14 +168,14 @@ public class TestRandomMapOps extends TestBase {
         s.store();
         s.close();
     }
-    
+
     private static MVStore openStore(String fileName) {
         MVStore s = new MVStore.Builder().fileName(fileName).
-                pageSplitSize(50).writeDelay(0).open();    
+                pageSplitSize(50).writeDelay(0).open();
         s.setRetentionTime(0);
         return s;
     }
-    
+
     private void assertEqualsMapValues(byte[] x, byte[] y) {
         if (x == null || y == null) {
             if (x != y) {
@@ -185,17 +185,17 @@ public class TestRandomMapOps extends TestBase {
             assertEquals(x.length, y.length);
         }
     }
-    
+
     /**
      * Log the operation
-     * 
+     *
      * @param op the operation id
      * @param k the key
      * @param v the value
      * @param msg the message
      */
     private static void log(int op, int k, byte[] v, String msg) {
-        // msg = MessageFormat.format(msg, k, 
+        // msg = MessageFormat.format(msg, k,
         //         v == null ? null : "new byte[" + v.length + "]");
         // System.out.println(msg + "; // op " + op);
     }

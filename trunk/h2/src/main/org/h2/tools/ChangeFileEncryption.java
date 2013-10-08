@@ -206,7 +206,7 @@ public class ChangeFileEncryption extends Tool {
         in.init();
         copy(fileName, in, encrypt);
     }
-    
+
     private void copy(String fileName) throws IOException {
         if (FileUtils.isDirectory(fileName)) {
             return;

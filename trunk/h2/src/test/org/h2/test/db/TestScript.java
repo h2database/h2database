@@ -46,7 +46,7 @@ public class TestScript extends TestBase {
     private String putBack;
     private StringBuilder errors;
     private ArrayList<String> statements;
-    
+
     private Random random = new Random(1);
 
     /**

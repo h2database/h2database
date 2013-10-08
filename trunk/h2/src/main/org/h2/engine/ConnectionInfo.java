@@ -405,9 +405,9 @@ public class ConnectionInfo implements Cloneable {
     public byte[] getFilePasswordHash() {
         return filePasswordHash;
     }
-    
+
     byte[] getFileEncryptionKey() {
-        return fileEncryptionKey;   
+        return fileEncryptionKey;
     }
 
     /**
@@ -549,7 +549,7 @@ public class ConnectionInfo implements Cloneable {
     public void setFilePasswordHash(byte[] hash) {
         this.filePasswordHash = hash;
     }
-    
+
     public void setFileEncryptionKey(byte[] key) {
         this.fileEncryptionKey = key;
     }

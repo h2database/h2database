@@ -106,14 +106,14 @@ public class TestFileSystem extends TestBase {
             FileUtils.delete(getBaseDir() + "/fs");
         }
     }
-    
+
     private void testZipFileSystem(String prefix) throws IOException {
         Random r = new Random(1);
         for (int i = 0; i < 5; i++) {
             testZipFileSystem(prefix, r);
         }
     }
-    
+
     private void testZipFileSystem(String prefix, Random r) throws IOException {
         byte[] data = new byte[r.nextInt(16 * 1024)];
         long x = r.nextLong();
@@ -693,13 +693,13 @@ public class TestFileSystem extends TestBase {
             FileUtils.delete(s);
         }
     }
-    
+
     private static ByteBuffer createSlicedBuffer(byte[] buffer, int offset, int len) {
         ByteBuffer byteBuff = ByteBuffer.wrap(buffer);
         byteBuff.position(offset);
         // force the arrayOffset to be non-0
         byteBuff = byteBuff.slice();
-        byteBuff.limit(len);        
+        byteBuff.limit(len);
         return byteBuff;
     }
 

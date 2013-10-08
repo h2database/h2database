@@ -36,13 +36,13 @@ public class TestKillProcessWhileWriting extends TestBase {
     public void test() throws Exception {
         fs = FilePathUnstable.register();
         test("unstable:memFS:killProcess.h3");
-        
+
         int todo;
         // need to test with a file system splits writes into blocks of 4 KB
         FilePathCrypt.register();
         test("unstable:crypt:0007:memFS:killProcess.h3");
     }
-    
+
     public void test(String fileName) throws Exception {
         for (seed = 0; seed < 10; seed++) {
             this.fileName = fileName;
@@ -55,7 +55,7 @@ public class TestKillProcessWhileWriting extends TestBase {
             }
         }
     }
-    
+
     private void test(int x) throws Exception {
         FileUtils.delete(fileName);
         fs.setDiskFullCount(x);
@@ -69,8 +69,8 @@ public class TestKillProcessWhileWriting extends TestBase {
             fs.setDiskFullCount(0);
             verify();
         }
-    }    
-    
+    }
+
     private int write() {
         MVStore s;
         MVMap<Integer, byte[]> m;
@@ -127,9 +127,9 @@ public class TestKillProcessWhileWriting extends TestBase {
             return op;
         }
     }
-    
+
     private void verify() {
-        
+
         MVStore s;
         MVMap<Integer, byte[]> m;
 

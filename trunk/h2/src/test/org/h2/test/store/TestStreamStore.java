@@ -52,7 +52,7 @@ public class TestStreamStore extends TestBase {
         testWithFullMap();
         testLoop();
     }
-    
+
     private void testReadCount() throws IOException {
         String fileName = getBaseDir() + "/testReadCount.h3";
         FileUtils.delete(fileName);
@@ -69,7 +69,7 @@ public class TestStreamStore extends TestBase {
         MVMap<Long, byte[]> map = s.openMap("data");
         assertTrue("size: " + map.size(), map.sizeAsLong() >= 100);
         s.close();
-        
+
         s = new MVStore.Builder().
                 fileName(fileName).
                 open();
@@ -86,7 +86,7 @@ public class TestStreamStore extends TestBase {
         assertTrue("size: " + map.size(), map.sizeAsLong() >= 200);
         s.close();
     }
-    
+
     private static StreamStore getAutoCommitStreamStore(final MVStore s) {
         MVMap<Long, byte[]> map = s.openMap("data");
         return new StreamStore(map) {

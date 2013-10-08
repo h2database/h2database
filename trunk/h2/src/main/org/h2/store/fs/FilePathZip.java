@@ -378,7 +378,7 @@ class FileZip extends FileBase {
         }
         return null;
     }
-    
+
     @Override
     protected void implCloseChannel() throws IOException {
         if (in != null) {

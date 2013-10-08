@@ -180,6 +180,7 @@ public abstract class Command implements CommandInterface {
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
         session.waitIfExclusiveModeEnabled();
+        boolean callStop = true;
         boolean writing = !isReadOnly();
         if (writing) {
             while (!database.beforeWriting()) {
@@ -195,16 +196,33 @@ public abstract class Command implements CommandInterface {
                         return query(maxrows);
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
+                    } catch (OutOfMemoryError e) {
+                        callStop = false;
+                        // there is a serious problem:
+                        // the transaction may be applied partially
+                        // in this case we need to panic:
+                        // close the database
+                        database.shutdownImmediately();
+                        throw DbException.convert(e);
                     } catch (Throwable e) {
                         throw DbException.convert(e);
                     }
                 }
             } catch (DbException e) {
-                e.addSQL(sql);
-                database.exceptionThrown(e.getSQLException(), sql);
+                e = e.addSQL(sql);
+                SQLException s = e.getSQLException();
+                database.exceptionThrown(s, sql);
+                if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
+                    callStop = false;
+                    database.shutdownImmediately();
+                    throw e;
+                }
+                database.checkPowerOff();
                 throw e;
             } finally {
-                stop();
+                if (callStop) {
+                    stop();
+                }
                 if (writing) {
                     database.afterWriting();
                 }
@@ -236,11 +254,6 @@ public abstract class Command implements CommandInterface {
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {
-                        ; // TODO avoid duplicate code, and do the same for queries
-                        // there is a serious problem:
-                        // the transaction may be applied partially
-                        // in this case we need to panic:
-                        // close the database
                         callStop = false;
                         database.shutdownImmediately();
                         throw DbException.convert(e);
@@ -253,10 +266,6 @@ public abstract class Command implements CommandInterface {
                 SQLException s = e.getSQLException();
                 database.exceptionThrown(s, sql);
                 if (s.getErrorCode() == ErrorCode.OUT_OF_MEMORY) {
-                    // there is a serious problem:
-                    // the transaction may be applied partially
-                    // in this case we need to panic:
-                    // close the database
                     callStop = false;
                     database.shutdownImmediately();
                     throw e;

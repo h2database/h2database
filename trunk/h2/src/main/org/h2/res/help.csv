@@ -20,8 +20,9 @@ INSERT INTO tableName
 ","
 Inserts a new row / new rows into a table."
 "Commands (DML)","UPDATE","
-UPDATE tableName [ [ AS ] newTableAlias ]
-SET { columnName = { DEFAULT | expression } } [,...]
+UPDATE tableName [ [ AS ] newTableAlias ] SET
+{ { columnName = { DEFAULT | expression } } [,...] } |
+    { ( columnName [,...] ) = ( select ) }
 [ WHERE expression ] [ LIMIT expression ]
 ","
 Updates data in a table."

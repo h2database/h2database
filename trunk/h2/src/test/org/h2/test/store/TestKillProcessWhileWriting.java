@@ -43,7 +43,7 @@ public class TestKillProcessWhileWriting extends TestBase {
         test("unstable:crypt:0007:memFS:killProcess.h3");
     }
 
-    public void test(String fileName) throws Exception {
+    private void test(String fileName) throws Exception {
         for (seed = 0; seed < 10; seed++) {
             this.fileName = fileName;
             FileUtils.delete(fileName);

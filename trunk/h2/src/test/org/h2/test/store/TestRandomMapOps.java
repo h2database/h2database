@@ -45,7 +45,7 @@ public class TestRandomMapOps extends TestBase {
         testMap("memFS:randomOps.h3");
     }
 
-    public void testMap(String fileName) {
+    private void testMap(String fileName) {
         this.fileName = fileName;
         int best = Integer.MAX_VALUE;
         int bestSeed = 0;

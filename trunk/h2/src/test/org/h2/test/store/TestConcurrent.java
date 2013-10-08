@@ -71,7 +71,7 @@ public class TestConcurrent extends TestMVStore {
             s.close();
             // sometimes closing works, in which case
             // storing fails at some point
-            Thread.sleep(1000);
+            Thread.sleep(100);
             Exception e = task.getException();
             assertEquals(DataUtils.ERROR_CLOSED, 
                     DataUtils.getErrorCode(e.getMessage()));
@@ -80,6 +80,7 @@ public class TestConcurrent extends TestMVStore {
             // closing fails
             assertEquals(DataUtils.ERROR_WRITING_FAILED, 
                     DataUtils.getErrorCode(e.getMessage()));
+            task.get();
         }
         s.close();
     }

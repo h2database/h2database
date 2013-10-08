@@ -38,7 +38,7 @@ public class MVStoreTool {
             }
         }
     }
-    
+
     /**
      * Read the contents of the file and write them to system out.
      *
@@ -135,10 +135,10 @@ public class MVStoreTool {
                                 counts[i] = s;
                             }
                             for (int i = 0; i < len; i++) {
-                                pw.println("          < " + keys[i] + ": " + 
+                                pw.println("          < " + keys[i] + ": " +
                                         counts[i] + " -> " + getPosString(children[i]));
                             }
-                            pw.println("          >= : " + 
+                            pw.println("          >= : " +
                                     counts[len] + " -> " + getPosString(children[len]));
                         } else {
                             // meta map leaf
@@ -169,9 +169,9 @@ public class MVStoreTool {
         pw.println();
         pw.flush();
     }
-    
+
     private static String getPosString(long pos) {
-        return "pos " + pos + ", chunk " + DataUtils.getPageChunkId(pos) + 
+        return "pos " + pos + ", chunk " + DataUtils.getPageChunkId(pos) +
                 ", offset " + DataUtils.getPageOffset(pos);
 
     }

@@ -512,7 +512,7 @@ public abstract class Query extends Prepared {
     public void setSampleSize(Expression sampleSize) {
         this.sampleSizeExpr = sampleSize;
     }
-    
+
     protected final int getSampleSizeValue(Session session) {
         if (sampleSizeExpr == null) {
             return 0;

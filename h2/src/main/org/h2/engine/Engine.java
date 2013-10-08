@@ -165,7 +165,7 @@ public class Engine implements SessionFactory {
             // wait a bit to avoid a busy loop (the method is synchronized)
             if (i > 60 * 1000) {
                 // retry at most 1 minute
-                throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, 
+                throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1,
                         "Waited for database closing longer than 1 minute");
             }
             try {

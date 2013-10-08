@@ -96,7 +96,7 @@ public class TestMVStore extends TestBase {
         // longer running tests
         testLargerThan2G();
     }
-    
+
     private void testRemoveMap() throws Exception {
         String fileName = getBaseDir() + "/testCloseMap.h3";
         FileUtils.delete(fileName);
@@ -104,23 +104,23 @@ public class TestMVStore extends TestBase {
             fileName(fileName).
             open();
         MVMap<Integer, Integer> map;
-        
+
         map = s.openMap("data");
         map.put(1, 1);
         assertEquals(1, map.get(1).intValue());
         s.store();
-        
+
         map.removeMap();
         s.store();
-        
+
         map = s.openMap("data");
         assertTrue(map.isEmpty());
         map.put(2, 2);
         s.store();
-        
+
         s.close();
     }
-    
+
     private void testIsEmpty() throws Exception {
         MVStore s = new MVStore.Builder().
                 pageSplitSize(50).
@@ -643,7 +643,7 @@ public class TestMVStore extends TestBase {
             }
         }
         s.close();
-        
+
         FilePath f = FilePath.get(fileName);
         int blockSize = 4 * 1024;
         // test corrupt file headers

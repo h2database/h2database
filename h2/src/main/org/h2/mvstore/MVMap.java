@@ -688,7 +688,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (p.getKeyCount() == 0) {
                 p.setChild(index, c);
                 p.setCounts(index, c);
-               c.removePage();
+                c.removePage();
             } else {
                 p.remove(index);
             }

@@ -129,7 +129,7 @@ public class FilePathCache extends FilePathWrapper {
             clearCache(src, position());
             return base.write(src);
         }
-        
+
         private void clearCache(ByteBuffer src, long position) {
             if (cache.size() > 0) {
                 int len = src.remaining();

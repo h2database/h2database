@@ -332,7 +332,7 @@ public class MVStore {
 
         // setWriteDelay starts the thread, but only if
         // the parameter is different than the current value
-                
+
         o = config.get("writeDelay");
         int writeDelay = o == null ? 1000 : (Integer) o;
         setWriteDelay(writeDelay);
@@ -486,10 +486,10 @@ public class MVStore {
         meta.remove("root." + id);
         maps.remove(id);
     }
-    
+
     /**
      * Check whether a given map exists.
-     * 
+     *
      * @param name the map name
      * @return true if it exists
      */
@@ -651,14 +651,14 @@ public class MVStore {
         }
         if (fileStore != null && !fileStore.isReadOnly()) {
             stopBackgroundThread();
-            
+
             if (currentStoreVersion >= 0) {
                 // in this case, store is called manually in another thread
                 throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_WRITING_FAILED, 
+                        DataUtils.ERROR_WRITING_FAILED,
                         "Can not close while storing");
             }
-            
+
             if (hasUnsavedChanges() || lastCommittedVersion != currentVersion) {
                 rollbackTo(lastCommittedVersion);
                 metaChanged = true;
@@ -824,7 +824,7 @@ public class MVStore {
             currentStoreVersion = -1;
         }
     }
- 
+
     private long storeNow(boolean temp) {
         int currentUnsavedPageCount = unsavedPageCount;
         long storeVersion = currentStoreVersion;
@@ -1232,7 +1232,7 @@ public class MVStore {
         reuseSpace = true;
         for (Chunk c : move) {
             if (!chunks.containsKey(c.id)) {
-                // already removed during the 
+                // already removed during the
                 // previous store operation
                 continue;
             }

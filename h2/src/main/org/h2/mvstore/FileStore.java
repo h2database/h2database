@@ -59,7 +59,7 @@ public class FileStore {
      * The file.
      */
     protected FileChannel file;
-    
+
     /**
      * The encrypted file (if encryption is used).
      */
@@ -228,13 +228,13 @@ public class FileStore {
     public FileChannel getFile() {
         return file;
     }
-    
+
     /**
      * Get the encrypted file instance, if encryption is used.
      * <p>
      * The application may read from the file (for example for online backup),
      * but not write to it or truncate it.
-     * 
+     *
      * @return the encrypted file, or null if encryption is not used
      */
     public FileChannel getEncryptedFile() {

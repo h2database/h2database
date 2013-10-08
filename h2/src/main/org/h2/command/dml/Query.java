@@ -513,11 +513,17 @@ public abstract class Query extends Prepared {
         this.sampleSizeExpr = sampleSize;
     }
 
-    protected final int getSampleSizeValue(Session session) {
+    /**
+     * Get the sample size, if set.
+     *
+     * @param session the session
+     * @return the sample size
+     */
+    int getSampleSizeValue(Session session) {
         if (sampleSizeExpr == null) {
             return 0;
         }
-        Value v = sampleSizeExpr.getValue(session);
+        Value v = sampleSizeExpr.optimize(session).getValue(session);
         if (v == ValueNull.INSTANCE) {
             return 0;
         }

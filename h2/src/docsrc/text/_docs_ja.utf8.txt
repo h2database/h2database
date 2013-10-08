@@ -1346,7 +1346,7 @@ XTEA
 # Table/index/constraints
 
 @architecture_1007_a
-# Undolog and redolog and transactions layer
+# Undo log, redo log, and transactions layer
 
 @architecture_1008_a
 # B-tree engine and page-based storage allocation
@@ -1385,7 +1385,7 @@ XTEA
 #Table/Index/Constraints. 
 
 @architecture_1020_li
-#Undolog and redolog and transactions layer. 
+#Undo log, redo log, and transactions layer. 
 
 @architecture_1021_li
 #B-tree engine and page-based storage allocation. 
@@ -1496,7 +1496,7 @@ XTEA
 #Implementations of different kinds of indices
 
 @architecture_1057_h2
-#Undolog and redolog and transactions layer.
+#Undo log, redo log, and transactions layer
 
 @architecture_1058_p
 # We have a transaction log, which is shared among all sessions. See also http://en.wikipedia.org/wiki/Transaction_log http://h2database.com/html/grammar.html#set_log 
@@ -1949,7 +1949,7 @@ Centralリ�?ジトリ�?�利用
 #Fix an LOB deadlock between reading and updating LOB columns. 
 
 @changelog_1028_li
-#Support the JDBC DatabaseMetaData#getClientInfoProperties() method, in the sense of returning an empty result, in order to make Websphere happy. 
+#Support the JDBC DatabaseMetaData#getClientInfoProperties() method, in the sense of returning an empty result, in order to make WebSphere happy. 
 
 @changelog_1029_li
 #Make Server#openBrowser respect the $BROWSER environment variable. Add "chromium" to the list of browsers tried. Patch from Felix Kaiser. 

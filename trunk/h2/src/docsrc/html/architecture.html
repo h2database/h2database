@@ -29,7 +29,7 @@ Architecture
 <a href="#table">
     Table/index/constraints</a><br />
 <a href="#transaction">
-    Undolog and redolog and transactions layer</a><br />
+    Undo log, redo log, and transactions layer</a><br />
 <a href="#btree">
     B-tree engine and page-based storage allocation</a><br />
 <a href="#filesystem">
@@ -52,7 +52,7 @@ Working from the top down, the layers look like this:
 </li><li>SQL Parser.
 </li><li>Command execution and planning.
 </li><li>Table/Index/Constraints.
-</li><li>Undolog and redolog and transactions layer.
+</li><li>Undo log, redo log, and transactions layer.
 </li><li>B-tree engine and page-based storage allocation.
 </li><li>Filesystem abstraction.
 </li></ul>
@@ -114,7 +114,7 @@ The primary packages of interest are:
 </table>
 </p>
 
-<h2 id="transaction">Undolog and redolog and transactions layer.</h2>
+<h2 id="transaction">Undo log, redo log, and transactions layer</h2>
 <p>
 We have a transaction log, which is shared among all sessions. See also
 http://en.wikipedia.org/wiki/Transaction_log

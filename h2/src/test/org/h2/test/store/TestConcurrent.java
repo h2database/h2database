@@ -51,7 +51,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-    
+
     private void testConcurrentStoreAndClose() throws InterruptedException {
         String fileName = getBaseDir() + "/testConcurrentStoreAndClose.h3";
         final MVStore s = openStore(fileName);
@@ -73,12 +73,12 @@ public class TestConcurrent extends TestMVStore {
             // storing fails at some point
             Thread.sleep(100);
             Exception e = task.getException();
-            assertEquals(DataUtils.ERROR_CLOSED, 
+            assertEquals(DataUtils.ERROR_CLOSED,
                     DataUtils.getErrorCode(e.getMessage()));
         } catch (IllegalStateException e) {
             // sometimes storing works, in which case
             // closing fails
-            assertEquals(DataUtils.ERROR_WRITING_FAILED, 
+            assertEquals(DataUtils.ERROR_WRITING_FAILED,
                     DataUtils.getErrorCode(e.getMessage()));
             task.get();
         }

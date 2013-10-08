@@ -39,6 +39,7 @@ public class TestCases extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testClearSyntaxException();
         testEmptyStatements();
         testViewParameters();
         testLargeKeys();
@@ -101,6 +102,19 @@ public class TestCases extends TestBase {
         testBinaryCollation();
         deleteDb("cases");
     }
+
+    private void testClearSyntaxException() throws SQLException {
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        try {
+            stat.execute("select t.x, t.x t.y from dual t");
+            fail();
+        } catch (SQLException e) {
+            assertEquals("42000", e.getSQLState());
+        }
+        conn.close();
+    }
+
 
     private void testEmptyStatements() throws SQLException {
         Connection conn = getConnection("cases");

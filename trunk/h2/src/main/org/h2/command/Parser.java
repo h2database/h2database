@@ -224,9 +224,13 @@ public class Parser {
     public Command prepareCommand(String sql) {
         try {
             Prepared p = parse(sql);
+            boolean hasMore = isToken(";");
+            if (!hasMore && currentTokenType != END) {
+                throw getSyntaxError();
+            }
             p.prepare();
             Command c = new CommandContainer(this, sql, p);
-            if (isToken(";")) {
+            if (hasMore) {
                 String remaining = originalSQL.substring(parseIndex);
                 if (remaining.trim().length() != 0) {
                     CommandList list = new CommandList(this, sql, c, remaining);
@@ -237,8 +241,6 @@ public class Parser {
                     // } while(currentToken.equals(";"));
                     c = list;
                 }
-            } else if (currentTokenType != END) {
-                throw getSyntaxError();
             }
             return c;
         } catch (DbException e) {

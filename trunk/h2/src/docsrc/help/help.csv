@@ -1819,7 +1819,8 @@ The following options are supported:
 ""lineSeparator"", 
 
 ""null"", Note that an empty value is always treated as null.
-This feature for compatibility, it is only here to support reading existing CSV files that contain explicit "null" delimiters.
+This feature for compatibility, it is only here to support reading existing CSV files 
+that contain explicit ""null"" delimiters.
 
 ""rowSeparator"" (not set by default),
 

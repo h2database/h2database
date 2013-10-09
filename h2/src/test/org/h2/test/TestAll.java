@@ -231,6 +231,9 @@ java -cp . org.h2.test.TestAll crash >testCrash.txt
 java org.h2.test.TestAll timer
 
 */
+    
+    ;
+    private static final boolean MV_STORE = true;
 
     /**
      * If the test should run with many rows.
@@ -429,6 +432,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 FilePathRec.register();
                 test.reopen = true;
                 TestReopen reopen = new TestReopen();
+                reopen.init();
+                reopen.config.mvStore = MV_STORE;
                 FilePathRec.setRecorder(reopen);
                 test.runTests();
             } else if ("crash".equals(args[0])) {
@@ -466,14 +471,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             prof.startCollecting();
             if (test.mvStore) {
                 TestPerformance.main("-init", "-db", "9", "-size", "1000");
-                TestPerformance.main("-init", "-db", "1", "-size", "1000");
-                TestPerformance.main("-init", "-db", "9", "-size", "1000");
-                TestPerformance.main("-init", "-db", "1", "-size", "1000");
             } else {
                 TestPerformance.main("-init", "-db", "1");
             }
             prof.stopCollecting();
             System.out.println(prof.getTop(3));
+            if (test.mvStore) {
+                TestPerformance.main("-init", "-db", "1", "-size", "1000");
+            }
 //            Recover.execute("data", null);
 //            RunScript.execute("jdbc:h2:data/test2",
 //                 "sa1", "sa1", "data/test.h2.sql", null, false);
@@ -516,8 +521,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         coverage = isCoverage();
 
-        ;
-        mvStore = true;
+        mvStore = MV_STORE;
 
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;

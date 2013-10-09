@@ -368,7 +368,6 @@ public class TestSpatial extends TestBase {
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON &&");
 
-        int todo;
         // TODO equality should probably also use the spatial index
         // rs = stat.executeQuery("explain select * from test " +
         //         "where polygon = 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
@@ -517,7 +516,7 @@ public class TestSpatial extends TestBase {
     }
 
     /**
-     * Test serialisation of Z and SRID values.
+     * Test serialization of Z and SRID values.
      */
     private void testWKB() {
         ValueGeometry geom3d = ValueGeometry.get("POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
@@ -538,15 +537,21 @@ public class TestSpatial extends TestBase {
         deleteDb("spatialIndex");
         Connection conn = getConnection("spatialIndex");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS OBJSTRING FOR \"" +
+        stat.execute("CREATE ALIAS OBJ_STRING FOR \"" +
                 TestSpatial.class.getName() + ".getObjectString\"");
-        ResultSet rs = stat.executeQuery("select OBJSTRING('POINT( 15 25 )'::geometry)");
+        ResultSet rs = stat.executeQuery("select OBJ_STRING('POINT( 15 25 )'::geometry)");
         assertTrue(rs.next());
         assertEquals("POINT (15 25)", rs.getString(1));
         conn.close();
         deleteDb("spatialIndex");
     }
 
+    /**
+     * Get the toString value of the object.
+     * 
+     * @param object the object
+     * @return the string representation
+     */
     public static String getObjectString(Object object) {
         return object.toString();
     }
@@ -554,7 +559,7 @@ public class TestSpatial extends TestBase {
     /**
      * Test equality method on ValueGeometry
      */
-    public void testEquals() {
+    private void testEquals() {
         // 3d equality test
         ValueGeometry geom3d = ValueGeometry.get("POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
         ValueGeometry geom2d = ValueGeometry.get("POLYGON ((67 13, 67 18, 59 18, 59 13,  67 13))");
@@ -573,6 +578,8 @@ public class TestSpatial extends TestBase {
             ValueGeometry.get("POINT EMPTY");
             fail("expected this to throw IllegalArgumentException");
         } catch (IllegalArgumentException ex) {
+            // expected
         }
     }
+    
 }

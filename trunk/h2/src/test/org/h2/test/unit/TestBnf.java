@@ -55,7 +55,7 @@ public class TestBnf extends TestBase {
         DbSchema defaultSchema = dbContents.getDefaultSchema();
         DbProcedure[] procedures = defaultSchema.getProcedures();
         Set<String> procedureName = new HashSet<String>(procedures.length);
-        for(DbProcedure procedure : procedures) {
+        for (DbProcedure procedure : procedures) {
             procedureName.add(procedure.getName());
         }
         assertTrue(procedureName.contains("CUSTOM_PRINT"));

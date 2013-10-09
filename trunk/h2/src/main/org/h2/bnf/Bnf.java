@@ -15,7 +15,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-import org.h2.server.web.DbContextRule;
+
+import org.h2.bnf.context.DbContextRule;
 import org.h2.tools.Csv;
 import org.h2.util.New;
 import org.h2.util.StringUtils;

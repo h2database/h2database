@@ -48,5 +48,7 @@ Export-Package: org.h2;version="${version}",
  org.h2.jdbcx;version="${version}",
  org.h2.tools;version="${version}",
  org.h2.util;version="${version}",
- org.h2.value;version="${version}"
+ org.h2.value;version="${version}",
+ org.h2.bnf;version="${version}" ,
+ org.h2.bnf.context;version="${version}"
 Premain-Class: org.h2.util.Profiler

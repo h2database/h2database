@@ -489,7 +489,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 
 "Commands (DDL)","CREATE INDEX","
 CREATE
-{ [ UNIQUE ] [ HASH ] INDEX [ [ IF NOT EXISTS ] newIndexName ]
+{ [ UNIQUE ] [ HASH ] [ SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
     | PRIMARY KEY [ HASH ] }
 ON tableName ( indexColumn [,...] )
 ","
@@ -500,6 +500,7 @@ Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY 
 For other tables, or if the index contains multiple columns, the HASH keyword is ignored.
 Hash indexes can only test for equality, and do not support range queries (similar to a hash table).
 Non-unique keys are supported.
+Spatial indexes are supported only on Geometry columns.
 ","
 CREATE INDEX IDXNAME ON TEST(NAME)
 "
@@ -1726,9 +1727,9 @@ multiple lines long.
 "
 
 "Other Grammar","Compare","
-<> | <= | >= | = | < | > | !=
+<> | <= | >= | = | < | > | != | &&
 ","
-Comparison operator. The operator != is the same as <>.
+Comparison operator. The operator != is the same as <>. && means overlapping, can only be used with geometry types.
 ","
 <>
 "

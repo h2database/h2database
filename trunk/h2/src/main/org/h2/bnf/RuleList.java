@@ -13,13 +13,13 @@ import org.h2.util.New;
 /**
  * Represents a sequence of BNF rules, or a list of alternative rules.
  */
-class RuleList implements Rule {
+public class RuleList implements Rule {
 
     private final boolean or;
     private final ArrayList<Rule> list;
     private boolean mapSet;
 
-    RuleList(Rule first, Rule next, boolean or) {
+    public RuleList(Rule first, Rule next, boolean or) {
         list = New.arrayList();
         if (first instanceof RuleList && ((RuleList) first).or == or) {
             list.addAll(((RuleList) first).list);

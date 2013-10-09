@@ -206,7 +206,8 @@ public class TestFileSystem extends TestBase {
 
     private void testMemFsDir() throws IOException {
         FileUtils.newOutputStream("memFS:data/test/a.txt", false).close();
-        assertEquals(1, FileUtils.newDirectoryStream("memFS:data/test").size());
+        assertEquals(FileUtils.newDirectoryStream("memFS:").toString(), 
+                1, FileUtils.newDirectoryStream("memFS:data/test").size());
         FileUtils.deleteRecursive("memFS:", false);
     }
 

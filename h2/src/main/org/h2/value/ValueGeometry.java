@@ -8,9 +8,12 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
+
+import com.vividsolutions.jts.geom.CoordinateSequence;
+import com.vividsolutions.jts.geom.CoordinateSequenceFilter;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -49,6 +52,9 @@ public class ValueGeometry extends Value {
     }
 
     private static ValueGeometry get(Geometry g) {
+        // not all WKT values can be represented in WKB, but since we persist it in WKB format,
+        // it has to be valid in WKB
+        toWKB(g);
         return (ValueGeometry) Value.cache(new ValueGeometry(g));
     }
 
@@ -59,7 +65,11 @@ public class ValueGeometry extends Value {
      * @return the value
      */
     public static ValueGeometry get(String s) {
-        return (ValueGeometry) Value.cache(new ValueGeometry(fromWKT(s)));
+        Geometry g = fromWKT(s);
+        // not all WKT values can be represented in WKB, but since we persist it in WKB format,
+        // it has to be valid in WKB
+        toWKB(g);
+        return (ValueGeometry) Value.cache(new ValueGeometry(g));
     }
 
     /**
@@ -184,7 +194,9 @@ public class ValueGeometry extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueGeometry && geometry.equals(((ValueGeometry) other).geometry);
+      	// The JTS library only does half-way support for 3D coords, so
+      	// their equals method only checks the first two coords.
+        return other instanceof ValueGeometry && Arrays.equals(toWKB(), ((ValueGeometry) other).toWKB());
     }
 
     /**
@@ -202,23 +214,45 @@ public class ValueGeometry extends Value {
      * @return the well-known-binary
      */
     public byte[] toWKB() {
-        int dimensionCount = getDimensionCount();
+        return toWKB(geometry);
+    }
+    
+    private static byte[] toWKB(Geometry geometry) {
+        int dimensionCount = getDimensionCount(geometry);
         boolean includeSRID = geometry.getSRID() != 0;
         WKBWriter writer = new WKBWriter(dimensionCount, includeSRID);
         return writer.write(geometry);
     }
 
-    private int getDimensionCount() {
-        Coordinate[] coordinates = geometry.getCoordinates();
-        if (coordinates == null) {
-            return 2;
+    private static int getDimensionCount(Geometry geometry) {
+        ZVisitor finder = new ZVisitor();
+        geometry.apply(finder);
+        return finder.isFoundZ() ? 3 : 2;
+    }
+
+    private static class ZVisitor implements CoordinateSequenceFilter {
+        boolean foundZ = false;
+
+        public boolean isFoundZ() {
+            return foundZ;
         }
-        for (Coordinate coordinate : coordinates) {
-            if (!Double.isNaN(coordinate.z)) {
-                return 3;
+
+        @Override
+        public void filter(CoordinateSequence coordinateSequence, int i) {
+            if(!Double.isNaN(coordinateSequence.getOrdinate(i, 2))) {
+                foundZ = true;
             }
         }
-        return 2;
+
+        @Override
+        public boolean isDone() {
+            return foundZ;
+        }
+
+        @Override
+        public boolean isGeometryChanged() {
+            return false;
+        }
     }
 
     /**
@@ -249,4 +283,11 @@ public class ValueGeometry extends Value {
         }
     }
 
+    public Value convertTo(int targetType) {
+        if(targetType == Value.JAVA_OBJECT) {
+            return this;
+        } else {
+            return super.convertTo(targetType);
+        }
+    }
 }

@@ -11,12 +11,12 @@ import java.util.HashMap;
 /**
  * Represents a loop in a BNF object.
  */
-class RuleRepeat implements Rule {
+public class RuleRepeat implements Rule {
 
     private final Rule rule;
     private final boolean comma;
 
-    RuleRepeat(Rule rule, boolean comma) {
+    public RuleRepeat(Rule rule, boolean comma) {
         this.rule = rule;
         this.comma = comma;
     }

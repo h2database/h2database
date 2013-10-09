@@ -13,14 +13,14 @@ import org.h2.util.StringUtils;
 /**
  * A single terminal rule in a BNF object.
  */
-class RuleElement implements Rule {
+public class RuleElement implements Rule {
 
     private final boolean keyword;
     private final String name;
     private Rule link;
     private final int type;
 
-    RuleElement(String name, String topic) {
+    public RuleElement(String name, String topic) {
         this.name = name;
         this.keyword = name.length() == 1 || name.equals(StringUtils.toUpperEnglish(name));
         topic = StringUtils.toLowerEnglish(topic);

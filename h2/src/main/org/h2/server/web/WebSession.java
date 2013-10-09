@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import org.h2.bnf.Bnf;
+import org.h2.bnf.context.DbContents;
+import org.h2.bnf.context.DbContextRule;
 import org.h2.message.TraceSystem;
 import org.h2.util.New;
 
@@ -120,12 +122,14 @@ class WebSession {
             DbContextRule tableRule = new DbContextRule(contents, DbContextRule.TABLE);
             DbContextRule schemaRule = new DbContextRule(contents, DbContextRule.SCHEMA);
             DbContextRule columnAliasRule = new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
+            DbContextRule procedureRule = new DbContextRule(contents, DbContextRule.PROCEDURE);
             newBnf.updateTopic("column_name", columnRule);
             newBnf.updateTopic("new_table_alias", newAliasRule);
             newBnf.updateTopic("table_alias", aliasRule);
             newBnf.updateTopic("column_alias", columnAliasRule);
             newBnf.updateTopic("table_name", tableRule);
             newBnf.updateTopic("schema_name", schemaRule);
+            newBnf.updateTopic("expression", procedureRule);
             newBnf.linkStatements();
             bnf = newBnf;
         } catch (Exception e) {

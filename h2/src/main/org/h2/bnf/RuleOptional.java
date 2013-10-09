@@ -11,11 +11,11 @@ import java.util.HashMap;
 /**
  * Represents an optional BNF rule.
  */
-class RuleOptional implements Rule {
+public class RuleOptional implements Rule {
     private final Rule rule;
     private boolean mapSet;
 
-    RuleOptional(Rule rule) {
+    public RuleOptional(Rule rule) {
         this.rule = rule;
     }
 

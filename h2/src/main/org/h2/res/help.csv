@@ -167,7 +167,7 @@ CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
 Creates a new data type (domain)."
 "Commands (DDL)","CREATE INDEX","
 CREATE
-{ [ UNIQUE ] [ HASH ] INDEX [ [ IF NOT EXISTS ] newIndexName ]
+{ [ UNIQUE ] [ HASH ] [ SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
     | PRIMARY KEY [ HASH ] }
 ON tableName ( indexColumn [,...] )
 ","
@@ -541,7 +541,7 @@ Default expressions are used if no explicit value was used when adding a row."
 ","
 Comments can be used anywhere in a command and are ignored by the database."
 "Other Grammar","Compare","
-<> | <= | >= | = | < | > | !=
+<> | <= | >= | = | < | > | != | &&
 ","
 Comparison operator."
 "Other Grammar","Condition","

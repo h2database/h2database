@@ -144,6 +144,7 @@ import org.h2.test.synth.sql.TestSynth;
 import org.h2.test.synth.thread.TestMulti;
 import org.h2.test.unit.TestAutoReconnect;
 import org.h2.test.unit.TestBitField;
+import org.h2.test.unit.TestBnf;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestClearReferences;
 import org.h2.test.unit.TestCollation;
@@ -608,6 +609,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestAlterSchemaRename().runTest(this);
         new TestAutoRecompile().runTest(this);
         new TestBitField().runTest(this);
+        new TestBnf().runTest(this);
         new TestBackup().runTest(this);
         new TestBigDb().runTest(this);
         new TestBigResult().runTest(this);

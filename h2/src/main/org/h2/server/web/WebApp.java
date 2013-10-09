@@ -34,6 +34,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 import org.h2.bnf.Bnf;
+import org.h2.bnf.context.DbColumn;
+import org.h2.bnf.context.DbContents;
+import org.h2.bnf.context.DbSchema;
+import org.h2.bnf.context.DbTableOrView;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -469,20 +473,20 @@ public class WebApp {
     private static int addColumns(boolean mainSchema, DbTableOrView table,
             StringBuilder buff, int treeIndex, boolean showColumnTypes,
             StringBuilder columnsBuffer) {
-        DbColumn[] columns = table.columns;
+        DbColumn[] columns = table.getColumns();
         for (int i = 0; columns != null && i < columns.length; i++) {
             DbColumn column = columns[i];
             if (columnsBuffer.length() > 0) {
                 columnsBuffer.append(' ');
             }
-            columnsBuffer.append(column.name);
-            String col = escapeIdentifier(column.name);
+            columnsBuffer.append(column.getName());
+            String col = escapeIdentifier(column.getName());
             String level = mainSchema ? ", 1, 1" : ", 2, 2";
-            buff.append("setNode(" + treeIndex + level + ", 'column', '" + PageParser.escapeJavaScript(column.name)
+            buff.append("setNode(" + treeIndex + level + ", 'column', '" + PageParser.escapeJavaScript(column.getName())
                     + "', 'javascript:ins(\\'" + col + "\\')');\n");
             treeIndex++;
             if (mainSchema && showColumnTypes) {
-                buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '" + PageParser.escapeJavaScript(column.dataType)
+                buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '" + PageParser.escapeJavaScript(column.getDataType())
                         + "', null);\n");
                 treeIndex++;
             }
@@ -585,57 +589,57 @@ public class WebApp {
         boolean showColumns = mainSchema || !schema.isSystem;
         String indentation = ", " + level + ", " + (showColumns ? "1" : "2") + ", ";
         String indentNode = ", " + (level + 1) + ", 2, ";
-        DbTableOrView[] tables = schema.tables;
+        DbTableOrView[] tables = schema.getTables();
         if (tables == null) {
             return treeIndex;
         }
-        boolean isOracle = schema.contents.isOracle;
+        boolean isOracle = schema.getContents().isOracle();
         boolean notManyTables = tables.length < DbSchema.MAX_TABLES_LIST_INDEXES;
         for (DbTableOrView table : tables) {
-            if (table.isView) {
+            if (table.isView()) {
                 continue;
             }
             int tableId = treeIndex;
-            String tab = table.quotedName;
+            String tab = table.getQuotedName();
             if (!mainSchema) {
                 tab = schema.quotedName + "." + tab;
             }
             tab = escapeIdentifier(tab);
-            buff.append("setNode(" + treeIndex + indentation + " 'table', '" + PageParser.escapeJavaScript(table.name)
+            buff.append("setNode(" + treeIndex + indentation + " 'table', '" + PageParser.escapeJavaScript(table.getName())
                     + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;
             if (mainSchema || showColumns) {
                 StringBuilder columnsBuffer = new StringBuilder();
                 treeIndex = addColumns(mainSchema, table, buff, treeIndex, notManyTables, columnsBuffer);
                 if (!isOracle && notManyTables) {
-                    treeIndex = addIndexes(mainSchema, meta, table.name, schema.name, buff, treeIndex);
+                    treeIndex = addIndexes(mainSchema, meta, table.getName(), schema.name, buff, treeIndex);
                 }
-                buff.append("addTable('" + PageParser.escapeJavaScript(table.name) + "', '"
+                buff.append("addTable('" + PageParser.escapeJavaScript(table.getName()) + "', '"
                         + PageParser.escapeJavaScript(columnsBuffer.toString()) + "', " + tableId + ");\n");
             }
         }
-        tables = schema.tables;
+        tables = schema.getTables();
         for (DbTableOrView view : tables) {
-            if (!view.isView) {
+            if (!view.isView()) {
                 continue;
             }
             int tableId = treeIndex;
-            String tab = view.quotedName;
+            String tab = view.getQuotedName();
             if (!mainSchema) {
-                tab = view.schema.quotedName + "." + tab;
+                tab = view.getSchema().quotedName + "." + tab;
             }
             tab = escapeIdentifier(tab);
-            buff.append("setNode(" + treeIndex + indentation + " 'view', '" + PageParser.escapeJavaScript(view.name)
+            buff.append("setNode(" + treeIndex + indentation + " 'view', '" + PageParser.escapeJavaScript(view.getName())
                     + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;
             if (mainSchema) {
                 StringBuilder columnsBuffer = new StringBuilder();
                 treeIndex = addColumns(mainSchema, view, buff, treeIndex, notManyTables, columnsBuffer);
-                if (schema.contents.isH2) {
+                if (schema.getContents().isH2()) {
                     PreparedStatement prep = null;
                     try {
                         prep = conn.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=?");
-                        prep.setString(1, view.name);
+                        prep.setString(1, view.getName());
                         ResultSet rs = prep.executeQuery();
                         if (rs.next()) {
                             String sql = rs.getString("SQL");
@@ -648,7 +652,7 @@ public class WebApp {
                         JdbcUtils.closeSilently(prep);
                     }
                 }
-                buff.append("addTable('" + PageParser.escapeJavaScript(view.name) + "', '"
+                buff.append("addTable('" + PageParser.escapeJavaScript(view.getName()) + "', '"
                         + PageParser.escapeJavaScript(columnsBuffer.toString()) + "', " + tableId + ");\n");
             }
         }
@@ -663,16 +667,16 @@ public class WebApp {
             session.loadBnf();
             Connection conn = session.getConnection();
             DatabaseMetaData meta = session.getMetaData();
-            isH2 = contents.isH2;
+            isH2 = contents.isH2();
 
             StringBuilder buff = new StringBuilder();
             buff.append("setNode(0, 0, 0, 'database', '" + PageParser.escapeJavaScript((String) session.get("url"))
                     + "', null);\n");
             int treeIndex = 1;
 
-            DbSchema defaultSchema = contents.defaultSchema;
+            DbSchema defaultSchema = contents.getDefaultSchema();
             treeIndex = addTablesAndViews(defaultSchema, true, buff, treeIndex);
-            DbSchema[] schemas = contents.schemas;
+            DbSchema[] schemas = contents.getSchemas();
             for (DbSchema schema : schemas) {
                 if (schema == defaultSchema || schema == null) {
                     continue;
@@ -983,7 +987,7 @@ public class WebApp {
             result = buff.toString();
             session.put("result", result);
         } catch (Throwable e) {
-            session.put("result", getStackTrace(0, e, session.getContents().isH2));
+            session.put("result", getStackTrace(0, e, session.getContents().isH2()));
         }
         return "result.jsp";
     }
@@ -1034,7 +1038,7 @@ public class WebApp {
                 // cancel
             }
         } catch (Throwable e) {
-            result = "<br />" + getStackTrace(0, e, session.getContents().isH2);
+            result = "<br />" + getStackTrace(0, e, session.getContents().isH2());
             error = formatAsError(e.getMessage());
         }
         String sql = "@edit " + (String) session.get("resultSetSQL");
@@ -1212,7 +1216,7 @@ public class WebApp {
             }
             Statement stat;
             DbContents contents = session.getContents();
-            if (forceEdit || (allowEdit && contents.isH2)) {
+            if (forceEdit || (allowEdit && contents.isH2())) {
                 stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             } else {
                 stat = conn.createStatement();
@@ -1342,7 +1346,7 @@ public class WebApp {
             return buff.toString();
         } catch (Throwable e) {
             // throwable: including OutOfMemoryError and so on
-            return getStackTrace(id, e, session.getContents().isH2);
+            return getStackTrace(id, e, session.getContents().isH2());
         } finally {
             session.executingStatement = null;
         }
@@ -1405,7 +1409,7 @@ public class WebApp {
                         prep.setInt(j + 1, i);
                     }
                 }
-                if (session.getContents().isSQLite) {
+                if (session.getContents().isSQLite()) {
                     // SQLite currently throws an exception on prep.execute()
                     prep.executeUpdate();
                 } else {
@@ -1746,7 +1750,7 @@ public class WebApp {
         }
         ResultSetMetaData meta = rs.getMetaData();
         int type = meta.getColumnType(columnIndex);
-        if (session.getContents().isH2) {
+        if (session.getContents().isH2()) {
             rs.updateString(columnIndex, x);
             return;
         }

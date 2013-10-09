@@ -9,8 +9,8 @@ package org.h2.bnf;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.h2.server.web.DbSchema;
-import org.h2.server.web.DbTableOrView;
+import org.h2.bnf.context.DbSchema;
+import org.h2.bnf.context.DbTableOrView;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -29,12 +29,12 @@ public class Sentence {
     /**
      * The token type for a keyword.
      */
-    static final int KEYWORD = 1;
+    public static final int KEYWORD = 1;
 
     /**
      * The token type for a function name.
      */
-    static final int FUNCTION = 2;
+    public static final int FUNCTION = 2;
 
     private static final long MAX_PROCESSING_TIME = 100;
 
@@ -63,7 +63,7 @@ public class Sentence {
     /**
      * Start the timer to make sure processing doesn't take too long.
      */
-    void start() {
+    public void start() {
         stopAt = System.currentTimeMillis() + MAX_PROCESSING_TIME;
     }
 
@@ -72,7 +72,7 @@ public class Sentence {
      * Processing auto-complete shouldn't take more than a few milliseconds.
      * If processing is stopped, this methods throws an IllegalStateException
      */
-    void stopIfRequired() {
+    public void stopIfRequired() {
         if (System.currentTimeMillis() > stopAt) {
             throw new IllegalStateException();
         }
@@ -214,7 +214,7 @@ public class Sentence {
      *
      * @return the next token map
      */
-    HashMap<String, String> getNext() {
+    public HashMap<String, String> getNext() {
         return next;
     }
 

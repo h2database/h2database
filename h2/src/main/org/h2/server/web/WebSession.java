@@ -129,7 +129,7 @@ class WebSession {
             newBnf.updateTopic("column_alias", columnAliasRule);
             newBnf.updateTopic("table_name", tableRule);
             newBnf.updateTopic("schema_name", schemaRule);
-            newBnf.updateTopic("expression", procedureRule);
+            // newBnf.updateTopic("expression", procedureRule);
             newBnf.linkStatements();
             bnf = newBnf;
         } catch (Exception e) {

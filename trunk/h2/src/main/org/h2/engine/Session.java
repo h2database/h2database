@@ -106,6 +106,7 @@ public class Session extends SessionWithState {
     private int queryTimeout;
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
+    private Thread waitForLockThread;
     private int modificationId;
     private int objectId;
     private final int queryCacheSize;
@@ -1292,14 +1293,19 @@ public class Session extends SessionWithState {
         return queryTimeout;
     }
 
-    public void setWaitForLock(Table table) {
-        this.waitForLock = table;
+    public void setWaitForLock(Table waitForLock, Thread waitForLockThread) {
+        this.waitForLock = waitForLock;
+        this.waitForLockThread = waitForLockThread;
     }
 
     public Table getWaitForLock() {
         return waitForLock;
     }
 
+    public Thread getWaitForLockThread() {
+        return waitForLockThread;
+    }
+    
     public int getModificationId() {
         return modificationId;
     }

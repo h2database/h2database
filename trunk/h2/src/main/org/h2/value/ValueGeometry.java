@@ -194,8 +194,8 @@ public class ValueGeometry extends Value {
 
     @Override
     public boolean equals(Object other) {
-      	// The JTS library only does half-way support for 3D coords, so
-      	// their equals method only checks the first two coords.
+        // The JTS library only does half-way support for 3D coordinates, so
+        // their equals method only checks the first two coordinates.
         return other instanceof ValueGeometry && Arrays.equals(toWKB(), ((ValueGeometry) other).toWKB());
     }
 
@@ -230,31 +230,6 @@ public class ValueGeometry extends Value {
         return finder.isFoundZ() ? 3 : 2;
     }
 
-    private static class ZVisitor implements CoordinateSequenceFilter {
-        boolean foundZ = false;
-
-        public boolean isFoundZ() {
-            return foundZ;
-        }
-
-        @Override
-        public void filter(CoordinateSequence coordinateSequence, int i) {
-            if(!Double.isNaN(coordinateSequence.getOrdinate(i, 2))) {
-                foundZ = true;
-            }
-        }
-
-        @Override
-        public boolean isDone() {
-            return foundZ;
-        }
-
-        @Override
-        public boolean isGeometryChanged() {
-            return false;
-        }
-    }
-
     /**
      * Convert a Well-Known-Text to a Geometry object.
      *
@@ -283,11 +258,41 @@ public class ValueGeometry extends Value {
         }
     }
 
+    @Override
     public Value convertTo(int targetType) {
-        if(targetType == Value.JAVA_OBJECT) {
+        if (targetType == Value.JAVA_OBJECT) {
             return this;
-        } else {
-            return super.convertTo(targetType);
         }
+        return super.convertTo(targetType);
     }
+    
+    /**
+     * A visitor that checks if there is a Z coordinate.
+     */
+    static class ZVisitor implements CoordinateSequenceFilter {
+        boolean foundZ;
+
+        public boolean isFoundZ() {
+            return foundZ;
+        }
+
+        @Override
+        public void filter(CoordinateSequence coordinateSequence, int i) {
+            if (!Double.isNaN(coordinateSequence.getOrdinate(i, 2))) {
+                foundZ = true;
+            }
+        }
+
+        @Override
+        public boolean isDone() {
+            return foundZ;
+        }
+
+        @Override
+        public boolean isGeometryChanged() {
+            return false;
+        }
+        
+    }
+
 }

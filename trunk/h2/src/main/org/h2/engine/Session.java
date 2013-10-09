@@ -1293,6 +1293,12 @@ public class Session extends SessionWithState {
         return queryTimeout;
     }
 
+    /**
+     * Set the table this session is waiting for, and the thread that is waiting.
+     * 
+     * @param waitForLock the table
+     * @param waitForLockThread the current thread (the one that is waiting)
+     */
     public void setWaitForLock(Table waitForLock, Thread waitForLockThread) {
         this.waitForLock = waitForLock;
         this.waitForLockThread = waitForLockThread;

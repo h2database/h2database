@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.List;
+import java.util.Random;
+
 import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathWrapper;
@@ -28,6 +30,10 @@ public class FilePathUnstable extends FilePathWrapper {
     private static final IOException DISK_FULL = new IOException("Disk full");
 
     private static int diskFullOffCount;
+    
+    private static boolean partialWrites;
+    
+    private static Random random = new Random(1);
 
     /**
      * Register the file system.
@@ -37,6 +43,42 @@ public class FilePathUnstable extends FilePathWrapper {
     public static FilePathUnstable register() {
         FilePath.register(INSTANCE);
         return INSTANCE;
+    }
+    
+    /**
+     * Whether partial writes are possible (writing only part of the data).
+     * 
+     * @param partialWrites true to enable
+     */
+    public void setPartialWrites(boolean partialWrites) {
+        FilePathUnstable.partialWrites = partialWrites;
+    }
+    
+    boolean getPartialWrites() {
+        return partialWrites;
+    }
+    
+    /**
+     * Set the random seed.
+     * 
+     * @param seed the new seed
+     */
+    public void setSeed(long seed) {
+        random.setSeed(seed);
+    }
+    
+    /**
+     * Get a buffer with a subset (the head) of the data of the source buffer.
+     * 
+     * @param src the source buffer
+     * @return a buffer with a subset of the data
+     */
+    ByteBuffer getRandomSubset(ByteBuffer src) {
+        int len = src.remaining();
+        len = Math.min(4096, Math.min(len, 1 + random.nextInt(len)));
+        ByteBuffer temp = ByteBuffer.allocate(len);
+        src.get(temp.array());
+        return temp;
     }
 
     /**
@@ -52,7 +94,7 @@ public class FilePathUnstable extends FilePathWrapper {
         if (--diskFullOffCount > 0) {
             return;
         }
-        if (diskFullOffCount >= -4) {
+        if (diskFullOffCount >= -1) {
             diskFullOffCount--;
             throw DISK_FULL;
         }
@@ -231,12 +273,18 @@ class FileUnstable extends FileBase {
     @Override
     public int write(ByteBuffer src) throws IOException {
         checkError();
+        if (file.getPartialWrites()) {
+            return channel.write(file.getRandomSubset(src));
+        }
         return channel.write(src);
     }
-
+    
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
         checkError();
+        if (file.getPartialWrites()) {
+            return channel.write(file.getRandomSubset(src), position);
+        }
         return channel.write(src, position);
     }
 

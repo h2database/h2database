@@ -9,7 +9,6 @@ import java.util.Random;
 
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
-import org.h2.store.fs.FilePathCrypt;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.FilePathUnstable;
@@ -29,28 +28,33 @@ public class TestKillProcessWhileWriting extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestBase test = TestBase.createCaller().init();
+        test.config.big = true;
+        test.test();
     }
 
     @Override
     public void test() throws Exception {
         fs = FilePathUnstable.register();
+        fs.setPartialWrites(false);
         test("unstable:memFS:killProcess.h3");
 
-        int todo;
-        // need to test with a file system splits writes into blocks of 4 KB
-        FilePathCrypt.register();
-        test("unstable:crypt:0007:memFS:killProcess.h3");
+        if (config.big) { 
+            fs.setPartialWrites(true);
+            test("unstable:memFS:killProcess.h3");
+        }
     }
 
     private void test(String fileName) throws Exception {
         for (seed = 0; seed < 10; seed++) {
             this.fileName = fileName;
+            fs.setSeed(seed);
             FileUtils.delete(fileName);
             test(Integer.MAX_VALUE);
             int max = Integer.MAX_VALUE - fs.getDiskFullCount() + 10;
             assertTrue("" + (max - 10), max > 0);
             for (int i = 0; i < max; i++) {
+                fs.setSeed(seed);
                 test(i);
             }
         }

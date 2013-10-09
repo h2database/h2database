@@ -451,7 +451,7 @@ public class RegularTable extends TableBase {
             try {
                 doLock(session, lockMode, exclusive);
             } finally {
-                session.setWaitForLock(null);
+                session.setWaitForLock(null, null);
             }
         }
     }
@@ -499,7 +499,7 @@ public class RegularTable extends TableBase {
                     return;
                 }
             }
-            session.setWaitForLock(this);
+            session.setWaitForLock(this, Thread.currentThread());
             if (checkDeadlock) {
                 ArrayList<Session> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
@@ -543,11 +543,16 @@ public class RegularTable extends TableBase {
     }
 
     private static String getDeadlockDetails(ArrayList<Session> sessions) {
+        // We add the thread details here to make it easier for customers to match up
+        // these error messages with their own logs.
         StringBuilder buff = new StringBuilder();
         for (Session s : sessions) {
             Table lock = s.getWaitForLock();
+            Thread thread = s.getWaitForLockThread();
             buff.append("\nSession ").
                 append(s.toString()).
+                append(" on thread ").
+                append(thread.getName()).
                 append(" is waiting to lock ").
                 append(lock.toString()).
                 append(" while locking ");

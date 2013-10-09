@@ -71,7 +71,8 @@ public class TestReopen extends TestBase implements Recorder {
         if (op != Recorder.WRITE && op != Recorder.TRUNCATE) {
             return;
         }
-        if (!fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+        if (!fileName.endsWith(Constants.SUFFIX_PAGE_FILE) && 
+                !fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
             return;
         }
         if (testing) {
@@ -98,14 +99,22 @@ public class TestReopen extends TestBase implements Recorder {
         System.out.println("+ write #" + writeCount + " verify #" + verifyCount);
 
         try {
-            IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+            if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+                IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+            } else {
+                IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_MV_FILE);
+            }
             verifyCount++;
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
             String userName =  getUser();
             p.setProperty("user", userName);
             p.setProperty("password", getPassword());
-            ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase + ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0", p);
+            String url = "jdbc:h2:" + testDatabase + ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
+            if (config.mvStore) {
+                url += ";MV_STORE=TRUE";
+            }
+            ConnectionInfo ci = new ConnectionInfo(url, p);
             Database database = new Database(ci, null);
             // close the database
             Session session = database.getSystemSession();
@@ -145,10 +154,18 @@ public class TestReopen extends TestBase implements Recorder {
         }
         testDatabase += "X";
         try {
-            IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+            if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
+                IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+            } else {
+                IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_MV_FILE);
+            }
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
-            ConnectionInfo ci = new ConnectionInfo("jdbc:h2:" + testDatabase + ";FILE_LOCK=NO", p);
+            String url = "jdbc:h2:" + testDatabase + ";FILE_LOCK=NO";
+            if (config.mvStore) {
+                url += ";MV_STORE=TRUE";
+            }
+            ConnectionInfo ci = new ConnectionInfo(url, p);
             Database database = new Database(ci, null);
             // close the database
             database.removeSession(null);

@@ -110,6 +110,8 @@ MVStore:
 - add new feature to file systems that avoid copying data
     (reads should return a ByteBuffer, not write into one)
 - do we need to store a dummy chunk entry in the chunk itself?
+    currently yes, as some fields are not set in the chunk header
+- off-heap LIRS cache (the LIRS cache should use a map factory)
 
 */
 

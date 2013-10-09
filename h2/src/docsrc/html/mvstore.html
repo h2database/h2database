@@ -383,8 +383,13 @@ meaning outside of the regular garbage collected heap. This allows to use very l
 stores without having to increase the JVM heap (which would increase Java garbage collection
 pauses a lot). Memory is allocated using <code>ByteBuffer.allocateDirect</code>.
 One chunk is allocated at a time (each chunk is usually a few MB large), so that
-allocation cost is low.
+allocation cost is low. To use the off-heap storage, call:
 </p>
+<pre>
+OffHeapStore offHeap = new OffHeapStore();
+MVStore s = new MVStore.Builder().
+        fileStore(offHeap).open();
+</pre>
 
 <h3 id="fileSystem">File System Abstraction, File Locking and Online Backup</h3>
 <p>

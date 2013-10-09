@@ -30,6 +30,7 @@ import org.h2.util.New;
 public class FilePathMem extends FilePath {
 
     private static final TreeMap<String, FileMemData> MEMORY_FILES = new TreeMap<String, FileMemData>();
+    private static final FileMemData DIRECTORY = new FileMemData("", false);
 
     @Override
     public FilePathMem getPath(String path) {
@@ -90,7 +91,9 @@ public class FilePathMem extends FilePath {
         synchronized (MEMORY_FILES) {
             for (String n : MEMORY_FILES.tailMap(name).keySet()) {
                 if (n.startsWith(name)) {
-                    list.add(getPath(n));
+                    if (!n.equals(name) && n.indexOf('/', name.length() + 1) < 0) {
+                        list.add(getPath(n));
+                    }
                 } else {
                     break;
                 }
@@ -120,10 +123,9 @@ public class FilePathMem extends FilePath {
         if (isRoot()) {
             return true;
         }
-        // TODO in memory file system currently
-        // does not really support directories
         synchronized (MEMORY_FILES) {
-            return MEMORY_FILES.get(name) == null;
+            FileMemData d = MEMORY_FILES.get(name);
+            return d == DIRECTORY;
         }
     }
 
@@ -145,10 +147,12 @@ public class FilePathMem extends FilePath {
 
     @Override
     public void createDirectory() {
-        if (exists() && isDirectory()) {
+        if (exists()) {
             throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a file with this name already exists)");
         }
-        // TODO directories are not really supported
+        synchronized (MEMORY_FILES) {
+            MEMORY_FILES.put(name, DIRECTORY);
+        }
     }
 
     @Override
@@ -174,6 +178,9 @@ public class FilePathMem extends FilePath {
     private FileMemData getMemoryFile() {
         synchronized (MEMORY_FILES) {
             FileMemData m = MEMORY_FILES.get(name);
+            if (m == DIRECTORY) {
+                throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a directory with this name already exists)");
+            }
             if (m == null) {
                 m = new FileMemData(name, compressed());
                 MEMORY_FILES.put(name, m);

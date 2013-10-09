@@ -35,11 +35,6 @@ public class DbSchema {
     public static final int MAX_PROCEDURES_LIST_COLUMNS = 500;
 
     /**
-     * The database content container.
-     */
-    private final DbContents contents;
-
-    /**
      * The schema name.
      */
     public final String name;
@@ -58,6 +53,11 @@ public class DbSchema {
      * The quoted schema name.
      */
     public final String quotedName;
+
+    /**
+     * The database content container.
+     */
+    private final DbContents contents;
 
     /**
      * The table list.

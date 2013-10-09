@@ -36,7 +36,13 @@ public class DbContextRule implements Rule {
     /**
      * BNF terminal rule Constructor
      * @param contents Extract rule from this component
-     * @param type Rule type, one of {@link DbContextRule#COLUMN,DbContextRule#TABLE,DbContextRule#TABLE_ALIAS,DbContextRule#NEW_TABLE_ALIAS,DbContextRule#COLUMN_ALIAS,DbContextRule#SCHEMA}
+     * @param type Rule type, one of 
+     * {@link DbContextRule#COLUMN}, 
+     * {@link DbContextRule#TABLE}, 
+     * {@link DbContextRule#TABLE_ALIAS}, 
+     * {@link DbContextRule#NEW_TABLE_ALIAS}, 
+     * {@link DbContextRule#COLUMN_ALIAS}, 
+     * {@link DbContextRule#SCHEMA}
      */
     public DbContextRule(DbContents contents, int type) {
         this.contents = contents;
@@ -182,8 +188,10 @@ public class DbContextRule implements Rule {
                         continue;
                     }
                     for (DbColumn column : table.getColumns()) {
-                        String name = StringUtils.toUpperEnglish(column.getName());
-                        if(columnType == null || column.getDataType().contains(columnType)) {
+                        String name = StringUtils.toUpperEnglish(column
+                                .getName());
+                        if (columnType == null
+                                || column.getDataType().contains(columnType)) {
                             if (up.startsWith(name)) {
                                 String b = s.substring(name.length());
                                 if (best == null || b.length() < best.length()) {
@@ -225,7 +233,7 @@ public class DbContextRule implements Rule {
         }
         String incompleteSentence = sentence.getQueryUpper();
         String incompleteFunctionName = incompleteSentence;
-        if(incompleteSentence.contains("(")) {
+        if (incompleteSentence.contains("(")) {
             incompleteFunctionName = incompleteSentence.substring(0, incompleteSentence.indexOf('(')).trim();
         }
 
@@ -235,26 +243,29 @@ public class DbContextRule implements Rule {
         RuleElement comma = new RuleElement(",", "Function");
 
         // Fetch all elements
-        for(DbProcedure procedure : schema.getProcedures()) {
+        for (DbProcedure procedure : schema.getProcedures()) {
             final String procName = procedure.getName();
-            if(procName.startsWith(incompleteFunctionName)) {
+            if (procName.startsWith(incompleteFunctionName)) {
                 // That's it, build a RuleList from this function
-                RuleElement procedureElement = new RuleElement(procName, "Function");
+                RuleElement procedureElement = new RuleElement(procName,
+                        "Function");
                 RuleList rl = new RuleList(procedureElement, openBracket, false);
                 // Go further only if the user use open bracket
-                if(incompleteSentence.contains("(")) {
-                    for(DbColumn parameter : procedure.getParameters()) {
-                        if(parameter.getPosition() > 1) {
+                if (incompleteSentence.contains("(")) {
+                    for (DbColumn parameter : procedure.getParameters()) {
+                        if (parameter.getPosition() > 1) {
                             rl = new RuleList(rl, comma, false);
                         }
-                        DbContextRule columnRule = new DbContextRule(contents, COLUMN);
+                        DbContextRule columnRule = new DbContextRule(contents,
+                                COLUMN);
                         String parameterType = parameter.getDataType();
                         // Remove precision
-                        if(parameterType.contains("(")) {
-                            parameterType = parameterType.substring(0, parameterType.indexOf('('));
+                        if (parameterType.contains("(")) {
+                            parameterType = parameterType.substring(0,
+                                    parameterType.indexOf('('));
                         }
                         columnRule.setColumnType(parameterType);
-                        rl = new RuleList(rl, columnRule , false);
+                        rl = new RuleList(rl, columnRule, false);
                     }
                     rl = new RuleList(rl, closeBracket , false);
                 }

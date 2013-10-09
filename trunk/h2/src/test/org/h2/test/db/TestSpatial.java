@@ -23,6 +23,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
+import org.h2.value.ValueGeometry;
 
 /**
  * Spatial datatype and index tests.
@@ -59,6 +60,9 @@ public class TestSpatial extends TestBase {
             testJavaAliasTableFunction();
             testMemorySpatialIndex();
             testGeometryDataType();
+            testWKB();
+            testValueConversion();
+            testEquals();
             deleteDb("spatial");
         }
     }
@@ -510,5 +514,65 @@ public class TestSpatial extends TestBase {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(new Coordinate(0, 0));
         assertEquals(Value.GEOMETRY, DataType.getTypeFromClass(geometry.getClass()));
+    }
+
+    /**
+     * Test serialisation of Z and SRID values.
+     */
+    private void testWKB() {
+        ValueGeometry geom3d = ValueGeometry.get("POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
+        ValueGeometry copy = ValueGeometry.get(geom3d.getBytes());
+        assertEquals(6, copy.getGeometry().getCoordinates()[0].z);
+        assertEquals(5, copy.getGeometry().getCoordinates()[1].z);
+        assertEquals(4, copy.getGeometry().getCoordinates()[2].z);
+        // Test SRID
+        geom3d.getGeometry().setSRID(27572);
+        copy = ValueGeometry.get(geom3d.getBytes());
+        assertEquals(27572, copy.getGeometry().getSRID());
+    }
+
+    /**
+     * Test conversion of Geometry object into Object
+     */
+    private void testValueConversion() throws SQLException {
+        deleteDb("spatialIndex");
+        Connection conn = getConnection("spatialIndex");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE ALIAS OBJSTRING FOR \"" +
+                TestSpatial.class.getName() + ".getObjectString\"");
+        ResultSet rs = stat.executeQuery("select OBJSTRING('POINT( 15 25 )'::geometry)");
+        assertTrue(rs.next());
+        assertEquals("POINT (15 25)", rs.getString(1));
+        conn.close();
+        deleteDb("spatialIndex");
+    }
+
+    public static String getObjectString(Object object) {
+        return object.toString();
+    }
+
+    /**
+     * Test equality method on ValueGeometry
+     */
+    public void testEquals() {
+        // 3d equality test
+        ValueGeometry geom3d = ValueGeometry.get("POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
+        ValueGeometry geom2d = ValueGeometry.get("POLYGON ((67 13, 67 18, 59 18, 59 13,  67 13))");
+        assertFalse(geom3d.equals(geom2d));
+        // SRID equality test
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Geometry geometry = geometryFactory.createPoint(new Coordinate(0, 0));
+        geometry.setSRID(27572);
+        ValueGeometry valueGeometry = ValueGeometry.getFromGeometry(geometry);
+        Geometry geometry2 = geometryFactory.createPoint(new Coordinate(0, 0));
+        geometry2.setSRID(5326);
+        ValueGeometry valueGeometry2 = ValueGeometry.getFromGeometry(geometry2);
+        assertFalse(valueGeometry.equals(valueGeometry2));
+        // Check illegal geometry (no WKB representation)
+        try {
+            ValueGeometry.get("POINT EMPTY");
+            fail("expected this to throw IllegalArgumentException");
+        } catch (IllegalArgumentException ex) {
+        }
     }
 }

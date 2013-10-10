@@ -47,7 +47,7 @@ public class AlterSchemaRename extends DefineCommand {
         if (db.findSchema(newSchemaName) != null || newSchemaName.equals(oldSchema.getName())) {
             throw DbException.get(ErrorCode.SCHEMA_ALREADY_EXISTS_1, newSchemaName);
         }
-        session.getUser().checkAdmin();
+        session.getUser().checkSchemaAdmin();
         db.renameDatabaseObject(session, oldSchema, newSchemaName);
         ArrayList<SchemaObject> all = db.getAllSchemaObjects();
         for (SchemaObject schemaObject : all) {

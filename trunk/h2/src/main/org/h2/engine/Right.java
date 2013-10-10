@@ -37,6 +37,11 @@ public class Right extends DbObjectBase {
     public static final int UPDATE = 8;
 
     /**
+     * The right bit mask that means: create/alter/drop schema is allowed.
+     */
+    public static final int ALTER_ANY_SCHEMA = 16;
+
+    /**
      * The right bit mask that means: select, insert, update, delete, and update
      * for this object is allowed.
      */
@@ -77,9 +82,10 @@ public class Right extends DbObjectBase {
             buff.append("ALL");
         } else {
             boolean comma = false;
-            comma = appendRight(buff, grantedRight, SELECT, "SELECT", comma);
-            comma = appendRight(buff, grantedRight, DELETE, "DELETE", comma);
-            comma = appendRight(buff, grantedRight, INSERT, "INSERT", comma);
+            comma = appendRight(buff, grantedRight, SELECT,           "SELECT", comma);
+            comma = appendRight(buff, grantedRight, DELETE,           "DELETE", comma);
+            comma = appendRight(buff, grantedRight, INSERT,           "INSERT", comma);
+            comma = appendRight(buff, grantedRight, ALTER_ANY_SCHEMA, "ALTER ANY SCHEMA", comma);
             appendRight(buff, grantedRight, UPDATE, "UPDATE", comma);
         }
         return buff.toString();
@@ -109,7 +115,10 @@ public class Right extends DbObjectBase {
         if (grantedRole != null) {
             buff.append(grantedRole.getSQL());
         } else {
-            buff.append(getRights()).append(" ON ").append(table.getSQL());
+            buff.append(getRights());
+            if (table != null) {
+                buff.append(" ON ").append(table.getSQL());
+            }
         }
         buff.append(" TO ").append(grantee.getSQL());
         return buff.toString();

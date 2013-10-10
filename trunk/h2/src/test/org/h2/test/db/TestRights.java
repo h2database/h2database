@@ -42,7 +42,8 @@ public class TestRights extends TestBase {
         testDropTempTables();
         // testLowerCaseUser();
         testSchemaRenameUser();
-        testAccessRights();
+        testAccessRights(); 
+        testSchemaAdminRole();
         deleteDb("rights");
     }
 
@@ -196,6 +197,71 @@ public class TestRights extends TestBase {
         stat.execute("drop schema b");
         stat.execute("alter user test1 admin false");
         stat.execute("drop user test1");
+        conn.close();
+    }
+    
+    private void testSchemaAdminRole() throws SQLException {
+    	  if (config.memory) {
+             return;
+        }
+
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        // default table type
+        testTableType(conn, "MEMORY");
+        testTableType(conn, "CACHED");
+
+        executeSuccess("CREATE USER SCHEMA_CREATOR PASSWORD 'xyz'");
+          
+        executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
+        executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
+        executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_RENAMED");
+        executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
+        conn.close();
+
+        /* try and fail */
+        conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
+        stat = conn.createStatement();
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+          	execute("CREATE SCHEMA SCHEMA_RIGHT_TEST_WILL_FAIL");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+          	execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS RENAME TO SCHEMA_RIGHT_TEST_WILL_FAIL");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+        execute("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
+        conn.close();
+       
+        /* give them */
+        conn = getConnection("rights");
+        stat = conn.createStatement();
+        executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
+        executeSuccess("GRANT ALTER ANY SCHEMA TO SCHEMA_CREATOR");
+        conn.close();
+   
+        /* try and succeed */
+        conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
+        stat = conn.createStatement();
+        executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
+        executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
+        executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_RENAMED");
+        executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
+        conn.close();
+          
+        /* revoke them */
+        conn = getConnection("rights");
+        stat = conn.createStatement();
+        executeSuccess("REVOKE ALTER ANY SCHEMA FROM SCHEMA_CREATOR");
+        conn.close();
+          
+        /* try and fail */
+        conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
+        stat = conn.createStatement();
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+          	execute("CREATE SCHEMA SCHEMA_RIGHT_TEST");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+          	execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
+            execute("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         conn.close();
     }
 

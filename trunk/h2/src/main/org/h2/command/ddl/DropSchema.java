@@ -32,7 +32,7 @@ public class DropSchema extends DefineCommand {
 
     @Override
     public int update() {
-        session.getUser().checkAdmin();
+        session.getUser().checkSchemaAdmin();
         session.commit(true);
         Database db = session.getDatabase();
         Schema schema = db.findSchema(schemaName);

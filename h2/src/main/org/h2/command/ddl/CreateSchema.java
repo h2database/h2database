@@ -34,11 +34,14 @@ public class CreateSchema extends DefineCommand {
 
     @Override
     public int update() {
-        session.getUser().checkAdmin();
+        session.getUser().checkSchemaAdmin();
         session.commit(true);
         Database db = session.getDatabase();
         User user = db.getUser(authorization);
-        user.checkAdmin();
+        // during DB startup, the Right/Role records have not yet been loaded
+        if (!db.isStarting()) {
+            user.checkSchemaAdmin();
+        }
         if (db.findSchema(schemaName) != null) {
             if (ifNotExists) {
                 return 0;

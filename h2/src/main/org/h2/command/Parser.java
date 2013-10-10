@@ -3942,45 +3942,54 @@ public class Parser {
         }
     }
 
+    /**
+     * @return true if we expect to see a TABLE clause
+     */
     private boolean addRoleOrRight(GrantRevoke command) {
         if (readIf("SELECT")) {
             command.addRight(Right.SELECT);
-            return false;
+            return true;
         } else if (readIf("DELETE")) {
             command.addRight(Right.DELETE);
-            return false;
+            return true;
         } else if (readIf("INSERT")) {
             command.addRight(Right.INSERT);
-            return false;
+            return true;
         } else if (readIf("UPDATE")) {
             command.addRight(Right.UPDATE);
-            return false;
+            return true;
         } else if (readIf("ALL")) {
             command.addRight(Right.ALL);
+            return true;
+        } else if (readIf("ALTER")) {
+            read("ANY");
+            read("SCHEMA");
+            command.addRight(Right.ALTER_ANY_SCHEMA);
+            command.addTable(null);
             return false;
         } else if (readIf("CONNECT")) {
             // ignore this right
-            return false;
+            return true;
         } else if (readIf("RESOURCE")) {
             // ignore this right
-            return false;
+            return true;
         } else {
             command.addRoleName(readUniqueIdentifier());
-            return true;
+            return false;
         }
     }
 
     private GrantRevoke parseGrantRevoke(int operationType) {
         GrantRevoke command = new GrantRevoke(session);
         command.setOperationType(operationType);
-        boolean isRoleBased = addRoleOrRight(command);
+        boolean tableClauseExpected = addRoleOrRight(command);
         while (readIf(",")) {
-            boolean next = addRoleOrRight(command);
-            if (next != isRoleBased) {
+            addRoleOrRight(command);
+            if (command.isRightMode() && command.isRoleMode()) {
                 throw DbException.get(ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED);
             }
         }
-        if (!isRoleBased) {
+        if (tableClauseExpected) {
             if (readIf("ON")) {
                 do {
                     Table table = readTableOrView();

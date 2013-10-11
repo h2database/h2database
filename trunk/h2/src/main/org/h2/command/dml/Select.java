@@ -250,6 +250,10 @@ public class Select extends Query {
                 if (index.getIndexType().isScan()) {
                     continue;
                 }
+                if (index.getIndexType().isHash()) {
+                    // does not allow scanning entries
+                    continue;
+                }
                 if (isGroupSortedIndex(topTableFilter, index)) {
                     return index;
                 }

@@ -4,6 +4,20 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(x int);
+> ok
+
+create hash index on test(x);
+> ok
+
+select 1 from test group by x;
+> 1
+> -
+> rows: 0
+
+drop table test;
+> ok
+
 call regexp_replace('x', 'x', '\');
 > exception
 

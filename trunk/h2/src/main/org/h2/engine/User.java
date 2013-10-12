@@ -212,9 +212,9 @@ public class User extends RightOwner {
      * @throws DbException if this user is not a schema admin
      */
     public void checkSchemaAdmin() {
-    	if (!admin && !hasRight(null, Right.ALTER_ANY_SCHEMA)) {
-    		throw DbException.get(ErrorCode.ADMIN_RIGHTS_REQUIRED);
-    	}
+        if (!admin && !hasRight(null, Right.ALTER_ANY_SCHEMA)) {
+            throw DbException.get(ErrorCode.ADMIN_RIGHTS_REQUIRED);
+        }
     }
 
     @Override

@@ -187,13 +187,13 @@ public class GrantRevoke extends DefineCommand {
      * @return true if this command is using Roles
      */
     public boolean isRoleMode() {
-    	return roleNames != null;
+        return roleNames != null;
     }
     
     /**
      * @return true if this command is using Rights
      */
     public boolean isRightMode() {
-    	return rightMask != 0;
+        return rightMask != 0;
     }
 }

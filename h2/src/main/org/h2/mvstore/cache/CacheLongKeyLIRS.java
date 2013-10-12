@@ -777,9 +777,9 @@ public class CacheLongKeyLIRS<V> {
          */
         private void evict(Entry<V> newCold) {
             // ensure there are not too many hot entries:
-            // left shift of 5 is multiplication by 32, that means if there are less
+            // right shift of 5 is division by 32, that means if there are less
             // than 1/32 (3.125%) cold entries, a new hot entry needs to become cold
-            while ((queueSize << 5) < mapSize) {
+            while (queueSize < (mapSize >>> 5)) {
                 convertOldestHotToCold();
             }
             if (stackSize > 0) {

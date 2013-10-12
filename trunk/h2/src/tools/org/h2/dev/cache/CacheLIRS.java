@@ -724,10 +724,10 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
          * @param newCold a new cold entry
          */
         private void evict(Entry<K, V> newCold) {
-            // ensure there are not too many hot entries:
-            // right shift of 5 is division by 32, that means if there are less
-            // than 1/32 (3.125%) cold entries, a new hot entry needs to become cold
-            while (queueSize < (mapSize >>> 5)) {
+            // ensure there are not too many hot entries: right shift of 5 is
+            // division by 32, that means if there are only 1/32 (3.125%) or
+            // less cold entries, a new hot entry needs to become cold
+            while (queueSize <= (mapSize >>> 5)) {
                 convertOldestHotToCold();
             }
             if (stackSize > 0) {

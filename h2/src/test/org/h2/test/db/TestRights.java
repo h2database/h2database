@@ -201,8 +201,8 @@ public class TestRights extends TestBase {
     }
     
     private void testSchemaAdminRole() throws SQLException {
-    	  if (config.memory) {
-             return;
+        if (config.memory) {
+            return;
         }
 
         deleteDb("rights");
@@ -223,12 +223,12 @@ public class TestRights extends TestBase {
         /* try and fail */
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
-        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
-          	execute("CREATE SCHEMA SCHEMA_RIGHT_TEST_WILL_FAIL");
-        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
-          	execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS RENAME TO SCHEMA_RIGHT_TEST_WILL_FAIL");
-        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
-        execute("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
+                "CREATE SCHEMA SCHEMA_RIGHT_TEST_WILL_FAIL");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
+                "ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS RENAME TO SCHEMA_RIGHT_TEST_WILL_FAIL");
+        assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
+                "DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         conn.close();
        
         /* give them */
@@ -257,9 +257,9 @@ public class TestRights extends TestBase {
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
-          	execute("CREATE SCHEMA SCHEMA_RIGHT_TEST");
+            execute("CREATE SCHEMA SCHEMA_RIGHT_TEST");
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
-          	execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
+            execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
             execute("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         conn.close();

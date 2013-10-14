@@ -22,7 +22,7 @@ Of course, patches are always welcome, but are not always applied as is.
 See also <a href="build.html#providing_patches">Providing Patches</a>.
 </p>
 
-<h2>Version 1.4.x: Planned Changes</h2>
+<h2>Version 1.5.x: Planned Changes</h2>
 <ul><li>Replace file password hash with file encryption key; validate encryption key when connecting.
 </li></ul>
 
@@ -40,6 +40,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Sort order for byte arrays: currently x'99' is smaller than x'09', which is unexpected. Change if possible.
 </li><li>Remove support for the old-style outer join syntax using "(+)" because it is buggy.
 </li><li>Change license to MPL 2.0.
+</li><li>Not allow relative database URLs like jdbc:h2:test; instead, require using jdbc:h2:./test.
 </li></ul>
 
 <h2>Priority 1</h2>

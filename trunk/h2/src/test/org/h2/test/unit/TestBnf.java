@@ -35,16 +35,22 @@ public class TestBnf extends TestBase {
 
     @Override
     public void test() throws Exception {
-        deleteDb("TestBnf");
-        Connection conn = getConnection("TestBnf");
+        deleteDb("bnf");
+        Connection conn = getConnection("bnf");
         try {
-            testProcedures(conn);
+            testProcedures(conn, false);
+        } finally {
+            conn.close();
+        }
+        conn = getConnection("bnf;mode=mysql");
+        try {
+            testProcedures(conn, true);
         } finally {
             conn.close();
         }
     }
 
-    private void testProcedures(Connection conn) throws Exception {
+    private void testProcedures(Connection conn, boolean isMySQLMode) throws Exception {
         // Register a procedure and check if it is present in DbContents
         conn.createStatement().execute("DROP ALIAS IF EXISTS CUSTOM_PRINT");
         conn.createStatement().execute("CREATE ALIAS CUSTOM_PRINT AS $$ void print(String s) { System.out.println(s); } $$");
@@ -52,13 +58,42 @@ public class TestBnf extends TestBase {
         conn.createStatement().execute("CREATE TABLE TABLE_WITH_STRING_FIELD (STRING_FIELD VARCHAR(50), INT_FIELD integer)");
         DbContents dbContents = new DbContents();
         dbContents.readContents(conn.getMetaData());
+        assertTrue(dbContents.isH2());
+        assertFalse(dbContents.isDerby());
+        assertFalse(dbContents.isFirebird());
+        assertEquals(null, dbContents.quoteIdentifier(null));
+        if (isMySQLMode) {
+            assertTrue(dbContents.isH2ModeMySQL());
+            assertEquals("TEST", dbContents.quoteIdentifier("TEST"));
+            assertEquals("TEST", dbContents.quoteIdentifier("Test"));
+            assertEquals("TEST", dbContents.quoteIdentifier("test"));
+        } else {
+            assertFalse(dbContents.isH2ModeMySQL());
+            assertEquals("TEST", dbContents.quoteIdentifier("TEST"));
+            assertEquals("\"Test\"", dbContents.quoteIdentifier("Test"));
+            assertEquals("\"test\"", dbContents.quoteIdentifier("test"));
+        }
+        assertFalse(dbContents.isMSSQLServer());
+        assertFalse(dbContents.isMySQL());
+        assertFalse(dbContents.isOracle());
+        assertFalse(dbContents.isPostgreSQL());
+        assertFalse(dbContents.isSQLite());
         DbSchema defaultSchema = dbContents.getDefaultSchema();
         DbProcedure[] procedures = defaultSchema.getProcedures();
         Set<String> procedureName = new HashSet<String>(procedures.length);
         for (DbProcedure procedure : procedures) {
+            assertTrue(defaultSchema == procedure.getSchema());
             procedureName.add(procedure.getName());
         }
-        assertTrue(procedureName.contains("CUSTOM_PRINT"));
+        if (isMySQLMode) {
+            assertTrue(procedureName.contains("custom_print"));
+        } else {
+            assertTrue(procedureName.contains("CUSTOM_PRINT"));
+        }
+        
+        if (isMySQLMode) {
+            return;
+        }
 
         // Test completion
         Bnf bnf = Bnf.getInstance(null);
@@ -69,6 +104,7 @@ public class TestBnf extends TestBase {
         // Test partial
         Map<String, String> tokens = bnf.getNextTokenList("SELECT CUSTOM_PR");
         assertTrue(tokens.values().contains("INT"));
+
         // Test parameters
         tokens = bnf.getNextTokenList("SELECT CUSTOM_PRINT(");
         assertTrue(tokens.values().contains("STRING_FIELD"));

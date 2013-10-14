@@ -50,6 +50,7 @@ public class TestWeb extends TestBase {
         testStartWebServerWithConnection();
         testServer();
         testWebApp();
+        testIfExists();
     }
 
     private static void testWrongParameters() {
@@ -199,6 +200,31 @@ public class TestWeb extends TestBase {
         server.stop();
     }
 
+    private void testIfExists() throws Exception {
+        Connection conn = getConnection("jdbc:h2:mem:webExists", getUser(), getPassword());
+        Server server = new Server();
+        server.setOut(new PrintStream(new ByteArrayOutputStream()));
+        server.runTool("-ifExists", "-web", "-webPort", "8182", "-properties", "null", "-tcp", "-tcpPort", "9101");
+        try {
+            String url = "http://localhost:8182";
+            WebClient client;
+            String result;
+            client = new WebClient();
+            result = client.get(url);
+            client.readSessionId(result);
+            result = client.get(url, "login.jsp");
+            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:webExists" + 
+                    "&user=" + getUser() + "&password=" + getPassword() + "&name=_test_");
+            assertTrue(result.indexOf("Exception") < 0);
+            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:web" + 
+                    "&user=" + getUser() + "&password=" + getPassword() + "&name=_test_");
+            assertContains(result, "Exception");
+        } finally {
+            server.shutdown();
+            conn.close();
+        }
+    }
+    
     private void testWebApp() throws Exception {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));

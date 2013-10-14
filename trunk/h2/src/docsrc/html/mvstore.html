@@ -332,6 +332,9 @@ The plan is to add such a mechanism later when needed.
 <p>
 Internally, changes are buffered in memory, and once enough changes have accumulated,
 they are written in one continuous disk write operation.
+Compared to traditional database storage engines,
+this should improve write performance for file systems and storage systems
+that do not efficiently support small random writes, such as Btrfs, as well as SSDs.
 (According to a test, write throughput of a common SSD increases with write block size,
 until a block size of 2 MB, and then does not further increase.)
 By default, committed changes are automatically written once every second

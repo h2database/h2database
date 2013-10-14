@@ -201,22 +201,21 @@ public class DbContents {
         ArrayList<String> schemaList = New.arrayList();
         while (rs.next()) {
             String schema = rs.getString(findColumn(rs, "TABLE_SCHEM", 1));
+            String[] ignoreNames = null;
             if (isOracle) {
-                for (String ignore : new String[] {
-                        "CTXSYS", "DIP", "DBSNMP", "DMSYS", "EXFSYS", "FLOWS_020100", "FLOWS_FILES", "MDDATA", "MDSYS",
-                        "MGMT_VIEW", "OLAPSYS", "ORDSYS", "ORDPLUGINS", "OUTLN", "SI_INFORMTN_SCHEMA", "SYS", "SYSMAN",
-                        "SYSTEM", "TSMSYS", "WMSYS", "XDB"
-                }) {
-                    if (ignore.equals(schema)) {
-                        schema = null;
-                        break;
-                    }
-                }
+                ignoreNames = new String[] { "CTXSYS", "DIP", "DBSNMP",
+                        "DMSYS", "EXFSYS", "FLOWS_020100", "FLOWS_FILES",
+                        "MDDATA", "MDSYS", "MGMT_VIEW", "OLAPSYS", "ORDSYS",
+                        "ORDPLUGINS", "OUTLN", "SI_INFORMTN_SCHEMA", "SYS",
+                        "SYSMAN", "SYSTEM", "TSMSYS", "WMSYS", "XDB" };
             } else if (isMSSQLServer) {
-                for (String ignore : new String[] {
-                        "sys", "db_accessadmin", "db_backupoperator", "db_datareader", "db_datawriter", "db_ddladmin",
-                        "db_denydatareader", "db_denydatawriter", "db_owner", "db_securityadmin"
-                }) {
+                ignoreNames = new String[] { "sys", "db_accessadmin",
+                        "db_backupoperator", "db_datareader", "db_datawriter",
+                        "db_ddladmin", "db_denydatareader",
+                        "db_denydatawriter", "db_owner", "db_securityadmin" };
+            }
+            if (ignoreNames != null) {
+                for (String ignore : ignoreNames) {
                     if (ignore.equals(schema)) {
                         schema = null;
                         break;

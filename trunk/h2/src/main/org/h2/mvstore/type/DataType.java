@@ -8,6 +8,8 @@ package org.h2.mvstore.type;
 
 import java.nio.ByteBuffer;
 
+import org.h2.mvstore.WriteBuffer;
+
 /**
  * A data type.
  */
@@ -36,9 +38,8 @@ public interface DataType {
      *
      * @param buff the target buffer
      * @param obj the value
-     * @return the byte buffer
      */
-    ByteBuffer write(ByteBuffer buff, Object obj);
+    void write(WriteBuffer buff, Object obj);
 
     /**
      * Read an object.

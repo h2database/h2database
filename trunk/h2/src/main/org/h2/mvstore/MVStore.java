@@ -181,7 +181,7 @@ public class MVStore {
 
     private HashMap<String, String> storeHeader = New.hashMap();
 
-    private ByteBuffer writeBuffer;
+    private WriteBuffer writeBuffer;
 
     private int lastMapId;
 
@@ -269,12 +269,14 @@ public class MVStore {
         boolean readOnly = config.containsKey("readOnly");
         o = config.get("cacheSize");
         int mb = o == null ? 16 : (Integer) o;
-        int maxMemoryBytes = mb * 1024 * 1024;
-        int averageMemory = Math.max(10, pageSplitSize / 2);
-        int segmentCount = 16;
-        int stackMoveDistance = maxMemoryBytes / averageMemory * 2 / 100;
-        cache = new CacheLongKeyLIRS<Page>(
-                maxMemoryBytes, averageMemory, segmentCount, stackMoveDistance);
+        if (mb > 0) {
+            int maxMemoryBytes = mb * 1024 * 1024;
+            int averageMemory = Math.max(10, pageSplitSize / 2);
+            int segmentCount = 16;
+            int stackMoveDistance = maxMemoryBytes / averageMemory * 2 / 100;
+            cache = new CacheLongKeyLIRS<Page>(
+                    maxMemoryBytes, averageMemory, segmentCount, stackMoveDistance);
+        }
         o = config.get("writeBufferSize");
         mb = o == null ? 4 : (Integer) o;
         int writeBufferSize =  mb * 1024 * 1024;
@@ -519,6 +521,11 @@ public class MVStore {
     private void readMeta() {
         chunks.clear();
         Chunk header = readChunkHeader(rootChunkStart);
+        if (header.start == Long.MAX_VALUE) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "Chunk {0} is invalid", header.id);
+        }
         lastChunkId = header.id;
         chunks.put(header.id, header);
         meta.setRootPos(header.metaRootPos, -1);
@@ -543,6 +550,11 @@ public class MVStore {
             s = meta.get(s);
             Chunk c = Chunk.fromString(s);
             if (!chunks.containsKey(c.id)) {
+                if (c.start == Long.MAX_VALUE) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_FILE_CORRUPT,
+                            "Chunk {0} is invalid", c.id);
+                }
                 chunks.put(c.id, c);
             }
         }
@@ -731,10 +743,14 @@ public class MVStore {
             if (s == null) {
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_CORRUPT,
-                        "Chunk {0} not found",
-                        DataUtils.getPageChunkId(pos));
+                        "Chunk {0} not found", chunkId);
             }
             c = Chunk.fromString(s);
+            if (c.start == Long.MAX_VALUE) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT,
+                        "Chunk {0} is invalid", chunkId);
+            }
             chunks.put(c.id, c);
         }
         return c;
@@ -892,7 +908,7 @@ public class MVStore {
             }
         }
         Set<Chunk> removedChunks = applyFreedSpace(storeVersion, time);
-        ByteBuffer buff = getWriteBuffer();
+        WriteBuffer buff = getWriteBuffer();
         // need to patch the header later
         c.writeHeader(buff);
         c.maxLength = 0;
@@ -900,28 +916,24 @@ public class MVStore {
         for (MVMap<?, ?> m : changed) {
             Page p = m.getRoot();
             if (p.getTotalCount() > 0) {
-                buff = p.writeUnsavedRecursive(c, buff);
+                p.writeUnsavedRecursive(c, buff);
                 long root = p.getPos();
                 meta.put("root." + m.getId(), "" + root);
             }
         }
-
         meta.put("chunk." + c.id, c.asString());
         meta.setWriteVersion(version);
 
         // this will (again) modify maxLengthLive, but
         // the correct value is written in the chunk header
         Page metaRoot = meta.getRoot();
-        buff = metaRoot.writeUnsavedRecursive(c, buff);
+        metaRoot.writeUnsavedRecursive(c, buff);
 
         int chunkLength = buff.position();
 
         // round to the next block,
         // and one additional block for the store header
         int length = MathUtils.roundUpInt(chunkLength, BLOCK_SIZE) + BLOCK_SIZE;
-        if (length > buff.capacity()) {
-            buff = DataUtils.ensureCapacity(buff, length - buff.capacity());
-        }
         buff.limit(length);
 
         // free up the space of unused chunks now
@@ -939,6 +951,14 @@ public class MVStore {
             fileStore.markUsed(end, length);
         }
         boolean storeAtEndOfFile = filePos + length >= end;
+        
+//        try {
+//            Thread.sleep(10);
+//        } catch (InterruptedException e) {
+//        ; int todo;
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
 
         c.start = filePos;
         c.length = chunkLength;
@@ -955,7 +975,7 @@ public class MVStore {
         buff.put(new byte[BLOCK_SIZE - header.length]);
 
         buff.position(0);
-        fileStore.writeFully(filePos, buff);
+        fileStore.writeFully(filePos, buff.getBuffer());
 
         releaseWriteBuffer(buff);
 
@@ -975,6 +995,7 @@ public class MVStore {
 
         // some pages might have been changed in the meantime (in the newest version)
         unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
+        
         if (!temp) {
             metaChanged = false;
             lastStoredVersion = storeVersion;
@@ -988,13 +1009,13 @@ public class MVStore {
      *
      * @return the buffer
      */
-    private ByteBuffer getWriteBuffer() {
-        ByteBuffer buff;
+    private WriteBuffer getWriteBuffer() {
+        WriteBuffer buff;
         if (writeBuffer != null) {
             buff = writeBuffer;
             buff.clear();
         } else {
-            buff = ByteBuffer.allocate(1024 * 1024);
+            buff = new WriteBuffer();
         }
         return buff;
     }
@@ -1005,7 +1026,7 @@ public class MVStore {
      *
      * @param buff the buffer than can be re-used
      */
-    private void releaseWriteBuffer(ByteBuffer buff) {
+    private void releaseWriteBuffer(WriteBuffer buff) {
         if (buff.capacity() <= 4 * 1024 * 1024) {
             writeBuffer = buff;
         }
@@ -1123,9 +1144,6 @@ public class MVStore {
     private long getEndPosition() {
         long size = 2 * BLOCK_SIZE;
         for (Chunk c : chunks.values()) {
-            if (c.start == Long.MAX_VALUE) {
-                continue;
-            }
             long x = c.start + c.length;
             size = Math.max(size, MathUtils.roundUpLong(x, BLOCK_SIZE) + BLOCK_SIZE);
         }
@@ -1200,9 +1218,8 @@ public class MVStore {
             }
         }
         for (Chunk c : move) {
-            ByteBuffer buff = getWriteBuffer();
+            WriteBuffer buff = getWriteBuffer();
             int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
-            buff = DataUtils.ensureCapacity(buff, length);
             buff.limit(length);
             ByteBuffer buff2 = fileStore.readFully(c.start, length);
             buff.put(buff2);
@@ -1218,7 +1235,7 @@ public class MVStore {
             // fill the header with zeroes
             buff.put(new byte[BLOCK_SIZE - header.length]);
             buff.position(0);
-            fileStore.writeFully(end, buff);
+            fileStore.writeFully(end, buff.getBuffer());
             releaseWriteBuffer(buff);
             meta.put("chunk." + c.id, c.asString());
         }
@@ -1238,9 +1255,8 @@ public class MVStore {
                 // previous store operation
                 continue;
             }
-            ByteBuffer buff = getWriteBuffer();
+            WriteBuffer buff = getWriteBuffer();
             int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
-            buff = DataUtils.ensureCapacity(buff, length);
             buff.limit(length);
             ByteBuffer buff2 = fileStore.readFully(c.start, length);
             buff.put(buff2);
@@ -1255,7 +1271,7 @@ public class MVStore {
             // fill the header with zeroes
             buff.put(new byte[BLOCK_SIZE - header.length]);
             buff.position(0);
-            fileStore.writeFully(pos, buff);
+            fileStore.writeFully(pos, buff.getBuffer());
             releaseWriteBuffer(buff);
             meta.put("chunk." + c.id, c.asString());
         }
@@ -1432,7 +1448,7 @@ public class MVStore {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT, "Position 0");
         }
-        Page p = cache.get(pos);
+        Page p = cache == null ? null : cache.get(pos);
         if (p == null) {
             Chunk c = getChunk(pos);
             long filePos = c.start;
@@ -1442,7 +1458,9 @@ public class MVStore {
                         DataUtils.ERROR_FILE_CORRUPT, "Negative position {0}", filePos);
             }
             p = Page.read(fileStore, map, pos, filePos, fileStore.size());
-            cache.put(pos, p, p.getMemory());
+            if (cache != null) {
+                cache.put(pos, p, p.getMemory());
+            }
         }
         return p;
     }
@@ -1466,7 +1484,9 @@ public class MVStore {
         // This could result in a cache miss if the operation is rolled back,
         // but we don't optimize for rollback.
         // We could also keep the page in the cache, as somebody could read it.
-        cache.remove(pos);
+        if (cache != null) {
+            cache.remove(pos);
+        }
 
         Chunk c = getChunk(pos);
         long version = currentVersion;
@@ -1799,6 +1819,11 @@ public class MVStore {
                 }
             }
 
+        }
+        // rollback might have rolled back the stored chunk metadata as well
+        Chunk c = chunks.get(lastChunkId - 1);
+        if (c != null) {
+            meta.put("chunk." + c.id, c.asString());
         }
         currentVersion = version;
         setWriteVersion(version);

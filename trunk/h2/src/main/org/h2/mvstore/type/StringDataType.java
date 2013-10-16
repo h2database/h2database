@@ -8,6 +8,7 @@ package org.h2.mvstore.type;
 
 import java.nio.ByteBuffer;
 import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.WriteBuffer;
 
 /**
  * A string type.
@@ -33,11 +34,11 @@ public class StringDataType implements DataType {
     }
 
     @Override
-    public ByteBuffer write(ByteBuffer buff, Object obj) {
+    public void write(WriteBuffer buff, Object obj) {
         String s = obj.toString();
         int len = s.length();
-        DataUtils.writeVarInt(buff, len);
-        return DataUtils.writeStringData(buff, s, len);
+        buff.writeVarInt(len);
+        buff.writeStringData(s, len);
     }
 
 }

@@ -205,7 +205,7 @@ public class ValueDataType implements DataType {
                         buff.put((byte) DECIMAL_SMALL_0).
                             putVarLong(b.longValue());
                     } else {
-                        buff.put((byte) DECIMAL_SMALL). 
+                        buff.put((byte) DECIMAL_SMALL).
                             putVarInt(scale).
                             putVarLong(b.longValue());
                     }

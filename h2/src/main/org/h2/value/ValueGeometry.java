@@ -52,8 +52,8 @@ public class ValueGeometry extends Value {
     }
 
     private static ValueGeometry get(Geometry g) {
-        // not all WKT values can be represented in WKB, but since we persist it in WKB format,
-        // it has to be valid in WKB
+        // not all WKT values can be represented in WKB, but since we persist it
+        // in WKB format, it has to be valid in WKB
         toWKB(g);
         return (ValueGeometry) Value.cache(new ValueGeometry(g));
     }
@@ -66,8 +66,8 @@ public class ValueGeometry extends Value {
      */
     public static ValueGeometry get(String s) {
         Geometry g = fromWKT(s);
-        // not all WKT values can be represented in WKB, but since we persist it in WKB format,
-        // it has to be valid in WKB
+        // not all WKT values can be represented in WKB, but since we persist it
+        // in WKB format, it has to be valid in WKB
         toWKB(g);
         return (ValueGeometry) Value.cache(new ValueGeometry(g));
     }
@@ -216,7 +216,7 @@ public class ValueGeometry extends Value {
     public byte[] toWKB() {
         return toWKB(geometry);
     }
-    
+
     private static byte[] toWKB(Geometry geometry) {
         int dimensionCount = getDimensionCount(geometry);
         boolean includeSRID = geometry.getSRID() != 0;
@@ -265,7 +265,7 @@ public class ValueGeometry extends Value {
         }
         return super.convertTo(targetType);
     }
-    
+
     /**
      * A visitor that checks if there is a Z coordinate.
      */
@@ -292,7 +292,7 @@ public class ValueGeometry extends Value {
         public boolean isGeometryChanged() {
             return false;
         }
-        
+
     }
 
 }

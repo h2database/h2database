@@ -36,12 +36,12 @@ public class DbContextRule implements Rule {
     /**
      * BNF terminal rule Constructor
      * @param contents Extract rule from this component
-     * @param type Rule type, one of 
-     * {@link DbContextRule#COLUMN}, 
-     * {@link DbContextRule#TABLE}, 
-     * {@link DbContextRule#TABLE_ALIAS}, 
-     * {@link DbContextRule#NEW_TABLE_ALIAS}, 
-     * {@link DbContextRule#COLUMN_ALIAS}, 
+     * @param type Rule type, one of
+     * {@link DbContextRule#COLUMN},
+     * {@link DbContextRule#TABLE},
+     * {@link DbContextRule#TABLE_ALIAS},
+     * {@link DbContextRule#NEW_TABLE_ALIAS},
+     * {@link DbContextRule#COLUMN_ALIAS},
      * {@link DbContextRule#SCHEMA}
      */
     public DbContextRule(DbContents contents, int type) {

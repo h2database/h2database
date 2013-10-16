@@ -190,7 +190,7 @@ class FileRec extends FileBase {
         rec.log(Recorder.WRITE, name, buff, channel.position());
         return result;
     }
-    
+
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
         byte[] buff = src.array();

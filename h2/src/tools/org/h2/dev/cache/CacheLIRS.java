@@ -828,7 +828,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
 
         /**
          * Remove the entry from the stack. The head itself must not be removed.
-         * 
+         *
          * @param e the entry
          */
         private void removeFromStack(Entry<K, V> e) {

@@ -90,7 +90,7 @@ public class TestBnf extends TestBase {
         } else {
             assertTrue(procedureName.contains("CUSTOM_PRINT"));
         }
-        
+
         if (isMySQLMode) {
             return;
         }

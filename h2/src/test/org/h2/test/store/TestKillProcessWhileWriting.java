@@ -39,7 +39,7 @@ public class TestKillProcessWhileWriting extends TestBase {
         fs.setPartialWrites(false);
         test("unstable:memFS:killProcess.h3");
 
-        if (config.big) { 
+        if (config.big) {
             fs.setPartialWrites(true);
             test("unstable:memFS:killProcess.h3");
         }

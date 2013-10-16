@@ -548,7 +548,7 @@ public class TestSpatial extends TestBase {
 
     /**
      * Get the toString value of the object.
-     * 
+     *
      * @param object the object
      * @return the string representation
      */
@@ -581,5 +581,5 @@ public class TestSpatial extends TestBase {
             // expected
         }
     }
-    
+
 }

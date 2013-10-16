@@ -23,12 +23,13 @@ public class DbColumn {
     private final String dataType;
 
     private int position;
-    
+
     public DbColumn(DbContents contents, ResultSet rs) throws SQLException {
         name = rs.getString("COLUMN_NAME");
         quotedName = contents.quoteIdentifier(name);
         String type = rs.getString("TYPE_NAME");
-        // A procedures column size is identified by PRECISION, for table this is COLUMN_SIZE
+        // a procedures column size is identified by PRECISION, for table this
+        // is COLUMN_SIZE
         int precisionColumnIndex = DbContents.findColumn(rs, "PRECISION", 0);
         int size;
         if (precisionColumnIndex == 0) {

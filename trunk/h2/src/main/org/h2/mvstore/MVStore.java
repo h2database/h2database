@@ -951,7 +951,7 @@ public class MVStore {
             fileStore.markUsed(end, length);
         }
         boolean storeAtEndOfFile = filePos + length >= end;
-        
+
 //        try {
 //            Thread.sleep(10);
 //        } catch (InterruptedException e) {
@@ -995,7 +995,7 @@ public class MVStore {
 
         // some pages might have been changed in the meantime (in the newest version)
         unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
-        
+
         if (!temp) {
             metaChanged = false;
             lastStoredVersion = storeVersion;

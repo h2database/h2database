@@ -30,9 +30,9 @@ public class FilePathUnstable extends FilePathWrapper {
     private static final IOException DISK_FULL = new IOException("Disk full");
 
     private static int diskFullOffCount;
-    
+
     private static boolean partialWrites;
-    
+
     private static Random random = new Random(1);
 
     /**
@@ -44,32 +44,32 @@ public class FilePathUnstable extends FilePathWrapper {
         FilePath.register(INSTANCE);
         return INSTANCE;
     }
-    
+
     /**
      * Whether partial writes are possible (writing only part of the data).
-     * 
+     *
      * @param partialWrites true to enable
      */
     public void setPartialWrites(boolean partialWrites) {
         FilePathUnstable.partialWrites = partialWrites;
     }
-    
+
     boolean getPartialWrites() {
         return partialWrites;
     }
-    
+
     /**
      * Set the random seed.
-     * 
+     *
      * @param seed the new seed
      */
     public void setSeed(long seed) {
         random.setSeed(seed);
     }
-    
+
     /**
      * Get a buffer with a subset (the head) of the data of the source buffer.
-     * 
+     *
      * @param src the source buffer
      * @return a buffer with a subset of the data
      */
@@ -278,7 +278,7 @@ class FileUnstable extends FileBase {
         }
         return channel.write(src);
     }
-    
+
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
         checkError();

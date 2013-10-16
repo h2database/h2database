@@ -294,6 +294,10 @@ GRANT { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
 tableName [,...] TO { PUBLIC | userName | roleName }
 ","
 Grants rights for a table to a user or role."
+"Commands (Other)","GRANT ALTER ANY SCHEMA","
+GRANT ALTER ANY SCHEMA TO userName
+","
+Grant schema altering rights to a user."
 "Commands (Other)","GRANT ROLE","
 GRANT roleName TO { PUBLIC | userName | roleName }
 ","

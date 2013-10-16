@@ -1295,7 +1295,7 @@ public class Session extends SessionWithState {
 
     /**
      * Set the table this session is waiting for, and the thread that is waiting.
-     * 
+     *
      * @param waitForLock the table
      * @param waitForLockThread the current thread (the one that is waiting)
      */
@@ -1311,7 +1311,7 @@ public class Session extends SessionWithState {
     public Thread getWaitForLockThread() {
         return waitForLockThread;
     }
-    
+
     public int getModificationId() {
         return modificationId;
     }

@@ -42,7 +42,7 @@ public class TestRights extends TestBase {
         testDropTempTables();
         // testLowerCaseUser();
         testSchemaRenameUser();
-        testAccessRights(); 
+        testAccessRights();
         testSchemaAdminRole();
         deleteDb("rights");
     }
@@ -199,7 +199,7 @@ public class TestRights extends TestBase {
         stat.execute("drop user test1");
         conn.close();
     }
-    
+
     private void testSchemaAdminRole() throws SQLException {
         if (config.memory) {
             return;
@@ -213,14 +213,14 @@ public class TestRights extends TestBase {
         testTableType(conn, "CACHED");
 
         executeSuccess("CREATE USER SCHEMA_CREATOR PASSWORD 'xyz'");
-          
+
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
         executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
         executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_RENAMED");
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         conn.close();
 
-        /* try and fail */
+        // try and fail
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
@@ -230,15 +230,15 @@ public class TestRights extends TestBase {
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
                 "DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         conn.close();
-       
-        /* give them */
+
+        // give them
         conn = getConnection("rights");
         stat = conn.createStatement();
         executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         executeSuccess("GRANT ALTER ANY SCHEMA TO SCHEMA_CREATOR");
         conn.close();
-   
-        /* try and succeed */
+
+        // try and succeed
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
@@ -246,14 +246,14 @@ public class TestRights extends TestBase {
         executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_RENAMED");
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         conn.close();
-          
-        /* revoke them */
+
+        // revoke them
         conn = getConnection("rights");
         stat = conn.createStatement();
         executeSuccess("REVOKE ALTER ANY SCHEMA FROM SCHEMA_CREATOR");
         conn.close();
-          
-        /* try and fail */
+
+        // try and fail
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).

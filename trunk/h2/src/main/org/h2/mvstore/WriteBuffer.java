@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 public class WriteBuffer {
 
     private static final int MAX_REUSE_LIMIT = 4 * 1024 * 1024;
-    
+
     /**
      * The maximum byte to grow a buffer at a time.
      */
@@ -23,10 +23,10 @@ public class WriteBuffer {
     private ByteBuffer reuse = ByteBuffer.allocate(512 * 1024);
 
     private ByteBuffer buff = reuse;
-    
+
     /**
      * Write a variable size integer.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -34,10 +34,10 @@ public class WriteBuffer {
         DataUtils.writeVarInt(ensureCapacity(5), x);
         return this;
     }
-    
+
     /**
      * Write a variable size long.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -48,7 +48,7 @@ public class WriteBuffer {
 
     /**
      * Write the characters of a string in a format similar to UTF-8.
-     * 
+     *
      * @param s the string
      * @param len the number of characters to write
      * @return this
@@ -73,7 +73,7 @@ public class WriteBuffer {
 
     /**
      * Put a byte.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -81,10 +81,10 @@ public class WriteBuffer {
         ensureCapacity(1).put(x);
         return this;
     }
-    
+
     /**
      * Put a character.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -92,10 +92,10 @@ public class WriteBuffer {
         ensureCapacity(2).putChar(x);
         return this;
     }
-    
+
     /**
      * Put a short.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -103,10 +103,10 @@ public class WriteBuffer {
         ensureCapacity(2).putShort(x);
         return this;
     }
-    
+
     /**
      * Put an integer.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -114,10 +114,10 @@ public class WriteBuffer {
         ensureCapacity(4).putInt(x);
         return this;
     }
-    
+
     /**
      * Put a long.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -125,10 +125,10 @@ public class WriteBuffer {
         ensureCapacity(8).putLong(x);
         return this;
     }
-    
+
     /**
      * Put a float.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -136,10 +136,10 @@ public class WriteBuffer {
         ensureCapacity(4).putFloat(x);
         return this;
     }
-    
+
     /**
      * Put a double.
-     * 
+     *
      * @param x the value
      * @return this
      */
@@ -150,7 +150,7 @@ public class WriteBuffer {
 
     /**
      * Put a byte array.
-     * 
+     *
      * @param bytes the value
      * @return this
      */
@@ -158,10 +158,10 @@ public class WriteBuffer {
         ensureCapacity(bytes.length).put(bytes);
         return this;
     }
-    
+
     /**
      * Put a byte array.
-     * 
+     *
      * @param bytes the value
      * @param offset the source offset
      * @param length the number of bytes
@@ -174,7 +174,7 @@ public class WriteBuffer {
 
     /**
      * Put the contents of a byte buffer.
-     * 
+     *
      * @param src the source buffer
      * @return this
      */
@@ -185,7 +185,7 @@ public class WriteBuffer {
 
     /**
      * Set the limit, possibly growing the buffer.
-     * 
+     *
      * @param newLimit the new limit
      * @return this
      */
@@ -193,19 +193,19 @@ public class WriteBuffer {
         ensureCapacity(newLimit - buff.position()).limit(newLimit);
         return this;
     }
-    
+
     /**
      * Get the capacity.
-     * 
+     *
      * @return the capacity
      */
     public int capacity() {
         return buff.capacity();
     }
-    
+
     /**
      * Set the position.
-     * 
+     *
      * @param newPosition the new position
      * @return the new position
      */
@@ -216,25 +216,25 @@ public class WriteBuffer {
 
     /**
      * Get the limit.
-     * 
+     *
      * @return the limit
      */
     public int limit() {
         return buff.limit();
     }
-    
+
     /**
      * Get the current position.
-     * 
+     *
      * @return the position
      */
     public int position() {
         return buff.position();
     }
-    
+
     /**
      * Copy the data into the destination array.
-     * 
+     *
      * @param dst the destination array
      * @return this
      */
@@ -242,10 +242,10 @@ public class WriteBuffer {
         buff.get(dst);
         return this;
     }
-    
+
     /**
      * Update an integer at the given index.
-     * 
+     *
      * @param index the index
      * @param value the value
      * @return this
@@ -254,10 +254,10 @@ public class WriteBuffer {
         buff.putInt(index, value);
         return this;
     }
-    
+
     /**
      * Update a short at the given index.
-     * 
+     *
      * @param index the index
      * @param value the value
      * @return this
@@ -269,7 +269,7 @@ public class WriteBuffer {
 
     /**
      * Clear the buffer after use.
-     * 
+     *
      * @return this
      */
     public WriteBuffer clear() {
@@ -281,10 +281,10 @@ public class WriteBuffer {
         buff.clear();
         return this;
     }
-    
+
     /**
      * Get the byte buffer.
-     * 
+     *
      * @return the byte buffer
      */
     public ByteBuffer getBuffer() {
@@ -297,7 +297,7 @@ public class WriteBuffer {
         }
         return buff;
     }
-    
+
     private void grow(int len) {
         ByteBuffer temp = buff;
         len = temp.remaining() + len;
@@ -310,5 +310,5 @@ public class WriteBuffer {
             reuse = buff;
         }
     }
-    
+
 }

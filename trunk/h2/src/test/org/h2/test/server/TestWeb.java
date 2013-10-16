@@ -74,7 +74,7 @@ public class TestWeb extends TestBase {
         testWebApp();
         testIfExists();
     }
-    
+
     private void testServlet() throws Exception {
         WebServlet servlet = new WebServlet();
         final HashMap<String, String> configMap = new HashMap<String, String>();
@@ -88,7 +88,7 @@ public class TestWeb extends TestBase {
             public String getServletName() {
                 return "H2Console";
             }
-            
+
             @Override
             public Enumeration<String> getInitParameterNames() {
                 return new Vector<String>(configMap.keySet()).elements();
@@ -278,10 +278,10 @@ public class TestWeb extends TestBase {
             result = client.get(url);
             client.readSessionId(result);
             result = client.get(url, "login.jsp");
-            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:webExists" + 
+            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:webExists" +
                     "&user=" + getUser() + "&password=" + getPassword() + "&name=_test_");
             assertTrue(result.indexOf("Exception") < 0);
-            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:web" + 
+            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:web" +
                     "&user=" + getUser() + "&password=" + getPassword() + "&name=_test_");
             assertContains(result, "Exception");
         } finally {
@@ -289,7 +289,7 @@ public class TestWeb extends TestBase {
             conn.close();
         }
     }
-    
+
     private void testWebApp() throws Exception {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
@@ -561,18 +561,18 @@ public class TestWeb extends TestBase {
     public static void openBrowser(String url) {
         lastUrl = url;
     }
-    
+
     /**
      * A HTTP servlet request for testing.
      */
     static class TestHttpServletRequest implements HttpServletRequest {
-            
+
         private String pathInfo;
-        
+
         void setPathInfo(String pathInfo) {
             this.pathInfo = pathInfo;
         }
-        
+
         @Override
         public Object getAttribute(String name) {
             return null;
@@ -843,16 +843,16 @@ public class TestWeb extends TestBase {
         public boolean isUserInRole(String x) {
             return false;
         }
-        
+
     }
-    
+
     /**
      * A HTTP servlet response for testing.
      */
     static class TestHttpServletResponse implements HttpServletResponse {
 
         ServletOutputStream servletOutputStream;
-        
+
         void setServletOutputStream(ServletOutputStream servletOutputStream) {
             this.servletOutputStream = servletOutputStream;
         }
@@ -1016,21 +1016,21 @@ public class TestWeb extends TestBase {
         public void setStatus(int arg0, String arg1) {
             // ignore
         }
-        
+
     }
-    
+
     /**
      * A servlet output stream for testing.
      */
     static class TestServletOutputStream extends ServletOutputStream {
-        
+
         private final ByteArrayOutputStream buff = new ByteArrayOutputStream();
 
         @Override
         public void write(int b) throws IOException {
             buff.write(b);
         }
-        
+
         @Override
         public String toString() {
             try {
@@ -1039,7 +1039,7 @@ public class TestWeb extends TestBase {
                 return e.toString();
             }
         }
-        
+
     }
 
 }

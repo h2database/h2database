@@ -45,7 +45,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         testScanResistance();
         testRandomOperations();
     }
-    
+
     private static void testRandomSmallCache() {
         Random r = new Random(1);
         for (int i = 0; i < 10000; i++) {

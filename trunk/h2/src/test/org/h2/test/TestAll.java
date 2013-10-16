@@ -231,7 +231,7 @@ java -cp . org.h2.test.TestAll crash >testCrash.txt
 java org.h2.test.TestAll timer
 
 */
-    
+
     ;
     private static final boolean MV_STORE = false;
 

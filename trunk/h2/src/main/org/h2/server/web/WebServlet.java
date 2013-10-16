@@ -160,5 +160,5 @@ public class WebServlet extends HttpServlet {
     public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doGet(req, resp);
     }
-    
+
 }

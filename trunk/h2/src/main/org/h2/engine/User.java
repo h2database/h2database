@@ -204,7 +204,7 @@ public class User extends RightOwner {
             throw DbException.get(ErrorCode.ADMIN_RIGHTS_REQUIRED);
         }
     }
-    
+
     /**
      * Check if this user has schema admin rights. An exception is thrown if he does
      * not have them.

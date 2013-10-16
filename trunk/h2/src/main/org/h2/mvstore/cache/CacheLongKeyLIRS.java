@@ -880,7 +880,7 @@ public class CacheLongKeyLIRS<V> {
 
         /**
          * Remove the entry from the stack. The head itself must not be removed.
-         * 
+         *
          * @param e the entry
          */
         private void removeFromStack(Entry<V> e) {

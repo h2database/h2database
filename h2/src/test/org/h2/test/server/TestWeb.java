@@ -1024,7 +1024,7 @@ public class TestWeb extends TestBase {
      */
     static class TestServletOutputStream extends ServletOutputStream {
         
-        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        private final ByteArrayOutputStream buff = new ByteArrayOutputStream();
 
         @Override
         public void write(int b) throws IOException {

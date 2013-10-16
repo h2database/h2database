@@ -121,13 +121,13 @@ public class Chunk {
      * @param buff the target buffer
      */
     void writeHeader(WriteBuffer buff) {
-        buff.put((byte) 'c');
-        buff.putInt(length);
-        buff.putInt(id);
-        buff.putInt(pageCount);
-        buff.putLong(metaRootPos);
-        buff.putLong(maxLength);
-        buff.putLong(maxLengthLive);
+        buff.put((byte) 'c').
+            putInt(length).
+            putInt(id).
+            putInt(pageCount).
+            putLong(metaRootPos).
+            putLong(maxLength).
+            putLong(maxLengthLive);
     }
 
     /**

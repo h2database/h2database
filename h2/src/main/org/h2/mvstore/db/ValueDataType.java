@@ -163,36 +163,30 @@ public class ValueDataType implements DataType {
             buff.put((byte) (v.getBoolean().booleanValue() ? BOOLEAN_TRUE : BOOLEAN_FALSE));
             break;
         case Value.BYTE:
-            buff.put((byte) type);
-            buff.put(v.getByte());
+            buff.put((byte) type).put(v.getByte());
             break;
         case Value.SHORT:
-            buff.put((byte) type);
-            buff.putShort(v.getShort());
+            buff.put((byte) type).putShort(v.getShort());
             break;
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {
-                buff.put((byte) INT_NEG);
-                buff.writeVarInt(-x);
+                buff.put((byte) INT_NEG).putVarInt(-x);
             } else if (x < 16) {
                 buff.put((byte) (INT_0_15 + x));
             } else {
-                buff.put((byte) type);
-                buff.writeVarInt(x);
+                buff.put((byte) type).putVarInt(x);
             }
             break;
         }
         case Value.LONG: {
             long x = v.getLong();
             if (x < 0) {
-                buff.put((byte) LONG_NEG);
-                buff.writeVarLong(-x);
+                buff.put((byte) LONG_NEG).putVarLong(-x);
             } else if (x < 8) {
                 buff.put((byte) (LONG_0_7 + x));
             } else {
-                buff.put((byte) type);
-                buff.writeVarLong(x);
+                buff.put((byte) type).putVarLong(x);
             }
             break;
         }
@@ -208,84 +202,83 @@ public class ValueDataType implements DataType {
                 int bits = b.bitLength();
                 if (bits <= 63) {
                     if (scale == 0) {
-                        buff.put((byte) DECIMAL_SMALL_0);
-                        buff.writeVarLong(b.longValue());
+                        buff.put((byte) DECIMAL_SMALL_0).
+                            putVarLong(b.longValue());
                     } else {
-                        buff.put((byte) DECIMAL_SMALL);
-                        buff.writeVarInt(scale);
-                        buff.writeVarLong(b.longValue());
+                        buff.put((byte) DECIMAL_SMALL). 
+                            putVarInt(scale).
+                            putVarLong(b.longValue());
                     }
                 } else {
-                    buff.put((byte) type);
-                    buff.writeVarInt(scale);
                     byte[] bytes = b.toByteArray();
-                    buff.writeVarInt(bytes.length);
-                    buff.put(bytes);
+                    buff.put((byte) type).
+                        putVarInt(scale).
+                        putVarInt(bytes.length).
+                        put(bytes);
                 }
             }
             break;
         }
         case Value.TIME: {
-            buff.put((byte) type);
             ValueTime t = (ValueTime) v;
             long nanos = t.getNanos();
             long millis = nanos / 1000000;
             nanos -= millis * 1000000;
-            buff.writeVarLong(millis);
-            buff.writeVarLong(nanos);
+            buff.put((byte) type).
+                putVarLong(millis).
+                putVarLong(nanos);
             break;
         }
         case Value.DATE: {
-            buff.put((byte) type);
             long x = ((ValueDate) v).getDateValue();
-            buff.writeVarLong(x);
+            buff.put((byte) type).putVarLong(x);
             break;
         }
         case Value.TIMESTAMP: {
-            buff.put((byte) type);
             ValueTimestamp ts = (ValueTimestamp) v;
             long dateValue = ts.getDateValue();
-            buff.writeVarLong(dateValue);
             long nanos = ts.getNanos();
             long millis = nanos / 1000000;
             nanos -= millis * 1000000;
-            buff.writeVarLong(millis);
-            buff.writeVarLong(nanos);
+            buff.put((byte) type).
+                putVarLong(dateValue).
+                putVarLong(millis).
+                putVarLong(nanos);
             break;
         }
         case Value.JAVA_OBJECT: {
-            buff.put((byte) type);
             byte[] b = v.getBytesNoCopy();
-            buff.writeVarInt(b.length);
-            buff.put(b);
+            buff.put((byte) type).
+                putVarInt(b.length).
+                put(b);
             break;
         }
         case Value.BYTES: {
             byte[] b = v.getBytesNoCopy();
             int len = b.length;
             if (len < 32) {
-                buff.put((byte) (BYTES_0_31 + len));
-                buff.put(b);
+                buff.put((byte) (BYTES_0_31 + len)).
+                    put(b);
             } else {
-                buff.put((byte) type);
-                buff.writeVarInt(b.length);
-                buff.put(b);
+                buff.put((byte) type).
+                    putVarInt(b.length).
+                    put(b);
             }
             break;
         }
         case Value.UUID: {
-            buff.put((byte) type);
             ValueUuid uuid = (ValueUuid) v;
-            buff.putLong(uuid.getHigh());
-            buff.putLong(uuid.getLow());
+            buff.put((byte) type).
+                putLong(uuid.getHigh()).
+                putLong(uuid.getLow());
             break;
         }
         case Value.STRING: {
             String s = v.getString();
             int len = s.length();
             if (len < 32) {
-                buff.put((byte) (STRING_0_31 + len));
-                buff.writeStringData(s, len);
+                buff.put((byte) (STRING_0_31 + len)).
+                    putStringData(s, len);
             } else {
                 buff.put((byte) type);
                 writeString(buff, s);
@@ -306,8 +299,8 @@ public class ValueDataType implements DataType {
                 if (d == ValueDouble.ZERO_BITS) {
                     buff.put((byte) DOUBLE_0_1);
                 } else {
-                    buff.put((byte) type);
-                    buff.writeVarLong(Long.reverse(d));
+                    buff.put((byte) type).
+                        putVarLong(Long.reverse(d));
                 }
             }
             break;
@@ -321,8 +314,8 @@ public class ValueDataType implements DataType {
                 if (f == ValueFloat.ZERO_BITS) {
                     buff.put((byte) FLOAT_0_1);
                 } else {
-                    buff.put((byte) type);
-                    buff.writeVarInt(Integer.reverse(f));
+                    buff.put((byte) type).
+                        putVarInt(Integer.reverse(f));
                 }
             }
             break;
@@ -339,37 +332,35 @@ public class ValueDataType implements DataType {
                     if (!lob.isLinked()) {
                         t = -2;
                     }
-                    buff.writeVarInt(t);
-                    buff.writeVarInt(lob.getTableId());
-                    buff.writeVarInt(lob.getObjectId());
-                    buff.writeVarLong(lob.getPrecision());
-                    buff.put((byte) (lob.isCompressed() ? 1 : 0));
+                    buff.putVarInt(t).
+                        putVarInt(lob.getTableId()).
+                        putVarInt(lob.getObjectId()).
+                        putVarLong(lob.getPrecision()).
+                        put((byte) (lob.isCompressed() ? 1 : 0));
                     if (t == -2) {
                         writeString(buff, lob.getFileName());
                     }
                 } else {
-                    buff.writeVarInt(small.length);
-                    buff.put(small);
+                    buff.putVarInt(small.length).put(small);
                 }
             } else {
                 ValueLobDb lob = (ValueLobDb) v;
                 byte[] small = lob.getSmall();
                 if (small == null) {
-                    buff.writeVarInt(-3);
-                    buff.writeVarInt(lob.getTableId());
-                    buff.writeVarLong(lob.getLobId());
-                    buff.writeVarLong(lob.getPrecision());
+                    buff.putVarInt(-3).
+                        putVarInt(lob.getTableId()).
+                        putVarLong(lob.getLobId()).
+                        putVarLong(lob.getPrecision());
                 } else {
-                    buff.writeVarInt(small.length);
-                    buff.put(small);
+                    buff.putVarInt(small.length).
+                        put(small);
                 }
             }
             break;
         }
         case Value.ARRAY: {
-            buff.put((byte) type);
             Value[] list = ((ValueArray) v).getList();
-            buff.writeVarInt(list.length);
+            buff.put((byte) type).putVarInt(list.length);
             for (Value x : list) {
                 writeValue(buff, x);
             }
@@ -382,12 +373,12 @@ public class ValueDataType implements DataType {
                 rs.beforeFirst();
                 ResultSetMetaData meta = rs.getMetaData();
                 int columnCount = meta.getColumnCount();
-                buff.writeVarInt(columnCount);
+                buff.putVarInt(columnCount);
                 for (int i = 0; i < columnCount; i++) {
                     writeString(buff, meta.getColumnName(i + 1));
-                    buff.writeVarInt(meta.getColumnType(i + 1));
-                    buff.writeVarInt(meta.getPrecision(i + 1));
-                    buff.writeVarInt(meta.getScale(i + 1));
+                    buff.putVarInt(meta.getColumnType(i + 1)).
+                        putVarInt(meta.getPrecision(i + 1)).
+                        putVarInt(meta.getScale(i + 1));
                 }
                 while (rs.next()) {
                     buff.put((byte) 1);
@@ -405,11 +396,11 @@ public class ValueDataType implements DataType {
             break;
         }
         case Value.GEOMETRY: {
-            buff.put((byte) type);
             byte[] b = v.getBytes();
             int len = b.length;
-            buff.writeVarInt(len);
-            buff.put(b);
+            buff.put((byte) type).
+                putVarInt(len).
+                put(b);
             break;
         }
         default:
@@ -419,8 +410,7 @@ public class ValueDataType implements DataType {
 
     private static void writeString(WriteBuffer buff, String s) {
         int len = s.length();
-        buff.writeVarInt(len);
-        buff.writeStringData(s, len);
+        buff.putVarInt(len).putStringData(s, len);
     }
 
     /**

@@ -62,14 +62,14 @@ public class SpatialDataType implements DataType {
                 flags |= 1 << i;
             }
         }
-        buff.writeVarInt(flags);
+        buff.putVarInt(flags);
         for (int i = 0; i < dimensions; i++) {
             buff.putFloat(k.min(i));
             if ((flags & (1 << i)) == 0) {
                 buff.putFloat(k.max(i));
             }
         }
-        buff.writeVarLong(k.getId());
+        buff.putVarLong(k.getId());
     }
 
     @Override

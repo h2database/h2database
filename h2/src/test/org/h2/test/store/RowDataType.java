@@ -73,7 +73,7 @@ public class RowDataType implements DataType {
     public void write(WriteBuffer buff, Object obj) {
         Object[] x = (Object[]) obj;
         int len = x.length;
-        buff.writeVarInt(len);
+        buff.putVarInt(len);
         for (int i = 0; i < len; i++) {
             types[i].write(buff, x[i]);
         }

@@ -1327,8 +1327,8 @@ public class TransactionStore {
         @Override
         public void write(WriteBuffer buff, Object obj) {
             VersionedValue v = (VersionedValue) obj;
-            buff.writeVarLong(v.transactionId);
-            buff.writeVarLong(v.logId);
+            buff.putVarLong(v.transactionId);
+            buff.putVarLong(v.logId);
             if (v.value == null) {
                 buff.put((byte) 0);
             } else {

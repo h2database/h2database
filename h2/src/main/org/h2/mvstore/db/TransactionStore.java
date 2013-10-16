@@ -17,6 +17,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVMap.Builder;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.New;
@@ -1324,17 +1325,16 @@ public class TransactionStore {
         }
 
         @Override
-        public ByteBuffer write(ByteBuffer buff, Object obj) {
+        public void write(WriteBuffer buff, Object obj) {
             VersionedValue v = (VersionedValue) obj;
-            DataUtils.writeVarLong(buff, v.transactionId);
-            DataUtils.writeVarLong(buff, v.logId);
+            buff.writeVarLong(v.transactionId);
+            buff.writeVarLong(v.logId);
             if (v.value == null) {
                 buff.put((byte) 0);
             } else {
                 buff.put((byte) 1);
-                buff = valueType.write(buff, v.value);
+                valueType.write(buff, v.value);
             }
-            return buff;
         }
 
         @Override
@@ -1396,7 +1396,7 @@ public class TransactionStore {
         }
 
         @Override
-        public ByteBuffer write(ByteBuffer buff, Object obj) {
+        public void write(WriteBuffer buff, Object obj) {
             Object[] array = (Object[]) obj;
             for (int i = 0; i < arrayLength; i++) {
                 DataType t = elementTypes[i];
@@ -1405,10 +1405,9 @@ public class TransactionStore {
                     buff.put((byte) 0);
                 } else {
                     buff.put((byte) 1);
-                    buff = t.write(buff, o);
+                    t.write(buff, o);
                 }
             }
-            return buff;
         }
 
         @Override

@@ -13,6 +13,8 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.UUID;
+
+import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.test.TestBase;
 
@@ -131,17 +133,18 @@ public class TestObjectDataType extends TestBase {
 
         ot.getMemory(last);
         assertEquals(0, ot.compare(x, x));
-        ByteBuffer buff = ByteBuffer.allocate(1024);
+        WriteBuffer buff = new WriteBuffer();
 
         ot.getMemory(last);
-        buff = ot.write(buff, x);
+        ot.write(buff, x);
         buff.put((byte) 123);
-        buff.flip();
+        ByteBuffer bb = buff.getBuffer();
+        bb.flip();
 
         ot.getMemory(last);
-        Object y = ot.read(buff);
-        assertEquals(123, buff.get());
-        assertEquals(0, buff.remaining());
+        Object y = ot.read(bb);
+        assertEquals(123, bb.get());
+        assertEquals(0, bb.remaining());
         assertEquals(x.getClass().getName(), y.getClass().getName());
 
         ot.getMemory(last);

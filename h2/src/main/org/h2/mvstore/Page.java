@@ -770,35 +770,33 @@ public class Page {
      *
      * @param chunk the chunk
      * @param buff the target buffer
-     * @return the target buffer
      */
-    private ByteBuffer write(Chunk chunk, ByteBuffer buff) {
-        buff = DataUtils.ensureCapacity(buff, 1024);
+    private void write(Chunk chunk, WriteBuffer buff) {
         int start = buff.position();
         buff.putInt(0);
         buff.putShort((byte) 0);
-        DataUtils.writeVarInt(buff, map.getId());
+        buff.writeVarInt(map.getId());
         int len = keyCount;
-        DataUtils.writeVarInt(buff, len);
+        buff.writeVarInt(len);
         int type = children != null ? DataUtils.PAGE_TYPE_NODE
                 : DataUtils.PAGE_TYPE_LEAF;
         buff.put((byte) type);
         int compressStart = buff.position();
         DataType keyType = map.getKeyType();
         for (int i = 0; i < len; i++) {
-            buff = keyType.write(buff, keys[i]);
+            keyType.write(buff, keys[i]);
         }
         if (type == DataUtils.PAGE_TYPE_NODE) {
             for (int i = 0; i <= len; i++) {
                 buff.putLong(children[i]);
             }
             for (int i = 0; i <= len; i++) {
-                DataUtils.writeVarLong(buff, counts[i]);
+                buff.writeVarLong(counts[i]);
             }
         } else {
             DataType valueType = map.getValueType();
             for (int i = 0; i < len; i++) {
-                buff = valueType.write(buff, values[i]);
+                valueType.write(buff, values[i]);
             }
         }
         if (map.getStore().getCompress()) {
@@ -812,7 +810,7 @@ public class Page {
             if (compLen + DataUtils.getVarIntLen(compLen - expLen) < expLen) {
                 buff.position(compressStart - 1);
                 buff.put((byte) (type + DataUtils.PAGE_COMPRESSED));
-                DataUtils.writeVarInt(buff, expLen - compLen);
+                buff.writeVarInt(expLen - compLen);
                 buff.put(comp, 0, compLen);
             }
         }
@@ -833,7 +831,6 @@ public class Page {
         chunk.maxLengthLive += max;
         chunk.pageCount++;
         chunk.pageCountLive++;
-        return buff;
     }
 
     /**
@@ -842,24 +839,23 @@ public class Page {
      *
      * @param chunk the chunk
      * @param buff the target buffer
-     * @return the target buffer
      */
-    ByteBuffer writeUnsavedRecursive(Chunk chunk, ByteBuffer buff) {
+    void writeUnsavedRecursive(Chunk chunk, WriteBuffer buff) {
         if (pos != 0) {
             // already stored before
-            return buff;
+            return;
         }
         if (!isLeaf()) {
             int len = children.length;
             for (int i = 0; i < len; i++) {
                 Page p = childrenPages[i];
                 if (p != null) {
-                    buff = p.writeUnsavedRecursive(chunk, buff);
+                    p.writeUnsavedRecursive(chunk, buff);
                     children[i] = p.getPos();
                 }
             }
         }
-        return write(chunk, buff);
+        write(chunk, buff);
     }
 
     /**

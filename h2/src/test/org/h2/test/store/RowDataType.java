@@ -8,6 +8,7 @@ package org.h2.test.store;
 
 import java.nio.ByteBuffer;
 import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 
 /**
@@ -69,15 +70,13 @@ public class RowDataType implements DataType {
     }
 
     @Override
-    public ByteBuffer write(ByteBuffer buff, Object obj) {
+    public void write(WriteBuffer buff, Object obj) {
         Object[] x = (Object[]) obj;
         int len = x.length;
-        DataUtils.writeVarInt(buff, len);
+        buff.writeVarInt(len);
         for (int i = 0; i < len; i++) {
-            buff = DataUtils.ensureCapacity(buff, 0);
-            buff = types[i].write(buff, x[i]);
+            types[i].write(buff, x[i]);
         }
-        return buff;
     }
 
 }

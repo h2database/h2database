@@ -120,7 +120,7 @@ public class Chunk {
      *
      * @param buff the target buffer
      */
-    void writeHeader(ByteBuffer buff) {
+    void writeHeader(WriteBuffer buff) {
         buff.put((byte) 'c');
         buff.putInt(length);
         buff.putInt(id);

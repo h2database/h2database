@@ -773,14 +773,14 @@ public class Page {
      */
     private void write(Chunk chunk, WriteBuffer buff) {
         int start = buff.position();
-        buff.putInt(0);
-        buff.putShort((byte) 0);
-        buff.writeVarInt(map.getId());
         int len = keyCount;
-        buff.writeVarInt(len);
         int type = children != null ? DataUtils.PAGE_TYPE_NODE
                 : DataUtils.PAGE_TYPE_LEAF;
-        buff.put((byte) type);
+        buff.putInt(0).
+            putShort((byte) 0).
+            putVarInt(map.getId()).
+            putVarInt(len).
+            put((byte) type);
         int compressStart = buff.position();
         DataType keyType = map.getKeyType();
         for (int i = 0; i < len; i++) {
@@ -791,7 +791,7 @@ public class Page {
                 buff.putLong(children[i]);
             }
             for (int i = 0; i <= len; i++) {
-                buff.writeVarLong(counts[i]);
+                buff.putVarLong(counts[i]);
             }
         } else {
             DataType valueType = map.getValueType();
@@ -803,24 +803,24 @@ public class Page {
             Compressor compressor = map.getStore().getCompressor();
             int expLen = buff.position() - compressStart;
             byte[] exp = new byte[expLen];
-            buff.position(compressStart);
-            buff.get(exp);
+            buff.position(compressStart).
+                get(exp);
             byte[] comp = new byte[exp.length * 2];
             int compLen = compressor.compress(exp, exp.length, comp, 0);
             if (compLen + DataUtils.getVarIntLen(compLen - expLen) < expLen) {
-                buff.position(compressStart - 1);
-                buff.put((byte) (type + DataUtils.PAGE_COMPRESSED));
-                buff.writeVarInt(expLen - compLen);
-                buff.put(comp, 0, compLen);
+                buff.position(compressStart - 1).
+                    put((byte) (type + DataUtils.PAGE_COMPRESSED)).
+                    putVarInt(expLen - compLen).
+                    put(comp, 0, compLen);
             }
         }
         int pageLength = buff.position() - start;
-        buff.putInt(start, pageLength);
         int chunkId = chunk.id;
         int check = DataUtils.getCheckValue(chunkId)
                 ^ DataUtils.getCheckValue(start)
                 ^ DataUtils.getCheckValue(pageLength);
-        buff.putShort(start + 4, (short) check);
+        buff.putInt(start, pageLength).
+            putShort(start + 4, (short) check);
         if (pos != 0) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_INTERNAL, "Page already stored");

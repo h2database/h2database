@@ -37,8 +37,7 @@ public class StringDataType implements DataType {
     public void write(WriteBuffer buff, Object obj) {
         String s = obj.toString();
         int len = s.length();
-        buff.writeVarInt(len);
-        buff.writeStringData(s, len);
+        buff.putVarInt(len).putStringData(s, len);
     }
 
 }

@@ -18,22 +18,42 @@ public class WriteBuffer {
     /**
      * The maximum byte to grow a buffer at a time.
      */
-    private static final int MAX_GROW = 4 * 1024 * 1024;
+    private static final int MAX_GROW = 1024 * 1024;
 
-    
     private ByteBuffer reuse = ByteBuffer.allocate(512 * 1024);
 
     private ByteBuffer buff = reuse;
     
-    public void writeVarInt(int x) {
+    /**
+     * Write a variable size integer.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer putVarInt(int x) {
         DataUtils.writeVarInt(ensureCapacity(5), x);
+        return this;
     }
     
-    public void writeVarLong(long x) {
+    /**
+     * Write a variable size long.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer putVarLong(long x) {
         DataUtils.writeVarLong(ensureCapacity(10), x);
+        return this;
     }
 
-    public void writeStringData(String s, int len) {
+    /**
+     * Write the characters of a string in a format similar to UTF-8.
+     * 
+     * @param s the string
+     * @param len the number of characters to write
+     * @return this
+     */
+    public WriteBuffer putStringData(String s, int len) {
         ByteBuffer b = ensureCapacity(3 * len);
         for (int i = 0; i < len; i++) {
             int c = s.charAt(i);
@@ -48,94 +68,229 @@ public class WriteBuffer {
                 b.put((byte) (c & 0x3f));
             }
         }
+        return this;
     }
 
-    public void put(byte x) {
+    /**
+     * Put a byte.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer put(byte x) {
         ensureCapacity(1).put(x);
+        return this;
     }
     
-    public void putChar(char x) {
+    /**
+     * Put a character.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer putChar(char x) {
         ensureCapacity(2).putChar(x);
+        return this;
     }
     
-    public void putShort(short x) {
+    /**
+     * Put a short.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer putShort(short x) {
         ensureCapacity(2).putShort(x);
+        return this;
     }
     
-    public void putInt(int x) {
+    /**
+     * Put an integer.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer putInt(int x) {
         ensureCapacity(4).putInt(x);
+        return this;
     }
     
-    public void putLong(long x) {
+    /**
+     * Put a long.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer putLong(long x) {
         ensureCapacity(8).putLong(x);
+        return this;
     }
     
-    public void putFloat(float x) {
+    /**
+     * Put a float.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer putFloat(float x) {
         ensureCapacity(4).putFloat(x);
+        return this;
     }
     
-    public void putDouble(double x) {
+    /**
+     * Put a double.
+     * 
+     * @param x the value
+     * @return this
+     */
+    public WriteBuffer putDouble(double x) {
         ensureCapacity(8).putDouble(x);
+        return this;
     }
-    
-    public void put(byte[] bytes) {
+
+    /**
+     * Put a byte array.
+     * 
+     * @param bytes the value
+     * @return this
+     */
+    public WriteBuffer put(byte[] bytes) {
         ensureCapacity(bytes.length).put(bytes);
+        return this;
     }
     
-    public void put(byte[] bytes, int offset, int length) {
+    /**
+     * Put a byte array.
+     * 
+     * @param bytes the value
+     * @param offset the source offset
+     * @param length the number of bytes
+     * @return this
+     */
+    public WriteBuffer put(byte[] bytes, int offset, int length) {
         ensureCapacity(length).put(bytes, offset, length);
+        return this;
     }
 
-    public void position(int newPosition) {
-        buff.position(newPosition);
-    }
-
-    public int position() {
-        return buff.position();
-    }
-    
-    public void get(byte[] dst) {
-        buff.get(dst);
-    }
-    
-    public void putInt(int index, int value) {
-        buff.putInt(index, value);
-    }
-    
-    public void putShort(int index, short value) {
-        buff.putShort(index, value);
-    }
-    
-    public void put(ByteBuffer src) {
+    /**
+     * Put the contents of a byte buffer.
+     * 
+     * @param src the source buffer
+     * @return this
+     */
+    public WriteBuffer put(ByteBuffer src) {
         ensureCapacity(buff.remaining()).put(src);
+        return this;
     }
 
-    public void limit(int newLimit) {
+    /**
+     * Set the limit, possibly growing the buffer.
+     * 
+     * @param newLimit the new limit
+     * @return this
+     */
+    public WriteBuffer limit(int newLimit) {
         ensureCapacity(newLimit - buff.position()).limit(newLimit);
+        return this;
     }
     
-    public int limit() {
-        return buff.limit();
-    }
-    
+    /**
+     * Get the capacity.
+     * 
+     * @return the capacity
+     */
     public int capacity() {
         return buff.capacity();
     }
     
-    public ByteBuffer getBuffer() {
-        return buff;
+    /**
+     * Set the position.
+     * 
+     * @param newPosition the new position
+     * @return the new position
+     */
+    public WriteBuffer position(int newPosition) {
+        buff.position(newPosition);
+        return this;
+    }
+
+    /**
+     * Get the limit.
+     * 
+     * @return the limit
+     */
+    public int limit() {
+        return buff.limit();
+    }
+    
+    /**
+     * Get the current position.
+     * 
+     * @return the position
+     */
+    public int position() {
+        return buff.position();
+    }
+    
+    /**
+     * Copy the data into the destination array.
+     * 
+     * @param dst the destination array
+     * @return this
+     */
+    public WriteBuffer get(byte[] dst) {
+        buff.get(dst);
+        return this;
+    }
+    
+    /**
+     * Update an integer at the given index.
+     * 
+     * @param index the index
+     * @param value the value
+     * @return this
+     */
+    public WriteBuffer putInt(int index, int value) {
+        buff.putInt(index, value);
+        return this;
+    }
+    
+    /**
+     * Update a short at the given index.
+     * 
+     * @param index the index
+     * @param value the value
+     * @return this
+     */
+    public WriteBuffer putShort(int index, short value) {
+        buff.putShort(index, value);
+        return this;
     }
 
     /**
      * Clear the buffer after use.
+     * 
+     * @return this
      */
-    void clear() {
+    public WriteBuffer clear() {
         if (buff.limit() > MAX_REUSE_LIMIT) {
             buff = reuse;
+        } else if (buff != reuse) {
+            reuse = buff;
         }
         buff.clear();
+        return this;
     }
     
+    /**
+     * Get the byte buffer.
+     * 
+     * @return the byte buffer
+     */
+    public ByteBuffer getBuffer() {
+        return buff;
+    }
+
     private ByteBuffer ensureCapacity(int len) {
         if (buff.remaining() < len) {
             grow(len);
@@ -155,5 +310,5 @@ public class WriteBuffer {
             reuse = buff;
         }
     }
-
+    
 }

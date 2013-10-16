@@ -6,6 +6,7 @@
  */
 package org.h2.test.server;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -13,10 +14,30 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletInputStream;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.ServletContext;
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.server.web.WebServlet;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
@@ -43,6 +64,7 @@ public class TestWeb extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testServlet();
         testWrongParameters();
         testTools();
         testTransfer();
@@ -51,6 +73,49 @@ public class TestWeb extends TestBase {
         testServer();
         testWebApp();
         testIfExists();
+    }
+    
+    private void testServlet() throws Exception {
+        WebServlet servlet = new WebServlet();
+        final HashMap<String, String> configMap = new HashMap<String, String>();
+        configMap.put("ifExists", "");
+        configMap.put("", "");
+        configMap.put("", "");
+        configMap.put("", "");
+        ServletConfig config = new ServletConfig() {
+
+            @Override
+            public String getServletName() {
+                return "H2Console";
+            }
+            
+            @Override
+            public Enumeration<String> getInitParameterNames() {
+                return new Vector<String>(configMap.keySet()).elements();
+            }
+
+            @Override
+            public String getInitParameter(String name) {
+                return configMap.get(name);
+            }
+
+            @Override
+            public ServletContext getServletContext() {
+                return null;
+            }
+
+        };
+        servlet.init(config);
+
+
+        TestHttpServletRequest request = new TestHttpServletRequest();
+        request.setPathInfo("/");
+        TestHttpServletResponse response = new TestHttpServletResponse();
+        TestServletOutputStream out = new TestServletOutputStream();
+        response.setServletOutputStream(out);
+        servlet.doGet(request, response);
+        assertContains(out.toString(), "location.href = 'login.jsp");
+        servlet.destroy();
     }
 
     private static void testWrongParameters() {
@@ -67,7 +132,7 @@ public class TestWeb extends TestBase {
         new AssertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1) {
             @Override
             public void test() throws SQLException {
-            Server.createWebServer("-webPort=8182");
+                Server.createWebServer("-webPort=8182");
         }};
     }
 
@@ -495,6 +560,486 @@ public class TestWeb extends TestBase {
      */
     public static void openBrowser(String url) {
         lastUrl = url;
+    }
+    
+    /**
+     * A HTTP servlet request for testing.
+     */
+    static class TestHttpServletRequest implements HttpServletRequest {
+            
+        private String pathInfo;
+        
+        void setPathInfo(String pathInfo) {
+            this.pathInfo = pathInfo;
+        }
+        
+        @Override
+        public Object getAttribute(String name) {
+            return null;
+        }
+
+        @Override
+        public Enumeration<String> getAttributeNames() {
+            return new Vector<String>().elements();
+        }
+
+        @Override
+        public String getCharacterEncoding() {
+            return null;
+        }
+
+        @Override
+        public int getContentLength() {
+            return 0;
+        }
+
+        @Override
+        public String getContentType() {
+            return null;
+        }
+
+        @Override
+        public ServletInputStream getInputStream() throws IOException {
+            return null;
+        }
+
+        @Override
+        public String getLocalAddr() {
+            return null;
+        }
+
+        @Override
+        public String getLocalName() {
+            return null;
+        }
+
+        @Override
+        public int getLocalPort() {
+            return 0;
+        }
+
+        @Override
+        public Locale getLocale() {
+            return null;
+        }
+
+        @Override
+        public Enumeration<Locale> getLocales() {
+            return null;
+        }
+
+        @Override
+        public String getParameter(String name) {
+            return null;
+        }
+
+        @Override
+        public Map<String, String> getParameterMap() {
+            return null;
+        }
+
+        @Override
+        public Enumeration<String> getParameterNames() {
+            return new Vector<String>().elements();
+        }
+
+        @Override
+        public String[] getParameterValues(String name) {
+            return null;
+        }
+
+        @Override
+        public String getProtocol() {
+            return null;
+        }
+
+        @Override
+        public BufferedReader getReader() throws IOException {
+            return null;
+        }
+
+        @Override
+        public String getRealPath(String path) {
+            return null;
+        }
+
+        @Override
+        public String getRemoteAddr() {
+            return null;
+        }
+
+        @Override
+        public String getRemoteHost() {
+            return null;
+        }
+
+        @Override
+        public int getRemotePort() {
+            return 0;
+        }
+
+        @Override
+        public RequestDispatcher getRequestDispatcher(String name) {
+            return null;
+        }
+
+        @Override
+        public String getScheme() {
+            return null;
+        }
+
+        @Override
+        public String getServerName() {
+            return null;
+        }
+
+        @Override
+        public int getServerPort() {
+            return 0;
+        }
+
+        @Override
+        public boolean isSecure() {
+            return false;
+        }
+
+        @Override
+        public void removeAttribute(String name) {
+            // ignore
+        }
+
+        @Override
+        public void setAttribute(String name, Object value) {
+            // ignore
+        }
+
+        @Override
+        public void setCharacterEncoding(String encoding)
+                throws UnsupportedEncodingException {
+            // ignore
+        }
+
+        @Override
+        public String getAuthType() {
+            return null;
+        }
+
+        @Override
+        public String getContextPath() {
+            return null;
+        }
+
+        @Override
+        public Cookie[] getCookies() {
+            return null;
+        }
+
+        @Override
+        public long getDateHeader(String x) {
+            return 0;
+        }
+
+        @Override
+        public String getHeader(String name) {
+            return null;
+        }
+
+        @Override
+        public Enumeration<String> getHeaderNames() {
+            return null;
+        }
+
+        @Override
+        public Enumeration<String> getHeaders(String name) {
+            return null;
+        }
+
+        @Override
+        public int getIntHeader(String name) {
+            return 0;
+        }
+
+        @Override
+        public String getMethod() {
+            return null;
+        }
+
+        @Override
+        public String getPathInfo() {
+            return pathInfo;
+        }
+
+        @Override
+        public String getPathTranslated() {
+            return null;
+        }
+
+        @Override
+        public String getQueryString() {
+            return null;
+        }
+
+        @Override
+        public String getRemoteUser() {
+            return null;
+        }
+
+        @Override
+        public String getRequestURI() {
+            return null;
+        }
+
+        @Override
+        public StringBuffer getRequestURL() {
+            return null;
+        }
+
+        @Override
+        public String getRequestedSessionId() {
+            return null;
+        }
+
+        @Override
+        public String getServletPath() {
+            return null;
+        }
+
+        @Override
+        public HttpSession getSession() {
+            return null;
+        }
+
+        @Override
+        public HttpSession getSession(boolean x) {
+            return null;
+        }
+
+        @Override
+        public Principal getUserPrincipal() {
+            return null;
+        }
+
+        @Override
+        public boolean isRequestedSessionIdFromCookie() {
+            return false;
+        }
+
+        @Override
+        public boolean isRequestedSessionIdFromURL() {
+            return false;
+        }
+
+        @Override
+        public boolean isRequestedSessionIdFromUrl() {
+            return false;
+        }
+
+        @Override
+        public boolean isRequestedSessionIdValid() {
+            return false;
+        }
+
+        @Override
+        public boolean isUserInRole(String x) {
+            return false;
+        }
+        
+    }
+    
+    /**
+     * A HTTP servlet response for testing.
+     */
+    static class TestHttpServletResponse implements HttpServletResponse {
+
+        ServletOutputStream servletOutputStream;
+        
+        void setServletOutputStream(ServletOutputStream servletOutputStream) {
+            this.servletOutputStream = servletOutputStream;
+        }
+
+        @Override
+        public void flushBuffer() throws IOException {
+            // ignore
+        }
+
+        @Override
+        public int getBufferSize() {
+            return 0;
+        }
+
+        @Override
+        public String getCharacterEncoding() {
+            return null;
+        }
+
+        @Override
+        public String getContentType() {
+            return null;
+        }
+
+        @Override
+        public Locale getLocale() {
+            return null;
+        }
+
+        @Override
+        public ServletOutputStream getOutputStream() throws IOException {
+            return servletOutputStream;
+        }
+
+        @Override
+        public PrintWriter getWriter() throws IOException {
+            return null;
+        }
+
+        @Override
+        public boolean isCommitted() {
+            return false;
+        }
+
+        @Override
+        public void reset() {
+            // ignore
+        }
+
+        @Override
+        public void resetBuffer() {
+            // ignore
+        }
+
+        @Override
+        public void setBufferSize(int arg0) {
+            // ignore
+        }
+
+        @Override
+        public void setCharacterEncoding(String arg0) {
+            // ignore
+        }
+
+        @Override
+        public void setContentLength(int arg0) {
+            // ignore
+        }
+
+        @Override
+        public void setContentType(String arg0) {
+            // ignore
+        }
+
+        @Override
+        public void setLocale(Locale arg0) {
+            // ignore
+        }
+
+        @Override
+        public void addCookie(Cookie arg0) {
+            // ignore
+        }
+
+        @Override
+        public void addDateHeader(String arg0, long arg1) {
+            // ignore
+        }
+
+        @Override
+        public void addHeader(String arg0, String arg1) {
+            // ignore
+        }
+
+        @Override
+        public void addIntHeader(String arg0, int arg1) {
+            // ignore
+        }
+
+        @Override
+        public boolean containsHeader(String arg0) {
+            return false;
+        }
+
+        @Override
+        public String encodeRedirectURL(String arg0) {
+            return null;
+        }
+
+        @Override
+        public String encodeRedirectUrl(String arg0) {
+            return null;
+        }
+
+        @Override
+        public String encodeURL(String arg0) {
+            return null;
+        }
+
+        @Override
+        public String encodeUrl(String arg0) {
+            return null;
+        }
+
+        @Override
+        public void sendError(int arg0) throws IOException {
+            // ignore
+        }
+
+        @Override
+        public void sendError(int arg0, String arg1) throws IOException {
+            // ignore
+        }
+
+        @Override
+        public void sendRedirect(String arg0) throws IOException {
+            // ignore
+        }
+
+        @Override
+        public void setDateHeader(String arg0, long arg1) {
+            // ignore
+        }
+
+        @Override
+        public void setHeader(String arg0, String arg1) {
+            // ignore
+        }
+
+        @Override
+        public void setIntHeader(String arg0, int arg1) {
+            // ignore
+        }
+
+        @Override
+        public void setStatus(int arg0) {
+            // ignore
+        }
+
+        @Override
+        public void setStatus(int arg0, String arg1) {
+            // ignore
+        }
+        
+    }
+    
+    /**
+     * A servlet output stream for testing.
+     */
+    static class TestServletOutputStream extends ServletOutputStream {
+        
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+
+        @Override
+        public void write(int b) throws IOException {
+            buff.write(b);
+        }
+        
+        @Override
+        public String toString() {
+            try {
+                return new String(buff.toByteArray(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                return e.toString();
+            }
+        }
+        
     }
 
 }

@@ -82,7 +82,9 @@ Change Log
 </li><li>Fix to org.h2.util.ScriptReader when handling unclosed block comments.
 </li><li>Make org.h2.util.ScriptReader throw a better exception when handling broken scripts which generate
     extremely large statements.
-</li><li>Fix bug with ALLOW_LITERALS=NONE, where the periodic analyze table on insert would throw an exception.
+</li><li>Fix bug with ALLOW_LITERALS=NONE,
+    where the periodic analyze table on insert would throw an exception.
+    A similar problem was fixed in the Console tool.
 </li><li>Issue 510: Make org.h2.bnf public for consumption by external projects, patch by Nicolas Fortin
 </li><li>Issue 509:    Important fix on ValueGeometry, patch by Nicolas Fortin (with some tweaking)
     Make ValueGeometry#getDimensionCount more reliable.

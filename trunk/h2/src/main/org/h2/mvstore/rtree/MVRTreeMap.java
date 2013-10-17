@@ -235,8 +235,9 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     long[] children = { p.getPos(), split.getPos(), 0 };
                     Page[] childrenPages = { p, split, null };
                     long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
-                    p = Page.create(this, v, 2,
-                            keys, null, children, childrenPages, counts,
+                    p = Page.create(this, v, 
+                            2, keys, null, 
+                            3, children, childrenPages, counts,
                             totalCount, 0, 0);
                     // now p is a node; continues
                 }
@@ -432,8 +433,9 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         Object[] values = leaf ? new Object[4] : null;
         long[] c = leaf ? null : new long[1];
         Page[] cp = leaf ? null : new Page[1];
-        return Page.create(this, writeVersion, 0,
-                new Object[4], values, c, cp, c, 0, 0, 0);
+        return Page.create(this, writeVersion, 
+                0, new Object[4], values, 
+                leaf ? 0 : 1, c, cp, c, 0, 0, 0);
     }
 
     private static void move(Page source, Page target, int sourceIndex) {

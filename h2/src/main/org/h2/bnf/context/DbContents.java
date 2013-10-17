@@ -7,9 +7,9 @@
 package org.h2.bnf.context;
 
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 
 import org.h2.command.Parser;
@@ -141,15 +141,17 @@ public class DbContents {
         if (url != null) {
             isH2 = url.startsWith("jdbc:h2:");
             if (isH2) {
-                Statement stat = meta.getConnection().createStatement();
-                ResultSet rs = stat.executeQuery(
-                        "SELECT UPPER(VALUE) FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME='MODE'");
+                PreparedStatement prep = meta.getConnection().prepareStatement(
+                        "SELECT UPPER(VALUE) FROM INFORMATION_SCHEMA.SETTINGS " + 
+                        "WHERE NAME=?");
+                prep.setString(1, "MODE");
+                ResultSet rs = prep.executeQuery();
                 rs.next();
                 if ("MYSQL".equals(rs.getString(1))) {
                     isH2ModeMySQL = true;
                 }
                 rs.close();
-                stat.close();
+                prep.close();
             }
             isOracle = url.startsWith("jdbc:oracle:");
             isPostgreSQL = url.startsWith("jdbc:postgresql:");

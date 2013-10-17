@@ -233,7 +233,7 @@ java org.h2.test.TestAll timer
 */
 
     ;
-    private static final boolean MV_STORE = false;
+    private static final boolean MV_STORE = true;
 
     /**
      * If the test should run with many rows.
@@ -477,7 +477,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             prof.stopCollecting();
             System.out.println(prof.getTop(3));
             if (test.mvStore) {
+                prof = new Profiler();
+                prof.depth = 16;
+                prof.interval = 1;
+                prof.startCollecting();
                 TestPerformance.main("-init", "-db", "1", "-size", "1000");
+                prof.stopCollecting();
+                System.out.println(prof.getTop(3));
             }
 //            Recover.execute("data", null);
 //            RunScript.execute("jdbc:h2:data/test2",

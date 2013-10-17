@@ -40,29 +40,31 @@ public class TestKillProcessWhileWriting extends TestBase {
         test("unstable:memFS:killProcess.h3");
 
         if (config.big) {
-            fs.setPartialWrites(true);
-            test("unstable:memFS:killProcess.h3");
+            try {
+                fs.setPartialWrites(true);
+                test("unstable:memFS:killProcess.h3");
+            } finally {
+                fs.setPartialWrites(false);
+            }
         }
     }
 
     private void test(String fileName) throws Exception {
         for (seed = 0; seed < 10; seed++) {
             this.fileName = fileName;
-            fs.setSeed(seed);
             FileUtils.delete(fileName);
-            test(Integer.MAX_VALUE);
+            test(Integer.MAX_VALUE, seed);
             int max = Integer.MAX_VALUE - fs.getDiskFullCount() + 10;
             assertTrue("" + (max - 10), max > 0);
             for (int i = 0; i < max; i++) {
-                fs.setSeed(seed);
-                test(i);
+                test(i, seed);
             }
         }
     }
 
-    private void test(int x) throws Exception {
+    private void test(int x, int seed) throws Exception {
         FileUtils.delete(fileName);
-        fs.setDiskFullCount(x);
+        fs.setDiskFullCount(x, seed);
         try {
             write();
             verify();
@@ -70,7 +72,7 @@ public class TestKillProcessWhileWriting extends TestBase {
             if (x == Integer.MAX_VALUE) {
                 throw e;
             }
-            fs.setDiskFullCount(0);
+            fs.setDiskFullCount(0, seed);
             verify();
         }
     }

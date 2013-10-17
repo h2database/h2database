@@ -44,6 +44,23 @@ public class FilePathUnstable extends FilePathWrapper {
         FilePath.register(INSTANCE);
         return INSTANCE;
     }
+    
+    /**
+     * Set the number of write operations before the disk is full, and the
+     * random seed (for partial writes).
+     * 
+     * @param count the number of write operations (0 to never fail,
+     *            Integer.MAX_VALUE to count the operations)
+     * @param seed the new seed
+     */
+    public void setDiskFullCount(int count, int seed) {
+        diskFullOffCount = count;
+        random.setSeed(seed);
+    }
+
+    public int getDiskFullCount() {
+        return diskFullOffCount;
+    }
 
     /**
      * Whether partial writes are possible (writing only part of the data).
@@ -56,15 +73,6 @@ public class FilePathUnstable extends FilePathWrapper {
 
     boolean getPartialWrites() {
         return partialWrites;
-    }
-
-    /**
-     * Set the random seed.
-     *
-     * @param seed the new seed
-     */
-    public void setSeed(long seed) {
-        random.setSeed(seed);
     }
 
     /**
@@ -194,14 +202,6 @@ public class FilePathUnstable extends FilePathWrapper {
     public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir)
             throws IOException {
         return super.createTempFile(suffix, deleteOnExit, inTempDir);
-    }
-
-    public void setDiskFullCount(int count) {
-        diskFullOffCount = count;
-    }
-
-    public int getDiskFullCount() {
-        return diskFullOffCount;
     }
 
     @Override

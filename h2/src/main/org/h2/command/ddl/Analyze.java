@@ -16,7 +16,6 @@ import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -84,8 +83,6 @@ public class Analyze extends DefineCommand {
         }
         Database db = session.getDatabase();
         StatementBuilder buff = new StatementBuilder("SELECT ");
-        ArrayList<Parameter> parameters = New.arrayList();
-        int parameterIndex = 0;
         Column[] columns = table.getColumns();
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
@@ -101,16 +98,14 @@ public class Analyze extends DefineCommand {
         buff.append(" FROM ").append(table.getSQL());
         if (sample > 0) {
             buff.append(" LIMIT ? SAMPLE_SIZE ? ");
-            Parameter p = new Parameter(parameterIndex++);
-            p.setValue(ValueInt.get(1));
-            parameters.add(p);
-            p = new Parameter(parameterIndex++);
-            p.setValue(ValueInt.get(sample));
-            parameters.add(p);
         }
         String sql = buff.toString();
         Prepared command = session.prepare(sql);
-        command.setParameterList(parameters);
+        if (sample > 0) {
+            ArrayList<Parameter> params = command.getParameters();
+            params.get(0).setValue(ValueInt.get(1));
+            params.get(1).setValue(ValueInt.get(sample));
+        }
         ResultInterface result = command.query(0);
         result.next();
         for (int j = 0; j < columns.length; j++) {

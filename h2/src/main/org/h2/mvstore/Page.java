@@ -47,6 +47,11 @@ public class Page {
      * The number of keys.
      */
     private int keyCount;
+    
+    /**
+     * The number of children.
+     */
+    private int childCount;
 
     /**
      * The last result of a find operation is cached.
@@ -109,9 +114,10 @@ public class Page {
      * @return the new page
      */
     public static Page createEmpty(MVMap<?, ?> map, long version) {
-        return create(map, version, 0,
-                EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY,
-                null, null, null, 0, 0, DataUtils.PAGE_MEMORY);
+        return create(map, version, 
+                0, EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY,
+                0, null, null, null, 
+                0, 0, DataUtils.PAGE_MEMORY);
     }
 
     /**
@@ -131,14 +137,15 @@ public class Page {
      * @return the page
      */
     public static Page create(MVMap<?, ?> map, long version,
-            int keyCount, Object[] keys,
-            Object[] values, long[] children, Page[] childrenPages, long[] counts,
+            int keyCount, Object[] keys, Object[] values, 
+            int childCount, long[] children, Page[] childrenPages, long[] counts,
             long totalCount, int sharedFlags, int memory) {
         Page p = new Page(map, version);
         // the position is 0
-        p.keys = keys;
         p.keyCount = keyCount;
+        p.keys = keys;
         p.values = values;
+        p.childCount = childCount;
         p.children = children;
         p.childrenPages = childrenPages;
         p.counts = counts;
@@ -275,8 +282,8 @@ public class Page {
      */
     public Page copy(long version) {
         Page newPage = create(map, version,
-                keyCount, keys, values, children, childrenPages,
-                counts, totalCount,
+                keyCount, keys, values, 
+                childCount, children, childrenPages, counts, totalCount,
                 SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS,
                 memory);
         // mark the old as deleted
@@ -298,6 +305,9 @@ public class Page {
      */
     public int binarySearch(Object key) {
         int low = 0, high = keyCount - 1;
+        // the cached index minus one, so that
+        // for the first time (when cachedCompare is 0),
+        // the default value is used
         int x = cachedCompare - 1;
         if (x < 0 || x > high) {
             x = (low + high) >>> 1;
@@ -360,8 +370,9 @@ public class Page {
         values = aValues;
         sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
         totalCount = a;
-        Page newPage = create(map, version, b,
-                bKeys, bValues, null, null, null,
+        Page newPage = create(map, version, 
+                b, bKeys, bValues, 
+                0, null, null, null,
                 bKeys.length, 0, 0);
         memory = calculateMemory();
         newPage.memory = newPage.calculateMemory();
@@ -395,6 +406,7 @@ public class Page {
         System.arraycopy(counts, 0, aCounts, 0, a + 1);
         System.arraycopy(counts, a + 1, bCounts, 0, b);
         counts = aCounts;
+        childCount = a + 1;
 
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         long t = 0;
@@ -406,9 +418,10 @@ public class Page {
         for (long x : bCounts) {
             t += x;
         }
-        Page newPage = create(map, version, b - 1,
-                bKeys, null, bChildren, bChildrenPages,
-                bCounts, t, 0, 0);
+        Page newPage = create(map, version, 
+                b - 1, bKeys, null, 
+                b, bChildren, bChildrenPages, bCounts, 
+                t, 0, 0);
         memory = calculateMemory();
         newPage.memory = newPage.calculateMemory();
         return newPage;
@@ -539,7 +552,7 @@ public class Page {
      */
     void removeAllRecursive() {
         if (children != null) {
-            for (int i = 0, size = children.length; i < size; i++) {
+            for (int i = 0, size = childCount; i < size; i++) {
                 Page p = childrenPages[i];
                 if (p != null) {
                     p.removeAllRecursive();
@@ -601,22 +614,25 @@ public class Page {
         DataUtils.copyWithGap(keys, newKeys, keyCount, index);
         newKeys[index] = key;
         keys = newKeys;
+        
         keyCount++;
 
-        long[] newChildren = new long[children.length + 1];
-        DataUtils.copyWithGap(children, newChildren, children.length, index);
+        long[] newChildren = new long[childCount + 1];
+        DataUtils.copyWithGap(children, newChildren, childCount, index);
         newChildren[index] = childPage.getPos();
         children = newChildren;
 
-        Page[] newChildrenPages = new Page[childrenPages.length + 1];
-        DataUtils.copyWithGap(childrenPages, newChildrenPages, childrenPages.length, index);
+        Page[] newChildrenPages = new Page[childCount + 1];
+        DataUtils.copyWithGap(childrenPages, newChildrenPages, childCount, index);
         newChildrenPages[index] = childPage;
         childrenPages = newChildrenPages;
 
-        long[] newCounts = new long[counts.length + 1];
-        DataUtils.copyWithGap(counts, newCounts, counts.length, index);
+        long[] newCounts = new long[childCount + 1];
+        DataUtils.copyWithGap(counts, newCounts, childCount, index);
         newCounts[index] = childPage.totalCount;
         counts = newCounts;
+        
+        childCount++;
 
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         totalCount += childPage.totalCount;
@@ -666,21 +682,23 @@ public class Page {
             memory -= DataUtils.PAGE_MEMORY_CHILD;
             long countOffset = counts[index];
 
-            long[] newChildren = new long[children.length - 1];
-            DataUtils.copyExcept(children, newChildren, children.length, index);
+            long[] newChildren = new long[childCount - 1];
+            DataUtils.copyExcept(children, newChildren, childCount, index);
             children = newChildren;
 
-            Page[] newChildrenPages = new Page[childrenPages.length - 1];
+            Page[] newChildrenPages = new Page[childCount - 1];
             DataUtils.copyExcept(childrenPages, newChildrenPages,
-                    childrenPages.length, index);
+                    childCount, index);
             childrenPages = newChildrenPages;
 
-            long[] newCounts = new long[counts.length - 1];
-            DataUtils.copyExcept(counts, newCounts, counts.length, index);
+            long[] newCounts = new long[childCount - 1];
+            DataUtils.copyExcept(counts, newCounts, childCount, index);
             counts = newCounts;
 
             sharedFlags &= ~(SHARED_CHILDREN | SHARED_COUNTS);
             totalCount -= countOffset;
+            
+            childCount--;
         }
     }
 
@@ -740,6 +758,7 @@ public class Page {
             keys[i] = k;
         }
         if (node) {
+            childCount = len + 1;
             children = new long[len + 1];
             for (int i = 0; i <= len; i++) {
                 children[i] = buff.getLong();
@@ -846,7 +865,7 @@ public class Page {
             return;
         }
         if (!isLeaf()) {
-            int len = children.length;
+            int len = childCount;
             for (int i = 0; i < len; i++) {
                 Page p = childrenPages[i];
                 if (p != null) {
@@ -863,7 +882,7 @@ public class Page {
      */
     void writeEnd() {
         if (!isLeaf()) {
-            int len = children.length;
+            int len = childCount;
             for (int i = 0; i < len; i++) {
                 Page p = childrenPages[i];
                 if (p != null) {
@@ -883,7 +902,7 @@ public class Page {
     }
 
     public int getChildPageCount() {
-        return children.length;
+        return childCount;
     }
 
     @Override

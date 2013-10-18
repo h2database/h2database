@@ -279,7 +279,7 @@ public class FunctionAlias extends SchemaObjectBase {
      * Each method must have a different number of parameters however.
      * This helper class represents one such method.
      */
-    public static class JavaMethod implements Comparable<JavaMethod> {
+    public class JavaMethod implements Comparable<JavaMethod> {
         private final int id;
         private final Method method;
         private final int dataType;
@@ -287,6 +287,11 @@ public class FunctionAlias extends SchemaObjectBase {
         private boolean varArgs;
         private Class<?> varArgClass;
         private int paramCount;
+        /**
+         * Cache the value of the last call if the function is deterministic.
+         */
+        private Object[] previousParams;
+        private Value previousReturnValue;
 
         JavaMethod(Method method, int id) {
             this.method = method;
@@ -398,6 +403,11 @@ public class FunctionAlias extends SchemaObjectBase {
                     params[p] = o;
                 }
             }
+            if (deterministic) {
+                if (previousParams != null && Arrays.deepEquals(previousParams, params)) {
+                    return previousReturnValue;
+                }
+            }
             boolean old = session.getAutoCommit();
             Value identity = session.getLastScopeIdentity();
             boolean defaultConnection = session.getDatabase().getSettings().defaultConnection;
@@ -409,9 +419,6 @@ public class FunctionAlias extends SchemaObjectBase {
                         Driver.setDefaultConnection(session.createConnection(columnList));
                     }
                     returnValue = method.invoke(null, params);
-                    if (returnValue == null) {
-                        return ValueNull.INSTANCE;
-                    }
                 } catch (InvocationTargetException e) {
                     StatementBuilder buff = new StatementBuilder(method.getName());
                     buff.append('(');
@@ -424,11 +431,21 @@ public class FunctionAlias extends SchemaObjectBase {
                 } catch (Exception e) {
                     throw DbException.convert(e);
                 }
-                if (Value.class.isAssignableFrom(method.getReturnType())) {
-                    return (Value) returnValue;
+                Value ret;
+                if (returnValue == null) {
+                    ret = ValueNull.INSTANCE;
+                } else {
+                    if (Value.class.isAssignableFrom(method.getReturnType())) {
+                        ret = (Value) returnValue;
+                    } else {
+                        ret = DataType.convertToValue(session, returnValue, dataType);
+                    }
                 }
-                Value ret = DataType.convertToValue(session, returnValue, dataType);
-                return ret.convertTo(dataType);
+                if (deterministic) {
+                    previousParams = params;
+                    previousReturnValue = ret;
+                }
+                return ret;
             } finally {
                 session.setLastScopeIdentity(identity);
                 session.setAutoCommit(old);

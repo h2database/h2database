@@ -80,6 +80,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testNvl2();
         testConcatWs();
         testTruncate();
+        testCachingOfDeterministicFunctionAlias();
         deleteDb("functions");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
@@ -929,6 +930,31 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
+    private static int countOfCallsToTestCache;
+    
+    private void testCachingOfDeterministicFunctionAlias() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("create alias MYTF2 deterministic for \"" + TestFunctions.class.getName() + ".testCache\"");
+        stat.execute("create view MVIEW2 as select * from MYTF2()");
+        countOfCallsToTestCache = 0;
+        stat.executeQuery("select * from MVIEW2");
+        assertEquals(0, countOfCallsToTestCache);
+        conn.close();
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     */
+    public static synchronized ResultSet testCache() {
+        countOfCallsToTestCache++;
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("ID", Types.INTEGER, 10, 0);
+        rs.addRow(0);
+        return rs;
+    }
+    
     private void assertCallResult(String expected, Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();

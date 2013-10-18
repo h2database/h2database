@@ -939,10 +939,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("create alias MYTF2 deterministic for \"" + TestFunctions.class.getName() + ".testCache\"");
-        stat.execute("create view MVIEW2 as select * from MYTF2()");
+        stat.execute("create alias MY_TF2 deterministic for \"" + TestFunctions.class.getName() + ".testCache\"");
+        stat.execute("create view M_VIEW2 as select * from MY_TF2()");
         countOfCallsToTestCache = 0;
-        stat.executeQuery("select * from MVIEW2");
+        stat.executeQuery("select * from M_VIEW2");
         assertEquals(0, countOfCallsToTestCache);
         conn.close();
     }

@@ -142,7 +142,7 @@ public class DbContents {
             isH2 = url.startsWith("jdbc:h2:");
             if (isH2) {
                 PreparedStatement prep = meta.getConnection().prepareStatement(
-                        "SELECT UPPER(VALUE) FROM INFORMATION_SCHEMA.SETTINGS " + 
+                        "SELECT UPPER(VALUE) FROM INFORMATION_SCHEMA.SETTINGS " +
                         "WHERE NAME=?");
                 prep.setString(1, "MODE");
                 ResultSet rs = prep.executeQuery();

@@ -44,11 +44,11 @@ public class FilePathUnstable extends FilePathWrapper {
         FilePath.register(INSTANCE);
         return INSTANCE;
     }
-    
+
     /**
      * Set the number of write operations before the disk is full, and the
      * random seed (for partial writes).
-     * 
+     *
      * @param count the number of write operations (0 to never fail,
      *            Integer.MAX_VALUE to count the operations)
      * @param seed the new seed

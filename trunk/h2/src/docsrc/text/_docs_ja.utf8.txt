@@ -1970,7 +1970,7 @@ Centralリ�?ジトリ�?�利用
 #Make org.h2.util.ScriptReader throw a better exception when handling broken scripts which generate extremely large statements. 
 
 @changelog_1035_li
-#Fix bug with ALLOW_LITERALS=NONE, where the periodic analyze table on insert would throw an exception. 
+#Fix bug with ALLOW_LITERALS=NONE, where the periodic analyze table on insert would throw an exception. A similar problem was fixed in the Console tool. 
 
 @changelog_1036_li
 #Issue 510: Make org.h2.bnf public for consumption by external projects, patch by Nicolas Fortin 

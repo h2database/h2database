@@ -1231,7 +1231,6 @@ public class TestMVStore extends TestBase {
         assertNull(m0.get("1"));
         assertTrue(m1.isClosed());
         assertFalse(m0.isReadOnly());
-        assertTrue(m1.isReadOnly());
         s.close();
     }
 

@@ -529,15 +529,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Close the map, making it read only and release the memory. This method
-     * may only be called when closing the store or when removing the map, as
-     * further writes are not possible.
+     * Close the map. Accessing the data is still possible (to allow concurrent
+     * reads), but it is marked as closed.
      */
     void close() {
         closed = true;
-        readOnly = true;
-        removeAllOldVersions();
-        root = null;
     }
 
     public boolean isClosed() {
@@ -874,15 +870,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Forget all old versions.
-     */
-    private void removeAllOldVersions() {
-        // create a new instance
-        // because another thread might iterate over it
-        oldRoots = new ArrayList<Page>();
-    }
-
-    /**
      * Forget those old versions that are no longer needed.
      */
     void removeUnusedOldVersions() {
@@ -904,10 +891,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         ArrayList<Page> list = new ArrayList<Page>(size);
         list.addAll(oldRoots.subList(i, oldRoots.size()));
         oldRoots = list;
-    }
-
-    public void setReadOnly(boolean readOnly) {
-        this.readOnly = readOnly;
     }
 
     public boolean isReadOnly() {

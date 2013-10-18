@@ -44,12 +44,40 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testConcurrentStoreAndRemoveMap();
         testConcurrentStoreAndClose();
         testConcurrentOnlineBackup();
         testConcurrentMap();
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+    }
+    
+    private void testConcurrentStoreAndRemoveMap() throws InterruptedException {
+        String fileName = getBaseDir() + "/testConcurrentStoreAndRemoveMap.h3";
+        final MVStore s = openStore(fileName);
+        int count = 100;
+        for (int i = 0; i < count; i++) {
+            MVMap<Integer, Integer> m = s.openMap("d" + i);
+            m.put(1, 1);
+        }
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                while (!stop) {
+                    s.store();
+                }
+            }
+        };
+        task.execute();
+        Thread.sleep(1);
+        for (int i = 0; i < count; i++) {
+            MVMap<Integer, Integer> m = s.openMap("d" + i);
+            m.put(1, 10);
+            m.removeMap();
+        }
+        task.get();
+        s.close();
     }
 
     private void testConcurrentStoreAndClose() throws InterruptedException {

@@ -35,7 +35,6 @@ public class SequenceMap extends MVMap<Long, Long> {
     @Override
     public void init(MVStore store, HashMap<String, String> config) {
         super.init(store, config);
-        setReadOnly(true);
     }
 
     @Override

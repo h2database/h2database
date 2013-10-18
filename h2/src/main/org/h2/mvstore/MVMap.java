@@ -136,9 +136,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         long[] children = { p.getPos(), split.getPos() };
         Page[] childrenPages = { p, split };
         long[] counts = { p.getTotalCount(), split.getTotalCount() };
-        p = Page.create(this, writeVersion, 
-                1, keys, null, 
-                2, children, childrenPages, counts, 
+        p = Page.create(this, writeVersion,
+                1, keys, null,
+                2, children, childrenPages, counts,
                 totalCount, 0, 0);
         return p;
     }

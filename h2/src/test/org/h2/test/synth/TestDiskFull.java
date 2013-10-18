@@ -120,7 +120,7 @@ public class TestDiskFull extends TestBase {
         stat = conn.createStatement();
         stat.execute("script to 'memFS:test.sql'");
         conn.close();
-        
+
         return false;
     }
 

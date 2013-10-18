@@ -47,7 +47,7 @@ public class Page {
      * The number of keys.
      */
     private int keyCount;
-    
+
     /**
      * The number of children.
      */
@@ -114,9 +114,9 @@ public class Page {
      * @return the new page
      */
     public static Page createEmpty(MVMap<?, ?> map, long version) {
-        return create(map, version, 
+        return create(map, version,
                 0, EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY,
-                0, null, null, null, 
+                0, null, null, null,
                 0, 0, DataUtils.PAGE_MEMORY);
     }
 
@@ -128,6 +128,7 @@ public class Page {
      * @param keyCount the number of keys
      * @param keys the keys
      * @param values the values
+     * @param childCount the number of children
      * @param children the children
      * @param childrenPages the children pages
      * @param counts the children counts
@@ -137,7 +138,7 @@ public class Page {
      * @return the page
      */
     public static Page create(MVMap<?, ?> map, long version,
-            int keyCount, Object[] keys, Object[] values, 
+            int keyCount, Object[] keys, Object[] values,
             int childCount, long[] children, Page[] childrenPages, long[] counts,
             long totalCount, int sharedFlags, int memory) {
         Page p = new Page(map, version);
@@ -282,7 +283,7 @@ public class Page {
      */
     public Page copy(long version) {
         Page newPage = create(map, version,
-                keyCount, keys, values, 
+                keyCount, keys, values,
                 childCount, children, childrenPages, counts, totalCount,
                 SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS,
                 memory);
@@ -370,8 +371,8 @@ public class Page {
         values = aValues;
         sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
         totalCount = a;
-        Page newPage = create(map, version, 
-                b, bKeys, bValues, 
+        Page newPage = create(map, version,
+                b, bKeys, bValues,
                 0, null, null, null,
                 bKeys.length, 0, 0);
         memory = calculateMemory();
@@ -418,9 +419,9 @@ public class Page {
         for (long x : bCounts) {
             t += x;
         }
-        Page newPage = create(map, version, 
-                b - 1, bKeys, null, 
-                b, bChildren, bChildrenPages, bCounts, 
+        Page newPage = create(map, version,
+                b - 1, bKeys, null,
+                b, bChildren, bChildrenPages, bCounts,
                 t, 0, 0);
         memory = calculateMemory();
         newPage.memory = newPage.calculateMemory();
@@ -614,7 +615,7 @@ public class Page {
         DataUtils.copyWithGap(keys, newKeys, keyCount, index);
         newKeys[index] = key;
         keys = newKeys;
-        
+
         keyCount++;
 
         long[] newChildren = new long[childCount + 1];
@@ -631,7 +632,7 @@ public class Page {
         DataUtils.copyWithGap(counts, newCounts, childCount, index);
         newCounts[index] = childPage.totalCount;
         counts = newCounts;
-        
+
         childCount++;
 
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
@@ -697,7 +698,7 @@ public class Page {
 
             sharedFlags &= ~(SHARED_CHILDREN | SHARED_COUNTS);
             totalCount -= countOffset;
-            
+
             childCount--;
         }
     }

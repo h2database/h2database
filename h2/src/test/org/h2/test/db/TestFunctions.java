@@ -44,7 +44,7 @@ import org.h2.value.Value;
 public class TestFunctions extends TestBase implements AggregateFunction {
 
     static int count;
-    
+
     private static int countOfCallsToTestCache;
 
     /**
@@ -949,7 +949,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
-     * 
+     *
      * @return a result set
      */
     public static synchronized ResultSet testCache() {
@@ -959,7 +959,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.addRow(0);
         return rs;
     }
-    
+
     private void assertCallResult(String expected, Statement stat, String sql) throws SQLException {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();

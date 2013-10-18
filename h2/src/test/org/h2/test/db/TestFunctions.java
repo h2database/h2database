@@ -44,6 +44,8 @@ import org.h2.value.Value;
 public class TestFunctions extends TestBase implements AggregateFunction {
 
     static int count;
+    
+    private static int countOfCallsToTestCache;
 
     /**
      * Run just this test.
@@ -933,8 +935,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
-    private static int countOfCallsToTestCache;
-    
     private void testCachingOfDeterministicFunctionAlias() throws SQLException {
         deleteDb("functions");
         Connection conn = getConnection("functions");
@@ -949,6 +949,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
+     * 
+     * @return a result set
      */
     public static synchronized ResultSet testCache() {
         countOfCallsToTestCache++;

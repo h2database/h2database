@@ -169,7 +169,8 @@ public class MVStore {
      * is the unsaved version, the value is the map of chunks. The maps contains
      * the number of freed entries per chunk. Access is synchronized.
      */
-    private final HashMap<Long, HashMap<Integer, Chunk>> freedPageSpace = New.hashMap();
+    private final ConcurrentHashMap<Long, HashMap<Integer, Chunk>> freedPageSpace = 
+            new ConcurrentHashMap<Long, HashMap<Integer, Chunk>>();
 
     /**
      * The metadata map.
@@ -1056,59 +1057,58 @@ public class MVStore {
      */
     private Set<Chunk> applyFreedSpace(long storeVersion, long time) {
         Set<Chunk> removedChunks = New.hashSet();
-        synchronized (freedPageSpace) {
-            while (true) {
-                ArrayList<Chunk> modified = New.arrayList();
-                for (Iterator<Long> it = freedPageSpace.keySet().iterator(); it.hasNext();) {
-                    long v = it.next();
-                    if (v > storeVersion) {
+        while (true) {
+            ArrayList<Chunk> modified = New.arrayList();
+            ArrayList<Long> keys = new ArrayList<Long>(freedPageSpace.keySet());
+            for (Iterator<Long> it = keys.iterator(); it.hasNext();) {
+                long v = it.next();
+                if (v > storeVersion) {
+                    continue;
+                }
+                Map<Integer, Chunk> freed = freedPageSpace.get(v);
+                for (Chunk f : freed.values()) {
+                    Chunk c = chunks.get(f.id);
+                    if (c == null) {
+                        // already removed
                         continue;
                     }
-                    Map<Integer, Chunk> freed = freedPageSpace.get(v);
-                    for (Chunk f : freed.values()) {
-                        Chunk c = chunks.get(f.id);
-                        if (c == null) {
-                            // already removed
-                            continue;
-                        }
-                        c.maxLengthLive += f.maxLengthLive;
-                        c.pageCountLive += f.pageCountLive;
-                        if (c.pageCountLive < 0) {
-                            throw DataUtils.newIllegalStateException(
-                                    DataUtils.ERROR_INTERNAL,
-                                    "Corrupt page count {0}", c.pageCountLive);
-                        }
-                        if (c.maxLengthLive < 0) {
-                            throw DataUtils.newIllegalStateException(
-                                    DataUtils.ERROR_INTERNAL,
-                                    "Corrupt max length {0}", c.maxLengthLive);
-                        }
-                        if (c.pageCount == 0 && c.maxLengthLive > 0) {
-                            throw DataUtils.newIllegalStateException(
-                                    DataUtils.ERROR_INTERNAL,
-                                    "Corrupt max length {0}", c.maxLengthLive);
-                        }
-                        modified.add(c);
+                    c.maxLengthLive += f.maxLengthLive;
+                    c.pageCountLive += f.pageCountLive;
+                    if (c.pageCountLive < 0) {
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_INTERNAL,
+                                "Corrupt page count {0}", c.pageCountLive);
                     }
-                    it.remove();
+                    if (c.maxLengthLive < 0) {
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_INTERNAL,
+                                "Corrupt max length {0}", c.maxLengthLive);
+                    }
+                    if (c.pageCount == 0 && c.maxLengthLive > 0) {
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_INTERNAL,
+                                "Corrupt max length {0}", c.maxLengthLive);
+                    }
+                    modified.add(c);
                 }
-                for (Chunk c : modified) {
-                    if (c.maxLengthLive == 0) {
-                        if (canOverwriteChunk(c, time)) {
-                            removedChunks.add(c);
-                            chunks.remove(c.id);
-                            meta.remove("chunk." + c.id);
-                        } else {
-                            // remove this chunk in the next save operation
-                            registerFreePage(storeVersion + 1, c.id, 0, 0);
-                        }
+                freedPageSpace.remove(v);
+            }
+            for (Chunk c : modified) {
+                if (c.maxLengthLive == 0) {
+                    if (canOverwriteChunk(c, time)) {
+                        removedChunks.add(c);
+                        chunks.remove(c.id);
+                        meta.remove("chunk." + c.id);
                     } else {
-                        meta.put("chunk." + c.id, c.asString());
+                        // remove this chunk in the next save operation
+                        registerFreePage(storeVersion + 1, c.id, 0, 0);
                     }
+                } else {
+                    meta.put("chunk." + c.id, c.asString());
                 }
-                if (modified.size() == 0) {
-                    break;
-                }
+            }
+            if (modified.size() == 0) {
+                break;
             }
         }
         return removedChunks;
@@ -1501,20 +1501,18 @@ public class MVStore {
     }
 
     private void registerFreePage(long version, int chunkId, long maxLengthLive, int pageCount) {
-        synchronized (freedPageSpace) {
-            HashMap<Integer, Chunk>freed = freedPageSpace.get(version);
-            if (freed == null) {
-                freed = New.hashMap();
-                freedPageSpace.put(version, freed);
-            }
-            Chunk f = freed.get(chunkId);
-            if (f == null) {
-                f = new Chunk(chunkId);
-                freed.put(chunkId, f);
-            }
-            f.maxLengthLive -= maxLengthLive;
-            f.pageCountLive -= pageCount;
+        HashMap<Integer, Chunk>freed = freedPageSpace.get(version);
+        if (freed == null) {
+            freed = New.hashMap();
+            freedPageSpace.put(version, freed);
         }
+        Chunk f = freed.get(chunkId);
+        if (f == null) {
+            f = new Chunk(chunkId);
+            freed.put(chunkId, f);
+        }
+        f.maxLengthLive -= maxLengthLive;
+        f.pageCountLive -= pageCount;
     }
 
     Compressor getCompressor() {
@@ -1741,9 +1739,7 @@ public class MVStore {
                 fileStore.clear();
             }
             maps.clear();
-            synchronized (freedPageSpace) {
-                freedPageSpace.clear();
-            }
+            freedPageSpace.clear();
             currentVersion = version;
             setWriteVersion(version);
             lastCommittedVersion = version;
@@ -1831,14 +1827,12 @@ public class MVStore {
     }
 
     private void revertTemp(long storeVersion) {
-        synchronized (freedPageSpace) {
-            for (Iterator<Long> it = freedPageSpace.keySet().iterator(); it.hasNext();) {
-                long v = it.next();
-                if (v > storeVersion) {
-                    continue;
-                }
-                it.remove();
+        for (Iterator<Long> it = freedPageSpace.keySet().iterator(); it.hasNext();) {
+            long v = it.next();
+            if (v > storeVersion) {
+                continue;
             }
+            it.remove();
         }
         for (MVMap<?, ?> m : maps.values()) {
             m.removeUnusedOldVersions();

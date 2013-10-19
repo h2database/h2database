@@ -169,7 +169,7 @@ public class MVStore {
      * is the unsaved version, the value is the map of chunks. The maps contains
      * the number of freed entries per chunk. Access is synchronized.
      */
-    private final ConcurrentHashMap<Long, HashMap<Integer, Chunk>> freedPageSpace = 
+    private final ConcurrentHashMap<Long, HashMap<Integer, Chunk>> freedPageSpace =
             new ConcurrentHashMap<Long, HashMap<Integer, Chunk>>();
 
     /**

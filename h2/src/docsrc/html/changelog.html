@@ -18,6 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.174 (2013-10-19)</h2>
 <ul><li>LIRS cache: bugfix for caches that only contain non-resident entries.
 </li><li>For in-memory databases, queries with a "group by" column that
     is also a hash index threw a RuntimeException.
@@ -336,50 +340,6 @@ Change Log
 </li><li>Small optimisation for accessing result values by column name.
 </li><li>Fix for bug in Statement.getMoreResults(int)
 </li><li>The SCRIPT statements now supports filtering by schema and table. Thanks a lot to Jacob Qvortrup for providing the patch!
-</li></ul>
-
-<h2>Version 1.3.166 (2012-04-08)</h2>
-<ul><li>Indexes on column that are larger than half the page size (wide indexes)
-    could sometimes get corrupt, resulting in an ArrayIndexOutOfBoundsException in PageBtree.getRow
-    or "Row not found" in PageBtreeLeaf. Also, such indexes used too much disk space.
-</li><li>Server mode: when retrieving more than 64 rows each containing a CLOB or BLOB,
-    the error message "The object is already closed" was thrown.
-</li><li>ConvertTraceFile: the time in the trace file is now parsed as a long.
-</li><li>Invalid connection settings are now detected.
-</li><li>Issue 387: WHERE condition getting pushed into sub-query with LIMIT.
-</li></ul>
-
-<h2>Version 1.3.165 (2012-03-18)</h2>
-<ul><li>Better string representation for decimal values (for example 0.00000000 instead of 0E-26).
-</li><li>Prepared statements could only be re-used if the same data types were used
-    the second time they were executed.
-</li><li>In error messages about referential constraint violation, the values are now included.
-</li><li>SCRIPT and RUNSCRIPT: the password can now be set using a prepared statement.
-    Previously, it was required to be a literal in the SQL statement.
-</li><li>MySQL compatibility: SUBSTR with a negative start index now works like MySQL.
-</li><li>When enabling autocommit, the transaction is now committed (as required by the JDBC API).
-</li><li>The shell script <code>h2.sh</code> did not work with spaces in the path.
-    It also works now with quoted spaces in the argument list.
-    Thanks a lot to Shimizu Fumiyuki for the patch!
-</li><li>If the transaction log could not be truncated because of an uncommitted transaction,
-    now "Transaction log could not be truncated" is written to the .trace.db file.
-    Before, the database file was growing and it was hard to find out what the root cause was.
-    To avoid the database file from growing, a new feature to automatically rollback the oldest
-    transaction is available now. To enable it, append ;LOG_SIZE_LIMIT=32 to the database URL
-    (in that case, the oldest session is rolled back if the transaction log is 32 MB).
-</li><li>ALTER TABLE ADD can now add more than one column at a time.
-</li><li>Issue 380: ALTER TABLE ADD FOREIGN KEY with an explicit index didn't verify
-    the index can be used, which would lead to a NullPointerException later on.
-</li><li>Issue 384: the wrong kind of exception (NullPointerException) was thrown in a UNION query
-    with an incorrect ORDER BY expression.
-</li><li>Issue 362: support LIMIT in UPDATE statements.
-</li><li>Browser: if no default browser is set, Google Chrome is now used if available.
-    If not available, then Konqueror, Netscape, or Opera is used if available (as before).
-</li><li>CSV tool: new feature to disable writing the column header
-    (option writeColumnHeader).
-</li><li>CSV tool: new feature to preserve the case sensitivity of column names
-    (option caseSensitiveColumnNames).
-</li><li>PostgreSQL compatibility: LOG(x) is base 10 in the PostgreSQL mode.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

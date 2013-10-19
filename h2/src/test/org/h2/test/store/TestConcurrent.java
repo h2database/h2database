@@ -52,7 +52,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-    
+
     private void testConcurrentStoreAndRemoveMap() throws InterruptedException {
         String fileName = getBaseDir() + "/testConcurrentStoreAndRemoveMap.h3";
         final MVStore s = openStore(fileName);

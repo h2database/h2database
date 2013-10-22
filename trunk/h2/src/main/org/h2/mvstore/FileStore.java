@@ -14,7 +14,7 @@ import java.nio.channels.OverlappingFileLockException;
 
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathCrypt;
+import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FilePathNio;
 
 /**
@@ -130,9 +130,9 @@ public class FileStore {
         try {
             file = f.open(readOnly ? "r" : "rw");
             if (encryptionKey != null) {
-                byte[] key = FilePathCrypt.getPasswordBytes(encryptionKey);
+                byte[] key = FilePathEncrypt.getPasswordBytes(encryptionKey);
                 encryptedFile = file;
-                file = new FilePathCrypt.FileCrypt(fileName, key, file);
+                file = new FilePathEncrypt.FileEncrypt(fileName, key, file);
             }
             file = FilePathCache.wrap(file);
             fileSize = file.size();

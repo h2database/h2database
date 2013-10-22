@@ -30,7 +30,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathCrypt;
+import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
@@ -72,7 +72,7 @@ public class TestFileSystem extends TestBase {
         testMemFsDir();
         testClasspath();
         FilePathDebug.register().setTrace(true);
-        FilePathCrypt.register();
+        FilePathEncrypt.register();
         testSimpleExpandTruncateSize();
         testSplitDatabaseInZip();
         testDatabaseInMemFileSys();
@@ -90,8 +90,8 @@ public class TestFileSystem extends TestBase {
             testFileSystem("nio:" + getBaseDir() + "/fs");
             testFileSystem("cache:nio:" + getBaseDir() + "/fs");
             testFileSystem("nioMapped:" + getBaseDir() + "/fs");
-            testFileSystem("crypt:0007:" + getBaseDir() + "/fs");
-            testFileSystem("cache:crypt:0007:" + getBaseDir() + "/fs");
+            testFileSystem("encrypt:0007:" + getBaseDir() + "/fs");
+            testFileSystem("cache:encrypt:0007:" + getBaseDir() + "/fs");
             if (!config.splitFileSystem) {
                 testFileSystem("split:" + getBaseDir() + "/fs");
                 testFileSystem("split:nioMapped:" + getBaseDir() + "/fs");

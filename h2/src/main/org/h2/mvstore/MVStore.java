@@ -47,7 +47,7 @@ Documentation
 TestMVStoreDataLoss
 
 MVTableEngine:
-- use StreamStore
+- use StreamStore to avoid deadlocks
 - when the MVStore was enabled before, use it again
     (probably by checking existence of the mvstore file)
 - not use the .h2.db file
@@ -56,7 +56,6 @@ MVTableEngine:
 TransactionStore:
 
 MVStore:
-- rename FilePathCrypt to FilePathCipher
 - automated 'kill process' and 'power failure' test
 - update checkstyle
 - auto-compact from time to time and on close
@@ -107,11 +106,14 @@ MVStore:
 - storage that splits database into multiple files,
     to speed up compact and allow using trim
     (by truncating / deleting empty files)
-- add new feature to file systems that avoid copying data
-    (reads should return a ByteBuffer, not write into one)
+- add new feature to the file system API to avoid copying data
+    (reads that returns a ByteBuffer instead of writing into one)
+    for memory mapped files and off-heap storage
 - do we need to store a dummy chunk entry in the chunk itself?
     currently yes, as some fields are not set in the chunk header
-- off-heap LIRS cache (the LIRS cache should use a map factory)
+- support log structured merge style operations (blind writes)
+    using one map per level plus bloom filter
+- have a strict call order MVStore -> MVMap -> Page -> FileStore
 
 */
 
@@ -207,6 +209,7 @@ public class MVStore {
 
     private int unsavedPageCount;
     private int unsavedPageCountMax;
+    private boolean storeNeeded;
 
     /**
      * The time the store was created, in milliseconds since 1970.
@@ -427,9 +430,9 @@ public class MVStore {
             c.put("createVersion", Long.toString(currentVersion));
             map = builder.create();
             map.init(this, c);
+            markMetaChanged();
             meta.put("map." + id, map.asString(name));
             meta.put("name." + name, Integer.toString(id));
-            markMetaChanged();
             root = 0;
         }
         map.setRootPos(root, -1);
@@ -439,18 +442,21 @@ public class MVStore {
 
     /**
      * Get the metadata map. This data is for informational purposes only. The
-     * data is subject to change in future versions. The data should not be
-     * modified (doing so may corrupt the store).
+     * data is subject to change in future versions.
+     * <p>
+     * The data should not be modified (doing so may corrupt the store). Writing
+     * to it is not always detected as a modification, so that changes to it
+     * might not be stored.
      * <p>
      * It contains the following entries:
-     *
+     * 
      * <pre>
      * name.{name} = {mapId}
      * map.{mapId} = {map metadata}
      * root.{mapId} = {root position}
      * chunk.{chunkId} = {chunk metadata}
      * </pre>
-     *
+     * 
      * @return the metadata map
      */
     public MVMap<String, String> getMetaMap() {
@@ -502,21 +508,10 @@ public class MVStore {
         return meta.containsKey("name." + name);
     }
 
-    /**
-     * Mark a map as changed (containing unsaved changes).
-     *
-     * @param map the map
-     */
-    void markChanged(MVMap<?, ?> map) {
-        if (map == meta) {
-            metaChanged = true;
-        }
-    }
-
     private void markMetaChanged() {
         // changes in the metadata alone are usually not detected, as the meta
         // map is changed after storing
-        markChanged(meta);
+        metaChanged = true;
     }
 
     private void readMeta() {
@@ -892,6 +887,10 @@ public class MVStore {
         for (MVMap<?, ?> m : list) {
             m.setWriteVersion(version);
             long v = m.getVersion();
+            if (m.getCreateVersion() > storeVersion) {
+                // the map was created after storing started
+                continue;
+            }
             if (v >= 0 && v >= lastStoredVersion) {
                 m.waitUntilWritten(storeVersion);
                 MVMap<?, ?> r = m.openVersion(storeVersion);
@@ -1203,6 +1202,7 @@ public class MVStore {
         }
         for (Chunk c : free) {
             chunks.remove(c.id);
+            markMetaChanged();
             meta.remove("chunk." + c.id);
             int length = MathUtils.roundUpInt(c.length, BLOCK_SIZE) + BLOCK_SIZE;
             fileStore.free(c.start, length);
@@ -1237,6 +1237,7 @@ public class MVStore {
             buff.position(0);
             fileStore.writeFully(end, buff.getBuffer());
             releaseWriteBuffer(buff);
+            markMetaChanged();
             meta.put("chunk." + c.id, c.asString());
         }
         boolean oldReuse = reuseSpace;
@@ -1273,6 +1274,7 @@ public class MVStore {
             buff.position(0);
             fileStore.writeFully(pos, buff.getBuffer());
             releaseWriteBuffer(buff);
+            markMetaChanged();
             meta.put("chunk." + c.id, c.asString());
         }
 
@@ -1501,18 +1503,23 @@ public class MVStore {
     }
 
     private void registerFreePage(long version, int chunkId, long maxLengthLive, int pageCount) {
-        HashMap<Integer, Chunk>freed = freedPageSpace.get(version);
+        HashMap<Integer, Chunk> freed = freedPageSpace.get(version);
         if (freed == null) {
             freed = New.hashMap();
-            freedPageSpace.put(version, freed);
+            HashMap<Integer, Chunk> f2 = freedPageSpace.putIfAbsent(version, freed);
+            if (f2 != null) {
+                freed = f2;
+            }
         }
-        Chunk f = freed.get(chunkId);
-        if (f == null) {
-            f = new Chunk(chunkId);
-            freed.put(chunkId, f);
+        synchronized (freed) {
+            Chunk f = freed.get(chunkId);
+            if (f == null) {
+                f = new Chunk(chunkId);
+                freed.put(chunkId, f);
+            }
+            f.maxLengthLive -= maxLengthLive;
+            f.pageCountLive -= pageCount;
         }
-        f.maxLengthLive -= maxLengthLive;
-        f.pageCountLive -= pageCount;
     }
 
     Compressor getCompressor() {
@@ -1679,17 +1686,17 @@ public class MVStore {
      */
     void registerUnsavedPage() {
         unsavedPageCount++;
+        if (unsavedPageCount > unsavedPageCountMax && unsavedPageCountMax > 0) {
+            storeNeeded = true;
+        }
     }
 
     /**
      * This method is called before writing to a map.
      */
     void beforeWrite() {
-        if (currentStoreVersion >= 0) {
-            // store is possibly called within store, if the meta map changed
-            return;
-        }
-        if (unsavedPageCount > unsavedPageCountMax && unsavedPageCountMax > 0) {
+        if (storeNeeded) {
+            storeNeeded = false;
             store(true);
         }
     }
@@ -1819,6 +1826,7 @@ public class MVStore {
         // rollback might have rolled back the stored chunk metadata as well
         Chunk c = chunks.get(lastChunkId - 1);
         if (c != null) {
+            markMetaChanged();
             meta.put("chunk." + c.id, c.asString());
         }
         currentVersion = version;

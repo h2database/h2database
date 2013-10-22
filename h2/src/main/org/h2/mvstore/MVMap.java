@@ -214,7 +214,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @SuppressWarnings("unchecked")
     public K getKey(long index) {
-        checkOpen();
         if (index < 0 || index >= size()) {
             return null;
         }
@@ -285,7 +284,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the index
      */
     public long getKeyIndex(K key) {
-        checkOpen();
         if (size() == 0) {
             return -1;
         }
@@ -319,7 +317,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @SuppressWarnings("unchecked")
     protected K getFirstLast(boolean first) {
-        checkOpen();
         if (size() == 0) {
             return null;
         }
@@ -383,7 +380,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the key, or null if no such key exists
      */
     protected K getMinMax(K key, boolean min, boolean excluding) {
-        checkOpen();
         return getMinMax(root, key, min, excluding);
     }
 
@@ -429,7 +425,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     @Override
     @SuppressWarnings("unchecked")
     public V get(Object key) {
-        checkOpen();
         return (V) binarySearch(root, key);
     }
 
@@ -514,7 +509,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Remove all entries, and close the map.
      */
     public void removeMap() {
-        checkOpen();
+        int todoMoveToMVStore;
         if (this == store.getMetaMap()) {
             return;
         }
@@ -712,7 +707,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 } else {
                     list.add(root);
                 }
-                store.markChanged(this);
             }
             root = newRoot;
         }
@@ -775,7 +769,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the iterator
      */
     public Cursor<K> keyIterator(K from) {
-        checkOpen();
         return new Cursor<K>(this, root, from);
     }
 
@@ -790,7 +783,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public Set<K> keySet() {
-        checkOpen();
         final MVMap<K, V> map = this;
         final Page root = this.root;
         return new AbstractSet<K>() {
@@ -831,7 +823,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return store.getMapName(id);
     }
 
-    public MVStore getStore() {
+    MVStore getStore() {
         return store;
     }
 
@@ -898,18 +890,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Check whether the map is open.
-     *
-     * @throws IllegalStateException if the map is closed
-     */
-    protected void checkOpen() {
-        if (closed) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_CLOSED, "This map is closed");
-        }
-    }
-
-    /**
      * This method is called before writing to the map. The default
      * implementation checks whether writing is allowed, and tries
      * to detect concurrent modification.
@@ -918,8 +898,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *      or if another thread is concurrently writing
      */
     protected void beforeWrite() {
+        if (closed) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_CLOSED, "This map is closed");
+        }
         if (readOnly) {
-            checkOpen();
             throw DataUtils.newUnsupportedOperationException(
                     "This map is read-only");
         }
@@ -991,14 +974,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the number of entries
      */
     public long sizeAsLong() {
-        checkOpen();
         return root.getTotalCount();
     }
 
     @Override
     public boolean isEmpty() {
         // could also use (sizeAsLong() == 0)
-        checkOpen();
         return root.isLeaf() && root.getKeyCount() == 0;
     }
 
@@ -1061,7 +1042,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @return the opened map
      */
-    protected MVMap<K, V> openReadOnly() {
+    MVMap<K, V> openReadOnly() {
         MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
         m.readOnly = true;
         HashMap<String, String> config = New.hashMap();
@@ -1140,6 +1121,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param newMapName the name name
      */
     public void renameMap(String newMapName) {
+        int todoMoveToMVStore;
         beforeWrite();
         try {
             store.renameMap(this, newMapName);

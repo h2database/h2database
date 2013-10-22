@@ -547,6 +547,7 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, String> map;
         s = new MVStore.Builder().
                 fileName(fileName).
+                writeDelay(-1).
                 compressData().open();
         map = s.openMap("test");
         // add 10 MB of data
@@ -556,7 +557,7 @@ public class TestMVStore extends TestBase {
         s.store();
         s.close();
         int[] expectedReadsForCacheSize = {
-                3405, 2590, 1924, 1440, 1108, 956, 918
+                3405, 2590, 1924, 1440, 1103, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = new MVStore.Builder().

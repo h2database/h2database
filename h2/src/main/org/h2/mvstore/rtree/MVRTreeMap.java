@@ -52,7 +52,6 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     @Override
     @SuppressWarnings("unchecked")
     public V get(Object key) {
-        checkOpen();
         return (V) get(root, key);
     }
 
@@ -63,7 +62,6 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the iterator
      */
     public RTreeCursor findIntersectingKeys(SpatialKey x) {
-        checkOpen();
         return new RTreeCursor(root, x) {
             @Override
             protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
@@ -79,7 +77,6 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the iterator
      */
     public RTreeCursor findContainedKeys(SpatialKey x) {
-        checkOpen();
         return new RTreeCursor(root, x) {
             @Override
             protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {

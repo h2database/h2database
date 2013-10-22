@@ -336,6 +336,11 @@ public interface CommandInterface {
     int MERGE = 62;
 
     /**
+     * The type of a REPLACE statement.
+     */
+    int REPLACE = 63;
+
+    /**
      * The type of a no operation statement.
      */
     int NO_OPERATION = 63;

@@ -70,6 +70,7 @@ import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
 import org.h2.command.dml.NoOperation;
 import org.h2.command.dml.Query;
+import org.h2.command.dml.Replace;
 import org.h2.command.dml.RunScriptCommand;
 import org.h2.command.dml.ScriptCommand;
 import org.h2.command.dml.Select;
@@ -407,6 +408,8 @@ public class Parser {
                     c = parseRunScript();
                 } else if (readIf("RELEASE")) {
                     c = parseReleaseSavepoint();
+                } else if (readIf("REPLACE")) {
+                    c = parseReplace();
                 }
                 break;
             case 's':
@@ -1038,6 +1041,45 @@ public class Parser {
             } while (readIf(","));
             command.setColumns(columnList.toArray(new Column[columnList.size()]));
             command.addRow(values.toArray(new Expression[values.size()]));
+        } else {
+            command.setQuery(parseSelect());
+        }
+        return command;
+    }
+
+    /**
+     * MySQL compatibility. REPLACE is similar to MERGE.
+     */
+    private Replace parseReplace() {
+        Replace command = new Replace(session);
+        currentPrepared = command;
+        read("INTO");
+        Table table = readTableOrView();
+        command.setTable(table);
+        if (readIf("(")) {
+            if (isSelect()) {
+                command.setQuery(parseSelect());
+                read(")");
+                return command;
+            }
+            Column[] columns = parseColumnList(table);
+            command.setColumns(columns);
+        }
+        if (readIf("VALUES")) {
+            do {
+                ArrayList<Expression> values = New.arrayList();
+                read("(");
+                if (!readIf(")")) {
+                    do {
+                        if (readIf("DEFAULT")) {
+                            values.add(null);
+                        } else {
+                            values.add(readExpression());
+                        }
+                    } while (readIfMore());
+                }
+                command.addRow(values.toArray(new Expression[values.size()]));
+            } while (readIf(","));
         } else {
             command.setQuery(parseSelect());
         }

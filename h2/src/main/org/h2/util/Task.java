@@ -22,6 +22,8 @@ public abstract class Task implements Runnable {
      */
     protected Object result;
 
+    private volatile boolean finished;
+
     private Thread thread;
 
     private Exception ex;
@@ -40,6 +42,7 @@ public abstract class Task implements Runnable {
         } catch (Exception e) {
             this.ex = e;
         }
+        finished = true;
     }
 
     /**
@@ -77,6 +80,15 @@ public abstract class Task implements Runnable {
             throw new RuntimeException(e);
         }
         return result;
+    }
+    
+    /**
+     * Whether the call method has returned (with or without exception).
+     * 
+     * @return true if yes
+     */
+    public boolean isFinished() {
+        return finished;
     }
 
     /**

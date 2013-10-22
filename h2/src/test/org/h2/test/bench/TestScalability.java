@@ -171,7 +171,7 @@ public class TestScalability implements Database.DatabaseTest {
             conn.close();
             db.log("Executed statements", "#", db.getExecutedStatements());
             db.log("Total time", "ms", db.getTotalTime());
-            int statPerSec = db.getExecutedStatements() * 1000 / db.getTotalTime();
+            int statPerSec = (int) (db.getExecutedStatements() * 1000L / db.getTotalTime());
             db.log("Statements per second", "#", statPerSec);
             System.out.println("Statements per second: " + statPerSec);
             collect = false;

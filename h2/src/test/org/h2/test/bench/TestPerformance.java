@@ -71,6 +71,11 @@ public class TestPerformance implements Database.DatabaseTest {
         int dbId = -1;
         boolean exit = false;
         String out = "benchmark.html";
+        Properties prop = new Properties();
+        InputStream in = getClass().getResourceAsStream("test.properties");
+        prop.load(in);
+        in.close();
+        int size = Integer.parseInt(prop.getProperty("size"));
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
             if ("-db".equals(arg)) {
@@ -83,13 +88,10 @@ public class TestPerformance implements Database.DatabaseTest {
                 trace = true;
             } else if ("-exit".equals(arg)) {
                 exit = true;
+            } else if ("-size".equals(arg)) {
+                size = Integer.parseInt(args[++i]);
             }
         }
-        Properties prop = new Properties();
-        InputStream in = getClass().getResourceAsStream("test.properties");
-        prop.load(in);
-        in.close();
-        int size = Integer.parseInt(prop.getProperty("size"));
         ArrayList<Database> dbs = new ArrayList<Database>();
         for (int i = 0; i < 100; i++) {
             if (dbId != -1 && i != dbId) {
@@ -230,7 +232,7 @@ public class TestPerformance implements Database.DatabaseTest {
             conn.close();
             db.log("Executed statements", "#", db.getExecutedStatements());
             db.log("Total time", "ms", db.getTotalTime());
-            int statPerSec = db.getExecutedStatements() * 1000 / db.getTotalTime();
+            int statPerSec = (int) (db.getExecutedStatements() * 1000L / db.getTotalTime());
             db.log("Statements per second", "#", statPerSec);
             System.out.println("Statements per second: " + statPerSec);
             collect = false;

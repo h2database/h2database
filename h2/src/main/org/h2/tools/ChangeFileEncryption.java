@@ -21,7 +21,7 @@ import org.h2.store.FileStore;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileChannelOutputStream;
 import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathCrypt;
+import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.Tool;
 
@@ -152,11 +152,11 @@ public class ChangeFileEncryption extends Tool {
                     throw new SQLException("The file password may not contain spaces");
                 }
             }
-            change.encryptKey = FilePathCrypt.getPasswordBytes(encryptPassword);
+            change.encryptKey = FilePathEncrypt.getPasswordBytes(encryptPassword);
             change.encrypt = getFileEncryptionKey(encryptPassword);
         }
         if (decryptPassword != null) {
-            change.decryptKey = FilePathCrypt.getPasswordBytes(decryptPassword);
+            change.decryptKey = FilePathEncrypt.getPasswordBytes(decryptPassword);
             change.decrypt = getFileEncryptionKey(decryptPassword);
         }
         change.out = out;
@@ -213,14 +213,14 @@ public class ChangeFileEncryption extends Tool {
         }
         FileChannel fileIn = FilePath.get(fileName).open("r");
         if (decryptKey != null) {
-            fileIn = new FilePathCrypt.FileCrypt(fileName, decryptKey, fileIn);
+            fileIn = new FilePathEncrypt.FileEncrypt(fileName, decryptKey, fileIn);
         }
         InputStream inStream = new FileChannelInputStream(fileIn, true);
         String temp = directory + "/temp.db";
         FileUtils.delete(temp);
         FileChannel fileOut = FilePath.get(temp).open("rw");
         if (encryptKey != null) {
-            fileOut = new FilePathCrypt.FileCrypt(temp, encryptKey, fileOut);
+            fileOut = new FilePathEncrypt.FileEncrypt(temp, encryptKey, fileOut);
         }
         OutputStream outStream = new FileChannelOutputStream(fileOut, true);
         byte[] buffer = new byte[4 * 1024];

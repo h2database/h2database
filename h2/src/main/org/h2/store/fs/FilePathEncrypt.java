@@ -25,15 +25,15 @@ import org.h2.util.MathUtils;
 /**
  * An encrypted file.
  */
-public class FilePathCrypt extends FilePathWrapper {
+public class FilePathEncrypt extends FilePathWrapper {
 
-    private static final String SCHEME = "crypt";
+    private static final String SCHEME = "encrypt";
 
     /**
      * Register this file system.
      */
     public static void register() {
-        FilePath.register(new FilePathCrypt());
+        FilePath.register(new FilePathEncrypt());
     }
 
     @Override
@@ -41,7 +41,7 @@ public class FilePathCrypt extends FilePathWrapper {
         String[] parsed = parse(name);
         FileChannel file = FileUtils.open(parsed[1], mode);
         byte[] passwordBytes = parsed[0].getBytes(Constants.UTF8);
-        return new FileCrypt(name, passwordBytes, file);
+        return new FileEncrypt(name, passwordBytes, file);
     }
 
     @Override
@@ -62,10 +62,10 @@ public class FilePathCrypt extends FilePathWrapper {
 
     @Override
     public long size() {
-        long size = getBase().size() - FileCrypt.HEADER_LENGTH;
+        long size = getBase().size() - FileEncrypt.HEADER_LENGTH;
         size = Math.max(0, size);
-        if ((size & FileCrypt.BLOCK_SIZE_MASK) != 0) {
-            size -= FileCrypt.BLOCK_SIZE;
+        if ((size & FileEncrypt.BLOCK_SIZE_MASK) != 0) {
+            size -= FileEncrypt.BLOCK_SIZE;
         }
         return size;
     }
@@ -123,7 +123,7 @@ public class FilePathCrypt extends FilePathWrapper {
     /**
      * An encrypted file with a read cache.
      */
-    public static class FileCrypt extends FileBase {
+    public static class FileEncrypt extends FileBase {
 
         /**
          * The block size.
@@ -171,7 +171,7 @@ public class FilePathCrypt extends FilePathWrapper {
 
         private final String name;
 
-        public FileCrypt(String name, byte[] encryptionKey, FileChannel base) throws IOException {
+        public FileEncrypt(String name, byte[] encryptionKey, FileChannel base) throws IOException {
             this.name = name;
             this.base = base;
             this.size = base.size() - HEADER_LENGTH;

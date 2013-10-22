@@ -192,7 +192,7 @@ public class BenchCThread {
                 dist[i] = rs.getString(3 + i);
             }
             rs.close();
-            String distInfo = dist[dId - 1];
+            String distInfo = dist[(dId - 1) % 10];
             stock[number - 1] = sQuantity;
             if ((data.indexOf("original") != -1)
                     && (sData.indexOf("original") != -1)) {

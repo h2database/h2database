@@ -24,7 +24,7 @@ import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.upgrade.v1_1.util.New;
+import org.h2.util.New;
 import org.h2.util.Task;
 
 /**

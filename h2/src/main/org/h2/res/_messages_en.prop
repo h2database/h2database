@@ -104,7 +104,7 @@
 90082=Sequence {0} belongs to a table
 90083=Column may be referenced by {0}
 90084=Cannot drop last column {0}
-90085=Index {0} belongs to a constraint
+90085=Index {0} belongs to constraint {1}
 90086=Class {0} not found
 90087=Method {0} not found
 90088=Unknown mode {0}

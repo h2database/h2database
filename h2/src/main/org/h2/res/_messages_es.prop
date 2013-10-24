@@ -104,7 +104,7 @@
 90082=Sequence {0} pertenece a una tabla
 90083=La columna puede estar referenciada por {0}
 90084=Imposible eliminar la ultima columna {0}
-90085=Index {0} pertenece a un constraint
+90085=Index {0} pertenece a un constraint {1}
 90086=Class {0} no encontrada
 90087=Method {0} no encontrado
 90088=Modo desconocido {0}

@@ -505,10 +505,7 @@ public class Recover extends Tool implements DataHandler {
                         null, this, null);
                 ValueDataType valueType = new ValueDataType(
                         null, this, null);
-                MVMap.Builder<Value, Value> mapBuilder = new MVMap.Builder<Value, Value>().
-                        keyType(keyType).
-                        valueType(valueType);
-                TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, mapBuilder);
+                TransactionMap<Value, Value> dataMap = store.begin().openMap(mapName, keyType, valueType);
                 Iterator<Value> dataIt = dataMap.keyIterator(null);
                 boolean init = false;
                 while (dataIt.hasNext()) {

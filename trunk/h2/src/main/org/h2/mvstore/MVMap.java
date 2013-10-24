@@ -506,24 +506,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Remove all entries, and close the map.
-     */
-    public void removeMap() {
-        int todoMoveToMVStore;
-        if (this == store.getMetaMap()) {
-            return;
-        }
-        beforeWrite();
-        try {
-            root.removeAllRecursive();
-            store.removeMap(id);
-            close();
-        } finally {
-            afterWrite();
-        }
-    }
-
-    /**
      * Close the map. Accessing the data is still possible (to allow concurrent
      * reads), but it is marked as closed.
      */
@@ -1113,21 +1095,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             DataUtils.appendMap(buff, "type", type);
         }
         return buff.toString();
-    }
-
-    /**
-     * Rename the map.
-     *
-     * @param newMapName the name name
-     */
-    public void renameMap(String newMapName) {
-        int todoMoveToMVStore;
-        beforeWrite();
-        try {
-            store.renameMap(this, newMapName);
-        } finally {
-            afterWrite();
-        }
     }
 
     void setWriteVersion(long writeVersion) {

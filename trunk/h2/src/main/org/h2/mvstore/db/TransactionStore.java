@@ -15,7 +15,6 @@ import java.util.Map;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVMap.Builder;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
@@ -630,9 +629,7 @@ public class TransactionStore {
          * @return the transaction map
          */
         public <K, V> TransactionMap<K, V> openMap(String name) {
-            checkNotClosed();
-            return new TransactionMap<K, V>(this, name, new ObjectDataType(),
-                    new ObjectDataType());
+            return openMap(name, null, null);
         }
 
         /**
@@ -641,20 +638,31 @@ public class TransactionStore {
          * @param <K> the key type
          * @param <V> the value type
          * @param name the name of the map
-         * @param builder the builder
+         * @param keyType the key data type
+         * @param valueType the value data type
          * @return the transaction map
          */
-        public <K, V> TransactionMap<K, V> openMap(String name, Builder<K, V> builder) {
+        public <K, V> TransactionMap<K, V> openMap(String name, DataType keyType, DataType valueType) {
             checkNotClosed();
-            DataType keyType = builder.getKeyType();
             if (keyType == null) {
                 keyType = new ObjectDataType();
             }
-            DataType valueType = builder.getValueType();
             if (valueType == null) {
                 valueType = new ObjectDataType();
             }
-            return new TransactionMap<K, V>(this, name, keyType, valueType);
+            VersionedValueType vt = new VersionedValueType(valueType);
+            MVMap.Builder<K, VersionedValue> builder = new MVMap.Builder<K, VersionedValue>()
+                    .keyType(keyType).valueType(vt);
+            MVMap<K, VersionedValue> map = store.store.openMap(name, builder);
+            int mapId = map.getId();
+            return new TransactionMap<K, V>(this, map, mapId);
+        }
+        
+        public <K, V> TransactionMap<K, V> openMap(String name, MVMap.Builder<K, VersionedValue> builder) {
+            checkNotClosed();
+            MVMap<K, VersionedValue> map = store.store.openMap(name, builder);
+            int mapId = map.getId();
+            return new TransactionMap<K, V>(this, map, mapId);
         }
 
         /**
@@ -718,6 +726,13 @@ public class TransactionStore {
                         DataUtils.ERROR_CLOSED, "Transaction is closed");
             }
         }
+        
+        /**
+         * Remove the map.
+         */
+        public <K, V> void removeMap(TransactionMap<K, V> map) {
+            store.store.removeMap(map.map);
+        }
 
     }
 
@@ -749,17 +764,7 @@ public class TransactionStore {
          */
         private long readLogId = Long.MAX_VALUE;
 
-        TransactionMap(Transaction transaction, String name, DataType keyType,
-                DataType valueType) {
-            this.transaction = transaction;
-            VersionedValueType vt = new VersionedValueType(valueType);
-            MVMap.Builder<K, VersionedValue> builder = new MVMap.Builder<K, VersionedValue>()
-                    .keyType(keyType).valueType(vt);
-            map = transaction.store.store.openMap(name, builder);
-            mapId = map.getId();
-        }
-
-        private TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map, int mapId) {
+        TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map, int mapId) {
             this.transaction = transaction;
             this.map = map;
             this.mapId = mapId;
@@ -1080,17 +1085,6 @@ public class TransactionStore {
             }
         }
 
-
-        /**
-         * Rename the map.
-         *
-         * @param newMapName the new map name
-         */
-        public void renameMap(String newMapName) {
-            // TODO rename maps transactionally
-            map.renameMap(newMapName);
-        }
-
         /**
          * Check whether this map is closed.
          *
@@ -1098,14 +1092,6 @@ public class TransactionStore {
          */
         public boolean isClosed() {
             return map.isClosed();
-        }
-
-        /**
-         * Remove the map.
-         */
-        public void removeMap() {
-            // TODO remove in a transaction
-            map.removeMap();
         }
 
         /**
@@ -1204,25 +1190,36 @@ public class TransactionStore {
         }
 
         /**
-         * Iterate over all keys.
+         * Iterate over keys.
          *
          * @param from the first key to return
          * @return the iterator
          */
-        public Iterator<K> keyIterator(final K from) {
+        public Iterator<K> keyIterator(K from) {
             return keyIterator(from, false);
         }
 
         /**
-         * Iterate over all keys.
+         * Iterate over keys.
          *
          * @param from the first key to return
          * @param includeUncommitted whether uncommitted entries should be included
          * @return the iterator
          */
-        public Iterator<K> keyIterator(final K from, final boolean includeUncommitted) {
+        public Iterator<K> keyIterator(K from, boolean includeUncommitted) {
+            Cursor<K> it = map.keyIterator(from);
+            return wrapIterator(it, false);
+        }
+
+        /**
+         * Iterate over keys.
+         *
+         * @param cursor the wrapped cursor
+         * @param includeUncommitted whether uncommitted entries should be included
+         * @return the iterator
+         */
+        private Iterator<K> wrapIterator(final Cursor<K> cursor, final boolean includeUncommitted) {
             return new Iterator<K>() {
-                private final Cursor<K> cursor = map.keyIterator(from);
                 private K current;
 
                 {
@@ -1261,7 +1258,7 @@ public class TransactionStore {
                 }
             };
         }
-
+        
         public Transaction getTransaction() {
             return transaction;
         }

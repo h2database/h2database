@@ -110,7 +110,7 @@ public class TestMVStore extends TestBase {
         assertEquals(1, map.get(1).intValue());
         s.store();
 
-        map.removeMap();
+        s.removeMap(map);
         s.store();
 
         map = s.openMap("data");
@@ -222,7 +222,7 @@ public class TestMVStore extends TestBase {
         }
         for (int i = 0; i < 10; i += 2) {
             m = s.openMap("data" + i);
-            m.removeMap();
+            s.removeMap(m);
             s.store();
         }
         long sizeOld = s.getFileStore().size();
@@ -503,7 +503,7 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, Integer> m = s.openMap("test");
         m.put(1, 1);
         s.store();
-        m.removeMap();
+        s.removeMap(m);
         s.store();
         s.close();
         s = openStore(fileName);
@@ -518,7 +518,7 @@ public class TestMVStore extends TestBase {
         map = s.openMap("hello");
         map.put(1, 10);
         long old = s.incrementVersion();
-        map.renameMap("world");
+        s.renameMap(map, "world");
         map.put(2, 20);
         assertEquals("world", map.getName());
         s.rollbackTo(old);
@@ -635,7 +635,7 @@ public class TestMVStore extends TestBase {
         long size = fs.getFile().size();
         for (int i = 0; i < 10; i++) {
             map = s.openMap("test" + i);
-            map.removeMap();
+            s.removeMap(map);
             s.store();
             s.commit();
             s.compact(100);

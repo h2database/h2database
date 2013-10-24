@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.command.ddl.Analyze;
 import org.h2.command.ddl.CreateTableData;
@@ -398,6 +399,7 @@ public class MVTable extends TableBase {
             index = new MVDelegateIndex(this, indexId,
                     indexName, primaryIndex, indexType);
         } else if (indexType.isSpatial()) {
+            int todo;
             index = new SpatialTreeIndex(this, indexId, indexName, cols,
                     indexType, true, create, session);
         } else {

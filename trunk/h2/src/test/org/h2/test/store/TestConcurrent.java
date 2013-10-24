@@ -95,7 +95,7 @@ public class TestConcurrent extends TestMVStore {
                         }
                         MVMap<Integer, Integer> m = list.get(x);
                         m.clear();
-                        m.removeMap();
+                        s.removeMap(m);
                     }
                 }
             };
@@ -108,7 +108,7 @@ public class TestConcurrent extends TestMVStore {
                 }
                 MVMap<Integer, Integer> m = list.get(x);
                 m.clear();
-                m.removeMap();
+                s.removeMap(m);
                 if (x % 5 == 0) {
                     s.incrementVersion();
                 }
@@ -152,7 +152,7 @@ public class TestConcurrent extends TestMVStore {
         for (int i = 0; i < count || counter.get() < count; i++) {
             MVMap<Integer, Integer> m = s.openMap("d" + i);
             m.put(1, 10);
-            m.removeMap();
+            s.removeMap(m);
             if (task.isFinished()) {
                 break;
             }

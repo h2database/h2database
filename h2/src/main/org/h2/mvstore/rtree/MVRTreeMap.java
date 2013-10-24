@@ -15,7 +15,6 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.Page;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.mvstore.type.StringDataType;
 import org.h2.util.New;
 
 /**
@@ -744,7 +743,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
          * @param valueType the key type
          * @return this
          */
-        public Builder<V> valueType(StringDataType valueType) {
+        public Builder<V> valueType(DataType valueType) {
             this.valueType = valueType;
             return this;
         }

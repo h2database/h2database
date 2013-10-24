@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -482,20 +483,6 @@ public class MVStore {
                 return x;
             }
         }
-    }
-
-    /**
-     * Remove a map.
-     *
-     * @param id the map id
-     */
-    void removeMap(int id) {
-        String name = getMapName(id);
-        markMetaChanged();
-        meta.remove("map." + id);
-        meta.remove("name." + name);
-        meta.remove("root." + id);
-        maps.remove(id);
     }
 
     /**
@@ -1058,19 +1045,23 @@ public class MVStore {
         Set<Chunk> removedChunks = New.hashSet();
         while (true) {
             ArrayList<Chunk> modified = New.arrayList();
-            ArrayList<Long> keys = new ArrayList<Long>(freedPageSpace.keySet());
-            for (Iterator<Long> it = keys.iterator(); it.hasNext();) {
-                long v = it.next();
+            Iterator<Entry<Long, HashMap<Integer, Chunk>>> it;
+            it = freedPageSpace.entrySet().iterator();
+            while (it.hasNext()) {
+                Entry<Long, HashMap<Integer, Chunk>> e = it.next();
+                long v = e.getKey();
                 if (v > storeVersion) {
                     continue;
                 }
-                Map<Integer, Chunk> freed = freedPageSpace.get(v);
+                Map<Integer, Chunk> freed = e.getValue();
                 for (Chunk f : freed.values()) {
                     Chunk c = chunks.get(f.id);
                     if (c == null) {
                         // already removed
                         continue;
                     }
+                    // no need to synchronize, as old entries
+                    // are not concurrently modified
                     c.maxLengthLive += f.maxLengthLive;
                     c.pageCountLive += f.pageCountLive;
                     if (c.pageCountLive < 0) {
@@ -1090,7 +1081,7 @@ public class MVStore {
                     }
                     modified.add(c);
                 }
-                freedPageSpace.remove(v);
+                it.remove();
             }
             for (Chunk c : modified) {
                 if (c.maxLengthLive == 0) {
@@ -1511,6 +1502,7 @@ public class MVStore {
                 freed = f2;
             }
         }
+        // synchronize, because pages could be freed concurrently
         synchronized (freed) {
             Chunk f = freed.get(chunkId);
             if (f == null) {
@@ -1759,13 +1751,11 @@ public class MVStore {
         for (MVMap<?, ?> m : maps.values()) {
             m.rollbackTo(version);
         }
-        synchronized (freedPageSpace) {
-            for (long v = currentVersion; v >= version; v--) {
-                if (freedPageSpace.size() == 0) {
-                    break;
-                }
-                freedPageSpace.remove(v);
+        for (long v = currentVersion; v >= version; v--) {
+            if (freedPageSpace.size() == 0) {
+                break;
             }
+            freedPageSpace.remove(v);
         }
         meta.rollbackTo(version);
         metaChanged = false;
@@ -1892,14 +1882,14 @@ public class MVStore {
                     DataUtils.ERROR_CLOSED, "This store is closed");
         }
     }
-
+    
     /**
      * Rename a map.
      *
      * @param map the map
      * @param newName the new name
      */
-    void renameMap(MVMap<?, ?> map, String newName) {
+    public void renameMap(MVMap<?, ?> map, String newName) {
         checkOpen();
         DataUtils.checkArgument(map != meta,
                 "Renaming the meta map is not allowed");
@@ -1915,6 +1905,25 @@ public class MVStore {
         meta.remove("name." + oldName);
         meta.put("map." + id, map.asString(newName));
         meta.put("name." + newName, Integer.toString(id));
+    }
+
+    /**
+     * Remove a map.
+     *
+     * @param map the map
+     */
+    public void removeMap(MVMap<?, ?> map) {
+        checkOpen();
+        DataUtils.checkArgument(map != meta,
+                "Removing the meta map is not allowed");
+        map.clear();
+        int id = map.getId();
+        String name = getMapName(id);
+        markMetaChanged();
+        meta.remove("map." + id);
+        meta.remove("name." + name);
+        meta.remove("root." + id);
+        maps.remove(id);
     }
 
     /**

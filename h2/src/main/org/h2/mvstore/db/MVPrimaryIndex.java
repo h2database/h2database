@@ -9,6 +9,7 @@ package org.h2.mvstore.db;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -17,7 +18,6 @@ import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
-import org.h2.mvstore.MVMap;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.result.Row;
@@ -55,10 +55,8 @@ public class MVPrimaryIndex extends BaseIndex {
         ValueDataType valueType = new ValueDataType(
                 db.getCompareMode(), db, sortTypes);
         mapName = "table." + getId();
-        MVMap.Builder<Value, Value> mapBuilder = new MVMap.Builder<Value, Value>().
-                keyType(keyType).
-                valueType(valueType);
-        dataMap = mvTable.getTransaction(null).openMap(mapName, mapBuilder);
+        dataMap = mvTable.getTransaction(null).openMap(
+                mapName, keyType, valueType);
         Value k = dataMap.lastKey();
         lastKey = k == null ? 0 : k.getLong();
     }
@@ -216,7 +214,8 @@ public class MVPrimaryIndex extends BaseIndex {
     public void remove(Session session) {
         TransactionMap<Value, Value> map = getMap(session);
         if (!map.isClosed()) {
-            map.removeMap();
+            Transaction t = mvTable.getTransaction(session);
+            t.removeMap(map);
         }
     }
 

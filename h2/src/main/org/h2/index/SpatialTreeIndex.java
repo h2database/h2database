@@ -194,7 +194,8 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     @Override
     public void remove(Session session) {
         if (!treeMap.isClosed()) {
-            treeMap.removeMap();
+            MVStore store = session.getDatabase().getMvStore().getStore();
+            store.removeMap(treeMap);
         }
     }
 

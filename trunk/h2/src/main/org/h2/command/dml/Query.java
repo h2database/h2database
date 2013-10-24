@@ -429,7 +429,8 @@ public abstract class Query extends Prepared {
                 expressionSQL.add(sql);
             }
             o.columnIndexExpr = ValueExpression.get(ValueInt.get(idx + 1));
-            o.expression = expressions.get(idx);
+            Expression expr = expressions.get(idx).getNonAliasExpression();
+            o.expression = expr;
         }
     }
 

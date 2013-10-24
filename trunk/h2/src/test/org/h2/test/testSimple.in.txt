@@ -1,3 +1,5 @@
+select * from (select x as y from dual order by y);
+> 1;
 select a.x from dual a, dual b order by x;
 > 1;
 select trunc(1.3);

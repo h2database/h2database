@@ -1276,7 +1276,7 @@ public class ErrorCode {
      * <pre>
      * CREATE TABLE TEST(ID INT, CONSTRAINT UID UNIQUE(ID));
      * DROP INDEX UID_INDEX_0;
-     * Index UID_INDEX_0 belongs to a constraint
+     * Index UID_INDEX_0 belongs to constraint UID
      * </pre>
      * Correct:
      * <pre>

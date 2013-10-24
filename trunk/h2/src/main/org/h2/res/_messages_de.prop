@@ -104,7 +104,7 @@
 90082=Sequenz {0} gehört zu einer Tabelle
 90083=Feld wird referenziert durch {0}
 90084=Kann das letzte Feld nicht löschen {0}
-90085=Index {0} gehört zu einer Bedingung
+90085=Index {0} gehört zu einer Bedingung {1}
 90086=Klasse {0} nicht gefunden
 90087=Methode {0} nicht gefunden
 90088=Unbekannter Modus {0}

@@ -175,8 +175,9 @@ public class Replace extends Prepared {
     }
 
     private int update(Row row) {
-        // if there is no valid primary key, the statement degenerates to an INSERT
-        if (update == null){
+        // if there is no valid primary key, 
+        // the statement degenerates to an INSERT
+        if (update == null) {
             return 0;
         }
         ArrayList<Parameter> k = update.getParameters();

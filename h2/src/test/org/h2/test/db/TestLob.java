@@ -59,6 +59,7 @@ public class TestLob extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testCommitOnExclusiveConnection();
         testReadManyLobs();
         testLobSkip();
         testLobSkipPastEnd();
@@ -1486,4 +1487,19 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
+    private static final String MORE_THAN_128_CHARS = "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+
+    private void testCommitOnExclusiveConnection() throws Exception {
+        deleteDb("lob");
+        Connection conn = getConnection("lob;EXCLUSIVE=1");
+        Statement statement = conn.createStatement();
+        statement.execute("drop table if exists TEST");
+        statement.execute("create table TEST (COL INTEGER, LOB CLOB)");
+        conn.setAutoCommit(false);
+        statement.execute("insert into TEST (COL, LOB) values (1, '" + MORE_THAN_128_CHARS + "')");
+        statement.execute("update TEST set COL=2");
+        // statement.execute("commit"); // OK
+        conn.commit(); // KO : should not hang
+        conn.close();
+    }
 }

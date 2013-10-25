@@ -1231,6 +1231,11 @@ public class Session extends SessionWithState {
      * method returns as soon as the exclusive mode has been disabled.
      */
     public void waitIfExclusiveModeEnabled() {
+        // Even in exclusive mode, we have to let the LOB session proceed, or we will
+        // get deadlocks.
+        if (database.getLobSession() == this) {
+            return;
+        }
         while (true) {
             Session exclusive = database.getExclusiveSession();
             if (exclusive == null || exclusive == this) {

@@ -2502,6 +2502,10 @@ public class Database implements DataHandler {
         return conn;
     }
 
+    public Session getLobSession() {
+        return lobSession;
+    }
+    
     public void setLogMode(int log) {
         if (log < 0 || log > 2) {
             throw DbException.getInvalidValueException("LOG", log);

@@ -3048,11 +3048,7 @@ public class Parser {
             while (true) {
                 c = chars[i];
                 if (c < '0' || c > '9') {
-                    if (c == '.') {
-                        readDecimal(start, i);
-                        break;
-                    }
-                    if (c == 'E') {
+                    if (c == '.' || c == 'E' || c == 'L') {
                         readDecimal(start, i);
                         break;
                     }
@@ -3183,6 +3179,10 @@ public class Parser {
         if (!containsE && sub.indexOf('.') < 0) {
             BigInteger bi = new BigInteger(sub);
             if (bi.compareTo(ValueLong.MAX) <= 0) {
+                // parse constants like "10000000L"
+                if (chars[i] == 'L') {
+                    parseIndex++;
+                }
                 currentValue = ValueLong.get(bi.longValue());
                 currentTokenType = VALUE;
                 return;

@@ -1,3 +1,5 @@
+select 1000L / 10;
+> 100;
 select * from (select x as y from dual order by y);
 > 1;
 select a.x from dual a, dual b order by x;

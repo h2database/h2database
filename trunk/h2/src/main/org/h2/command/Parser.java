@@ -173,16 +173,25 @@ public class Parser {
 
     private final Database database;
     private final Session session;
+    /**
+     * @see org.h2.constant.DbSettings#databaseToUpper
+     */
+    private final boolean identifiersToUpper;
 
+    /** indicates character-type for each char in sqlCommand */
     private int[] characterTypes;
     private int currentTokenType;
     private String currentToken;
     private boolean currentTokenQuoted;
     private Value currentValue;
-    private String sqlCommand;
     private String originalSQL;
+    /** copy of originalSQL, with comments blanked out */
+    private String sqlCommand;
+    /** cached array if chars from sqlCommand */
     private char[] sqlCommandChars;
+    /** index into sqlCommand of previous token */ 
     private int lastParseIndex;
+    /** index into sqlCommand of current token */
     private int parseIndex;
     private CreateView createView;
     private Prepared currentPrepared;
@@ -193,10 +202,9 @@ public class Parser {
     private boolean rightsChecked;
     private boolean recompileAlways;
     private ArrayList<Parameter> indexedParameterList;
-    private final boolean identifiersToUpper;
 
     public Parser(Session session) {
-        database = session.getDatabase();
+        this.database = session.getDatabase();
         this.identifiersToUpper = database.getSettings().databaseToUpper;
         this.session = session;
     }

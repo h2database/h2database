@@ -42,6 +42,7 @@ public class TestView extends TestBase {
         testUnionReconnect();
         testManyViews();
         testReferenceView();
+        testViewAlterAndCommandCache();
         deleteDb("view");
     }
 
@@ -202,6 +203,27 @@ public class TestView extends TestBase {
         s.execute("create view t1 as select * from t0");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, s).execute(
                 "create table t2(id int primary key, col1 int not null, foreign key (col1) references t1(id))");
+        conn.close();
+        deleteDb("view");
+    }
+    
+    /** make sure that when we change a view, that change in reflected in other sessions command cache */
+    private void testViewAlterAndCommandCache() throws SQLException {
+        deleteDb("view");
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("create table t0(id int primary key)");
+        stat.execute("create table t1(id int primary key)");
+        stat.execute("insert into t0 values(0)");
+        stat.execute("insert into t1 values(1)");
+        stat.execute("create view v1 as select * from t0");
+        ResultSet rs = stat.executeQuery("select * from v1");
+        assertTrue(rs.next());
+        assertEquals(0, rs.getInt(1));
+        stat.execute("create or replace view v1 as select * from t1");
+        rs = stat.executeQuery("select * from v1");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
         conn.close();
         deleteDb("view");
     }

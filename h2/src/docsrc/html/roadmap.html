@@ -133,7 +133,6 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Optimize getGeneratedKey: send last identity after each execute (server).
 </li><li>Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID).
 </li><li>Max memory rows / max undo log size: use block count / row size not row count.
-</li><li>Support 123L syntax as in Java; example: SELECT (2000000000*2).
 </li><li>Implement point-in-time recovery.
 </li><li>Support PL/SQL (programming language / control flow statements).
 </li><li>LIKE: improved version for larger texts (currently using naive search).

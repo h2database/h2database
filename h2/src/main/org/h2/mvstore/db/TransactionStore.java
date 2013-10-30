@@ -170,7 +170,7 @@ public class TransactionStore {
     public synchronized void close() {
         // to avoid losing transaction ids
         settings.put(LAST_TRANSACTION_ID, "" + lastTransactionId);
-        store.commit();
+        store.store();
     }
 
     /**
@@ -658,9 +658,8 @@ public class TransactionStore {
             return new TransactionMap<K, V>(this, map, mapId);
         }
         
-        public <K, V> TransactionMap<K, V> openMap(String name, MVMap.Builder<K, VersionedValue> builder) {
+        public <K, V> TransactionMap<K, V> openMap(MVMap<K, VersionedValue> map) {
             checkNotClosed();
-            MVMap<K, VersionedValue> map = store.store.openMap(name, builder);
             int mapId = map.getId();
             return new TransactionMap<K, V>(this, map, mapId);
         }
@@ -1214,11 +1213,11 @@ public class TransactionStore {
         /**
          * Iterate over keys.
          *
-         * @param cursor the wrapped cursor
+         * @param iterator the iterator to wrap
          * @param includeUncommitted whether uncommitted entries should be included
          * @return the iterator
          */
-        private Iterator<K> wrapIterator(final Cursor<K> cursor, final boolean includeUncommitted) {
+        public Iterator<K> wrapIterator(final Iterator<K> iterator, final boolean includeUncommitted) {
             return new Iterator<K>() {
                 private K current;
 
@@ -1227,8 +1226,8 @@ public class TransactionStore {
                 }
 
                 private void fetchNext() {
-                    while (cursor.hasNext()) {
-                        current = cursor.next();
+                    while (iterator.hasNext()) {
+                        current = iterator.next();
                         if (includeUncommitted) {
                             return;
                         }

@@ -45,7 +45,7 @@ public class TestSpatial extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        if (config.mvcc) {
+        if (!config.mvStore && config.mvcc) {
             return;
         }
         if (DataType.GEOMETRY_CLASS != null) {

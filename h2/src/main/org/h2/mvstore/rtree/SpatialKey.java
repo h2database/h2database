@@ -91,10 +91,25 @@ public class SpatialKey {
 
     @Override
     public boolean equals(Object other) {
-        if (!(other instanceof SpatialKey)) {
+        if (other == this) {
+            return true;
+        } else if (!(other instanceof SpatialKey)) {
             return false;
         }
         SpatialKey o = (SpatialKey) other;
+        if (id != o.id) {
+            return false;
+        }
+        return equalsIgnoringId(o);
+    }
+    
+    /**
+     * Check whether two objects are equals, but do not compare the id fields.
+     * 
+     * @param o the other key
+     * @return true if the contents are the same
+     */
+    public boolean equalsIgnoringId(SpatialKey o) {
         return Arrays.equals(minMax, o.minMax);
     }
 

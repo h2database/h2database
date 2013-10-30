@@ -379,8 +379,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
         @Override
         public boolean previous() {
-            // TODO previous
-            return false;
+            throw DbException.getUnsupportedException("previous");
         }
 
     }

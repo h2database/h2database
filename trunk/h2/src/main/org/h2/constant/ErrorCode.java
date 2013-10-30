@@ -1283,7 +1283,7 @@ public class ErrorCode {
      * ALTER TABLE TEST DROP CONSTRAINT UID;
      * </pre>
      */
-    public static final int INDEX_BELONGS_TO_CONSTRAINT_1 = 90085;
+    public static final int INDEX_BELONGS_TO_CONSTRAINT_2 = 90085;
 
     /**
      * The error with code <code>90086</code> is thrown when

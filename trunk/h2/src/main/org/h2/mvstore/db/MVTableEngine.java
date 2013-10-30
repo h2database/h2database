@@ -173,9 +173,9 @@ public class MVTableEngine implements TableEngine {
             if (s == null || s.isReadOnly()) {
                 return;
             }
-            store.commit();
-            store.compact(50);
-            store.store();
+            if (!store.compact(50)) {
+                store.store();
+            }
         }
 
         /**

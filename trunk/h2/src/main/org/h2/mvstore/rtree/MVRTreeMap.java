@@ -478,7 +478,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     /**
      * A cursor to iterate over a subset of the keys.
      */
-    static class RTreeCursor implements Iterator<SpatialKey> {
+    public static class RTreeCursor implements Iterator<SpatialKey> {
 
         private final SpatialKey filter;
         private CursorPos pos;

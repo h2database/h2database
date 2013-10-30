@@ -17,6 +17,8 @@ import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.rtree.SpatialDataType;
+import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.DataType;
 import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
@@ -68,10 +70,12 @@ public class ValueDataType implements DataType {
     private static final int LONG_NEG = 67;
     private static final int STRING_0_31 = 68;
     private static final int BYTES_0_31 = 100;
+    private static final int SPATIAL_KEY_2D = 132;
 
     final DataHandler handler;
     final CompareMode compareMode;
     final int[] sortTypes;
+    final SpatialDataType spatialType = new SpatialDataType(2);
 
     public ValueDataType(CompareMode compareMode, DataHandler handler, int[] sortTypes) {
         this.compareMode = compareMode;
@@ -134,6 +138,9 @@ public class ValueDataType implements DataType {
 
     @Override
     public int getMemory(Object obj) {
+        if (obj instanceof SpatialKey) {
+            return spatialType.getMemory(obj);
+        }
         return getMemory((Value) obj);
     }
 
@@ -142,12 +149,17 @@ public class ValueDataType implements DataType {
     }
 
     @Override
-    public Value read(ByteBuffer buff) {
+    public Object read(ByteBuffer buff) {
         return readValue(buff);
     }
 
     @Override
     public void write(WriteBuffer buff, Object obj) {
+        if (obj instanceof SpatialKey) {
+            buff.put((byte) SPATIAL_KEY_2D);
+            spatialType.write(buff, obj);
+            return;
+        }
         Value x = (Value) obj;
         writeValue(buff, x);
     }
@@ -418,7 +430,7 @@ public class ValueDataType implements DataType {
      *
      * @return the value
      */
-    private Value readValue(ByteBuffer buff) {
+    private Object readValue(ByteBuffer buff) {
         int type = buff.get() & 255;
         switch (type) {
         case Value.NULL:
@@ -440,9 +452,9 @@ public class ValueDataType implements DataType {
         case Value.SHORT:
             return ValueShort.get(buff.getShort());
         case DECIMAL_0_1:
-            return (ValueDecimal) ValueDecimal.ZERO;
+            return ValueDecimal.ZERO;
         case DECIMAL_0_1 + 1:
-            return (ValueDecimal) ValueDecimal.ONE;
+            return ValueDecimal.ONE;
         case DECIMAL_SMALL_0:
             return ValueDecimal.get(BigDecimal.valueOf(readVarLong(buff)));
         case DECIMAL_SMALL: {
@@ -537,7 +549,7 @@ public class ValueDataType implements DataType {
             int len = readVarInt(buff);
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {
-                list[i] = readValue(buff);
+                list[i] = (Value) readValue(buff);
             }
             return ValueArray.get(list);
         }
@@ -553,7 +565,7 @@ public class ValueDataType implements DataType {
                 }
                 Object[] o = new Object[columns];
                 for (int i = 0; i < columns; i++) {
-                    o[i] = readValue(buff).getObject();
+                    o[i] = ((Value) readValue(buff)).getObject();
                 }
                 rs.addRow(o);
             }
@@ -565,6 +577,8 @@ public class ValueDataType implements DataType {
             buff.get(b, 0, len);
             return ValueGeometry.get(b);
         }
+        case SPATIAL_KEY_2D:
+            return spatialType.read(buff);
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
                 return ValueInt.get(type - INT_0_15);

@@ -265,6 +265,11 @@ Except for persisting data, all features are supported in this mode
 (multi-versioning, index lookup, R-tree and so on).
 If a file name is specified, all operations occur in memory (with the same
 performance characteristics) until data is persisted.
+</p><p>
+As in all map implementations, changing the key object after an entry
+has been added to the map is not allowed (keys are immutable).
+If a file name is specified, the value may also not be changed after
+adding an entry, because it might be serialized at any time.
 </p>
 
 <h3 id="dataTypes">Pluggable Data Types</h3>

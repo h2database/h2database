@@ -47,11 +47,30 @@ public class TestMVRTree extends TestMVStore {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testSpatialKey();
         testExample();
         testMany();
         testSimple();
         testRandom();
         testRandomFind();
+    }
+    
+    private void testSpatialKey() {
+        SpatialKey a0 = new SpatialKey(0, 1, 2, 3, 4);
+        SpatialKey a1 = new SpatialKey(0, 1, 2, 3, 4);
+        SpatialKey b0 = new SpatialKey(1, 1, 2, 3, 4);
+        SpatialKey c0 = new SpatialKey(1, 1.1f, 2.2f, 3.3f, 4.4f);
+        assertEquals(0, a0.hashCode());
+        assertEquals(1, b0.hashCode());
+        assertTrue(a0.equals(a0));
+        assertTrue(a0.equals(a1));
+        assertFalse(a0.equals(b0));
+        assertTrue(a0.equalsIgnoringId(b0));
+        assertFalse(b0.equals(c0));
+        assertFalse(b0.equalsIgnoringId(c0));
+        assertEquals("0: (1.0/2.0, 3.0/4.0)", a0.toString());
+        assertEquals("1: (1.0/2.0, 3.0/4.0)", b0.toString());
+        assertEquals("1: (1.1/2.2, 3.3/4.4)", c0.toString());
     }
 
     private void testExample() {

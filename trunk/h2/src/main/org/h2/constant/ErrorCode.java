@@ -459,6 +459,13 @@ public class ErrorCode {
     public static final int TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED = 90005;
 
     /**
+     * The error with code <code>90006</code> is thrown when
+     * trying to get a value from a sequence that has run out of numbers
+     * and does not have cycling enabled.
+     */
+    public static final int SEQUENCE_EXHAUSTED = 90006;
+
+    /**
      * The error with code <code>90007</code> is thrown when
      * trying to call a JDBC method on an object that has been closed.
      */
@@ -473,6 +480,13 @@ public class ErrorCode {
      * </pre>
      */
     public static final int INVALID_VALUE_2 = 90008;
+
+    /**
+     * The error with code <code>90009</code> is thrown when
+     * trying to create a sequence with an invalid combination
+     * of attributes (min value, max value, start value, etc).
+     */
+    public static final int SEQUENCE_ATTRIBUTES_INVALID = 90009;
 
     /**
      * The error with code <code>22007</code> is thrown when
@@ -1870,7 +1884,7 @@ public class ErrorCode {
     public static final int JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE = 90141;
 
 
-    // next are 90006, 90009, 90010, 90011, 90021, 90039,
+    // next are 90010, 90011, 90021, 90039,
     // 90051, 90056, 90110, 90122, 90142
 
     private ErrorCode() {

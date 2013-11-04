@@ -23,6 +23,9 @@ public class CreateSequence extends SchemaCommand {
 
     private String sequenceName;
     private boolean ifNotExists;
+    private boolean cycle;
+    private Expression minValue;
+    private Expression maxValue;
     private Expression start;
     private Expression increment;
     private Expression cacheSize;
@@ -40,6 +43,10 @@ public class CreateSequence extends SchemaCommand {
         this.ifNotExists = ifNotExists;
     }
 
+    public void setCycle(boolean cycle) {
+        this.cycle = cycle;
+    }
+
     @Override
     public int update() {
         session.commit(true);
@@ -51,17 +58,20 @@ public class CreateSequence extends SchemaCommand {
             throw DbException.get(ErrorCode.SEQUENCE_ALREADY_EXISTS_1, sequenceName);
         }
         int id = getObjectId();
-        Sequence sequence = new Sequence(getSchema(), id, sequenceName, belongsToTable);
-        sequence.setStartValue(getLong(start, 1));
-        sequence.setIncrement(getLong(increment, 1));
-        sequence.setCacheSize(getLong(cacheSize, Sequence.DEFAULT_CACHE_SIZE));
+        Long startValue = getLong(start);
+        Long inc = getLong(increment);
+        Long cache = getLong(cacheSize);
+        Long min = getLong(minValue);
+        Long max = getLong(maxValue);
+        Sequence sequence = new Sequence(getSchema(), id, sequenceName, startValue, inc,
+            cache, min, max, cycle, belongsToTable);
         db.addSchemaObject(session, sequence);
         return 0;
     }
 
-    private long getLong(Expression expr, long defaultValue) {
+    private Long getLong(Expression expr) {
         if (expr == null) {
-            return defaultValue;
+            return null;
         }
         return expr.optimize(session).getValue(session).getLong();
     }
@@ -72,6 +82,14 @@ public class CreateSequence extends SchemaCommand {
 
     public void setIncrement(Expression increment) {
         this.increment = increment;
+    }
+
+    public void setMinValue(Expression minValue) {
+        this.minValue = minValue;
+    }
+
+    public void setMaxValue(Expression maxValue) {
+        this.maxValue = maxValue;
     }
 
     public void setBelongsToTable(boolean belongsToTable) {

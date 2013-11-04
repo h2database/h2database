@@ -208,8 +208,12 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 
 "Commands (DDL)","ALTER SEQUENCE","
 ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
+[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
+[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
+[ CYCLE long | NOCYCLE |  NO CYCLE ]
+[ CACHE long |  NOCACHE |  NO CACHE ]
 ","
-Changes the next value and the increment of a sequence.
+Changes the parameters of a sequence.
 This command does not commit the current transaction; however the new value is used by other
 transactions immediately, and rolling back this command has no effect.
 ","
@@ -566,7 +570,11 @@ CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 
 "Commands (DDL)","CREATE SEQUENCE","
 CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ START WITH long ]
-[ INCREMENT BY long ] [ CACHE long ]
+[ INCREMENT BY long ]
+[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
+[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
+[ CYCLE long | NOCYCLE |  NO CYCLE ]
+[ CACHE long |  NOCACHE |  NO CACHE ]
 ","
 Creates a new sequence.
 The data type of a sequence is BIGINT.

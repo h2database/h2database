@@ -29,6 +29,10 @@ public class AlterSequence extends SchemaCommand {
     private Sequence sequence;
     private Expression start;
     private Expression increment;
+    private Boolean cycle;
+    private Expression minValue;
+    private Expression maxValue;
+    private Expression cacheSize;
 
     public AlterSequence(Session session, Schema schema) {
         super(session, schema);
@@ -59,22 +63,41 @@ public class AlterSequence extends SchemaCommand {
         this.increment = increment;
     }
 
+    public void setCycle(Boolean cycle) {
+        this.cycle = cycle;
+    }
+
+    public void setMinValue(Expression minValue) {
+        this.minValue = minValue;
+    }
+
+    public void setMaxValue(Expression maxValue) {
+        this.maxValue = maxValue;
+    }
+
+    public void setCacheSize(Expression cacheSize) {
+        this.cacheSize = cacheSize;
+    }
+
     @Override
     public int update() {
         Database db = session.getDatabase();
         if (table != null) {
             session.getUser().checkRight(table, Right.ALL);
         }
-        if (start != null) {
-            long startValue = start.optimize(session).getValue(session).getLong();
-            sequence.setStartValue(startValue);
+        if (cycle != null) {
+            sequence.setCycle(cycle);
         }
-        if (increment != null) {
-            long incrementValue = increment.optimize(session).getValue(session).getLong();
-            if (incrementValue == 0) {
-                throw DbException.getInvalidValueException("INCREMENT", 0);
-            }
-            sequence.setIncrement(incrementValue);
+        if (cacheSize != null) {
+            long size = cacheSize.optimize(session).getValue(session).getLong();
+            sequence.setCacheSize(size);
+        }
+        if (start != null || minValue != null || maxValue != null || increment != null) {
+            Long startValue = getLong(start);
+            Long min = getLong(minValue);
+            Long max = getLong(maxValue);
+            Long inc = getLong(increment);
+            sequence.modify(startValue, min, max, inc);
         }
         // need to use the system session, so that the update
         // can be committed immediately - not committing it
@@ -87,6 +110,13 @@ public class AlterSequence extends SchemaCommand {
         return 0;
     }
 
+    private Long getLong(Expression expr) {
+      if (expr == null) {
+          return null;
+      }
+      return expr.optimize(session).getValue(session).getLong();
+    }
+    
     @Override
     public int getType() {
         return CommandInterface.ALTER_SEQUENCE;

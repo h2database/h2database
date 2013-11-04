@@ -334,7 +334,7 @@ public class Column {
                 update = true;
             }
             if (update) {
-                sequence.setStartValue(now + inc);
+                sequence.modify(now + inc, null, null, null);
                 session.setLastIdentity(ValueLong.get(now));
                 sequence.flush(session);
             }
@@ -370,9 +370,7 @@ public class Column {
                 break;
             }
         }
-        Sequence seq = new Sequence(schema, id, sequenceName, true);
-        seq.setStartValue(start);
-        seq.setIncrement(increment);
+        Sequence seq = new Sequence(schema, id, sequenceName, start, increment);
         if (!temporary) {
             session.getDatabase().addSchemaObject(session, seq);
         }

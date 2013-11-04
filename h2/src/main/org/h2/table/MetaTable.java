@@ -252,6 +252,9 @@ public class MetaTable extends Table {
                     "IS_GENERATED BIT",
                     "REMARKS",
                     "CACHE BIGINT",
+                    "MIN_VALUE BIGINT",
+                    "MAX_VALUE BIGINT",
+                    "IS_CYCLE BIT",
                     "ID INT"
             );
             break;
@@ -1007,10 +1010,16 @@ public class MetaTable extends Table {
                         String.valueOf(s.getIncrement()),
                         // IS_GENERATED
                         s.getBelongsToTable() ? "TRUE" : "FALSE",
-                                // REMARKS
+                        // REMARKS
                         replaceNullWithEmpty(s.getComment()),
                         // CACHE
                         String.valueOf(s.getCacheSize()),
+                        // MIN_VALUE
+                        String.valueOf(s.getMinValue()),
+                        // MAX_VALUE
+                        String.valueOf(s.getMaxValue()),
+                        // IS_CYCLE
+                        s.getCycle() ? "TRUE" : "FALSE",
                         // ID
                         "" + s.getId()
                     );

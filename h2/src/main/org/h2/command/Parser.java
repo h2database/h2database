@@ -189,7 +189,7 @@ public class Parser {
     private String sqlCommand;
     /** cached array if chars from sqlCommand */
     private char[] sqlCommandChars;
-    /** index into sqlCommand of previous token */ 
+    /** index into sqlCommand of previous token */
     private int lastParseIndex;
     /** index into sqlCommand of current token */
     private int parseIndex;
@@ -4183,8 +4183,34 @@ public class Parser {
             } else if (readIf("INCREMENT")) {
                 readIf("BY");
                 command.setIncrement(readExpression());
+            } else if (readIf("MINVALUE")) {
+                command.setMinValue(readExpression());
+            } else if (readIf("NOMINVALUE")) {
+                command.setMinValue(null);
+            } else if (readIf("MAXVALUE")) {
+                command.setMaxValue(readExpression());
+            } else if (readIf("NOMAXVALUE")) {
+                command.setMaxValue(null);
+            } else if (readIf("CYCLE")) {
+                command.setCycle(true);
+            } else if (readIf("NOCYCLE")) {
+                command.setCycle(false);
+            } else if (readIf("NO")) {
+                if (readIf("MINVALUE")) {
+                    command.setMinValue(null);
+                } else if (readIf("MAXVALUE")) {
+                    command.setMaxValue(null);
+                } else if (readIf("CYCLE")) {
+                    command.setCycle(false);
+                } else if (readIf("CACHE")) {
+                    command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
+                } else {
+                    break;
+                }
             } else if (readIf("CACHE")) {
                 command.setCacheSize(readExpression());
+            } else if (readIf("NOCACHE")) {
+                command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
             } else if (readIf("BELONGS_TO_TABLE")) {
                 command.setBelongsToTable(true);
             } else {
@@ -4524,13 +4550,44 @@ public class Parser {
         Sequence sequence = getSchema().getSequence(sequenceName);
         AlterSequence command = new AlterSequence(session, sequence.getSchema());
         command.setSequence(sequence);
-        if (readIf("RESTART")) {
-            read("WITH");
-            command.setStartWith(readExpression());
-        }
-        if (readIf("INCREMENT")) {
-            read("BY");
-            command.setIncrement(readExpression());
+        while (true) {
+            if (readIf("RESTART")) {
+                read("WITH");
+                command.setStartWith(readExpression());
+            } else if (readIf("INCREMENT")) {
+                read("BY");
+                command.setIncrement(readExpression());
+            } else if (readIf("MINVALUE")) {
+                command.setMinValue(readExpression());
+            } else if (readIf("NOMINVALUE")) {
+                command.setMinValue(null);
+            } else if (readIf("MAXVALUE")) {
+                command.setMaxValue(readExpression());
+            } else if (readIf("NOMAXVALUE")) {
+                command.setMaxValue(null);
+            } else if (readIf("CYCLE")) {
+                command.setCycle(true);
+            } else if (readIf("NOCYCLE")) {
+                command.setCycle(false);
+            } else if (readIf("NO")) {
+                if (readIf("MINVALUE")) {
+                    command.setMinValue(null);
+                } else if (readIf("MAXVALUE")) {
+                    command.setMaxValue(null);
+                } else if (readIf("CYCLE")) {
+                    command.setCycle(false);
+                } else if (readIf("CACHE")) {
+                    command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
+                } else {
+                    break;
+                }
+            } else if (readIf("CACHE")) {
+                command.setCacheSize(readExpression());
+            } else if (readIf("NOCACHE")) {
+                command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
+            } else {
+                break;
+            }
         }
         return command;
     }

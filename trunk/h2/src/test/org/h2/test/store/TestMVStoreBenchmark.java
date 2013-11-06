@@ -73,7 +73,7 @@ public class TestMVStoreBenchmark extends TestBase {
 
     }
 
-    private static long[] getMemoryUsed(int count, int size) {
+    private long[] getMemoryUsed(int count, int size) {
         long hash, tree, mv;
         ArrayList<Map<Integer, String>> mapList;
         long mem;
@@ -106,6 +106,10 @@ public class TestMVStoreBenchmark extends TestBase {
         addEntries(mapList, size);
         mv = getMemory() - mem;
         mapList.size();
+
+        trace("hash: " + hash / 1024 / 1024 + " mb");
+        trace("tree: " + tree / 1024 / 1024 + " mb");
+        trace("mv: " + mv / 1024 / 1024 + " mb");
 
         return new long[]{hash, tree, mv};
     }
@@ -179,7 +183,7 @@ public class TestMVStoreBenchmark extends TestBase {
             }
             time = System.currentTimeMillis() - time;
         }
-        // System.out.println(map.getClass().getName() + ": " + time);
+        trace(map.getClass().getName() + ": " + time);
         return time;
     }
 

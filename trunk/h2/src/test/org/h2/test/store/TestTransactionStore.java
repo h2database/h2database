@@ -59,6 +59,7 @@ public class TestTransactionStore extends TestBase {
     private void testStopWhileCommitting() throws Exception {
         String fileName = getBaseDir() + "/testStopWhileCommitting.h3";
         FileUtils.delete(fileName);
+        Random r = new Random(0);
 
         for (int i = 0; i < 10;) {
             MVStore s;
@@ -100,6 +101,16 @@ public class TestTransactionStore extends TestBase {
             task.get();
             store.close();
             s = MVStore.open(fileName);
+            // roll back a bit, until we have some undo log entries
+            assertTrue(s.hasMap("undoLog"));
+            for (int back = 0; back < 100; back++) {
+                int minus = r.nextInt(10);
+                s.rollbackTo(Math.max(0, s.getCurrentVersion() - minus));
+                MVMap<?, ?> undo = s.openMap("undoLog");
+                if (undo.size() > 0) {
+                    break;
+                }
+            }
             ts = new TransactionStore(s);
             List<Transaction> list = ts.getOpenTransactions();
             if (list.size() != 0) {
@@ -111,10 +122,6 @@ public class TestTransactionStore extends TestBase {
             s.close();
             FileUtils.delete(fileName);
             assertFalse(FileUtils.exists(fileName));
-            FileUtils.delete(fileName);
-            assertFalse(FileUtils.exists(fileName));
-            s.close();
-            FileUtils.delete(fileName);
         }
     }
 

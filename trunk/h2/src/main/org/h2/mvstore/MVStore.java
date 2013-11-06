@@ -59,7 +59,7 @@ TransactionStore:
 MVStore:
 - automated 'kill process' and 'power failure' test
 - update checkstyle
-- auto-compact from time to time and on close
+- feature to auto-compact from time to time and on close
 - test and possibly improve compact operation (for large dbs)
 - possibly split chunk metadata into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
@@ -115,6 +115,19 @@ MVStore:
 - support log structured merge style operations (blind writes)
     using one map per level plus bloom filter
 - have a strict call order MVStore -> MVMap -> Page -> FileStore
+- autocommit mode (default) and manual mode
+- manual mode: combine commit and store;
+    rollback only to chunk
+- rename writeDelay to commitDelay, default 1 s
+- rollback() to rollback to the latest commit; throws exception
+    in autocommit mode
+- fix documentation (including examples)
+- autocommit commits, stores, and compacts from time to time;
+    the background thread should wait at least 90% of the
+    configured write delay to store changes 
+- currently, uncommitted changes are stored if there are many transient changes,
+    and rolled back when opening - is this really needed?
+- compact* should also store uncommitted changes (if there are any)
 
 */
 
@@ -141,6 +154,7 @@ public class MVStore {
      * The background thread, if any.
      */
     volatile Thread backgroundThread;
+    final Object backgroundThreadSync = new Object();
 
     private volatile boolean reuseSpace = true;
 
@@ -176,9 +190,9 @@ public class MVStore {
             new ConcurrentHashMap<Long, HashMap<Integer, Chunk>>();
 
     /**
-     * The metadata map.
+     * The metadata map. Write access to this map needs to be synchronized on the store.
      */
-    private MVMapConcurrent<String, String> meta;
+    private MVMap<String, String> meta;
 
     private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps =
             new ConcurrentHashMap<Integer, MVMap<?, ?>>();
@@ -208,6 +222,12 @@ public class MVStore {
      */
     private long lastStoredVersion;
 
+    /**
+     * The estimated number of unsaved pages
+     * (this number may not be completely accurate,
+     * because it may be changed concurrently, and
+     * because temporary pages are counted)
+     */
     private int unsavedPageCount;
     private int unsavedPageCountMax;
     private boolean storeNeeded;
@@ -221,11 +241,6 @@ public class MVStore {
     private long lastStoreTime;
 
     /**
-     * To which version to roll back when opening the store after a crash.
-     */
-    private long lastCommittedVersion;
-
-    /**
      * The earliest chunk to retain, if any.
      */
     private Chunk retainChunk;
@@ -234,6 +249,8 @@ public class MVStore {
      * The version of the current store operation (if any).
      */
     private volatile long currentStoreVersion = -1;
+    
+    private Thread currentStoreThread;
 
     private volatile boolean metaChanged;
 
@@ -256,7 +273,7 @@ public class MVStore {
         pageSplitSize = o == null ? 6 * 1024 : (Integer) o;
         o = config.get("backgroundExceptionHandler");
         this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
-        meta = new MVMapConcurrent<String, String>(StringDataType.INSTANCE, StringDataType.INSTANCE);
+        meta = new MVMap<String, String>(StringDataType.INSTANCE, StringDataType.INSTANCE);
         HashMap<String, String> c = New.hashMap();
         c.put("id", "0");
         c.put("createVersion", Long.toString(currentVersion));
@@ -320,10 +337,6 @@ public class MVStore {
                     readMeta();
                 }
             }
-            long rollback = DataUtils.parseLong(meta.get("rollbackOnOpen"), -1);
-            if (rollback != -1) {
-                rollbackTo(rollback);
-            }
         } catch (IllegalStateException e) {
             try {
                 closeStore(false);
@@ -337,7 +350,6 @@ public class MVStore {
             }
         }
         lastStoreTime = getTime();
-        this.lastCommittedVersion = currentVersion;
 
         // setWriteDelay starts the thread, but only if
         // the parameter is different than the current value
@@ -403,7 +415,7 @@ public class MVStore {
      * @param builder the map builder
      * @return the map
      */
-    public <M extends MVMap<K, V>, K, V> M openMap(String name, MVMap.MapBuilder<M, K, V> builder) {
+    public synchronized <M extends MVMap<K, V>, K, V> M openMap(String name, MVMap.MapBuilder<M, K, V> builder) {
         checkOpen();
         String x = meta.get("name." + name);
         int id;
@@ -445,17 +457,17 @@ public class MVStore {
      * Get the metadata map. This data is for informational purposes only. The
      * data is subject to change in future versions.
      * <p>
-     * The data should not be modified (doing so may corrupt the store). Writing
-     * to it is not always detected as a modification, so that changes to it
-     * might not be stored.
+     * The data in this map should not be modified (changing system data may
+     * corrupt the store). If modifications are needed, they need be
+     * synchronized on the store.
      * <p>
-     * It contains the following entries:
-     * 
+     * The metadata map contains the following entries:
      * <pre>
+     * chunk.{chunkId} = {chunk metadata}
      * name.{name} = {mapId}
      * map.{mapId} = {map metadata}
      * root.{mapId} = {root position}
-     * chunk.{chunkId} = {chunk metadata}
+     * setting.storeVersion = {version}
      * </pre>
      * 
      * @return the metadata map
@@ -636,9 +648,8 @@ public class MVStore {
     }
 
     /**
-     * Close the file and the store. If there are any committed but unsaved
-     * changes, they are written to disk first. If any temporary data was
-     * written but not committed, this is rolled back. All open maps are closed.
+     * Close the file and the store. If there are any uncommitted changes, they
+     * are written to disk first. All open maps are closed.
      * <p>
      * It is not allowed to concurrently call close and store.
      */
@@ -648,18 +659,8 @@ public class MVStore {
         }
         if (fileStore != null && !fileStore.isReadOnly()) {
             stopBackgroundThread();
-
-            if (currentStoreVersion >= 0) {
-                // in this case, store is called manually in another thread
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_WRITING_FAILED,
-                        "Can not close while storing");
-            }
-
-            if (hasUnsavedChanges() || lastCommittedVersion != currentVersion) {
-                rollbackTo(lastCommittedVersion);
-                metaChanged = true;
-                store(false);
+            if (hasUnsavedChanges()) {
+                store();
             }
         }
         closeStore(true);
@@ -739,17 +740,6 @@ public class MVStore {
         return c;
     }
 
-    /**
-     * Increment the current version, without committing the changes.
-     *
-     * @return the new version
-     */
-    public long incrementVersion() {
-        long v = ++currentVersion;
-        setWriteVersion(v);
-        return v;
-    }
-
     private void setWriteVersion(long version) {
         for (MVMap<?, ?> map : maps.values()) {
             map.setWriteVersion(version);
@@ -768,11 +758,11 @@ public class MVStore {
      * @return the new version
      */
     public long commit() {
-        long v = incrementVersion();
-        lastCommittedVersion = v;
-        if (writeDelay == 0) {
-            store(false);
+        if (fileStore != null) {
+            return store();
         }
+        long v = ++currentVersion;
+        setWriteVersion(v);
         return v;
     }
 
@@ -781,29 +771,17 @@ public class MVStore {
      * there are no unsaved changes, otherwise it increments the current version
      * and stores the data (for file based stores).
      * <p>
-     * One store operation may run at any time.
+     * At most one store operation may run at any time.
      *
      * @return the new version (incremented if there were changes)
      */
-    public long store() {
-        checkOpen();
-        return store(false);
-    }
-
-    /**
-     * Store changes. Changes that are marked as temporary are rolled back after
-     * a restart.
-     *
-     * @param temp whether the changes are only temporary (not committed), and
-     *        should be rolled back after a crash
-     * @return the new version (incremented if there were changes)
-     */
-    private synchronized long store(boolean temp) {
+    public synchronized long store() {
         if (closed) {
             return currentVersion;
         }
         if (fileStore == null) {
-            return incrementVersion();
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_WRITING_FAILED, "This is an in-memory store");
         }
         if (currentStoreVersion >= 0) {
             // store is possibly called within store, if the meta map changed
@@ -818,37 +796,24 @@ public class MVStore {
         }
         try {
             currentStoreVersion = currentVersion;
-            return storeNow(temp);
+            currentStoreThread = Thread.currentThread();
+            return storeNow();
         } finally {
             // in any case reset the current store version,
             // to allow closing the store
             currentStoreVersion = -1;
+            currentStoreThread = null;
         }
     }
 
-    private long storeNow(boolean temp) {
+    private long storeNow() {
         int currentUnsavedPageCount = unsavedPageCount;
         long storeVersion = currentStoreVersion;
         long version = ++currentVersion;
+        setWriteVersion(version);
         long time = getTime();
         lastStoreTime = time;
-        if (temp) {
-            meta.put("rollbackOnOpen", Long.toString(lastCommittedVersion));
-            // find the oldest chunk to retain
-            long minVersion = Long.MAX_VALUE;
-            Chunk minChunk = null;
-            for (Chunk c : chunks.values()) {
-                if (c.version < minVersion) {
-                    minVersion = c.version;
-                    minChunk = c;
-                }
-            }
-            retainChunk = minChunk;
-        } else {
-            lastCommittedVersion = version;
-            meta.remove("rollbackOnOpen");
-            retainChunk = null;
-        }
+        retainChunk = null;
 
         // the last chunk was not completely correct in the last store()
         // this needs to be updated now (it's better not to update right after
@@ -983,10 +948,9 @@ public class MVStore {
         // some pages might have been changed in the meantime (in the newest version)
         unsavedPageCount = Math.max(0, unsavedPageCount - currentUnsavedPageCount);
 
-        if (!temp) {
-            metaChanged = false;
-            lastStoredVersion = storeVersion;
-        }
+        metaChanged = false;
+        lastStoredVersion = storeVersion;
+
         return version;
     }
 
@@ -1053,7 +1017,7 @@ public class MVStore {
                 if (v > storeVersion) {
                     continue;
                 }
-                Map<Integer, Chunk> freed = e.getValue();
+                HashMap<Integer, Chunk> freed = e.getValue();
                 for (Chunk f : freed.values()) {
                     Chunk c = chunks.get(f.id);
                     if (c == null) {
@@ -1146,6 +1110,9 @@ public class MVStore {
      * @return if there are any changes
      */
     public boolean hasUnsavedChanges() {
+        ;
+        // TODO maybe private; rename to hasUncommittedChanges
+        
         checkOpen();
         if (metaChanged) {
             return true;
@@ -1281,7 +1248,7 @@ public class MVStore {
     }
 
     /**
-     * Force all changes to be written to the storage. The default
+     * Force all stored changes to be written to the storage. The default
      * implementation calls FileChannel.force(true).
      */
     public void sync() {
@@ -1484,11 +1451,13 @@ public class MVStore {
         Chunk c = getChunk(pos);
         long version = currentVersion;
         if (map == meta && currentStoreVersion >= 0) {
-            // if the meta map is modified while storing,
-            // then this freed page needs to be registered
-            // with the stored chunk, so that the old chunk
-            // can be re-used
-            version = currentStoreVersion;
+            if (Thread.currentThread() == currentStoreThread) {
+                // if the meta map is modified while storing,
+                // then this freed page needs to be registered
+                // with the stored chunk, so that the old chunk
+                // can be re-used
+                version = currentStoreVersion;
+            }
         }
         registerFreePage(version, c.id, DataUtils.getPageMaxLength(pos), 1);
     }
@@ -1663,10 +1632,9 @@ public class MVStore {
     }
 
     /**
-     * Get the maximum number of unsaved pages. If this number is exceeded,
-     * the unsaved changes are stored to disk, including uncommitted changes.
-     * Saved uncommitted changes are rolled back when opening the store.
-     *
+     * Get the maximum number of unsaved pages. If this number is exceeded, the
+     * unsaved changes are stored to disk.
+     * 
      * @return the number of maximum unsaved pages
      */
     public int getUnsavedPageCountMax() {
@@ -1677,8 +1645,8 @@ public class MVStore {
      * Increment the number of unsaved pages.
      */
     void registerUnsavedPage() {
-        unsavedPageCount++;
-        if (unsavedPageCount > unsavedPageCountMax && unsavedPageCountMax > 0) {
+        int count = ++unsavedPageCount;
+        if (count > unsavedPageCountMax && unsavedPageCountMax > 0) {
             storeNeeded = true;
         }
     }
@@ -1689,7 +1657,7 @@ public class MVStore {
     void beforeWrite() {
         if (storeNeeded) {
             storeNeeded = false;
-            store(true);
+            store();
         }
     }
 
@@ -1711,10 +1679,20 @@ public class MVStore {
      *
      * @param version the new store version
      */
-    public void setStoreVersion(int version) {
+    public synchronized void setStoreVersion(int version) {
         checkOpen();
         markMetaChanged();
         meta.put("setting.storeVersion", Integer.toString(version));
+    }
+    
+    /**
+     * Revert to the beginning of the current version.
+     */
+    public void rollback() {
+        ;
+        // TODO document and test
+        
+        rollbackTo(currentVersion);
     }
 
     /**
@@ -1741,7 +1719,6 @@ public class MVStore {
             freedPageSpace.clear();
             currentVersion = version;
             setWriteVersion(version);
-            lastCommittedVersion = version;
             metaChanged = false;
             return;
         }
@@ -1816,12 +1793,10 @@ public class MVStore {
         // rollback might have rolled back the stored chunk metadata as well
         Chunk c = chunks.get(lastChunkId - 1);
         if (c != null) {
-            markMetaChanged();
             meta.put("chunk." + c.id, c.asString());
         }
         currentVersion = version;
         setWriteVersion(version);
-        lastCommittedVersion = version;
     }
 
     private void revertTemp(long storeVersion) {
@@ -1845,15 +1820,6 @@ public class MVStore {
      */
     public long getCurrentVersion() {
         return currentVersion;
-    }
-
-    /**
-     * Get the last committed version.
-     *
-     * @return the version
-     */
-    public long getCommittedVersion() {
-        return lastCommittedVersion;
     }
 
     /**
@@ -1889,7 +1855,7 @@ public class MVStore {
      * @param map the map
      * @param newName the new name
      */
-    public void renameMap(MVMap<?, ?> map, String newName) {
+    public synchronized void renameMap(MVMap<?, ?> map, String newName) {
         checkOpen();
         DataUtils.checkArgument(map != meta,
                 "Renaming the meta map is not allowed");
@@ -1912,7 +1878,7 @@ public class MVStore {
      *
      * @param map the map
      */
-    public void removeMap(MVMap<?, ?> map) {
+    public synchronized void removeMap(MVMap<?, ?> map) {
         checkOpen();
         DataUtils.checkArgument(map != meta,
                 "Removing the meta map is not allowed");
@@ -1932,7 +1898,7 @@ public class MVStore {
      * @param id the map id
      * @return the name
      */
-    String getMapName(int id) {
+    synchronized String getMapName(int id) {
         String m = meta.get("map." + id);
         return DataUtils.parseMap(m).get("name");
     }
@@ -1941,14 +1907,13 @@ public class MVStore {
      * Store all unsaved changes, if there are any that are committed.
      */
     void storeInBackground() {
-        if (closed || unsavedPageCount == 0) {
+        if (unsavedPageCount == 0 || closed) {
             return;
         }
+
         // could also store when there are many unsaved pages,
         // but according to a test it doesn't really help
-        if (lastStoredVersion >= lastCommittedVersion) {
-            return;
-        }
+        
         long time = getTime();
         if (time <= lastStoreTime + writeDelay) {
             return;
@@ -1957,7 +1922,7 @@ public class MVStore {
             return;
         }
         try {
-            store(true);
+            store();
         } catch (Exception e) {
             if (backgroundExceptionHandler != null) {
                 backgroundExceptionHandler.uncaughtException(null, e);
@@ -1981,13 +1946,13 @@ public class MVStore {
     }
 
     private void stopBackgroundThread() {
-        if (backgroundThread == null) {
+        Thread t = backgroundThread;
+        if (t == null) {
             return;
         }
-        Thread t = backgroundThread;
         backgroundThread = null;
-        synchronized (this) {
-            notify();
+        synchronized (backgroundThreadSync) {
+            backgroundThreadSync.notifyAll();
         }
         try {
             t.join();
@@ -1997,13 +1962,12 @@ public class MVStore {
     }
 
     /**
-     * Set the maximum delay in milliseconds to store committed changes (for
-     * file-based stores).
+     * Set the maximum delay in milliseconds to commit changes.
      * <p>
-     * The default is 1000, meaning committed changes are stored after at
+     * The default is 1000, meaning changes are committed after at
      * most one second.
      * <p>
-     * When the value is set to -1, committed changes are only written when
+     * When the value is set to -1, changes are only written when
      * calling the store method. When the value is set to 0, committed
      * changes are immediately written on a commit, but please note this
      * decreases performance and does still not guarantee the disk will
@@ -2012,6 +1976,8 @@ public class MVStore {
      * @param millis the maximum delay
      */
     public void setWriteDelay(int millis) {
+        ; 
+        // TODO rename to commitDelay
         if (writeDelay == millis) {
             return;
         }
@@ -2050,12 +2016,17 @@ public class MVStore {
 
         @Override
         public void run() {
-            while (store.backgroundThread != null) {
-                synchronized (store) {
+            while (true) {
+                Thread t = store.backgroundThread;
+                if (t == null) {
+                    break;
+                }
+                Object sync = store.backgroundThreadSync;
+                synchronized (sync) {
                     try {
-                        store.wait(sleep);
+                        sync.wait(sleep);
                     } catch (InterruptedException e) {
-                        // ignore
+                        continue;
                     }
                 }
                 store.storeInBackground();
@@ -2145,9 +2116,8 @@ public class MVStore {
 
         /**
          * Set the size of the write buffer, in MB (for file-based stores).
-         * Changes are automatically stored if the buffer grows larger than
-         * this. However, unless the changes are committed later on, they are
-         * rolled back when opening the store.
+         * Unless auto-commit is disabled, changes are automatically stored if
+         * the buffer grows larger than this.
          * <p>
          * The default is 4 MB.
          * <p>

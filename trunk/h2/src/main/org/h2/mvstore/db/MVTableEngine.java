@@ -260,7 +260,7 @@ public class MVTableEngine implements TableEngine {
         public void compactFile(long maxCompactTime) {
             store.setRetentionTime(0);
             long start = System.currentTimeMillis();
-            while (store.compact(90)) {
+            while (store.compact(99)) {
                 store.sync();
                 long time = System.currentTimeMillis() - start;
                 if (time > maxCompactTime) {
@@ -280,7 +280,7 @@ public class MVTableEngine implements TableEngine {
         public void close(long maxCompactTime) {
             if (!store.isClosed() && store.getFileStore() != null) {
                 if (!store.getFileStore().isReadOnly()) {
-                    store.store();
+                    transactionStore.close();
                     long start = System.currentTimeMillis();
                     while (store.compact(90)) {
                         long time = System.currentTimeMillis() - start;

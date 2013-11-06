@@ -43,7 +43,6 @@ public class TestConcurrent extends TestMVStore {
 
     @Override
     public void test() throws Exception {
-        
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
         FileUtils.deleteRecursive("memFS:", false);
@@ -110,7 +109,7 @@ public class TestConcurrent extends TestMVStore {
                 m.clear();
                 s.removeMap(m);
                 if (x % 5 == 0) {
-                    s.incrementVersion();
+                    s.commit();
                 }
             }
             task.get();
@@ -124,9 +123,9 @@ public class TestConcurrent extends TestMVStore {
                 }
             }
             assertEquals(1, chunkCount);
-            
             s.close();
         }
+        FileUtils.deleteRecursive("memFS:", false);
     }
 
     private void testConcurrentStoreAndRemoveMap() throws InterruptedException {
@@ -159,6 +158,7 @@ public class TestConcurrent extends TestMVStore {
         }
         task.get();
         s.close();
+        FileUtils.deleteRecursive("memFS:", false);
     }
 
     private void testConcurrentStoreAndClose() throws InterruptedException {
@@ -200,6 +200,7 @@ public class TestConcurrent extends TestMVStore {
             }
             s.close();
         }
+        FileUtils.deleteRecursive("memFS:", false);
     }
 
     /**
@@ -249,7 +250,7 @@ public class TestConcurrent extends TestMVStore {
                 }
                 m.get(rand.nextInt(size));
             }
-            s.incrementVersion();
+            s.commit();
             Thread.sleep(1);
         }
         task.get();
@@ -341,7 +342,7 @@ public class TestConcurrent extends TestMVStore {
         for (int k = 0; k < 10000; k++) {
             Iterator<Integer> it = map.keyIterator(r.nextInt(len));
             long old = s.getCurrentVersion();
-            s.incrementVersion();
+            s.commit();
             s.setRetainVersion(old - 100);
             while (map.getVersion() == old) {
                 Thread.yield();
@@ -423,7 +424,7 @@ public class TestConcurrent extends TestMVStore {
                     notDetected.incrementAndGet();
                 }
             }
-            s.incrementVersion();
+            s.commit();
             Thread.sleep(1);
         }
         task.get();
@@ -438,7 +439,7 @@ public class TestConcurrent extends TestMVStore {
         for (int i = 0; i < size; i++) {
             m.put(i, x);
         }
-        s.incrementVersion();
+        s.commit();
         Task task = new Task() {
             @Override
             public void call() throws Exception {
@@ -462,7 +463,7 @@ public class TestConcurrent extends TestMVStore {
             for (int i = 0; i < size; i++) {
                 m.put(i, x);
             }
-            s.incrementVersion();
+            s.commit();
             Thread.sleep(1);
         }
         task.get();

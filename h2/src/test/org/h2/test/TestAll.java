@@ -470,18 +470,18 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             prof.interval = 1;
             prof.startCollecting();
             if (test.mvStore) {
-                TestPerformance.main("-init", "-db", "9", "-size", "10000");
+                TestPerformance.main("-init", "-db", "9", "-size", "1000");
             } else {
                 TestPerformance.main("-init", "-db", "1");
             }
             prof.stopCollecting();
-            System.out.println(prof.getTop(3));
+            System.out.println(prof.getTop(30));
             if (test.mvStore) {
                 prof = new Profiler();
                 prof.depth = 16;
                 prof.interval = 1;
                 prof.startCollecting();
-                TestPerformance.main("-init", "-db", "1", "-size", "10000");
+                TestPerformance.main("-init", "-db", "1", "-size", "1000");
                 prof.stopCollecting();
                 System.out.println(prof.getTop(3));
             }

@@ -121,8 +121,7 @@ public class OffHeapStore extends FileStore {
 
     @Override
     public void close() {
-        truncate(0);
-        freeSpace.clear();
+        // do nothing (keep the data until it is garbage collected)
     }
 
     @Override

@@ -170,7 +170,9 @@ public class TransactionStore {
     public synchronized void close() {
         // to avoid losing transaction ids
         settings.put(LAST_TRANSACTION_ID, "" + lastTransactionId);
-        store.store();
+        if (store.getFileStore() != null) {
+            store.store();
+        }
     }
 
     /**
@@ -191,7 +193,6 @@ public class TransactionStore {
     private void commitIfNeeded() {
         if (store.getUnsavedPageCount() > MAX_UNSAVED_PAGES) {
             if (store.getFileStore() != null) {
-                store.commit();
                 store.store();
             }
         }
@@ -354,10 +355,10 @@ public class TransactionStore {
             firstOpenTransaction = -1;
         }
         if (store.getWriteDelay() == 0) {
-            if (store.getFileStore() == null) {
-                return;
+            if (store.getFileStore() != null) {
+                store.store();
             }
-            store.commit();
+            return;
         }
         // to avoid having to store the transaction log,
         // if there is no open transaction,
@@ -1207,7 +1208,7 @@ public class TransactionStore {
          */
         public Iterator<K> keyIterator(K from, boolean includeUncommitted) {
             Cursor<K> it = map.keyIterator(from);
-            return wrapIterator(it, false);
+            return wrapIterator(it, includeUncommitted);
         }
 
         /**

@@ -141,7 +141,7 @@ public class TestMVTableEngine extends TestBase {
         conn.close();
         long sizeNew = FileUtils.size(getBaseDir() + "/mvstore"
                 + Constants.SUFFIX_MV_FILE);
-        assertTrue(sizeNew < sizeOld);
+        assertTrue("new: " + sizeNew + " old: " + sizeOld, sizeNew < sizeOld);
     }
 
     private void testTwoPhaseCommit() throws Exception {

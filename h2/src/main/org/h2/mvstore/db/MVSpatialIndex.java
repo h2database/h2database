@@ -214,7 +214,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
     /**
      * Get the row with the given index key.
      *
-     * @param array the index key
+     * @param key the index key
      * @return the row
      */
     SearchRow getRow(SpatialKey key) {

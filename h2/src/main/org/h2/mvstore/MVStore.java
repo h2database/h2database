@@ -1110,7 +1110,6 @@ public class MVStore {
      * @return if there are any changes
      */
     public boolean hasUnsavedChanges() {
-        ;
         // TODO maybe private; rename to hasUncommittedChanges
         
         checkOpen();
@@ -1689,7 +1688,6 @@ public class MVStore {
      * Revert to the beginning of the current version.
      */
     public void rollback() {
-        ;
         // TODO document and test
         
         rollbackTo(currentVersion);
@@ -1976,7 +1974,6 @@ public class MVStore {
      * @param millis the maximum delay
      */
     public void setWriteDelay(int millis) {
-        ; 
         // TODO rename to commitDelay
         if (writeDelay == millis) {
             return;

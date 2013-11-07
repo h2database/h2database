@@ -153,8 +153,7 @@ public class MVStore {
     /**
      * The background thread, if any.
      */
-    volatile Thread backgroundThread;
-    final Object backgroundThreadSync = new Object();
+    volatile BackgroundWriterThread backgroundWriterThread;
 
     private volatile boolean reuseSpace = true;
 
@@ -1944,13 +1943,13 @@ public class MVStore {
     }
 
     private void stopBackgroundThread() {
-        Thread t = backgroundThread;
+        BackgroundWriterThread t = backgroundWriterThread;
         if (t == null) {
             return;
         }
-        backgroundThread = null;
-        synchronized (backgroundThreadSync) {
-            backgroundThreadSync.notifyAll();
+        backgroundWriterThread = null;
+        synchronized (t.sync) {
+            t.sync.notifyAll();
         }
         try {
             t.join();
@@ -1986,11 +1985,9 @@ public class MVStore {
         // start the background thread if needed
         if (millis > 0) {
             int sleep = Math.max(1, millis / 10);
-            Writer w = new Writer(this, sleep);
-            Thread t = new Thread(w, "MVStore writer " + fileStore.toString());
-            t.setDaemon(true);
+            BackgroundWriterThread t = new BackgroundWriterThread(this, sleep, fileStore.toString());
             t.start();
-            backgroundThread = t;
+            backgroundWriterThread = t;
         }
     }
 
@@ -1999,26 +1996,28 @@ public class MVStore {
     }
 
     /**
-     * A background writer to automatically store changes from time to time.
+     * A background writer thread to automatically store changes from time to time.
      */
-    private static class Writer implements Runnable {
+    private static class BackgroundWriterThread extends Thread {
 
         private final MVStore store;
         private final int sleep;
+        public final Object sync = new Object();
 
-        Writer(MVStore store, int sleep) {
+        BackgroundWriterThread(MVStore store, int sleep, String fileStoreName) {
+            super("MVStore background writer " + fileStoreName);
             this.store = store;
             this.sleep = sleep;
+            setDaemon(true);
         }
 
         @Override
         public void run() {
             while (true) {
-                Thread t = store.backgroundThread;
+                Thread t = store.backgroundWriterThread;
                 if (t == null) {
                     break;
                 }
-                Object sync = store.backgroundThreadSync;
                 synchronized (sync) {
                     try {
                         sync.wait(sleep);

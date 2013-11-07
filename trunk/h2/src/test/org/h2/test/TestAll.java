@@ -232,7 +232,6 @@ java org.h2.test.TestAll timer
 
 */
 
-    ;
     private static final boolean MV_STORE = true;
 
     /**

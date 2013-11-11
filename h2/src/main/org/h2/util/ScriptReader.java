@@ -6,6 +6,7 @@
  */
 package org.h2.util;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Arrays;
@@ -17,7 +18,7 @@ import org.h2.message.DbException;
  * Each SQL statement ends with the character ';', however it is ignored
  * in comments and quotes.
  */
-public class ScriptReader {
+public class ScriptReader implements Closeable {
 
     private final Reader reader;
     private char[] buffer;

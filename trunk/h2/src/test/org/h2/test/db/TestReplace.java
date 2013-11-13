@@ -1,3 +1,9 @@
+/*
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: Cemo
+ */
 package org.h2.test.db;
 
 import org.h2.test.TestBase;
@@ -9,11 +15,11 @@ import java.sql.Statement;
 
 /**
  * Test the MySQL-compatibility REPLACE command.
- * 
+ *
  * @author Cemo
  */
 public class TestReplace extends TestBase {
-    
+
     /**
      * Run just this test.
      *

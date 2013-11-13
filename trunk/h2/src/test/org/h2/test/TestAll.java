@@ -232,6 +232,7 @@ java org.h2.test.TestAll timer
 
 */
 
+    ;
     private static final boolean MV_STORE = true;
 
     /**
@@ -772,9 +773,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestFile().runTest(this);
         new TestFileLock().runTest(this);
         new TestFileLockProcess().runTest(this);
-
         new TestFileLockSerialized().runTest(this);
-
         new TestFtp().runTest(this);
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);
@@ -804,7 +803,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStringUtils().runTest(this);
         new TestTools().runTest(this);
         new TestTraceSystem().runTest(this);
+
+        ; // TODO
         new TestUpgrade().runTest(this);
+
         new TestUtils().runTest(this);
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);

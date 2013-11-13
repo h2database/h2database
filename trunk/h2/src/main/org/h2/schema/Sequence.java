@@ -36,6 +36,12 @@ public class Sequence extends SchemaObjectBase {
 
     /**
      * Creates a new sequence for an auto-increment column.
+     *
+     * @param schema the schema
+     * @param id the object id
+     * @param name the sequence name
+     * @param startValue the first value to return
+     * @param increment the increment count
      */
     public Sequence(Schema schema, int id, String name, long startValue, long increment) {
         this(schema, id, name, startValue, increment, null, null, null, false, true);
@@ -43,6 +49,18 @@ public class Sequence extends SchemaObjectBase {
 
     /**
      * Creates a new sequence.
+     *
+     * @param schema the schema
+     * @param id the object id
+     * @param name the sequence name
+     * @param startValue the first value to return
+     * @param increment the increment count
+     * @param cacheSize the number of entries to pre-fetch
+     * @param minValue the minimum value
+     * @param maxValue the maximum value
+     * @param cycle whether to jump back to the min value if needed
+     * @param belongsToTable whether this sequence belongs to a table (for
+     *            auto-increment columns)
      */
     public Sequence(Schema schema, int id, String name, Long startValue, Long increment, Long cacheSize,
             Long minValue, Long maxValue, boolean cycle, boolean belongsToTable) {
@@ -98,9 +116,9 @@ public class Sequence extends SchemaObjectBase {
     }
 
     /**
-     * Validates the specified prospective start value, min value, max value and increment relative
-     * to each other, since each of their respective validities are contingent on the values of the
-     * other parameters.
+     * Validates the specified prospective start value, min value, max value and
+     * increment relative to each other, since each of their respective
+     * validities are contingent on the values of the other parameters.
      *
      * @param value the prospective start value
      * @param minValue the prospective min value
@@ -118,11 +136,11 @@ public class Sequence extends SchemaObjectBase {
                 BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue))) < 0;
     }
 
-    private long getDefaultMinValue(long increment) {
+    private static long getDefaultMinValue(long increment) {
         return increment >= 0 ? 1 : Long.MIN_VALUE;
     }
 
-    private long getDefaultMaxValue(long increment) {
+    private static long getDefaultMaxValue(long increment) {
         return increment >= 0 ? Long.MAX_VALUE : -1;
     }
 
@@ -199,7 +217,7 @@ public class Sequence extends SchemaObjectBase {
      * @return the next value
      */
     public synchronized long getNext(Session session) {
-       	boolean needsFlush = false;
+        boolean needsFlush = false;
         if ((increment > 0 && value >= valueWithMargin) || (increment < 0 && value <= valueWithMargin)) {
             valueWithMargin += increment * cacheSize;
             needsFlush = true;

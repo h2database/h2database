@@ -111,12 +111,12 @@ public class AlterSequence extends SchemaCommand {
     }
 
     private Long getLong(Expression expr) {
-      if (expr == null) {
-          return null;
-      }
-      return expr.optimize(session).getValue(session).getLong();
+        if (expr == null) {
+            return null;
+        }
+        return expr.optimize(session).getValue(session).getLong();
     }
-    
+
     @Override
     public int getType() {
         return CommandInterface.ALTER_SEQUENCE;

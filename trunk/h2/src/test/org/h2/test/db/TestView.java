@@ -206,8 +206,11 @@ public class TestView extends TestBase {
         conn.close();
         deleteDb("view");
     }
-    
-    /** make sure that when we change a view, that change in reflected in other sessions command cache */
+
+    /**
+     * Make sure that when we change a view, that change in reflected in other
+     * sessions command cache.
+     */
     private void testViewAlterAndCommandCache() throws SQLException {
         deleteDb("view");
         Connection conn = getConnection("view");
@@ -227,4 +230,5 @@ public class TestView extends TestBase {
         conn.close();
         deleteDb("view");
     }
+
 }

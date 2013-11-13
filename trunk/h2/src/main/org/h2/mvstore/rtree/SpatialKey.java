@@ -102,10 +102,10 @@ public class SpatialKey {
         }
         return equalsIgnoringId(o);
     }
-    
+
     /**
      * Check whether two objects are equals, but do not compare the id fields.
-     * 
+     *
      * @param o the other key
      * @return true if the contents are the same
      */

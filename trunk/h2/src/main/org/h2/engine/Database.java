@@ -1261,7 +1261,6 @@ public class Database implements DataHandler {
         reconnectModified(false);
         if (mvStore != null) {
             if (!readOnly && compactMode != 0) {
-                mvStore.store();
                 mvStore.compactFile(dbSettings.maxCompactTime);
             } else {
                 mvStore.close(dbSettings.maxCompactTime);
@@ -1787,7 +1786,7 @@ public class Database implements DataHandler {
         }
         if (mvStore != null) {
             int millis = value < 0 ? 0 : value;
-            mvStore.getStore().setWriteDelay(millis);
+            mvStore.getStore().setAutoCommitDelay(millis);
         }
     }
 
@@ -1892,7 +1891,7 @@ public class Database implements DataHandler {
         }
         if (mvStore != null) {
             try {
-                mvStore.store();
+                mvStore.flush();
             } catch (RuntimeException e) {
                 backgroundException = DbException.convert(e);
                 throw e;
@@ -2407,7 +2406,7 @@ public class Database implements DataHandler {
                 }
             }
             if (mvStore != null) {
-                mvStore.store();
+                mvStore.flush();
             }
         }
         getTempFileDeleter().deleteUnused();
@@ -2505,7 +2504,7 @@ public class Database implements DataHandler {
     public Session getLobSession() {
         return lobSession;
     }
-    
+
     public void setLogMode(int log) {
         if (log < 0 || log > 2) {
             throw DbException.getInvalidValueException("LOG", log);

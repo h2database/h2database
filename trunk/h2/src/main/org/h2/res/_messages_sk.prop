@@ -33,8 +33,10 @@
 90002=Metóda je povolená iba pre dopyt (query). Použite execute alebo executeUpdate namiesto executeQuery
 90003=Hexadecimálny reťazec s nepárnym počtom znakov: {0}
 90004=Hexadecimálny reťazec obsahuje nepovolené znaky pre šestnáskovú sústavu: {0}
+90006=#Sequence {0} has run out of numbers
 90007=Objekt už je zatvorený
 90008=Nesprávna hodnota {0} parametra {1}
+90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
 90012=Parameter {0} nie je nastavený
 90013=Databáza {0} nenájdená
 90014=Chyba rozobrania (parse) {0}
@@ -104,7 +106,7 @@
 90082=Sekvencia {0} patrí tabuľke
 90083=Na stĺpec asi odkazuje {0}
 90084=Nemôžem zmazať posledný stĺpec {0}
-90085=Index {0} patrí obmedzeniu (constraint) {1}
+90085=#Index {0} belongs to constraint {1}
 90086=Trieda {0} nenájdená
 90087=Metóda {0} nenájdená
 90088=Neznámy mód {0}

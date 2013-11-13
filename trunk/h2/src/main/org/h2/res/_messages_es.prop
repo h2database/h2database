@@ -33,8 +33,10 @@
 90002=Metodo permitido unicamente en un query. Use execute ó executeUpdate en lugar de executeQuery
 90003=Cadena Hexadecimal con cantidad impar de caracteres: {0}
 90004=Cadena Hexadecimal contiene caracteres invalidos: {0}
+90006=#Sequence {0} has run out of numbers
 90007=El objeto ya está cerrado
 90008=Valor Invalido {0} para el parametro {1}
+90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
 90012=Parametro {0} no está fijado
 90013=Database {0} no encontrada
 90014=Error interpretando {0}
@@ -104,7 +106,7 @@
 90082=Sequence {0} pertenece a una tabla
 90083=La columna puede estar referenciada por {0}
 90084=Imposible eliminar la ultima columna {0}
-90085=Index {0} pertenece a un constraint {1}
+90085=#Index {0} belongs to constraint {1}
 90086=Class {0} no encontrada
 90087=Method {0} no encontrado
 90088=Modo desconocido {0}

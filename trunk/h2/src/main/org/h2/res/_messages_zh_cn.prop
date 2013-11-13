@@ -33,8 +33,10 @@
 90002=只允许在查询内使用的方法. 使用 execute 或 executeUpdate 代替 executeQuery
 90003=十六进制字符串包含奇数个数字字符: {0}
 90004=十六进制字符串包含非十六进制字符: {0}
+90006=#Sequence {0} has run out of numbers
 90007=对象已关闭
 90008=被发现非法的数值 {0} 在参数  {1}
+90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
 90012=参数 {0} 的值还没有设置
 90013=找不到数据库 {0}
 90014=解析 {0} 时发生错误
@@ -104,7 +106,7 @@
 90082=序列 {0} 属于一个表
 90083=字段可能已被 {0} 引用
 90084=不能移除最后一个字段 {0}
-90085=索引 {0} 属于一个约束 {1}
+90085=#Index {0} belongs to constraint {1}
 90086=找不到类 {0}
 90087=找不到方法 {0}
 90088=未知模式 {0}

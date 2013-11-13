@@ -65,7 +65,7 @@ public class TestStreamStore extends TestBase {
         for (int i = 0; i < 100; i++) {
             streamStore.put(new RandomStream(size, i));
         }
-        s.store();
+        s.commit();
         MVMap<Long, byte[]> map = s.openMap("data");
         assertTrue("size: " + map.size(), map.sizeAsLong() >= 100);
         s.close();
@@ -77,7 +77,7 @@ public class TestStreamStore extends TestBase {
         for (int i = 0; i < 100; i++) {
             streamStore.put(new RandomStream(size, -i));
         }
-        s.store();
+        s.commit();
         long readCount = s.getFileStore().getReadCount();
         // the read count should be low because new blocks
         // are appended at the end (not between existing blocks)
@@ -92,7 +92,7 @@ public class TestStreamStore extends TestBase {
         return new StreamStore(map) {
             @Override
             protected void onStore(int len) {
-                if (s.getUnsavedPageCount() > s.getUnsavedPageCountMax() / 2) {
+                if (s.getUnsavedPageCount() > s.getAutoCommitPageCount() / 2) {
                     s.commit();
                 }
             }
@@ -111,12 +111,11 @@ public class TestStreamStore extends TestBase {
             @Override
             protected void onStore(int len) {
                 count.incrementAndGet();
-                s.store();
+                s.commit();
             }
         };
         long size = 1 * 1024 * 1024;
         streamStore.put(new RandomStream(size, 0));
-        s.store();
         s.close();
         assertEquals(4, count.get());
     }

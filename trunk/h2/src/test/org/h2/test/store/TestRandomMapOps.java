@@ -92,7 +92,7 @@ public class TestRandomMapOps extends TestBase {
         for (; op < size; op++) {
             int k = r.nextInt(100);
             byte[] v = new byte[r.nextInt(10) * 10];
-            int type = r.nextInt(13);
+            int type = r.nextInt(12);
             switch (type) {
             case 0:
             case 1:
@@ -109,23 +109,19 @@ public class TestRandomMapOps extends TestBase {
                 map.remove(k);
                 break;
             case 6:
-                log(op, k, v, "s.store()");
-                s.store();
-                break;
-            case 7:
                 log(op, k, v, "s.compact(90)");
                 s.compact(90);
                 break;
-            case 8:
+            case 7:
                 log(op, k, v, "m.clear()");
                 m.clear();
                 map.clear();
                 break;
-            case 9:
+            case 8:
                 log(op, k, v, "s.commit()");
                 s.commit();
                 break;
-            case 10:
+            case 9:
                 log(op, k, v, "s.commit()");
                 s.commit();
                 log(op, k, v, "s.close()");
@@ -135,13 +131,13 @@ public class TestRandomMapOps extends TestBase {
                 log(op, k, v, "m = s.openMap(\"data\")");
                 m = s.openMap("data");
                 break;
-            case 11:
+            case 10:
                 log(op, k, v, "s.commit()");
                 s.commit();
                 log(op, k, v, "s.compactMoveChunks()");
                 s.compactMoveChunks();
                 break;
-            case 12:
+            case 11:
                 log(op, k, v, "m.getKeyIndex({0})");
                 ArrayList<Integer> keyList = new ArrayList<Integer>(map.keySet());
                 int index = Collections.binarySearch(keyList, k, null);
@@ -165,13 +161,12 @@ public class TestRandomMapOps extends TestBase {
                 assertEquals(map.lastKey(), m.lastKey());
             }
         }
-        s.store();
         s.close();
     }
 
     private static MVStore openStore(String fileName) {
         MVStore s = new MVStore.Builder().fileName(fileName).
-                pageSplitSize(50).writeDelay(0).open();
+                pageSplitSize(50).autoCommitDisabled().open();
         s.setRetentionTime(0);
         return s;
     }

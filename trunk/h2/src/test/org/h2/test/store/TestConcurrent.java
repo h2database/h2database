@@ -56,33 +56,32 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-    
+
     private void testConcurrentFree() throws InterruptedException {
         String fileName = "memFS:testConcurrentFree.h3";
         for (int test = 0; test < 10; test++) {
             FileUtils.delete(fileName);
             final MVStore s1 = new MVStore.Builder().
-                    fileName(fileName).writeDelay(-1).open();
+                    fileName(fileName).autoCommitDisabled().open();
             s1.setRetentionTime(0);
             final int count = 200;
             for (int i = 0; i < count; i++) {
                 MVMap<Integer, Integer> m = s1.openMap("d" + i);
                 m.put(1, 1);
                 if (i % 2 == 0) {
-                    s1.store();
+                    s1.commit();
                 }
             }
-            s1.store();
             s1.close();
             final MVStore s = new MVStore.Builder().
-                    fileName(fileName).writeDelay(-1).open();
+                    fileName(fileName).autoCommitDisabled().open();
             s.setRetentionTime(0);
             final ArrayList<MVMap<Integer, Integer>> list = New.arrayList();
             for (int i = 0; i < count; i++) {
                 MVMap<Integer, Integer> m = s.openMap("d" + i);
                 list.add(m);
             }
-            
+
             final AtomicInteger counter = new AtomicInteger();
             Task task = new Task() {
                 @Override
@@ -113,8 +112,8 @@ public class TestConcurrent extends TestMVStore {
                 }
             }
             task.get();
-            s.store();
-            
+            s.commit();
+
             MVMap<String, String> meta = s.getMetaMap();
             int chunkCount = 0;
             for (String k : meta.keyList()) {
@@ -142,7 +141,7 @@ public class TestConcurrent extends TestMVStore {
             public void call() throws Exception {
                 while (!stop) {
                     counter.incrementAndGet();
-                    s.store();
+                    s.commit();
                 }
             }
         };
@@ -172,7 +171,7 @@ public class TestConcurrent extends TestMVStore {
                 public void call() throws Exception {
                     while (!stop) {
                         s.setStoreVersion(counter.incrementAndGet());
-                        s.store();
+                        s.commit();
                     }
                 }
             };
@@ -270,9 +269,9 @@ public class TestConcurrent extends TestMVStore {
                     for (int i = 0; i < 10; i++) {
                         map.put(i, new byte[100 * r.nextInt(100)]);
                     }
-                    s.store();
+                    s.commit();
                     map.clear();
-                    s.store();
+                    s.commit();
                     long len = s.getFileStore().size();
                     if (len > 1024 * 1024) {
                         // slow down writing a lot
@@ -322,6 +321,7 @@ public class TestConcurrent extends TestMVStore {
 
     private void testConcurrentIterate() {
         MVStore s = new MVStore.Builder().pageSplitSize(3).open();
+        s.setVersionsToKeep(100);
         final MVMap<Integer, Integer> map = s.openMap("test");
         final int len = 10;
         final Random r = new Random();
@@ -343,7 +343,6 @@ public class TestConcurrent extends TestMVStore {
             Iterator<Integer> it = map.keyIterator(r.nextInt(len));
             long old = s.getCurrentVersion();
             s.commit();
-            s.setRetainVersion(old - 100);
             while (map.getVersion() == old) {
                 Thread.yield();
             }

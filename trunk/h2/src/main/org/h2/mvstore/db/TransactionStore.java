@@ -170,9 +170,7 @@ public class TransactionStore {
     public synchronized void close() {
         // to avoid losing transaction ids
         settings.put(LAST_TRANSACTION_ID, "" + lastTransactionId);
-        if (store.getFileStore() != null) {
-            store.store();
-        }
+        store.commit();
     }
 
     /**
@@ -192,9 +190,7 @@ public class TransactionStore {
 
     private void commitIfNeeded() {
         if (store.getUnsavedPageCount() > MAX_UNSAVED_PAGES) {
-            if (store.getFileStore() != null) {
-                store.store();
-            }
+            store.commit();
         }
     }
 
@@ -354,10 +350,8 @@ public class TransactionStore {
         if (t.getId() == firstOpenTransaction) {
             firstOpenTransaction = -1;
         }
-        if (store.getWriteDelay() == 0) {
-            if (store.getFileStore() != null) {
-                store.store();
-            }
+        if (store.getAutoCommitDelay() == 0) {
+            store.commit();
             return;
         }
         // to avoid having to store the transaction log,
@@ -365,10 +359,10 @@ public class TransactionStore {
         // and if there have been many changes, store them now
         if (undoLog.isEmpty()) {
             int unsaved = store.getUnsavedPageCount();
-            int max = store.getUnsavedPageCountMax();
+            int max = store.getAutoCommitPageCount();
             // save at 3/4 capacity
             if (unsaved * 4 > max * 3) {
-                store.store();
+                store.commit();
             }
         }
     }
@@ -658,7 +652,15 @@ public class TransactionStore {
             int mapId = map.getId();
             return new TransactionMap<K, V>(this, map, mapId);
         }
-        
+
+        /**
+         * Open the transactional version of the given map.
+         *
+         * @param <K> the key type
+         * @param <V> the value type
+         * @param map the base map
+         * @return the transactional map
+         */
         public <K, V> TransactionMap<K, V> openMap(MVMap<K, VersionedValue> map) {
             checkNotClosed();
             int mapId = map.getId();
@@ -726,9 +728,11 @@ public class TransactionStore {
                         DataUtils.ERROR_CLOSED, "Transaction is closed");
             }
         }
-        
+
         /**
          * Remove the map.
+         *
+         * @param map the map
          */
         public <K, V> void removeMap(TransactionMap<K, V> map) {
             store.store.removeMap(map.map);
@@ -1258,7 +1262,7 @@ public class TransactionStore {
                 }
             };
         }
-        
+
         public Transaction getTransaction() {
             return transaction;
         }

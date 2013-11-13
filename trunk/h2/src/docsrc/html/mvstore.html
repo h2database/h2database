@@ -62,7 +62,7 @@ But it can be also directly within an application, without using JDBC or SQL.
 </li><li>Old versions of the data can be read concurrently with all other operations.
 </li><li>Transaction are supported (including concurrent transactions and 2-phase commit).
 </li><li>The tool is very modular.
-    It supports pluggable data types / serialization,
+    It supports pluggable data types and serialization,
     pluggable storage (to a file, to off-heap memory),
     pluggable map implementations (B-tree, R-tree, concurrent B-tree currently),
     BLOB storage,
@@ -86,10 +86,7 @@ MVMap&lt;Integer, String&gt; map = s.openMap("data");
 map.put(1, "Hello World");
 System.out.println(map.get(1));
 
-// mark the changes as committed
-s.commit();
-
-// close the store (this will store committed changes)
+// close the store (this will store changes)
 s.close();
 </pre>
 
@@ -101,6 +98,7 @@ The following code contains all supported configuration options:
 </p>
 <pre>
 MVStore s = new MVStore.Builder().
+    autoCommitDisabled().
     backgroundExceptionListener(listener).
     cacheSize(10).
     compressData().
@@ -109,11 +107,10 @@ MVStore s = new MVStore.Builder().
     fileStore(new FileStore()).
     pageSplitSize(6 * 1024).
     readOnly().
-    writeBufferSize(8).
-    writeDelay(100).
     open();
 </pre>
-<ul><li>backgroundExceptionListener: a listener for
+<ul><li>autoCommitDisabled(): to disable auto-commit.
+</li><li>backgroundExceptionListener: a listener for
     exceptions that could occur while writing in the background.
 </li><li>cacheSize: the cache size in MB.
 </li><li>compressData: compress the data when storing.
@@ -122,9 +119,6 @@ MVStore s = new MVStore.Builder().
 </li><li>fileStore: the storage implementation to use.
 </li><li>pageSplitSize: the point where pages are split.
 </li><li>readOnly: open the file in read-only mode.
-</li><li>writeBufferSize: the size of the write buffer in MB.
-</li><li>writeDelay: the maximum delay in milliseconds
-    until committed changes are stored in the background.
 </li></ul>
 
 <h2 id="r_tree">R-Tree</h2>
@@ -185,15 +179,11 @@ the key of the map must also contain the primary key).
 
 <h3 id="versions">Versions</h3>
 <p>
-Multiple versions are supported.
 A version is a snapshot of all the data of all maps at a given point in time.
-Versions are not immediately persisted; instead, only the version counter is incremented.
-If there is a change after switching to a new version, a snapshot of the old version is kept in memory,
-so that it can still be read.
-Old persisted versions are readable until the old data was explicitly overwritten.
-Creating a snapshot is fast: only the pages that are changed after a snapshot are copied.
+Old versions are readable until the old data was explicitly overwritten.
+Creating a snapshot is fast: only those pages that are changed after a snapshot are copied.
 This behavior is also called COW (copy on write).
-Rollback is supported (rollback to any old in-memory version or an old persisted version).
+Rollback to an old version is supported.
 </p><p>
 The following sample code show how to create a store, open a map, add some data,
 and access the current and an old version:
@@ -210,7 +200,7 @@ map.put(2, "World");
 long oldVersion = s.getCurrentVersion();
 
 // from now on, the old version is read-only
-s.incrementVersion();
+s.commit();
 
 // more changes, in the new version
 // changes can be rolled back if required
@@ -221,9 +211,6 @@ map.remove(2);
 // access the old data (before incrementVersion)
 MVMap&lt;Integer, String&gt; oldMap =
         map.openVersion(oldVersion);
-
-// mark the changes as committed
-s.commit();
 
 // print the old version (can be done
 // concurrently with further modifications)

@@ -33,8 +33,10 @@
 90002=Method is only allowed for a query. Use execute or executeUpdate instead of executeQuery
 90003=Hexadecimal string with odd number of characters: {0}
 90004=Hexadecimal string contains non-hex character: {0}
+90006=Sequence {0} has run out of numbers
 90007=The object is already closed
 90008=Invalid value {0} for parameter {1}
+90009=Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
 90012=Parameter {0} is not set
 90013=Database {0} not found
 90014=Error parsing {0}
@@ -104,7 +106,7 @@
 90082=Sequence {0} belongs to a table
 90083=Column may be referenced by {0}
 90084=Cannot drop last column {0}
-90085=Index {0} belongs to a constraint
+90085=Index {0} belongs to constraint {1}
 90086=Class {0} not found
 90087=Method {0} not found
 90088=Unknown mode {0}

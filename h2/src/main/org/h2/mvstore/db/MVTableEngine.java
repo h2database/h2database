@@ -168,13 +168,13 @@ public class MVTableEngine implements TableEngine {
         /**
          * Store all pending changes.
          */
-        public void store() {
+        public void flush() {
             FileStore s = store.getFileStore();
             if (s == null || s.isReadOnly()) {
                 return;
             }
             if (!store.compact(50)) {
-                store.store();
+                store.commit();
             }
         }
 
@@ -213,9 +213,7 @@ public class MVTableEngine implements TableEngine {
             Transaction t = session.getTransaction();
             t.setName(transactionName);
             t.prepare();
-            if (store.getFileStore() != null) {
-                store.store();
-            }
+            store.commit();
         }
 
         public ArrayList<InDoubtTransaction> getInDoubtTransactions() {
@@ -245,7 +243,7 @@ public class MVTableEngine implements TableEngine {
          * Force the changes to disk.
          */
         public void sync() {
-            store();
+            flush();
             store.sync();
         }
 
@@ -316,9 +314,7 @@ public class MVTableEngine implements TableEngine {
             } else {
                 transaction.rollback();
             }
-            if (store.getFileStore() != null) {
-                store.store();
-            }
+            store.commit();
             this.state = state;
         }
 

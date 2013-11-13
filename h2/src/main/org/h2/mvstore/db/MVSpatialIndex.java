@@ -54,10 +54,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
     private final String mapName;
     private TransactionMap<SpatialKey, Value> dataMap;
     private MVRTreeMap<VersionedValue> spatialMap;
-    
+
     /**
      * Constructor.
      *
+     * @param db the database
      * @param table the table instance
      * @param id the index id
      * @param indexName the index name
@@ -66,7 +67,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
      */
     public MVSpatialIndex(
             Database db, MVTable table, int id, String indexName,
-            IndexColumn[] columns, IndexType indexType) {            
+            IndexColumn[] columns, IndexType indexType) {
         if (columns.length != 1) {
             throw DbException.getUnsupportedException("Can only index one column");
         }
@@ -92,7 +93,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
         mapName = "index." + getId();
         ValueDataType vt = new ValueDataType(null, null, null);
         VersionedValueType valueType = new VersionedValueType(vt);
-        MVRTreeMap.Builder<VersionedValue> mapBuilder = 
+        MVRTreeMap.Builder<VersionedValue> mapBuilder =
                 new MVRTreeMap.Builder<VersionedValue>().
                 valueType(valueType);
         spatialMap = db.getMvStore().getStore().openMap(mapName, mapBuilder);
@@ -144,7 +145,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
             }
         }
     }
-    
+
     private SpatialKey getKey(SearchRow r) {
         if (r == null) {
             return null;
@@ -171,7 +172,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
         }
     }
-    
+
     @Override
     public Cursor find(TableFilter filter, SearchRow first, SearchRow last) {
         return find(filter.getSession());
@@ -200,7 +201,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
         Iterator<SpatialKey> it = map.wrapIterator(cursor, false);
         return new MVStoreCursor(session, it);
     }
-    
+
     private SpatialKey getEnvelope(SearchRow row) {
         Value v = row.getValue(columnIds[0]);
         Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometry();
@@ -232,7 +233,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
     public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         return getCostRangeIndex(masks, table.getRowCountApproximation(), filter, sortOrder);
     }
-    
+
     @Override
     protected long getCostRangeIndex(int[] masks, long rowCount, TableFilter filter, SortOrder sortOrder) {
         rowCount += Constants.COST_ROW_OFFSET;

@@ -86,7 +86,7 @@ public class TestTransactionStore extends TestBase {
                     for (int i = 0; !stop; i++) {
                         state.set(i);
                         other.put(i, value);
-                        store.store();
+                        store.commit();
                     }
                 }
             };

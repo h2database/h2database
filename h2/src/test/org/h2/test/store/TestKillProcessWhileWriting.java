@@ -84,9 +84,8 @@ public class TestKillProcessWhileWriting extends TestBase {
         s = new MVStore.Builder().
                 fileName(fileName).
                 pageSplitSize(50).
-                writeDelay(0).
+                autoCommitDisabled().
                 open();
-        s.setWriteDelay(0);
         m = s.openMap("data");
         Random r = new Random(seed);
         int op = 0;
@@ -107,7 +106,7 @@ public class TestKillProcessWhileWriting extends TestBase {
                     m.remove(k);
                     break;
                 case 6:
-                    s.store();
+                    s.commit();
                     break;
                 case 7:
                     s.compact(80);
@@ -120,12 +119,12 @@ public class TestKillProcessWhileWriting extends TestBase {
                     s = new MVStore.Builder().
                             fileName(fileName).
                             pageSplitSize(50).
-                            writeDelay(0).open();
+                            autoCommitDisabled().
+                            open();
                     m = s.openMap("data");
                     break;
                 }
             }
-            s.store();
             s.close();
             return 0;
         } catch (Exception e) {

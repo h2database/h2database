@@ -399,7 +399,7 @@ public class MVTable extends TableBase {
                     indexName, primaryIndex, indexType);
         } else if (indexType.isSpatial()) {
             index = new MVSpatialIndex(session.getDatabase(),
-                    this, indexId, 
+                    this, indexId,
                     indexName, cols, indexType);
         } else {
             index = new MVSecondaryIndex(session.getDatabase(),

@@ -96,7 +96,7 @@ public class MVSecondaryIndex extends BaseIndex {
             }
         }
         try {
-            map.put(array, ValueLong.get(0));
+            map.put(array, ValueNull.INSTANCE);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
         }

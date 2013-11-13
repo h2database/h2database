@@ -178,11 +178,11 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
     protected int sizeOf(K key, V value) {
         return averageMemory;
     }
-    
+
     /**
      * This method is called after the value for the given key was removed.
      * It is not called on clear or put when replacing a value.
-     * 
+     *
      * @param key the key
      */
     protected void onRemove(K key) {
@@ -422,8 +422,6 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param <V> the value type
      */
     static class Segment<K, V> {
-        
-        final CacheLIRS<K, V> cache;
 
         /**
          * The number of (hot, cold, and non-resident) entries in the map.
@@ -449,6 +447,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
          * The currently used memory.
          */
         long usedMemory;
+
+        private final CacheLIRS<K, V> cache;
 
         /**
          * How many other item are to be moved to the top of the stack before
@@ -507,6 +507,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         /**
          * Create a new cache.
          *
+         * @param cache the cache
          * @param maxMemory the maximum memory to use
          * @param averageMemory the average memory usage of an object
          * @param stackMoveDistance the number of other entries to be moved to

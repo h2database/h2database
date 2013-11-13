@@ -61,7 +61,7 @@ public class BackupCommand extends Prepared {
         try {
             Store store = db.getMvStore();
             if (store != null) {
-                store.store();
+                store.flush();
             }
             String name = db.getName();
             name = FileUtils.getName(name);

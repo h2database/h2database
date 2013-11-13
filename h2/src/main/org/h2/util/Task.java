@@ -81,10 +81,10 @@ public abstract class Task implements Runnable {
         }
         return result;
     }
-    
+
     /**
      * Whether the call method has returned (with or without exception).
-     * 
+     *
      * @return true if yes
      */
     public boolean isFinished() {

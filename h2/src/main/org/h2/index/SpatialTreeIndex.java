@@ -43,7 +43,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
     private boolean closed;
     private boolean needRebuild;
-    private boolean persistent;
 
     /**
      * Constructor.
@@ -52,8 +51,8 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
      * @param id the index id
      * @param indexName the index name
      * @param columns the indexed columns (only one geometry column allowed)
+     * @param persistent whether the index should be persisted
      * @param indexType the index type (only spatial index)
-     * @param persistent whether the index data should be persisted
      * @param create whether to create a new index
      * @param session the session.
      */
@@ -80,7 +79,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
         }
         initBaseIndex(table, id, indexName, columns, indexType);
         this.needRebuild = create;
-        this.persistent = persistent;
         this.table = table;
         if (!database.isStarting()) {
             if (columns[0].column.getType() != Value.GEOMETRY) {
@@ -111,11 +109,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public void close(Session session) {
-        if (persistent) {
-            store.store();
-        } else {
-            store.close();
-        }
+        store.close();
         closed = true;
     }
 

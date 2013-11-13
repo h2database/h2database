@@ -46,6 +46,11 @@ import org.h2.value.ValueLob;
  */
 public class TestLob extends TestBase {
 
+    private static final String MORE_THAN_128_CHARS =
+            "12345678901234567890123456789012345678901234567890" +
+            "12345678901234567890123456789012345678901234567890" +
+            "12345678901234567890123456789";
+
     /**
      * Run just this test.
      *
@@ -1487,8 +1492,6 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private static final String MORE_THAN_128_CHARS = "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
-
     private void testCommitOnExclusiveConnection() throws Exception {
         deleteDb("lob");
         Connection conn = getConnection("lob;EXCLUSIVE=1");
@@ -1498,8 +1501,11 @@ public class TestLob extends TestBase {
         conn.setAutoCommit(false);
         statement.execute("insert into TEST (COL, LOB) values (1, '" + MORE_THAN_128_CHARS + "')");
         statement.execute("update TEST set COL=2");
-        // statement.execute("commit"); // OK
-        conn.commit(); // KO : should not hang
+        // OK
+        // statement.execute("commit");
+        // KO : should not hang
+        conn.commit();
         conn.close();
     }
+
 }

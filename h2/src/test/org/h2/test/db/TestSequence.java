@@ -156,26 +156,37 @@ public class TestSequence extends TestBase {
     private void testCreateWithMinValue() throws SQLException {
         test("create sequence s minvalue 3", null, 3, 4, 5, 6);
         test("create sequence s minvalue -3 increment by -1 cycle", null, -1, -2, -3, -1);
-        test("create sequence s minvalue -3 increment by -1", "Sequence \"S\" has run out of numbers", -1, -2, -3);
-        test("create sequence s minvalue -3 increment by -1 nocycle", "Sequence \"S\" has run out of numbers", -1, -2, -3);
-        test("create sequence s minvalue -3 increment by -1 no cycle", "Sequence \"S\" has run out of numbers", -1, -2, -3);
+        test("create sequence s minvalue -3 increment by -1",
+                "Sequence \"S\" has run out of numbers", -1, -2, -3);
+        test("create sequence s minvalue -3 increment by -1 nocycle",
+                "Sequence \"S\" has run out of numbers", -1, -2, -3);
+        test("create sequence s minvalue -3 increment by -1 no cycle",
+                "Sequence \"S\" has run out of numbers", -1, -2, -3);
         test("create sequence s minvalue -3 increment by -1 nocache cycle", null, -1, -2, -3, -1);
-        test("create sequence s minvalue -3 increment by -1 nocache", "Sequence \"S\" has run out of numbers", -1, -2, -3);
-        test("create sequence s minvalue -3 increment by -1 nocache nocycle", "Sequence \"S\" has run out of numbers", -1, -2, -3);
+        test("create sequence s minvalue -3 increment by -1 nocache",
+                "Sequence \"S\" has run out of numbers", -1, -2, -3);
+        test("create sequence s minvalue -3 increment by -1 nocache nocycle",
+                "Sequence \"S\" has run out of numbers", -1, -2, -3);
         test("create sequence s minvalue -3 increment by -1 no cache no cycle",
-            "Sequence \"S\" has run out of numbers", -1, -2, -3);
+                "Sequence \"S\" has run out of numbers", -1, -2, -3);
     }
 
     private void testCreateWithMaxValue() throws SQLException {
         test("create sequence s maxvalue -3 increment by -1", null, -3, -4, -5, -6);
         test("create sequence s maxvalue 3 cycle", null, 1, 2, 3, 1);
-        test("create sequence s maxvalue 3", "Sequence \"S\" has run out of numbers", 1, 2, 3);
-        test("create sequence s maxvalue 3 nocycle", "Sequence \"S\" has run out of numbers", 1, 2, 3);
-        test("create sequence s maxvalue 3 no cycle", "Sequence \"S\" has run out of numbers", 1, 2, 3);
+        test("create sequence s maxvalue 3",
+                "Sequence \"S\" has run out of numbers", 1, 2, 3);
+        test("create sequence s maxvalue 3 nocycle",
+                "Sequence \"S\" has run out of numbers", 1, 2, 3);
+        test("create sequence s maxvalue 3 no cycle",
+                "Sequence \"S\" has run out of numbers", 1, 2, 3);
         test("create sequence s maxvalue 3 nocache cycle", null, 1, 2, 3, 1);
-        test("create sequence s maxvalue 3 nocache", "Sequence \"S\" has run out of numbers", 1, 2, 3);
-        test("create sequence s maxvalue 3 nocache nocycle", "Sequence \"S\" has run out of numbers", 1, 2, 3);
-        test("create sequence s maxvalue 3 no cache no cycle", "Sequence \"S\" has run out of numbers", 1, 2, 3);
+        test("create sequence s maxvalue 3 nocache",
+                "Sequence \"S\" has run out of numbers", 1, 2, 3);
+        test("create sequence s maxvalue 3 nocache nocycle",
+                "Sequence \"S\" has run out of numbers", 1, 2, 3);
+        test("create sequence s maxvalue 3 no cache no cycle",
+                "Sequence \"S\" has run out of numbers", 1, 2, 3);
     }
 
     private void testCreationErrors() throws SQLException {
@@ -215,8 +226,10 @@ public class TestSequence extends TestBase {
         Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();
         stat.execute("create sequence a");
-        stat.execute("create sequence b start with 5 increment by 2 minvalue 3 maxvalue 7 cycle nocache");
-        stat.execute("create sequence c start with 3 increment by 1 minvalue 2 maxvalue 9 nocycle cache 2");
+        stat.execute("create sequence b start with 5 increment by 2 " +
+                "minvalue 3 maxvalue 7 cycle nocache");
+        stat.execute("create sequence c start with 3 increment by 1 " +
+                "minvalue 2 maxvalue 9 nocycle cache 2");
         stat.execute("create sequence d nomaxvalue no minvalue no cache nocycle");
         stat.execute("create sequence e cache 1");
         List<String> script = new ArrayList<String>();
@@ -226,8 +239,10 @@ public class TestSequence extends TestBase {
         }
         Collections.sort(script);
         assertEquals("CREATE SEQUENCE PUBLIC.A START WITH 1;", script.get(0));
-        assertEquals("CREATE SEQUENCE PUBLIC.B START WITH 5 INCREMENT BY 2 MINVALUE 3 MAXVALUE 7 CYCLE CACHE 1;", script.get(1));
-        assertEquals("CREATE SEQUENCE PUBLIC.C START WITH 3 MINVALUE 2 MAXVALUE 9 CACHE 2;", script.get(2));
+        assertEquals("CREATE SEQUENCE PUBLIC.B START WITH 5 INCREMENT BY 2 " +
+                "MINVALUE 3 MAXVALUE 7 CYCLE CACHE 1;", script.get(1));
+        assertEquals("CREATE SEQUENCE PUBLIC.C START WITH 3 MINVALUE 2 MAXVALUE 9 CACHE 2;",
+                script.get(2));
         assertEquals("CREATE SEQUENCE PUBLIC.D START WITH 1 CACHE 1;", script.get(3));
         assertEquals("CREATE SEQUENCE PUBLIC.E START WITH 1 CACHE 1;", script.get(4));
         conn.close();

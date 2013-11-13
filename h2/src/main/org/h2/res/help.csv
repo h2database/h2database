@@ -77,8 +77,12 @@ ALTER SCHEMA schema RENAME TO newSchemaName
 Renames a schema."
 "Commands (DDL)","ALTER SEQUENCE","
 ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
+[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
+[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
+[ CYCLE long | NOCYCLE |  NO CYCLE ]
+[ CACHE long |  NOCACHE |  NO CACHE ]
 ","
-Changes the next value and the increment of a sequence."
+Changes the parameters of a sequence."
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE tableName ADD [ COLUMN ]
 { [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
@@ -188,7 +192,11 @@ CREATE SCHEMA [ IF NOT EXISTS ] name [ AUTHORIZATION ownerUserName ]
 Creates a new schema."
 "Commands (DDL)","CREATE SEQUENCE","
 CREATE SEQUENCE [ IF NOT EXISTS ] newSequenceName [ START WITH long ]
-[ INCREMENT BY long ] [ CACHE long ]
+[ INCREMENT BY long ]
+[ MINVALUE long | NOMINVALUE | NO MINVALUE ]
+[ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
+[ CYCLE long | NOCYCLE |  NO CYCLE ]
+[ CACHE long |  NOCACHE |  NO CACHE ]
 ","
 Creates a new sequence."
 "Commands (DDL)","CREATE TABLE","

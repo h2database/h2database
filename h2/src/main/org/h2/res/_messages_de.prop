@@ -33,8 +33,10 @@
 90002=Methode nur zulässig for eine Abfrage. Erlaubt sind execute oder executeUpdate, nicht jedoch executeQuery
 90003=Hexadezimal Zahl mit einer ungeraden Anzahl Zeichen: {0}
 90004=Hexadezimal Zahl enthält unerlaubtes Zeichen: {0}
+90006=Die Sequenz {0} hat keine freien Nummern mehr
 90007=Das Objekt wurde bereits geschlossen
 90008=Unerlaubter Wert {0} für Parameter {1}
+90009=Kann die Sequenz {0} nicht ändern aufgrund falscher Attribute (Start-Wert {1}, Minimal-Wert {2}, Maximal-Wert {3}, Inkrement {4})
 90012=Parameter {0} wurde nicht gesetzt
 90013=Datenbank {0} nicht gefunden
 90014=Fehler beim Parsen von {0}

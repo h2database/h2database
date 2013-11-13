@@ -33,8 +33,10 @@
 90002=Metoda jest dozwolona tylko w kwerendzie
 90003=Hexadecimal string with odd number of characters: {0}
 90004=Hexadecimal string contains non hex character: {0}
+90006=#Sequence {0} has run out of numbers
 90007=Objekt jest zamkniety
 90008=Nieprawidlowa wartosc {0} parametru {1}
+90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
 90012=Parametr o numerze {0} nie jest ustalony
 90013=Baza danych {0} nie znaleziona
 90014=Blad parsowania {0}
@@ -104,7 +106,7 @@
 90082=Sekwencja {0} nalezy do tabeli
 90083=Do kolumny mozna odwoloac sie przez referencje {0}
 90084=Nie mozna skasowac ostatniej kolumny {0}
-90085=Indeks {0} nalezy do ograniczenia {1}
+90085=#Index {0} belongs to constraint {1}
 90086=Klasa {0} nie istnieje
 90087=Metoda {0} nie istnieje
 90088=Nieznany stan {0}

@@ -33,8 +33,10 @@
 90002=Metoda umožňuje pouze pro dotazování. Použijte execute nebo executeUpdate namísto executeQuery
 90003=Hexadecimální řetězec s lichým počtem znaků: {0}
 90004=Hexadecimální řetězec obsahuje neplatný znak: {0}
+90006=#Sequence {0} has run out of numbers
 90007=Tento objekt byl již uzavřen
 90008=Neplatná hodnota {0} pro parametr {1}
+90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
 90012=Parametr {0} není nastaven
 90013=Databáze {0} nenalezena
 90014=Chyba zpracování {0}
@@ -104,7 +106,7 @@
 90082=Sekvence {0} patří k tabulce
 90083=Sloupec může být odkazem {0}
 90084=Nelze odstranit poslední sloupec {0}
-90085=Index {0} patří k omezení {1}
+90085=#Index {0} belongs to constraint {1}
 90086=Třída {0} nenalezena
 90087=Metoda {0} nenalezena
 90088=Neznámý režim {0}

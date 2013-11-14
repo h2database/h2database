@@ -157,23 +157,27 @@ public class RunScript extends Tool {
     public static ResultSet execute(Connection conn, Reader reader) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = null;
-        ScriptReader r = new ScriptReader(reader);
-        while (true) {
-            String sql = r.readStatement();
-            if (sql == null) {
-                break;
-            }
-            if (sql.trim().length() == 0) {
-                continue;
-            }
-            boolean resultSet = stat.execute(sql);
-            if (resultSet) {
-                if (rs != null) {
-                    rs.close();
-                    rs = null;
+        try {
+            ScriptReader r = new ScriptReader(reader);
+            while (true) {
+                String sql = r.readStatement();
+                if (sql == null) {
+                    break;
                 }
-                rs = stat.getResultSet();
+                if (sql.trim().length() == 0) {
+                    continue;
+                }
+                boolean resultSet = stat.execute(sql);
+                if (resultSet) {
+                    if (rs != null) {
+                        rs.close();
+                        rs = null;
+                    }
+                    rs = stat.getResultSet();
+                }
             }
+        } finally {
+            JdbcUtils.closeSilently(stat);
         }
         return rs;
     }

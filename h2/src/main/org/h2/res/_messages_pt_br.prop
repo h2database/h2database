@@ -106,7 +106,7 @@
 90082=Sequência {0} pertence a uma tabela
 90083=A coluna pode ser referênciada por {0}
 90084=Não pode apagar a última coluna {0}
-90085=#Index {0} belongs to constraint {1}
+90085=índice {0} pertence a uma restrição {1}
 90086=Classe {0} não foi encontrada
 90087=Método {0} não foi encontrado
 90088=Modo {0} desconhecido

@@ -109,8 +109,12 @@ public class TestSequence extends TestBase {
         stat.execute("create sequence a");
         stat.execute("create sequence b start with 7 minvalue 5 maxvalue 9 cycle increment by 2 nocache");
         stat.execute("create sequence c start with -4 minvalue -9 maxvalue -3 no cycle increment by -2 cache 3");
-        conn.close();
-        conn = getConnection("sequence");
+        
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("sequence");
+        }
+        
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * from information_schema.sequences order by sequence_name");
         rs.next();
@@ -282,9 +286,12 @@ public class TestSequence extends TestBase {
         Connection conn = getConnection("sequence");
         Statement stat = conn.createStatement();
         stat.execute(setupSql);
-        conn.close();
-
-        conn = getConnection("sequence");
+        
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("sequence");
+        }
+        
         stat = conn.createStatement();
         for (long value : values) {
             assertEquals(value, getNext(stat));

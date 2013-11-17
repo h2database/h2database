@@ -106,7 +106,7 @@
 90082=Sekwencja {0} nalezy do tabeli
 90083=Do kolumny mozna odwoloac sie przez referencje {0}
 90084=Nie mozna skasowac ostatniej kolumny {0}
-90085=#Index {0} belongs to constraint {1}
+90085=Indeks {0} nalezy do ograniczenia {1}
 90086=Klasa {0} nie istnieje
 90087=Metoda {0} nie istnieje
 90088=Nieznany stan {0}

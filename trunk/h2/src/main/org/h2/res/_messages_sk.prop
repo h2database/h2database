@@ -106,7 +106,7 @@
 90082=Sekvencia {0} patrí tabuľke
 90083=Na stĺpec asi odkazuje {0}
 90084=Nemôžem zmazať posledný stĺpec {0}
-90085=#Index {0} belongs to constraint {1}
+90085=Index {0} patrí obmedzeniu (constraint) {1}
 90086=Trieda {0} nenájdená
 90087=Metóda {0} nenájdená
 90088=Neznámy mód {0}

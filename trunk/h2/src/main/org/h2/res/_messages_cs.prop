@@ -106,7 +106,7 @@
 90082=Sekvence {0} patří k tabulce
 90083=Sloupec může být odkazem {0}
 90084=Nelze odstranit poslední sloupec {0}
-90085=#Index {0} belongs to constraint {1}
+90085=Index {0} patří k omezení {1}
 90086=Třída {0} nenalezena
 90087=Metoda {0} nenalezena
 90088=Neznámý režim {0}

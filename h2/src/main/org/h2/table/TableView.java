@@ -7,10 +7,13 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
@@ -502,6 +505,18 @@ public class TableView extends Table {
 
     public boolean isTableExpression() {
         return tableExpression;
+    }
+    
+    @Override
+    public void addDependencies(HashSet<DbObject> dependencies) {
+        super.addDependencies(dependencies);
+        if (tables != null) {
+            for (Table t : tables) {
+                if (!Table.VIEW.equals(t.getTableType())) {
+                    t.addDependencies(dependencies);
+                }
+            }
+        }
     }
 
 }

@@ -1643,6 +1643,8 @@ public class Database implements DataHandler {
         for (Table t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
+            } else if (Table.VIEW.equals(t.getTableType())) {
+                continue;
             }
             set.clear();
             t.addDependencies(set);

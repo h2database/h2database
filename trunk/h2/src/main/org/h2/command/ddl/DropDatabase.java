@@ -53,39 +53,45 @@ public class DropDatabase extends DefineCommand {
                 db.removeDatabaseObject(session, schema);
             }
         }
-        ArrayList<Table> tables = db.getAllTablesAndViews(false);
-        for (Table t : tables) {
-            if (t.getName() != null && Table.VIEW.equals(t.getTableType())) {
-                db.removeSchemaObject(session, t);
-            }
-        }
-        for (Table t : tables) {
-            if (t.getName() != null && Table.TABLE_LINK.equals(t.getTableType())) {
-                db.removeSchemaObject(session, t);
-            }
-        }
 
         // There can be dependencies between tables e.g. using computed columns,
         // so we might need to loop over them multiple times.
-        boolean runLoopAgain = false;
+        boolean runLoopAgain;
         do {
-            runLoopAgain = false;
+            ArrayList<Table> tables = db.getAllTablesAndViews(false);
+            ArrayList<Table> toRemove = New.arrayList();
+            for (Table t : tables) {
+                if (t.getName() != null && Table.VIEW.equals(t.getTableType())) {
+                    toRemove.add(t);
+                }
+            }
+            for (Table t : tables) {
+                if (t.getName() != null && Table.TABLE_LINK.equals(t.getTableType())) {
+                    toRemove.add(t);
+                }
+            }
             for (Table t : tables) {
                 if (t.getName() != null && Table.TABLE.equals(t.getTableType()) && !t.isHidden()) {
-                    if (db.getDependentTable(t, t) == null) {
-                        db.removeSchemaObject(session, t);
-                    } else {
-                        runLoopAgain = true;
-                    }
+                    toRemove.add(t);
+                }
+            }
+            for (Table t : tables) {
+                if (t.getName() != null && Table.EXTERNAL_TABLE_ENGINE.equals(t.getTableType()) && !t.isHidden()) {
+                    toRemove.add(t);
+                }
+            }
+            runLoopAgain = false;
+            for (Table t : toRemove) {
+                if (t.getName() == null) {
+                    // ignore
+                } else if (db.getDependentTable(t, t) == null) {
+                    db.removeSchemaObject(session, t);
+                } else {
+                    runLoopAgain = true;
                 }
             }
         } while (runLoopAgain);
 
-        for (Table t : tables) {
-            if (t.getName() != null && Table.EXTERNAL_TABLE_ENGINE.equals(t.getTableType()) && !t.isHidden()) {
-                db.removeSchemaObject(session, t);
-            }
-        }
         session.findLocalTempTable(null);
         ArrayList<SchemaObject> list = New.arrayList();
         list.addAll(db.getAllSchemaObjects(DbObject.SEQUENCE));

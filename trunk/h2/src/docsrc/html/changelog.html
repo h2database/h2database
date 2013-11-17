@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Subqueries or views with "order by" an alias expression could not be executed
+<ul><li>The statement "drop all objects" did not work if a table depends on a view via a constraint.
+</li><li>Subqueries or views with "order by" an alias expression could not be executed
     due to a regression introduced in version 1.3.174.
 </li><li>Issue 73: MySQL compatibility: support REPLACE, patch by Cemo Koc.
 </li><li>The spatial index now works in MVCC mode when using the MVStore storage.

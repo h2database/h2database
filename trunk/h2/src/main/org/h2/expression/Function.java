@@ -821,9 +821,10 @@ public class Function extends Expression implements FunctionCall {
         }
         case DECODE: {
             int index = -1;
-            for (int i = 1; i < args.length - 1; i += 2) {
+            for (int i = 1, len = args.length - 1; i < len; i += 2) {
                 if (database.areEqual(v0, getNullOrValue(session, args, values, i))) {
                     index = i + 1;
+                    break;
                 }
             }
             if (index < 0 && args.length % 2 == 0) {
@@ -876,18 +877,42 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case CASE: {
-            result = null;
-            int i = 0;
-            for (; i < args.length; i++) {
-                Value when = getNullOrValue(session, args, values, i++);
-                if (Boolean.TRUE.equals(when)) {
-                    result = getNullOrValue(session, args, values, i);
-                    break;
+            Expression then = null;
+            if (v0 == null) {
+                // Searched CASE expression
+                // (null, when, then)
+                // (null, when, then, else)
+                // (null, when, then, when, then)
+                // (null, when, then, when, then, else)
+                for (int i = 1, len = args.length - 1; i < len; i += 2) {
+                    Value when = args[i].getValue(session);
+                    if (!(when == ValueNull.INSTANCE) && when.getBoolean().booleanValue()) {
+                        then = args[i + 1];
+                        break;
+                    }
+                }
+            } else {
+                // Simple CASE expression
+                // (expr, when, then)
+                // (expr, when, then, else)
+                // (expr, when, then, when, then)
+                // (expr, when, then, when, then, else)
+                if (!(v0 == ValueNull.INSTANCE)) {
+                    for (int i = 1, len = args.length - 1; i < len; i += 2) {
+                        Value when = args[i].getValue(session);
+                        if (database.areEqual(v0, when)) {
+                            then = args[i + 1];
+                            break;
+                        }
+                    }
                 }
             }
-            if (result == null) {
-                result = i < args.length ? getNullOrValue(session, args, values, i) : ValueNull.INSTANCE;
+            if (then == null && args.length % 2 == 0) {
+                // then = elsePart
+                then = args[args.length - 1];
             }
+            Value v = then == null ? ValueNull.INSTANCE : then.getValue(session);
+            result = v.convertTo(dataType);
             break;
         }
         case ARRAY_GET: {
@@ -971,7 +996,11 @@ public class Function extends Expression implements FunctionCall {
         }
         Value v = values[i];
         if (v == null) {
-            v = values[i] = args[i].getValue(session);
+            Expression e = args[i];
+            if (e == null) {
+                return null;
+            }
+            v = values[i] = e.getValue(session);
         }
         return v;
     }
@@ -1700,7 +1729,9 @@ public class Function extends Expression implements FunctionCall {
     @Override
     public void mapColumns(ColumnResolver resolver, int level) {
         for (Expression e : args) {
-            e.mapColumns(resolver, level);
+            if (e != null) {
+                e.mapColumns(resolver, level);
+            }
         }
     }
 
@@ -1745,7 +1776,6 @@ public class Function extends Expression implements FunctionCall {
             min = 2;
             max = 3;
             break;
-        case CASE:
         case CONCAT:
         case CONCAT_WS:
         case CSVWRITE:
@@ -1766,6 +1796,7 @@ public class Function extends Expression implements FunctionCall {
             max = 2;
             break;
         case DECODE:
+        case CASE:
             min = 3;
             break;
         default:
@@ -1810,7 +1841,11 @@ public class Function extends Expression implements FunctionCall {
     public Expression optimize(Session session) {
         boolean allConst = info.deterministic;
         for (int i = 0; i < args.length; i++) {
-            Expression e = args[i].optimize(session);
+            Expression e = args[i];
+            if (e == null) {
+                continue;
+            }
+            e = e.optimize(session);
             args[i] = e;
             if (!e.isConstant()) {
                 allConst = false;
@@ -1824,24 +1859,12 @@ public class Function extends Expression implements FunctionCall {
         case NULLIF:
         case COALESCE:
         case LEAST:
-        case GREATEST:
-        case DECODE: {
+        case GREATEST: {
             t = Value.UNKNOWN;
             s = 0;
             p = 0;
             d = 0;
-            int i = 0;
             for (Expression e : args) {
-                if (info.type == DECODE) {
-                    if (i < 2 || ((i % 2 == 1) && (i != args.length - 1))) {
-                        // decode(a, b, whenB)
-                        // decode(a, b, whenB, else)
-                        // decode(a, b, whenB, c, whenC)
-                        // decode(a, b, whenB, c, whenC, end)
-                        i++;
-                        continue;
-                    }
-                }
                 if (e != ValueExpression.getNull()) {
                     int type = e.getType();
                     if (type != Value.UNKNOWN && type != Value.NULL) {
@@ -1851,7 +1874,48 @@ public class Function extends Expression implements FunctionCall {
                         d = Math.max(d, e.getDisplaySize());
                     }
                 }
-                i++;
+            }
+            if (t == Value.UNKNOWN) {
+                t = Value.STRING;
+                s = 0;
+                p = Integer.MAX_VALUE;
+                d = Integer.MAX_VALUE;
+            }
+            break;
+        }
+        case CASE:
+        case DECODE: {
+            t = Value.UNKNOWN;
+            s = 0;
+            p = 0;
+            d = 0;
+            // (expr, when, then)
+            // (expr, when, then, else)
+            // (expr, when, then, when, then)
+            // (expr, when, then, when, then, else)
+            for (int i = 2, len = args.length; i < len; i += 2) {
+                Expression then = args[i];
+                if (then != ValueExpression.getNull()) {
+                    int type = then.getType();
+                    if (type != Value.UNKNOWN && type != Value.NULL) {
+                        t = Value.getHigherOrder(t, type);
+                        s = Math.max(s, then.getScale());
+                        p = Math.max(p, then.getPrecision());
+                        d = Math.max(d, then.getDisplaySize());
+                    }
+                }
+            }
+            if (args.length % 2 == 0) {
+                Expression elsePart = args[args.length - 1];
+                if (elsePart != ValueExpression.getNull()) {
+                    int type = elsePart.getType();
+                    if (type != Value.UNKNOWN && type != Value.NULL) {
+                        t = Value.getHigherOrder(t, type);
+                        s = Math.max(s, elsePart.getScale());
+                        p = Math.max(p, elsePart.getPrecision());
+                        d = Math.max(d, elsePart.getDisplaySize());
+                    }
+                }
             }
             if (t == Value.UNKNOWN) {
                 t = Value.STRING;
@@ -2086,6 +2150,19 @@ public class Function extends Expression implements FunctionCall {
     @Override
     public String getSQL() {
         StatementBuilder buff = new StatementBuilder(info.name);
+        if (info.type == CASE) {
+            if (args[0] != null) {
+                buff.append(" ").append(args[0].getSQL());
+            }
+            for (int i = 1, len = args.length - 1; i < len; i += 2) {
+                buff.append(" WHEN ").append(args[i].getSQL());
+                buff.append(" THEN ").append(args[i + 1].getSQL());
+            }
+            if (args.length % 2 == 0) {
+                buff.append(" ELSE ").append(args[args.length - 1].getSQL());
+            }
+            return buff.append(" END").toString();
+        }
         buff.append('(');
         switch (info.type) {
         case CAST: {

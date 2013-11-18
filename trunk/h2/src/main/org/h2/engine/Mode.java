@@ -123,6 +123,10 @@ public class Mode {
      */
     public boolean swapConvertFunctionParameters;
 
+    /**
+     * can set the isolation level using WITH {RR|RS|CS|UR}
+     */
+    public boolean isolationLevelInSelectStatement;
 
     private final String name;
 
@@ -135,6 +139,7 @@ public class Mode {
         mode.aliasColumnName = true;
         mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
+        mode.isolationLevelInSelectStatement = true;
         add(mode);
 
         mode = new Mode("Derby");
@@ -191,7 +196,7 @@ public class Mode {
 
     /**
      * Get the mode with the given name.
-     *
+     * 
      * @param name the name of the mode
      * @return the mode object
      */

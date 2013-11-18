@@ -150,7 +150,7 @@ import org.h2.value.ValueTimestamp;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
- *
+ * 
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
@@ -211,7 +211,7 @@ public class Parser {
 
     /**
      * Parse the statement and prepare it for execution.
-     *
+     * 
      * @param sql the SQL statement to parse
      * @return the prepared object
      */
@@ -226,7 +226,7 @@ public class Parser {
 
     /**
      * Parse a statement or a list of statements, and prepare it for execution.
-     *
+     * 
      * @param sql the SQL statement to parse
      * @return the command object
      */
@@ -259,7 +259,7 @@ public class Parser {
 
     /**
      * Parse the statement, but don't prepare it for execution.
-     *
+     * 
      * @param sql the SQL statement to parse
      * @return the prepared object
      */
@@ -1012,7 +1012,7 @@ public class Parser {
         }
         if (readIf("DEFAULT")) {
             read("VALUES");
-            Expression[] expr = { };
+            Expression[] expr = {};
             command.addRow(expr);
         } else if (readIf("VALUES")) {
             read("(");
@@ -1745,16 +1745,32 @@ public class Parser {
                     } while (readIf(","));
                 } else if (readIf("NOWAIT")) {
                     // TODO parser: select for update nowait: should not wait
-                } else if (readIf("WITH")) {
-                    // Hibernate / Derby support
-                    read("RR");
                 }
                 command.setForUpdate(true);
             } else if (readIf("READ") || readIf("FETCH")) {
                 read("ONLY");
-                if (readIf("WITH")) {
-                    read("RS");
+            }
+        }
+        if (database.getMode().isolationLevelInSelectStatement) {
+        	parseIsolationClause();
+        }
+    }
+
+    /**
+     * DB2 isolation clause
+     */
+    private void parseIsolationClause() {
+        if (readIf("WITH")) {
+            if (readIf("RR") || readIf("RS")) {
+                // concurrent-access-resolution clause
+                if (readIf("USE")) {
+                    read("AND");
+                    read("KEEP");
+                    if (readIf("SHARE") || readIf("UPDATE") || readIf("EXCLUSIVE")) {
+                    }
+                    read("LOCKS");
                 }
+            } else if (readIf("CS") || readIf("UR")) {
             }
         }
     }
@@ -3518,7 +3534,7 @@ public class Parser {
 
     /**
      * Checks if this string is a SQL keyword.
-     *
+     * 
      * @param s the token to check
      * @param supportOffsetFetch if OFFSET and FETCH are keywords
      * @return true if it is a keyword
@@ -5623,7 +5639,7 @@ public class Parser {
 
     /**
      * Add double quotes around an identifier if required.
-     *
+     * 
      * @param s the identifier
      * @return the quoted identifier
      */
@@ -5654,7 +5670,7 @@ public class Parser {
 
     /**
      * Parse a SQL code snippet that represents an expression.
-     *
+     * 
      * @param sql the code snippet
      * @return the expression object
      */
@@ -5667,7 +5683,7 @@ public class Parser {
 
     /**
      * Parse a SQL code snippet that represents a table name.
-     *
+     * 
      * @param sql the code snippet
      * @return the table object
      */

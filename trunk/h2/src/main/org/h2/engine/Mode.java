@@ -128,6 +128,11 @@ public class Mode {
      */
     public boolean isolationLevelInSelectStatement;
 
+    /**
+     * MySQL style INSERT ... ON DUPLICATE KEY UPDATE ...
+     */
+    public boolean onDuplicateKeyUpdate;
+    
     private final String name;
 
     static {
@@ -169,6 +174,7 @@ public class Mode {
         mode.convertInsertNullToZero = true;
         mode.indexDefinitionInCreateTable = true;
         mode.lowerCaseIdentifiers = true;
+        mode.onDuplicateKeyUpdate = true;
         add(mode);
 
         mode = new Mode("Oracle");

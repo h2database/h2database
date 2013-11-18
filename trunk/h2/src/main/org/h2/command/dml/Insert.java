@@ -7,6 +7,9 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import org.h2.api.Trigger;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -15,7 +18,10 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
+import org.h2.expression.Comparison;
+import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.message.DbException;
@@ -24,9 +30,11 @@ import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -41,6 +49,11 @@ public class Insert extends Prepared implements ResultTarget {
     private boolean sortedInsertMode;
     private int rowNumber;
     private boolean insertFromSelect;
+    
+    /**
+     * for MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
+     */
+    private HashMap<Column, Expression> duplicateKeyAssignmentMap;
 
     public Insert(Session session) {
         super(session);
@@ -64,6 +77,23 @@ public class Insert extends Prepared implements ResultTarget {
 
     public void setQuery(Query query) {
         this.query = query;
+    }
+
+    /**
+     * Keep a collection of the columns to pass to update if a duplicate key
+     * happens, for MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
+     * 
+     * @param column the column
+     * @param expression the expression
+     */
+    public void addAssignmentForDuplicate(Column column, Expression expression) {
+      	if (duplicateKeyAssignmentMap == null) {
+      		duplicateKeyAssignmentMap = New.hashMap();
+      	}
+        if (duplicateKeyAssignmentMap.containsKey(column)) {
+            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
+        }
+        duplicateKeyAssignmentMap.put(column, expression);
     }
 
     /**
@@ -124,7 +154,11 @@ public class Insert extends Prepared implements ResultTarget {
                 boolean done = table.fireBeforeRow(session, null, newRow);
                 if (!done) {
                     table.lock(session, true, false);
-                    table.addRow(session, newRow);
+                    try {
+                        table.addRow(session, newRow);
+                    } catch (DbException de) {
+                        handleOnDuplicate(de);
+                    }
                     session.log(table, UndoLogRecord.INSERT, newRow);
                     table.fireAfterRow(session, null, newRow, false);
                 }
@@ -277,7 +311,90 @@ public class Insert extends Prepared implements ResultTarget {
 
     @Override
     public boolean isCacheable() {
-        return true;
+        return duplicateKeyAssignmentMap == null || duplicateKeyAssignmentMap.isEmpty();
     }
+
+    private void handleOnDuplicate(DbException de) {
+        if (de.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) {
+            throw de;
+        }
+        if (duplicateKeyAssignmentMap == null || duplicateKeyAssignmentMap.isEmpty()) {
+          throw de;
+        }
+        
+        ArrayList<String> variableNames = new ArrayList<String>(duplicateKeyAssignmentMap.size());
+        for (int i = 0; i < columns.length; i++) {
+            String key = session.getCurrentSchemaName() + "." + table.getName() + "." + columns[i].getName();
+            variableNames.add(key);
+            session.setVariable(key, list.get(getCurrentRowNumber() - 1)[i].getValue(session));
+        }
+
+        Update command = new Update(session);
+        command.setTableFilter(new TableFilter(session, table, null, true, null));
+        for (Column column : duplicateKeyAssignmentMap.keySet()) {
+            command.setAssignment(column, duplicateKeyAssignmentMap.get(column));
+        }
+
+        Index foundIndex = searchForUpdateIndex();
+
+        if (foundIndex != null) {
+            command.setCondition(prepareUpdateCondition(foundIndex));
+        } else {
+            throw DbException.getUnsupportedException("Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
+        }
+
+        command.prepare();
+        command.update();
+        for (String variableName : variableNames) {
+            session.setVariable(variableName, ValueNull.INSTANCE);
+        }
+    }
+
+    private Index searchForUpdateIndex() {
+        Index foundIndex = null;
+        for (Index index : table.getIndexes()) {
+            if (index.getIndexType().isPrimaryKey() || index.getIndexType().isUnique()) {
+                for (Column indexColumn : index.getColumns()) {
+                    for (Column insertColumn : columns) {
+                        if (indexColumn.getName() == insertColumn.getName()) {
+                            foundIndex = index;
+                            break;
+                        } else {
+                            foundIndex = null;
+                        }
+                    }
+                    if (foundIndex == null) {
+                        break;
+                    }
+                }
+                if (foundIndex != null) {
+                    break;
+                }
+            }
+        }
+        return foundIndex;
+    }
+
+    private Expression prepareUpdateCondition(Index foundIndex) {
+        Expression expression = null;
+
+        for (Column column : foundIndex.getColumns()) {
+            ExpressionColumn expressionColumn = new ExpressionColumn(session.getDatabase(),
+                    session.getCurrentSchemaName(), null, column.getName());
+            for (int i = 0; i < columns.length; i++) {
+                if (expressionColumn.getColumnName().equals(columns[i].getName())) {
+                    if (expression == null) {
+                        expression = new Comparison(session, Comparison.EQUAL, expressionColumn,
+                                list.get(getCurrentRowNumber() - 1)[i++]);
+                    } else {
+                        expression = new ConditionAndOr(ConditionAndOr.AND, expression, new Comparison(session,
+                                Comparison.EQUAL, expressionColumn, list.get(0)[i++]));
+                    }
+                }
+            }
+        }
+        return expression;
+    }
+
 
 }

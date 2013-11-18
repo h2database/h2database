@@ -152,6 +152,7 @@ public class Mode {
         mode.uniqueIndexSingleNull = true;
         mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
+        mode.isolationLevelInSelectStatement = true;
         add(mode);
 
         mode = new Mode("HSQLDB");

@@ -25,7 +25,7 @@ public class TestCompatibility extends TestBase {
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -374,6 +374,23 @@ public class TestCompatibility extends TestBase {
         res.next();
         assertEquals("2", res.getString(1));
         assertFalse(res.next());
+        // test isolation-clause
+        conn = getConnection("compatibility;MODE=DB2");
+        stat = conn.createStatement();
+        stat.execute("drop table test if exists");
+        stat.execute("create table test(id varchar)");
+        res = stat.executeQuery("select * from test where id = 1 with rr");
+        res = stat.executeQuery("select * from test order by id fetch next 2 rows only with rr");
+        res = stat.executeQuery("select * from test order by id fetch next 2 rows only with rs");
+        res = stat.executeQuery("select * from test order by id fetch next 2 rows only with cs");
+        res = stat.executeQuery("select * from test order by id fetch next 2 rows only with ur");
+        // test isolation-clause with lock-request-clause
+        res = stat
+                .executeQuery("select * from test order by id fetch next 2 rows only with rr use and keep share locks");
+        res = stat
+                .executeQuery("select * from test order by id fetch next 2 rows only with rs use and keep update locks");
+        res = stat
+                .executeQuery("select * from test order by id fetch next 2 rows only with rr use and keep exclusive locks");
     }
 
     private void testDerby() throws SQLException {

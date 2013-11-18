@@ -4,6 +4,24 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create sequence seq;
+> ok
+
+select case seq.nextval when 2 then 'two' when 3 then 'three' when 1 then 'one' else 'other' end result from dual;
+> RESULT
+> ------
+> one
+> rows: 1
+
+drop sequence seq;
+> ok
+
+select decode(1, 1, '1', 1, '11') r from dual;
+> R
+> -
+> 1
+> rows: 1
+
 create table test(x int);
 > ok
 

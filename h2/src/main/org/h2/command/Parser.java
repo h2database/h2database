@@ -1752,7 +1752,7 @@ public class Parser {
             }
         }
         if (database.getMode().isolationLevelInSelectStatement) {
-        	parseIsolationClause();
+            parseIsolationClause();
         }
     }
 
@@ -1767,10 +1767,12 @@ public class Parser {
                     read("AND");
                     read("KEEP");
                     if (readIf("SHARE") || readIf("UPDATE") || readIf("EXCLUSIVE")) {
+                        // ignore
                     }
                     read("LOCKS");
                 }
             } else if (readIf("CS") || readIf("UR")) {
+                // ignore
             }
         }
     }
@@ -2597,12 +2599,7 @@ public class Parser {
                     // CASE must be processed before (,
                     // otherwise CASE(3) would be a function call, which it is
                     // not
-                    if (isToken("WHEN")) {
-                        r = readWhen(null);
-                    } else {
-                        Expression left = readExpression();
-                        r = readWhen(left);
-                    }
+                    r = readCase();
                 } else if (readIf("(")) {
                     r = readFunction(null, name);
                 } else if (equalsToken("CURRENT_USER", name)) {
@@ -2787,29 +2784,55 @@ public class Parser {
         return r;
     }
 
-    private Expression readWhen(Expression left) {
+    private Expression readCase() {
         if (readIf("END")) {
             readIf("CASE");
             return ValueExpression.getNull();
         }
         if (readIf("ELSE")) {
-            Expression elsePart = readExpression();
+            Expression elsePart = readExpression().optimize(session);
             read("END");
             readIf("CASE");
             return elsePart;
         }
-        readIf("WHEN");
-        Expression when = readExpression();
-        if (left != null) {
-            when = new Comparison(session, Comparison.EQUAL, left, when);
+        int i;
+        Function function;
+        if (readIf("WHEN")) {
+            function = Function.getFunction(database, "CASE");
+            function.setParameter(0, null);
+            i = 1;
+            do {
+                function.setParameter(i++, readExpression());
+                read("THEN");
+                function.setParameter(i++, readExpression());
+            } while (readIf("WHEN"));
+        } else {
+            Expression expr = readExpression();
+            if (readIf("END")) {
+                readIf("CASE");
+                return ValueExpression.getNull();
+            }
+            if (readIf("ELSE")) {
+                Expression elsePart = readExpression().optimize(session);
+                read("END");
+                readIf("CASE");
+                return elsePart;
+            }
+            function = Function.getFunction(database, "CASE");
+            function.setParameter(0, expr);
+            i = 1;
+            read("WHEN");
+            do {
+                function.setParameter(i++, readExpression());
+                read("THEN");
+                function.setParameter(i++, readExpression());
+            } while (readIf("WHEN"));
         }
-        read("THEN");
-        Expression then = readExpression();
-        Expression elsePart = readWhen(left);
-        Function function = Function.getFunction(session.getDatabase(), "CASEWHEN");
-        function.setParameter(0, when);
-        function.setParameter(1, then);
-        function.setParameter(2, elsePart);
+        if (readIf("ELSE")) {
+            function.setParameter(i, readExpression());
+        }
+        read("END");
+        readIf("CASE");
         function.doneWithParameters();
         return function;
     }

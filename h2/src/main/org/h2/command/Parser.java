@@ -1052,6 +1052,24 @@ public class Parser {
         } else {
             command.setQuery(parseSelect());
         }
+        if (database.getMode().onDuplicateKeyUpdate) {
+            if (readIf("ON")) {
+                read("DUPLICATE");
+                read("KEY");
+                read("UPDATE");
+                do {
+                    Column column = parseColumn(table);
+                    read("=");
+                    Expression expression;
+                    if (readIf("DEFAULT")) {
+                        expression = ValueExpression.getDefault();
+                    } else {
+                        expression = readExpression();
+                    }
+                    command.addAssignmentForDuplicate(column, expression);
+                } while (readIf(","));
+            }
+        }
         return command;
     }
 
@@ -5681,7 +5699,7 @@ public class Parser {
                 return StringUtils.quoteIdentifier(s);
             }
         }
-        if (Parser.isKeyword(s, true)) {
+        if (isKeyword(s, true)) {
             return StringUtils.quoteIdentifier(s);
         }
         return s;

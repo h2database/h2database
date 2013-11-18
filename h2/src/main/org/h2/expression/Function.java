@@ -103,6 +103,11 @@ public class Function extends Expression implements FunctionCall {
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230;
 
     /**
+     * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
+     */
+    public static final int VALUES = 250;
+
+    /**
      * This is called H2VERSION() and not VERSION(), because we return a fake value
      * for VERSION() when running under the PostgreSQL ODBC driver.
      */
@@ -365,6 +370,9 @@ public class Function extends Expression implements FunctionCall {
 
         // pseudo function
         addFunctionWithNull("ROW_NUMBER", ROW_NUMBER, 0, Value.LONG);
+
+        // ON DUPLICATE KEY VALUES function
+        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, true);
     }
 
     protected Function(Database database, FunctionInfo info) {
@@ -1338,6 +1346,9 @@ public class Function extends Expression implements FunctionCall {
             } else {
                 result = ValueString.get(StringUtils.xmlText(v0.getString(), v1.getBoolean()));
             }
+            break;
+        case VALUES:
+            result = session.getVariable(args[0].getSchemaName() + "." + args[0].getTableName() + "." + args[0].getColumnName());
             break;
         default:
             throw DbException.throwInternalError("type=" + info.type);

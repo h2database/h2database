@@ -1060,7 +1060,7 @@ public class TransactionStore {
 
         private VersionedValue getValue(K key, long maxLog) {
             VersionedValue data = map.get(key);
-            while (true) {
+            for (int i = 0; i < 10; i++) {
                 long tx;
                 if (data == null) {
                     // doesn't exist or deleted by a committed transaction
@@ -1082,11 +1082,20 @@ public class TransactionStore {
                 }
                 // get the value before the uncommitted transaction
                 long[] x = new long[] { tx, logId };
+                Object[] d;
                 synchronized (transaction.store.undoLog) {
-                    Object[] d = transaction.store.undoLog.get(x);
+                    d = transaction.store.undoLog.get(x);
+                }
+                if (d == null) {
+                    // committed or rolled back in the meantime
+                    data = map.get(key);
+                } else {
                     data = (VersionedValue) d[3];
                 }
             }
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_CORRUPT, 
+                    "The transaction log might be corrupt for key {0}", key);
         }
 
         /**

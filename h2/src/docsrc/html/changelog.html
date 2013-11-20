@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved Oracle compatibility for CASE WHEN and DECODE.
+<ul><li>The collation can now be set in the database URL, even if there are data tables,
+    if the collection is the same as the current collation.
+</li><li>Improved Oracle compatibility for CASE WHEN and DECODE.
 </li><li>The statement "drop all objects" did not work if a table depends on a view via a constraint.
 </li><li>Subqueries or views with "order by" an alias expression could not be executed
     due to a regression introduced in version 1.3.174.

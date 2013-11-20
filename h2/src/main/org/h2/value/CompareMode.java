@@ -63,7 +63,10 @@ public class CompareMode {
 
     private final String name;
     private final int strength;
-    /** if true, sort BINARY columns as if they contain unsigned bytes */
+    
+    /** 
+     * If true, sort BINARY columns as if they contain unsigned bytes.
+     */
     private final boolean binaryUnsigned;
 
     protected CompareMode(String name, int strength, boolean binaryUnsigned) {
@@ -226,6 +229,31 @@ public class CompareMode {
 
     public boolean isBinaryUnsigned() {
         return binaryUnsigned;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (!(obj instanceof CompareMode)) {
+            return false;
+        }
+        CompareMode o = (CompareMode) obj;
+        if (!getName().equals(o.getName())) {
+            return false;
+        }
+        if (strength != o.strength) {
+            return false;
+        }
+        if (binaryUnsigned != o.binaryUnsigned) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return getName().hashCode() ^ strength ^ (binaryUnsigned ? -1 : 0);
     }
 
 }

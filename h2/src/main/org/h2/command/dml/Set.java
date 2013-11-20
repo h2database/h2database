@@ -110,10 +110,9 @@ public class Set extends Prepared {
         }
         case SetTypes.COLLATION: {
             session.getUser().checkAdmin();
-            Table table = database.getFirstUserTable();
-            if (table != null) {
-                throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
-            }
+            
+            
+            
             final boolean binaryUnsigned = database.getCompareMode().isBinaryUnsigned();
             CompareMode compareMode;
             StringBuilder buff = new StringBuilder(stringValue);
@@ -132,6 +131,14 @@ public class Set extends Prepared {
                     buff.append("TERTIARY");
                 }
                 compareMode = CompareMode.getInstance(stringValue, strength, binaryUnsigned);
+            }
+            CompareMode old = database.getCompareMode();
+            if (old.equals(compareMode)) {
+                break;
+            }
+            Table table = database.getFirstUserTable();
+            if (table != null) {
+                throw DbException.get(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, table.getSQL());
             }
             addOrUpdateSetting(name, buff.toString(), 0);
             database.setCompareMode(compareMode);

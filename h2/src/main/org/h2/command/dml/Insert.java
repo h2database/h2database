@@ -8,7 +8,6 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import org.h2.api.Trigger;
 import org.h2.command.Command;
@@ -87,9 +86,9 @@ public class Insert extends Prepared implements ResultTarget {
      * @param expression the expression
      */
     public void addAssignmentForDuplicate(Column column, Expression expression) {
-      	if (duplicateKeyAssignmentMap == null) {
-      		duplicateKeyAssignmentMap = New.hashMap();
-      	}
+        if (duplicateKeyAssignmentMap == null) {
+            duplicateKeyAssignmentMap = New.hashMap();
+        }
         if (duplicateKeyAssignmentMap.containsKey(column)) {
             throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
         }
@@ -359,9 +358,8 @@ public class Insert extends Prepared implements ResultTarget {
                         if (indexColumn.getName() == insertColumn.getName()) {
                             foundIndex = index;
                             break;
-                        } else {
-                            foundIndex = null;
-                        }
+                        } 
+                        foundIndex = null;
                     }
                     if (foundIndex == null) {
                         break;

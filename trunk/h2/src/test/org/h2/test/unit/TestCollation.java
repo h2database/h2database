@@ -36,6 +36,15 @@ public class TestCollation extends TestBase {
         stat.execute("set collation default_en");
         assertThrows(ErrorCode.CLASS_NOT_FOUND_1, stat).
                 execute("set collation icu4j_en");
+
+        stat.execute("set collation ge");
+        stat.execute("create table test(id int)");
+        // the same as the current - ok
+        stat.execute("set collation ge");
+        // not allowed to change now
+        assertThrows(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, stat).
+            execute("set collation en");
+        
         conn.close();
         deleteDb("collation");
     }

@@ -805,10 +805,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestStringUtils().runTest(this);
         new TestTools().runTest(this);
         new TestTraceSystem().runTest(this);
-
-        ; // TODO
         new TestUpgrade().runTest(this);
-
         new TestUtils().runTest(this);
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);

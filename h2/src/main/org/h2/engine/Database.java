@@ -1262,9 +1262,8 @@ public class Database implements DataHandler {
         if (mvStore != null) {
             if (!readOnly && compactMode != 0) {
                 mvStore.compactFile(dbSettings.maxCompactTime);
-            } else {
-                mvStore.close(dbSettings.maxCompactTime);
             }
+            mvStore.close(dbSettings.maxCompactTime);
         }
         closeFiles();
         if (persistent && lock == null && fileLockMethod != FileLock.LOCK_NO && fileLockMethod != FileLock.LOCK_FS) {

@@ -45,7 +45,7 @@ public class FreeSpaceBitSet {
     /**
      * Reset the list.
      */
-    public synchronized void clear() {
+    public void clear() {
         set.clear();
         set.set(0, firstFreeBlock);
     }
@@ -57,7 +57,7 @@ public class FreeSpaceBitSet {
      * @param length the number of bytes
      * @return true if a block is in use
      */
-    public synchronized boolean isUsed(long pos, int length) {
+    public boolean isUsed(long pos, int length) {
         int start = getBlock(pos);
         int blocks = getBlockCount(length);
         for (int i = start; i < start + blocks; i++) {
@@ -75,7 +75,7 @@ public class FreeSpaceBitSet {
      * @param length the number of bytes
      * @return true if a block is free
      */
-    public synchronized boolean isFree(long pos, int length) {
+    public boolean isFree(long pos, int length) {
         int start = getBlock(pos);
         int blocks = getBlockCount(length);
         for (int i = start; i < start + blocks; i++) {
@@ -92,7 +92,7 @@ public class FreeSpaceBitSet {
      * @param length the number of bytes to allocate
      * @return the start position in bytes
      */
-    public synchronized long allocate(int length) {
+    public long allocate(int length) {
         int blocks = getBlockCount(length);
         for (int i = 0;;) {
             int start = set.nextClearBit(i);
@@ -111,7 +111,7 @@ public class FreeSpaceBitSet {
      * @param pos the position in bytes
      * @param length the number of bytes
      */
-    public synchronized void markUsed(long pos, int length) {
+    public void markUsed(long pos, int length) {
         int start = getBlock(pos);
         int blocks = getBlockCount(length);
         set.set(start, start + blocks);
@@ -123,7 +123,7 @@ public class FreeSpaceBitSet {
      * @param pos the position in bytes
      * @param length the number of bytes
      */
-    public synchronized void free(long pos, int length) {
+    public void free(long pos, int length) {
         int start = getBlock(pos);
         int blocks = getBlockCount(length);
         set.clear(start, start + blocks);

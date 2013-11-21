@@ -3153,7 +3153,7 @@ public class Parser {
             }
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(StringUtils.fromCacheOrNew(result));
+            currentValue = ValueString.get(StringUtils.fromCacheOrNew(result), database.getMode().treatEmptyStringsAsNull);
             parseIndex = i;
             currentTokenType = VALUE;
             return;
@@ -3167,7 +3167,7 @@ public class Parser {
             result = sqlCommand.substring(begin, i);
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(StringUtils.fromCacheOrNew(result));
+            currentValue = ValueString.get(StringUtils.fromCacheOrNew(result), database.getMode().treatEmptyStringsAsNull);
             parseIndex = i;
             currentTokenType = VALUE;
             return;

@@ -128,15 +128,26 @@ public class ValueString extends Value {
      * @param s the string
      * @return the value
      */
-    public static ValueString get(String s) {
-        if (s.length() == 0) {
-            return EMPTY;
+    public static Value get(String s) {
+        return get(s, false);
+    }
+
+    /**
+     * Get or create a string value for the given string.
+     *
+     * @param s the string
+     * @param treatEmptyStringsAsNull whether or not to treat empty strings as NULL
+     * @return the value
+     */
+    public static Value get(String s, boolean treatEmptyStringsAsNull) {
+        if (s.isEmpty()) {
+            return treatEmptyStringsAsNull ? ValueNull.INSTANCE : EMPTY;
         }
         ValueString obj = new ValueString(StringUtils.cache(s));
         if (s.length() > SysProperties.OBJECT_CACHE_MAX_PER_ELEMENT_SIZE) {
             return obj;
         }
-        return (ValueString) Value.cache(obj);
+        return Value.cache(obj);
         // this saves memory, but is really slow
         // return new ValueString(s.intern());
     }
@@ -148,7 +159,7 @@ public class ValueString extends Value {
      * @param s the string
      * @return the value
      */
-    protected ValueString getNew(String s) {
+    protected Value getNew(String s) {
         return ValueString.get(s);
     }
 

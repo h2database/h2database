@@ -45,6 +45,7 @@ import org.h2.test.db.TestMultiThread;
 import org.h2.test.db.TestMultiThreadedKernel;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
+import org.h2.test.db.TestCompatibilityOracle;
 import org.h2.test.db.TestOutOfMemory;
 import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
@@ -628,6 +629,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestCheckpoint().runTest(this);
         new TestCluster().runTest(this);
         new TestCompatibility().runTest(this);
+        new TestCompatibilityOracle().runTest(this);
         new TestCsv().runTest(this);
         new TestDateStorage().runTest(this);
         new TestDeadlock().runTest(this);

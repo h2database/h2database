@@ -99,6 +99,11 @@ public class Mode {
     public boolean uniqueIndexSingleNullExceptAllColumnsAreNull;
 
     /**
+     * Empty strings are treated like NULL values. Useful for Oracle emulation.
+     */
+    public boolean treatEmptyStringsAsNull;
+
+    /**
      * Support the pseudo-table SYSIBM.SYSDUMMY1.
      */
     public boolean sysDummy1;
@@ -181,6 +186,7 @@ public class Mode {
         mode = new Mode("Oracle");
         mode.aliasColumnName = true;
         mode.uniqueIndexSingleNullExceptAllColumnsAreNull = true;
+        mode.treatEmptyStringsAsNull = true;
         add(mode);
 
         mode = new Mode("PostgreSQL");

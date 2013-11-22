@@ -185,6 +185,7 @@ public class Mode {
 
         mode = new Mode("Oracle");
         mode.aliasColumnName = true;
+        mode.convertOnlyToSmallerScale = true;
         mode.uniqueIndexSingleNullExceptAllColumnsAreNull = true;
         mode.treatEmptyStringsAsNull = true;
         add(mode);

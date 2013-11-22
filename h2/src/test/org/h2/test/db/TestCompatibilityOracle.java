@@ -33,6 +33,7 @@ public class TestCompatibilityOracle extends TestBase {
     @Override
     public void test() throws Exception {
         testTreatEmptyStringsAsNull();
+        testDecimalScale();
     }
 
     private void testTreatEmptyStringsAsNull() throws SQLException {
@@ -87,6 +88,21 @@ public class TestCompatibilityOracle extends TestBase {
         conn.close();
     }
 
+    private void testDecimalScale() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE A (ID NUMBER, X DECIMAL(9,5))");
+        stat.execute("INSERT INTO A VALUES (1, 2)");
+        stat.execute("INSERT INTO A VALUES (2, 4.3)");
+        stat.execute("INSERT INTO A VALUES (3, '6.78')");
+        assertResult("3", stat, "SELECT COUNT(*) FROM A");
+        assertResult(new Object[][] { { 1, 2 }, { 2, 4.3 }, { 3, 6.78 } }, stat, "SELECT * FROM A");
+
+        conn.close();
+    }
+
     private void assertResult(Object[][] expectedRowsOfValues, Statement stat, String sql) throws SQLException {
         assertResult(newSimpleResultSet(expectedRowsOfValues), stat, sql);
     }
@@ -117,10 +133,10 @@ public class TestCompatibilityOracle extends TestBase {
             return null;
         }
         if (object instanceof Object[]) {
-            return Arrays.deepToString(((Object[]) object));
+            return Arrays.deepToString((Object[]) object);
         }
         if (object instanceof byte[]) {
-            return Arrays.toString(((byte[]) object));
+            return Arrays.toString((byte[]) object);
         }
         return object.toString();
     }

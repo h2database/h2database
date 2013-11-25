@@ -44,7 +44,6 @@ public class ViewIndex extends BaseIndex {
         SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private boolean recursive;
     private final int[] indexMasks;
-    private String planSQL;
     private Query query;
     private final Session createSession;
 
@@ -70,7 +69,6 @@ public class ViewIndex extends BaseIndex {
         columns = new Column[0];
         if (!recursive) {
             query = getQuery(session, masks);
-            planSQL =  query.getPlanSQL();
         }
     }
 
@@ -80,7 +78,7 @@ public class ViewIndex extends BaseIndex {
 
     @Override
     public String getPlanSQL() {
-        return planSQL;
+        return query == null ? null : query.getPlanSQL();
     }
 
     @Override
@@ -178,7 +176,6 @@ public class ViewIndex extends BaseIndex {
             }
             if (query == null) {
                 query = (Query) createSession.prepare(querySQL, true);
-                planSQL =  query.getPlanSQL();
             }
             if (!(query instanceof SelectUnion)) {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_2, "recursive queries without UNION ALL");

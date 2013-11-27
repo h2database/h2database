@@ -212,15 +212,20 @@ public class TestRights extends TestBase {
         testTableType(conn, "MEMORY");
         testTableType(conn, "CACHED");
 
+        /* make sure admin can still do it. */
+        
         executeSuccess("CREATE USER SCHEMA_CREATOR PASSWORD 'xyz'");
 
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
         executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
         executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_RENAMED");
+        
+        /* create this for tests below */
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
+        executeSuccess("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.close();
 
-        // try and fail
+        // try and fail (no rights yet)
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).execute(
@@ -231,29 +236,42 @@ public class TestRights extends TestBase {
                 "DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         conn.close();
 
-        // give them
+        // grant the right
         conn = getConnection("rights");
         stat = conn.createStatement();
-        executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         executeSuccess("GRANT ALTER ANY SCHEMA TO SCHEMA_CREATOR");
         conn.close();
 
         // try and succeed
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
+        
+        /* should be able to create a schema and manipulate tables on that schema... */
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
-        executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
-        executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_RENAMED");
-        executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
+        executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO S");
+        executeSuccess("CREATE TABLE S.TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        executeSuccess("ALTER TABLE S.TEST ADD COLUMN QUESTION VARCHAR");
+        executeSuccess("INSERT INTO  S.TEST (ID, NAME) VALUES (42, 'Adams')");
+        executeSuccess("UPDATE S.TEST Set NAME = 'Douglas'");
+        executeSuccess("DELETE FROM S.TEST");
+        executeSuccess("DROP SCHEMA S");
+
+        /* ...and on other schemata */
+        executeSuccess("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        executeSuccess("ALTER TABLE TEST ADD COLUMN QUESTION VARCHAR");
+        executeSuccess("INSERT INTO  TEST (ID, NAME) VALUES (42, 'Adams')");
+        executeSuccess("UPDATE TEST Set NAME = 'Douglas'");
+        executeSuccess("DELETE FROM TEST");
+        
         conn.close();
 
-        // revoke them
+        // revoke the right
         conn = getConnection("rights");
         stat = conn.createStatement();
         executeSuccess("REVOKE ALTER ANY SCHEMA FROM SCHEMA_CREATOR");
         conn.close();
 
-        // try and fail
+        // try again and fail
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
@@ -262,6 +280,14 @@ public class TestRights extends TestBase {
             execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
             execute("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
+        	execute("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
+        	execute("INSERT INTO  SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS (ID, NAME) VALUES (42, 'Adams')");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
+        	execute("UPDATE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS Set NAME = 'Douglas'");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
+        	execute("DELETE FROM SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS");
         conn.close();
     }
 

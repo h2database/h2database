@@ -125,6 +125,9 @@ public class User extends RightOwner {
             return true;
         }
         if (table != null) {
+            if (hasRight(null, Right.ALTER_ANY_SCHEMA)) {
+                return true;
+            }
             String tableType = table.getTableType();
             if (Table.VIEW.equals(tableType)) {
                 TableView v = (TableView) table;
@@ -212,7 +215,7 @@ public class User extends RightOwner {
      * @throws DbException if this user is not a schema admin
      */
     public void checkSchemaAdmin() {
-        if (!admin && !hasRight(null, Right.ALTER_ANY_SCHEMA)) {
+        if (!hasRight(null, Right.ALTER_ANY_SCHEMA)) {
             throw DbException.get(ErrorCode.ADMIN_RIGHTS_REQUIRED);
         }
     }

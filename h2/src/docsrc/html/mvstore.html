@@ -53,10 +53,10 @@ MVStore
 <h2 id="overview">Overview</h2>
 <p>
 The MVStore is work in progress, and is planned to be the next storage subsystem of H2.
-But it can be also directly within an application, without using JDBC or SQL.
+But it can also be used directly within an application, without using JDBC or SQL.
 </p>
 <ul><li>MVStore stands for "multi-version store".
-</li><li>Each store contains a number of maps (using the <code>java.util.Map</code> interface).
+</li><li>Each store contains a number of maps that can be accessed using the <code>java.util.Map</code> interface.
 </li><li>Both file-based persistence and in-memory operation are supported.
 </li><li>It is intended to be fast, simple to use, and small.
 </li><li>Old versions of the data can be read concurrently with all other operations.
@@ -86,7 +86,7 @@ MVMap&lt;Integer, String&gt; map = s.openMap("data");
 map.put(1, "Hello World");
 System.out.println(map.get(1));
 
-// close the store (this will store changes)
+// close the store (this will persist changes)
 s.close();
 </pre>
 
@@ -94,23 +94,21 @@ s.close();
 <p>
 The <code>MVStore.Builder</code> provides a fluid interface
 to build a store if more complex configuration options are used.
-The following code contains all supported configuration options:
+Example usage:
 </p>
 <pre>
 MVStore s = new MVStore.Builder().
-    autoCommitDisabled().
-    backgroundExceptionListener(listener).
-    cacheSize(10).
-    compressData().
-    encryptionKey("007".toCharArray()).
     fileName(fileName).
-    fileStore(new FileStore()).
-    pageSplitSize(6 * 1024).
-    readOnly().
+    encryptionKey("007".toCharArray()).
+    compressData().
     open();
 </pre>
-<ul><li>autoCommitDisabled(): to disable auto-commit.
-</li><li>backgroundExceptionListener: a listener for
+<p>
+The list of available options is:
+</p>
+<ul><li>autoCommitBufferSize: the size of the write buffer.
+</li><li>autoCommitDisabled: to disable auto-commit.
+</li><li>backgroundExceptionHandler: specify a handler for
     exceptions that could occur while writing in the background.
 </li><li>cacheSize: the cache size in MB.
 </li><li>compressData: compress the data when storing.
@@ -180,10 +178,10 @@ the key of the map must also contain the primary key).
 <h3 id="versions">Versions</h3>
 <p>
 A version is a snapshot of all the data of all maps at a given point in time.
-Old versions are readable until the old data was explicitly overwritten.
 Creating a snapshot is fast: only those pages that are changed after a snapshot are copied.
 This behavior is also called COW (copy on write).
 Rollback to an old version is supported.
+Old versions are readable until old data is purged.
 </p><p>
 The following sample code show how to create a store, open a map, add some data,
 and access the current and an old version:
@@ -217,7 +215,6 @@ MVMap&lt;Integer, String&gt; oldMap =
 // this will print "Hello" and "World":
 System.out.println(oldMap.get(1));
 System.out.println(oldMap.get(2));
-oldMap.close();
 
 // print the newest version ("Hi")
 System.out.println(map.get(1));
@@ -253,10 +250,11 @@ Except for persisting data, all features are supported in this mode
 If a file name is specified, all operations occur in memory (with the same
 performance characteristics) until data is persisted.
 </p><p>
-As in all map implementations, changing the key object after an entry
-has been added to the map is not allowed (keys are immutable).
+As in all map implementations, keys need to be immutable, that means
+changing the key object after an entry has been added is not allowed.
 If a file name is specified, the value may also not be changed after
-adding an entry, because it might be serialized at any time.
+adding an entry, because it might be serialized 
+(which could happen at any time when autocommit is enabled).
 </p>
 
 <h3 id="dataTypes">Pluggable Data Types</h3>
@@ -267,7 +265,7 @@ and uses Java serialization for other objects. The following classes are current
 String, UUID, Date</code> and arrays (both primitive arrays and object arrays).
 </p><p>
 Parameterized data types are supported
-(for example one could build a string data type that limits the length for some reason).
+(for example one could build a string data type that limits the length).
 </p><p>
 The storage engine itself does not have any length limits, so that keys, values,
 pages, and chunks can be very big (as big as fits in memory).
@@ -329,12 +327,9 @@ this should improve write performance for file systems and storage systems
 that do not efficiently support small random writes, such as Btrfs, as well as SSDs.
 (According to a test, write throughput of a common SSD increases with write block size,
 until a block size of 2 MB, and then does not further increase.)
-By default, committed changes are automatically written once every second
-in a background thread, even if only little data was changed.
-Changes can also be written explicitly by calling <code>store()</code>.
-To avoid running out of memory, uncommitted changes are also written when needed,
-however they are rolled back when closing the store,
-or at the latest (when the store was not closed normally) when opening the store.
+By default, changes are automatically written when more than a number of pages are modified, 
+and once every second in a background thread, even if only little data was changed.
+Changes can also be written explicitly by calling <code>commit()</code>.
 </p><p>
 When storing, all changed pages are serialized,
 optionally compressed using the LZF algorithm,
@@ -461,8 +456,8 @@ The following exceptions can occur:
     so that the application can distinguish between different error cases.
 </li><li><code>IllegalArgumentException</code> if a method was called with an illegal argument.
 </li><li><code>UnsupportedOperationException</code> if a method was called that is not supported,
-    for example trying to modify a read-only map or view.
-</li><li><code>ConcurrentModificationException</code> if the object is modified concurrently.
+    for example trying to modify a read-only map.
+</li><li><code>ConcurrentModificationException</code> if a map is modified concurrently.
 </li></ul>
 
 <h3 id="storageEngine">Storage Engine for H2</h3>

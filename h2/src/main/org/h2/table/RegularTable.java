@@ -433,9 +433,7 @@ public class RegularTable extends TableBase {
         }
         if (!force && database.isMultiVersion()) {
             // MVCC: update, delete, and insert use a shared lock.
-            // Select doesn't lock except when using FOR UPDATE and
-            // the system property h2.selectForUpdateMvcc
-            // is not enabled
+            // Select doesn't lock except when using FOR UPDATE
             if (exclusive) {
                 exclusive = false;
             } else {

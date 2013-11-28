@@ -77,6 +77,7 @@ public class ScriptReader implements Closeable {
     /**
      * Close the underlying reader.
      */
+    @Override
     public void close() {
         try {
             reader.close();

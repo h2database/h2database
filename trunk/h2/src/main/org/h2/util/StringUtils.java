@@ -916,6 +916,9 @@ public class StringUtils {
         }
         // create a new object that is not shared
         // (to avoid out of memory if it is a substring of a big String)
+        // (not longer needed for Java 7 update 6 and newer,
+        // but the performance overhead is very small for those
+        // versions where it is not needed)
         // NOPMD
         s = new String(s);
         cache[index] = s;

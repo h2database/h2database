@@ -57,10 +57,6 @@ MVTableEngine:
 TransactionStore:
 
 MVStore:
-- better document auto-commit (also when many unsaved pages)
-    advantages and disadvantages
-- auto-commit when used in memory as well
-- better document MVStore setters
 - automated 'kill process' and 'power failure' test
 - update checkstyle
 - feature to auto-compact from time to time and on close
@@ -132,6 +128,7 @@ MVStore:
 - currently, uncommitted changes are stored if there are many transient changes,
     and rolled back when opening - is this really needed?
 - compact* should also store uncommitted changes (if there are any)
+- write a LSM-tree (log structured merge tree) utility on top of the MVStore
 
 */
 

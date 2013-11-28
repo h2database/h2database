@@ -13,14 +13,14 @@ import java.nio.ByteBuffer;
  */
 public class WriteBuffer {
 
-    private static final int MAX_REUSE_LIMIT = 4 * 1024 * 1024;
+    private static final int MAX_REUSE_CAPACITY = 4 * 1024 * 1024;
 
     /**
-     * The maximum byte to grow a buffer at a time.
+     * The minimum number of bytes to grow a buffer at a time.
      */
-    private static final int MAX_GROW = 1024 * 1024;
+    private static final int MIN_GROW = 1024 * 1024;
 
-    private ByteBuffer reuse = ByteBuffer.allocate(512 * 1024);
+    private ByteBuffer reuse = ByteBuffer.allocate(MIN_GROW);
 
     private ByteBuffer buff = reuse;
 
@@ -273,7 +273,7 @@ public class WriteBuffer {
      * @return this
      */
     public WriteBuffer clear() {
-        if (buff.limit() > MAX_REUSE_LIMIT) {
+        if (buff.limit() > MAX_REUSE_CAPACITY) {
             buff = reuse;
         } else if (buff != reuse) {
             reuse = buff;
@@ -300,13 +300,12 @@ public class WriteBuffer {
 
     private void grow(int len) {
         ByteBuffer temp = buff;
-        len = temp.remaining() + len;
-        int capacity = temp.capacity();
-        len = Math.max(len, Math.min(capacity + MAX_GROW, capacity * 2));
-        buff = ByteBuffer.allocate(len);
+        int needed = len - temp.remaining();
+        int newCapacity = temp.capacity() + Math.max(needed, MIN_GROW);
+        buff = ByteBuffer.allocate(newCapacity);
         temp.flip();
         buff.put(temp);
-        if (len <= MAX_REUSE_LIMIT) {
+        if (newCapacity <= MAX_REUSE_CAPACITY) {
             reuse = buff;
         }
     }

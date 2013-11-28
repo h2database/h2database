@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Random;
 
 import org.h2.mvstore.DataUtils;
+import org.h2.mvstore.WriteBuffer;
 import org.h2.test.TestBase;
 
 /**
@@ -31,6 +32,7 @@ public class TestDataUtils extends TestBase {
 
     @Override
     public void test() {
+        testWriteBuffer();
         testEncodeLength();
         testFletcher();
         testMap();
@@ -39,6 +41,12 @@ public class TestDataUtils extends TestBase {
         testVarIntVarLong();
         testCheckValue();
         testPagePos();
+    }
+    
+    private static void testWriteBuffer() {
+        WriteBuffer buff = new WriteBuffer();
+        buff.put(new byte[1500000]);
+        buff.put(new byte[1900000]);
     }
 
     private void testFletcher() {

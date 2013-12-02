@@ -1128,7 +1128,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90072</code> is thrown when
-     * trying to grant or revoke if no role or user with that name exists.
+     * trying to grant or revoke both roles and rights at the same time.
      * Example:
      * <pre>
      * GRANT SELECT, TEST_ROLE ON TEST TO SA;

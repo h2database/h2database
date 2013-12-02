@@ -1162,9 +1162,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
 
         /**
-         * Set the key data type.
+         * Set the value data type.
          *
-         * @param valueType the key type
+         * @param valueType the value type
          * @return this
          */
         public Builder<K, V> valueType(DataType valueType) {

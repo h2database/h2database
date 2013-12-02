@@ -124,6 +124,9 @@ public class TestMVTableEngine extends TestBase {
             stat.execute("create table test(id int primary key, data varchar)");
             stat.execute("insert into test select x, space(1000) from system_range(1, 1000)");
             stat.execute("drop table test");
+            // this table is kept
+            stat.execute("create table test" + i + "(id int primary key) " + 
+                    "as select x from system_range(1, 1000)");
             conn.close();
             long size = FileUtils.size(getBaseDir() + "/mvstore"
                     + Constants.SUFFIX_MV_FILE);

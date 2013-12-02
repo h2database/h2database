@@ -268,7 +268,7 @@ public class MVStore {
     MVStore(HashMap<String, Object> config) {
         this.compress = config.containsKey("compress");
         Object o = config.get("pageSplitSize");
-        pageSplitSize = o == null ? 6 * 1024 : (Integer) o;
+        pageSplitSize = o == null ? 16 * 1024 : (Integer) o;
         o = config.get("backgroundExceptionHandler");
         this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
         meta = new MVMapConcurrent<String, String>(StringDataType.INSTANCE,
@@ -1056,6 +1056,7 @@ public class MVStore {
                         chunks.remove(c.id);
                         meta.remove("chunk." + c.id);
                     } else {
+                        meta.put("chunk." + c.id, c.asString());
                         // remove this chunk in the next save operation
                         registerFreePage(storeVersion + 1, c.id, 0, 0);
                     }
@@ -2153,7 +2154,7 @@ public class MVStore {
 
         /**
          * Set the amount of memory a page should contain at most, in bytes,
-         * before it is split. The default is 6 KB. This is not a limit in the
+         * before it is split. The default is 16 KB. This is not a limit in the
          * page size, as pages with one entry can get larger. It is just the
          * point where pages that contain more than one entry are split.
          *

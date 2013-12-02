@@ -130,9 +130,6 @@ public class ValueDataType implements DataType {
         if (a == b) {
             return 0;
         }
-        int dataType = Value.getHigherOrder(a.getType(), b.getType());
-        a = a.convertTo(dataType);
-        b = b.convertTo(dataType);
         return a.compareTypeSave(b, compareMode);
     }
 

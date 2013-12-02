@@ -159,7 +159,10 @@ public class MVSecondaryIndex extends BaseIndex {
         for (int i = 0; i < columns.length; i++) {
             Column c = columns[i];
             int idx = c.getColumnId();
-            array[i] = r.getValue(idx);
+            Value v = r.getValue(idx);
+            if (v != null) {
+                array[i] = v.convertTo(c.getType());
+            }
         }
         array[keyColumns - 1] = ValueLong.get(r.getKey());
         return ValueArray.get(array);

@@ -573,7 +573,7 @@ public class TestMVStore extends TestBase {
         }
         s.close();
         int[] expectedReadsForCacheSize = {
-                3413, 2590, 1924, 1440, 1112, 956, 918
+                3406, 2590, 1924, 1440, 1102, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             s = new MVStore.Builder().
@@ -905,10 +905,12 @@ public class TestMVStore extends TestBase {
         map.put(1, "Hello World");
         // System.out.println(map.get(1));
 
-        // mark the changes as committed
-        s.commit();
-
-        // close the store
+        // close the store (this will persist changes)
+        s.close();
+        
+        s = MVStore.open(fileName);
+        map = s.openMap("data");
+        assertEquals("Hello World", map.get(1));
         s.close();
     }
 

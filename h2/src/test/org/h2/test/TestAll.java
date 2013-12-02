@@ -486,6 +486,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 TestPerformance.main("-init", "-db", "1", "-size", "1000");
                 prof.stopCollecting();
                 System.out.println(prof.getTop(3));
+                TestPerformance.main("-init", "-db", "1", "-size", "1000");
+                TestPerformance.main("-init", "-db", "9", "-size", "1000");
             }
 //            Recover.execute("data", null);
 //            RunScript.execute("jdbc:h2:data/test2",

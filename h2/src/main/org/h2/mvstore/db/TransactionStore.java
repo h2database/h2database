@@ -8,6 +8,7 @@ package org.h2.mvstore.db;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ public class TransactionStore {
      * Key: [ transactionId, logId ], value: [ opType, mapId, key, oldValue ].
      */
     final MVMap<long[], Object[]> undoLog;
+    ;
+    // TODO should be <long, Object[]>
 
     /**
      * The lock timeout in milliseconds. 0 means timeout immediately.
@@ -72,6 +75,8 @@ public class TransactionStore {
     private long lastTransactionId;
 
     private long firstOpenTransaction = -1;
+    
+    private HashMap<Integer, MVMap<Object, VersionedValue>> maps = New.hashMap();
 
     /**
      * Create a new transaction store.
@@ -145,7 +150,7 @@ public class TransactionStore {
                 int status;
                 String name;
                 if (data == null) {
-                    key[1] = 0;
+                    key = new long[] { key[0], 0 };
                     if (undoLog.containsKey(key)) {
                         status = Transaction.STATUS_OPEN;
                     } else {
@@ -241,6 +246,11 @@ public class TransactionStore {
             undoLog.remove(undoKey);
         }
     }
+    
+    <K, V> void removeMap(TransactionMap<K, V> map) {
+        maps.remove(map.mapId);
+        store.removeMap(map.map);
+    }
 
     /**
      * Commit a transaction.
@@ -289,6 +299,10 @@ public class TransactionStore {
     }
 
     private synchronized MVMap<Object, VersionedValue> openMap(int mapId) {
+        MVMap<Object, VersionedValue> map = maps.get(mapId);
+        if (map != null) {
+            return map;
+        }
         // TODO open map by id if possible
         Map<String, String> meta = store.getMetaMap();
         String m = meta.get("map." + mapId);
@@ -301,7 +315,8 @@ public class TransactionStore {
         MVMap.Builder<Object, VersionedValue> mapBuilder =
                 new MVMap.Builder<Object, VersionedValue>().
                 keyType(dataType).valueType(vt);
-        MVMap<Object, VersionedValue> map = store.openMap(mapName, mapBuilder);
+        map = store.openMap(mapName, mapBuilder);
+        maps.put(mapId, map);
         return map;
     }
 
@@ -735,7 +750,12 @@ public class TransactionStore {
          * @param map the map
          */
         public <K, V> void removeMap(TransactionMap<K, V> map) {
-            store.store.removeMap(map.map);
+            store.removeMap(map);
+        }
+        
+        @Override
+        public String toString() {
+            return "" + transactionId;
         }
 
     }
@@ -756,9 +776,12 @@ public class TransactionStore {
          */
         final MVMap<K, VersionedValue> map;
 
+        /**
+         * The map id.
+         */
+        final int mapId;
+        
         private Transaction transaction;
-
-        private final int mapId;
 
         /**
          * If a record was read that was updated by this transaction, and the
@@ -1074,7 +1097,7 @@ public class TransactionStore {
                         return data;
                     }
                 }
-                // added or updated by another transaction
+                // added, updated, or removed by another transaction
                 boolean open = transaction.store.isTransactionOpen(tx);
                 if (!open) {
                     // it is committed
@@ -1087,7 +1110,8 @@ public class TransactionStore {
                     d = transaction.store.undoLog.get(x);
                 }
                 if (d == null) {
-                    // committed or rolled back in the meantime
+                    // this entry was committed or rolled back 
+                    // in the meantime (the transaction might still be open)
                     data = map.get(key);
                 } else {
                     data = (VersionedValue) d[3];
@@ -1298,6 +1322,12 @@ public class TransactionStore {
          * The value.
          */
         public Object value;
+        
+        @Override
+        public String toString() {
+            return "{" + transactionId + "/" + logId + "}: " + value;
+        }
+
     }
 
     /**

@@ -3346,6 +3346,14 @@ This method returns a string.
 CALL XMLTEXT('test')
 "
 
+"Functions (String)","TO_CHAR","
+TO_CHAR(value [, format[, nlsParam]])
+","
+Oracle-compatible TO_CHAR function that can format a timestamp, a number, or text.
+","
+CALL TO_CHAR(TIMESTAMP '2010-01-01 00:00:00', 'DD MON, YYYY')
+"
+
 "Functions (Time and Date)","CURRENT_DATE","
 { CURRENT_DATE [ () ] | CURDATE() | SYSDATE | TODAY }
 ","

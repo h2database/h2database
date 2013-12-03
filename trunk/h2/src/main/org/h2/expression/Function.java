@@ -6,6 +6,7 @@
  */
 package org.h2.expression;
 
+import static org.h2.util.ToChar.toChar;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -85,7 +86,7 @@ public class Function extends Expression implements FunctionCall {
             SPACE = 71, SUBSTR = 72, SUBSTRING = 73, UCASE = 74, LOWER = 75, UPPER = 76, POSITION = 77, TRIM = 78,
             STRINGENCODE = 79, STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82, XMLATTR = 83, XMLNODE = 84,
             XMLCOMMENT = 85, XMLCDATA = 86, XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90, LPAD = 91,
-            CONCAT_WS = 92;
+            CONCAT_WS = 92, TO_CHAR = 93;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102, DATE_DIFF = 103, DAY_NAME = 104,
             DAY_OF_MONTH = 105, DAY_OF_WEEK = 106, DAY_OF_YEAR = 107, HOUR = 108, MINUTE = 109, MONTH = 110, MONTH_NAME = 111,
@@ -280,6 +281,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("REGEXP_REPLACE", REGEXP_REPLACE, 3, Value.STRING);
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
+        addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
 
         // date
         addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE);
@@ -1191,6 +1193,25 @@ public class Function extends Expression implements FunctionCall {
         case LPAD:
             result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false), database.getMode().treatEmptyStringsAsNull);
             break;
+        case TO_CHAR:
+            switch(v0.getType()){
+            case Value.TIME:
+            case Value.DATE:
+            case Value.TIMESTAMP:
+                result = ValueString.get(toChar(v0.getTimestamp(), v1 == null ? null : v1.getString(), v2 == null ? null : v2.getString()), database.getMode().treatEmptyStringsAsNull);
+                break;
+            case Value.SHORT:
+            case Value.INT:
+            case Value.LONG:
+            case Value.DECIMAL:
+            case Value.DOUBLE:
+            case Value.FLOAT:
+                result = ValueString.get(toChar(v0.getBigDecimal(), v1 == null ? null : v1.getString(), v2 == null ? null : v2.getString()), database.getMode().treatEmptyStringsAsNull);
+                break;
+            default:
+                result = ValueString.get(v0.getString(), database.getMode().treatEmptyStringsAsNull);
+            }
+            break;
         case H2VERSION:
             result = ValueString.get(Constants.getVersion(), database.getMode().treatEmptyStringsAsNull);
             break;
@@ -1776,6 +1797,10 @@ public class Function extends Expression implements FunctionCall {
         case TRUNCATE:
             min = 1;
             max = 2;
+            break;
+        case TO_CHAR:
+            min = 1;
+            max = 3;
             break;
         case REPLACE:
         case LOCATE:

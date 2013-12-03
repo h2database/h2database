@@ -712,6 +712,8 @@ public abstract class TestBase {
         } else if (expected == null || actual == null) {
             fail("Expected: " + expected + " Actual: " + actual + " " + message);
         } else if (!expected.equals(actual)) {
+            int al = expected.length();
+            int bl = actual.length();
             for (int i = 0; i < expected.length(); i++) {
                 String s = expected.substring(0, i);
                 if (!actual.startsWith(s)) {
@@ -719,8 +721,6 @@ public abstract class TestBase {
                     break;
                 }
             }
-            int al = expected.length();
-            int bl = actual.length();
             if (al > 4000) {
                 expected = expected.substring(0, 4000);
             }
@@ -967,6 +967,22 @@ public abstract class TestBase {
             assertEquals(expected, actual);
         } else {
             assertEquals(expected, null);
+        }
+    }
+
+    /**
+     * Check that executing the specified query results in the specified error.
+     *
+     * @param expectedErrorMessage the expected error message
+     * @param stat the statement
+     * @param sql the SQL statement to execute
+     */
+    protected void assertThrows(String expectedErrorMessage, Statement stat, String sql) {
+        try {
+            stat.executeQuery(sql);
+            fail("Expected error: " + expectedErrorMessage);
+        } catch (SQLException e) {
+            assertTrue(e.getMessage().startsWith(expectedErrorMessage));
         }
     }
 

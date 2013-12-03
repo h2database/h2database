@@ -489,6 +489,13 @@ public class ErrorCode {
     public static final int SEQUENCE_ATTRIBUTES_INVALID = 90009;
 
     /**
+     * The error with code <code>90010</code> is thrown when
+     * trying to format a timestamp or number using TO_CHAR
+     * with an invalid format.
+     */
+    public static final int INVALID_TO_CHAR_FORMAT = 90010;
+
+    /**
      * The error with code <code>22007</code> is thrown when
      * a text can not be converted to a date, time, or timestamp constant.
      * Examples:
@@ -1884,7 +1891,7 @@ public class ErrorCode {
     public static final int JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE = 90141;
 
 
-    // next are 90010, 90011, 90021, 90039,
+    // next are 90011, 90021, 90039,
     // 90051, 90056, 90110, 90122, 90142
 
     private ErrorCode() {

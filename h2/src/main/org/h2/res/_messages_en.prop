@@ -37,6 +37,7 @@
 90007=The object is already closed
 90008=Invalid value {0} for parameter {1}
 90009=Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
+90010=Invalid TO_CHAR format {0}
 90012=Parameter {0} is not set
 90013=Database {0} not found
 90014=Error parsing {0}

@@ -981,8 +981,8 @@ public abstract class TestBase {
         try {
             stat.executeQuery(sql);
             fail("Expected error: " + expectedErrorMessage);
-        } catch (SQLException e) {
-            assertTrue(e.getMessage().startsWith(expectedErrorMessage));
+        } catch (SQLException ex) {
+            assertStartsWith(ex.getMessage(), expectedErrorMessage);
         }
     }
 

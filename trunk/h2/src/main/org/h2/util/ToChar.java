@@ -208,7 +208,9 @@ public class ToChar {
                 output.insert(0, currency.getSymbol());
                 maxLength += 9;
             } else if (c == '$') {
-                output.insert(0, c);
+                Currency currency = Currency.getInstance(Locale.getDefault());
+                String cs = currency.getSymbol();
+                output.insert(0, cs);
             } else {
                 throw DbException.get(ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
             }

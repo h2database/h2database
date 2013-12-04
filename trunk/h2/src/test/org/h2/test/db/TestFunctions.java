@@ -1215,9 +1215,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("1.23456789012345E+14", stat, "SELECT TO_CHAR(123456789012345, 'TME') FROM DUAL");
         assertResult("4.5E-01", stat, "SELECT TO_CHAR(0.45, 'TME') FROM DUAL");
         assertResult("4.5E-01", stat, "SELECT TO_CHAR(0.45, 'tMe') FROM DUAL");
-        assertThrows("Invalid format \"999.99q\"", stat, "SELECT TO_CHAR(123.45, '999.99q') FROM DUAL");
-        assertThrows("Invalid format \"fm999.99q\"", stat, "SELECT TO_CHAR(123.45, 'fm999.99q') FROM DUAL");
-        assertThrows("Invalid format \"q999.99\"", stat, "SELECT TO_CHAR(123.45, 'q999.99') FROM DUAL");
+        assertThrows("Invalid TO_CHAR format \"999.99q\"", stat, "SELECT TO_CHAR(123.45, '999.99q') FROM DUAL");
+        assertThrows("Invalid TO_CHAR format \"fm999.99q\"", stat, "SELECT TO_CHAR(123.45, 'fm999.99q') FROM DUAL");
+        assertThrows("Invalid TO_CHAR format \"q999.99\"", stat, "SELECT TO_CHAR(123.45, 'q999.99') FROM DUAL");
 
         conn.close();
     }

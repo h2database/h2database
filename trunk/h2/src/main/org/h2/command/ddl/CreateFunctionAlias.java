@@ -27,6 +27,7 @@ public class CreateFunctionAlias extends SchemaCommand {
     private boolean ifNotExists;
     private boolean force;
     private String source;
+    private boolean bufferResultSetToLocalTemp = true;
 
     public CreateFunctionAlias(Session session, Schema schema) {
         super(session, schema);
@@ -45,9 +46,9 @@ public class CreateFunctionAlias extends SchemaCommand {
             int id = getObjectId();
             FunctionAlias functionAlias;
             if (javaClassMethod != null) {
-                functionAlias = FunctionAlias.newInstance(getSchema(), id, aliasName, javaClassMethod, force);
+                functionAlias = FunctionAlias.newInstance(getSchema(), id, aliasName, javaClassMethod, force, bufferResultSetToLocalTemp);
             } else {
-                functionAlias = FunctionAlias.newInstanceFromSource(getSchema(), id, aliasName, source, force);
+                functionAlias = FunctionAlias.newInstanceFromSource(getSchema(), id, aliasName, source, force, bufferResultSetToLocalTemp);
             }
             functionAlias.setDeterministic(deterministic);
             db.addSchemaObject(session, functionAlias);
@@ -78,6 +79,13 @@ public class CreateFunctionAlias extends SchemaCommand {
 
     public void setDeterministic(boolean deterministic) {
         this.deterministic = deterministic;
+    }
+
+    /**
+     * Should the return value ResultSet be buffered in a local temporary file?
+     */
+    public void setBufferResultSetToLocalTemp(boolean b) {
+        this.bufferResultSetToLocalTemp = b;
     }
 
     public void setSource(String source) {

@@ -75,10 +75,10 @@ public interface FunctionCall {
     boolean isDeterministic();
 
     /**
-     * Whether the function is fast, meaning the result shouldn't be cached.
+     * Should the return value ResultSet be buffered in a local temporary file?
      *
-     * @return true if it is
+     * @return true if it should be.
      */
-    boolean isFast();
+    boolean isBufferResultSetToLocalTemp();
 
 }

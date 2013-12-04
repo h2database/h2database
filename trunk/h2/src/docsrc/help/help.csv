@@ -420,11 +420,15 @@ CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
-CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
+CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ] [ NOBUFFER ]
 { FOR classAndMethodName | AS sourceCodeString }
 ","
-Creates a new function alias. Deterministic functions must always return the
-same value for the same parameters. The result of such functions is cached if possible.
+Creates a new function alias. If this is a ResultSet returning function,
+by default the return value is cached in a local temporary file.
+
+NOBUFFER - disables caching of ResultSet return value to temporary file.
+
+DETERMINISTIC - Deterministic functions must always return the same value for the same parameters.
 
 The method name must be the full qualified class and method name,
 and may optionally include the parameter classes as in

@@ -1184,7 +1184,7 @@ XMLTEXT(valueString [, escapeNewlineBoolean])
 ","
 Creates an XML text element."
 "Functions (String)","TO_CHAR","
-TO_CHAR(value [, format[, nlsParam]])
+TO_CHAR(value [, formatString[, nlsParamString]])
 ","
 Oracle-compatible TO_CHAR function that can format a timestamp, a number, or text."
 "Functions (Time and Date)","CURRENT_DATE","

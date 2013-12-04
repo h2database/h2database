@@ -171,7 +171,7 @@ public class FunctionTable extends Table {
     }
 
     /**
-     * Read the result from the function. This method caches the result.
+     * Read the result from the function. This method buffers the result in a temporary file.
      *
      * @param session the session
      * @return the result
@@ -213,8 +213,8 @@ public class FunctionTable extends Table {
         return (ValueResultSet) v;
     }
 
-    public boolean isFast() {
-        return function.isFast();
+    public boolean isBufferResultSetToLocalTemp() {
+        return function.isBufferResultSetToLocalTemp();
     }
 
     @Override

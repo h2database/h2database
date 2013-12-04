@@ -42,8 +42,8 @@ class FunctionInfo {
     boolean deterministic;
 
     /**
-     * Whether the function is fast, meaning the result shouldn't be cached.
+     * Should the return value ResultSet be buffered in a local temporary file?
      */
-    boolean fast;
+    boolean bufferResultSetToLocalTemp = true;
 
 }

@@ -346,9 +346,9 @@ public class Function extends Expression implements FunctionCall {
         addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
         addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
         addFunction("ARRAY_GET", ARRAY_GET, 2, Value.STRING);
-        addFunction("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN, false, true, false);
-        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, true);
-        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false, false);
+        addFunction("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN, false, true, true);
+        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, false);
+        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false, true);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED, 0, Value.INT);
         addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE, 0, Value.INT);
@@ -359,8 +359,8 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
         addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
-        addFunction("SET", SET, 2, Value.NULL, false, false, false);
-        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, false);
+        addFunction("SET", SET, 2, Value.NULL, false, false, true);
+        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, true);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
         addFunctionWithNull("DECODE", DECODE, VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED, 1, Value.LONG);
@@ -374,7 +374,7 @@ public class Function extends Expression implements FunctionCall {
         addFunctionWithNull("ROW_NUMBER", ROW_NUMBER, 0, Value.LONG);
 
         // ON DUPLICATE KEY VALUES function
-        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, true);
+        addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false);
     }
 
     protected Function(Database database, FunctionInfo info) {
@@ -388,7 +388,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static void addFunction(String name, int type, int parameterCount, int dataType,
-            boolean nullIfParameterIsNull, boolean deterministic, boolean fast) {
+            boolean nullIfParameterIsNull, boolean deterministic, boolean bufferResultSetToLocalTemp) {
         FunctionInfo info = new FunctionInfo();
         info.name = name;
         info.type = type;
@@ -396,20 +396,20 @@ public class Function extends Expression implements FunctionCall {
         info.dataType = dataType;
         info.nullIfParameterIsNull = nullIfParameterIsNull;
         info.deterministic = deterministic;
-        info.fast = fast;
+        info.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
         FUNCTIONS.put(name, info);
     }
 
     private static void addFunctionNotDeterministic(String name, int type, int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, true, false, false);
+        addFunction(name, type, parameterCount, dataType, true, false, true);
     }
 
     private static void addFunction(String name, int type, int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, true, true, false);
+        addFunction(name, type, parameterCount, dataType, true, true, true);
     }
 
     private static void addFunctionWithNull(String name, int type, int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, false, true, false);
+        addFunction(name, type, parameterCount, dataType, false, true, true);
     }
 
     /**
@@ -2354,8 +2354,8 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public boolean isFast() {
-        return info.fast;
+    public boolean isBufferResultSetToLocalTemp() {
+        return info.bufferResultSetToLocalTemp;
     }
 
 }

@@ -10,10 +10,10 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -392,7 +392,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     @Override
     public Reader getReader() {
-        return IOUtils.getBufferedReader(getInputStream());
+        return new InputStreamReader(getInputStream(), Constants.UTF8);
     }
 
     @Override

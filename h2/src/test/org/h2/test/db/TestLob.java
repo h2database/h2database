@@ -113,6 +113,7 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
+        testClobWithRandomUnicodeChars();
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
@@ -1508,4 +1509,59 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
+    private void testClobWithRandomUnicodeChars() throws Exception {
+        // This tests an issue we had with storing unicode surrogate pairs, which only
+        // manifested at the boundaries between blocks i.e. at 4k boundaries
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE logs(id int primary key auto_increment, message CLOB)");
+        PreparedStatement s1 = conn.prepareStatement("INSERT INTO logs (id, message) VALUES(null, ?)");
+        final Random rand = new Random();
+        for (int i = 1; i <= 100; i++) {
+            String data = randomUnicodeString(rand);
+            s1.setString(1, data);
+            s1.executeUpdate();
+            ResultSet rs = stat.executeQuery("SELECT id, message FROM logs ORDER BY id DESC LIMIT 1");
+            rs.next();
+            String read = rs.getString(2);
+            assertEquals(read, data);
+        }
+        conn.close();
+    }
+
+    private static String randomUnicodeString(Random rand) {
+        int count = 10000;
+        final char[] buffer = new char[count];
+        while (count-- != 0) {
+            char ch = (char) rand.nextInt();
+            if (ch >= 56320 && ch <= 57343) {
+                if (count == 0) {
+                    count++;
+                } else {
+                    // low surrogate, insert high surrogate after putting it
+                    // in
+                    buffer[count] = ch;
+                    count--;
+                    buffer[count] = (char) (55296 + rand.nextInt(128));
+                }
+            } else if (ch >= 55296 && ch <= 56191) {
+                if (count == 0) {
+                    count++;
+                } else {
+                    // high surrogate, insert low surrogate before putting
+                    // it in
+                    buffer[count] = (char) (56320 + rand.nextInt(128));
+                    count--;
+                    buffer[count] = ch;
+                }
+            } else if (ch >= 56192 && ch <= 56319) {
+                // private high surrogate, no effing clue, so skip it
+                count++;
+            } else {
+                buffer[count] = ch;
+            }
+        }
+        return new String(buffer);
+    }
 }

@@ -7,10 +7,10 @@
 package org.h2.value;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -86,11 +86,11 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.fileName = null;
         this.tempFile = null;
     }
-
+    
     /**
      * Create temporary CLOB from Reader.
      */
-    private ValueLobDb(DataHandler handler, char[] buff, int len, Reader in, long remaining) throws IOException {
+    private ValueLobDb(DataHandler handler, Reader in, long remaining) throws IOException {
         this.type = Value.CLOB;
         this.handler = handler;
         this.small = null;
@@ -102,15 +102,9 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);
         long tmpPrecision = 0;
         try {
+            char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
-                tmpPrecision += len;
-                byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
-                out.write(b, 0, b.length);
-                remaining -= len;
-                if (remaining <= 0) {
-                    break;
-                }
-                len = getBufferSize(this.handler, false, remaining);
+                int len = getBufferSize(this.handler, false, remaining);
                 len = IOUtils.readFully(in, buff, len);
                 if (len <= 0) {
                     break;
@@ -392,7 +386,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     @Override
     public Reader getReader() {
-        return new InputStreamReader(getInputStream(), Constants.UTF8);
+        return IOUtils.getBufferedReader(getInputStream());
     }
 
     @Override
@@ -510,6 +504,12 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      * @return the lob value
      */
     public static ValueLobDb createTempClob(Reader in, long length, DataHandler handler) {
+        BufferedReader reader;
+        if (in instanceof BufferedReader) {
+            reader = (BufferedReader) in;
+        } else {
+            reader = new BufferedReader(in, Constants.IO_BUFFER_SIZE);
+        }
         try {
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
             long remaining = Long.MAX_VALUE;
@@ -519,19 +519,21 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             int len = getBufferSize(handler, compress, remaining);
             char[] buff;
             if (len >= Integer.MAX_VALUE) {
-                String data = IOUtils.readStringAndClose(in, -1);
+                String data = IOUtils.readStringAndClose(reader, -1);
                 buff = data.toCharArray();
                 len = buff.length;
             } else {
                 buff = new char[len];
-                len = IOUtils.readFully(in, buff, len);
+                reader.mark(len);
+                len = IOUtils.readFully(reader, buff, len);
                 len = len < 0 ? 0 : len;
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, len);
             }
-            ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining);
+            reader.reset();
+            ValueLobDb lob = new ValueLobDb(handler, reader, remaining);
             return lob;
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);

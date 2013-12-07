@@ -64,6 +64,7 @@ public class TestLob extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testClobWithRandomUnicodeChars();
         testCommitOnExclusiveConnection();
         testReadManyLobs();
         testLobSkip();
@@ -113,7 +114,6 @@ public class TestLob extends TestBase {
         testLob(false);
         testLob(true);
         testJavaObject();
-        testClobWithRandomUnicodeChars();
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
@@ -1517,7 +1517,7 @@ public class TestLob extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE logs(id int primary key auto_increment, message CLOB)");
         PreparedStatement s1 = conn.prepareStatement("INSERT INTO logs (id, message) VALUES(null, ?)");
-        final Random rand = new Random();
+        final Random rand = new Random(1);
         for (int i = 1; i <= 100; i++) {
             String data = randomUnicodeString(rand);
             s1.setString(1, data);
@@ -1525,6 +1525,11 @@ public class TestLob extends TestBase {
             ResultSet rs = stat.executeQuery("SELECT id, message FROM logs ORDER BY id DESC LIMIT 1");
             rs.next();
             String read = rs.getString(2);
+            if (!read.equals(data)) {
+                for (int j = 0; j < read.length(); j++) {
+                    assertEquals("pos: " + j, read.charAt(j), data.charAt(j));
+                }
+            }
             assertEquals(read, data);
         }
         conn.close();

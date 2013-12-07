@@ -9,6 +9,10 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CodingErrorAction;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,6 +20,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
@@ -26,7 +31,6 @@ import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
@@ -41,9 +45,10 @@ import org.h2.value.ValueLobDb;
  * take a very long time. If we did them on a normal session, we would be
  * locking the LOB tables for long periods of time, which is extremely
  * detrimental to the rest of the system. Perhaps when we shift to the MVStore
- * engine, we can revisit this design decision.
+ * engine, we can revisit this design decision 
+ * (using the StreamStore, that is, no connection at all).
  * <p>
- * Locking Discussion
+ * Locking
  * <p>
  * Normally, the locking order in H2 is: first lock the Session object, then
  * lock the Database object. However, in the case of the LOB data, we are using
@@ -67,10 +72,6 @@ import org.h2.value.ValueLobDb;
  */
 public class LobStorageBackend implements LobStorageInterface {
 
-    /**
-     * Locking Discussion
-     * --------------------
-     */
     /**
      * The name of the lob data table. If this table exists, then lob storage is
      * used.
@@ -782,76 +783,88 @@ public class LobStorageBackend implements LobStorageInterface {
         }
 
     }
-
+    
     /**
      * An input stream that reads the data from a reader.
      */
-    static class CountingReaderInputStream extends InputStream {
+    public static class CountingReaderInputStream extends InputStream {
 
         private final Reader reader;
-        /**
-         * total length of Reader data in chars
-         */
+        
+        private final CharBuffer charBuffer = CharBuffer.allocate(Constants.IO_BUFFER_SIZE);
+        
+        private final CharsetEncoder encoder = Constants.UTF8.newEncoder().
+                onMalformedInput(CodingErrorAction.REPLACE).
+                onUnmappableCharacter(CodingErrorAction.REPLACE);
+        
+        private ByteBuffer byteBuffer = ByteBuffer.allocate(0);
         private long length;
         private long remaining;
-        private int pos;
-        private final char[] charBuffer = new char[Constants.IO_BUFFER_SIZE];
-        private byte[] buffer;
 
         CountingReaderInputStream(Reader reader, long maxLength) {
             this.reader = reader;
             this.remaining = maxLength;
-            buffer = Utils.EMPTY_BYTES;
         }
 
         @Override
         public int read(byte[] buff, int offset, int len) throws IOException {
-            if (buffer == null) {
+            if (!fetch()) {
                 return -1;
             }
-            if (pos >= buffer.length) {
-                fillBuffer();
-                if (buffer == null) {
-                    return -1;
-                }
-            }
-            len = Math.min(len, buffer.length - pos);
-            System.arraycopy(buffer, pos, buff, offset, len);
-            pos += len;
+            len = Math.min(len, byteBuffer.remaining());
+            byteBuffer.get(buff, offset, len);
             return len;
         }
 
         @Override
         public int read() throws IOException {
-            if (buffer == null) {
+            if (!fetch()) {
                 return -1;
             }
-            if (pos >= buffer.length) {
+            return byteBuffer.get() & 255;
+        }
+        
+        private boolean fetch() throws IOException {
+            if (byteBuffer != null && byteBuffer.remaining() == 0) {
                 fillBuffer();
-                if (buffer == null) {
-                    return -1;
-                }
             }
-            return buffer[pos++];
+            return byteBuffer != null;
         }
 
         private void fillBuffer() throws IOException {
-            int len = (int) Math.min(charBuffer.length, remaining);
+            int len = (int) Math.min(charBuffer.capacity() - charBuffer.position(), remaining);
             if (len > 0) {
-                len = reader.read(charBuffer, 0, len);
-            } else {
-                len = -1;
+                len = reader.read(charBuffer.array(), charBuffer.position(), len);
             }
-            if (len < 0) {
-                buffer = null;
-            } else {
-                buffer = new String(charBuffer, 0, len).getBytes(Constants.UTF8);
-                length += len;
+            if (len > 0) {
                 remaining -= len;
+            } else {
+                len = 0;
+                remaining = 0;
             }
-            pos = 0;
+            length += len;
+            charBuffer.limit(charBuffer.position() + len);
+            charBuffer.rewind();
+            byteBuffer = ByteBuffer.allocate(Constants.IO_BUFFER_SIZE);
+            boolean end = remaining == 0;
+            encoder.encode(charBuffer, byteBuffer, end);
+            if (end && byteBuffer.position() == 0) {
+                // EOF
+                byteBuffer = null;
+                return;
+            }
+            byteBuffer.flip();
+            charBuffer.compact();
+            charBuffer.flip();
+            charBuffer.position(charBuffer.limit());
         }
-
+        
+        /**
+         * The number of characters read so far (but there might still be some bytes
+         * in the buffer).
+         * 
+         * @return the number of characters
+         */
         public long getLength() {
             return length;
         }

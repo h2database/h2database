@@ -173,6 +173,7 @@ without the insert statements is returned.
 The password must be in single quotes; it is case sensitive and can contain spaces.
 
 This command locks objects while it is running.
+Admin rights are required to execute this command.
 
 When using the TABLE or SCHEMA option, only the selected table(s) / schema(s) are included.
 ","

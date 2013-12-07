@@ -655,7 +655,7 @@ public abstract class TestBase {
         for (int i = 0; len < 0 || i < len; i++) {
             int ce = expected.read();
             int ca = actual.read();
-            assertEquals(ce, ca);
+            assertEquals("pos:" + i, ce, ca);
             if (ce == -1) {
                 break;
             }

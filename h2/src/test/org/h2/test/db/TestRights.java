@@ -281,13 +281,13 @@ public class TestRights extends TestBase {
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
             execute("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
-        	execute("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        execute("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
-        	execute("INSERT INTO  SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS (ID, NAME) VALUES (42, 'Adams')");
+        execute("INSERT INTO  SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS (ID, NAME) VALUES (42, 'Adams')");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
-        	execute("UPDATE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS Set NAME = 'Douglas'");
+        execute("UPDATE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS Set NAME = 'Douglas'");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
-        	execute("DELETE FROM SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS");
+        execute("DELETE FROM SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS");
         conn.close();
     }
 

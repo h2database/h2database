@@ -14,6 +14,7 @@ import java.nio.channels.OverlappingFileLockException;
 
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathDisk;
 import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FilePathNio;
 
@@ -111,11 +112,13 @@ public class FileStore {
      *            used
      */
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
-        if (fileName != null && fileName.indexOf(':') < 0) {
-            // NIO is used, unless a different file system is specified
-            // the following line is to ensure the NIO file system is compiled
-            FilePathNio.class.getName();
-            fileName = "nio:" + fileName;
+        if (fileName != null) {
+            if (FilePath.get(fileName) instanceof FilePathDisk) {            
+                // NIO is used, unless a different file system is specified
+                // the following line is to ensure the NIO file system is compiled
+                FilePathNio.class.getName();
+                fileName = "nio:" + fileName;
+            }
         }
         this.fileName = fileName;
         FilePath f = FilePath.get(fileName);

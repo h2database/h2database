@@ -77,6 +77,11 @@ public class DataUtils {
     public static final int ERROR_TRANSACTION_LOCK_TIMEOUT = 101;
 
     /**
+     * A very old transaction is still open.
+     */
+    public static final int ERROR_TRANSACTION_STILL_OPEN = 102;
+
+    /**
      * The type for leaf page.
      */
     public static final int PAGE_TYPE_LEAF = 0;

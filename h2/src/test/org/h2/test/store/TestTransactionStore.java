@@ -45,6 +45,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
+        testTransactionAge();
         testStopWhileCommitting();
         testGetModifiedMaps();
         testKeyIterator();
@@ -54,6 +55,46 @@ public class TestTransactionStore extends TestBase {
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+    }
+    
+    private void testTransactionAge() throws Exception {
+        MVStore s;
+        TransactionStore ts;
+        s = MVStore.open(null);
+        ts = new TransactionStore(s);
+        ts.setMaxTransactionId(16);
+        for (int i = 0, j = 1; i < 64; i++) {
+            Transaction t = ts.begin();
+            assertEquals(j, t.getId());
+            t.commit();
+            j++;
+            if (j > 16) {
+                j = 1;
+            }
+        }
+        s = MVStore.open(null);
+        ts = new TransactionStore(s);
+        ts.setMaxTransactionId(16);
+        ArrayList<Transaction> fifo = New.arrayList();
+        int open = 0;
+        for (int i = 0; i < 64; i++) {
+            Transaction t = ts.begin();
+            if (open >= 16) {
+                try {
+                    t.openMap("data").put(i, i);
+                    fail();
+                } catch (IllegalStateException e) {
+                    // expected - too many open
+                }
+                Transaction first = fifo.remove(0);
+                first.commit();
+                open--;
+            }
+            fifo.add(t);
+            open++;
+            t.openMap("data").put(i, i);
+        }
+        s.close();
     }
 
     private void testStopWhileCommitting() throws Exception {
@@ -342,7 +383,7 @@ public class TestTransactionStore extends TestBase {
         assertEquals(null, tx.getName());
         tx.setName("first transaction");
         assertEquals("first transaction", tx.getName());
-        assertEquals(0, tx.getId());
+        assertEquals(1, tx.getId());
         assertEquals(Transaction.STATUS_OPEN, tx.getStatus());
         m = tx.openMap("test");
         m.put("1", "Hello");
@@ -350,6 +391,7 @@ public class TestTransactionStore extends TestBase {
         assertEquals(1, list.size());
         txOld = list.get(0);
         assertTrue(tx.getId() == txOld.getId());
+        assertEquals("first transaction", txOld.getName());
         s.commit();
         ts.close();
         s.close();
@@ -357,14 +399,14 @@ public class TestTransactionStore extends TestBase {
         s = MVStore.open(fileName);
         ts = new TransactionStore(s);
         tx = ts.begin();
-        assertEquals(1, tx.getId());
+        assertEquals(2, tx.getId());
         m = tx.openMap("test");
         assertEquals(null, m.get("1"));
         m.put("2", "Hello");
         list = ts.getOpenTransactions();
         assertEquals(2, list.size());
         txOld = list.get(0);
-        assertEquals(0, txOld.getId());
+        assertEquals(1, txOld.getId());
         assertEquals(Transaction.STATUS_OPEN, txOld.getStatus());
         assertEquals("first transaction", txOld.getName());
         txOld.prepare();
@@ -376,17 +418,16 @@ public class TestTransactionStore extends TestBase {
         ts = new TransactionStore(s);
         tx = ts.begin();
         m = tx.openMap("test");
-        // TransactionStore was not closed, so we lost some ids
-        assertEquals(65, tx.getId());
+        assertEquals(2, tx.getId());
         list = ts.getOpenTransactions();
         assertEquals(2, list.size());
         txOld = list.get(1);
-        assertEquals(1, txOld.getId());
+        assertEquals(2, txOld.getId());
         assertEquals(Transaction.STATUS_OPEN, txOld.getStatus());
         assertEquals(null, txOld.getName());
         txOld.rollback();
         txOld = list.get(0);
-        assertEquals(0, txOld.getId());
+        assertEquals(1, txOld.getId());
         assertEquals(Transaction.STATUS_PREPARED, txOld.getStatus());
         assertEquals("first transaction", txOld.getName());
         txOld.commit();

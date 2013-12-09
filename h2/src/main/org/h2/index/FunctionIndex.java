@@ -47,9 +47,8 @@ public class FunctionIndex extends BaseIndex {
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (functionTable.isBufferResultSetToLocalTemp()) {
           return new FunctionCursor(functionTable.getResult(session));
-        } else {
-          return new FunctionCursorResultSet(session, functionTable.getResultSet(session));
         }
+        return new FunctionCursorResultSet(session, functionTable.getResultSet(session));
     }
 
     @Override

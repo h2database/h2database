@@ -29,57 +29,57 @@ public class Chunk {
     /**
      * The chunk id.
      */
-    final int id;
+    public final int id;
 
     /**
      * The start position within the file.
      */
-    long start;
+    public long start;
 
     /**
      * The length in bytes.
      */
-    int length;
+    public int length;
 
     /**
      * The total number of pages in this chunk.
      */
-    int pageCount;
+    public int pageCount;
 
     /**
      * The number of pages still alive.
      */
-    int pageCountLive;
+    public int pageCountLive;
 
     /**
      * The sum of the max length of all pages.
      */
-    long maxLength;
+    public long maxLength;
 
     /**
      * The sum of the max length of all pages that are in use.
      */
-    long maxLengthLive;
+    public long maxLengthLive;
 
     /**
      * The garbage collection priority.
      */
-    int collectPriority;
+    public int collectPriority;
 
     /**
      * The position of the meta root.
      */
-    long metaRootPos;
+    public long metaRootPos;
 
     /**
      * The version stored in this chunk.
      */
-    long version;
+    public long version;
 
     /**
      * When this chunk was created, in milliseconds after the store was created.
      */
-    long time;
+    public long time;
 
     Chunk(int id) {
         this.id = id;

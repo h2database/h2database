@@ -299,8 +299,9 @@ public class MVStore {
                     segmentCount, stackMoveDistance);
         }
         o = config.get("autoCommitBufferSize");
-        mb = o == null ? 4 : (Integer) o;
-        int autoCommitBufferSize = mb * 1024 * 1024;
+        int kb = o == null ? 512 : (Integer) o;
+        // 19 KB memory is about 1 KB storage
+        int autoCommitBufferSize = kb * 1024 * 19;
         int div = pageSplitSize;
         autoCommitPageCount = autoCommitBufferSize / (div == 0 ? 1 : div);
         char[] encryptionKey = (char[]) config.get("encryptionKey");
@@ -902,7 +903,9 @@ public class MVStore {
             fileStore.free(x.start, len);
         }
 
-        long end = getEndPosition();
+        // the length of the file that is still in use
+        // (not necessarily the end of the file)
+        long end = getFileLengthInUse();
         long filePos;
         if (reuseSpace) {
             filePos = fileStore.allocate(length);
@@ -910,7 +913,8 @@ public class MVStore {
             filePos = end;
             fileStore.markUsed(end, length);
         }
-        boolean storeAtEndOfFile = filePos + length >= end;
+        // end is not necessarily the end of the file
+        boolean storeAtEndOfFile = filePos + length >= fileStore.size();
 
         c.start = filePos;
         c.length = chunkLength;
@@ -1078,7 +1082,7 @@ public class MVStore {
      * @param minPercent the minimum percentage to save
      */
     private void shrinkFileIfPossible(int minPercent) {
-        long end = getEndPosition();
+        long end = getFileLengthInUse();
         long fileSize = fileStore.size();
         if (end >= fileSize) {
             return;
@@ -1098,7 +1102,7 @@ public class MVStore {
      *
      * @return the position
      */
-    private long getEndPosition() {
+    private long getFileLengthInUse() {
         long size = 2 * BLOCK_SIZE;
         for (Chunk c : chunks.values()) {
             long x = c.start + c.length;
@@ -1184,7 +1188,7 @@ public class MVStore {
             buff.limit(length);
             ByteBuffer buff2 = fileStore.readFully(c.start, length);
             buff.put(buff2);
-            long end = getEndPosition();
+            long end = getFileLengthInUse();
             fileStore.markUsed(end, length);
             fileStore.free(c.start, length);
             c.start = end;
@@ -2069,20 +2073,20 @@ public class MVStore {
         }
 
         /**
-         * Set the size of the write buffer, in MB (for file-based stores).
+         * Set the size of the write buffer, in KB (for file-based stores).
          * Unless auto-commit is disabled, changes are automatically saved if
          * there are more than this amount of changes.
          * <p>
-         * The default is 4 MB.
+         * The default is 512 KB.
          * <p>
          * When the value is set to 0 or lower, data is not automatically
          * stored.
          *
-         * @param mb the write buffer size, in megabytes
+         * @param kb the write buffer size, in kilobytes
          * @return this
          */
-        public Builder autoCommitBufferSize(int mb) {
-            return set("autoCommitBufferSize", mb);
+        public Builder autoCommitBufferSize(int kb) {
+            return set("autoCommitBufferSize", kb);
         }
 
         /**

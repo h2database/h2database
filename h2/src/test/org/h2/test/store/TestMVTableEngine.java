@@ -122,14 +122,26 @@ public class TestMVTableEngine extends TestBase {
             assertTrue(rs.next());
             assertEquals(retentionTime, rs.getInt(1));
             stat.execute("create table test(id int primary key, data varchar)");
-            stat.execute("insert into test select x, space(1000) from system_range(1, 1000)");
-            stat.execute("drop table test");
+            stat.execute("insert into test select x, space(100) from system_range(1, 1000)");
             // this table is kept
-            stat.execute("create table test" + i + "(id int primary key) " + 
-                    "as select x from system_range(1, 1000)");
-            conn.close();
-            long size = FileUtils.size(getBaseDir() + "/mvstore"
-                    + Constants.SUFFIX_MV_FILE);
+            if (i < 10) {
+                stat.execute("create table test" + i + "(id int primary key, data varchar) " + 
+                        "as select x, space(10) from system_range(1, 100)");
+            }
+            // force writing the chunk
+            stat.execute("checkpoint");
+            // drop the table - but the chunk is still used
+            stat.execute("drop table test");
+            stat.execute("checkpoint");
+            stat.execute("shutdown immediately");
+            try {
+                conn.close();
+            } catch (Exception e) {
+                // ignore
+            }
+            String fileName = getBaseDir() + "/mvstore"
+                    + Constants.SUFFIX_MV_FILE;
+            long size = FileUtils.size(fileName);
             if (i < 10) {
                 maxSize = (int) (Math.max(size, maxSize) * 1.2);
             } else if (size > maxSize) {

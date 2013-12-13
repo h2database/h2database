@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.Map;
+
 import org.h2.engine.Constants;
 import org.h2.util.New;
 
@@ -851,6 +853,40 @@ public class DataUtils {
         } catch (NumberFormatException e) {
             return errorValue;
         }
+    }
+    
+    /**
+     * An entry of a map.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     */
+    public static class MapEntry<K, V> implements Map.Entry<K, V> {
+        
+        private final K key;
+        private V value;
+        
+        public MapEntry(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public K getKey() {
+            return key;
+        }
+
+        @Override
+        public V getValue() {
+            return value;
+        }
+
+        @Override
+        public V setValue(V value) {
+            throw DataUtils.newUnsupportedOperationException(
+                    "Updating the value is not supported");
+        }
+        
     }
 
 }

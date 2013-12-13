@@ -706,7 +706,7 @@ public class TestMVStore extends TestBase {
             map.put(i, 10 * i);
         }
 
-        Cursor<Integer> c = map.keyIterator(50);
+        Cursor<Integer, Integer> c = map.cursor(50);
         // skip must reset the root of the cursor
         c.skip(10);
         for (int i = 70; i < 100; i += 2) {
@@ -732,7 +732,7 @@ public class TestMVStore extends TestBase {
             }
         }
         // skip
-        c = map.keyIterator(0);
+        c = map.cursor(0);
         assertTrue(c.hasNext());
         assertEquals(0, c.next().intValue());
         c.skip(0);
@@ -742,11 +742,11 @@ public class TestMVStore extends TestBase {
         c.skip(20);
         assertEquals(48, c.next().intValue());
 
-        c = map.keyIterator(0);
+        c = map.cursor(0);
         c.skip(20);
         assertEquals(40, c.next().intValue());
 
-        c = map.keyIterator(0);
+        c = map.cursor(0);
         assertEquals(0, c.next().intValue());
 
         assertEquals(12, map.keyList().indexOf(24));

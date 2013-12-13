@@ -12,13 +12,15 @@ import java.util.Iterator;
  * A cursor to iterate over elements in ascending order.
  *
  * @param <K> the key type
+ * @param <V> the value type
  */
-public class Cursor<K> implements Iterator<K> {
+public class Cursor<K, V> implements Iterator<K> {
 
     private final MVMap<K, ?> map;
     private final K from;
     private CursorPos pos;
     private K current;
+    private V currentValue, lastValue;
     private final Page root;
     private boolean initialized;
 
@@ -42,8 +44,18 @@ public class Cursor<K> implements Iterator<K> {
     public K next() {
         hasNext();
         K c = current;
+        lastValue = currentValue;
         fetchNext();
         return c;
+    }
+    
+    /**
+     * Get the last read value if there was one.
+     * 
+     * @return the value or null
+     */
+    public V getValue() {
+        return lastValue;
     }
 
     /**
@@ -110,7 +122,9 @@ public class Cursor<K> implements Iterator<K> {
     private void fetchNext() {
         while (pos != null) {
             if (pos.index < pos.page.getKeyCount()) {
-                current = (K) pos.page.getKey(pos.index++);
+                int index = pos.index++;
+                current = (K) pos.page.getKey(index);
+                currentValue = (V) pos.page.getValue(index);
                 return;
             }
             pos = pos.parent;

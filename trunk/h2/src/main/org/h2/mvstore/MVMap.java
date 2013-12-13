@@ -745,20 +745,30 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Iterate over all keys.
+     * Iterate over a number of keys.
      *
      * @param from the first key to return
      * @return the iterator
      */
-    public Cursor<K> keyIterator(K from) {
-        return new Cursor<K>(this, root, from);
+    public Iterator<K> keyIterator(K from) {
+        return new Cursor<K, V>(this, root, from);
+    }
+    
+    /**
+     * Get a cursor to iterate over a number of keys and values.
+     * 
+     * @param from the first key to return
+     * @return the cursor
+     */
+    public Cursor<K, V> cursor(K from) {
+        return new Cursor<K, V>(this, root, from);
     }
 
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
         HashMap<K, V> map = new HashMap<K, V>();
-        for (K k : keySet()) {
-            map.put(k,  get(k));
+        for (Cursor<K, V> cursor = cursor(null); cursor.hasNext();) {
+            map.put(cursor.next(), cursor.getValue());
         }
         return map.entrySet();
     }
@@ -771,7 +781,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
             @Override
             public Iterator<K> iterator() {
-                return new Cursor<K>(map, root, null);
+                return new Cursor<K, V>(map, root, null);
             }
 
             @Override

@@ -17,6 +17,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
+import org.h2.value.ValueLong;
 
 /**
  * An index that delegates indexing to another index.
@@ -53,10 +54,10 @@ public class MVDelegateIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        long min = mainIndex.getKey(first, Long.MIN_VALUE, Long.MIN_VALUE);
+        ValueLong min = mainIndex.getKey(first, MVPrimaryIndex.MIN, MVPrimaryIndex.MIN);
         // ifNull is MIN_VALUE as well, because the column is never NULL
         // so avoid returning all rows (returning one row is OK)
-        long max = mainIndex.getKey(last, Long.MAX_VALUE, Long.MIN_VALUE);
+        ValueLong max = mainIndex.getKey(last, MVPrimaryIndex.MAX, MVPrimaryIndex.MIN);
         return mainIndex.find(session, min, max);
     }
 

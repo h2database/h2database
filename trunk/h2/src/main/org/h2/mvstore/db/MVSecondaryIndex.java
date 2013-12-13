@@ -66,7 +66,7 @@ public class MVSecondaryIndex extends BaseIndex {
         ValueDataType valueType = new ValueDataType(null, null, null);
         dataMap = mvTable.getTransaction(null).openMap(
                 mapName, keyType, valueType);
-        if (keyType != dataMap.map.getKeyType()) {
+        if (keyType != dataMap.getKeyType()) {
             throw DbException.throwInternalError("Incompatible key type");
         }
     }
@@ -102,6 +102,7 @@ public class MVSecondaryIndex extends BaseIndex {
         }
         if (indexType.isUnique()) {
             // check if there is another (uncommitted) entry
+            // TODO use entry iterator
             Iterator<Value> it = map.keyIterator(unique, true);
             while (it.hasNext()) {
                 ValueArray k = (ValueArray) it.next();
@@ -195,7 +196,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         try {
-            return 10 * getCostRangeIndex(masks, dataMap.map.sizeAsLong(), filter, sortOrder);
+            return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongEstimated(), filter, sortOrder);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -244,7 +245,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public boolean needRebuild() {
         try {
-            return dataMap.map.sizeAsLong() == 0;
+            return dataMap.sizeAsLongEstimated() == 0;
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -259,7 +260,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public long getRowCountApproximation() {
         try {
-            return dataMap.map.sizeAsLong();
+            return dataMap.sizeAsLongEstimated();
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }

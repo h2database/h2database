@@ -821,7 +821,8 @@ public class TransactionStore {
             while (cursor.hasNext()) {
                 K key = cursor.next();
                 VersionedValue data = cursor.getValue();
-                if (getValue(key, readLogId, data) != null) {
+                data = getValue(key, readLogId, data);
+                if (data != null && data.value != null) {
                     size++;
                 }
             }

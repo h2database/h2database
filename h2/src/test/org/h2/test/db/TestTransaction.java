@@ -350,7 +350,9 @@ public class TestTransaction extends TestBase {
                 break;
             case 1:
                 if (count[tableId] > 0) {
-                    stat.execute("DELETE FROM " + table + " WHERE ID=SELECT MIN(ID) FROM " + table);
+                    int updateCount = stat.executeUpdate(
+                            "DELETE FROM " + table + " WHERE ID=SELECT MIN(ID) FROM " + table);
+                    assertEquals(1, updateCount);
                     count[tableId]--;
                 }
                 break;

@@ -251,7 +251,9 @@ public class MVPrimaryIndex extends BaseIndex {
         Entry<Value, Value> e = new DataUtils.MapEntry<Value, Value>(v, value);
         @SuppressWarnings("unchecked")
         List<Entry<Value, Value>> list = Arrays.asList(e);
-        return new MVStoreCursor(list.iterator(), v);
+        MVStoreCursor c = new MVStoreCursor(list.iterator(), v);
+        c.next();
+        return c;
     }
 
     @Override

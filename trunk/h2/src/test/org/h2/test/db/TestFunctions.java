@@ -49,8 +49,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     static int count;
 
-    private static int countOfCallsToTestCache;
-
     /**
      * Run just this test.
      *
@@ -1228,31 +1226,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Statement stat = conn.createStatement();
         assertResult("abc", stat, "SELECT TO_CHAR('abc') FROM DUAL");
         conn.close();
-    }
-
-    private void testCachingOfDeterministicFunctionAlias() throws SQLException {
-        deleteDb("functions");
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        stat.execute("create alias MY_TF2 deterministic for \"" + TestFunctions.class.getName() + ".testCache\"");
-        stat.execute("create view M_VIEW2 as select * from MY_TF2()");
-        countOfCallsToTestCache = 0;
-        stat.executeQuery("select * from M_VIEW2");
-        assertEquals(0, countOfCallsToTestCache);
-        conn.close();
-    }
-
-    /**
-     * This method is called via reflection from the database.
-     *
-     * @return a result set
-     */
-    public static synchronized ResultSet testCache() {
-        countOfCallsToTestCache++;
-        SimpleResultSet rs = new SimpleResultSet();
-        rs.addColumn("ID", Types.INTEGER, 10, 0);
-        rs.addRow(0);
-        return rs;
     }
 
     private void assertCallResult(String expected, Statement stat, String sql) throws SQLException {

@@ -267,8 +267,13 @@ public class MVStore {
      */
     MVStore(HashMap<String, Object> config) {
         this.compress = config.containsKey("compress");
+        String fileName = (String) config.get("fileName");
         Object o = config.get("pageSplitSize");
-        pageSplitSize = o == null ? 16 * 1024 : (Integer) o;
+        if (o == null) {
+            pageSplitSize = fileName == null ? 4 * 1024 : 16 * 1024;
+        } else {
+            pageSplitSize = (Integer) o;
+        }
         o = config.get("backgroundExceptionHandler");
         this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
         meta = new MVMapConcurrent<String, String>(StringDataType.INSTANCE,
@@ -278,7 +283,6 @@ public class MVStore {
         c.put("createVersion", Long.toString(currentVersion));
         meta.init(this, c);
         fileStore = (FileStore) config.get("fileStore");
-        String fileName = (String) config.get("fileName");
         if (fileName == null && fileStore == null) {
             cache = null;
             return;
@@ -2158,10 +2162,11 @@ public class MVStore {
 
         /**
          * Set the amount of memory a page should contain at most, in bytes,
-         * before it is split. The default is 16 KB. This is not a limit in the
-         * page size, as pages with one entry can get larger. It is just the
-         * point where pages that contain more than one entry are split.
-         *
+         * before it is split. The default is 16 KB for persistent stores and 4
+         * KB for in-memory stores. This is not a limit in the page size, as
+         * pages with one entry can get larger. It is just the point where pages
+         * that contain more than one entry are split.
+         * 
          * @param pageSplitSize the page size
          * @return this
          */

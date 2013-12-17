@@ -37,6 +37,7 @@ public class TestCallableStatement extends TestBase {
     public void test() throws SQLException {
         deleteDb("callableStatement");
         Connection conn = getConnection("callableStatement");
+        testGetters(conn);
         testCallWithResultSet(conn);
         testCallWithResult(conn);
         testPrepare(conn);
@@ -59,6 +60,56 @@ public class TestCallableStatement extends TestBase {
         rs = call.getResultSet();
         rs.next();
         assertEquals(10, rs.getInt(1));
+
+    }
+    
+    private void testGetters(Connection conn) throws SQLException {
+        CallableStatement call;
+        call = conn.prepareCall("{?=call ?}");
+        call.setLong(2, 1);
+        call.registerOutParameter(1, Types.BIGINT);
+        call.execute();
+        assertEquals(1, call.getLong(1));
+
+        call.setFloat(2, 1.1f);
+        call.registerOutParameter(1, Types.REAL);
+        call.execute();
+        assertEquals(1.1f, call.getFloat(1));
+
+        call.setDouble(2, Math.PI);
+        call.registerOutParameter(1, Types.DOUBLE);
+        call.execute();
+        assertEquals(Math.PI, call.getDouble(1));
+        
+        call.setBytes(2, new byte[11]);
+        call.registerOutParameter(1, Types.BINARY);
+        call.execute();
+        assertEquals(11, call.getBytes(1).length);
+
+        call.setDate(2, java.sql.Date.valueOf("2000-01-01"));
+        call.registerOutParameter(1, Types.DATE);
+        call.execute();
+        assertEquals("2000-01-01", call.getDate(1).toString());
+        
+        call.setTime(2, java.sql.Time.valueOf("01:02:03"));
+        call.registerOutParameter(1, Types.TIME);
+        call.execute();
+        assertEquals("01:02:03", call.getTime(1).toString());
+
+        call.setTimestamp(2, java.sql.Timestamp.valueOf("2001-02-03 04:05:06.789"));
+        call.registerOutParameter(1, Types.TIMESTAMP);
+        call.execute();
+        assertEquals("2001-02-03 04:05:06.789", call.getTimestamp(1).toString());
+
+        call.setBoolean(2, true);
+        call.registerOutParameter(1, Types.BIT);
+        call.execute();
+        assertEquals(true, call.getBoolean(1));
+
+        call.setShort(2, (short) 123);
+        call.registerOutParameter(1, Types.SMALLINT);
+        call.execute();
+        assertEquals(123, call.getShort(1));
 
     }
 

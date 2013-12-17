@@ -117,7 +117,6 @@ public class MVSecondaryIndex extends BaseIndex {
                 if (map.isSameTransaction(k)) {
                     continue;
                 }
-                map.remove(array);
                 if (map.get(k) != null) {
                     // committed
                     throw getDuplicateKeyException(k.toString());

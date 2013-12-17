@@ -595,7 +595,6 @@ public class TransactionStore {
          * @return the savepoint id
          */
         public long setSavepoint() {
-            checkNotClosed();
             return logId;
         }
 
@@ -1063,7 +1062,10 @@ public class TransactionStore {
         }
         
         VersionedValue getValue(K key, long maxLog, VersionedValue data) {
-            for (int i = 0; i < 10; i++) {
+;
+// TODO test case for many updates within the same transaction
+// TODO detect loops
+            for (int i = 0; i < 1000; i++) {
                 int tx;
                 if (data == null) {
                     // doesn't exist or deleted by a committed transaction

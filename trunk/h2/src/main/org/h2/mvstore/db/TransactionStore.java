@@ -1062,11 +1062,7 @@ public class TransactionStore {
         }
         
         VersionedValue getValue(K key, long maxLog, VersionedValue data) {
-;
-// TODO test case for many updates within the same transaction
-// TODO detect loops
-            for (int i = 0; i < 1000; i++) {
-                int tx;
+            while (true) {
                 if (data == null) {
                     // doesn't exist or deleted by a committed transaction
                     return null;
@@ -1076,7 +1072,7 @@ public class TransactionStore {
                     // it is committed
                     return data;
                 }
-                tx = getTransactionId(id);
+                int tx = getTransactionId(id);
                 if (tx == transaction.transactionId) {
                     // added by this transaction
                     if (getLogId(id) < maxLog) {
@@ -1094,6 +1090,22 @@ public class TransactionStore {
                     data = map.get(key);
                 } else {
                     data = (VersionedValue) d[2];
+                }
+                // verify this is either committed, 
+                // or the same transaction and earlier
+                if (data != null) {
+                    long id2 = data.operationId;
+                    if (id2 != 0) {
+                        int tx2 = getTransactionId(id2);
+                        if (tx2 != tx) {
+                            // a different transaction
+                            break;
+                        }
+                        if (getLogId(id2) > getLogId(id)) {
+                            // newer than before
+                            break;
+                        }
+                    }
                 }
             }
             throw DataUtils.newIllegalStateException(

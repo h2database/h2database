@@ -9,6 +9,7 @@ package org.h2.bnf.context;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -117,13 +118,22 @@ public class DbContents {
      * This is a workaround for a JDBC-ODBC bridge problem.
      *
      * @param rs the result set
-     * @param columnName the column name
+     * @param columnLabel the column name
      * @param defaultColumnIndex the default column index
      * @return the column index
      */
-    public static int findColumn(ResultSet rs, String columnName, int defaultColumnIndex) {
+    public static int findColumn(ResultSet rs, String columnLabel, int defaultColumnIndex) {
         try {
-            return rs.findColumn(columnName);
+            // don't use ResultSet.findColumn because that would throw an
+            // exception, and we don't want to use exception handling for flow
+            // control
+            ResultSetMetaData meta = rs.getMetaData();
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                if (meta.getColumnLabel(i).equalsIgnoreCase(columnLabel)) {
+                    return i;
+                }
+            }
+            return defaultColumnIndex;
         } catch (SQLException e) {
             return defaultColumnIndex;
         }
@@ -204,7 +214,7 @@ public class DbContents {
         ResultSet rs = meta.getSchemas();
         ArrayList<String> schemaList = New.arrayList();
         while (rs.next()) {
-            String schema = rs.getString(findColumn(rs, "TABLE_SCHEM", 1));
+            String schema = rs.getString("TABLE_SCHEM");
             String[] ignoreNames = null;
             if (isOracle) {
                 ignoreNames = new String[] { "CTXSYS", "DIP", "DBSNMP",

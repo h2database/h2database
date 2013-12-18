@@ -76,7 +76,7 @@ public class DbProcedure {
         ResultSet rs = meta.getProcedureColumns(null, schema.name, name, null);
         ArrayList<DbColumn> list = New.arrayList();
         while (rs.next()) {
-            DbColumn column = new DbColumn(schema.getContents(), rs);
+            DbColumn column = new DbColumn(schema.getContents(), rs, true);
             if (column.getPosition() > 0) {
                 // Not the return type
                 list.add(column);

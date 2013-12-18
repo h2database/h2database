@@ -24,24 +24,24 @@ public class DbColumn {
 
     private int position;
 
-    public DbColumn(DbContents contents, ResultSet rs) throws SQLException {
+    public DbColumn(DbContents contents, ResultSet rs, boolean prodecureColumn) throws SQLException {
         name = rs.getString("COLUMN_NAME");
         quotedName = contents.quoteIdentifier(name);
         String type = rs.getString("TYPE_NAME");
         // a procedures column size is identified by PRECISION, for table this
         // is COLUMN_SIZE
-        int precisionColumnIndex = DbContents.findColumn(rs, "PRECISION", 0);
-        int size;
-        if (precisionColumnIndex == 0) {
-            size = rs.getInt(DbContents.findColumn(rs, "COLUMN_SIZE", 7));
+        String columnSizeName;
+        if (prodecureColumn) {
+            columnSizeName = "PRECISION";
         } else {
-            size = rs.getInt(precisionColumnIndex);
+            columnSizeName = "COLUMN_SIZE";
         }
+        int size = rs.getInt(columnSizeName);
         position = rs.getInt("ORDINAL_POSITION");
         boolean isSQLite = contents.isSQLite();
         if (size > 0 && !isSQLite) {
             type += "(" + size;
-            int prec = rs.getInt(DbContents.findColumn(rs, "DECIMAL_DIGITS", 9));
+            int prec = rs.getInt("DECIMAL_DIGITS");
             if (prec > 0) {
                 type += ", " + prec;
             }

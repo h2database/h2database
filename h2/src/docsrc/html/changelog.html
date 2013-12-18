@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improved Geometry processing (issue 535).
+<ul><li>H2 Console: when loading the schema, incorrect JDBC calls where issued, which caused
+    the exception "Column PRECISION not found".
+</li><li>Improved Geometry processing (issue 535).
 </li><li>The collation can now be set in the database URL, even if there are data tables,
     if the collection is the same as the current collation.
 </li><li>Improved Oracle compatibility for CASE WHEN and DECODE.

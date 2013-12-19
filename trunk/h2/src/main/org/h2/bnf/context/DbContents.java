@@ -9,7 +9,6 @@ package org.h2.bnf.context;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -110,29 +109,6 @@ public class DbContents {
      */
     public DbSchema[] getSchemas() {
         return schemas;
-    }
-
-    /**
-     * Get the column index of a column in a result set. If the column is not
-     * found, the default column index is returned.
-     * This is a workaround for a JDBC-ODBC bridge problem.
-     *
-     * @param rs the result set
-     * @param columnLabel the column name
-     * @param defaultColumnIndex the default column index
-     * @return the column index
-     */
-    public static int findColumn(ResultSet rs, String columnLabel, int defaultColumnIndex) throws SQLException {
-        // don't use ResultSet.findColumn because that would throw an
-        // exception, and we don't want to use exception handling for flow
-        // control
-        ResultSetMetaData meta = rs.getMetaData();
-        for (int i = 1; i <= meta.getColumnCount(); i++) {
-            if (meta.getColumnLabel(i).equalsIgnoreCase(columnLabel)) {
-                return i;
-            }
-        }
-        return defaultColumnIndex;
     }
 
     /**

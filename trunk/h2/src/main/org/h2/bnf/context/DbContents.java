@@ -122,21 +122,17 @@ public class DbContents {
      * @param defaultColumnIndex the default column index
      * @return the column index
      */
-    public static int findColumn(ResultSet rs, String columnLabel, int defaultColumnIndex) {
-        try {
-            // don't use ResultSet.findColumn because that would throw an
-            // exception, and we don't want to use exception handling for flow
-            // control
-            ResultSetMetaData meta = rs.getMetaData();
-            for (int i = 1; i <= meta.getColumnCount(); i++) {
-                if (meta.getColumnLabel(i).equalsIgnoreCase(columnLabel)) {
-                    return i;
-                }
+    public static int findColumn(ResultSet rs, String columnLabel, int defaultColumnIndex) throws SQLException {
+        // don't use ResultSet.findColumn because that would throw an
+        // exception, and we don't want to use exception handling for flow
+        // control
+        ResultSetMetaData meta = rs.getMetaData();
+        for (int i = 1; i <= meta.getColumnCount(); i++) {
+            if (meta.getColumnLabel(i).equalsIgnoreCase(columnLabel)) {
+                return i;
             }
-            return defaultColumnIndex;
-        } catch (SQLException e) {
-            return defaultColumnIndex;
         }
+        return defaultColumnIndex;
     }
 
     /**

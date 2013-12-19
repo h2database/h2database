@@ -82,10 +82,21 @@ Initial Developer: H2 Group
                     </select>&nbsp;
                 </td>
                 <td class="toolbar">
-                    <a href="javascript:top.frames['h2query'].document.forms['h2query'].submit();"><img src="icon_run.gif"
-                        onmouseover="this.className ='icon_hover'"
-                        onmouseout="this.className ='icon'"
-                        class="icon" alt="${text.toolbar.run}" title="${text.toolbar.run}" border="1">
+                    <a href="javascript:top.frames['h2query'].submitAll();">
+                        <img src="icon_run.gif"
+                            onmouseover="this.className ='icon_hover'"
+                            onmouseout="this.className ='icon'"
+                            class="icon" alt="${text.toolbar.run}"
+                            title="${text.toolbar.run}" border="1">
+                    </a>
+                </td>
+                <td class="toolbar">
+                    <a href="javascript:top.frames['h2query'].submitSelected();">
+                        <img src="icon_run_selected.gif"
+                            onmouseover="this.className ='icon_hover'"
+                            onmouseout="this.className ='icon'"
+                            class="icon" alt="${text.toolbar.runSelected}"
+                            title="${text.toolbar.runSelected}" border="1">
                     </a>
                 </td>
                 <td class="toolbar">

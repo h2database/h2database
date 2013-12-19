@@ -39,9 +39,15 @@ function set(s) {
     </td>
 </tr>
 <tr>
-    <td style="padding:0px"><img src="icon_run.gif" alt="${text.toolbar.run}"/></td>
+    <td style="padding:0px"><img src="icon_run_selected.gif" alt="${text.toolbar.run}"/></td>
     <td style="vertical-align: middle;">
         ${text.helpExecuteCurrent}
+    </td>
+</tr>
+<tr>
+    <td style="padding:0px"><img src="icon_run.gif" alt="${text.toolbar.runSelected}"/></td>
+    <td style="vertical-align: middle;">
+        ${text.helpExecuteSelected}
     </td>
 </tr>
 <tr>

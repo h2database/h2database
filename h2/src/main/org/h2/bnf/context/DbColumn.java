@@ -24,14 +24,14 @@ public class DbColumn {
 
     private int position;
 
-    public DbColumn(DbContents contents, ResultSet rs, boolean prodecureColumn) throws SQLException {
+    public DbColumn(DbContents contents, ResultSet rs, boolean procedureColumn) throws SQLException {
         name = rs.getString("COLUMN_NAME");
         quotedName = contents.quoteIdentifier(name);
         String type = rs.getString("TYPE_NAME");
         // a procedures column size is identified by PRECISION, for table this
         // is COLUMN_SIZE
         String columnSizeName;
-        if (prodecureColumn) {
+        if (procedureColumn) {
             columnSizeName = "PRECISION";
         } else {
             columnSizeName = "COLUMN_SIZE";

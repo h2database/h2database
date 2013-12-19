@@ -204,7 +204,11 @@ function keyDown(event) {
     }
     if (key == 13 && (event.ctrlKey || event.metaKey)) {
         // ctrl + return, cmd + return
-        document.h2query.submit();
+        submitAll();
+        return false;
+    } else if(key == 13 && event.shiftKey) {
+        // shift + return
+        submitSelected();
         return false;
     } else if(key == 32 && (event.ctrlKey || event.altKey)) {
         // ctrl + space
@@ -265,12 +269,16 @@ function keyDown(event) {
 }
 
 function keyUp(event) {
+    var key = event == null ? 0 : (event.keyCode ? event.keyCode : event.charCode);
     if(autoComplete != 0) {
-        var key=event == null ? 0 : (event.keyCode? event.keyCode : event.charCode);
         if(key != 37 && key != 38 && key != 39 && key != 40) {
             // left, right, up, down: don't show autocomplete
             showAutoComplete();
         }
+    }
+    if(key == 13 && event.shiftKey) {
+        // shift + return
+        return false;
     }
     return true;
 }
@@ -448,13 +456,35 @@ function processAsyncResponse() {
     }
 }
 
+function submitAll() {
+    document.h2querysubmit.sql.value = document.h2query.sql.value;
+    document.h2querysubmit.submit();
+}
+
+function submitSelected() {
+    var field = document.h2query.sql;
+    //alert('contents ' + field.selectionStart + '  ' + field.selectionEnd);
+    if (field.selectionStart == field.selectionEnd) {
+        return;
+    }
+    var startPos = field.selectionStart;
+    var endPos = field.selectionEnd;
+    var selectedText = field.value.substring(startPos, endPos);
+    document.h2querysubmit.sql.value = selectedText;
+    document.h2querysubmit.submit();
+}
+
 //-->
 </script>
 </head>
     <body onresize="sizeTextArea();" onload="sizeTextArea();" style="margin: 0px; padding: 0px;">
-        <form name="h2query" method="post" action="query.do?jsessionid=${sessionId}" target="h2result">
+        <form name="h2querysubmit" method="post" action="query.do?jsessionid=${sessionId}" target="h2result" style="display:none">
+            <input type="text" id="sql" name="sql">
+        </form>
+        <form name="h2query" action="javascript:alert('should not be submitting this form');">
             <span style="white-space:nowrap">
-                <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submit();sql.focus();return true;" />
+                <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submitAll();sql.focus();return true;" />
+                <input type="button" class="button" value="${text.toolbar.runSelected}" onclick="javascript:submitSelected();sql.focus();return true;" />
                 <input type="button" class="button" value="${text.toolbar.clear}" onclick="javascript:sql.value='';keyUp();sql.focus();return true;" />
                 ${text.toolbar.sqlStatement}:
             </span>

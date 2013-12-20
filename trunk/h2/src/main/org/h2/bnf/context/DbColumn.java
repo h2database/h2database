@@ -24,24 +24,30 @@ public class DbColumn {
 
     private int position;
 
-    public DbColumn(DbContents contents, ResultSet rs, boolean procedureColumn) throws SQLException {
+    private DbColumn(DbContents contents, ResultSet rs, boolean procedureColumn) throws SQLException {
         name = rs.getString("COLUMN_NAME");
         quotedName = contents.quoteIdentifier(name);
         String type = rs.getString("TYPE_NAME");
         // a procedures column size is identified by PRECISION, for table this
         // is COLUMN_SIZE
-        String columnSizeName;
+        String precisionColumnName;
         if (procedureColumn) {
-            columnSizeName = "PRECISION";
+            precisionColumnName = "PRECISION";
         } else {
-            columnSizeName = "COLUMN_SIZE";
+            precisionColumnName = "COLUMN_SIZE";
         }
-        int size = rs.getInt(columnSizeName);
+        int precision = rs.getInt(precisionColumnName);
         position = rs.getInt("ORDINAL_POSITION");
         boolean isSQLite = contents.isSQLite();
-        if (size > 0 && !isSQLite) {
-            type += "(" + size;
-            int prec = rs.getInt("DECIMAL_DIGITS");
+        if (precision > 0 && !isSQLite) {
+            type += "(" + precision;
+            String scaleColumnName;
+            if (procedureColumn) {
+                scaleColumnName = "SCALE";
+            } else {
+                scaleColumnName = "DECIMAL_DIGITS";
+            }            
+            int prec = rs.getInt(scaleColumnName);
             if (prec > 0) {
                 type += ", " + prec;
             }
@@ -51,6 +57,28 @@ public class DbColumn {
             type += " NOT NULL";
         }
         dataType = type;
+    }
+    
+    /**
+     * Create a column from a DatabaseMetaData.getProcedureColumns row.
+     * 
+     * @param contents the database contents
+     * @param rs the result set
+     * @return the column
+     */
+    public static DbColumn getProcedureColumn(DbContents contents, ResultSet rs) throws SQLException {
+        return new DbColumn(contents, rs, true);
+    }
+    
+    /**
+     * Create a column from a DatabaseMetaData.getColumns row.
+     * 
+     * @param contents the database contents
+     * @param rs the result set
+     * @return the column
+     */
+    public static DbColumn getColumn(DbContents contents, ResultSet rs) throws SQLException {
+        return new DbColumn(contents, rs, false);
     }
 
     /**

@@ -95,7 +95,7 @@ public class DbTableOrView {
         ResultSet rs = meta.getColumns(null, schema.name, name, null);
         ArrayList<DbColumn> list = New.arrayList();
         while (rs.next()) {
-            DbColumn column = new DbColumn(schema.getContents(), rs, false);
+            DbColumn column = DbColumn.getColumn(schema.getContents(), rs);
             list.add(column);
         }
         rs.close();

@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>JdbcDataSource: the methods setUrl and getUrl where added as aliases for setURL and getURL.
+<ul><li>PostgreSQL compatibility: the PgServer was not working properly when the setting
+    database_to_upper was set to false.
+</li><li>JdbcDataSource: the methods setUrl and getUrl where added as aliases for setURL and getURL.
     This should solve problems with the HikariCP (Hikari connection pool).
 </li><li>Issue 537: H2 Console: when loading the schema, incorrect JDBC calls where issued, which caused
     the exception "Column PRECISION not found".

@@ -41,10 +41,35 @@ public class TestPgServer extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testLowerCaseIdentifiers();
         testPgAdapter();
+        testKeyAlias();
         testKeyAlias();
         testCancelQuery();
         testBinaryTypes();
+    }
+    
+    private void testLowerCaseIdentifiers() throws SQLException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+        deleteDb("test");
+        Connection conn = getConnection("test;DATABASE_TO_UPPER=false", "sa", "sa");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int, name varchar(255))");
+        Server server = Server.createPgServer("-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
+        server.start();
+        try {
+            Connection conn2;
+            conn2 = DriverManager.getConnection("jdbc:postgresql://localhost:5535/test", "sa", "sa");
+            stat = conn2.createStatement();
+            stat.execute("select * from test");
+            conn2.close();
+        } finally {
+            server.stop();
+        }
+        conn.close();
+        deleteDb("test");
     }
 
     private boolean getPgJdbcDriver() {

@@ -15,7 +15,7 @@ drop alias if exists pg_get_oid;
 create alias pg_get_oid deterministic for "org.h2.server.pg.PgServer.getOid";
 
 create table pg_catalog.pg_version as select 2 as version, 2 as version_read;
-grant select on pg_catalog.pg_version to public;
+grant select on pg_catalog.pg_version to PUBLIC;
 
 create view pg_catalog.pg_roles -- (oid, rolname, rolcreaterole, rolcreatedb)
 as
@@ -24,16 +24,16 @@ select
     cast(name as varchar_ignorecase) rolname,
     case when admin then 't' else 'f' end as rolcreaterole,
     case when admin then 't' else 'f' end as rolcreatedb
-from information_schema.users;
-grant select on pg_catalog.pg_roles to public;
+from INFORMATION_SCHEMA.users;
+grant select on pg_catalog.pg_roles to PUBLIC;
 
 create view pg_catalog.pg_namespace -- (oid, nspname)
 as
 select
     id oid,
     cast(schema_name as varchar_ignorecase) nspname
-from information_schema.schemata;
-grant select on pg_catalog.pg_namespace to public;
+from INFORMATION_SCHEMA.schemata;
+grant select on pg_catalog.pg_namespace to PUBLIC;
 
 create table pg_catalog.pg_type(
     oid int primary key,
@@ -46,7 +46,7 @@ create table pg_catalog.pg_type(
     typnotnull boolean,
     typinput varchar
 );
-grant select on pg_catalog.pg_type to public;
+grant select on pg_catalog.pg_type to PUBLIC;
 
 insert into pg_catalog.pg_type
 select
@@ -59,7 +59,7 @@ select
     -1 typtypmod,
     false typnotnull,
     null typinput
-from information_schema.type_info
+from INFORMATION_SCHEMA.type_info
 where pos = 0
     and pg_convertType(data_type) <> 705; -- not unknown
 
@@ -115,7 +115,7 @@ as
 select
     id oid,
     cast(table_name as varchar_ignorecase) relname,
-    (select id from information_schema.schemata where schema_name = table_schema) relnamespace,
+    (select id from INFORMATION_SCHEMA.schemata where schema_name = table_schema) relnamespace,
     case table_type when 'TABLE' then 'r' else 'v' end relkind,
     0 relam,
     cast(0 as float) reltuples,
@@ -125,13 +125,13 @@ select
     false relhasrules,
     false relhasoids,
     cast(0 as smallint) relchecks,
-    (select count(*) from information_schema.triggers t where t.table_schema = table_schema and t.table_name = table_name) reltriggers
-from information_schema.tables
+    (select count(*) from INFORMATION_SCHEMA.triggers t where t.table_schema = table_schema and t.table_name = table_name) reltriggers
+from INFORMATION_SCHEMA.tables
 union all
 select
     id oid,
     cast(index_name as varchar_ignorecase) relname,
-    (select id from information_schema.schemata where schema_name = table_schema) relnamespace,
+    (select id from INFORMATION_SCHEMA.schemata where schema_name = table_schema) relnamespace,
     'i' relkind,
     0 relam,
     cast(0 as float) reltuples,
@@ -142,8 +142,8 @@ select
     false relhasoids,
     cast(0 as smallint) relchecks,
     0 reltriggers
-from information_schema.indexes;
-grant select on pg_catalog.pg_class to public;
+from INFORMATION_SCHEMA.indexes;
+grant select on pg_catalog.pg_class to PUBLIC;
 
 create table pg_catalog.pg_proc(
     oid int,
@@ -151,7 +151,7 @@ create table pg_catalog.pg_proc(
     prorettype int,
     pronamespace int
 );
-grant select on pg_catalog.pg_proc to public;
+grant select on pg_catalog.pg_proc to PUBLIC;
 
 create table pg_catalog.pg_trigger(
     oid int,
@@ -164,7 +164,7 @@ create table pg_catalog.pg_trigger(
     tgconstrname varchar_ignorecase,
     tgrelid int
 );
-grant select on pg_catalog.pg_trigger to public;
+grant select on pg_catalog.pg_trigger to PUBLIC;
 
 create view pg_catalog.pg_attrdef -- (oid, adsrc, adrelid, adnum)
 as
@@ -174,8 +174,8 @@ select
     0 adrelid,
     0 adnum,
     null adbin
-from information_schema.tables where 1=0;
-grant select on pg_catalog.pg_attrdef to public;
+from INFORMATION_SCHEMA.tables where 1=0;
+grant select on pg_catalog.pg_attrdef to PUBLIC;
 
 create view pg_catalog.pg_attribute -- (oid, attrelid, attname, atttypid, attlen, attnum, atttypmod, attnotnull, attisdropped, atthasdef)
 as
@@ -190,7 +190,7 @@ select
     case c.is_nullable when 'YES' then false else true end attnotnull,
     false attisdropped,
     false atthasdef
-from information_schema.tables t, information_schema.columns c
+from INFORMATION_SCHEMA.tables t, INFORMATION_SCHEMA.columns c
 where t.table_name = c.table_name
 and t.table_schema = c.table_schema
 union all
@@ -205,12 +205,12 @@ select
     case c.is_nullable when 'YES' then false else true end attnotnull,
     false attisdropped,
     false atthasdef
-from information_schema.tables t, information_schema.indexes i, information_schema.columns c
+from INFORMATION_SCHEMA.tables t, INFORMATION_SCHEMA.indexes i, INFORMATION_SCHEMA.columns c
 where t.table_name = i.table_name
 and t.table_schema = i.table_schema
 and t.table_name = c.table_name
 and t.table_schema = c.table_schema;
-grant select on pg_catalog.pg_attribute to public;
+grant select on pg_catalog.pg_attribute to PUBLIC;
 
 create view pg_catalog.pg_index -- (oid, indexrelid, indrelid, indisclustered, indisunique, indisprimary, indexprs, indkey, indpred)
 as
@@ -224,13 +224,13 @@ select
     cast('' as varchar_ignorecase) indexprs,
     cast(1 as array) indkey,
     null indpred
-from information_schema.indexes i, information_schema.tables t
+from INFORMATION_SCHEMA.indexes i, INFORMATION_SCHEMA.tables t
 where i.table_schema = t.table_schema
 and i.table_name = t.table_name
 and i.ordinal_position = 1
 -- workaround for MS Access problem opening tables with primary key
 and 1=0;
-grant select on pg_catalog.pg_index to public;
+grant select on pg_catalog.pg_index to PUBLIC;
 
 drop alias if exists pg_get_indexdef;
 create alias pg_get_indexdef for "org.h2.server.pg.PgServer.getIndexColumn";
@@ -279,7 +279,7 @@ create table pg_catalog.pg_database(
     datdba int,
     dattablespace int
 );
-grant select on pg_catalog.pg_database to public;
+grant select on pg_catalog.pg_database to PUBLIC;
 
 insert into pg_catalog.pg_database values(
     0, -- oid
@@ -289,7 +289,7 @@ insert into pg_catalog.pg_database values(
     true, -- datallowconn
     null, -- datconfig
     null, -- datacl
-    select min(id) from information_schema.users where admin=true, -- datdba
+    select min(id) from INFORMATION_SCHEMA.users where admin=true, -- datdba
     0 -- dattablespace
 );
 
@@ -300,7 +300,7 @@ create table pg_catalog.pg_tablespace(
     spcowner int,
     spcacl array -- aclitem[]
 );
-grant select on pg_catalog.pg_tablespace to public;
+grant select on pg_catalog.pg_tablespace to PUBLIC;
 
 insert into pg_catalog.pg_tablespace values(
     0,
@@ -315,7 +315,7 @@ create table pg_catalog.pg_settings(
     name varchar_ignorecase,
     setting varchar_ignorecase
 );
-grant select on pg_catalog.pg_settings to public;
+grant select on pg_catalog.pg_settings to PUBLIC;
 
 insert into pg_catalog.pg_settings values
 (0, 'autovacuum', 'on'),
@@ -329,8 +329,8 @@ select
     cast(name as varchar_ignorecase) usename,
     true usecreatedb,
     true usesuper
-from information_schema.users;
-grant select on pg_catalog.pg_user to public;
+from INFORMATION_SCHEMA.users;
+grant select on pg_catalog.pg_user to PUBLIC;
 
 create table pg_catalog.pg_authid(
     oid int,
@@ -346,10 +346,10 @@ create table pg_catalog.pg_authid(
     rolvaliduntil timestamp, -- timestamptz
     rolconfig array -- text[]
 );
-grant select on pg_catalog.pg_authid to public;
+grant select on pg_catalog.pg_authid to PUBLIC;
 
 create table pg_catalog.pg_am(oid int, amname varchar_ignorecase);
-grant select on pg_catalog.pg_am to public;
+grant select on pg_catalog.pg_am to PUBLIC;
 insert into  pg_catalog.pg_am values(0, 'btree');
 insert into  pg_catalog.pg_am values(1, 'hash');
 
@@ -361,7 +361,7 @@ select
     -1 classoid,
     cast(datname as varchar_ignorecase) description
 from pg_catalog.pg_database;
-grant select on pg_catalog.pg_description to public;
+grant select on pg_catalog.pg_description to PUBLIC;
 
 create table pg_catalog.pg_group -- oid, groname
 as
@@ -369,11 +369,11 @@ select
     0 oid,
     cast('' as varchar_ignorecase) groname
 from pg_catalog.pg_database where 1=0;
-grant select on pg_catalog.pg_group to public;
+grant select on pg_catalog.pg_group to PUBLIC;
 
 create table pg_catalog.pg_inherits(
     inhrelid int,
     inhparent int,
     inhseqno int
 );
-grant select on pg_catalog.pg_inherits to public;
+grant select on pg_catalog.pg_inherits to PUBLIC;

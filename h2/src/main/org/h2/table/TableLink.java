@@ -180,7 +180,7 @@ public class TableLink extends Table {
                     int scale = rsMeta.getScale(i + 1);
                     scale = convertScale(sqlType, scale);
                     int displaySize = rsMeta.getColumnDisplaySize(i + 1);
-                    int type = DataType.convertSQLTypeToValueType(sqlType);
+                    int type = DataType.getValueTypeFromResultSet(rsMeta, i + 1);
                     Column col = new Column(n, type, precision, scale, displaySize);
                     col.setTable(this, i++);
                     columnList.add(col);

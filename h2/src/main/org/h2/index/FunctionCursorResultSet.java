@@ -61,8 +61,8 @@ public class FunctionCursorResultSet implements Cursor {
                 int columnCount = meta.getColumnCount();
                 values = new Value[columnCount];
                 for (int i = 0; i < columnCount; i++) {
-                    int type = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
-                    values[i] = DataType.readValue(session, result, i+1, type);
+                    int type = DataType.getValueTypeFromResultSet(meta, i + 1);
+                    values[i] = DataType.readValue(session, result, i + 1, type);
                 }
             } else {
                 values = null;

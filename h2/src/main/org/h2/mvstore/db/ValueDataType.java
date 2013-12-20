@@ -392,7 +392,7 @@ public class ValueDataType implements DataType {
                 while (rs.next()) {
                     buff.put((byte) 1);
                     for (int i = 0; i < columnCount; i++) {
-                        int t = org.h2.value.DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
+                        int t = org.h2.value.DataType.getValueTypeFromResultSet(meta, i + 1);
                         Value val = org.h2.value.DataType.readValue(null, rs, i + 1, t);
                         writeValue(buff, val);
                     }

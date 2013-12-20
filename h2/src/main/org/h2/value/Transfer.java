@@ -495,7 +495,7 @@ public class Transfer {
                 while (rs.next()) {
                     writeBoolean(true);
                     for (int i = 0; i < columnCount; i++) {
-                        int t = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
+                        int t = DataType.getValueTypeFromResultSet(meta, i + 1);
                         Value val = DataType.readValue(session, rs, i + 1, t);
                         writeValue(val);
                     }

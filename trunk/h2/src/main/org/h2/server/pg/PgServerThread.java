@@ -772,7 +772,7 @@ public class PgServerThread implements Runnable {
                 if (!tableFound) {
                     installPgCatalog(stat);
                 }
-                rs = stat.executeQuery("SELECT * FROM PG_CATALOG.PG_VERSION");
+                rs = stat.executeQuery("select * from pg_catalog.pg_version");
                 if (!rs.next() || rs.getInt(1) < 2) {
                     // installation incomplete, or old version
                     installPgCatalog(stat);
@@ -787,7 +787,7 @@ public class PgServerThread implements Runnable {
             stat.execute("set search_path = PUBLIC, pg_catalog");
             HashSet<Integer> typeSet = server.getTypeSet();
             if (typeSet.size() == 0) {
-                rs = stat.executeQuery("SELECT OID FROM PG_CATALOG.PG_TYPE");
+                rs = stat.executeQuery("select oid from pg_catalog.pg_type");
                 while (rs.next()) {
                     typeSet.add(rs.getInt(1));
                 }

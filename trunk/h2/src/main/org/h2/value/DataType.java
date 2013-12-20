@@ -15,6 +15,7 @@ import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Date;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -733,6 +734,40 @@ public class DataType {
      */
     public static int convertTypeToSQLType(int type) {
         return getDataType(type).sqlType;
+    }
+
+    /**
+     * Convert a SQL type to a value type using SQL type name, in order to
+     * manage SQL type extension mechanism.
+     * 
+     * @param sqlType the SQL type
+     * @param sqlTypeName the SQL type name
+     * @return the value type
+     */
+    private static int convertSQLTypeToValueType(int sqlType, String sqlTypeName) {
+        switch(sqlType) {
+            case Types.OTHER:
+            case Types.JAVA_OBJECT:
+                if (sqlTypeName.equalsIgnoreCase("geometry")) {
+                    return Value.GEOMETRY;
+                }
+        }
+        return convertSQLTypeToValueType(sqlType);
+    }
+    
+    /**
+     * Get the SQL type from the result set meta data for the given column. This
+     * method uses the SQL type and type name.
+     * 
+     * @param meta the meta data
+     * @param columnIndex the column index (1, 2,...)
+     * @return the value type
+     */
+    public static int getValueTypeFromResultSet(ResultSetMetaData meta, int columnIndex) 
+            throws SQLException {
+        return convertSQLTypeToValueType(
+                meta.getColumnType(columnIndex),
+                meta.getColumnTypeName(columnIndex));
     }
 
     /**

@@ -104,7 +104,7 @@ public class ValueResultSet extends Value {
                 buff.resetCount();
                 for (int j = 0; j < columnCount; j++) {
                     buff.appendExceptFirst(", ");
-                    int t = DataType.convertSQLTypeToValueType(meta.getColumnType(j + 1));
+                    int t = DataType.getValueTypeFromResultSet(meta, j + 1);
                     Value v = DataType.readValue(null, result, j+1, t);
                     buff.append(v.getString());
                 }

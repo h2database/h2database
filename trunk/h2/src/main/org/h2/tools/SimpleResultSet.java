@@ -75,6 +75,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         String name;
 
         /**
+         * The column type Name
+         */
+        String sqlTypeName;
+
+        /**
          * The SQL type.
          */
         int sqlType;
@@ -214,17 +219,33 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     public SimpleResultSet(SimpleRowSource source) {
         this.source = source;
     }
+    
+    /**
+     * Adds a column to the result set.
+     * All columns must be added before adding rows.
+     * This method uses the default SQL type names.
+     *
+     * @param name null is replaced with C1, C2,...
+     * @param sqlType the value returned in getColumnType(..)
+     * @param precision the precision
+     * @param scale the scale
+     */
+    public void addColumn(String name, int sqlType, int precision, int scale) {
+        int valueType = DataType.convertSQLTypeToValueType(sqlType);
+        addColumn(name, sqlType, DataType.getDataType(valueType).name, precision, scale);
+    }
 
     /**
      * Adds a column to the result set.
      * All columns must be added before adding rows.
      *
      * @param name null is replaced with C1, C2,...
-     * @param sqlType the value returned in getColumnType(..) (ignored internally)
+     * @param sqlType the value returned in getColumnType(..)
+     * @param sqlTypeName the type name return in getColumnTypeName(..)
      * @param precision the precision
      * @param scale the scale
      */
-    public void addColumn(String name, int sqlType, int precision, int scale) {
+    public void addColumn(String name, int sqlType, String sqlTypeName, int precision, int scale) {
         if (rows != null && rows.size() > 0) {
             throw new IllegalStateException("Cannot add a column after adding rows");
         }
@@ -236,6 +257,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         column.sqlType = sqlType;
         column.precision = precision;
         column.scale = scale;
+        column.sqlTypeName = sqlTypeName;
         columns.add(column);
     }
 
@@ -2025,8 +2047,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     @Override
     public String getColumnClassName(int columnIndex) throws SQLException {
-        int sqlType = getColumn(columnIndex - 1).sqlType;
-        int type = DataType.convertSQLTypeToValueType(sqlType);
+        int type = DataType.getValueTypeFromResultSet(this, columnIndex);
         return DataType.getTypeClassName(type);
     }
 
@@ -2060,9 +2081,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     @Override
     public String getColumnTypeName(int columnIndex) throws SQLException {
-        int sqlType = getColumn(columnIndex - 1).sqlType;
-        int type = DataType.convertSQLTypeToValueType(sqlType);
-        return DataType.getDataType(type).name;
+        return getColumn(columnIndex - 1).sqlTypeName;
     }
 
     /**

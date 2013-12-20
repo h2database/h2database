@@ -331,7 +331,7 @@ public abstract class Expression {
             Database db = session == null ? null : session.getDatabase();
             for (int i = 0; i < columnCount; i++) {
                 String name = meta.getColumnLabel(i + 1);
-                int type = DataType.convertSQLTypeToValueType(meta.getColumnType(i + 1));
+                int type = DataType.getValueTypeFromResultSet(meta, i + 1);
                 int precision = meta.getPrecision(i + 1);
                 int scale = meta.getScale(i + 1);
                 int displaySize = meta.getColumnDisplaySize(i + 1);

@@ -10,12 +10,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
@@ -26,6 +28,7 @@ import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.UUID;
+
 import org.h2.api.Trigger;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
@@ -52,6 +55,7 @@ public class TestPreparedStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testUnsupportedOperations(conn);
         testChangeType(conn);
         testDateTimeTimestampWithCalendar(conn);
         testCallTablePrepared(conn);
@@ -89,6 +93,35 @@ public class TestPreparedStatement extends TestBase {
         conn.close();
         testPreparedStatementWithLiteralsNone();
         deleteDb("preparedStatement");
+    }
+    
+    private void testUnsupportedOperations(Connection conn) throws Exception {
+        PreparedStatement prep = conn.prepareStatement("select ? from dual");
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            addBatch("select 1");
+        
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            executeUpdate("create table test(id int)");
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            executeUpdate("create table test(id int)", new int[0]);
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            executeUpdate("create table test(id int)", new String[0]);
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            executeUpdate("create table test(id int)", Statement.RETURN_GENERATED_KEYS);
+
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            execute("create table test(id int)");
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            execute("create table test(id int)", new int[0]);
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            execute("create table test(id int)", new String[0]);
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            execute("create table test(id int)", Statement.RETURN_GENERATED_KEYS);
+
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
+            setURL(1, new URL("http://www.acme.com"));
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
+            setRowId(1, (RowId) null);
     }
 
     private static void testChangeType(Connection conn) throws SQLException {

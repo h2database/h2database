@@ -25,6 +25,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.TimeZone;
 import org.h2.constant.ErrorCode;
@@ -1084,6 +1085,7 @@ public class TestResultSet extends TestBase {
         Object[] list = (Object[]) rs.getObject(2);
         assertEquals(1, ((Integer) list[0]).intValue());
         assertEquals(2, ((Integer) list[1]).intValue());
+        
         Array array = rs.getArray(2);
         Object[] list2 = (Object[]) array.getArray();
         assertEquals(1, ((Integer) list2[0]).intValue());
@@ -1095,12 +1097,25 @@ public class TestResultSet extends TestBase {
         list = (Object[]) rs.getObject(2);
         assertEquals(11, ((Integer) list[0]).intValue());
         assertEquals(12, ((Integer) list[1]).intValue());
-        array = rs.getArray(2);
+        
+        array = rs.getArray("VALUE");
         list2 = (Object[]) array.getArray();
         assertEquals(11, ((Integer) list2[0]).intValue());
         assertEquals(12, ((Integer) list2[1]).intValue());
         list2 = (Object[]) array.getArray(2, 1);
         assertEquals(12, ((Integer) list2[0]).intValue());
+
+        list2 = (Object[]) array.getArray(Collections.<String, Class<?>>emptyMap());
+        assertEquals(11, ((Integer) list2[0]).intValue());
+        
+        assertEquals(Types.NULL, array.getBaseType());
+        assertEquals("NULL", array.getBaseTypeName());
+        
+        assertEquals("ar1: (11, 12)", array.toString());
+        
+        array.free();
+        assertEquals("null", array.toString());
+        
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }

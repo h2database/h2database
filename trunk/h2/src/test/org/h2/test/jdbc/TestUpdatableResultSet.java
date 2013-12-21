@@ -155,7 +155,11 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateInt(1, 10);
         rs.updateRow();
         rs.next();
+        
         rs.updateString(2, "Welt");
+        rs.cancelRowUpdates();
+        rs.updateString(2, "Welt");
+        
         rs.updateRow();
         rs.beforeFirst();
         rs.next();
@@ -164,6 +168,11 @@ public class TestUpdatableResultSet extends TestBase {
         rs.next();
         assertEquals(2, rs.getInt(1));
         assertEquals("Welt", rs.getString(2));
+        
+        assertFalse(rs.isClosed());
+        rs.close();
+        assertTrue(rs.isClosed());
+        
         conn.close();
     }
 
@@ -294,6 +303,7 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateNull(2);
         rs.updateNull("DEC");
         // 'not set' values are set to null
+        assertThrows(ErrorCode.NO_DATA_AVAILABLE, rs).cancelRowUpdates();
         rs.insertRow();
 
         rs.moveToInsertRow();

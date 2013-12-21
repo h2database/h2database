@@ -285,6 +285,6 @@ public class JdbcArray extends TraceObject implements Array {
      */
     @Override
     public String toString() {
-        return getTraceObjectName() + ": " + value.getTraceSQL();
+        return value == null ? "null" : (getTraceObjectName() + ": " + value.getTraceSQL());
     }
 }

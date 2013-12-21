@@ -6,6 +6,7 @@
  */
 package org.h2.test.jdbc;
 
+import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -110,7 +111,11 @@ public class TestCallableStatement extends TestBase {
         call.registerOutParameter(1, Types.SMALLINT);
         call.execute();
         assertEquals(123, call.getShort(1));
-
+        
+        call.setBigDecimal(2, BigDecimal.TEN);
+        call.registerOutParameter(1, Types.DECIMAL);
+        call.execute();
+        assertEquals("10", call.getBigDecimal(1).toString());
     }
 
     private void testCallWithResult(Connection conn) throws SQLException {
@@ -222,6 +227,7 @@ public class TestCallableStatement extends TestBase {
     public static Boolean testClassF(Boolean b) {
         return !b;
     }
+    
     /**
      * This method is called via reflection from the database.
      *

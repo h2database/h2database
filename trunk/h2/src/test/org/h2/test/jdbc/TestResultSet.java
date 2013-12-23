@@ -1111,7 +1111,7 @@ public class TestResultSet extends TestBase {
         assertEquals(Types.NULL, array.getBaseType());
         assertEquals("NULL", array.getBaseTypeName());
         
-        assertEquals("ar1: (11, 12)", array.toString());
+        assertTrue(array.toString().endsWith(": (11, 12)"));
         
         array.free();
         assertEquals("null", array.toString());

@@ -7,13 +7,18 @@
 package org.h2.test.jdbc;
 
 import java.math.BigDecimal;
+import java.net.URL;
 import java.sql.CallableStatement;
 import java.sql.Connection;
+import java.sql.Ref;
 import java.sql.ResultSet;
+import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Collections;
 
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
@@ -38,6 +43,7 @@ public class TestCallableStatement extends TestBase {
     public void test() throws SQLException {
         deleteDb("callableStatement");
         Connection conn = getConnection("callableStatement");
+        testUnsupportedOperations(conn);
         testGetters(conn);
         testCallWithResultSet(conn);
         testCallWithResult(conn);
@@ -45,6 +51,32 @@ public class TestCallableStatement extends TestBase {
         testClassLoader(conn);
         conn.close();
         deleteDb("callableStatement");
+    }
+    
+    private void testUnsupportedOperations(Connection conn) throws SQLException {
+        CallableStatement call;
+        call = conn.prepareCall("select 10 as a");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getURL(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getObject(1, Collections.<String, Class<?>>emptyMap());
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRef(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRowId(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getSQLXML(1);
+        
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getURL("a");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getObject("a", Collections.<String, Class<?>>emptyMap());
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRef("a");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRowId("a");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getSQLXML(1);
+        
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setURL(1, (URL) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setRef(1, (Ref) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setRowId(1, (RowId) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setSQLXML(1, (SQLXML) null);
+        
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setURL("a", (URL) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setRowId("a", (RowId) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setSQLXML("a", (SQLXML) null);
+
     }
 
     private void testCallWithResultSet(Connection conn) throws SQLException {

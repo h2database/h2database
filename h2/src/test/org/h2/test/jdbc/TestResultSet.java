@@ -1113,8 +1113,12 @@ public class TestResultSet extends TestBase {
         
         assertTrue(array.toString().endsWith(": (11, 12)"));
         
+        // free
         array.free();
         assertEquals("null", array.toString());
+        assertThrows(ErrorCode.OBJECT_CLOSED, array).getBaseType();
+        assertThrows(ErrorCode.OBJECT_CLOSED, array).getBaseTypeName();
+        assertThrows(ErrorCode.OBJECT_CLOSED, array).getResultSet();
         
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");

@@ -15,6 +15,8 @@ import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+
+import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.value.DataType;
@@ -38,7 +40,7 @@ public class TestMetaData extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb("metaData");
-
+        testUnsupportedOperations();
         testTempTable();
         testColumnResultSetMeta();
         testColumnLobMeta();
@@ -55,6 +57,36 @@ public class TestMetaData extends TestBase {
         testSessionsUncommitted();
         testQueryStatistics();
     }
+    
+    private void testUnsupportedOperations() throws SQLException {
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select 1 as x from dual");
+        ResultSetMetaData meta = rs.getMetaData();
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).isWrapperFor(Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).unwrap(Object.class);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnLabel(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnName(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnType(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnTypeName(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getSchemaName(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getTableName(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getCatalogName(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isAutoIncrement(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isCaseSensitive(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isSearchable(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isCurrency(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isNullable(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isSigned(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isReadOnly(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isWritable(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).isDefinitelyWritable(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnClassName(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getPrecision(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getScale(0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnDisplaySize(0);
+        conn.close();
+    }
 
     private void testColumnResultSetMeta() throws SQLException {
         Connection conn = getConnection("metaData");
@@ -66,6 +98,7 @@ public class TestMetaData extends TestBase {
         stat.execute("insert into test values(select x('select x from system_range(1, 2)'))");
         ResultSet rs = stat.executeQuery("select * from test");
         ResultSetMetaData rsMeta = rs.getMetaData();
+        assertTrue(rsMeta.toString().endsWith(": columns=1"));
         assertEquals("java.sql.ResultSet", rsMeta.getColumnClassName(1));
         assertEquals(DataType.TYPE_RESULT_SET, rsMeta.getColumnType(1));
         rs.next();

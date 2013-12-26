@@ -19,6 +19,7 @@ import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
+import org.h2.table.Table;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 
@@ -29,10 +30,11 @@ public class ResultTempTable implements ResultExternal {
 
     private static final String COLUMN_NAME = "DATA";
     private final SortOrder sort;
-    private final Session session;
     private final Index index;
-    private RegularTable table;
+    private Session session;
+    private Table table;
     private Cursor resultCursor;
+    private int rowCount;
 
     private final ResultTempTable parent;
     private boolean closed;
@@ -53,7 +55,7 @@ public class ResultTempTable implements ResultExternal {
         data.persistData = true;
         data.create = true;
         data.session = session;
-        table = (RegularTable) schema.createTable(data);
+        table = schema.createTable(data);
         int indexId = session.getDatabase().allocateObjectId();
         IndexColumn indexColumn = new IndexColumn();
         indexColumn.column = column;
@@ -61,9 +63,14 @@ public class ResultTempTable implements ResultExternal {
         IndexType indexType;
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = { indexColumn };
-        index = new PageBtreeIndex(table, indexId, data.tableName, indexCols, indexType, true, session);
-        index.setTemporary(true);
-        table.getIndexes().add(index);
+        if (session.getDatabase().getMvStore() != null) {
+            index = table.addIndex(session, data.tableName, indexId, indexCols, indexType, true, null);
+            index.setTemporary(true);
+        } else {
+            index = new PageBtreeIndex((RegularTable) table, indexId, data.tableName, indexCols, indexType, true, session);
+            index.setTemporary(true);
+            table.getIndexes().add(index);        
+        }
         parent = null;
     }
 
@@ -72,6 +79,7 @@ public class ResultTempTable implements ResultExternal {
         this.session = parent.session;
         this.table = parent.table;
         this.index = parent.index;
+        this.rowCount = parent.rowCount;
         // sort is only used when adding rows
         this.sort = null;
         reset();
@@ -96,8 +104,9 @@ public class ResultTempTable implements ResultExternal {
         if (cursor != null) {
             row = cursor.get();
             table.removeRow(session, row);
+            rowCount--;
         }
-        return (int) table.getRowCount(session);
+        return rowCount;
     }
 
     @Override
@@ -111,8 +120,9 @@ public class ResultTempTable implements ResultExternal {
         Cursor cursor = find(row);
         if (cursor == null) {
             table.addRow(session, row);
+            rowCount++;
         }
-        return (int) table.getRowCount(session);
+        return rowCount;
     }
 
     @Override
@@ -123,7 +133,7 @@ public class ResultTempTable implements ResultExternal {
         for (Value[] values : rows) {
             addRow(values);
         }
-        return (int) table.getRowCount(session);
+        return rowCount;
     }
 
     private synchronized void closeChild() {
@@ -186,6 +196,21 @@ public class ResultTempTable implements ResultExternal {
 
     @Override
     public Value[] next() {
+        if (resultCursor == null) {
+            if (session.getDatabase().getMvStore() != null) {
+                // sometimes the transaction is already committed,
+                // in which case we can't use the session
+                if (index.getRowCount(session) == 0 && rowCount > 0) {
+                    // this means querying is not transactional
+                    resultCursor = index.find((Session) null, null, null);
+                } else {
+                    // the transaction is still open
+                    resultCursor = index.find(session, null, null);
+                }
+            } else {
+                resultCursor = index.find(session, null, null);
+            }
+        }
         if (!resultCursor.next()) {
             return null;
         }
@@ -196,7 +221,7 @@ public class ResultTempTable implements ResultExternal {
 
     @Override
     public void reset() {
-        resultCursor = index.find(session, null, null);
+        resultCursor = null;
     }
 
     private static Row convertToRow(Value[] values) {

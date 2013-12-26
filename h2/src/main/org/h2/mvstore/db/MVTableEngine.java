@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.h2.api.TableEngine;
@@ -102,7 +103,7 @@ public class MVTableEngine implements TableEngine {
     @Override
     public TableBase createTable(CreateTableData data) {
         Database db = data.session.getDatabase();
-        if (!data.persistData || (data.temporary && !data.persistIndexes)) {
+        if (!data.persistData) {
             return new RegularTable(data);
         }
         Store store = init(db);
@@ -125,7 +126,7 @@ public class MVTableEngine implements TableEngine {
         /**
          * The list of open tables.
          */
-        final ArrayList<MVTable> openTables = New.arrayList();
+        final List<MVTable> openTables = Collections.synchronizedList(new ArrayList<MVTable>());
 
         /**
          * The store.
@@ -153,7 +154,7 @@ public class MVTableEngine implements TableEngine {
         }
 
         public List<MVTable> getTables() {
-            return openTables;
+            return new ArrayList<MVTable>(openTables);
         }
 
         /**

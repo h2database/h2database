@@ -1232,7 +1232,7 @@ public class Database implements DataHandler {
      */
     private synchronized void closeOpenFilesAndUnlock(boolean flush) {
         stopWriter();
-        if (pageStore != null && mvStore == null) {
+        if (pageStore != null) {
             if (flush) {
                 try {
                     pageStore.checkpoint();

@@ -103,11 +103,20 @@ public class SelectUnion extends Query {
     }
 
     private Value[] convert(Value[] values, int columnCount) {
+        Value[] newValues;
+        if (columnCount == values.length) {
+            // re-use the array if possible
+            newValues = values;
+        } else {
+            // create a new array if needed,
+            // for the value hash set
+            newValues = new Value[columnCount];
+        }
         for (int i = 0; i < columnCount; i++) {
             Expression e = expressions.get(i);
-            values[i] = values[i].convertTo(e.getType());
+            newValues[i] = values[i].convertTo(e.getType());
         }
-        return values;
+        return newValues;
     }
 
     @Override

@@ -18,7 +18,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The GEOMETRY data type now works for user defined functions that return a result set.
+<ul><li>Union queries: duplicate rows could be returned if the sub-queries contained "order by".
+</li><li>The GEOMETRY data type now works for user defined functions that return a result set.
 </li><li>PostgreSQL compatibility: the PgServer was not working properly when the setting
     database_to_upper was set to false.
 </li><li>JdbcDataSource: the methods setUrl and getUrl where added as aliases for setURL and getURL.

@@ -4,6 +4,18 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int, name varchar) as select 1, 'a';
+> ok
+
+(select id from test order by id) union (select id from test order by name);
+> ID
+> --
+> 1
+> rows (ordered): 1
+
+drop table test;
+> ok
+
 create sequence seq;
 > ok
 
@@ -1334,8 +1346,7 @@ drop table p;
 > X
 > -
 > 1
-> 1
-> rows (ordered): 2
+> rows (ordered): 1
 
 create table test(a int, b int default 1);
 > ok

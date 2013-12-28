@@ -345,6 +345,30 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateBinaryStream("BL", new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }), 0);
         rs.insertRow();
 
+        rs.moveToInsertRow();
+        rs.updateInt("ID", 3);
+        rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"));
+        rs.updateBinaryStream("BL", new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
+        rs.insertRow();
+
+        rs.moveToInsertRow();
+        rs.updateInt("ID", 4);
+        rs.updateCharacterStream(15, new StringReader("\u00ef\u00f6\u00fc"));
+        rs.updateBinaryStream(16, new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
+        rs.insertRow();
+
+        rs.moveToInsertRow();
+        rs.updateInt("ID", 5);
+        rs.updateClob("CL", new StringReader("\u00ef\u00f6\u00fc"));
+        rs.updateBlob("BL", new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
+        rs.insertRow();
+
+        rs.moveToInsertRow();
+        rs.updateInt("ID", 6);
+        rs.updateClob(15, new StringReader("\u00ef\u00f6\u00fc"));
+        rs.updateBlob(16, new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
+        rs.insertRow();
+
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID NULLS FIRST");
         rs.next();
         assertTrue(rs.getInt(1) == 0);
@@ -401,6 +425,26 @@ public class TestUpdatableResultSet extends TestBase {
         assertEquals("\u00ef\u00f6\u00fc", rs.getString(15));
         assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(16));
 
+        rs.next();
+        assertTrue(rs.getInt(1) == 3);
+        assertEquals("\u00ef\u00f6\u00fc", rs.getString(15));
+        assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(16));
+
+        rs.next();
+        assertTrue(rs.getInt(1) == 4);
+        assertEquals("\u00ef\u00f6\u00fc", rs.getString(15));
+        assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(16));
+
+        rs.next();
+        assertTrue(rs.getInt(1) == 5);
+        assertEquals("\u00ef\u00f6\u00fc", rs.getString(15));
+        assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(16));
+
+        rs.next();
+        assertTrue(rs.getInt(1) == 6);
+        assertEquals("\u00ef\u00f6\u00fc", rs.getString(15));
+        assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(16));
+
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
         conn.close();
@@ -432,11 +476,22 @@ public class TestUpdatableResultSet extends TestBase {
             } else {
                 rs.deleteRow();
             }
+            // the driver does not detect it in any case
+            assertFalse(rs.rowUpdated());
+            assertFalse(rs.rowInserted());
+            assertFalse(rs.rowDeleted());
+            
             rs.moveToInsertRow();
             rs.updateString(2, "Inserted " + j);
             rs.updateInt(1, j);
             j += 2;
             rs.insertRow();
+            
+            // the driver does not detect it in any case
+            assertFalse(rs.rowUpdated());
+            assertFalse(rs.rowInserted());
+            assertFalse(rs.rowDeleted());
+
         }
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         while (rs.next()) {

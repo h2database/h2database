@@ -65,6 +65,8 @@ public class TestCallableStatement extends TestBase {
             assertEquals(1, id);
             cs.close();
         }
+        conn.createStatement().execute(
+                "drop table test");
     }
     
     private void testUnsupportedOperations(Connection conn) throws SQLException {

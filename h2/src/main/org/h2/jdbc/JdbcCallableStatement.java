@@ -1578,7 +1578,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements Call
             }
             checkIndexBounds(parameterIndex);
             ParameterInterface param = command.getParameters().get(--parameterIndex);
-            if (param.getParamValue() == null) {
+            if (!param.isValueSet()) {
                 param.setValue(ValueNull.INSTANCE, false);
             }
             outParameters.set(parameterIndex);

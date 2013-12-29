@@ -43,6 +43,7 @@ public class TestCallableStatement extends TestBase {
     public void test() throws SQLException {
         deleteDb("callableStatement");
         Connection conn = getConnection("callableStatement");
+        testOutParameter(conn);
         testUnsupportedOperations(conn);
         testGetters(conn);
         testCallWithResultSet(conn);
@@ -51,6 +52,19 @@ public class TestCallableStatement extends TestBase {
         testClassLoader(conn);
         conn.close();
         deleteDb("callableStatement");
+    }
+    
+    private void testOutParameter(Connection conn) throws SQLException {
+        conn.createStatement().execute(
+                "create table test(id identity) as select null");
+        for (int i = 1; i < 20; i++) {
+            CallableStatement cs = conn.prepareCall("{ ? = call IDENTITY()}");
+            cs.registerOutParameter(1, Types.BIGINT);
+            cs.execute();
+            long id = cs.getLong(1);
+            assertEquals(1, id);
+            cs.close();
+        }
     }
     
     private void testUnsupportedOperations(Connection conn) throws SQLException {

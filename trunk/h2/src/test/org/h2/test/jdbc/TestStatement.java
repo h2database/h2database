@@ -37,6 +37,7 @@ public class TestStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("statement");
         conn = getConnection("statement");
+        testUnsupportedOperations();
         testTraceError();
         testSavepoint();
         testConnectionRollback();
@@ -45,6 +46,12 @@ public class TestStatement extends TestBase {
         testIdentity();
         conn.close();
         deleteDb("statement");
+    }
+        
+    private void testUnsupportedOperations() throws Exception {
+        Statement stat = conn.createStatement();
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).isWrapperFor(Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).unwrap(Object.class);
     }
 
     private void testTraceError() throws Exception {

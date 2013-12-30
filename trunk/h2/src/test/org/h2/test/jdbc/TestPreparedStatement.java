@@ -129,6 +129,17 @@ public class TestPreparedStatement extends TestBase {
             setUnicodeStream(1, (InputStream) null, 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
             setArray(1, (Array) null);
+        
+        ParameterMetaData meta = prep.getParameterMetaData();
+        assertTrue(meta.toString(), meta.toString().endsWith("parameterCount=1"));
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).isWrapperFor(Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).unwrap(Object.class);
+        
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).isWrapperFor(Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).unwrap(Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).createSQLXML();
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).createArrayOf("Integer", new Object[0]);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).createStruct("Integer", new Object[0]);
     }
 
     private static void testChangeType(Connection conn) throws SQLException {

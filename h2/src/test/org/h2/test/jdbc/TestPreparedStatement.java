@@ -8,9 +8,11 @@ package org.h2.test.jdbc;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ParameterMetaData;
@@ -95,6 +97,7 @@ public class TestPreparedStatement extends TestBase {
         deleteDb("preparedStatement");
     }
     
+    @SuppressWarnings("deprecation")
     private void testUnsupportedOperations(Connection conn) throws Exception {
         PreparedStatement prep = conn.prepareStatement("select ? from dual");
         assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
@@ -122,6 +125,10 @@ public class TestPreparedStatement extends TestBase {
             setURL(1, new URL("http://www.acme.com"));
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
             setRowId(1, (RowId) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
+            setUnicodeStream(1, (InputStream) null, 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
+            setArray(1, (Array) null);
     }
 
     private static void testChangeType(Connection conn) throws SQLException {

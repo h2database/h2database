@@ -82,7 +82,7 @@ public class TestCallableStatement extends TestBase {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getObject("a", Collections.<String, Class<?>>emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRef("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRowId("a");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getSQLXML(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getSQLXML("a");
         
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setURL(1, (URL) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setRef(1, (Ref) null);
@@ -312,4 +312,5 @@ public class TestCallableStatement extends TestBase {
             return TestCallableStatement.class;
         }
     }
+
 }

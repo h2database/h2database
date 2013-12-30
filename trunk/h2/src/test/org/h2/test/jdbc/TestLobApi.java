@@ -45,6 +45,7 @@ public class TestLobApi extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("lob");
+        testUnsupportedOperations();
         testLobStaysOpenUntilCommitted();
         testInputStreamThrowsException(true);
         testInputStreamThrowsException(false);
@@ -61,6 +62,39 @@ public class TestLobApi extends TestBase {
         testClob(1);
         testClob(100);
         testClob(100000);
+        stat.execute("drop table test");
+        conn.close();
+    }
+    
+    private void testUnsupportedOperations() throws Exception {
+        Connection conn = getConnection("lob");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int, c clob, b blob)");
+        stat.execute("insert into test values(1, 'x', x'00')");
+        ResultSet rs = stat.executeQuery("select * from test order by id");
+        rs.next();
+        Clob clob = rs.getClob(2);
+        assertTrue(clob.toString().endsWith("'x'"));
+        clob.free();
+        assertTrue(clob.toString().endsWith("null"));
+
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).truncate(0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).setAsciiStream(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).setString(1, "", 0, 1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).position("", 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).position((Clob) null, 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).getCharacterStream(1, 1);
+        
+        Blob blob = rs.getBlob(3);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).truncate(0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).setBytes(1, new byte[0], 0, 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).position(new byte[1], 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).position((Blob) null, 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).getBinaryStream(1, 1);
+        assertTrue(blob.toString().endsWith("X'00'"));
+        blob.free();
+        assertTrue(blob.toString().endsWith("null"));
+        
         stat.execute("drop table test");
         conn.close();
     }

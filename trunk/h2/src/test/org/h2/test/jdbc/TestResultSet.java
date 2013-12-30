@@ -16,10 +16,14 @@ import java.sql.Array;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
+import java.sql.NClob;
 import java.sql.PreparedStatement;
+import java.sql.Ref;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.RowId;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -55,6 +59,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testUnsupportedOperations();
         testAmbiguousColumnNames();
         testInsertRowWithUpdatableResultSetDefault();
         testBeforeFirstAfterLast();
@@ -90,6 +95,39 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+    
+    @SuppressWarnings("deprecation")
+    private void testUnsupportedOperations() throws SQLException {
+        ResultSet rs = stat.executeQuery("select 1 as x from dual");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getUnicodeStream(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getUnicodeStream("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getObject(1, Collections.<String, Class<?>>emptyMap());
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getObject("x", Collections.<String, Class<?>>emptyMap());
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getRef(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getRef("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getURL(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getURL("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getRowId(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getRowId("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getSQLXML(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getSQLXML("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateRef(1, (Ref) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateRef("x", (Ref) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateArray(1, (Array) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateArray("x", (Array) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateRowId(1, (RowId) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateRowId("x", (RowId) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateNClob(1, (NClob) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateNClob("x", (NClob) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateSQLXML(1, (SQLXML) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateSQLXML("x", (SQLXML) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getCursorName();
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).setFetchDirection(ResultSet.FETCH_FORWARD);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).unwrap(Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).isWrapperFor(Object.class);
     }
 
     private void testAmbiguousColumnNames() throws SQLException {
@@ -664,6 +702,7 @@ public class TestResultSet extends TestBase {
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
                 10, 10 }, new int[] { 0, 2 });
         BigDecimal bd;
+
         rs.next();
         assertTrue(rs.getInt(1) == 1);
         assertTrue(!rs.wasNull());
@@ -676,6 +715,7 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof BigDecimal);
         assertTrue(((BigDecimal) o).compareTo(new BigDecimal("-1.00")) == 0);
+
         rs.next();
         assertTrue(rs.getInt(1) == 2);
         assertTrue(!rs.wasNull());
@@ -684,16 +724,22 @@ public class TestResultSet extends TestBase {
         bd = rs.getBigDecimal(2);
         assertTrue(bd.compareTo(new BigDecimal("0.00")) == 0);
         assertTrue(!rs.wasNull());
+
         rs.next();
         checkColumnBigDecimal(rs, 2, 1, "1.00");
+
         rs.next();
         checkColumnBigDecimal(rs, 2, 12345679, "12345678.89");
+
         rs.next();
         checkColumnBigDecimal(rs, 2, 99999999, "99999998.99");
+
         rs.next();
         checkColumnBigDecimal(rs, 2, -99999999, "-99999998.99");
+
         rs.next();
         checkColumnBigDecimal(rs, 2, 0, null);
+
         assertTrue(!rs.next());
         stat.execute("DROP TABLE TEST");
     }

@@ -390,7 +390,7 @@ public class TraceObject {
         try {
             throw DbException.getUnsupportedException(message);
         } catch (Exception e) {
-            throw logAndConvert(e);
+            return logAndConvert(e);
         }
     }
 

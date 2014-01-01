@@ -98,18 +98,56 @@ public class TestCallableStatement extends TestBase {
     private void testCallWithResultSet(Connection conn) throws SQLException {
         CallableStatement call;
         ResultSet rs;
-        call = conn.prepareCall("select 10");
+        call = conn.prepareCall("select 10 as a, 20 as b, null as c, timestamp '2001-01-01 01:01:01.0' d");
 
         call.execute();
         rs = call.getResultSet();
         rs.next();
+        
         assertEquals(10, rs.getInt(1));
+        assertEquals(10, rs.getByte(1));
+        assertEquals("10", rs.getBigDecimal(1).toString());
+        assertEquals(10, ((Integer) rs.getObject(1)).intValue());
+        assertEquals(10, rs.getShort(1));
+        assertEquals(10, rs.getLong(1));
+        assertEquals(10, rs.getFloat(1));
+        assertEquals(10, rs.getDouble(1));
+        assertTrue(rs.getBoolean(1));
+        
+        assertEquals(10, rs.getInt("a"));
+        assertEquals(10, rs.getByte("a"));
+        assertEquals("10", rs.getBigDecimal("a").toString());
+        assertEquals(10, ((Integer) rs.getObject("a")).intValue());
+        assertEquals(10, rs.getShort("a"));
+        assertEquals(10, rs.getLong("a"));
+        assertEquals(10, rs.getFloat("a"));
+        assertEquals(10, rs.getDouble("a"));
+        assertTrue(rs.getBoolean("a"));
+        assertFalse(rs.wasNull());
+        
+        assertEquals(20, rs.getInt(2));
+        assertEquals(20, rs.getInt("b"));
+        assertFalse(rs.wasNull());
+        
+        assertEquals(0, rs.getInt(3));
+        assertTrue(rs.wasNull());
+        assertEquals(0, rs.getInt("c"));
+        assertTrue(rs.wasNull());
+        
+        assertEquals("2001-01-01", rs.getDate(4).toString());
+        assertEquals("2001-01-01", rs.getDate("d").toString());
+        assertEquals("01:01:01", rs.getTime(4).toString());
+        assertEquals("01:01:01", rs.getTime("d").toString());
+        assertEquals("2001-01-01 01:01:01.0", rs.getTimestamp(4).toString());
+        assertEquals("2001-01-01 01:01:01.0", rs.getTimestamp("d").toString());
 
+        // using a callable statement like a prepared statement
+        call = conn.prepareCall("create table test(id int)");
         call.executeUpdate();
-        rs = call.getResultSet();
-        rs.next();
-        assertEquals(10, rs.getInt(1));
-
+        call = conn.prepareCall("insert into test values(1), (2)");
+        assertEquals(2, call.executeUpdate());
+        call = conn.prepareCall("drop table test");
+        call.executeUpdate();
     }
     
     private void testGetters(Connection conn) throws SQLException {

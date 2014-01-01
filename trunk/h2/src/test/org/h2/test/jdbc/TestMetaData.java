@@ -114,6 +114,8 @@ public class TestMetaData extends TestBase {
         assertEquals("1", rsMeta.getColumnName(1));
         assertEquals("", rsMeta.getSchemaName(1));
         assertEquals("", rsMeta.getTableName(1));
+        assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
+        assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, rs.getHoldability());
         stat.executeUpdate("drop table test");
         conn.close();
     }

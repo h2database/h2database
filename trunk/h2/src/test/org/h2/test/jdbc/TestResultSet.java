@@ -6,13 +6,16 @@
  */
 package org.h2.test.jdbc;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Array;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
@@ -32,8 +35,10 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.TimeZone;
+
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.upgrade.v1_1.util.IOUtils;
 
 /**
  * Tests for the ResultSet implementation.
@@ -53,7 +58,7 @@ public class TestResultSet extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
+    public void test() throws Exception {
         deleteDb("resultSet");
         conn = getConnection("resultSet");
 
@@ -139,10 +144,10 @@ public class TestResultSet extends TestBase {
         stat.execute("drop table test");
     }
 
-    private void testInsertRowWithUpdatableResultSetDefault() throws SQLException {
+    private void testInsertRowWithUpdatableResultSetDefault() throws Exception {
         stat.execute("create table test(id int primary key, data varchar(255) default 'Hello')");
         PreparedStatement prep = conn.prepareStatement("select * from test",
-        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         ResultSet rs = prep.executeQuery();
         rs.moveToInsertRow();
         rs.updateInt(1, 1);
@@ -151,6 +156,94 @@ public class TestResultSet extends TestBase {
         rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
         assertEquals("Hello", rs.getString(2));
+        assertEquals("Hello", rs.getString("data"));
+        assertEquals("Hello", rs.getNString(2));
+        assertEquals("Hello", rs.getNString("data"));
+        assertEquals("Hello", IOUtils.readStringAndClose(
+                rs.getNCharacterStream(2), -1));
+        assertEquals("Hello", IOUtils.readStringAndClose(
+                rs.getNCharacterStream("data"), -1));
+        assertEquals("Hello", IOUtils.readStringAndClose(
+                rs.getNClob(2).getCharacterStream(), -1));
+        assertEquals("Hello", IOUtils.readStringAndClose(
+                rs.getNClob("data").getCharacterStream(), -1));
+
+        rs = prep.executeQuery();
+        
+        rs.moveToInsertRow();
+        rs.updateInt(1, 2);
+        rs.updateNString(2, "Hello");
+        rs.insertRow();
+        
+        rs.moveToInsertRow();
+        rs.updateInt(1, 3);
+        rs.updateNString("data", "Hello");
+        rs.insertRow();
+
+        Clob c;
+        Writer w;
+        
+        rs.moveToInsertRow();
+        rs.updateInt(1, 4);
+        c = conn.createClob();
+        w = c.setCharacterStream(1);
+        w.write("Hello");
+        w.close();
+        rs.updateClob(2, c);
+        rs.insertRow();
+        
+        rs.moveToInsertRow();
+        rs.updateInt(1, 5);
+        c = conn.createClob();
+        w = c.setCharacterStream(1);
+        w.write("Hello");
+        w.close();
+        rs.updateClob("data", c);
+        rs.insertRow();
+        
+        InputStream in;
+
+        rs.moveToInsertRow();
+        rs.updateInt(1, 6);
+        in = new ByteArrayInputStream("Hello".getBytes("UTF-8"));
+        rs.updateAsciiStream(2, in);
+        rs.insertRow();
+
+        rs.moveToInsertRow();
+        rs.updateInt(1, 7);
+        in = new ByteArrayInputStream("Hello".getBytes("UTF-8"));
+        rs.updateAsciiStream("data", in);
+        rs.insertRow();
+        
+        rs.moveToInsertRow();
+        rs.updateInt(1, 8);
+        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        rs.updateAsciiStream(2, in, 5);
+        rs.insertRow();
+
+        rs.moveToInsertRow();
+        rs.updateInt(1, 9);
+        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        rs.updateAsciiStream("data", in, 5);
+        rs.insertRow();
+
+        rs.moveToInsertRow();
+        rs.updateInt(1, 10);
+        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        rs.updateAsciiStream(2, in, 5L);
+        rs.insertRow();
+
+        rs.moveToInsertRow();
+        rs.updateInt(1, 11);
+        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        rs.updateAsciiStream("data", in, 5L);
+        rs.insertRow();
+
+        rs = stat.executeQuery("select * from test");
+        while (rs.next()) {
+            assertEquals("Hello", rs.getString(2));
+        }
+        
         stat.execute("drop table test");
     }
 

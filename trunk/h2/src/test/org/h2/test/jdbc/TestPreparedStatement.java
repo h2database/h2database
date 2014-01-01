@@ -121,6 +121,9 @@ public class TestPreparedStatement extends TestBase {
         assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
             execute("create table test(id int)", Statement.RETURN_GENERATED_KEYS);
 
+        assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_PREPARED_STATEMENT, prep).
+            executeQuery("select * from dual");
+
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
             setURL(1, new URL("http://www.acme.com"));
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
@@ -841,6 +844,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setInt(2, 3);
         prep.executeUpdate();
         prep.setInt(1, 4);
+        prep.setNull(2, Types.INTEGER, "INTEGER");
         prep.setNull(2, Types.INTEGER);
         prep.executeUpdate();
         prep.setInt(1, 5);

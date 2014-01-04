@@ -77,6 +77,8 @@ function go(file, line) {
         url += line;
         url += "&build=";
         url += build;
+        get('file').innerHTML = file;
+        get('code').src = url;        
     } else {
         if (build && build > 0) {
             var tag = 'tags/version-' + getVersion(build) + '/h2';
@@ -89,9 +91,9 @@ function go(file, line) {
         url += file;
         url += '#';
         url += line;
+        // X-Frame-Options is now 'SAMEORIGIN'
+        window.open(url);
     }
-    get('file').innerHTML = file;
-    get('code').src = url;
 }
 
 function convert() {

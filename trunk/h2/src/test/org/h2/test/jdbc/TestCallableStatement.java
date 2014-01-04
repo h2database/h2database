@@ -47,6 +47,7 @@ public class TestCallableStatement extends TestBase {
         testUnsupportedOperations(conn);
         testGetters(conn);
         testCallWithResultSet(conn);
+        testPreparedStatement(conn);
         testCallWithResult(conn);
         testPrepare(conn);
         testClassLoader(conn);
@@ -98,50 +99,16 @@ public class TestCallableStatement extends TestBase {
     private void testCallWithResultSet(Connection conn) throws SQLException {
         CallableStatement call;
         ResultSet rs;
-        call = conn.prepareCall("select 10 as a, 20 as b, null as c, timestamp '2001-01-01 01:01:01.0' d");
-
+        call = conn.prepareCall("select 10 as a");
         call.execute();
         rs = call.getResultSet();
         rs.next();
-        
         assertEquals(10, rs.getInt(1));
-        assertEquals(10, rs.getByte(1));
-        assertEquals("10", rs.getBigDecimal(1).toString());
-        assertEquals(10, ((Integer) rs.getObject(1)).intValue());
-        assertEquals(10, rs.getShort(1));
-        assertEquals(10, rs.getLong(1));
-        assertEquals(10, rs.getFloat(1));
-        assertEquals(10, rs.getDouble(1));
-        assertTrue(rs.getBoolean(1));
-        
-        assertEquals(10, rs.getInt("a"));
-        assertEquals(10, rs.getByte("a"));
-        assertEquals("10", rs.getBigDecimal("a").toString());
-        assertEquals(10, ((Integer) rs.getObject("a")).intValue());
-        assertEquals(10, rs.getShort("a"));
-        assertEquals(10, rs.getLong("a"));
-        assertEquals(10, rs.getFloat("a"));
-        assertEquals(10, rs.getDouble("a"));
-        assertTrue(rs.getBoolean("a"));
-        assertFalse(rs.wasNull());
-        
-        assertEquals(20, rs.getInt(2));
-        assertEquals(20, rs.getInt("b"));
-        assertFalse(rs.wasNull());
-        
-        assertEquals(0, rs.getInt(3));
-        assertTrue(rs.wasNull());
-        assertEquals(0, rs.getInt("c"));
-        assertTrue(rs.wasNull());
-        
-        assertEquals("2001-01-01", rs.getDate(4).toString());
-        assertEquals("2001-01-01", rs.getDate("d").toString());
-        assertEquals("01:01:01", rs.getTime(4).toString());
-        assertEquals("01:01:01", rs.getTime("d").toString());
-        assertEquals("2001-01-01 01:01:01.0", rs.getTimestamp(4).toString());
-        assertEquals("2001-01-01 01:01:01.0", rs.getTimestamp("d").toString());
+    }
 
+    private void testPreparedStatement(Connection conn) throws SQLException {
         // using a callable statement like a prepared statement
+        CallableStatement call;
         call = conn.prepareCall("create table test(id int)");
         call.executeUpdate();
         call = conn.prepareCall("insert into test values(1), (2)");
@@ -157,6 +124,9 @@ public class TestCallableStatement extends TestBase {
         call.registerOutParameter(1, Types.BIGINT);
         call.execute();
         assertEquals(1, call.getLong(1));
+        assertEquals(1, call.getByte(1));
+        assertEquals(1, ((Long) call.getObject(1)).longValue());
+        assertFalse(call.wasNull());
 
         call.setFloat(2, 1.1f);
         call.registerOutParameter(1, Types.REAL);
@@ -244,11 +214,12 @@ public class TestCallableStatement extends TestBase {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
         stat.execute("CREATE ALIAS testCall FOR \"" + getClass().getName() + ".testCall\"");
-        call = conn.prepareCall("{CALL testCall(?,?,?)}");
-        call.setInt("A", 100);
+        call = conn.prepareCall("{CALL testCall(?, ?, ?, ?)}");
+        call.setInt("A", 50);
         call.setString(2, "abc");
         long t = System.currentTimeMillis();
         call.setTimestamp("C", new Timestamp(t));
+        call.setTimestamp("D", Timestamp.valueOf("2001-02-03 10:20:30.0"));
         call.registerOutParameter(1, Types.INTEGER);
         call.registerOutParameter("B", Types.VARCHAR);
         call.executeUpdate();
@@ -259,10 +230,45 @@ public class TestCallableStatement extends TestBase {
             // expected exception
         }
         call.registerOutParameter(3, Types.TIMESTAMP);
+        call.registerOutParameter(4, Types.TIMESTAMP);
         call.executeUpdate();
+        
         assertEquals(t + 1, call.getTimestamp(3).getTime());
-        assertEquals(200, call.getInt("A"));
+        assertEquals(t + 1, call.getTimestamp("C").getTime());
+
+        assertEquals("2001-02-03 10:20:30.0", call.getTimestamp(4).toString());
+        assertEquals("2001-02-03 10:20:30.0", call.getTimestamp("D").toString());
+        assertEquals("10:20:30", call.getTime(4).toString());
+        assertEquals("10:20:30", call.getTime("D").toString());
+        assertEquals("2001-02-03", call.getDate(4).toString());
+        assertEquals("2001-02-03", call.getDate("D").toString());
+
+        assertEquals(100, call.getInt(1));
+        assertEquals(100, call.getInt("A"));
+        assertEquals(100, call.getLong(1));
+        assertEquals(100, call.getLong("A"));
+        assertEquals("100", call.getBigDecimal(1).toString());
+        assertEquals("100", call.getBigDecimal("A").toString());
+        assertEquals(100, call.getFloat(1));
+        assertEquals(100, call.getFloat("A"));
+        assertEquals(100, call.getDouble(1));
+        assertEquals(100, call.getDouble("A"));
+        assertEquals(100, call.getByte(1));
+        assertEquals(100, call.getByte("A"));
+        assertEquals(100, call.getShort(1));
+        assertEquals(100, call.getShort("A"));
+        assertTrue(call.getBoolean(1));
+        assertTrue(call.getBoolean("A"));
+        
+        assertEquals("ABC", call.getString(2));
         assertEquals("ABC", call.getString("B"));
+        assertEquals("ABC", call.getNString(2));
+        assertEquals("ABC", call.getNString("B"));
+        assertEquals("ABC", call.getClob(2).getSubString(1, 3));
+        assertEquals("ABC", call.getClob("B").getSubString(1, 3));
+        assertEquals("ABC", call.getNClob(2).getSubString(1, 3));
+        assertEquals("ABC", call.getNClob("B").getSubString(1, 3));
+        
         try {
             call.getString(100);
             fail("incorrect parameter index value");
@@ -323,15 +329,16 @@ public class TestCallableStatement extends TestBase {
      * @param c the value c
      * @return a result set
      */
-    public static ResultSet testCall(Connection conn,  int a, String b, Timestamp c) throws SQLException {
+    public static ResultSet testCall(Connection conn,  int a, String b, Timestamp c, Timestamp d) throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("A", Types.INTEGER, 0, 0);
         rs.addColumn("B", Types.VARCHAR, 0, 0);
         rs.addColumn("C", Types.TIMESTAMP, 0, 0);
+        rs.addColumn("D", Types.TIMESTAMP, 0, 0);
         if ("jdbc:columnlist:connection".equals(conn.getMetaData().getURL())) {
             return rs;
         }
-        rs.addRow(a * 2, b.toUpperCase(), new Timestamp(c.getTime() + 1));
+        rs.addRow(a * 2, b.toUpperCase(), new Timestamp(c.getTime() + 1), d);
         return rs;
     }
 

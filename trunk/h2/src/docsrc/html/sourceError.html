@@ -78,7 +78,7 @@ function go(file, line) {
         url += "&build=";
         url += build;
         get('file').innerHTML = file;
-        get('code').src = url;        
+        get('code').src = url;
     } else {
         if (build && build > 0) {
             var tag = 'tags/version-' + getVersion(build) + '/h2';
@@ -120,7 +120,6 @@ function convert() {
             }
             get('errorCode').innerHTML = errorCode;
             goDetails(errorCode);
-            s = s.substring(end + 1);
         }
         idx = 0;
         s = s.replace(/\t/g, " ");
@@ -237,8 +236,8 @@ function sizeTextArea() {
         <p id = "links"></p>
     </td><td style="border:0px" width="90%">
         <p><b>Source File: </b><span id = "file"></span><br />
-        Raw file <input type="checkbox" id = "rawSource" /> (fast; only Firefox)</p>
-        <iframe id = "code" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="100px" src="">
+        Inline <input type="checkbox" id = "rawSource" checked="checked" /></p>
+        <iframe id = "code" frameborder="0" marginwidth="0" marginheight="0" width="4000px" height="100px" src="">
         </iframe>
     </td>
     </tr></table>

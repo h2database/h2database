@@ -6,6 +6,9 @@
  */
 package org.h2.test.jdbc;
 
+import java.io.ByteArrayInputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.CallableStatement;
@@ -23,6 +26,7 @@ import java.util.Collections;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
+import org.h2.upgrade.v1_1.util.IOUtils;
 import org.h2.util.Utils;
 
 /**
@@ -40,7 +44,7 @@ public class TestCallableStatement extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
+    public void test() throws Exception {
         deleteDb("callableStatement");
         Connection conn = getConnection("callableStatement");
         testOutParameter(conn);
@@ -142,6 +146,7 @@ public class TestCallableStatement extends TestBase {
         call.registerOutParameter(1, Types.BINARY);
         call.execute();
         assertEquals(11, call.getBytes(1).length);
+        assertEquals(11, call.getBlob(1).length());
 
         call.setDate(2, java.sql.Date.valueOf("2000-01-01"));
         call.registerOutParameter(1, Types.DATE);
@@ -187,7 +192,7 @@ public class TestCallableStatement extends TestBase {
         }
     }
 
-    private void testPrepare(Connection conn) throws SQLException {
+    private void testPrepare(Connection conn) throws Exception {
         Statement stat = conn.createStatement();
         CallableStatement call;
         ResultSet rs;
@@ -216,7 +221,7 @@ public class TestCallableStatement extends TestBase {
         stat.execute("CREATE ALIAS testCall FOR \"" + getClass().getName() + ".testCall\"");
         call = conn.prepareCall("{CALL testCall(?, ?, ?, ?)}");
         call.setInt("A", 50);
-        call.setString(2, "abc");
+        call.setString("B", "abc");
         long t = System.currentTimeMillis();
         call.setTimestamp("C", new Timestamp(t));
         call.setTimestamp("D", Timestamp.valueOf("2001-02-03 10:20:30.0"));
@@ -261,6 +266,10 @@ public class TestCallableStatement extends TestBase {
         assertTrue(call.getBoolean("A"));
         
         assertEquals("ABC", call.getString(2));
+        Reader r = call.getCharacterStream(2);
+        assertEquals("ABC", IOUtils.readStringAndClose(r, -1));
+        r = call.getNCharacterStream(2);
+        assertEquals("ABC", IOUtils.readStringAndClose(r, -1));
         assertEquals("ABC", call.getString("B"));
         assertEquals("ABC", call.getNString(2));
         assertEquals("ABC", call.getNString("B"));
@@ -287,6 +296,47 @@ public class TestCallableStatement extends TestBase {
         } catch (SQLException e) {
             // expected exception
         }
+        
+        call.setCharacterStream("B", new StringReader("xyz"));
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        call.setCharacterStream("B", new StringReader("xyz-"), 3);
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        call.setCharacterStream("B", new StringReader("xyz-"), 3L);
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        call.setAsciiStream("B", new ByteArrayInputStream("xyz".getBytes("UTF-8")));
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        call.setAsciiStream("B", new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3);
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        call.setAsciiStream("B", new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3L);
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        
+        call.setClob("B", new StringReader("xyz"));
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        call.setClob("B", new StringReader("xyz-"), 3);
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+
+        call.setNClob("B", new StringReader("xyz"));
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        call.setNClob("B", new StringReader("xyz-"), 3);
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+
+        call.setString("B", "xyz");
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+        call.setNString("B", "xyz");
+        call.executeUpdate();
+        assertEquals("XYZ", call.getString("B"));
+
         // test for exceptions after closing
         call.close();
         assertThrows(ErrorCode.OBJECT_CLOSED, call).

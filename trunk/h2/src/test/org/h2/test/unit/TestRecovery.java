@@ -43,11 +43,9 @@ public class TestRecovery extends TestBase {
         }
         testRecoverClob();
         testRecoverFulltext();
-        if (!config.mvStore) {
-            testRedoTransactions();
-            testCorrupt();
-            testWithTransactionLog();
-        }
+        testRedoTransactions();
+        testCorrupt();
+        testWithTransactionLog();
         testCompressedAndUncompressed();
         testRunScript();
     }
@@ -77,6 +75,8 @@ public class TestRecovery extends TestBase {
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         conn = getConnection("recovery;init=runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        stat = conn.createStatement();
+        stat.execute("select * from test");
         conn.close();
     }
 
@@ -97,7 +97,8 @@ public class TestRecovery extends TestBase {
 
     private void testRedoTransactions() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        Connection conn = getConnection("recovery");
+        // not needed for MV_STORE=TRUE
+        Connection conn = getConnection("recovery;MV_STORE=false");
         Statement stat = conn.createStatement();
         stat.execute("set write_delay 0");
         stat.execute("create table test(id int primary key, name varchar)");
@@ -136,7 +137,8 @@ public class TestRecovery extends TestBase {
 
     private void testCorrupt() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        Connection conn = getConnection("recovery");
+        // not needed for MV_STORE=TRUE
+        Connection conn = getConnection("recovery;MV_STORE=false");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar) as select 1, 'Hello World1'");
         conn.close();
@@ -162,7 +164,8 @@ public class TestRecovery extends TestBase {
 
     private void testWithTransactionLog() throws SQLException {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        Connection conn = getConnection("recovery");
+        // not needed for MV_STORE=TRUE
+        Connection conn = getConnection("recovery;MV_STORE=false");
         Statement stat = conn.createStatement();
         stat.execute("create table truncate(id int primary key) as select x from system_range(1, 1000)");
         stat.execute("create table test(id int primary key, data int, text varchar)");
@@ -195,10 +198,10 @@ public class TestRecovery extends TestBase {
             // expected
         }
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
-        conn = getConnection("recovery");
+        conn = getConnection("recovery;MV_STORE=false");
         conn.close();
         Recover.main("-dir", getBaseDir(), "-db", "recovery", "-removePassword");
-        conn = getConnection("recovery", getUser(), "");
+        conn = getConnection("recovery;MV_STORE=false", getUser(), "");
         conn.close();
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
     }

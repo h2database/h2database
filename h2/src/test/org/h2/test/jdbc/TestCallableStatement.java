@@ -26,7 +26,7 @@ import java.util.Collections;
 import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
-import org.h2.upgrade.v1_1.util.IOUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 
 /**

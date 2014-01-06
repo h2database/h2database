@@ -33,8 +33,8 @@ import org.h2.value.ValueGeometry;
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class TestSpatial extends TestBase {
-    
-    String url = "spatial";
+
+    private String url = "spatial";
 
     /**
      * Run just this test.
@@ -51,15 +51,20 @@ public class TestSpatial extends TestBase {
             return;
         }
         if (DataType.GEOMETRY_CLASS != null) {
+
             deleteDb("spatial");
             url = "spatial";
             testSpatial();
-            url = "spatial;MV_STORE=false";
-            testSpatial();
             deleteDb("spatial");
+
+            if (!config.mvcc) {
+                url = "spatial;MV_STORE=false";
+                testSpatial();
+                deleteDb("spatial");
+            }
         }
     }
-    
+
     private void testSpatial() throws SQLException {
         testSpatialValues();
         testOverlap();
@@ -603,7 +608,7 @@ public class TestSpatial extends TestBase {
             // expected
         }
     }
-    
+
     /**
      * Check that geometry column type is kept with a table function
      */
@@ -625,13 +630,20 @@ public class TestSpatial extends TestBase {
         }
         deleteDb("spatial");
     }
-    
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param x the x position of the point
+     * @param y the y position of the point
+     * @return a result set with this point
+     */
     public static ResultSet pointTable(double x, double y) {
         GeometryFactory factory = new GeometryFactory();
-        SimpleResultSet srs = new SimpleResultSet();
-        srs.addColumn("THE_GEOM", Types.JAVA_OBJECT, "GEOMETRY", 0, 0);
-        srs.addRow(factory.createPoint(new Coordinate(x, y)));
-        return srs;
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.addColumn("THE_GEOM", Types.JAVA_OBJECT, "GEOMETRY", 0, 0);
+        rs.addRow(factory.createPoint(new Coordinate(x, y)));
+        return rs;
     }
 
 }

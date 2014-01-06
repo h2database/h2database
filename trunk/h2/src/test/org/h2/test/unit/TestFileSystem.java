@@ -31,6 +31,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.cache.FilePathCache;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathEncrypt;
+import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
@@ -65,6 +66,7 @@ public class TestFileSystem extends TestBase {
         testUnsupportedFeatures(getBaseDir());
         FilePathZip2.register();
         FilePath.register(new FilePathCache());
+        FilePathRec.register();
         testZipFileSystem("zip:");
         testZipFileSystem("cache:zip:");
         testZipFileSystem("zip2:");
@@ -85,6 +87,7 @@ public class TestFileSystem extends TestBase {
         testFileSystem("memLZF:");
         testFileSystem("nioMemFS:");
         testFileSystem("nioMemLZF:");
+        testFileSystem("rec:memFS:");
         testUserHome();
         try {
             testFileSystem("nio:" + getBaseDir() + "/fs");

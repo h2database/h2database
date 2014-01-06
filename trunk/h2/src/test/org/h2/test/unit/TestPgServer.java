@@ -48,7 +48,7 @@ public class TestPgServer extends TestBase {
         testCancelQuery();
         testBinaryTypes();
     }
-    
+
     private void testLowerCaseIdentifiers() throws SQLException {
         if (!getPgJdbcDriver()) {
             return;

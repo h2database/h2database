@@ -42,7 +42,7 @@ public class TestDataUtils extends TestBase {
         testCheckValue();
         testPagePos();
     }
-    
+
     private static void testWriteBuffer() {
         WriteBuffer buff = new WriteBuffer();
         buff.put(new byte[1500000]);

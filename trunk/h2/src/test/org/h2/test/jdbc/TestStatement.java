@@ -8,14 +8,19 @@ package org.h2.test.jdbc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Properties;
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.New;
 
 /**
  * Tests for the Statement implementation.
@@ -47,11 +52,20 @@ public class TestStatement extends TestBase {
         conn.close();
         deleteDb("statement");
     }
-        
+
     private void testUnsupportedOperations() throws Exception {
         Statement stat = conn.createStatement();
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).isWrapperFor(Object.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).unwrap(Object.class);
+        
+        conn.setTypeMap(null);
+        HashMap<String, Class<?>> map = New.hashMap();
+        conn.setTypeMap(map);
+        map.put("x", Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).setTypeMap(map);
+        
+        assertThrows(SQLClientInfoException.class, conn).setClientInfo("X", "Y");
+        assertThrows(SQLClientInfoException.class, conn).setClientInfo(new Properties());
     }
 
     private void testTraceError() throws Exception {
@@ -120,6 +134,7 @@ public class TestStatement extends TestBase {
         assertTrue(id1 != id2);
         stat.execute("UPDATE TEST SET NAME='Hallo' WHERE NAME='Hello'");
         Savepoint savepointTest = conn.setSavepoint("Joe's");
+        assertTrue(savepointTest.toString().endsWith("name=Joe's"));
         stat.execute("DELETE FROM TEST");
         assertEquals(savepointTest.getSavepointName(), "Joe's");
         assertThrows(ErrorCode.SAVEPOINT_IS_NAMED, savepointTest).
@@ -144,6 +159,10 @@ public class TestStatement extends TestBase {
         assertEquals(ResultSet.HOLD_CURSORS_OVER_COMMIT, conn.getHoldability());
         conn.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
         assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT, conn.getHoldability());
+
+        assertFalse(stat.isPoolable());
+        stat.setPoolable(true);
+        assertFalse(stat.isPoolable());
 
         // ignored
         stat.setCursorName("x");

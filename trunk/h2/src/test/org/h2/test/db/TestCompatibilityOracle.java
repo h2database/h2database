@@ -22,7 +22,7 @@ public class TestCompatibilityOracle extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param s ignored
      */
     public static void main(String... s) throws Exception {

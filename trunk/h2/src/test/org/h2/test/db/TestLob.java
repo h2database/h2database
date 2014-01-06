@@ -1561,7 +1561,7 @@ public class TestLob extends TestBase {
                     buffer[count] = ch;
                 }
             } else if (ch >= 56192 && ch <= 56319) {
-                // private high surrogate, no effing clue, so skip it
+                // private high surrogate: no clue, so skip it
                 count++;
             } else {
                 buffer[count] = ch;

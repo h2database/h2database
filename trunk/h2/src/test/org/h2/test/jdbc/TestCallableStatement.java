@@ -58,7 +58,7 @@ public class TestCallableStatement extends TestBase {
         conn.close();
         deleteDb("callableStatement");
     }
-    
+
     private void testOutParameter(Connection conn) throws SQLException {
         conn.createStatement().execute(
                 "create table test(id identity) as select null");
@@ -73,7 +73,7 @@ public class TestCallableStatement extends TestBase {
         conn.createStatement().execute(
                 "drop table test");
     }
-    
+
     private void testUnsupportedOperations(Connection conn) throws SQLException {
         CallableStatement call;
         call = conn.prepareCall("select 10 as a");
@@ -82,18 +82,18 @@ public class TestCallableStatement extends TestBase {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRef(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRowId(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getSQLXML(1);
-        
+
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getURL("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getObject("a", Collections.<String, Class<?>>emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRef("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getRowId("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).getSQLXML("a");
-        
+
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setURL(1, (URL) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setRef(1, (Ref) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setRowId(1, (RowId) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setSQLXML(1, (SQLXML) null);
-        
+
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setURL("a", (URL) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setRowId("a", (RowId) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).setSQLXML("a", (SQLXML) null);
@@ -120,7 +120,7 @@ public class TestCallableStatement extends TestBase {
         call = conn.prepareCall("drop table test");
         call.executeUpdate();
     }
-    
+
     private void testGetters(Connection conn) throws SQLException {
         CallableStatement call;
         call = conn.prepareCall("{?=call ?}");
@@ -141,7 +141,7 @@ public class TestCallableStatement extends TestBase {
         call.registerOutParameter(1, Types.DOUBLE);
         call.execute();
         assertEquals(Math.PI, call.getDouble(1));
-        
+
         call.setBytes(2, new byte[11]);
         call.registerOutParameter(1, Types.BINARY);
         call.execute();
@@ -152,7 +152,7 @@ public class TestCallableStatement extends TestBase {
         call.registerOutParameter(1, Types.DATE);
         call.execute();
         assertEquals("2000-01-01", call.getDate(1).toString());
-        
+
         call.setTime(2, java.sql.Time.valueOf("01:02:03"));
         call.registerOutParameter(1, Types.TIME);
         call.execute();
@@ -172,7 +172,7 @@ public class TestCallableStatement extends TestBase {
         call.registerOutParameter(1, Types.SMALLINT);
         call.execute();
         assertEquals(123, call.getShort(1));
-        
+
         call.setBigDecimal(2, BigDecimal.TEN);
         call.registerOutParameter(1, Types.DECIMAL);
         call.execute();
@@ -237,7 +237,7 @@ public class TestCallableStatement extends TestBase {
         call.registerOutParameter(3, Types.TIMESTAMP);
         call.registerOutParameter(4, Types.TIMESTAMP);
         call.executeUpdate();
-        
+
         assertEquals(t + 1, call.getTimestamp(3).getTime());
         assertEquals(t + 1, call.getTimestamp("C").getTime());
 
@@ -264,7 +264,7 @@ public class TestCallableStatement extends TestBase {
         assertEquals(100, call.getShort("A"));
         assertTrue(call.getBoolean(1));
         assertTrue(call.getBoolean("A"));
-        
+
         assertEquals("ABC", call.getString(2));
         Reader r = call.getCharacterStream(2);
         assertEquals("ABC", IOUtils.readStringAndClose(r, -1));
@@ -277,7 +277,7 @@ public class TestCallableStatement extends TestBase {
         assertEquals("ABC", call.getClob("B").getSubString(1, 3));
         assertEquals("ABC", call.getNClob(2).getSubString(1, 3));
         assertEquals("ABC", call.getNClob("B").getSubString(1, 3));
-        
+
         try {
             call.getString(100);
             fail("incorrect parameter index value");
@@ -296,7 +296,7 @@ public class TestCallableStatement extends TestBase {
         } catch (SQLException e) {
             // expected exception
         }
-        
+
         call.setCharacterStream("B", new StringReader("xyz"));
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
@@ -315,7 +315,7 @@ public class TestCallableStatement extends TestBase {
         call.setAsciiStream("B", new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3L);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
-        
+
         call.setClob("B", new StringReader("xyz"));
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
@@ -369,7 +369,7 @@ public class TestCallableStatement extends TestBase {
     public static Boolean testClassF(Boolean b) {
         return !b;
     }
-    
+
     /**
      * This method is called via reflection from the database.
      *
@@ -377,6 +377,7 @@ public class TestCallableStatement extends TestBase {
      * @param a the value a
      * @param b the value b
      * @param c the value c
+     * @param d the value d
      * @return a result set
      */
     public static ResultSet testCall(Connection conn,  int a, String b, Timestamp c, Timestamp d) throws SQLException {

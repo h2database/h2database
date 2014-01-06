@@ -9,15 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 
-import org.h2.mvstore.Chunk;
-import org.h2.mvstore.MVStore;
-import org.h2.mvstore.Page;
-import org.h2.mvstore.db.TransactionStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.Profiler;
-import org.h2.value.ValueLong;
-import org.h2.value.ValueString;
 
 /**
  * Tests performance and helps analyze bottlenecks.
@@ -42,8 +35,12 @@ public class TestBenchmark extends TestBase {
         test(true);
         test(false);
     }
-    
+
     private void test(boolean mvStore) throws Exception {
+
+        ;
+        // TODO this test is currently disabled
+
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
@@ -51,21 +48,19 @@ public class TestBenchmark extends TestBase {
         if (mvStore) {
             url += ";MV_STORE=TRUE;LOG=0";
         }
-// 2033 mvstore
-// 2313 (2075?) default
-        
-        
+
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
         stat.execute("create table test(id bigint primary key, name varchar)");
         conn.setAutoCommit(false);
-        PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
+        PreparedStatement prep = conn
+                .prepareStatement("insert into test values(?, ?)");
         String data = "Hello World";
-        
+
         int rowCount = 100000;
-        int readCount = 20* rowCount;
-        
+        int readCount = 20 * rowCount;
+
         for (int i = 0; i < rowCount; i++) {
             prep.setInt(1, i);
             prep.setString(2, data);
@@ -76,44 +71,16 @@ public class TestBenchmark extends TestBase {
         }
         long start = System.currentTimeMillis();
 
-//  Profiler prof = new Profiler();
-//  prof.sumClasses=true;
-//  prof.startCollecting();
-      ;
-        
         prep = conn.prepareStatement("select * from test where id = ?");
         for (int i = 0; i < readCount; i++) {
             prep.setInt(1, i % rowCount);
             prep.executeQuery();
         }
 
-        
-//System.out.println("Transactionstore.counter " + ValueLong.counter);
-//System.out.println("count " + Page.writeCount + " avgLen " + (1.0*Page.writeLength/Page.writeCount) + " avgSize " + (1.0*Page.writeSize/Page.writeCount));
-//System.out.println(prof.getTop(5));
-//System.out.println("ountUnc:" + counterUnc);
-//System.out.println("ount:" + counter);
-        System.out.println((System.currentTimeMillis() - start) + " " + (mvStore ? "mvstore" : "default"));
+        System.out.println((System.currentTimeMillis() - start) + " "
+                + (mvStore ? "mvstore" : "default"));
         conn.close();
 
-//        MVStore s = new MVStore.Builder().fileName(getBaseDir() + "/mvstore.mv.db").open();
-//        int count = 0;
-//        long length = 0;
-//        for(String k : s.getMetaMap().keyList()) {
-//            if (k.startsWith("chunk.")) {
-//                String x = s.getMetaMap().get(k);
-//                Chunk c = Chunk.fromString(x);
-//                if (c.length < Integer.MAX_VALUE) {
-//                    count++;
-//                    length += c.length;
-//                }
-//            }
-//        }
-//        if (count > 0) {
-//            System.out.println("chunks: " + count + " average length: " + (length / count));
-//        }
-//        s.close();
-        
     }
 
 }

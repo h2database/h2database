@@ -38,6 +38,7 @@ public class TestBnf extends TestBase {
         deleteDb("bnf");
         Connection conn = getConnection("bnf");
         try {
+            testModes(conn);
             testProcedures(conn, false);
         } finally {
             conn.close();
@@ -49,6 +50,34 @@ public class TestBnf extends TestBase {
             conn.close();
         }
     }
+    
+    private void testModes(Connection conn) throws Exception {
+        DbContents dbContents;
+        dbContents = new DbContents();
+        dbContents.readContents("jdbc:h2:test", conn);
+        assertTrue(dbContents.isH2());
+        dbContents = new DbContents();
+        dbContents.readContents("jdbc:derby:test", conn);
+        assertTrue(dbContents.isDerby());
+        dbContents = new DbContents();
+        dbContents.readContents("jdbc:firebirdsql:test", conn);
+        assertTrue(dbContents.isFirebird());
+        dbContents = new DbContents();
+        dbContents.readContents("jdbc:sqlserver:test", conn);
+        assertTrue(dbContents.isMSSQLServer());
+        dbContents = new DbContents();
+        dbContents.readContents("jdbc:mysql:test", conn);
+        assertTrue(dbContents.isMySQL());
+        dbContents = new DbContents();
+        dbContents.readContents("jdbc:oracle:test", conn);
+        assertTrue(dbContents.isOracle());
+        dbContents = new DbContents();
+        dbContents.readContents("jdbc:postgresql:test", conn);
+        assertTrue(dbContents.isPostgreSQL());
+        dbContents = new DbContents();
+        dbContents.readContents("jdbc:sqlite:test", conn);
+        assertTrue(dbContents.isSQLite());
+    }
 
     private void testProcedures(Connection conn, boolean isMySQLMode) throws Exception {
         // Register a procedure and check if it is present in DbContents
@@ -57,7 +86,7 @@ public class TestBnf extends TestBase {
         conn.createStatement().execute("DROP TABLE IF EXISTS TABLE_WITH_STRING_FIELD");
         conn.createStatement().execute("CREATE TABLE TABLE_WITH_STRING_FIELD (STRING_FIELD VARCHAR(50), INT_FIELD integer)");
         DbContents dbContents = new DbContents();
-        dbContents.readContents(conn.getMetaData());
+        dbContents.readContents("jdbc:h2:test", conn);
         assertTrue(dbContents.isH2());
         assertFalse(dbContents.isDerby());
         assertFalse(dbContents.isFirebird());

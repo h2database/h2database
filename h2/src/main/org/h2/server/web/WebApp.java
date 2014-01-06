@@ -663,14 +663,14 @@ public class WebApp {
         DbContents contents = session.getContents();
         boolean isH2 = false;
         try {
-            contents.readContents(session.getMetaData());
-            session.loadBnf();
+            String url = (String) session.get("url");
             Connection conn = session.getConnection();
-            DatabaseMetaData meta = session.getMetaData();
+            contents.readContents(url, conn);
+            session.loadBnf();
             isH2 = contents.isH2();
 
             StringBuilder buff = new StringBuilder();
-            buff.append("setNode(0, 0, 0, 'database', '" + PageParser.escapeJavaScript((String) session.get("url"))
+            buff.append("setNode(0, 0, 0, 'database', '" + PageParser.escapeJavaScript(url)
                     + "', null);\n");
             int treeIndex = 1;
 
@@ -735,6 +735,7 @@ public class WebApp {
                     JdbcUtils.closeSilently(stat);
                 }
             }
+            DatabaseMetaData meta = session.getMetaData();
             String version = meta.getDatabaseProductName() + " " + meta.getDatabaseProductVersion();
             buff.append("setNode(" + treeIndex + ", 0, 0, 'info', '" + PageParser.escapeJavaScript(version)
                     + "', null);\n");

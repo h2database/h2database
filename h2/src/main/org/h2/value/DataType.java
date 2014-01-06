@@ -739,7 +739,7 @@ public class DataType {
     /**
      * Convert a SQL type to a value type using SQL type name, in order to
      * manage SQL type extension mechanism.
-     * 
+     *
      * @param sqlType the SQL type
      * @param sqlTypeName the SQL type name
      * @return the value type
@@ -754,16 +754,16 @@ public class DataType {
         }
         return convertSQLTypeToValueType(sqlType);
     }
-    
+
     /**
      * Get the SQL type from the result set meta data for the given column. This
      * method uses the SQL type and type name.
-     * 
+     *
      * @param meta the meta data
      * @param columnIndex the column index (1, 2,...)
      * @return the value type
      */
-    public static int getValueTypeFromResultSet(ResultSetMetaData meta, int columnIndex) 
+    public static int getValueTypeFromResultSet(ResultSetMetaData meta, int columnIndex)
             throws SQLException {
         return convertSQLTypeToValueType(
                 meta.getColumnType(columnIndex),

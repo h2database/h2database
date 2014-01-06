@@ -150,7 +150,7 @@ import org.h2.value.ValueTimestamp;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
- * 
+ *
  * @author Thomas Mueller
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
@@ -211,7 +211,7 @@ public class Parser {
 
     /**
      * Parse the statement and prepare it for execution.
-     * 
+     *
      * @param sql the SQL statement to parse
      * @return the prepared object
      */
@@ -226,7 +226,7 @@ public class Parser {
 
     /**
      * Parse a statement or a list of statements, and prepare it for execution.
-     * 
+     *
      * @param sql the SQL statement to parse
      * @return the command object
      */
@@ -259,7 +259,7 @@ public class Parser {
 
     /**
      * Parse the statement, but don't prepare it for execution.
-     * 
+     *
      * @param sql the SQL statement to parse
      * @return the prepared object
      */
@@ -3575,7 +3575,7 @@ public class Parser {
 
     /**
      * Checks if this string is a SQL keyword.
-     * 
+     *
      * @param s the token to check
      * @param supportOffsetFetch if OFFSET and FETCH are keywords
      * @return true if it is a keyword
@@ -5684,7 +5684,7 @@ public class Parser {
 
     /**
      * Add double quotes around an identifier if required.
-     * 
+     *
      * @param s the identifier
      * @return the quoted identifier
      */
@@ -5715,7 +5715,7 @@ public class Parser {
 
     /**
      * Parse a SQL code snippet that represents an expression.
-     * 
+     *
      * @param sql the code snippet
      * @return the expression object
      */
@@ -5728,7 +5728,7 @@ public class Parser {
 
     /**
      * Parse a SQL code snippet that represents a table name.
-     * 
+     *
      * @param sql the code snippet
      * @return the table object
      */

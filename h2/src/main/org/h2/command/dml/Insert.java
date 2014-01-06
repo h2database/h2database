@@ -48,7 +48,7 @@ public class Insert extends Prepared implements ResultTarget {
     private boolean sortedInsertMode;
     private int rowNumber;
     private boolean insertFromSelect;
-    
+
     /**
      * for MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
      */
@@ -81,7 +81,7 @@ public class Insert extends Prepared implements ResultTarget {
     /**
      * Keep a collection of the columns to pass to update if a duplicate key
      * happens, for MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
-     * 
+     *
      * @param column the column
      * @param expression the expression
      */
@@ -318,9 +318,9 @@ public class Insert extends Prepared implements ResultTarget {
             throw de;
         }
         if (duplicateKeyAssignmentMap == null || duplicateKeyAssignmentMap.isEmpty()) {
-          throw de;
+            throw de;
         }
-        
+
         ArrayList<String> variableNames = new ArrayList<String>(duplicateKeyAssignmentMap.size());
         for (int i = 0; i < columns.length; i++) {
             String key = session.getCurrentSchemaName() + "." + table.getName() + "." + columns[i].getName();
@@ -358,7 +358,7 @@ public class Insert extends Prepared implements ResultTarget {
                         if (indexColumn.getName() == insertColumn.getName()) {
                             foundIndex = index;
                             break;
-                        } 
+                        }
                         foundIndex = null;
                     }
                     if (foundIndex == null) {

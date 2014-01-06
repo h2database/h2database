@@ -1721,7 +1721,7 @@ public class ErrorCode {
     /**
      * The error with code <code>90127</code> is thrown when
      * trying to update or delete a row in a result set if the result set is
-     * not updatable. Result sets are only updatable if: 
+     * not updatable. Result sets are only updatable if:
      * the statement was created with updatable concurrency;
      * all columns of the result set are from the same table;
      * the table is a data table (not a system table or view);

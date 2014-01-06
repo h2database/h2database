@@ -46,9 +46,11 @@ public class CreateFunctionAlias extends SchemaCommand {
             int id = getObjectId();
             FunctionAlias functionAlias;
             if (javaClassMethod != null) {
-                functionAlias = FunctionAlias.newInstance(getSchema(), id, aliasName, javaClassMethod, force, bufferResultSetToLocalTemp);
+                functionAlias = FunctionAlias.newInstance(
+                        getSchema(), id, aliasName, javaClassMethod, force, bufferResultSetToLocalTemp);
             } else {
-                functionAlias = FunctionAlias.newInstanceFromSource(getSchema(), id, aliasName, source, force, bufferResultSetToLocalTemp);
+                functionAlias = FunctionAlias.newInstanceFromSource(
+                        getSchema(), id, aliasName, source, force, bufferResultSetToLocalTemp);
             }
             functionAlias.setDeterministic(deterministic);
             db.addSchemaObject(session, functionAlias);
@@ -83,6 +85,8 @@ public class CreateFunctionAlias extends SchemaCommand {
 
     /**
      * Should the return value ResultSet be buffered in a local temporary file?
+     *
+     * @param b the new value
      */
     public void setBufferResultSetToLocalTemp(boolean b) {
         this.bufferResultSetToLocalTemp = b;

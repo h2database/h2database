@@ -37,6 +37,7 @@
 90007=Objekt jest zamkniety
 90008=Nieprawidlowa wartosc {0} parametru {1}
 90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
+90010=#Invalid TO_CHAR format {0}
 90012=Parametr o numerze {0} nie jest ustalony
 90013=Baza danych {0} nie znaleziona
 90014=Blad parsowania {0}

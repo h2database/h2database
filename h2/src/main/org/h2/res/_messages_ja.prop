@@ -37,6 +37,7 @@
 90007=オブジェクトはすでに閉じられています
 90008=パラメータ {1} に対する値 {0} が不正です
 90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
+90010=#Invalid TO_CHAR format {0}
 90012=パラメータ {0} がセットされていません
 90013=データベース {0} が見つかりません
 90014=解析エラー {0}

@@ -47,12 +47,6 @@ public class DropDatabase extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         db.lockMeta(session);
-        // TODO local temp tables are not removed
-        for (Schema schema : db.getAllSchemas()) {
-            if (schema.canDrop()) {
-                db.removeDatabaseObject(session, schema);
-            }
-        }
 
         // There can be dependencies between tables e.g. using computed columns,
         // so we might need to loop over them multiple times.
@@ -92,6 +86,12 @@ public class DropDatabase extends DefineCommand {
             }
         } while (runLoopAgain);
 
+        // TODO local temp tables are not removed
+        for (Schema schema : db.getAllSchemas()) {
+            if (schema.canDrop()) {
+                db.removeDatabaseObject(session, schema);
+            }
+        }
         session.findLocalTempTable(null);
         ArrayList<SchemaObject> list = New.arrayList();
         list.addAll(db.getAllSchemaObjects(DbObject.SEQUENCE));

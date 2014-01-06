@@ -37,6 +37,7 @@
 90007=O objeto está fechado
 90008=Valor inválido {0} para o parâmetro {1}
 90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
+90010=#Invalid TO_CHAR format {0}
 90012=Parâmetro {0} não esta definido
 90013=Base de dados {0} não encontrada
 90014=Erro na conversão {0}

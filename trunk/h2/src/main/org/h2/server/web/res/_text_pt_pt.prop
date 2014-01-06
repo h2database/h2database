@@ -46,6 +46,7 @@ helpDisconnect=Fechar conexão à Base de Dados
 helpDisplayThis=Mostrar esta página de ajuda
 helpDropTable=Apagar a tabela, caso ela exista
 helpExecuteCurrent=Executar o comando SQL corrente
+helpExecuteSelected=#Executes the SQL statement defined by the text selection
 helpIcon=Simbolo
 helpImportantCommands=Comandos importantes
 helpOperations=Operações=
@@ -101,6 +102,7 @@ toolbar.maxRows=Número máximo de linhas
 toolbar.refresh=Actualizar
 toolbar.rollback=Rollback
 toolbar.run=Executar comando (Ctrl+Enter)
+toolbar.runSelected=#Run Selected (Shift+Enter)
 toolbar.sqlStatement=Comando SQL
 tools.backup=#Backup
 tools.backup.help=#Creates a backup of a database.

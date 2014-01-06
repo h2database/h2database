@@ -210,4 +210,9 @@ class FileRec extends FileBase {
         return channel.tryLock(position, size, shared);
     }
 
+    @Override
+    public String toString() {
+        return name;
+    }
+
 }

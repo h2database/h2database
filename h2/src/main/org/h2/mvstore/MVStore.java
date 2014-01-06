@@ -2166,7 +2166,7 @@ public class MVStore {
          * KB for in-memory stores. This is not a limit in the page size, as
          * pages with one entry can get larger. It is just the point where pages
          * that contain more than one entry are split.
-         * 
+         *
          * @param pageSplitSize the page size
          * @return this
          */

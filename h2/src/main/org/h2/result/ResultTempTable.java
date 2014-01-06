@@ -69,7 +69,7 @@ public class ResultTempTable implements ResultExternal {
         } else {
             index = new PageBtreeIndex((RegularTable) table, indexId, data.tableName, indexCols, indexType, true, session);
             index.setTemporary(true);
-            table.getIndexes().add(index);        
+            table.getIndexes().add(index);
         }
         parent = null;
     }

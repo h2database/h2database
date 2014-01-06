@@ -28,7 +28,7 @@ import org.h2.util.New;
  * A store that supports concurrent transactions.
  */
 public class TransactionStore {
-    
+
     /**
      * Whether the concurrent maps should be used.
      */
@@ -61,7 +61,7 @@ public class TransactionStore {
      * The lock timeout in milliseconds. 0 means timeout immediately.
      */
     long lockTimeout;
-    
+
     /**
      * The map of maps.
      */
@@ -70,7 +70,7 @@ public class TransactionStore {
     private final DataType dataType;
 
     private int lastTransactionId;
-    
+
     private int maxTransactionId = 0xffff;
 
     /**
@@ -104,30 +104,49 @@ public class TransactionStore {
         undoLog = store.openMap("undoLog", builder);
         init();
     }
-    
+
     /**
      * Set the maximum transaction id, after which ids are re-used. If the old
      * transaction is still in use when re-using an old id, the new transaction
      * fails.
-     * 
+     *
      * @param max the maximum id
      */
     public void setMaxTransactionId(int max) {
         this.maxTransactionId = max;
     }
-    
+
+    /**
+     * Combine the transaction id and the log id to an operation id.
+     *
+     * @param transactionId the transaction id
+     * @param logId the log id
+     * @return the operation id
+     */
     static long getOperationId(int transactionId, long logId) {
-        DataUtils.checkArgument(transactionId >= 0 && transactionId < (1 << 24), 
+        DataUtils.checkArgument(transactionId >= 0 && transactionId < (1 << 24),
                 "Transaction id out of range: {0}", transactionId);
-        DataUtils.checkArgument(logId >= 0 && logId < (1L << 40), 
+        DataUtils.checkArgument(logId >= 0 && logId < (1L << 40),
                 "Transaction log id out of range: {0}", logId);
         return ((long) transactionId << 40) | logId;
     }
-    
+
+    /**
+     * Get the transaction id for the given operation id.
+     *
+     * @param operationId the operation id
+     * @return the transaction id
+     */
     static int getTransactionId(long operationId) {
         return (int) (operationId >>> 40);
     }
 
+    /**
+     * Get the log id for the given operation id.
+     *
+     * @param operationId the operation id
+     * @return the log id
+     */
     static long getLogId(long operationId) {
         return operationId & ((1L << 40) - 1);
     }
@@ -226,8 +245,8 @@ public class TransactionStore {
             if (logId == 0) {
                 if (undoLog.containsKey(undoKey)) {
                     throw DataUtils.newIllegalStateException(
-                            DataUtils.ERROR_TRANSACTION_STILL_OPEN, 
-                            "An old transaction with the same id is still open: {0}", 
+                            DataUtils.ERROR_TRANSACTION_STILL_OPEN,
+                            "An old transaction with the same id is still open: {0}",
                             t.getId());
                 }
             }
@@ -247,7 +266,14 @@ public class TransactionStore {
             undoLog.remove(undoKey);
         }
     }
-    
+
+    /**
+     * Remove the given map.
+     *
+     * @param <K> the key type
+     * @param <V> the value type
+     * @param map the map
+     */
     synchronized <K, V> void removeMap(TransactionMap<K, V> map) {
         maps.remove(map.mapId);
         store.removeMap(map.map);
@@ -301,8 +327,18 @@ public class TransactionStore {
         }
         endTransaction(t);
     }
-    
-    synchronized <K> MVMap<K, VersionedValue> openMap(String name, DataType keyType, DataType valueType) {
+
+    /**
+     * Open the map with the given name.
+     *
+     * @param <K> the key type
+     * @param name the map name
+     * @param keyType the key type
+     * @param valueType the value type
+     * @return the map
+     */
+    synchronized <K> MVMap<K, VersionedValue> openMap(String name,
+            DataType keyType, DataType valueType) {
         if (keyType == null) {
             keyType = new ObjectDataType();
         }
@@ -312,12 +348,12 @@ public class TransactionStore {
         VersionedValueType vt = new VersionedValueType(valueType);
         MVMap<K, VersionedValue> map;
         if (CONCURRENT) {
-            MVMapConcurrent.Builder<K, VersionedValue> builder = 
+            MVMapConcurrent.Builder<K, VersionedValue> builder =
                     new MVMapConcurrent.Builder<K, VersionedValue>().
                     keyType(keyType).valueType(vt);
             map = store.openMap(name, builder);
         } else {
-            MVMap.Builder<K, VersionedValue> builder = 
+            MVMap.Builder<K, VersionedValue> builder =
                     new MVMap.Builder<K, VersionedValue>().
                     keyType(keyType).valueType(vt);
             map = store.openMap(name, builder);
@@ -328,6 +364,12 @@ public class TransactionStore {
         return map;
     }
 
+    /**
+     * Open the map with the given id.
+     *
+     * @param mapId the id
+     * @return the map
+     */
     synchronized MVMap<Object, VersionedValue> openMap(int mapId) {
         MVMap<Object, VersionedValue> map = maps.get(mapId);
         if (map != null) {
@@ -731,7 +773,7 @@ public class TransactionStore {
         public <K, V> void removeMap(TransactionMap<K, V> map) {
             store.removeMap(map);
         }
-        
+
         @Override
         public String toString() {
             return "" + transactionId;
@@ -751,7 +793,7 @@ public class TransactionStore {
          * The map id.
          */
         final int mapId;
-        
+
         /**
          * If a record was read that was updated by this transaction, and the
          * update occurred before this log id, the older version is read. This
@@ -767,7 +809,7 @@ public class TransactionStore {
          * Value: { transactionId, oldVersion, value }
          */
         final MVMap<K, VersionedValue> map;
-        
+
         private Transaction transaction;
 
         TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map, int mapId) {
@@ -798,7 +840,7 @@ public class TransactionStore {
             m.setSavepoint(savepoint);
             return m;
         }
-        
+
         /**
          * Get the size of the raw map.
          *
@@ -1060,7 +1102,15 @@ public class TransactionStore {
             VersionedValue data = map.get(key);
             return getValue(key, maxLog, data);
         }
-        
+
+        /**
+         * Get the versioned value for the given key.
+         *
+         * @param key the key
+         * @param maxLog the maximum log id of the entry
+         * @param data the value stored in the main map
+         * @return the value
+         */
         VersionedValue getValue(K key, long maxLog, VersionedValue data) {
             while (true) {
                 if (data == null) {
@@ -1085,13 +1135,13 @@ public class TransactionStore {
                     d = transaction.store.undoLog.get(id);
                 }
                 if (d == null) {
-                    // this entry was committed or rolled back 
+                    // this entry was committed or rolled back
                     // in the meantime (the transaction might still be open)
                     data = map.get(key);
                 } else {
                     data = (VersionedValue) d[2];
                 }
-                // verify this is either committed, 
+                // verify this is either committed,
                 // or the same transaction and earlier
                 if (data != null) {
                     long id2 = data.operationId;
@@ -1109,7 +1159,7 @@ public class TransactionStore {
                 }
             }
             throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_TRANSACTION_CORRUPT, 
+                    DataUtils.ERROR_TRANSACTION_CORRUPT,
                     "The transaction log might be corrupt for key {0}", key);
         }
 
@@ -1238,7 +1288,13 @@ public class TransactionStore {
             Iterator<K> it = map.keyIterator(from);
             return wrapIterator(it, includeUncommitted);
         }
-        
+
+        /**
+         * Iterate over entries.
+         *
+         * @param from the first key to return
+         * @return the iterator
+         */
         public Iterator<Entry<K, V>> entryIterator(K from) {
             final Cursor<K, VersionedValue> cursor = map.cursor(from);
             return new Iterator<Entry<K, V>>() {
@@ -1279,11 +1335,11 @@ public class TransactionStore {
                 public void remove() {
                     throw DataUtils.newUnsupportedOperationException(
                             "Removing is not supported");
-                }                
+                }
             };
-            
+
         }
-        
+
         /**
          * Iterate over keys.
          *
@@ -1408,12 +1464,12 @@ public class TransactionStore {
          * The value.
          */
         public Object value;
-        
+
         @Override
         public String toString() {
             return value + (operationId == 0 ? "" : (
-                    " " + 
-                    getTransactionId(operationId) + "/" + 
+                    " " +
+                    getTransactionId(operationId) + "/" +
                     getLogId(operationId)));
         }
 

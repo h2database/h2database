@@ -45,7 +45,7 @@ import org.h2.value.ValueLobDb;
  * take a very long time. If we did them on a normal session, we would be
  * locking the LOB tables for long periods of time, which is extremely
  * detrimental to the rest of the system. Perhaps when we shift to the MVStore
- * engine, we can revisit this design decision 
+ * engine, we can revisit this design decision
  * (using the StreamStore, that is, no connection at all).
  * <p>
  * Locking
@@ -783,20 +783,20 @@ public class LobStorageBackend implements LobStorageInterface {
         }
 
     }
-    
+
     /**
      * An input stream that reads the data from a reader.
      */
     public static class CountingReaderInputStream extends InputStream {
 
         private final Reader reader;
-        
+
         private final CharBuffer charBuffer = CharBuffer.allocate(Constants.IO_BUFFER_SIZE);
-        
+
         private final CharsetEncoder encoder = Constants.UTF8.newEncoder().
                 onMalformedInput(CodingErrorAction.REPLACE).
                 onUnmappableCharacter(CodingErrorAction.REPLACE);
-        
+
         private ByteBuffer byteBuffer = ByteBuffer.allocate(0);
         private long length;
         private long remaining;
@@ -823,7 +823,7 @@ public class LobStorageBackend implements LobStorageInterface {
             }
             return byteBuffer.get() & 255;
         }
-        
+
         private boolean fetch() throws IOException {
             if (byteBuffer != null && byteBuffer.remaining() == 0) {
                 fillBuffer();
@@ -858,11 +858,11 @@ public class LobStorageBackend implements LobStorageInterface {
             charBuffer.flip();
             charBuffer.position(charBuffer.limit());
         }
-        
+
         /**
          * The number of characters read so far (but there might still be some bytes
          * in the buffer).
-         * 
+         *
          * @return the number of characters
          */
         public long getLength() {

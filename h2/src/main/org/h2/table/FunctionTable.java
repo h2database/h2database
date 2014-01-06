@@ -70,8 +70,8 @@ public class FunctionTable extends Table {
             int columnCount = meta.getColumnCount();
             Column[] cols = new Column[columnCount];
             for (int i = 0; i < columnCount; i++) {
-                cols[i] = new Column(meta.getColumnName(i + 1), 
-                        DataType.getValueTypeFromResultSet(meta, i + 1), 
+                cols[i] = new Column(meta.getColumnName(i + 1),
+                        DataType.getValueTypeFromResultSet(meta, i + 1),
                         meta.getPrecision(i + 1),
                         meta.getScale(i + 1), meta.getColumnDisplaySize(i + 1));
             }
@@ -173,7 +173,8 @@ public class FunctionTable extends Table {
     }
 
     /**
-     * Read the result from the function. This method buffers the result in a temporary file.
+     * Read the result from the function. This method buffers the result in a
+     * temporary file.
      *
      * @param session the session
      * @return the result

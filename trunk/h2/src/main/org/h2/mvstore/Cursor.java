@@ -48,10 +48,10 @@ public class Cursor<K, V> implements Iterator<K> {
         fetchNext();
         return c;
     }
-    
+
     /**
      * Get the last read value if there was one.
-     * 
+     *
      * @return the value or null
      */
     public V getValue() {

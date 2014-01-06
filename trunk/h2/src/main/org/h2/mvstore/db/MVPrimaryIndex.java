@@ -39,8 +39,19 @@ import org.h2.value.ValueNull;
  */
 public class MVPrimaryIndex extends BaseIndex {
 
+    /**
+     * The minimum long value.
+     */
     static final ValueLong MIN = ValueLong.get(Long.MIN_VALUE);
+
+    /**
+     * The maximum long value.
+     */
     static final ValueLong MAX = ValueLong.get(Long.MAX_VALUE);
+
+    /**
+     * The zero long value.
+     */
     static final ValueLong ZERO = ValueLong.get(0);
 
     private final MVTable mvTable;

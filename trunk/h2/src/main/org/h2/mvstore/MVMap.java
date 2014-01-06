@@ -753,10 +753,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public Iterator<K> keyIterator(K from) {
         return new Cursor<K, V>(this, root, from);
     }
-    
+
     /**
      * Get a cursor to iterate over a number of keys and values.
-     * 
+     *
      * @param from the first key to return
      * @return the cursor
      */

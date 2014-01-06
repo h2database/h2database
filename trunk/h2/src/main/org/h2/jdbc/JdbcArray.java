@@ -62,7 +62,7 @@ public class JdbcArray extends TraceObject implements Array {
     public Object getArray(Map<String, Class<?>> map) throws SQLException {
         try {
             debugCode("getArray("+quoteMap(map)+");");
-            checkMap(map);
+            JdbcConnection.checkMap(map);
             checkClosed();
             return get();
         } catch (Exception e) {
@@ -105,7 +105,7 @@ public class JdbcArray extends TraceObject implements Array {
         try {
             debugCode("getArray(" + index + ", " + count + ", " + quoteMap(map)+");");
             checkClosed();
-            checkMap(map);
+            JdbcConnection.checkMap(map);
             return get(index, count);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -176,7 +176,7 @@ public class JdbcArray extends TraceObject implements Array {
         try {
             debugCode("getResultSet("+quoteMap(map)+");");
             checkClosed();
-            checkMap(map);
+            JdbcConnection.checkMap(map);
             return getResultSet(get(), 0);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -198,7 +198,7 @@ public class JdbcArray extends TraceObject implements Array {
         try {
             debugCode("getResultSet("+index+", " + count+");");
             checkClosed();
-            return getResultSet(get(index, count), index);
+            return getResultSet(get(index, count), index - 1);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -221,8 +221,8 @@ public class JdbcArray extends TraceObject implements Array {
         try {
             debugCode("getResultSet("+index+", " + count+", " + quoteMap(map)+");");
             checkClosed();
-            checkMap(map);
-            return getResultSet(get(index, count), index);
+            JdbcConnection.checkMap(map);
+            return getResultSet(get(index, count), index - 1);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -272,12 +272,6 @@ public class JdbcArray extends TraceObject implements Array {
         Object[] subset = new Object[count];
         System.arraycopy(array, (int) (index - 1), subset, 0, count);
         return subset;
-    }
-
-    private static void checkMap(Map<String, Class<?>> map) {
-        if (map != null && map.size() > 0) {
-            throw DbException.getUnsupportedException("map.size > 0");
-        }
     }
 
     /**

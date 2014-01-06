@@ -854,7 +854,7 @@ public class DataUtils {
             return errorValue;
         }
     }
-    
+
     /**
      * An entry of a map.
      *
@@ -862,10 +862,10 @@ public class DataUtils {
      * @param <V> the value type
      */
     public static class MapEntry<K, V> implements Map.Entry<K, V> {
-        
+
         private final K key;
         private V value;
-        
+
         public MapEntry(K key, V value) {
             this.key = key;
             this.value = value;
@@ -886,7 +886,7 @@ public class DataUtils {
             throw DataUtils.newUnsupportedOperationException(
                     "Updating the value is not supported");
         }
-        
+
     }
 
 }

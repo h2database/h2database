@@ -212,13 +212,12 @@ public class JdbcDataSource extends TraceObject
         debugCodeCall("setURL", url);
         this.url = url;
     }
-    
+
     /**
      * Get the current URL.
-     * <p>
      * This method does the same as getURL, but this methods signature conforms
      * the JavaBean naming convention.
-     * 
+     *
      * @return the URL
      */
     public String getUrl() {
@@ -228,10 +227,9 @@ public class JdbcDataSource extends TraceObject
 
     /**
      * Set the current URL.
-     * <p>
      * This method does the same as setURL, but this methods signature conforms
      * the JavaBean naming convention.
-     * 
+     *
      * @param url the new URL
      */
     public void setUrl(String url) {

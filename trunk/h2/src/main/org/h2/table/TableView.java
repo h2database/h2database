@@ -506,7 +506,7 @@ public class TableView extends Table {
     public boolean isTableExpression() {
         return tableExpression;
     }
-    
+
     @Override
     public void addDependencies(HashSet<DbObject> dependencies) {
         super.addDependencies(dependencies);

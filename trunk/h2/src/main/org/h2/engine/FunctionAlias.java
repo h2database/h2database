@@ -60,9 +60,12 @@ public class FunctionAlias extends SchemaObjectBase {
      * @param name the name
      * @param javaClassMethod the class and method name
      * @param force create the object even if the class or method does not exist
+     * @param bufferResultSetToLocalTemp whether the result should be buffered
      * @return the database object
      */
-    public static FunctionAlias newInstance(Schema schema, int id, String name, String javaClassMethod, boolean force, boolean bufferResultSetToLocalTemp) {
+    public static FunctionAlias newInstance(
+            Schema schema, int id, String name, String javaClassMethod,
+            boolean force, boolean bufferResultSetToLocalTemp) {
         FunctionAlias alias = new FunctionAlias(schema, id, name);
         int paren = javaClassMethod.indexOf('(');
         int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
@@ -84,9 +87,12 @@ public class FunctionAlias extends SchemaObjectBase {
      * @param name the name
      * @param source the source code
      * @param force create the object even if the class or method does not exist
+     * @param bufferResultSetToLocalTemp whether the result should be buffered
      * @return the database object
      */
-    public static FunctionAlias newInstanceFromSource(Schema schema, int id, String name, String source, boolean force, boolean bufferResultSetToLocalTemp) {
+    public static FunctionAlias newInstanceFromSource(
+            Schema schema, int id, String name, String source, boolean force,
+            boolean bufferResultSetToLocalTemp) {
         FunctionAlias alias = new FunctionAlias(schema, id, name);
         alias.source = source;
         alias.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
@@ -513,6 +519,8 @@ public class FunctionAlias extends SchemaObjectBase {
 
     /**
      * Should the return value ResultSet be buffered in a local temporary file?
+     *
+     * @return true if yes
      */
     public boolean isBufferResultSetToLocalTemp() {
         return bufferResultSetToLocalTemp;

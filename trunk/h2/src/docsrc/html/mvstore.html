@@ -253,7 +253,7 @@ performance characteristics) until data is persisted.
 As in all map implementations, keys need to be immutable, that means
 changing the key object after an entry has been added is not allowed.
 If a file name is specified, the value may also not be changed after
-adding an entry, because it might be serialized 
+adding an entry, because it might be serialized
 (which could happen at any time when autocommit is enabled).
 </p>
 
@@ -327,7 +327,7 @@ this should improve write performance for file systems and storage systems
 that do not efficiently support small random writes, such as Btrfs, as well as SSDs.
 (According to a test, write throughput of a common SSD increases with write block size,
 until a block size of 2 MB, and then does not further increase.)
-By default, changes are automatically written when more than a number of pages are modified, 
+By default, changes are automatically written when more than a number of pages are modified,
 and once every second in a background thread, even if only little data was changed.
 Changes can also be written explicitly by calling <code>commit()</code>.
 </p><p>

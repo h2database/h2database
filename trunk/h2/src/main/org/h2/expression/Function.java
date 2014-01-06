@@ -590,7 +590,8 @@ public class Function extends Expression implements FunctionCall {
             result = ValueLong.get(16 * length(v0));
             break;
         case CHAR:
-            result = ValueString.get(String.valueOf((char) v0.getInt()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(String.valueOf((char) v0.getInt()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case CHAR_LENGTH:
         case LENGTH:
@@ -621,7 +622,8 @@ public class Function extends Expression implements FunctionCall {
                             && !StringUtils.isNullOrEmpty(tmp)) {
                         tmp = separator.concat(tmp);
                     }
-                    result = ValueString.get(result.getString().concat(tmp), database.getMode().treatEmptyStringsAsNull);
+                    result = ValueString.get(result.getString().concat(tmp),
+                            database.getMode().treatEmptyStringsAsNull);
                 }
             }
             if (info.type == CONCAT_WS) {
@@ -632,19 +634,23 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case HEXTORAW:
-            result = ValueString.get(hexToRaw(v0.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(hexToRaw(v0.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case LOWER:
         case LCASE:
             // TODO this is locale specific, need to document or provide a way
             // to set the locale
-            result = ValueString.get(v0.getString().toLowerCase(), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(v0.getString().toLowerCase(),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case RAWTOHEX:
-            result = ValueString.get(rawToHex(v0.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(rawToHex(v0.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case SOUNDEX:
-            result = ValueString.get(getSoundex(v0.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(getSoundex(v0.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case SPACE: {
             int len = Math.max(0, v0.getInt());
@@ -652,39 +658,48 @@ public class Function extends Expression implements FunctionCall {
             for (int i = len - 1; i >= 0; i--) {
                 chars[i] = ' ';
             }
-            result = ValueString.get(new String(chars), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(new String(chars),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case UPPER:
         case UCASE:
             // TODO this is locale specific, need to document or provide a way
             // to set the locale
-            result = ValueString.get(v0.getString().toUpperCase(), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(v0.getString().toUpperCase(),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case STRINGENCODE:
-            result = ValueString.get(StringUtils.javaEncode(v0.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.javaEncode(v0.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case STRINGDECODE:
-            result = ValueString.get(StringUtils.javaDecode(v0.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.javaDecode(v0.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case STRINGTOUTF8:
             result = ValueBytes.getNoCopy(v0.getString().getBytes(Constants.UTF8));
             break;
         case UTF8TOSTRING:
-            result = ValueString.get(new String(v0.getBytesNoCopy(), Constants.UTF8), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(new String(v0.getBytesNoCopy(), Constants.UTF8),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLCOMMENT:
-            result = ValueString.get(StringUtils.xmlComment(v0.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.xmlComment(v0.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLCDATA:
-            result = ValueString.get(StringUtils.xmlCData(v0.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.xmlCData(v0.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLSTARTDOC:
-            result = ValueString.get(StringUtils.xmlStartDoc(), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.xmlStartDoc(),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case DAY_NAME: {
             SimpleDateFormat dayName = new SimpleDateFormat("EEEE", Locale.ENGLISH);
-            result = ValueString.get(dayName.format(v0.getDate()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(dayName.format(v0.getDate()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case DAY_OF_MONTH:
@@ -707,7 +722,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         case MONTH_NAME: {
             SimpleDateFormat monthName = new SimpleDateFormat("MMMM", Locale.ENGLISH);
-            result = ValueString.get(monthName.format(v0.getDate()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(monthName.format(v0.getDate()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case QUARTER:
@@ -757,11 +773,13 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case DATABASE:
-            result = ValueString.get(database.getShortName(), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(database.getShortName(),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case USER:
         case CURRENT_USER:
-            result = ValueString.get(session.getUser().getName(), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(session.getUser().getName(),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case IDENTITY:
             result = session.getLastIdentity();
@@ -777,7 +795,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         case DATABASE_PATH: {
             String path = database.getDatabasePath();
-            result = path == null ? (Value) ValueNull.INSTANCE : ValueString.get(path, database.getMode().treatEmptyStringsAsNull);
+            result = path == null ? (Value) ValueNull.INSTANCE : ValueString.get(path,
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case LOCK_TIMEOUT:
@@ -807,7 +826,8 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(database.getLockMode());
             break;
         case SCHEMA:
-            result = ValueString.get(session.getCurrentSchemaName(), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(session.getCurrentSchemaName(),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case SESSION_ID:
             result = ValueInt.get(session.getId());
@@ -1110,12 +1130,14 @@ public class Function extends Expression implements FunctionCall {
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
                 result = v1;
             } else {
-                result = ValueString.get(insert(v0.getString(), v1.getInt(), v2.getInt(), v3.getString()), database.getMode().treatEmptyStringsAsNull);
+                result = ValueString.get(insert(v0.getString(), v1.getInt(), v2.getInt(), v3.getString()),
+                        database.getMode().treatEmptyStringsAsNull);
             }
             break;
         }
         case LEFT:
-            result = ValueString.get(left(v0.getString(), v1.getInt()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(left(v0.getString(), v1.getInt()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case LOCATE: {
             int start = v2 == null ? 0 : v2.getInt();
@@ -1129,27 +1151,33 @@ public class Function extends Expression implements FunctionCall {
         }
         case REPEAT: {
             int count = Math.max(0, v1.getInt());
-            result = ValueString.get(repeat(v0.getString(), count), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(repeat(v0.getString(), count),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case REPLACE: {
             String s0 = v0.getString();
             String s1 = v1.getString();
             String s2 = (v2 == null) ? "" : v2.getString();
-            result = ValueString.get(replace(s0, s1, s2), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(replace(s0, s1, s2),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case RIGHT:
-            result = ValueString.get(right(v0.getString(), v1.getInt()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(right(v0.getString(), v1.getInt()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case LTRIM:
-            result = ValueString.get(StringUtils.trim(v0.getString(), true, false, v1 == null ? " " : v1.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.trim(v0.getString(), true, false, v1 == null ? " " : v1.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case TRIM:
-            result = ValueString.get(StringUtils.trim(v0.getString(), true, true, v1 == null ? " " : v1.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.trim(v0.getString(), true, true, v1 == null ? " " : v1.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case RTRIM:
-            result = ValueString.get(StringUtils.trim(v0.getString(), false, true, v1 == null ? " " : v1.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.trim(v0.getString(), false, true, v1 == null ? " " : v1.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case SUBSTR:
         case SUBSTRING: {
@@ -1159,27 +1187,31 @@ public class Function extends Expression implements FunctionCall {
                 offset = s.length() + offset + 1;
             }
             int length = v2 == null ? s.length() : v2.getInt();
-            result = ValueString.get(substring(s, offset, length), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(substring(s, offset, length),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case POSITION:
             result = ValueInt.get(locate(v0.getString(), v1.getString(), 0));
             break;
         case XMLATTR:
-            result = ValueString.get(StringUtils.xmlAttr(v0.getString(), v1.getString()), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.xmlAttr(v0.getString(), v1.getString()),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLNODE: {
             String attr = v1 == null ? null : v1 == ValueNull.INSTANCE ? null : v1.getString();
             String content = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
             boolean indent = v3 == null ? true : v3.getBoolean();
-            result = ValueString.get(StringUtils.xmlNode(v0.getString(), attr, content, indent), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.xmlNode(v0.getString(), attr, content, indent),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case REGEXP_REPLACE: {
             String regexp = v1.getString();
             String replacement = v2.getString();
             try {
-                result = ValueString.get(v0.getString().replaceAll(regexp, replacement), database.getMode().treatEmptyStringsAsNull);
+                result = ValueString.get(v0.getString().replaceAll(regexp, replacement),
+                        database.getMode().treatEmptyStringsAsNull);
             } catch (StringIndexOutOfBoundsException e) {
                 throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
             } catch (PatternSyntaxException e) {
@@ -1188,17 +1220,21 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case RPAD:
-            result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), true), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), true),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case LPAD:
-            result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case TO_CHAR:
             switch(v0.getType()){
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:
-                result = ValueString.get(toChar(v0.getTimestamp(), v1 == null ? null : v1.getString(), v2 == null ? null : v2.getString()), database.getMode().treatEmptyStringsAsNull);
+                result = ValueString.get(toChar(v0.getTimestamp(),
+                        v1 == null ? null : v1.getString(), v2 == null ? null : v2.getString()),
+                        database.getMode().treatEmptyStringsAsNull);
                 break;
             case Value.SHORT:
             case Value.INT:
@@ -1206,14 +1242,18 @@ public class Function extends Expression implements FunctionCall {
             case Value.DECIMAL:
             case Value.DOUBLE:
             case Value.FLOAT:
-                result = ValueString.get(toChar(v0.getBigDecimal(), v1 == null ? null : v1.getString(), v2 == null ? null : v2.getString()), database.getMode().treatEmptyStringsAsNull);
+                result = ValueString.get(toChar(v0.getBigDecimal(),
+                        v1 == null ? null : v1.getString(), v2 == null ? null : v2.getString()),
+                        database.getMode().treatEmptyStringsAsNull);
                 break;
             default:
-                result = ValueString.get(v0.getString(), database.getMode().treatEmptyStringsAsNull);
+                result = ValueString.get(v0.getString(),
+                        database.getMode().treatEmptyStringsAsNull);
             }
             break;
         case H2VERSION:
-            result = ValueString.get(Constants.getVersion(), database.getMode().treatEmptyStringsAsNull);
+            result = ValueString.get(Constants.getVersion(),
+                    database.getMode().treatEmptyStringsAsNull);
             break;
         case DATE_ADD:
             result = ValueTimestamp.get(dateadd(v0.getString(), v1.getInt(), v2.getTimestamp()));
@@ -1232,7 +1272,9 @@ public class Function extends Expression implements FunctionCall {
             } else {
                 String locale = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
                 String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
-                result = ValueString.get(DateTimeUtils.formatDateTime(v0.getTimestamp(), v1.getString(), locale, tz), database.getMode().treatEmptyStringsAsNull);
+                result = ValueString.get(DateTimeUtils.formatDateTime(
+                        v0.getTimestamp(), v1.getString(), locale, tz),
+                        database.getMode().treatEmptyStringsAsNull);
             }
             break;
         }
@@ -1363,13 +1405,16 @@ public class Function extends Expression implements FunctionCall {
         }
         case XMLTEXT:
             if (v1 == null) {
-                result = ValueString.get(StringUtils.xmlText(v0.getString()), database.getMode().treatEmptyStringsAsNull);
+                result = ValueString.get(StringUtils.xmlText(v0.getString()),
+                        database.getMode().treatEmptyStringsAsNull);
             } else {
-                result = ValueString.get(StringUtils.xmlText(v0.getString(), v1.getBoolean()), database.getMode().treatEmptyStringsAsNull);
+                result = ValueString.get(StringUtils.xmlText(v0.getString(), v1.getBoolean()),
+                        database.getMode().treatEmptyStringsAsNull);
             }
             break;
         case VALUES:
-            result = session.getVariable(args[0].getSchemaName() + "." + args[0].getTableName() + "." + args[0].getColumnName());
+            result = session.getVariable(args[0].getSchemaName() + "." +
+                    args[0].getTableName() + "." + args[0].getColumnName());
             break;
         default:
             throw DbException.throwInternalError("type=" + info.type);

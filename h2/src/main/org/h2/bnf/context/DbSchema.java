@@ -74,7 +74,10 @@ public class DbSchema {
         this.name = name;
         this.quotedName =  contents.quoteIdentifier(name);
         this.isDefault = isDefault;
-        if (name.equals("INFORMATION_SCHEMA")) {
+        if (name == null) {
+            // firebird
+            isSystem = true;
+        } else if ("INFORMATION_SCHEMA".equals(name)) {
             isSystem = true;
         } else if (!contents.isH2() && StringUtils.toUpperEnglish(name).startsWith("INFO")) {
             isSystem = true;

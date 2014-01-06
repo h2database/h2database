@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -702,7 +703,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(2, array.length);
         assertEquals(0, ((Integer) array[0]).intValue());
         assertEquals("Hello", (String) array[1]);
-        ResultSet rs2 = a.getResultSet();
+        assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, -1);
+        assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(1, 3);
+        assertEquals(0, ((Object[]) a.getArray(1, 0)).length);
+        assertEquals(0, ((Object[]) a.getArray(2, 0)).length);
+        assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(0, 0);
+        assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(3, 0);
+        HashMap<String, Class<?>> map = New.hashMap();
+        assertEquals(0, ((Object[]) a.getArray(1, 0, map)).length);
+        assertEquals(2, ((Object[]) a.getArray(map)).length);
+        assertEquals(2, ((Object[]) a.getArray(null)).length);
+        map.put("x", Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, a).getArray(1, 0, map);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, a).getArray(map);
+
+        ResultSet rs2;
+        rs2 = a.getResultSet();
         rs2.next();
         assertEquals(1, rs2.getInt(1));
         assertEquals(0, rs2.getInt(2));
@@ -710,6 +726,36 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(2, rs2.getInt(1));
         assertEquals("Hello", rs2.getString(2));
         assertFalse(rs.next());
+
+        map.clear();
+        rs2 = a.getResultSet(map);
+        rs2.next();
+        assertEquals(1, rs2.getInt(1));
+        assertEquals(0, rs2.getInt(2));
+        rs2.next();
+        assertEquals(2, rs2.getInt(1));
+        assertEquals("Hello", rs2.getString(2));
+        assertFalse(rs.next());
+
+        rs2 = a.getResultSet(2, 1);
+        rs2.next();
+        assertEquals(2, rs2.getInt(1));
+        assertEquals("Hello", rs2.getString(2));
+        assertFalse(rs.next());
+
+        rs2 = a.getResultSet(1, 1, map);
+        rs2.next();
+        assertEquals(1, rs2.getInt(1));
+        assertEquals(0, rs2.getInt(2));
+        assertFalse(rs.next());
+
+        map.put("x", Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, a).getResultSet(map);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, a).getResultSet(0, 1, map);
+
+        a.free();
+        assertThrows(ErrorCode.OBJECT_CLOSED, a).getArray();
+        assertThrows(ErrorCode.OBJECT_CLOSED, a).getResultSet();
 
         stat.execute("CREATE ALIAS ROOT FOR \"" + getClass().getName() + ".root\"");
         rs = stat.executeQuery("CALL ROOT(9)");
@@ -1174,12 +1220,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult(" 230 ", stat, "SELECT TO_CHAR(230, '999PR') FROM DUAL");
         assertResult("230", stat, "SELECT TO_CHAR(230, 'FM999PR') FROM DUAL");
         assertResult("0", stat, "SELECT TO_CHAR(0, 'fm999pr') FROM DUAL");
-        assertResult("      CCXXXVIII", stat, "SELECT TO_CHAR(238, 'RN') FROM DUAL");
-        assertResult("CCXXXVIII", stat, "SELECT TO_CHAR(238, 'FMRN') FROM DUAL");
-        assertResult("cxlix", stat, "SELECT TO_CHAR(149, 'FMrN') FROM DUAL");
-        assertResult("       MCMLXXIX", stat, "SELECT TO_CHAR(1979, 'RN') FROM DUAL;");
-        assertResult("           xliv", stat, "SELECT TO_CHAR(44, 'rN') FROM DUAL");
-        assertResult("      mdcclxxvi", stat, "SELECT TO_CHAR(1776, 'rn') FROM DUAL");
+        assertResult("             XI", stat, "SELECT TO_CHAR(11, 'RN') FROM DUAL");
+        assertResult("XI", stat, "SELECT TO_CHAR(11, 'FMRN') FROM DUAL");
+        assertResult("xi", stat, "SELECT TO_CHAR(11, 'FMrN') FROM DUAL");
+        assertResult("             XI", stat, "SELECT TO_CHAR(11, 'RN') FROM DUAL;");
+        assertResult("             xi", stat, "SELECT TO_CHAR(11, 'rN') FROM DUAL");
+        assertResult("             xi", stat, "SELECT TO_CHAR(11, 'rn') FROM DUAL");
         assertResult(" +42", stat, "SELECT TO_CHAR(42, 'S999') FROM DUAL");
         assertResult(" +42", stat, "SELECT TO_CHAR(42, 's999') FROM DUAL");
         assertResult(" 42+", stat, "SELECT TO_CHAR(42, '999S') FROM DUAL");

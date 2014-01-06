@@ -213,13 +213,13 @@ public class TestRights extends TestBase {
         testTableType(conn, "CACHED");
 
         /* make sure admin can still do it. */
-        
+
         executeSuccess("CREATE USER SCHEMA_CREATOR PASSWORD 'xyz'");
 
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
         executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
         executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_RENAMED");
-        
+
         /* create this for tests below */
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         executeSuccess("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS(ID INT PRIMARY KEY, NAME VARCHAR)");
@@ -245,7 +245,7 @@ public class TestRights extends TestBase {
         // try and succeed
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
-        
+
         /* should be able to create a schema and manipulate tables on that schema... */
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
         executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO S");
@@ -262,7 +262,7 @@ public class TestRights extends TestBase {
         executeSuccess("INSERT INTO  TEST (ID, NAME) VALUES (42, 'Adams')");
         executeSuccess("UPDATE TEST Set NAME = 'Douglas'");
         executeSuccess("DELETE FROM TEST");
-        
+
         conn.close();
 
         // revoke the right

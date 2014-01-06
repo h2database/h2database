@@ -907,7 +907,7 @@ public class TestMVStore extends TestBase {
 
         // close the store (this will persist changes)
         s.close();
-        
+
         s = MVStore.open(fileName);
         map = s.openMap("data");
         assertEquals("Hello World", map.get(1));

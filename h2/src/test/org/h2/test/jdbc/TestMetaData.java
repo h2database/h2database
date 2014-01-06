@@ -57,7 +57,7 @@ public class TestMetaData extends TestBase {
         testSessionsUncommitted();
         testQueryStatistics();
     }
-    
+
     private void testUnsupportedOperations() throws SQLException {
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();

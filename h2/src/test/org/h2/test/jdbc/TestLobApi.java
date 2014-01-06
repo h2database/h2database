@@ -67,7 +67,7 @@ public class TestLobApi extends TestBase {
         stat.execute("drop table test");
         conn.close();
     }
-    
+
     private void testUnsupportedOperations() throws Exception {
         Connection conn = getConnection("lob");
         stat = conn.createStatement();
@@ -88,7 +88,7 @@ public class TestLobApi extends TestBase {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).position("", 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).position((Clob) null, 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).getCharacterStream(1, 1);
-        
+
         Blob blob = rs.getBlob(3);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).truncate(0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).setBytes(1, new byte[0], 0, 0);
@@ -98,7 +98,7 @@ public class TestLobApi extends TestBase {
         assertTrue(blob.toString().endsWith("X'00'"));
         blob.free();
         assertTrue(blob.toString().endsWith("null"));
-        
+
         stat.execute("drop table test");
         conn.close();
     }
@@ -217,26 +217,26 @@ public class TestLobApi extends TestBase {
         out.write(data, 0, data.length);
         out.close();
         stat.execute("delete from test");
-        
+
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
         prep.setInt(1, 1);
         prep.setBlob(2, b);
         prep.execute();
-        
+
         prep.setInt(1, 2);
         b = conn.createBlob();
         b.setBytes(1, data);
         prep.setBlob(2, b);
         prep.execute();
-        
+
         prep.setInt(1, 3);
         prep.setBlob(2, new ByteArrayInputStream(data));
         prep.execute();
-        
+
         prep.setInt(1, 4);
         prep.setBlob(2, new ByteArrayInputStream(data), -1);
         prep.execute();
-        
+
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
@@ -278,17 +278,17 @@ public class TestLobApi extends TestBase {
         out.close();
         stat.execute("delete from test");
         PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
-        
+
         prep.setInt(1, 1);
         prep.setClob(2, c);
         prep.execute();
-        
+
         c = conn.createClob();
         c.setString(1, new String(data));
         prep.setInt(1, 2);
         prep.setClob(2, c);
         prep.execute();
-        
+
         prep.setInt(1, 3);
         prep.setCharacterStream(2, new StringReader(new String(data)));
         prep.execute();
@@ -303,7 +303,7 @@ public class TestLobApi extends TestBase {
         prep.setInt(1, 5);
         prep.setNClob(2, nc);
         prep.execute();
-        
+
         prep.setInt(1, 5);
         prep.setNClob(2, new StringReader(new String(data)));
         prep.execute();

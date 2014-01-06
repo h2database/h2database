@@ -19,7 +19,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -42,23 +42,31 @@ public class TestDuplicateKeyUpdate extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("CREATE TABLE `table_test` (\n" + "  `id` bigint(20) NOT NULL ,\n"
-                + "  `a_text` varchar(254) NOT NULL,\n" + "  `some_text` varchar(254) NULL,\n"
-                + "  PRIMARY KEY (`id`)\n" + ") ;");
+        stat.execute("CREATE TABLE `table_test` (\n" +
+                "  `id` bigint(20) NOT NULL ,\n" +
+                "  `a_text` varchar(254) NOT NULL,\n" +
+                "  `some_text` varchar(254) NULL,\n" +
+                "  PRIMARY KEY (`id`)\n" +
+                ") ;");
 
-        stat.execute("INSERT INTO table_test ( id, a_text, some_text ) VALUES (1, 'aaaaaaaaaa', 'aaaaaaaaaa')");
-        stat.execute("INSERT INTO table_test ( id, a_text, some_text ) VALUES (2, 'bbbbbbbbbb', 'bbbbbbbbbb')");
-        stat.execute("INSERT INTO table_test ( id, a_text, some_text ) VALUES (3, 'cccccccccc', 'cccccccccc')");
-        stat.execute("INSERT INTO table_test ( id, a_text, some_text ) VALUES (4, 'dddddddddd', 'dddddddddd')");
-        stat.execute("INSERT INTO table_test ( id, a_text, some_text ) VALUES (5, 'eeeeeeeeee', 'eeeeeeeeee')");
+        stat.execute("INSERT INTO table_test ( id, a_text, some_text ) VALUES " +
+                "(1, 'aaaaaaaaaa', 'aaaaaaaaaa'), " +
+                "(2, 'bbbbbbbbbb', 'bbbbbbbbbb'), "+
+                "(3, 'cccccccccc', 'cccccccccc'), " +
+                "(4, 'dddddddddd', 'dddddddddd'), " +
+                "(5, 'eeeeeeeeee', 'eeeeeeeeee')");
 
-        stat.execute("INSERT INTO table_test ( id , a_text, some_text ) VALUES (1, 'zzzzzzzzzz', 'abcdefghij') ON DUPLICATE KEY UPDATE some_text='UPDATE'");
+        stat.execute("INSERT INTO table_test ( id , a_text, some_text ) " +
+                "VALUES (1, 'zzzzzzzzzz', 'abcdefghij') " +
+                "ON DUPLICATE KEY UPDATE some_text='UPDATE'");
 
         rs = stat.executeQuery("SELECT some_text FROM table_test where id = 1");
         rs.next();
         assertEquals("UPDATE", rs.getNString(1));
 
-        stat.execute("INSERT INTO table_test ( id , a_text, some_text ) VALUES (3, 'zzzzzzzzzz', 'SOME TEXT') ON DUPLICATE KEY UPDATE some_text=values(some_text)");
+        stat.execute("INSERT INTO table_test ( id , a_text, some_text ) " +
+                "VALUES (3, 'zzzzzzzzzz', 'SOME TEXT') " +
+                "ON DUPLICATE KEY UPDATE some_text=values(some_text)");
         rs = stat.executeQuery("SELECT some_text FROM table_test where id = 3");
         rs.next();
         assertEquals("SOME TEXT", rs.getNString(1));
@@ -80,36 +88,47 @@ public class TestDuplicateKeyUpdate extends TestBase {
         stat.execute("INSERT INTO table_test2 ( a_text, some_text, updatable_text ) VALUES ('d', 'd', '4')");
         stat.execute("INSERT INTO table_test2 ( a_text, some_text, updatable_text ) VALUES ('e', 'e', '5')");
 
-        stat.execute("INSERT INTO table_test2 ( a_text, some_text ) VALUES ('e', 'e') ON DUPLICATE KEY UPDATE updatable_text='UPDATE'");
+        stat.execute("INSERT INTO table_test2 ( a_text, some_text ) " +
+                "VALUES ('e', 'e') ON DUPLICATE KEY UPDATE updatable_text='UPDATE'");
 
         rs = stat.executeQuery("SELECT updatable_text FROM table_test2 where a_text = 'e'");
         rs.next();
         assertEquals("UPDATE", rs.getNString(1));
 
-        stat.execute("INSERT INTO table_test2 (a_text, some_text, updatable_text ) VALUES ('b', 'b', 'jfno') ON DUPLICATE KEY UPDATE updatable_text=values(updatable_text)");
+        stat.execute("INSERT INTO table_test2 (a_text, some_text, updatable_text ) " +
+                "VALUES ('b', 'b', 'test') " +
+                "ON DUPLICATE KEY UPDATE updatable_text=values(updatable_text)");
         rs = stat.executeQuery("SELECT updatable_text FROM table_test2 where a_text = 'b'");
         rs.next();
-        assertEquals("jfno", rs.getNString(1));
+        assertEquals("test", rs.getNString(1));
     }
 
     private void testDuplicateCache(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("CREATE TABLE `table_test3` (\n" + "  `id` bigint(20) NOT NULL ,\n"
-                + "  `a_text` varchar(254) NOT NULL,\n" + "  `some_text` varchar(254) NULL,\n"
-                + "  PRIMARY KEY (`id`)\n" + ") ;");
+        stat.execute("CREATE TABLE `table_test3` (\n" +
+                "  `id` bigint(20) NOT NULL ,\n" +
+                "  `a_text` varchar(254) NOT NULL,\n" +
+                "  `some_text` varchar(254) NULL,\n" +
+                "  PRIMARY KEY (`id`)\n" +
+                ") ;");
 
-        stat.execute("INSERT INTO table_test3 ( id, a_text, some_text ) VALUES (1, 'aaaaaaaaaa', 'aaaaaaaaaa')");
+        stat.execute("INSERT INTO table_test3 ( id, a_text, some_text ) " +
+                "VALUES (1, 'aaaaaaaaaa', 'aaaaaaaaaa')");
 
-        stat.execute("INSERT INTO table_test3 ( id , a_text, some_text ) VALUES (1, 'zzzzzzzzzz', 'SOME TEXT') ON DUPLICATE KEY UPDATE some_text=values(some_text)");
+        stat.execute("INSERT INTO table_test3 ( id , a_text, some_text ) " +
+                "VALUES (1, 'zzzzzzzzzz', 'SOME TEXT') " +
+                "ON DUPLICATE KEY UPDATE some_text=values(some_text)");
         rs = stat.executeQuery("SELECT some_text FROM table_test3 where id = 1");
         rs.next();
         assertEquals("SOME TEXT", rs.getNString(1));
 
         // Execute twice the same query to use the one from cache without
-        // parsing, caused the values parameter to be seen as ammbiguous
-        stat.execute("INSERT INTO table_test3 ( id , a_text, some_text ) VALUES (1, 'zzzzzzzzzz', 'SOME TEXT') ON DUPLICATE KEY UPDATE some_text=values(some_text)");
+        // parsing, caused the values parameter to be seen as ambiguous
+        stat.execute("INSERT INTO table_test3 ( id , a_text, some_text ) " +
+                "VALUES (1, 'zzzzzzzzzz', 'SOME TEXT') " +
+                "ON DUPLICATE KEY UPDATE some_text=values(some_text)");
         rs = stat.executeQuery("SELECT some_text FROM table_test3 where id = 1");
         rs.next();
         assertEquals("SOME TEXT", rs.getNString(1));
@@ -119,16 +138,24 @@ public class TestDuplicateKeyUpdate extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("CREATE TABLE `table_test4` (\n" + "  `id` bigint(20) NOT NULL ,\n"
-                + "  `a_text` varchar(254) NOT NULL,\n" + "  `some_value` int(10) NULL,\n" + "  PRIMARY KEY (`id`)\n"
-                + ") ;");
+        stat.execute("CREATE TABLE `table_test4` (\n" +
+                "  `id` bigint(20) NOT NULL ,\n" +
+                "  `a_text` varchar(254) NOT NULL,\n" +
+                "  `some_value` int(10) NULL,\n" +
+                "  PRIMARY KEY (`id`)\n" +
+                ") ;");
 
-        stat.execute("INSERT INTO table_test4 ( id, a_text, some_value ) VALUES (1, 'aaaaaaaaaa', 5)");
-        stat.execute("INSERT INTO table_test4 ( id, a_text, some_value ) VALUES (2, 'aaaaaaaaaa', 5)");
+        stat.execute("INSERT INTO table_test4 ( id, a_text, some_value ) " +
+                "VALUES (1, 'aaaaaaaaaa', 5)");
+        stat.execute("INSERT INTO table_test4 ( id, a_text, some_value ) " +
+                "VALUES (2, 'aaaaaaaaaa', 5)");
 
-        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) VALUES (1, 'b', 1) ON DUPLICATE KEY UPDATE some_value=some_value + values(some_value)");
-        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) VALUES (1, 'b', 1) ON DUPLICATE KEY UPDATE some_value=some_value + 100");
-        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) VALUES (2, 'b', 1) ON DUPLICATE KEY UPDATE some_value=values(some_value) + 1");
+        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) VALUES (1, 'b', 1) " +
+                "ON DUPLICATE KEY UPDATE some_value=some_value + values(some_value)");
+        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) VALUES (1, 'b', 1) " +
+                "ON DUPLICATE KEY UPDATE some_value=some_value + 100");
+        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) VALUES (2, 'b', 1) " +
+                "ON DUPLICATE KEY UPDATE some_value=values(some_value) + 1");
         rs = stat.executeQuery("SELECT some_value FROM table_test4 where id = 1");
         rs.next();
         assertEquals(106, rs.getInt(1));

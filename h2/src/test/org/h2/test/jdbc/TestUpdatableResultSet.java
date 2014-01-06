@@ -157,11 +157,11 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateInt(1, 10);
         rs.updateRow();
         rs.next();
-        
+
         rs.updateString(2, "Welt");
         rs.cancelRowUpdates();
         rs.updateString(2, "Welt");
-        
+
         rs.updateRow();
         rs.beforeFirst();
         rs.next();
@@ -170,11 +170,11 @@ public class TestUpdatableResultSet extends TestBase {
         rs.next();
         assertEquals(2, rs.getInt(1));
         assertEquals("Welt", rs.getString(2));
-        
+
         assertFalse(rs.isClosed());
         rs.close();
         assertTrue(rs.isClosed());
-        
+
         conn.close();
     }
 
@@ -386,7 +386,7 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateNClob(15, new StringReader("\u00ef\u00f6\u00fc"));
         rs.updateBlob(16, b);
         rs.insertRow();
-        
+
         rs.moveToInsertRow();
         rs.updateInt("ID", 9);
         rs.updateNClob("CL", new StringReader("\u00ef\u00f6\u00fc"), -1);
@@ -398,7 +398,7 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateNClob(15, new StringReader("\u00ef\u00f6\u00fc"), -1);
         rs.updateBlob(16, b);
         rs.insertRow();
-        
+
         rs.moveToInsertRow();
         rs.updateInt("ID", 11);
         rs.updateNCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), -1);
@@ -486,7 +486,7 @@ public class TestUpdatableResultSet extends TestBase {
             assertEquals(new byte[] { (byte) 0xab, 0x12 }, rs.getBytes(16));
         }
         assertFalse(rs.next());
-        
+
         stat.execute("DROP TABLE TEST");
         conn.close();
     }
@@ -502,7 +502,16 @@ public class TestUpdatableResultSet extends TestBase {
         for (int i = 0; i < max; i++) {
             stat.execute("INSERT INTO TEST VALUES(" + i + ", 'Hello" + i + "')");
         }
-        ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
+        ResultSet rs;
+        rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+        rs.moveToInsertRow();
+        rs.updateInt(1, 100);
+        rs.moveToCurrentRow();
+        assertEquals(0, rs.getInt(1));
+
+        rs = stat.executeQuery("SELECT * FROM TEST");
         int j = max;
         while (rs.next()) {
             int id = rs.getInt(1);
@@ -521,13 +530,13 @@ public class TestUpdatableResultSet extends TestBase {
             assertFalse(rs.rowUpdated());
             assertFalse(rs.rowInserted());
             assertFalse(rs.rowDeleted());
-            
+
             rs.moveToInsertRow();
             rs.updateString(2, "Inserted " + j);
             rs.updateInt(1, j);
             j += 2;
             rs.insertRow();
-            
+
             // the driver does not detect it in any case
             assertFalse(rs.rowUpdated());
             assertFalse(rs.rowInserted());

@@ -57,7 +57,7 @@ public class TestTransactionStore extends TestBase {
         testSingleConnection();
         testCompareWithPostgreSQL();
     }
-    
+
     private void testRepeatedChange() {
         MVStore s;
         TransactionStore ts;
@@ -74,14 +74,14 @@ public class TestTransactionStore extends TestBase {
         for (int i = 0; i < 2000; i++) {
             map.put(1, i);
         }
-        
+
         Transaction tx2 = ts.begin();
         TransactionMap<Integer, Integer> map2 = tx2.openMap("data");
         assertEquals(-1, map2.get(1).intValue());
-        
+
         s.close();
     }
-    
+
     private void testTransactionAge() throws Exception {
         MVStore s;
         TransactionStore ts;

@@ -44,7 +44,7 @@ public class TestCollation extends TestBase {
         // not allowed to change now
         assertThrows(ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1, stat).
             execute("set collation en");
-        
+
         conn.close();
         deleteDb("collation");
     }

@@ -101,7 +101,7 @@ public class TestResultSet extends TestBase {
         deleteDb("resultSet");
 
     }
-    
+
     @SuppressWarnings("deprecation")
     private void testUnsupportedOperations() throws SQLException {
         ResultSet rs = stat.executeQuery("select 1 as x from dual");
@@ -169,12 +169,12 @@ public class TestResultSet extends TestBase {
                 rs.getNClob("data").getCharacterStream(), -1));
 
         rs = prep.executeQuery();
-        
+
         rs.moveToInsertRow();
         rs.updateInt(1, 2);
         rs.updateNString(2, "Hello");
         rs.insertRow();
-        
+
         rs.moveToInsertRow();
         rs.updateInt(1, 3);
         rs.updateNString("data", "Hello");
@@ -182,7 +182,7 @@ public class TestResultSet extends TestBase {
 
         Clob c;
         Writer w;
-        
+
         rs.moveToInsertRow();
         rs.updateInt(1, 4);
         c = conn.createClob();
@@ -191,7 +191,7 @@ public class TestResultSet extends TestBase {
         w.close();
         rs.updateClob(2, c);
         rs.insertRow();
-        
+
         rs.moveToInsertRow();
         rs.updateInt(1, 5);
         c = conn.createClob();
@@ -200,7 +200,7 @@ public class TestResultSet extends TestBase {
         w.close();
         rs.updateClob("data", c);
         rs.insertRow();
-        
+
         InputStream in;
 
         rs.moveToInsertRow();
@@ -214,7 +214,7 @@ public class TestResultSet extends TestBase {
         in = new ByteArrayInputStream("Hello".getBytes("UTF-8"));
         rs.updateAsciiStream("data", in);
         rs.insertRow();
-        
+
         rs.moveToInsertRow();
         rs.updateInt(1, 8);
         in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
@@ -243,7 +243,7 @@ public class TestResultSet extends TestBase {
         while (rs.next()) {
             assertEquals("Hello", rs.getString(2));
         }
-        
+
         stat.execute("drop table test");
     }
 
@@ -1224,7 +1224,7 @@ public class TestResultSet extends TestBase {
         Object[] list = (Object[]) rs.getObject(2);
         assertEquals(1, ((Integer) list[0]).intValue());
         assertEquals(2, ((Integer) list[1]).intValue());
-        
+
         Array array = rs.getArray(2);
         Object[] list2 = (Object[]) array.getArray();
         assertEquals(1, ((Integer) list2[0]).intValue());
@@ -1236,7 +1236,7 @@ public class TestResultSet extends TestBase {
         list = (Object[]) rs.getObject(2);
         assertEquals(11, ((Integer) list[0]).intValue());
         assertEquals(12, ((Integer) list[1]).intValue());
-        
+
         array = rs.getArray("VALUE");
         list2 = (Object[]) array.getArray();
         assertEquals(11, ((Integer) list2[0]).intValue());
@@ -1246,19 +1246,19 @@ public class TestResultSet extends TestBase {
 
         list2 = (Object[]) array.getArray(Collections.<String, Class<?>>emptyMap());
         assertEquals(11, ((Integer) list2[0]).intValue());
-        
+
         assertEquals(Types.NULL, array.getBaseType());
         assertEquals("NULL", array.getBaseTypeName());
-        
+
         assertTrue(array.toString().endsWith(": (11, 12)"));
-        
+
         // free
         array.free();
         assertEquals("null", array.toString());
         assertThrows(ErrorCode.OBJECT_CLOSED, array).getBaseType();
         assertThrows(ErrorCode.OBJECT_CLOSED, array).getBaseTypeName();
         assertThrows(ErrorCode.OBJECT_CLOSED, array).getResultSet();
-        
+
         assertFalse(rs.next());
         stat.execute("DROP TABLE TEST");
     }

@@ -155,29 +155,26 @@ public class RunScript extends Tool {
      * @return the last result set
      */
     public static ResultSet execute(Connection conn, Reader reader) throws SQLException {
+        // can not close the statement because we return a result set from it
         Statement stat = conn.createStatement();
         ResultSet rs = null;
-        try {
-            ScriptReader r = new ScriptReader(reader);
-            while (true) {
-                String sql = r.readStatement();
-                if (sql == null) {
-                    break;
-                }
-                if (sql.trim().length() == 0) {
-                    continue;
-                }
-                boolean resultSet = stat.execute(sql);
-                if (resultSet) {
-                    if (rs != null) {
-                        rs.close();
-                        rs = null;
-                    }
-                    rs = stat.getResultSet();
-                }
+        ScriptReader r = new ScriptReader(reader);
+        while (true) {
+            String sql = r.readStatement();
+            if (sql == null) {
+                break;
             }
-        } finally {
-            JdbcUtils.closeSilently(stat);
+            if (sql.trim().length() == 0) {
+                continue;
+            }
+            boolean resultSet = stat.execute(sql);
+            if (resultSet) {
+                if (rs != null) {
+                    rs.close();
+                    rs = null;
+                }
+                rs = stat.getResultSet();
+            }
         }
         return rs;
     }

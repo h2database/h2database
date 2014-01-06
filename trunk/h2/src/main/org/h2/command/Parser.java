@@ -3674,6 +3674,9 @@ public class Parser {
             }
             return getKeywordOrIdentifier(s, "UNION", KEYWORD);
         case 'W':
+            if ("WITH".equals(s)) {
+                return KEYWORD;
+            }
             return getKeywordOrIdentifier(s, "WHERE", KEYWORD);
         default:
             return IDENTIFIER;

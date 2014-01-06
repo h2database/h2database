@@ -479,7 +479,7 @@ function submitSelected() {
 </head>
     <body onresize="sizeTextArea();" onload="sizeTextArea();" style="margin: 0px; padding: 0px;">
         <form name="h2querysubmit" method="post" action="query.do?jsessionid=${sessionId}" target="h2result" style="display:none">
-            <input type="text" id="sql" name="sql">
+            <input type="text" id="sql" name="sql"/>
         </form>
         <form name="h2query" action="javascript:alert('should not be submitting this form');">
             <span style="white-space:nowrap">

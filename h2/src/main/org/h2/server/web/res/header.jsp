@@ -18,25 +18,25 @@ Initial Developer: H2 Group
             <tr class="toolbar">
                 <td class="toolbar">
                     <a href="logout.do?jsessionid=${sessionId}" target="_top">
-                        <img src="icon_disconnect.gif" 
+                        <img src="icon_disconnect.gif"
                             onmouseover="this.className ='icon_hover'"
-                            onmouseout="this.className ='icon'" 
-                            class="icon" alt="${text.toolbar.disconnect}" 
-                            title="${text.toolbar.disconnect}" border="1">
+                            onmouseout="this.className ='icon'"
+                            class="icon" alt="${text.toolbar.disconnect}"
+                            title="${text.toolbar.disconnect}" border="1"/>
                     </a>
-                    <img src="icon_line.gif" class="iconLine" alt="">
+                    <img src="icon_line.gif" class="iconLine" alt=""/>
                     <a href="tables.do?jsessionid=${sessionId}" target="h2menu">
                         <img src="icon_refresh.gif"
                             onmouseover="this.className ='icon_hover'"
-                            onmouseout="this.className ='icon'" 
+                            onmouseout="this.className ='icon'"
                             class="icon" alt="${text.toolbar.refresh}"
-                            title="${text.toolbar.refresh}" border="1">
+                            title="${text.toolbar.refresh}" border="1"/>
                     </a>
-                    <img src="icon_line.gif" class="iconLine" alt="">
+                    <img src="icon_line.gif" class="iconLine" alt=""/>
                 </td>
                 <td class="toolbar">
                     <input type="checkbox" name="autoCommit" value="autoCommit" onclick=
-                        "javascript:top.frames['h2result'].document.location='query.do?jsessionid=${sessionId}&amp;sql=@autocommit_' + (document.header.autoCommit.checked ? 'true' : 'false') + '.';">
+                        "javascript:top.frames['h2result'].document.location='query.do?jsessionid=${sessionId}&amp;sql=@autocommit_' + (document.header.autoCommit.checked ? 'true' : 'false') + '.';"/>
                 </td>
                 <td class="toolbar">
                     ${text.toolbar.autoCommit}&nbsp;
@@ -44,19 +44,19 @@ Initial Developer: H2 Group
                 <td class="toolbar">
                     <a href="query.do?jsessionid=${sessionId}&amp;sql=ROLLBACK" target="h2result">
                         <img src="icon_rollback.gif"
-                            onmouseover="this.className ='icon_hover'" 
+                            onmouseover="this.className ='icon_hover'"
                             onmouseout="this.className ='icon'"
                             class="icon" alt="${text.toolbar.rollback}"
-                            title="${text.toolbar.rollback}" border="1">
+                            title="${text.toolbar.rollback}" border="1"/>
                     </a>
                     <a href="query.do?jsessionid=${sessionId}&amp;sql=COMMIT" target="h2result">
                         <img src="icon_commit.gif"
                             onmouseover="this.className ='icon_hover'"
                             onmouseout="this.className ='icon'"
                             class="icon" alt="${text.toolbar.commit}"
-                            title="${text.toolbar.commit}" border="1">
+                            title="${text.toolbar.commit}" border="1"/>
                     </a>
-                    <img src="icon_line.gif" class="iconLine" alt="">
+                    <img src="icon_line.gif" class="iconLine" alt=""/>
                 </td>
                 <td class="toolbar">
                     &nbsp;${text.toolbar.maxRows}:&nbsp;
@@ -87,7 +87,7 @@ Initial Developer: H2 Group
                             onmouseover="this.className ='icon_hover'"
                             onmouseout="this.className ='icon'"
                             class="icon" alt="${text.toolbar.run}"
-                            title="${text.toolbar.run}" border="1">
+                            title="${text.toolbar.run}" border="1"/>
                     </a>
                 </td>
                 <td class="toolbar">
@@ -96,7 +96,7 @@ Initial Developer: H2 Group
                             onmouseover="this.className ='icon_hover'"
                             onmouseout="this.className ='icon'"
                             class="icon" alt="${text.toolbar.runSelected}"
-                            title="${text.toolbar.runSelected}" border="1">
+                            title="${text.toolbar.runSelected}" border="1"/>
                     </a>
                 </td>
                 <td class="toolbar">
@@ -105,17 +105,17 @@ Initial Developer: H2 Group
                             onmouseover="this.className ='icon_hover'"
                             onmouseout="this.className ='icon'"
                             class="icon" alt="${text.toolbar.cancelStatement}"
-                            title="${text.toolbar.cancelStatement}" border="1">
+                            title="${text.toolbar.cancelStatement}" border="1"/>
                     </a>
-                    <img src="icon_line.gif" class="iconLine" alt="">
+                    <img src="icon_line.gif" class="iconLine" alt=""/>
                     <a href="query.do?jsessionid=${sessionId}&amp;sql=@history." target="h2result">
                         <img src="icon_history.gif"
                             onmouseover="this.className ='icon_hover'"
                             onmouseout="this.className ='icon'"
                             class="icon" alt="${text.toolbar.history}"
-                            title="${text.toolbar.history}" border="1">
+                            title="${text.toolbar.history}" border="1"/>
                     </a>
-                    <img src="icon_line.gif" class="iconLine" alt="">
+                    <img src="icon_line.gif" class="iconLine" alt=""/>
                 </td>
                 <td class="toolbar">
                     ${text.toolbar.autoComplete}&nbsp;
@@ -138,7 +138,7 @@ Initial Developer: H2 Group
                             onmouseover="this.className ='icon_hover'"
                             onmouseout="this.className ='icon'"
                             class="icon" alt="${text.a.help}"
-                            title="${text.a.help}" border="1">
+                            title="${text.a.help}" border="1"/>
                     </a>
                 </td>
             </tr>

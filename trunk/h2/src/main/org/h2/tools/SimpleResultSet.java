@@ -219,7 +219,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     public SimpleResultSet(SimpleRowSource source) {
         this.source = source;
     }
-    
+
     /**
      * Adds a column to the result set.
      * All columns must be added before adding rows.

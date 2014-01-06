@@ -26,7 +26,9 @@ import org.h2.message.DbException;
  */
 public class ToChar {
 
-    /** The beginning of the Julian calendar. */
+    /**
+     * The beginning of the Julian calendar.
+     */
     private static final long JULIAN_EPOCH;
 
     static {
@@ -46,35 +48,77 @@ public class ToChar {
      * Emulates Oracle's TO_CHAR(number) function.
      *
      * <p><table border="1">
-     * <tr><td><b>Input</b></td><td><b>Output</b></td><td><b>Closest {@link DecimalFormat} Equivalent</b></td></tr>
-     * <tr><td>,</td><td>Grouping separator.</td><td>,</td></tr>
-     * <tr><td>.</td><td>Decimal separator.</td><td>.</td></tr>
-     * <tr><td>$</td><td>Leading dollar sign.</td><td>$</td></tr>
-     * <tr><td>0</td><td>Leading or trailing zeroes.</td><td>0</td></tr>
-     * <tr><td>9</td><td>Digit.</td><td>#</td></tr>
-     * <tr><td>B</td><td>Blanks integer part of a fixed point number less than 1.</td><td>#</td></tr>
-     * <tr><td>C</td><td>ISO currency symbol.</td><td>\u00A4</td></tr>
-     * <tr><td>D</td><td>Local decimal separator.</td><td>.</td></tr>
-     * <tr><td>EEEE</td><td>Returns a value in scientific notation.</td><td>E</td></tr>
-     * <tr><td>FM</td><td>Returns values with no leading or trailing spaces.</td><td>None.</td></tr>
-     * <tr><td>G</td><td>Local grouping separator.</td><td>,</td></tr>
-     * <tr><td>L</td><td>Local currency symbol.</td><td>\u00A4</td></tr>
-     * <tr><td>MI</td><td>Negative values get trailing minus sign, positive get trailing space.</td><td>-</td></tr>
-     * <tr><td>PR</td><td>Negative values get enclosing angle brackets, positive get spaces.</td><td>None.</td></tr>
-     * <tr><td>RN</td><td>Returns values in Roman numerals.</td><td>None.</td></tr>
-     * <tr><td>S</td><td>Returns values with leading/trailing +/- signs.</td><td>None.</td></tr>
-     * <tr><td>TM</td><td>Returns smallest number of characters possible.</td><td>None.</td></tr>
-     * <tr><td>U</td><td>Returns the dual currency symbol.</td><td>None.</td></tr>
-     * <tr><td>V</td><td>Returns a value multiplied by 10^n.</td><td>None.</td></tr>
-     * <tr><td>X</td><td>Hex value.</td><td>None.</td></tr>
+     * <th><td>Input</td>
+     * <td>Output</td>
+     * <td>Closest {@link DecimalFormat} Equivalent</td></th>
+     * <tr><td>,</td>
+     * <td>Grouping separator.</td>
+     * <td>,</td></tr>
+     * <tr><td>.</td>
+     * <td>Decimal separator.</td>
+     * <td>.</td></tr>
+     * <tr><td>$</td>
+     * <td>Leading dollar sign.</td>
+     * <td>$</td></tr>
+     * <tr><td>0</td>
+     * <td>Leading or trailing zeroes.</td>
+     * <td>0</td></tr>
+     * <tr><td>9</td>
+     * <td>Digit.</td>
+     * <td>#</td></tr>
+     * <tr><td>B</td>
+     * <td>Blanks integer part of a fixed point number less than 1.</td>
+     * <td>#</td></tr>
+     * <tr><td>C</td>
+     * <td>ISO currency symbol.</td>
+     * <td>\u00A4</td></tr>
+     * <tr><td>D</td>
+     * <td>Local decimal separator.</td>
+     * <td>.</td></tr>
+     * <tr><td>EEEE</td>
+     * <td>Returns a value in scientific notation.</td>
+     * <td>E</td></tr>
+     * <tr><td>FM</td>
+     * <td>Returns values with no leading or trailing spaces.</td>
+     * <td>None.</td></tr>
+     * <tr><td>G</td>
+     * <td>Local grouping separator.</td>
+     * <td>,</td></tr>
+     * <tr><td>L</td>
+     * <td>Local currency symbol.</td>
+     * <td>\u00A4</td></tr>
+     * <tr><td>MI</td>
+     * <td>Negative values get trailing minus sign, positive get trailing space.</td>
+     * <td>-</td></tr>
+     * <tr><td>PR</td>
+     * <td>Negative values get enclosing angle brackets, positive get spaces.</td>
+     * <td>None.</td></tr>
+     * <tr><td>RN</td>
+     * <td>Returns values in Roman numerals.</td>
+     * <td>None.</td></tr>
+     * <tr><td>S</td>
+     * <td>Returns values with leading/trailing +/- signs.</td>
+     * <td>None.</td></tr>
+     * <tr><td>TM</td>
+     * <td>Returns smallest number of characters possible.</td>
+     * <td>None.</td></tr>
+     * <tr><td>U</td>
+     * <td>Returns the dual currency symbol.</td>
+     * <td>None.</td></tr>
+     * <tr><td>V</td>
+     * <td>Returns a value multiplied by 10^n.</td>
+     * <td>None.</td></tr>
+     * <tr><td>X</td>
+     * <td>Hex value.</td>
+     * <td>None.</td></tr>
      * </table>
+     * See also TO_CHAR(number) and number format models
+     * in the Oracle documentation.
      *
      * @param number the number to format
      * @param format the format pattern to use (if any)
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted number
-     * @see <a href="http://docs.oracle.com/cd/B19306_01/server.102/b14200/functions181.htm">TO_CHAR(number)</a>
-     * @see <a href="http://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements004.htm#i34570">Number format models</a>
      */
     public static String toChar(BigDecimal number, String format, String nlsParam) {
 
@@ -387,55 +431,138 @@ public class ToChar {
      * Emulates Oracle's TO_CHAR(datetime) function.
      *
      * <p><table border="1">
-     * <tr><td><b>Input</b></td><td><b>Output</b></td><td><b>Closest {@link SimpleDateFormat} Equivalent</b></td></tr>
-     * <tr><td>- / , . ; : "text"</td><td>Reproduced verbatim.</td><td>'text'</td></tr>
-     * <tr><td>A.D. AD B.C. BC</td><td>Era designator, with or without periods.</td><td>G</td></tr>
-     * <tr><td>A.M. AM P.M. PM</td><td>AM/PM marker.</td><td>a</td></tr>
-     * <tr><td>CC SCC</td><td>Century.</td><td>None.</td></tr>
-     * <tr><td>D</td><td>Day of week.</td><td>u</td></tr>
-     * <tr><td>DAY</td><td>Name of day.</td><td>EEEE</td></tr>
-     * <tr><td>DY</td><td>Abbreviated day name.</td><td>EEE</td></tr>
-     * <tr><td>DD</td><td>Day of month.</td><td>d</td></tr>
-     * <tr><td>DDD</td><td>Day of year.</td><td>D</td></tr>
-     * <tr><td>DL</td><td>Long date format.</td><td>EEEE, MMMM d, yyyy</td></tr>
-     * <tr><td>DS</td><td>Short date format.</td><td>MM/dd/yyyy</td></tr>
-     * <tr><td>E</td><td>Abbreviated era name (Japanese, Chinese, Thai)</td><td>None.</td></tr>
-     * <tr><td>EE</td><td>Full era name (Japanese, Chinese, Thai)</td><td>None.</td></tr>
-     * <tr><td>FF[1-9]</td><td>Fractional seconds.</td><td>S</td></tr>
-     * <tr><td>FM</td><td>Returns values with no leading or trailing spaces.</td><td>None.</td></tr>
-     * <tr><td>FX</td><td>Requires exact matches between character data and format model.</td><td>None.</td></tr>
-     * <tr><td>HH HH12</td><td>Hour in AM/PM (1-12).</td><td>hh</td></tr>
-     * <tr><td>HH24</td><td>Hour in day (0-23).</td><td>HH</td></tr>
-     * <tr><td>IW</td><td>Week in year.</td><td>w</td></tr>
-     * <tr><td>WW</td><td>Week in year.</td><td>w</td></tr>
-     * <tr><td>W</td><td>Week in month.</td><td>W</td></tr>
-     * <tr><td>IYYY IYY IY I</td><td>Last 4/3/2/1 digit(s) of ISO year.</td><td>yyyy yyy yy y</td></tr>
-     * <tr><td>RRRR RR</td><td>Last 4/2 digits of year.</td><td>yyyy yy</td></tr>
-     * <tr><td>Y,YYY</td><td>Year with comma.</td><td>None.</td></tr>
-     * <tr><td>YEAR SYEAR</td><td>Year spelled out (S prefixes BC years with minus sign).</td><td>None.</td></tr>
-     * <tr><td>YYYY SYYYY</td><td>4-digit year (S prefixes BC years with minus sign).</td><td>yyyy</td></tr>
-     * <tr><td>YYY YY Y</td><td>Last 3/2/1 digit(s) of year.</td><td>yyy yy y</td></tr>
-     * <tr><td>J</td><td>Julian day (number of days since January 1, 4712 BC).</td><td>None.</td></tr>
-     * <tr><td>MI</td><td>Minute in hour.</td><td>mm</td></tr>
-     * <tr><td>MM</td><td>Month in year.</td><td>MM</td></tr>
-     * <tr><td>MON</td><td>Abbreviated name of month.</td><td>MMM</td></tr>
-     * <tr><td>MONTH</td><td>Name of month, padded with spaces.</td><td>MMMM</td></tr>
-     * <tr><td>RM</td><td>Roman numeral month (I-XII).</td><td>None.</td></tr>
-     * <tr><td>Q</td><td>Quarter of year.</td><td>None.</td></tr>
-     * <tr><td>SS</td><td>Seconds in minute.</td><td>ss</td></tr>
-     * <tr><td>SSSSS</td><td>Seconds in day.</td><td>None.</td></tr>
-     * <tr><td>TS</td><td>Short time format.</td><td>h:mm:ss aa</td></tr>
-     * <tr><td>TZD</td><td>Daylight savings time zone abbreviation.</td><td>z</td></tr>
-     * <tr><td>TZR</td><td>Time zone region information.</td><td>zzzz</td></tr>
-     * <tr><td>X</td><td>Local radix character.</td><td>None.</td></tr>
+     * <th><td>Input</td>
+     * <td>Output</td>
+     * <td>Closest {@link SimpleDateFormat} Equivalent</td></th>
+     * <tr><td>- / , . ; : "text"</td>
+     * <td>Reproduced verbatim.</td>
+     * <td>'text'</td></tr>
+     * <tr><td>A.D. AD B.C. BC</td>
+     * <td>Era designator, with or without periods.</td>
+     * <td>G</td></tr>
+     * <tr><td>A.M. AM P.M. PM</td>
+     * <td>AM/PM marker.</td>
+     * <td>a</td></tr>
+     * <tr><td>CC SCC</td>
+     * <td>Century.</td>
+     * <td>None.</td></tr>
+     * <tr><td>D</td>
+     * <td>Day of week.</td>
+     * <td>u</td></tr>
+     * <tr><td>DAY</td>
+     * <td>Name of day.</td>
+     * <td>EEEE</td></tr>
+     * <tr><td>DY</td>
+     * <td>Abbreviated day name.</td>
+     * <td>EEE</td></tr>
+     * <tr><td>DD</td>
+     * <td>Day of month.</td>
+     * <td>d</td></tr>
+     * <tr><td>DDD</td>
+     * <td>Day of year.</td>
+     * <td>D</td></tr>
+     * <tr><td>DL</td>
+     * <td>Long date format.</td>
+     * <td>EEEE, MMMM d, yyyy</td></tr>
+     * <tr><td>DS</td>
+     * <td>Short date format.</td>
+     * <td>MM/dd/yyyy</td></tr>
+     * <tr><td>E</td>
+     * <td>Abbreviated era name (Japanese, Chinese, Thai)</td>
+     * <td>None.</td></tr>
+     * <tr><td>EE</td>
+     * <td>Full era name (Japanese, Chinese, Thai)</td>
+     * <td>None.</td></tr>
+     * <tr><td>FF[1-9]</td>
+     * <td>Fractional seconds.</td>
+     * <td>S</td></tr>
+     * <tr><td>FM</td>
+     * <td>Returns values with no leading or trailing spaces.</td>
+     * <td>None.</td></tr>
+     * <tr><td>FX</td>
+     * <td>Requires exact matches between character data and format model.</td>
+     * <td>None.</td></tr>
+     * <tr><td>HH HH12</td>
+     * <td>Hour in AM/PM (1-12).</td>
+     * <td>hh</td></tr>
+     * <tr><td>HH24</td>
+     * <td>Hour in day (0-23).</td>
+     * <td>HH</td></tr>
+     * <tr><td>IW</td>
+     * <td>Week in year.</td>
+     * <td>w</td></tr>
+     * <tr><td>WW</td>
+     * <td>Week in year.</td>
+     * <td>w</td></tr>
+     * <tr><td>W</td>
+     * <td>Week in month.</td>
+     * <td>W</td></tr>
+     * <tr><td>IYYY IYY IY I</td>
+     * <td>Last 4/3/2/1 digit(s) of ISO year.</td>
+     * <td>yyyy yyy yy y</td></tr>
+     * <tr><td>RRRR RR</td>
+     * <td>Last 4/2 digits of year.</td>
+     * <td>yyyy yy</td></tr>
+     * <tr><td>Y,YYY</td>
+     * <td>Year with comma.</td>
+     * <td>None.</td></tr>
+     * <tr><td>YEAR SYEAR</td>
+     * <td>Year spelled out (S prefixes BC years with minus sign).</td>
+     * <td>None.</td></tr>
+     * <tr><td>YYYY SYYYY</td>
+     * <td>4-digit year (S prefixes BC years with minus sign).</td>
+     * <td>yyyy</td></tr>
+     * <tr><td>YYY YY Y</td>
+     * <td>Last 3/2/1 digit(s) of year.</td>
+     * <td>yyy yy y</td></tr>
+     * <tr><td>J</td>
+     * <td>Julian day (number of days since January 1, 4712 BC).</td>
+     * <td>None.</td></tr>
+     * <tr><td>MI</td>
+     * <td>Minute in hour.</td>
+     * <td>mm</td></tr>
+     * <tr><td>MM</td>
+     * <td>Month in year.</td>
+     * <td>MM</td></tr>
+     * <tr><td>MON</td>
+     * <td>Abbreviated name of month.</td>
+     * <td>MMM</td></tr>
+     * <tr><td>MONTH</td>
+     * <td>Name of month, padded with spaces.</td>
+     * <td>MMMM</td></tr>
+     * <tr><td>RM</td>
+     * <td>Roman numeral month.</td>
+     * <td>None.</td></tr>
+     * <tr><td>Q</td>
+     * <td>Quarter of year.</td>
+     * <td>None.</td></tr>
+     * <tr><td>SS</td>
+     * <td>Seconds in minute.</td>
+     * <td>ss</td></tr>
+     * <tr><td>SSSSS</td>
+     * <td>Seconds in day.</td>
+     * <td>None.</td></tr>
+     * <tr><td>TS</td>
+     * <td>Short time format.</td>
+     * <td>h:mm:ss aa</td></tr>
+     * <tr><td>TZD</td>
+     * <td>Daylight savings time zone abbreviation.</td>
+     * <td>z</td></tr>
+     * <tr><td>TZR</td>
+     * <td>Time zone region information.</td>
+     * <td>zzzz</td></tr>
+     * <tr><td>X</td>
+     * <td>Local radix character.</td>
+     * <td>None.</td></tr>
      * </table>
+     * <p>
+     * See also TO_CHAR(datetime) and datetime format models
+     * in the Oracle documentation.
      *
      * @param ts the timestamp to format
      * @param format the format pattern to use (if any)
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted timestamp
-     * @see <a href="http://docs.oracle.com/cd/B19306_01/server.102/b14200/functions180.htm">TO_CHAR(datetime)</a>
-     * @see <a href="http://docs.oracle.com/cd/B19306_01/server.102/b14200/sql_elements004.htm#i34924">Datetime format models</a>
      */
     public static String toChar(Timestamp ts, String format, String nlsParam) {
 
@@ -678,15 +805,18 @@ public class ToChar {
     }
 
     /**
-     * Returns a capitalization strategy if the specified string contains any of the specified substrings at the
-     * specified index. The capitalization strategy indicates the casing of the substring that was found. If none
-     * of the specified substrings are found, this method returns <code>null</code>.
+     * Returns a capitalization strategy if the specified string contains any of
+     * the specified substrings at the specified index. The capitalization
+     * strategy indicates the casing of the substring that was found. If none of
+     * the specified substrings are found, this method returns <code>null</code>
+     * .
      *
      * @param s the string to check
      * @param index the index to check at
      * @param substrings the substrings to check for within the string
-     * @return a capitalization strategy if the specified string contains any of the specified substrings at the
-     *         specified index, <code>null</code> otherwise
+     * @return a capitalization strategy if the specified string contains any of
+     *         the specified substrings at the specified index,
+     *         <code>null</code> otherwise
      */
     private static Capitalization containsAt(String s, int index, String... substrings) {
         for (String substring : substrings) {
@@ -719,23 +849,30 @@ public class ToChar {
     /** Represents a capitalization / casing strategy. */
     private enum Capitalization {
 
-        /** All letters are uppercased. */
+        /**
+         * All letters are uppercased.
+         */
         UPPERCASE,
 
-        /** All letters are lowercased. */
+        /**
+         * All letters are lowercased.
+         */
         LOWERCASE,
 
-        /** The string is capitalized (first letter uppercased, subsequent letters lowercased). */
+        /**
+         * The string is capitalized (first letter uppercased, subsequent
+         * letters lowercased).
+         */
         CAPITALIZE;
 
         /**
-         * Returns the capitalization / casing strategy which should be used when the first and second letters have
-         * the specified casing.
+         * Returns the capitalization / casing strategy which should be used
+         * when the first and second letters have the specified casing.
          *
          * @param up1 whether or not the first letter is uppercased
          * @param up2 whether or not the second letter is uppercased
-         * @return the capitalization / casing strategy which should be used when the first and second letters have
-         *         the specified casing
+         * @return the capitalization / casing strategy which should be used
+         *         when the first and second letters have the specified casing
          */
         public static Capitalization toCapitalization(Boolean up1, Boolean up2) {
             if (up1 == null) {

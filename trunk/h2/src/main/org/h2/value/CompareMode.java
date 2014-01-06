@@ -63,8 +63,8 @@ public class CompareMode {
 
     private final String name;
     private final int strength;
-    
-    /** 
+
+    /**
      * If true, sort BINARY columns as if they contain unsigned bytes.
      */
     private final boolean binaryUnsigned;
@@ -230,7 +230,7 @@ public class CompareMode {
     public boolean isBinaryUnsigned() {
         return binaryUnsigned;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {

@@ -86,7 +86,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.fileName = null;
         this.tempFile = null;
     }
-    
+
     /**
      * Create temporary CLOB from Reader.
      */

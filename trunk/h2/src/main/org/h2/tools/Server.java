@@ -407,7 +407,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      *     new String[] { "-trace" }).start();
      * </pre>
      * Supported options are:
-     * -webPort, -webSSL, -webAllowOthers, -webDaemon, 
+     * -webPort, -webSSL, -webAllowOthers, -webDaemon,
      * -trace, -ifExists, -baseDir, -properties.
      * See the main method for details.
      *
@@ -429,7 +429,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      *     new String[] { "-tcpPort", "9123", "-tcpAllowOthers" }).start();
      * </pre>
      * Supported options are:
-     * -tcpPort, -tcpSSL, -tcpPassword, -tcpAllowOthers, -tcpDaemon, 
+     * -tcpPort, -tcpSSL, -tcpPassword, -tcpAllowOthers, -tcpDaemon,
      * -trace, -ifExists, -baseDir, -key.
      * See the main method for details.
      *
@@ -451,7 +451,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      *     Server.createPgServer("-pgAllowOthers").start();
      * </pre>
      * Supported options are:
-     * -pgPort, -pgAllowOthers, -pgDaemon, 
+     * -pgPort, -pgAllowOthers, -pgDaemon,
      * -trace, -ifExists, -baseDir, -key.
      * See the main method for details.
      *

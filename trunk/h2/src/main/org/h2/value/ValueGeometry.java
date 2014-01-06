@@ -37,13 +37,13 @@ public class ValueGeometry extends Value {
      * cost a significant amount of cpu cycles.
      */
     private Geometry geometry;
-    
+
     /**
      * As conversion from/to WKB cost a significant amount of cpu cycles, WKB
      * are kept in ValueGeometry instance
      */
     private byte[] bytes;
-    
+
     private int hashCode;
 
     private ValueGeometry(Geometry geometry) {

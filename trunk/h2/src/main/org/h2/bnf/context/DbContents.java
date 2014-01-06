@@ -6,6 +6,7 @@
  */
 package org.h2.bnf.context;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -114,35 +115,33 @@ public class DbContents {
     /**
      * Read the contents of this database from the database meta data.
      *
-     * @param meta the database meta data
+     * @param url the database URL
+     * @param conn the connection
      */
-    public synchronized void readContents(DatabaseMetaData meta) throws SQLException {
-        String prod = StringUtils.toLowerEnglish(meta.getDatabaseProductName());
-        isSQLite = prod.indexOf("sqlite") >= 0;
-        String url = meta.getURL();
-        if (url != null) {
-            isH2 = url.startsWith("jdbc:h2:");
-            if (isH2) {
-                PreparedStatement prep = meta.getConnection().prepareStatement(
-                        "SELECT UPPER(VALUE) FROM INFORMATION_SCHEMA.SETTINGS " +
-                        "WHERE NAME=?");
-                prep.setString(1, "MODE");
-                ResultSet rs = prep.executeQuery();
-                rs.next();
-                if ("MYSQL".equals(rs.getString(1))) {
-                    isH2ModeMySQL = true;
-                }
-                rs.close();
-                prep.close();
+    public synchronized void readContents(String url, Connection conn) throws SQLException {
+        isH2 = url.startsWith("jdbc:h2:");
+        if (isH2) {
+            PreparedStatement prep = conn.prepareStatement(
+                    "SELECT UPPER(VALUE) FROM INFORMATION_SCHEMA.SETTINGS " +
+                    "WHERE NAME=?");
+            prep.setString(1, "MODE");
+            ResultSet rs = prep.executeQuery();
+            rs.next();
+            if ("MYSQL".equals(rs.getString(1))) {
+                isH2ModeMySQL = true;
             }
-            isOracle = url.startsWith("jdbc:oracle:");
-            isPostgreSQL = url.startsWith("jdbc:postgresql:");
-            // isHSQLDB = url.startsWith("jdbc:hsqldb:");
-            isMySQL = url.startsWith("jdbc:mysql:");
-            isDerby = url.startsWith("jdbc:derby:");
-            isFirebird = url.startsWith("jdbc:firebirdsql:");
-            isMSSQLServer = url.startsWith("jdbc:sqlserver:");
+            rs.close();
+            prep.close();
         }
+        isSQLite = url.startsWith("jdbc:sqlite:");
+        isOracle = url.startsWith("jdbc:oracle:");
+        isPostgreSQL = url.startsWith("jdbc:postgresql:");
+        // isHSQLDB = url.startsWith("jdbc:hsqldb:");
+        isMySQL = url.startsWith("jdbc:mysql:");
+        isDerby = url.startsWith("jdbc:derby:");
+        isFirebird = url.startsWith("jdbc:firebirdsql:");
+        isMSSQLServer = url.startsWith("jdbc:sqlserver:");
+        DatabaseMetaData meta = conn.getMetaData();
         String defaultSchemaName = getDefaultSchemaName(meta);
         String[] schemaNames = getSchemaNames(meta);
         schemas = new DbSchema[schemaNames.length];
@@ -150,7 +149,7 @@ public class DbContents {
             String schemaName = schemaNames[i];
             boolean isDefault = defaultSchemaName == null || defaultSchemaName.equals(schemaName);
             DbSchema schema = new DbSchema(this, schemaName, isDefault);
-            if (schema.isDefault) {
+            if (isDefault) {
                 defaultSchema = schema;
             }
             schemas[i] = schema;

@@ -46,7 +46,7 @@ public class DbColumn {
                 scaleColumnName = "SCALE";
             } else {
                 scaleColumnName = "DECIMAL_DIGITS";
-            }            
+            }
             int prec = rs.getInt(scaleColumnName);
             if (prec > 0) {
                 type += ", " + prec;
@@ -58,10 +58,10 @@ public class DbColumn {
         }
         dataType = type;
     }
-    
+
     /**
      * Create a column from a DatabaseMetaData.getProcedureColumns row.
-     * 
+     *
      * @param contents the database contents
      * @param rs the result set
      * @return the column
@@ -69,10 +69,10 @@ public class DbColumn {
     public static DbColumn getProcedureColumn(DbContents contents, ResultSet rs) throws SQLException {
         return new DbColumn(contents, rs, true);
     }
-    
+
     /**
      * Create a column from a DatabaseMetaData.getColumns row.
-     * 
+     *
      * @param contents the database contents
      * @param rs the result set
      * @return the column

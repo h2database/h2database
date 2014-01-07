@@ -57,13 +57,13 @@ public class TestStatement extends TestBase {
         Statement stat = conn.createStatement();
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).isWrapperFor(Object.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).unwrap(Object.class);
-        
+
         conn.setTypeMap(null);
         HashMap<String, Class<?>> map = New.hashMap();
         conn.setTypeMap(map);
         map.put("x", Object.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).setTypeMap(map);
-        
+
         assertThrows(SQLClientInfoException.class, conn).setClientInfo("X", "Y");
         assertThrows(SQLClientInfoException.class, conn).setClientInfo(new Properties());
     }

@@ -1809,7 +1809,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Check that the given type map is either null or empty.
-     * 
+     *
      * @param map the type map
      * @throws DbException if the map is not empty
      */

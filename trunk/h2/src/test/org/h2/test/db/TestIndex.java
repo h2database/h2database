@@ -39,6 +39,7 @@ public class TestIndex extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb("index");
+        testIndexTypes();
         testHashIndexOnMemoryTable();
         testErrorMessage();
         testDuplicateKeyException();
@@ -89,6 +90,29 @@ public class TestIndex extends TestBase {
 
         testMultiColumnHashIndex();
 
+        conn.close();
+        deleteDb("index");
+    }
+
+    private void testIndexTypes() throws SQLException {
+        Connection conn = getConnection("index;MV_STORE=false");
+        stat = conn.createStatement();
+        for (String type : new String[] { "unique", "hash", "unique hash" }) {
+            stat.execute("create table test(id int)");
+            stat.execute("create " + type + " index idx_name on test(id)");
+            stat.execute("insert into test select x from system_range(1, 1000)");
+            ResultSet rs = stat.executeQuery("select * from test where id=100");
+            assertTrue(rs.next());
+            assertFalse(rs.next());
+            stat.execute("delete from test where id=100");
+            rs = stat.executeQuery("select * from test where id=100");
+            assertFalse(rs.next());
+            rs = stat.executeQuery("select min(id), max(id) from test");
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertEquals(1000, rs.getInt(2));
+            stat.execute("drop table test");
+        }
         conn.close();
         deleteDb("index");
     }

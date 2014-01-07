@@ -1034,31 +1034,31 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         assertEquals(1, rs.getInt(1));
         assertFalse(rs.next());
-        
-        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", 
+
+        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
                 Statement.RETURN_GENERATED_KEYS);
         prep.execute();
         rs = prep.getGeneratedKeys();
         rs.next();
         assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
-        
-        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", 
+
+        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
                 new int[] { 1 });
         prep.execute();
         rs = prep.getGeneratedKeys();
         rs.next();
         assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
-        
-        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)", 
+
+        prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
                 new String[] { "ID" });
         prep.execute();
         rs = prep.getGeneratedKeys();
         rs.next();
         assertEquals(4, rs.getInt(1));
         assertFalse(rs.next());
-        
+
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)",
                 ResultSet.TYPE_FORWARD_ONLY,
                 ResultSet.CONCUR_READ_ONLY,
@@ -1068,7 +1068,7 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         assertEquals(5, rs.getInt(1));
         assertFalse(rs.next());
-        
+
         stat.execute("DROP TABLE TEST");
     }
 

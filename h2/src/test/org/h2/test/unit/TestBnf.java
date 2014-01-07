@@ -50,7 +50,7 @@ public class TestBnf extends TestBase {
             conn.close();
         }
     }
-    
+
     private void testModes(Connection conn) throws Exception {
         DbContents dbContents;
         dbContents = new DbContents();

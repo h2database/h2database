@@ -132,7 +132,15 @@ public class DbSchema {
         list.toArray(tables);
         if (tables.length < MAX_TABLES_LIST_COLUMNS) {
             for (DbTableOrView tab : tables) {
-                tab.readColumns(meta);
+                try {
+                    tab.readColumns(meta);
+                } catch (SQLException e) {
+                    // MySQL:
+                    // View '...' references invalid table(s) or column(s) 
+                    // or function(s) or definer/invoker of view 
+                    // lack rights to use them HY000/1356
+                    // ignore
+                }
             }
         }
     }

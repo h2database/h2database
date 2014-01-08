@@ -50,6 +50,9 @@ public class TestSpatial extends TestBase {
         if (!config.mvStore && config.mvcc) {
             return;
         }
+        if (config.memory) {
+            return;
+        }
         if (DataType.GEOMETRY_CLASS != null) {
 
             deleteDb("spatial");

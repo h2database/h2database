@@ -20,6 +20,7 @@ import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.store.PageStore;
 import org.h2.table.Table;
 import org.h2.util.New;
 
@@ -139,40 +140,83 @@ public class DatabaseInfo implements DatabaseInfoMBean {
 
     @Override
     public long getFileWriteCountTotal() {
-        return database.isPersistent() ? database.getPageStore().getWriteCountTotal() : 0L;
+        if (!database.isPersistent()) {
+            return 0;
+        }
+        PageStore p = database.getPageStore();
+        if (p != null) {
+            return p.getWriteCountTotal();
+        }
+        // TODO remove this method when removing the page store
+        // (the MVStore doesn't support it)
+        return 0;
     }
 
     @Override
     public long getFileWriteCount() {
-        return database.isPersistent() ? database.getPageStore().getWriteCount() : 0L;
+        if (!database.isPersistent()) {
+            return 0;
+        }
+        PageStore p = database.getPageStore();
+        if (p != null) {
+            return p.getWriteCount();
+        }
+        return database.getMvStore().getStore().getFileStore().getReadCount();
     }
 
     @Override
     public long getFileReadCount() {
-        return database.isPersistent() ? database.getPageStore().getReadCount() : 0L;
+        if (!database.isPersistent()) {
+            return 0;
+        }
+        PageStore p = database.getPageStore();
+        if (p != null) {
+            return p.getReadCount();
+        }
+        return database.getMvStore().getStore().getFileStore().getReadCount();
     }
 
     @Override
     public long getFileSize() {
-        return database.isPersistent() ?
-                (database.getPageStore().getPageCount() * database.getPageStore().getPageSize() / 1024) : 0;
+        if (!database.isPersistent()) {
+            return 0;
+        }
+        PageStore p = database.getPageStore();
+        if (p != null) {
+            return p.getPageCount() * p.getPageSize() / 1024;
+        }
+        return database.getMvStore().getStore().getFileStore().size();
     }
 
     @Override
     public int getCacheSizeMax() {
-        return database.isPersistent() ? database.getPageStore().getCache().getMaxMemory() : 0;
+        if (!database.isPersistent()) {
+            return 0;
+        }
+        PageStore p = database.getPageStore();
+        if (p != null) {
+            return p.getCache().getMaxMemory();
+        }            
+        return database.getMvStore().getStore().getCacheSize() * 1024;
     }
 
     @Override
     public void setCacheSizeMax(int kb) {
         if (database.isPersistent()) {
-            database.getPageStore().getCache().setMaxMemory(kb);
+            database.setCacheSize(kb);
         }
     }
 
     @Override
     public int getCacheSize() {
-        return database.isPersistent() ? database.getPageStore().getCache().getMemory() : 0;
+        if (!database.isPersistent()) {
+            return 0;
+        }
+        PageStore p = database.getPageStore();
+        if (p != null) {
+            return p.getCache().getMemory();
+        }
+        return database.getMvStore().getStore().getCacheSizeUsed() * 1024;
     }
 
     @Override

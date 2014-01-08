@@ -91,7 +91,6 @@ public class Recover extends Tool implements DataHandler {
     private int pageSize;
     private FileStore store;
     private int[] parents;
-    private String mvFile;
 
     private Stats stat;
 
@@ -250,16 +249,15 @@ public class Recover extends Tool implements DataHandler {
         }
         for (String fileName : list) {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-                String mvFile = fileName.substring(0, fileName.length() -
-                        Constants.SUFFIX_PAGE_FILE.length()) + Constants.SUFFIX_MV_FILE;
-                if (list.contains(mvFile)) {
-                    this.mvFile = mvFile;
-                }
                 dumpPageStore(fileName);
             } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 dumpLob(fileName, false);
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
-                PrintWriter writer = getWriter(fileName, ".txt");
+                String f = fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length());
+                PrintWriter writer = getWriter(f + ".h2.db", ".sql");
+                dumpMVStoreFile(writer, fileName);
+                writer.close();
+                writer = getWriter(fileName, ".txt");
                 MVStoreTool.dump(fileName, writer);
                 writer.close();
             }
@@ -455,9 +453,6 @@ public class Recover extends Tool implements DataHandler {
             schema.clear();
             objectIdSet = New.hashSet();
             dumpPageStore(writer, pageCount);
-            if (mvFile != null) {
-                dumpMVStoreFile(writer, mvFile);
-            }
             writeSchema(writer);
             try {
                 dumpPageLogStream(writer, logKey, logFirstTrunkPage, logFirstDataPage, pageCount);
@@ -488,6 +483,11 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpMVStoreFile(PrintWriter writer, String fileName) {
         writer.println("-- mvstore");
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" + this.getClass().getName() + ".readBlobDb\";");
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" + this.getClass().getName() + ".readClobDb\";");
+        resetSchema();
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_MV_FILE.length()));
         MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open();
         TransactionStore store = new TransactionStore(mv);
@@ -551,6 +551,7 @@ public class Recover extends Tool implements DataHandler {
                     }
                 }
             }
+            writeSchema(writer);
         } catch (Throwable e) {
             writeError(writer, e);
         } finally {

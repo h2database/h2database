@@ -64,6 +64,8 @@ public class Explain extends Prepared {
         if (maxrows >= 0) {
             String plan;
             if (executeCommand) {
+                ;
+                // TODO to the same for the MVStore
                 PageStore store = db.isPersistent() ? db.getPageStore() : null;
                 if (store != null) {
                     store.statisticsStart();

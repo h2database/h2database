@@ -467,7 +467,10 @@ public class Database implements DataHandler {
      * @return true if one exists
      */
     static boolean exists(String name) {
-        return FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE);
+        if (FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE)) {
+            return true;
+        }
+        return FileUtils.exists(name + Constants.SUFFIX_MV_FILE);
     }
 
     /**
@@ -531,12 +534,17 @@ public class Database implements DataHandler {
             String dataFileName = databaseName + ".data.db";
             boolean existsData = FileUtils.exists(dataFileName);
             String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
+            String mvFileName = databaseName + Constants.SUFFIX_MV_FILE;
             boolean existsPage = FileUtils.exists(pageFileName);
-            if (existsData && !existsPage) {
+            boolean existsMv = FileUtils.exists(mvFileName);
+            if (existsData && (!existsPage && !existsMv)) {
                 throw DbException.get(ErrorCode.FILE_VERSION_ERROR_1,
                         "Old database: " + dataFileName + " - please convert the database to a SQL script and re-create it.");
             }
             if (existsPage && !FileUtils.canWrite(pageFileName)) {
+                readOnly = true;
+            }
+            if (existsMv && !FileUtils.canWrite(mvFileName)) {
                 readOnly = true;
             }
             if (readOnly) {
@@ -1837,8 +1845,10 @@ public class Database implements DataHandler {
             mvStore.prepareCommit(session, transaction);
             return;
         }
-        pageStore.flushLog();
-        pageStore.prepareCommit(session, transaction);
+        if (pageStore != null) {
+            pageStore.flushLog();
+            pageStore.prepareCommit(session, transaction);
+        }
     }
 
     /**
@@ -2262,8 +2272,11 @@ public class Database implements DataHandler {
     }
 
     public PageStore getPageStore() {
-        if (dbSettings.mvStore && mvStore == null) {
-            mvStore = MVTableEngine.init(this);
+        if (dbSettings.mvStore) {
+            if (mvStore == null) {
+                mvStore = MVTableEngine.init(this);
+            }
+            return null;
         }
         if (pageStore == null) {
             pageStore = new PageStore(this, databaseName + Constants.SUFFIX_PAGE_FILE, accessModeData, cacheSize);
@@ -2520,11 +2533,17 @@ public class Database implements DataHandler {
             this.logMode = log;
             pageStore.setLogMode(log);
         }
+        if (mvStore != null) {
+            this.logMode = log;
+        }
     }
 
     public int getLogMode() {
         if (pageStore != null) {
             return pageStore.getLogMode();
+        }
+        if (mvStore != null) {
+            return logMode;
         }
         return PageStore.LOG_MODE_OFF;
     }

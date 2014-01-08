@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.DatabaseEventListener;
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.Restore;
@@ -63,17 +64,29 @@ public class TestOpenClose extends TestBase {
         if (config.memory || config.reopen) {
             return;
         }
-        FileUtils.delete("split:" + getBaseDir() + "/openClose2.h2.db");
+        String fn = getBaseDir() + "/openClose2";
+        if (config.mvStore) {
+            fn += Constants.SUFFIX_MV_FILE;            
+        } else {
+            fn += Constants.SUFFIX_PAGE_FILE;            
+        }
+        FileUtils.delete("split:" + fn);
         Connection conn;
-        conn = DriverManager.getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
+        String url = "jdbc:h2:split:18:" + getBaseDir() + "/openClose2";
+        url = getURL(url, true);
+        conn = DriverManager.getConnection(url);
         conn.createStatement().execute("create table test(id int, name varchar) as select 1, space(1000000)");
         conn.close();
-        FileChannel c = FileUtils.open(getBaseDir() + "/openClose2.h2.db.1.part", "rw");
+        FileChannel c = FileUtils.open(fn+".1.part", "rw");
         c.position(c.size() * 2 - 1);
         c.write(ByteBuffer.wrap(new byte[1]));
         c.close();
-        assertThrows(ErrorCode.IO_EXCEPTION_2, this).getConnection("jdbc:h2:split:18:" + getBaseDir() + "/openClose2");
-        FileUtils.delete("split:" + getBaseDir() + "/openClose2.h2.db");
+        if (config.mvStore) {
+            assertThrows(ErrorCode.FILE_CORRUPTED_1, this).getConnection(url);
+        } else {
+            assertThrows(ErrorCode.IO_EXCEPTION_2, this).getConnection(url);
+        }
+        FileUtils.delete("split:" + fn);
     }
 
     private void testCloseDelay() throws Exception {

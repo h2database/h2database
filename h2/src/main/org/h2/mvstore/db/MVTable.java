@@ -625,6 +625,7 @@ public class MVTable extends TableBase {
             database.getLobStorage().removeAllForTable(getId());
             database.lockMeta(session);
         }
+        database.getMvStore().removeTable(this);
         super.removeChildrenAndResources(session);
         // go backwards because database.removeIndex will call table.removeIndex
         while (indexes.size() > 1) {
@@ -643,7 +644,6 @@ public class MVTable extends TableBase {
         }
         primaryIndex.remove(session);
         database.removeMeta(session, getId());
-        database.getMvStore().removeTable(this);
         primaryIndex = null;
         close(session);
         invalidate();

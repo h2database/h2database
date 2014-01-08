@@ -48,6 +48,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testCacheInfo();
         testRollback();
         testVersionsToKeep();
         testRemoveMap();
@@ -97,6 +98,29 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testCacheInfo() {
+        String fileName = getBaseDir() + "/testCloseMap.h3";
+        MVStore s = new MVStore.Builder().fileName(fileName).cacheSize(2).open();
+        assertEquals(2, s.getCacheSize());
+        MVMap<Integer, byte[]> map;
+        map = s.openMap("data");
+        byte[] data = new byte[100 * 1024];
+        for (int i = 0; i < 30; i++) {
+            map.put(i, data);
+            s.commit();
+            if (i < 10) {
+                assertEquals(0, s.getCacheSizeUsed());
+            } else if (i > 20) {
+                assertEquals(1, s.getCacheSizeUsed());
+            }
+        }
+        s.close();
+        s = new MVStore.Builder().open();
+        assertEquals(0, s.getCacheSize());
+        assertEquals(0, s.getCacheSizeUsed());
+        s.close();
     }
 
     private void testVersionsToKeep() throws Exception {
@@ -576,9 +600,11 @@ public class TestMVStore extends TestBase {
                 3406, 2590, 1924, 1440, 1102, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
+            int cacheMB = 1 + 3 * cacheSize;
             s = new MVStore.Builder().
                     fileName(fileName).
-                    cacheSize(1 + 3 * cacheSize).open();
+                    cacheSize(cacheMB).open();
+            assertEquals(cacheMB, s.getCacheSize());
             map = s.openMap("test");
             for (int i = 0; i < 1024; i += 128) {
                 for (int j = 0; j < i; j++) {

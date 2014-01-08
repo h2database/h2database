@@ -37,6 +37,7 @@ import javax.servlet.ServletContext;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.server.web.WebServlet;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -178,10 +179,16 @@ public class TestWeb extends TestBase {
             assertTrue(FileUtils.exists(getBaseDir() + "/backup.zip"));
             result = client.get(url, "tools.do?tool=DeleteDbFiles&args=-dir," +
                     getBaseDir() + ",-db,web");
-            assertFalse(FileUtils.exists(getBaseDir() + "/web.h2.db"));
+            String fn = getBaseDir() + "/web";
+            if (config.mvStore) {
+                fn += Constants.SUFFIX_MV_FILE;
+            } else {
+                fn += Constants.SUFFIX_PAGE_FILE;
+            }
+            assertFalse(FileUtils.exists(fn));
             result = client.get(url, "tools.do?tool=Restore&args=-dir," +
                     getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
-            assertTrue(FileUtils.exists(getBaseDir() + "/web.h2.db"));
+            assertTrue(FileUtils.exists(fn));
             FileUtils.delete(getBaseDir() + "/web.h2.sql");
             FileUtils.delete(getBaseDir() + "/backup.zip");
             result = client.get(url, "tools.do?tool=Recover&args=-dir," +
@@ -192,7 +199,7 @@ public class TestWeb extends TestBase {
                     getBaseDir() + "/web.h2.sql,-url," + getURL("web", true) +
                     ",-user," + getUser() + ",-password," + getPassword());
             FileUtils.delete(getBaseDir() + "/web.h2.sql");
-            assertTrue(FileUtils.exists(getBaseDir() + "/web.h2.db"));
+            assertTrue(FileUtils.exists(fn));
             deleteDb("web");
         } finally {
             server.shutdown();

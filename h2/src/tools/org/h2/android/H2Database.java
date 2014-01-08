@@ -247,8 +247,7 @@ public class H2Database {
      * @return the page size
      */
     public long getPageSize() {
-        PageStore store = session.getDatabase().getPageStore();
-        return store == null ? 0 : store.getPageSize();
+        return 0;
     }
 
     /**

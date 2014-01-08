@@ -50,7 +50,7 @@ public class TestSpatial extends TestBase {
         if (!config.mvStore && config.mvcc) {
             return;
         }
-        if (config.memory) {
+        if (config.memory && config.mvcc) {
             return;
         }
         if (DataType.GEOMETRY_CLASS != null) {

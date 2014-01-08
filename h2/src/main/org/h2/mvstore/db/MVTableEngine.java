@@ -10,8 +10,9 @@ import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
@@ -108,8 +109,8 @@ public class MVTableEngine implements TableEngine {
         }
         Store store = init(db);
         MVTable table = new MVTable(data, store);
-        store.openTables.add(table);
         table.init(data.session);
+        store.tableMap.put(table.getMapName(), table);
         return table;
     }
 
@@ -124,9 +125,10 @@ public class MVTableEngine implements TableEngine {
         final Database db;
 
         /**
-         * The list of open tables.
+         * The map of open tables.
+         * Key: the map name, value: the table.
          */
-        final List<MVTable> openTables = Collections.synchronizedList(new ArrayList<MVTable>());
+        final ConcurrentHashMap<String, MVTable> tableMap = new ConcurrentHashMap<String, MVTable>();
 
         /**
          * The store.
@@ -153,8 +155,8 @@ public class MVTableEngine implements TableEngine {
             return transactionStore;
         }
 
-        public List<MVTable> getTables() {
-            return new ArrayList<MVTable>(openTables);
+        public HashMap<String, MVTable> getTables() {
+            return new HashMap<String, MVTable>(tableMap);
         }
 
         /**
@@ -163,7 +165,7 @@ public class MVTableEngine implements TableEngine {
          * @param table the table
          */
         public void removeTable(MVTable table) {
-            openTables.remove(table);
+            tableMap.remove(table.getMapName());
         }
 
         /**
@@ -229,7 +231,7 @@ public class MVTableEngine implements TableEngine {
         }
 
         public void setCacheSize(int kb) {
-            store.setCacheSize(kb * 1024);
+            store.setCacheSize(Math.max(1, kb / 1024));
         }
 
         public InputStream getInputStream() {

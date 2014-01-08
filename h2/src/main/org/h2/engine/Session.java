@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 
 import org.h2.command.Command;
@@ -588,11 +587,7 @@ public class Session extends SessionWithState {
         }
         if (transaction != null) {
             long savepointId = savepoint == null ? 0 : savepoint.transactionSavepoint;
-            List<MVTable> tables = database.getMvStore().getTables();
-            HashMap<String, MVTable> tableMap = New.hashMap();
-            for (MVTable t : tables) {
-                tableMap.put(t.getMapName(), t);
-            }
+            HashMap<String, MVTable> tableMap = database.getMvStore().getTables();
             Iterator<Change> it = transaction.getChanges(savepointId);
             while (it.hasNext()) {
                 Change c = it.next();

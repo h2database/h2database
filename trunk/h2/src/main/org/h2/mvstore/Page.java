@@ -819,7 +819,8 @@ public class Page {
                 valueType.write(buff, values[i]);
             }
         }
-        if (map.getStore().getCompress()) {
+        MVStore store = map.getStore();
+        if (store.getCompress()) {
             Compressor compressor = map.getStore().getCompressor();
             int expLen = buff.position() - compressStart;
             byte[] exp = new byte[expLen];
@@ -846,6 +847,7 @@ public class Page {
                     DataUtils.ERROR_INTERNAL, "Page already stored");
         }
         pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
+        store.cachePage(pos, this, getMemory());
         long max = DataUtils.getPageMaxLength(pos);
         chunk.maxLength += max;
         chunk.maxLengthLive += max;

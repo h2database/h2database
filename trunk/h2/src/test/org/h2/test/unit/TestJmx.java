@@ -102,6 +102,8 @@ public class TestJmx extends TestBase {
         conn.close();
 
         conn = getConnection("jmx;jmx=true");
+        conn.close();
+        conn = getConnection("jmx;jmx=true");
 
         name = new ObjectName("org.h2:name=JMX,*");
         @SuppressWarnings("rawtypes")
@@ -110,12 +112,20 @@ public class TestJmx extends TestBase {
 
         assertEquals("16384", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
         mbeanServer.setAttribute(name, new Attribute("CacheSizeMax", 1));
-        assertEquals("1", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
-        assertTrue(0 < (Integer) mbeanServer.getAttribute(name, "CacheSize"));
-        assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileSize"));
-        assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileReadCount"));
-        assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileWriteCount"));
-        assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileWriteCountTotal"));
+        if (config.mvStore) {
+            assertEquals("1024", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
+            assertEquals("0", mbeanServer.getAttribute(name, "CacheSize").toString());
+            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileReadCount"));
+            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileWriteCount"));
+            assertEquals("0", mbeanServer.getAttribute(name, "FileWriteCountTotal").toString());
+        } else {
+            assertEquals("1", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
+            assertTrue(0 < (Integer) mbeanServer.getAttribute(name, "CacheSize"));
+            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileSize"));
+            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileReadCount"));
+            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileWriteCount"));
+            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileWriteCountTotal"));
+        }
         mbeanServer.setAttribute(name, new Attribute("LogMode", 0));
         assertEquals("0", mbeanServer.getAttribute(name, "LogMode").toString());
 

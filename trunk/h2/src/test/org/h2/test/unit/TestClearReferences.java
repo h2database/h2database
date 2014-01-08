@@ -105,6 +105,9 @@ public class TestClearReferences extends TestBase {
             if (!name.endsWith(".class")) {
                 return;
             }
+            if (name.indexOf('$') >= 0) {
+                return;
+            }
             String className = file.getAbsolutePath().replace('\\', '/');
             className = className.substring(className.lastIndexOf("org/h2"));
             String packageName = className.substring(0, className.lastIndexOf('/'));

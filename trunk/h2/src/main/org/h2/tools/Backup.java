@@ -130,7 +130,9 @@ public class Backup extends Tool {
             ZipOutputStream zipOut = new ZipOutputStream(fileOut);
             String base = "";
             for (String fileName : list) {
-                if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE) || allFiles) {
+                if (allFiles ||
+                        fileName.endsWith(Constants.SUFFIX_PAGE_FILE) || 
+                        fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                     base = FileUtils.getParent(fileName);
                     break;
                 }

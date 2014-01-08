@@ -72,7 +72,7 @@ public class BackupCommand extends Prepared {
             backupPageStore(out, fn, db.getPageStore());
             // synchronize on the database, to avoid concurrent temp file
             // creation / deletion / backup
-            String base = FileUtils.getParent(fn);
+            String base = FileUtils.getParent(db.getName());
             synchronized (db.getLobSyncObject()) {
                 String prefix = db.getDatabasePath();
                 String dir = FileUtils.getParent(prefix);
@@ -103,6 +103,9 @@ public class BackupCommand extends Prepared {
     }
 
     private void backupPageStore(ZipOutputStream out, String fileName, PageStore store) throws IOException {
+        if (store == null) {
+            return;
+        }
         Database db = session.getDatabase();
         fileName = FileUtils.getName(fileName);
         out.putNextEntry(new ZipEntry(fileName));

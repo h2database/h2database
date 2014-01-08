@@ -1432,9 +1432,7 @@ public class MVStore {
                         "Negative position {0}", filePos);
             }
             p = Page.read(fileStore, map, pos, filePos, fileStore.size());
-            if (cache != null) {
-                cache.put(pos, p, p.getMemory());
-            }
+            cachePage(pos, p, p.getMemory());
         }
         return p;
     }
@@ -2011,6 +2009,43 @@ public class MVStore {
      */
     public int getUnsavedPageCount() {
         return unsavedPageCount;
+    }
+    
+    /**
+     * Put the page in the cache.
+     * 
+     * @param pos the page position
+     * @param page the page
+     * @param memory the memory used
+     */
+    void cachePage(long pos, Page page, int memory) {
+        if (cache != null) {
+            cache.put(pos, page, memory);
+        }
+    }
+    
+    /**
+     * Get the amount of memory used for caching, in MB.
+     * 
+     * @return the amount of memory used for caching
+     */
+    public int getCacheSizeUsed() {
+        if (cache == null) {
+            return 0;
+        }
+        return (int) (cache.getUsedMemory() / 1024 / 1024);
+    }
+    
+    /**
+     * Get the maximum cache size, in MB.
+     * 
+     * @return the cache size
+     */
+    public int getCacheSize() {
+        if (cache == null) {
+            return 0;
+        }
+        return (int) (cache.getMaxMemory() / 1024 / 1024);
     }
 
     /**

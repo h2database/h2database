@@ -124,6 +124,9 @@ public class Restore extends Tool {
         if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
             return fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length());
         }
+        if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
+            return fileName.substring(0, fileName.length() - Constants.SUFFIX_MV_FILE.length());
+        }
         return null;
     }
 

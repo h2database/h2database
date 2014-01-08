@@ -534,7 +534,7 @@ public class TestMVTableEngine extends TestBase {
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
         conn.close();
-        FileUtils.setReadOnly(getBaseDir() + "/mvstore.h2.db");
+        FileUtils.setReadOnly(getBaseDir() + "/mvstore" + Constants.SUFFIX_MV_FILE);
         conn = getConnection(dbName);
         Database db = (Database) ((JdbcConnection) conn).getSession().getDataHandler();
         assertTrue(db.getMvStore().getStore().getFileStore().isReadOnly());

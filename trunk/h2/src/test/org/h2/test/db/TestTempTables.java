@@ -160,6 +160,9 @@ public class TestTempTables extends TestBase {
         if (config.memory) {
             return;
         }
+        if (config.mvStore) {
+            return;
+        }
         deleteDb("tempTables");
         Connection conn = getConnection("tempTables");
         Statement stat = conn.createStatement();

@@ -135,8 +135,6 @@ public class TcpServerThread implements Runnable {
                 if (server.getIfExists()) {
                     ci.setProperty("IFEXISTS", "TRUE");
                 }
-                session = Engine.getInstance().createSession(ci);
-                transfer.setSession(session);
                 transfer.writeInt(SessionRemote.STATUS_OK);
                 transfer.writeInt(clientVersion);
                 transfer.flush();
@@ -145,6 +143,8 @@ public class TcpServerThread implements Runnable {
                         ci.setFileEncryptionKey(transfer.readBytes());
                     }
                 }
+                session = Engine.getInstance().createSession(ci);
+                transfer.setSession(session);
                 server.addConnection(threadId, originalURL, ci.getUserName());
                 trace("Connected");
             } catch (Throwable e) {

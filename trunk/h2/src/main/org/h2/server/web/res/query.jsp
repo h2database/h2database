@@ -478,9 +478,6 @@ function submitSelected() {
 </script>
 </head>
     <body onresize="sizeTextArea();" onload="sizeTextArea();" style="margin: 0px; padding: 0px;">
-        <form name="h2querysubmit" method="post" action="query.do?jsessionid=${sessionId}" target="h2result" style="display:none">
-            <input type="text" id="sql" name="sql"/>
-        </form>
         <form name="h2query" action="javascript:alert('should not be submitting this form');">
             <span style="white-space:nowrap">
                 <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submitAll();sql.focus();return true;" />
@@ -493,6 +490,9 @@ function submitSelected() {
             </div>
             <textarea id="sql" name="sql" cols="80" rows="5" onkeydown="return keyDown(event)" onkeyup="return keyUp(event)"
                 onfocus="keyUp()" onchange="return keyUp()">${query}</textarea>
+        </form>
+        <form name="h2querysubmit" method="post" action="query.do?jsessionid=${sessionId}" target="h2result" style="display:none">
+            <textarea id="sql" name="sql" style="display:none"></textarea>
         </form>
     </body>
 </html>

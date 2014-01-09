@@ -34,6 +34,9 @@ public class TestUpgrade extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (config.mvStore) {
+            return;
+        }
         if (!Utils.isClassPresent("org.h2.upgrade.v1_1.Driver")) {
             return;
         }

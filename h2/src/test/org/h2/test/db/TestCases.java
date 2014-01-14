@@ -115,7 +115,6 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-
     private void testEmptyStatements() throws SQLException {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();

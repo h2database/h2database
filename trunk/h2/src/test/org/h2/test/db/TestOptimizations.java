@@ -20,6 +20,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 import org.h2.util.Task;
 
 /**
@@ -40,6 +41,7 @@ public class TestOptimizations extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("optimizations");
+        testExplainRoundTrip();
         testOrderByExpression();
         testGroupSubquery();
         testAnalyzeLob();
@@ -74,6 +76,26 @@ public class TestOptimizations extends TestBase {
         testOrderedIndexes();
         testConvertOrToIn();
         deleteDb("optimizations");
+    }
+    
+    private void testExplainRoundTrip() throws Exception {
+        Connection conn = getConnection("optimizations");
+        assertExplainRoundTrip(conn, "select x from dual where x > any(select x from dual)");
+        conn.close();
+    }
+    
+    private void assertExplainRoundTrip(Connection conn, String sql) throws SQLException {
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("explain " + sql);
+        rs.next();
+        String plan = rs.getString(1).toLowerCase();
+        plan = plan.replaceAll("\\s+", " ");
+        plan = plan.replaceAll("/\\*[^\\*]*\\*/", "");
+        plan = plan.replaceAll("\\s+", " ");
+        plan = StringUtils.replaceAll(plan, "system_range(1, 1)", "dual");
+        plan = plan.replaceAll("\\( ", "\\(");
+        plan = plan.replaceAll(" \\)", "\\)");
+        assertEquals(plan, sql);
     }
 
     private void testOrderByExpression() throws Exception {

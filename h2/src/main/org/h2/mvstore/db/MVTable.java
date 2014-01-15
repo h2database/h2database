@@ -50,7 +50,6 @@ public class MVTable extends TableBase {
     private MVPrimaryIndex primaryIndex;
     private ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
-    private long rowCount;
     private volatile Session lockExclusive;
     private HashSet<Session> lockShared = New.hashSet();
     private final Trace traceLock;
@@ -92,7 +91,6 @@ public class MVTable extends TableBase {
                 IndexColumn.wrap(getColumns()),
                 IndexType.createScan(true)
                 );
-        rowCount = primaryIndex.getRowCount(session);
         indexes.add(primaryIndex);
     }
 
@@ -406,14 +404,14 @@ public class MVTable extends TableBase {
                     this, indexId,
                     indexName, cols, indexType);
         }
-        if (index.needRebuild() && rowCount > 0) {
+        if (index.needRebuild()) {
             try {
                 Index scan = getScanIndex(session);
                 long remaining = scan.getRowCount(session);
                 long total = remaining;
                 Cursor cursor = scan.find(session, null, null);
                 long i = 0;
-                int bufferSize = (int) Math.min(rowCount, Constants.DEFAULT_MAX_MEMORY_ROWS);
+                int bufferSize = (int) Math.min(total, Constants.DEFAULT_MAX_MEMORY_ROWS);
                 ArrayList<Row> buffer = New.arrayList(bufferSize);
                 String n = getName() + ":" + index.getName();
                 int t = MathUtils.convertLongToInt(total);
@@ -506,7 +504,6 @@ public class MVTable extends TableBase {
                 Index index = indexes.get(i);
                 index.remove(session, row);
             }
-            rowCount--;
         } catch (Throwable e) {
             t.rollbackToSavepoint(savepoint);
             throw DbException.convert(e);
@@ -521,7 +518,6 @@ public class MVTable extends TableBase {
             Index index = indexes.get(i);
             index.truncate(session);
         }
-        rowCount = 0;
         changesSinceAnalyze = 0;
     }
 
@@ -535,7 +531,6 @@ public class MVTable extends TableBase {
                 Index index = indexes.get(i);
                 index.add(session, row);
             }
-            rowCount++;
         } catch (Throwable e) {
             t.rollbackToSavepoint(savepoint);
             DbException de = DbException.convert(e);

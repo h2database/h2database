@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.h2.api.TableEngine;
@@ -139,6 +140,8 @@ public class MVTableEngine implements TableEngine {
          * The transaction store.
          */
         private final TransactionStore transactionStore;
+        
+        private long statisticsStart;
 
         public Store(Database db, MVStore store) {
             this.db = db;
@@ -292,6 +295,22 @@ public class MVTableEngine implements TableEngine {
                 }
                 store.close();
             }
+        }
+
+        /**
+         * Start collecting statistics.
+         */
+        public void statisticsStart() {
+            FileStore fs = store.getFileStore();
+            statisticsStart = fs == null ? 0 : fs.getReadCount();
+        }
+
+        public Map<String, Integer> statisticsEnd() {
+            HashMap<String, Integer> map = New.hashMap();
+            FileStore fs = store.getFileStore();
+            int reads = fs == null ? 0 : (int) (fs.getReadCount() - statisticsStart);
+            map.put("reads", reads);
+            return map;
         }
 
     }

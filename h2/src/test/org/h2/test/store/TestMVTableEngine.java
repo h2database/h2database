@@ -47,6 +47,10 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testCount();
+        testMinMaxWithNull();
+        testTimeout();
+        testExplainAnalyze();
         testTransactionLogUsuallyNotStored();
         testShrinkDatabaseFile();
         testTwoPhaseCommit();
@@ -66,6 +70,88 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+
+    private void testCount() throws Exception {
+        ;
+        // Test that count(*) is fast even if the map is very large
+    }
+    
+    private void testMinMaxWithNull() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Connection conn2;
+        Statement stat;
+        Statement stat2;
+        String url = "mvstore;MV_STORE=TRUE;MVCC=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(data int)");
+        stat.execute("create index on test(data)");
+        stat.execute("insert into test values(null), (2)");
+        conn2 = getConnection(url);
+        stat2 = conn2.createStatement();
+        conn.setAutoCommit(false);
+        conn2.setAutoCommit(false);
+        stat.execute("insert into test values(1)");
+        ResultSet rs;
+        rs = stat.executeQuery("select min(data) from test");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        rs = stat2.executeQuery("select min(data) from test");
+        rs.next();
+        // not yet committed
+        assertEquals(2, rs.getInt(1));
+        conn2.close();
+        conn.close();
+    }
+
+    private void testTimeout() throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Connection conn2;
+        Statement stat;
+        Statement stat2;
+        String url = "mvstore;MV_STORE=TRUE;MVCC=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id identity, name varchar)");
+        conn2 = getConnection(url);
+        stat2 = conn2.createStatement();
+        conn.setAutoCommit(false);
+        conn2.setAutoCommit(false);
+        stat.execute("insert into test values(1, 'Hello')");
+        assertThrows(ErrorCode.LOCK_TIMEOUT_1, stat2).
+                execute("insert into test values(1, 'Hello')");
+        conn2.close();
+        conn.close();
+    }
+    
+    private void testExplainAnalyze() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore;MV_STORE=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id identity, name varchar) as " + 
+                "select x, space(1000) from system_range(1, 1000)");
+        ResultSet rs;
+        conn.close();
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        rs = stat.executeQuery("explain analyze select * from test");
+        rs.next();
+        String plan = rs.getString(1);
+        // expect about 249 reads
+        assertTrue(plan, plan.indexOf("reads: 2") >= 0);
+        conn.close();
     }
 
     private void testTransactionLogUsuallyNotStored() throws Exception {

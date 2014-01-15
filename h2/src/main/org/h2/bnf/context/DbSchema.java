@@ -136,8 +136,8 @@ public class DbSchema {
                     tab.readColumns(meta);
                 } catch (SQLException e) {
                     // MySQL:
-                    // View '...' references invalid table(s) or column(s) 
-                    // or function(s) or definer/invoker of view 
+                    // View '...' references invalid table(s) or column(s)
+                    // or function(s) or definer/invoker of view
                     // lack rights to use them HY000/1356
                     // ignore
                 }

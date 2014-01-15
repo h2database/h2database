@@ -131,7 +131,7 @@ public class Backup extends Tool {
             String base = "";
             for (String fileName : list) {
                 if (allFiles ||
-                        fileName.endsWith(Constants.SUFFIX_PAGE_FILE) || 
+                        fileName.endsWith(Constants.SUFFIX_PAGE_FILE) ||
                         fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                     base = FileUtils.getParent(fileName);
                     break;

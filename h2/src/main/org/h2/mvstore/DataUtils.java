@@ -74,9 +74,9 @@ public class DataUtils {
     public static final int ERROR_TRANSACTION_CORRUPT = 100;
 
     /**
-     * A lock timeout occurred.
+     * An entry is still locked by another transaction.
      */
-    public static final int ERROR_TRANSACTION_LOCK_TIMEOUT = 101;
+    public static final int ERROR_TRANSACTION_LOCKED = 101;
 
     /**
      * A very old transaction is still open.

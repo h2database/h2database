@@ -66,9 +66,9 @@ public class TestOpenClose extends TestBase {
         }
         String fn = getBaseDir() + "/openClose2";
         if (config.mvStore) {
-            fn += Constants.SUFFIX_MV_FILE;            
+            fn += Constants.SUFFIX_MV_FILE;
         } else {
-            fn += Constants.SUFFIX_PAGE_FILE;            
+            fn += Constants.SUFFIX_PAGE_FILE;
         }
         FileUtils.delete("split:" + fn);
         Connection conn;

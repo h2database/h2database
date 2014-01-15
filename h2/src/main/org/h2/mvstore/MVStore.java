@@ -2010,10 +2010,10 @@ public class MVStore {
     public int getUnsavedPageCount() {
         return unsavedPageCount;
     }
-    
+
     /**
      * Put the page in the cache.
-     * 
+     *
      * @param pos the page position
      * @param page the page
      * @param memory the memory used
@@ -2023,10 +2023,10 @@ public class MVStore {
             cache.put(pos, page, memory);
         }
     }
-    
+
     /**
      * Get the amount of memory used for caching, in MB.
-     * 
+     *
      * @return the amount of memory used for caching
      */
     public int getCacheSizeUsed() {
@@ -2035,10 +2035,10 @@ public class MVStore {
         }
         return (int) (cache.getUsedMemory() / 1024 / 1024);
     }
-    
+
     /**
      * Get the maximum cache size, in MB.
-     * 
+     *
      * @return the cache size
      */
     public int getCacheSize() {

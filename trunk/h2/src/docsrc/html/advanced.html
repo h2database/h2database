@@ -1498,8 +1498,10 @@ IPv4 and IPv6 address formats are supported.
 
 <h2 id="file_system">Pluggable File System</h2>
 <p>
-This database supports a pluggable file system API. The file system implementation
-is selected using a file name prefix. The following file systems are included:
+This database supports a pluggable file system API.
+The file system implementation is selected using a file name prefix.
+Internally, the interfaces are very similar to the Java 7 NIO2 API, but do not (yet) use or require Java 7.
+The following file systems are included:
 </p>
 <ul><li><code>zip:</code>  read-only zip-file based file system. Format: <code>zip:/zipFileName!/fileName</code>.
 </li><li><code>split:</code> file system that splits files in 1 GB files (stackable with other file systems).

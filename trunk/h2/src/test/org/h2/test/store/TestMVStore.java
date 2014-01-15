@@ -99,7 +99,7 @@ public class TestMVStore extends TestBase {
         // longer running tests
         testLargerThan2G();
     }
-    
+
     private void testCacheInfo() {
         String fileName = getBaseDir() + "/testCloseMap.h3";
         MVStore s = new MVStore.Builder().fileName(fileName).cacheSize(2).open();

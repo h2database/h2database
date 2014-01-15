@@ -235,7 +235,7 @@ java org.h2.test.TestAll timer
 */
 
     ;
-    private static final boolean MV_STORE = false;
+    private static final boolean MV_STORE = true;
 
     /**
      * If the test should run with many rows.

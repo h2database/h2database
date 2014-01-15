@@ -68,7 +68,7 @@ public class RecoverTester implements Recorder {
         if (op != Recorder.WRITE && op != Recorder.TRUNCATE) {
             return;
         }
-        if (!fileName.endsWith(Constants.SUFFIX_PAGE_FILE) && 
+        if (!fileName.endsWith(Constants.SUFFIX_PAGE_FILE) &&
                 !fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
             return;
         }

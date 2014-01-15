@@ -77,13 +77,13 @@ public class TestOptimizations extends TestBase {
         testConvertOrToIn();
         deleteDb("optimizations");
     }
-    
+
     private void testExplainRoundTrip() throws Exception {
         Connection conn = getConnection("optimizations");
         assertExplainRoundTrip(conn, "select x from dual where x > any(select x from dual)");
         conn.close();
     }
-    
+
     private void assertExplainRoundTrip(Connection conn, String sql) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain " + sql);

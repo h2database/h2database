@@ -15,6 +15,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.store.PageStore;
@@ -64,11 +65,17 @@ public class Explain extends Prepared {
         if (maxrows >= 0) {
             String plan;
             if (executeCommand) {
-                ;
-                // TODO to the same for the MVStore
-                PageStore store = db.isPersistent() ? db.getPageStore() : null;
-                if (store != null) {
-                    store.statisticsStart();
+                PageStore store = null;
+                Store mvStore = null;
+                if (db.isPersistent()) {
+                    store = db.getPageStore();
+                    if (store != null) {
+                        store.statisticsStart();
+                    }
+                    mvStore = db.getMvStore();
+                    if (mvStore != null) {
+                        mvStore.statisticsStart();
+                    }
                 }
                 if (command.isQuery()) {
                     command.query(maxrows);
@@ -76,7 +83,12 @@ public class Explain extends Prepared {
                     command.update();
                 }
                 plan = command.getPlanSQL();
-                Map<String, Integer> statistics = store == null ? null : store.statisticsEnd();
+                Map<String, Integer> statistics = null;
+                if (store != null) {
+                    statistics = store.statisticsEnd();
+                } else if (mvStore != null) {
+                    statistics = mvStore.statisticsEnd();
+                }
                 if (statistics != null) {
                     int total = 0;
                     for (Entry<String, Integer> e : statistics.entrySet()) {
@@ -85,11 +97,17 @@ public class Explain extends Prepared {
                     if (total > 0) {
                         statistics = new TreeMap<String, Integer>(statistics);
                         StringBuilder buff = new StringBuilder();
-                        buff.append("total: ").append(total).append('\n');
+                        if (statistics.size() > 1) {
+                            buff.append("total: ").append(total).append('\n');
+                        }
                         for (Entry<String, Integer> e : statistics.entrySet()) {
                             int value = e.getValue();
                             int percent = (int) (100L * value / total);
-                            buff.append(e.getKey()).append(": ").append(value).append(" (").append(percent).append("%)\n");
+                            buff.append(e.getKey()).append(": ").append(value);
+                            if (statistics.size() > 1) {
+                                buff.append(" (").append(percent).append("%)"); 
+                            }
+                            buff.append('\n');
                         }
                         plan += "\n/*\n" + buff.toString() + "*/";
                     }

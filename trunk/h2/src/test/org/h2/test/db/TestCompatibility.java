@@ -380,6 +380,7 @@ public class TestCompatibility extends TestBase {
         stat.execute("drop table test if exists");
         stat.execute("create table test(id varchar)");
         res = stat.executeQuery("select * from test with ur");
+        stat.executeUpdate("insert into test values (1) with ur");
         res = stat.executeQuery("select * from test where id = 1 with rr");
         res = stat.executeQuery("select * from test order by id fetch next 2 rows only with rr");
         res = stat.executeQuery("select * from test order by id fetch next 2 rows only with rs");

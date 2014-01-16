@@ -282,7 +282,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
     @Override
     public boolean needRebuild() {
         try {
-            return dataMap.sizeAsLongEstimated() == 0;
+            return dataMap.sizeAsLongMax() == 0;
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -297,7 +297,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
     @Override
     public long getRowCountApproximation() {
         try {
-            return dataMap.sizeAsLongEstimated();
+            return dataMap.sizeAsLongMax();
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }

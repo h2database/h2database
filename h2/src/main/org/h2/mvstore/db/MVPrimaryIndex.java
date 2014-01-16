@@ -214,7 +214,7 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         try {
-            long cost = 10 * (dataMap.sizeAsLongEstimated() + Constants.COST_ROW_OFFSET);
+            long cost = 10 * (dataMap.sizeAsLongMax() + Constants.COST_ROW_OFFSET);
             return cost;
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
@@ -278,13 +278,22 @@ public class MVPrimaryIndex extends BaseIndex {
         return map.sizeAsLong();
     }
 
-    @Override
-    public long getRowCountApproximation() {
+    /**
+     * The maximum number of rows, including uncommitted rows of any session.
+     * 
+     * @return the maximum number of rows
+     */
+    public long getRowCountMax() {
         try {
-            return dataMap.sizeAsLongEstimated();
+            return dataMap.sizeAsLongMax();
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
+    }
+
+    @Override
+    public long getRowCountApproximation() {
+        return getRowCountMax();
     }
 
     @Override

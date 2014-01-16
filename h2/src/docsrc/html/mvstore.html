@@ -466,11 +466,11 @@ The plan is to use the MVStore as the default storage engine for the H2 database
 in the future (supporting SQL, JDBC, transactions, MVCC, and so on).
 This is work in progress. To try it out, append
 <code>;MV_STORE=TRUE</code>
-to the database URL. In general, functionality and performance should be
+to the database URL. In general, performance should be
 similar than the current default storage engine (the page store).
-There are a few features that have not been implemented yet or are not complete,
-for example the <code>.lock.db</code> file is still used to lock a database
-(the plan is to no longer use this file by default).
+Even thought it can be used with the default table level locking,
+it is recommended to use it together with the MVCC mode 
+(to do that, append <code>;MVCC=TRUE</code> to the database URL).
 </p>
 
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>

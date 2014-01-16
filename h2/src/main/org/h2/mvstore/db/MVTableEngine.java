@@ -305,6 +305,11 @@ public class MVTableEngine implements TableEngine {
             statisticsStart = fs == null ? 0 : fs.getReadCount();
         }
 
+        /**
+         * Stop collecting statistics.
+         *
+         * @return the statistics
+         */
         public Map<String, Integer> statisticsEnd() {
             HashMap<String, Integer> map = New.hashMap();
             FileStore fs = store.getFileStore();

@@ -249,6 +249,7 @@ public abstract class TestBase {
         if (name.startsWith("jdbc:")) {
             if (config.mvStore) {
                 name = addOption(name, "MV_STORE", "true");
+                // name = addOption(name, "MVCC", "true");
             }
             return name;
         }
@@ -274,6 +275,7 @@ public abstract class TestBase {
         }
         if (config.mvStore) {
             url = addOption(url, "MV_STORE", "true");
+            // url = addOption(url, "MVCC", "true");
         }
         if (!config.memory) {
             if (config.smallLog && admin) {

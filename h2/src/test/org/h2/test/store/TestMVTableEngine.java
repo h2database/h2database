@@ -73,8 +73,64 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testCount() throws Exception {
-        ;
-        // Test that count(*) is fast even if the map is very large
+        if (config.memory) {
+            return;
+        }
+        
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Connection conn2;
+        Statement stat;
+        Statement stat2;
+        String url = "mvstore;MV_STORE=TRUE;MVCC=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        stat.execute("create table test2(id int)");
+        stat.execute("insert into test select x from system_range(1, 10000)");
+        conn.close();
+        
+        ResultSet rs;
+        String plan;
+        
+        conn2 = getConnection(url);
+        stat2 = conn2.createStatement();
+        rs = stat2.executeQuery("explain analyze select count(*) from test");
+        rs.next();
+        plan = rs.getString(1);
+        assertTrue(plan, plan.indexOf("reads:") < 0);
+
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        conn.setAutoCommit(false);
+        stat.execute("insert into test select x from system_range(1, 1000)");
+        rs = stat.executeQuery("select count(*) from test");
+        rs.next();
+        assertEquals(11000, rs.getInt(1));
+        
+        // not yet committed
+        rs = stat2.executeQuery("explain analyze select count(*) from test");
+        rs.next();
+        plan = rs.getString(1);
+        // transaction log is small, so no need to read the table
+        assertTrue(plan, plan.indexOf("reads:") < 0);
+        rs = stat2.executeQuery("select count(*) from test");
+        rs.next();
+        assertEquals(10000, rs.getInt(1));
+        
+        stat.execute("insert into test2 select x from system_range(1, 11000)");
+        rs = stat2.executeQuery("explain analyze select count(*) from test");
+        rs.next();
+        plan = rs.getString(1);
+        // transaction log is larger than the table, so read the table
+        assertTrue(plan, plan.indexOf("reads:") >= 0);
+        rs = stat2.executeQuery("select count(*) from test");
+        rs.next();
+        assertEquals(10000, rs.getInt(1));
+        
+        conn2.close();
+        conn.close();
     }
     
     private void testMinMaxWithNull() throws Exception {

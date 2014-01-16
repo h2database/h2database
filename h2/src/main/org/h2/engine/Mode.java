@@ -131,7 +131,7 @@ public class Mode {
     /**
      * can set the isolation level using WITH {RR|RS|CS|UR}
      */
-    public boolean isolationLevelInSelectStatement;
+    public boolean isolationLevelInSelectOrInsertStatement;
 
     /**
      * MySQL style INSERT ... ON DUPLICATE KEY UPDATE ...
@@ -149,7 +149,7 @@ public class Mode {
         mode.aliasColumnName = true;
         mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
-        mode.isolationLevelInSelectStatement = true;
+        mode.isolationLevelInSelectOrInsertStatement = true;
         add(mode);
 
         mode = new Mode("Derby");
@@ -157,7 +157,7 @@ public class Mode {
         mode.uniqueIndexSingleNull = true;
         mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
-        mode.isolationLevelInSelectStatement = true;
+        mode.isolationLevelInSelectOrInsertStatement = true;
         add(mode);
 
         mode = new Mode("HSQLDB");

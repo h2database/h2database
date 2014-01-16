@@ -388,7 +388,7 @@ public class MVTable extends TableBase {
             if (store.store.hasMap("index." + indexId)) {
                 mainIndexColumn = -1;
             }
-        } else if (primaryIndex.getRowCount(session) != 0) {
+        } else if (primaryIndex.getRowCountMax() != 0) {
             mainIndexColumn = -1;
         }
         if (mainIndexColumn != -1) {

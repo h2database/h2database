@@ -195,7 +195,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
         try {
-            return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongEstimated(), filter, sortOrder);
+            return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(), filter, sortOrder);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -244,7 +244,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public boolean needRebuild() {
         try {
-            return dataMap.sizeAsLongEstimated() == 0;
+            return dataMap.sizeAsLongMax() == 0;
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -259,7 +259,7 @@ public class MVSecondaryIndex extends BaseIndex {
     @Override
     public long getRowCountApproximation() {
         try {
-            return dataMap.sizeAsLongEstimated();
+            return dataMap.sizeAsLongMax();
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }

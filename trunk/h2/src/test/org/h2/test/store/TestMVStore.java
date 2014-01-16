@@ -1289,6 +1289,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVMap<String, String> m = s.getMetaMap();
+        assertEquals("[]", s.getMapNames().toString());
         MVMap<String, String> data = s.openMap("data");
         data.put("1", "Hello");
         data.put("2", "World");
@@ -1296,6 +1297,11 @@ public class TestMVStore extends TestBase {
         assertEquals(1, s.getCurrentVersion());
         assertTrue(m.containsKey("chunk.1"));
         assertFalse(m.containsKey("chunk.2"));
+        
+        assertEquals("[data]", s.getMapNames().toString());
+        assertEquals("data", s.getMapName(data.getId()));
+        assertNull(s.getMapName(s.getMetaMap().getId()));
+        assertNull(s.getMapName(data.getId() + 1));
 
         String id = s.getMetaMap().get("name.data");
         assertEquals("name:data", m.get("map." + id));

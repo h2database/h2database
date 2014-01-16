@@ -46,6 +46,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
+        testCountWithOpenTransactions();
         testConcurrentUpdate();
         testRepeatedChange();
         testTransactionAge();
@@ -58,6 +59,39 @@ public class TestTransactionStore extends TestBase {
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+    }
+    
+    private void testCountWithOpenTransactions() {
+        MVStore s;
+        TransactionStore ts;
+        s = MVStore.open(null);
+        ts = new TransactionStore(s);
+
+        Transaction tx1 = ts.begin();
+        TransactionMap<Integer, Integer> map1 = tx1.openMap("data");
+        int size = 150;
+        for (int i = 0; i < size; i++) {
+            map1.put(i, i * 10);
+        }
+        tx1.commit();
+        tx1 = ts.begin();
+        map1 = tx1.openMap("data");
+
+        Transaction tx2 = ts.begin();
+        TransactionMap<Integer, Integer> map2 = tx2.openMap("data");
+        
+        Random r = new Random(1);
+        for (int i = 0; i < size * 3; i++) {
+            assertEquals("op: " + i, size, (int) map1.sizeAsLong());
+            // keep the first 10%, and add 10%
+            int k = size / 10 + r.nextInt(size);
+            if (r.nextBoolean()) {
+                map2.remove(k);
+            } else {
+                map2.put(k, i);
+            }
+        }
+        s.close();
     }
     
     private void testConcurrentUpdate() {

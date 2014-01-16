@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.h2.mvstore.Cursor;
@@ -67,6 +66,11 @@ public class TransactionStore {
     private int lastTransactionId;
 
     private int maxTransactionId = 0xffff;
+    
+    /**
+     * The next id of a temporary map.
+     */
+    private int nextTempMapId;
 
     /**
      * Create a new transaction store.
@@ -96,6 +100,13 @@ public class TransactionStore {
                 new MVMap.Builder<Long, Object[]>().
                 valueType(undoLogValueType);
         undoLog = store.openMap("undoLog", builder);
+        // remove all temporary maps
+        for (String mapName : store.getMapNames()) {
+            if (mapName.startsWith("temp.")) {
+                MVMap<Object, Integer> temp = openTempMap(mapName);
+                store.removeMap(temp);
+            }
+        }
         init();
     }
 
@@ -369,14 +380,11 @@ public class TransactionStore {
         if (map != null) {
             return map;
         }
-        // TODO open map by id if possible
-        Map<String, String> meta = store.getMetaMap();
-        String m = meta.get("map." + mapId);
-        if (m == null) {
+        String mapName = store.getMapName(mapId);
+        if (mapName == null) {
             // the map was removed later on
             return null;
         }
-        String mapName = DataUtils.parseMap(m).get("name");
         VersionedValueType vt = new VersionedValueType(dataType);
         MVMap.Builder<Object, VersionedValue> mapBuilder =
                 new MVMap.Builder<Object, VersionedValue>().
@@ -384,6 +392,24 @@ public class TransactionStore {
         map = store.openMap(mapName, mapBuilder);
         maps.put(mapId, map);
         return map;
+    }
+    
+    synchronized MVMap<Object, Integer> createTempMap() {
+        String mapName = "temp." + nextTempMapId++;
+        return openTempMap(mapName);
+    }
+    
+    /**
+     * Open a temporary map.
+     * 
+     * @param mapName the map name
+     * @return the map
+     */
+    MVMap<Object, Integer> openTempMap(String mapName) {
+        MVMap.Builder<Object, Integer> mapBuilder =
+                new MVMap.Builder<Object, Integer>().
+                keyType(dataType);
+        return store.openMap(mapName, mapBuilder);
     }
 
     /**
@@ -836,11 +862,12 @@ public class TransactionStore {
         }
 
         /**
-         * Get the size of the raw map.
-         *
-         * @return the size
+         * Get the size of the raw map. This includes uncommitted entries, and
+         * transiently removed entries, so it is the maximum number of entries.
+         * 
+         * @return the maximum size
          */
-        public long sizeAsLongEstimated() {
+        public long sizeAsLongMax() {
             return map.sizeAsLong();
         }
 
@@ -850,18 +877,60 @@ public class TransactionStore {
          * @return the size
          */
         public long sizeAsLong() {
-            // TODO this method is very slow
-            long size = 0;
-            Cursor<K, VersionedValue> cursor = map.cursor(null);
-            while (cursor.hasNext()) {
-                K key = cursor.next();
-                VersionedValue data = cursor.getValue();
-                data = getValue(key, readLogId, data);
-                if (data != null && data.value != null) {
-                    size++;
-                }
+            long sizeRaw = map.sizeAsLong();
+            MVMap<Long, Object[]> undo = transaction.store.undoLog;
+            long undoLogSize;
+            synchronized (undo) {
+                undoLogSize = undo.sizeAsLong();
             }
-            return size;
+            if (undoLogSize == 0) {
+                return sizeRaw;
+            }
+            if (undoLogSize > sizeRaw) {
+                // the undo log is larger than the map -
+                // count the entries of the map
+                long size = 0;
+                Cursor<K, VersionedValue> cursor = map.cursor(null);
+                while (cursor.hasNext()) {
+                    K key = cursor.next();
+                    VersionedValue data = cursor.getValue();
+                    data = getValue(key, readLogId, data);
+                    if (data != null && data.value != null) {
+                        size++;
+                    }
+                }
+                return size;
+            }
+            // the undo log is smaller than the map -
+            // scan the undo log and subtract invisible entries
+            synchronized (undo) {
+                // re-fetch in case any transaction was committed now
+                long size = map.sizeAsLong();
+                MVMap<Object, Integer> temp = transaction.store.createTempMap();
+                try {
+                    for (Entry<Long, Object[]> e : undo.entrySet()) {
+                        Object[] op = e.getValue();
+                        int m = (Integer) op[0];
+                        if (m != mapId) {
+                            // a different map - ignore
+                            continue;
+                        }
+                        @SuppressWarnings("unchecked")
+                        K key = (K) op[1];
+                        if (get(key) == null) {
+                            Integer old = temp.put(key, 1);
+                            // count each key only once
+                            // (there might be multiple changes for the same key)
+                            if (old == null) {
+                                size--;
+                            }
+                        }
+                    }
+                } finally {
+                    transaction.store.store.removeMap(temp);
+                }
+                return size;
+            }
         }
 
         /**

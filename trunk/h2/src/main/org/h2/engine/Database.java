@@ -208,7 +208,15 @@ public class Database implements DataHandler {
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }
-        this.fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
+        if (dbSettings.mvStore && lockMethodName == null) {
+            if (autoServerMode) {
+                fileLockMethod = FileLock.LOCK_FILE;
+            } else {
+                fileLockMethod = FileLock.LOCK_FS;
+            }
+        } else {
+            fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
+        }
         this.databaseURL = ci.getURL();
         String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
         if (listener != null) {
@@ -806,7 +814,7 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void verifyMetaLocked(Session session) {
-        if (!lockMeta(session) && lockMode != 0) {
+        if (!lockMeta(session) && lockMode != Constants.LOCK_MODE_OFF) {
             throw DbException.throwInternalError();
         }
     }
@@ -840,7 +848,7 @@ public class Database implements DataHandler {
             Cursor cursor = metaIdIndex.find(session, r, r);
             if (cursor.next()) {
                 if (SysProperties.CHECK) {
-                    if (lockMode != 0 && !wasLocked) {
+                    if (lockMode != Constants.LOCK_MODE_OFF && !wasLocked) {
                         throw DbException.throwInternalError();
                     }
                 }

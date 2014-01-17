@@ -447,11 +447,15 @@ public class TestTools extends TestBase {
         Task task = new Task() {
             @Override
             public void call() throws Exception {
-                Socket socket = serverSocket.accept();
-                byte[] data = new byte[1024];
-                data[0] = 'x';
-                socket.getOutputStream().write(data);
-                socket.close();
+                while (!stop) {
+                    Socket socket = serverSocket.accept();
+                    byte[] data = new byte[1024];
+                    data[0] = 'x';
+                    OutputStream out = socket.getOutputStream();
+                    out.write(data);
+                    out.close();
+                    socket.close();
+                }
             }
         };
         task.execute();
@@ -463,7 +467,7 @@ public class TestTools extends TestBase {
             assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
         }
         serverSocket.close();
-        task.get();
+        task.getException();
     }
 
     private void testDeleteFiles() throws SQLException {

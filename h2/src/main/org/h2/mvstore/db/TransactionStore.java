@@ -1067,8 +1067,8 @@ public class TransactionStore {
                 // added or updated by this transaction
                 transaction.log(mapId, key, current);
                 if (!map.replace(key, current, newValue)) {
-                    // strange, somebody overwrite the value
-                    // even thought the change was not committed
+                    // strange, somebody overwrote the value
+                    // even though the change was not committed
                     transaction.logUndo();
                     return false;
                 }

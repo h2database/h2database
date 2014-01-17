@@ -304,6 +304,17 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce, false);
         }
         try {
+            if (tcpStart) {
+                tcp = createTcpServer(args);
+                tcp.start();
+                out.println(tcp.getStatus());
+                tcp.setShutdownHandler(this);
+            }
+            if (pgStart) {
+                pg = createPgServer(args);
+                pg.start();
+                out.println(pg.getStatus());
+            }
             if (webStart) {
                 web = createWebServer(args);
                 web.setShutdownHandler(this);
@@ -329,17 +340,6 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 }
             } else if (browserStart) {
                 out.println("The browser can only start if a web server is started (-web)");
-            }
-            if (tcpStart) {
-                tcp = createTcpServer(args);
-                tcp.start();
-                out.println(tcp.getStatus());
-                tcp.setShutdownHandler(this);
-            }
-            if (pgStart) {
-                pg = createPgServer(args);
-                pg.start();
-                out.println(pg.getStatus());
             }
         } catch (SQLException e) {
             stopAll();

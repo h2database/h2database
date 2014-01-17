@@ -140,7 +140,7 @@ public class MVTableEngine implements TableEngine {
          * The transaction store.
          */
         private final TransactionStore transactionStore;
-        
+
         private long statisticsStart;
 
         public Store(Database db, MVStore store) {

@@ -66,7 +66,7 @@ public class TransactionStore {
     private int lastTransactionId;
 
     private int maxTransactionId = 0xffff;
-    
+
     /**
      * The next id of a temporary map.
      */
@@ -393,15 +393,20 @@ public class TransactionStore {
         maps.put(mapId, map);
         return map;
     }
-    
+
+    /**
+     * Create a temporary map. Such maps are removed when opening the store.
+     *
+     * @return the map
+     */
     synchronized MVMap<Object, Integer> createTempMap() {
         String mapName = "temp." + nextTempMapId++;
         return openTempMap(mapName);
     }
-    
+
     /**
      * Open a temporary map.
-     * 
+     *
      * @param mapName the map name
      * @return the map
      */
@@ -864,7 +869,7 @@ public class TransactionStore {
         /**
          * Get the size of the raw map. This includes uncommitted entries, and
          * transiently removed entries, so it is the maximum number of entries.
-         * 
+         *
          * @return the maximum size
          */
         public long sizeAsLongMax() {

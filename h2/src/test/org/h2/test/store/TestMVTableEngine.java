@@ -76,7 +76,7 @@ public class TestMVTableEngine extends TestBase {
         if (config.memory) {
             return;
         }
-        
+
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Connection conn2;
@@ -90,10 +90,10 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("create table test2(id int)");
         stat.execute("insert into test select x from system_range(1, 10000)");
         conn.close();
-        
+
         ResultSet rs;
         String plan;
-        
+
         conn2 = getConnection(url);
         stat2 = conn2.createStatement();
         rs = stat2.executeQuery("explain analyze select count(*) from test");
@@ -108,7 +108,7 @@ public class TestMVTableEngine extends TestBase {
         rs = stat.executeQuery("select count(*) from test");
         rs.next();
         assertEquals(11000, rs.getInt(1));
-        
+
         // not yet committed
         rs = stat2.executeQuery("explain analyze select count(*) from test");
         rs.next();
@@ -118,7 +118,7 @@ public class TestMVTableEngine extends TestBase {
         rs = stat2.executeQuery("select count(*) from test");
         rs.next();
         assertEquals(10000, rs.getInt(1));
-        
+
         stat.execute("insert into test2 select x from system_range(1, 11000)");
         rs = stat2.executeQuery("explain analyze select count(*) from test");
         rs.next();
@@ -128,11 +128,11 @@ public class TestMVTableEngine extends TestBase {
         rs = stat2.executeQuery("select count(*) from test");
         rs.next();
         assertEquals(10000, rs.getInt(1));
-        
+
         conn2.close();
         conn.close();
     }
-    
+
     private void testMinMaxWithNull() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -184,7 +184,7 @@ public class TestMVTableEngine extends TestBase {
         conn2.close();
         conn.close();
     }
-    
+
     private void testExplainAnalyze() throws Exception {
         if (config.memory) {
             return;
@@ -196,7 +196,7 @@ public class TestMVTableEngine extends TestBase {
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
-        stat.execute("create table test(id identity, name varchar) as " + 
+        stat.execute("create table test(id identity, name varchar) as " +
                 "select x, space(1000) from system_range(1, 1000)");
         ResultSet rs;
         conn.close();

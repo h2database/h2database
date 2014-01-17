@@ -105,7 +105,7 @@ public class Explain extends Prepared {
                             int percent = (int) (100L * value / total);
                             buff.append(e.getKey()).append(": ").append(value);
                             if (statistics.size() > 1) {
-                                buff.append(" (").append(percent).append("%)"); 
+                                buff.append(" (").append(percent).append("%)");
                             }
                             buff.append('\n');
                         }

@@ -60,7 +60,7 @@ public class TestTransactionStore extends TestBase {
         testSingleConnection();
         testCompareWithPostgreSQL();
     }
-    
+
     private void testCountWithOpenTransactions() {
         MVStore s;
         TransactionStore ts;
@@ -79,7 +79,7 @@ public class TestTransactionStore extends TestBase {
 
         Transaction tx2 = ts.begin();
         TransactionMap<Integer, Integer> map2 = tx2.openMap("data");
-        
+
         Random r = new Random(1);
         for (int i = 0; i < size * 3; i++) {
             assertEquals("op: " + i, size, (int) map1.sizeAsLong());
@@ -93,7 +93,7 @@ public class TestTransactionStore extends TestBase {
         }
         s.close();
     }
-    
+
     private void testConcurrentUpdate() {
         MVStore s;
         TransactionStore ts;
@@ -110,14 +110,14 @@ public class TestTransactionStore extends TestBase {
             map2.put(1, 20);
             fail();
         } catch (IllegalStateException e) {
-            assertEquals(DataUtils.ERROR_TRANSACTION_LOCKED, 
+            assertEquals(DataUtils.ERROR_TRANSACTION_LOCKED,
                     DataUtils.getErrorCode(e.getMessage()));
         }
         assertEquals(10, map1.get(1).intValue());
         assertNull(map2.get(1));
         tx1.commit();
         assertEquals(10, map2.get(1).intValue());
-        
+
         s.close();
     }
 

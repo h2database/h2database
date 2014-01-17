@@ -1297,7 +1297,7 @@ public class TestMVStore extends TestBase {
         assertEquals(1, s.getCurrentVersion());
         assertTrue(m.containsKey("chunk.1"));
         assertFalse(m.containsKey("chunk.2"));
-        
+
         assertEquals("[data]", s.getMapNames().toString());
         assertEquals("data", s.getMapName(data.getId()));
         assertNull(s.getMapName(s.getMetaMap().getId()));

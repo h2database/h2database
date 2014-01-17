@@ -280,7 +280,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * The maximum number of rows, including uncommitted rows of any session.
-     * 
+     *
      * @return the maximum number of rows
      */
     public long getRowCountMax() {

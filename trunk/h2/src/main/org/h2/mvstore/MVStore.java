@@ -51,7 +51,7 @@ TestMVStoreDataLoss
 MVTableEngine:
 - verify tests don't use the PageStore
 - test and possibly allow MVCC & MULTI_THREADED
-- maybe enable MVCC by default (but allow to disable it) 
+- maybe enable MVCC by default (but allow to disable it)
 - use StreamStore to avoid deadlocks
 
 TransactionStore:
@@ -456,10 +456,10 @@ public class MVStore {
         maps.put(id, map);
         return map;
     }
-    
+
     /**
      * Get the set of all map names.
-     * 
+     *
      * @return the set of names
      */
     public synchronized Set<String> getMapNames() {

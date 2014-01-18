@@ -1,0 +1,42 @@
+/*
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: Michael Manske
+ */
+package net.java.ao.db;
+
+import java.sql.Driver;
+
+/**
+ * This is a database provider for ActiveObjects.
+ * See also https://activeobjects.dev.java.net .
+ * Usage:
+ * <pre>
+ * EntityManager manager = new EntityManager(new H2DatabaseProvider(
+ *      dbProperties.getProperty("db.uri"),
+ *      dbProperties.getProperty("db.username"),
+ *      dbProperties.getProperty("db.password")));
+ * </pre>
+ *
+ * @author Michael Manske
+ * @author Thomas Mueller
+ */
+public class H2DatabaseProvider extends HSQLDatabaseProvider {
+
+    /**
+     * Create a new provider.
+     *
+     * @param uri the database uri
+     * @param username the user name
+     * @param password the password
+     */
+    public H2DatabaseProvider(String uri, String username, String password) {
+        super(uri, username, password);
+    }
+
+    public Class< ? extends Driver> getDriverClass() throws ClassNotFoundException {
+        return (Class< ? extends Driver>) Class.forName("org.h2.Driver");
+    }
+
+}

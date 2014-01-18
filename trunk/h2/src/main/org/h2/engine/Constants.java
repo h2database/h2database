@@ -17,22 +17,22 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2013-10-19";
+    public static final String BUILD_DATE = "2014-01-18";
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE_STABLE = "2013-07-28";
+    public static final String BUILD_DATE_STABLE = "2013-10-19";
 
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 174;
+    public static final int BUILD_ID = 175;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 173;
+    public static final int BUILD_ID_STABLE = 174;
 
     /**
      * If H2 is compiled to be included in a product, this should be set to

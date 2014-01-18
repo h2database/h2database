@@ -20,7 +20,6 @@ Check the PDF file size
 Upload to SourceForge
 Upload to ftp://h2database.com
 Upload to ftp://h2database.com/m2-repo
-Upload to http://code.google.com/p/h2database/downloads/list
 svn commit
 svn copy: /svn/trunk /svn/tags/version-1.1.x; Version 1.1.x (yyyy-mm-dd)
 Newsletter: prepare (always to BCC)

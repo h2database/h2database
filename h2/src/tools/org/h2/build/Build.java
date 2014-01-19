@@ -110,7 +110,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/emma-2.0.5312.jar" +
             File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
             File.pathSeparator + "ext/servlet-api-2.4.jar" +
-            File.pathSeparator + "ext/" + getLuceneJar() +
+            File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
             File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
@@ -146,7 +146,6 @@ public class Build extends BuildBase {
             } else {
                 SwitchSource.main("-dir", "src", "-version", version, check);
             }
-            SwitchSource.main("-dir", "src", "-LUCENE2", "-LUCENE3", "+LUCENE" + getLuceneVersion());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -178,7 +177,7 @@ public class Build extends BuildBase {
         download();
         String classpath = "temp" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
-                File.pathSeparator + "ext/" + getLuceneJar() +
+                File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
@@ -262,13 +261,8 @@ public class Build extends BuildBase {
     private void downloadOrVerify(boolean offline) {
         downloadOrVerify("ext/servlet-api-2.4.jar", "javax/servlet", "servlet-api", "2.4",
                 "3fc542fe8bb8164e8d3e840fe7403bc0518053c0", offline);
-        if (getLuceneVersion() == 3) {
-            downloadOrVerify("ext/lucene-core-3.0.2.jar", "org/apache/lucene", "lucene-core", "3.0.2",
-                    "c2b48995ab855c1b9ea13867a0f976c994e0105d", offline);
-        } else {
-            downloadOrVerify("ext/lucene-core-2.2.0.jar", "org/apache/lucene", "lucene-core", "2.2.0",
-                    "47b6eee2e17bd68911e7045896a1c09de0b2dda8", offline);
-        }
+        downloadOrVerify("ext/lucene-core-3.0.2.jar", "org/apache/lucene", "lucene-core", "3.0.2",
+                "c2b48995ab855c1b9ea13867a0f976c994e0105d", offline);
         downloadOrVerify("ext/slf4j-api-1.6.0.jar", "org/slf4j", "slf4j-api", "1.6.0",
                 "b353147a7d51fcfcd818d8aa6784839783db0915", offline);
         downloadOrVerify("ext/org.osgi.core-4.2.0.jar", "org/osgi", "org.osgi.core", "4.2.0",
@@ -312,18 +306,6 @@ public class Build extends BuildBase {
 
     private static String getVersion() {
         return getStaticValue("org.h2.engine.Constants", "getVersion");
-    }
-
-    private static String getLuceneJar() {
-        return "lucene-core-" + (getLuceneVersion() == 2 ? "2.2.0" : "3.0.2") + ".jar";
-    }
-
-    private static int getLuceneVersion() {
-        // use Lucene 2 for H2 1.2.x, and Lucene 3 for H2 1.3.x.
-        String s = new String(readFile(new File("src/main/org/h2/engine/Constants.java")));
-        int idx = s.indexOf("VERSION_MINOR") + "VERSION_MINOR".length() + 3;
-        int version = Integer.parseInt(s.substring(idx, idx + 1));
-        return Integer.parseInt(System.getProperty("lucene", "" + version));
     }
 
     private static String getJarSuffix() {
@@ -525,7 +507,7 @@ public class Build extends BuildBase {
         javadoc("-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
                 "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
                 "-classpath",
-                "ext/" + getLuceneJar() +
+                "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/jts-1.13.jar",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");
@@ -547,7 +529,7 @@ public class Build extends BuildBase {
                 "/../lib/tools.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
-                File.pathSeparator + "ext/" + getLuceneJar() +
+                File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-1.13.jar",
@@ -559,7 +541,7 @@ public class Build extends BuildBase {
                 "-classpath", System.getProperty("java.home") + "/../lib/tools.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
-                File.pathSeparator + "ext/" + getLuceneJar() +
+                File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-1.13.jar",
@@ -688,7 +670,7 @@ public class Build extends BuildBase {
             java("org.h2.build.doc.GenerateHelp", null);
             javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
                     "-classpath",
-                    "ext/" + getLuceneJar() +
+                    "ext/lucene-core-3.0.2.jar" +
                     File.pathSeparator + "ext/jts-1.13.jar",
                     "-docletpath", "bin" + File.pathSeparator + "temp",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");

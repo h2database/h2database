@@ -37,11 +37,6 @@ import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-/*## LUCENE2 ##
-import org.apache.lucene.index.IndexModifier;
-import org.apache.lucene.search.Hits;
-//*/
-//## LUCENE3 ##
 import java.io.File;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -50,7 +45,6 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.apache.lucene.util.Version;
 import org.apache.lucene.index.IndexWriter;
-//*/
 
 /**
  * This class implements the full text search based on Apache Lucene.
@@ -292,13 +286,6 @@ public class FullTextLucene extends FullText {
             IndexAccess access = INDEX_ACCESS.get(path);
             if (access == null) {
                 try {
-                    /*## LUCENE2 ##
-                    boolean recreate = !IndexReader.indexExists(path);
-                    Analyzer analyzer = new StandardAnalyzer();
-                    access = new IndexAccess();
-                    access.modifier = new IndexModifier(path, analyzer, recreate);
-                    //*/
-                    //## LUCENE3 ##
                     Directory indexDir = path.startsWith(IN_MEMORY_PREFIX) ? new RAMDirectory() : FSDirectory.open(new File(path));
                     boolean recreate = !IndexReader.indexExists(indexDir);
                     Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
@@ -310,7 +297,6 @@ public class FullTextLucene extends FullText {
                     access.writer = writer;
                     access.reader = reader;
                     access.searcher = new IndexSearcher(reader);
-                    //*/
                 } catch (IOException e) {
                     throw convertException(e);
                 }
@@ -332,13 +318,7 @@ public class FullTextLucene extends FullText {
         rs.next();
         String path = rs.getString(1);
         if (path == null) {
-            /*## LUCENE2 ##
-            throw throwException("Fulltext search for in-memory databases " +
-                "is not supported with Lucene 2. Please use Lucene 3 instead.");
-            //*/
-            //## LUCENE3 ##
             return IN_MEMORY_PREFIX + conn.getCatalog();
-            //*/
         }
         int index = path.lastIndexOf(':');
         // position 1 means a windows drive letter is used, ignore that
@@ -393,15 +373,9 @@ public class FullTextLucene extends FullText {
         synchronized (INDEX_ACCESS) {
             try {
                 INDEX_ACCESS.remove(indexPath);
-                /*## LUCENE2 ##
-                access.modifier.flush();
-                access.modifier.close();
-                //*/
-                //## LUCENE3 ##
                 access.searcher.close();
                 access.reader.close();
                 access.writer.close();
-                //*/
             } catch (Exception e) {
                 throw convertException(e);
             }
@@ -430,24 +404,6 @@ public class FullTextLucene extends FullText {
         }
         try {
             IndexAccess access = getIndexAccess(conn);
-            /*## LUCENE2 ##
-            access.modifier.flush();
-            String path = getIndexPath(conn);
-            IndexReader reader = IndexReader.open(path);
-            Analyzer analyzer = new StandardAnalyzer();
-            Searcher searcher = new IndexSearcher(reader);
-            QueryParser parser = new QueryParser(LUCENE_FIELD_DATA, analyzer);
-            Query query = parser.parse(text);
-            Hits hits = searcher.search(query);
-            int max = hits.length();
-            if (limit == 0) {
-                limit = max;
-            }
-            for (int i = 0; i < limit && i + offset < max; i++) {
-                Document doc = hits.doc(i + offset);
-                float score = hits.score(i + offset);
-            //*/
-            //## LUCENE3 ##
             // take a reference as the searcher may change
             Searcher searcher = access.searcher;
             // reuse the same analyzer; it's thread-safe;
@@ -471,7 +427,6 @@ public class FullTextLucene extends FullText {
                 ScoreDoc sd = docs.scoreDocs[i + offset];
                 Document doc = searcher.doc(sd.doc);
                 float score = sd.score;
-                //*/
                 String q = doc.get(LUCENE_FIELD_QUERY);
                 if (data) {
                     int idx = q.indexOf(" WHERE ");
@@ -494,10 +449,6 @@ public class FullTextLucene extends FullText {
                     result.addRow(q, score);
                 }
             }
-            /*## LUCENE2 ##
-            // TODO keep it open if possible
-            reader.close();
-            //*/
         } catch (Exception e) {
             throw convertException(e);
         }
@@ -649,40 +600,6 @@ public class FullTextLucene extends FullText {
          * @param commitIndex whether to commit the changes to the Lucene index
          */
         protected void insert(Object[] row, boolean commitIndex) throws SQLException {
-            /*## LUCENE2 ##
-            String query = getQuery(row);
-            Document doc = new Document();
-            doc.add(new Field(LUCENE_FIELD_QUERY, query,
-                    Field.Store.YES, Field.Index.UN_TOKENIZED));
-            long time = System.currentTimeMillis();
-            doc.add(new Field(LUCENE_FIELD_MODIFIED,
-                    DateTools.timeToString(time, DateTools.Resolution.SECOND),
-                    Field.Store.YES, Field.Index.UN_TOKENIZED));
-            StatementBuilder buff = new StatementBuilder();
-            for (int index : indexColumns) {
-                String columnName = columns[index];
-                String data = asString(row[index], columnTypes[index]);
-                // column names that start with _ must be escaped to avoid conflicts
-                // with internal field names (_DATA, _QUERY, _modified)
-                if (columnName.startsWith(LUCENE_FIELD_COLUMN_PREFIX)) {
-                    columnName = LUCENE_FIELD_COLUMN_PREFIX + columnName;
-                }
-                doc.add(new Field(columnName, data,
-                        Field.Store.NO, Field.Index.TOKENIZED));
-                buff.appendExceptFirst(" ");
-                buff.append(data);
-            }
-            Field.Store storeText = STORE_DOCUMENT_TEXT_IN_INDEX ?
-                    Field.Store.YES : Field.Store.NO;
-            doc.add(new Field(LUCENE_FIELD_DATA, buff.toString(), storeText,
-                    Field.Index.TOKENIZED));
-            try {
-                indexAccess.modifier.addDocument(doc);
-            } catch (IOException e) {
-                throw convertException(e);
-            }
-            //*/
-            //## LUCENE3 ##
             String query = getQuery(row);
             Document doc = new Document();
             doc.add(new Field(LUCENE_FIELD_QUERY, query,
@@ -718,7 +635,6 @@ public class FullTextLucene extends FullText {
             } catch (IOException e) {
                 throw convertException(e);
             }
-            //*/
         }
 
         /**
@@ -731,15 +647,10 @@ public class FullTextLucene extends FullText {
             String query = getQuery(row);
             try {
                 Term term = new Term(LUCENE_FIELD_QUERY, query);
-                /*## LUCENE2 ##
-                indexAccess.modifier.deleteDocuments(term);
-                //*/
-                //## LUCENE3 ##
                 indexAccess.writer.deleteDocuments(term);
                 if (commitIndex) {
                     commitIndex();
                 }
-                //*/
             } catch (IOException e) {
                 throw convertException(e);
             }
@@ -771,32 +682,19 @@ public class FullTextLucene extends FullText {
     static class IndexAccess {
 
         /**
-         * The index modified.
-         */
-        /*## LUCENE2 ##
-        IndexModifier modifier;
-        //*/
-
-        /**
          * The index writer.
          */
-        //## LUCENE3 ##
         IndexWriter writer;
-        //*/
 
         /**
          * The index reader.
          */
-        //## LUCENE3 ##
         IndexReader reader;
-        //*/
 
         /**
          * The index searcher.
          */
-        //## LUCENE3 ##
         Searcher searcher;
-        //*/
     }
 
 }

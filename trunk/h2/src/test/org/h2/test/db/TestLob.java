@@ -23,23 +23,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.tools.DeleteDbFiles;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
 import org.h2.util.Utils;
-import org.h2.value.ValueLob;
 
 /**
  * Tests LOB and CLOB data types.
@@ -81,11 +78,9 @@ public class TestLob extends TestBase {
         testUniqueIndex();
         testConvert();
         testCreateAsSelect();
-        testDropAllObjects();
         testDelete();
         testTempFilesDeleted(true);
         testTempFilesDeleted(false);
-        testAddLobRestart();
         testLobServerMemory();
         testUpdatingLobRow();
         if (config.memory) {
@@ -93,8 +88,6 @@ public class TestLob extends TestBase {
         }
         testLobCleanupSessionTemporaries();
         testLobUpdateMany();
-        testLobDeleteTemp();
-        testLobDelete();
         testLobVariable();
         testLobDrop();
         testLobNoClose();
@@ -533,39 +526,8 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testDropAllObjects() throws Exception {
-        if (SysProperties.LOB_IN_DATABASE || config.memory) {
-            return;
-        }
-        deleteDb("lob");
-        Connection conn;
-        Statement stat;
-        conn = getConnection("lob");
-        stat = conn.createStatement();
-
-        stat.execute("create table test(id int primary key, name clob)");
-        stat.execute("insert into test values(1, space(10000))");
-        assertEquals(1, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
-        stat.execute("drop table test");
-        assertEquals(0, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
-
-        stat.execute("create table test(id int primary key, name clob)");
-        stat.execute("insert into test values(1, space(10000))");
-        assertEquals(1, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
-        stat.execute("drop all objects");
-        assertEquals(0, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
-
-        stat.execute("create table test(id int primary key, name clob)");
-        stat.execute("insert into test values(1, space(10000))");
-        assertEquals(1, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
-        stat.execute("truncate table test");
-        assertEquals(0, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
-
-        conn.close();
-    }
-
     private void testDelete() throws Exception {
-        if (!SysProperties.LOB_IN_DATABASE || config.memory) {
+        if (config.memory) {
             return;
         }
         deleteDb("lob");
@@ -631,27 +593,6 @@ public class TestLob extends TestBase {
         assertEquals("Unexpected temp file: " + list, 0, list.size());
     }
 
-    private static void testAddLobRestart() throws SQLException {
-        DeleteDbFiles.execute("memFS:", "lob", true);
-        Connection conn = org.h2.Driver.load().connect("jdbc:h2:memFS:lob", null);
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(d blob)");
-        stat.execute("set MAX_LENGTH_INPLACE_LOB 1");
-        PreparedStatement prep = conn.prepareCall("insert into test values('0000')");
-        // long start = System.currentTimeMillis();
-        for (int i = 0; i < 2000; i++) {
-            // if (i % 1000 == 0) {
-            //     long now = System.currentTimeMillis();
-            //     System.out.println(i + " " + (now - start));
-            //     start = now;
-            // }
-            prep.execute();
-            ValueLob.resetDirCounter();
-        }
-        conn.close();
-        DeleteDbFiles.execute("memFS:", "lob", true);
-    }
-
     private void testLobUpdateMany() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");
@@ -663,24 +604,7 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    private void testLobDeleteTemp() throws SQLException {
-        if (SysProperties.LOB_IN_DATABASE) {
-            return;
-        }
-        deleteDb("lob");
-        Connection conn = getConnection("lob");
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(data clob) as select space(100000) from dual");
-        assertEquals(1, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
-        stat.execute("delete from test");
-        conn.close();
-        assertEquals(0, FileUtils.newDirectoryStream(getBaseDir() + "/lob.lobs.db").size());
-    }
-
     private void testLobCleanupSessionTemporaries() throws SQLException {
-        if (!SysProperties.LOB_IN_DATABASE) {
-            return;
-        }
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
@@ -714,44 +638,6 @@ public class TestLob extends TestBase {
         prep.setCharacterStream(1, reader, -1);
         prep.execute();
         conn.close();
-    }
-
-    private void testLobDelete() throws SQLException {
-        if (config.memory || SysProperties.LOB_IN_DATABASE) {
-            return;
-        }
-        deleteDb("lob");
-        Connection conn = reconnect(null);
-        Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT, DATA CLOB)");
-        stat.execute("INSERT INTO TEST SELECT X, SPACE(10000) FROM SYSTEM_RANGE(1, 10)");
-        ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(), "lob", true);
-        stat.execute("UPDATE TEST SET DATA = SPACE(5000)");
-        collectAndWait();
-        stat.execute("CHECKPOINT");
-        ArrayList<String> list2 = FileLister.getDatabaseFiles(getBaseDir(), "lob", true);
-        if (list2.size() >= list.size() + 5) {
-            fail("Expected not many more files, got " + list2.size() + " was " + list.size());
-        }
-        stat.execute("DELETE FROM TEST");
-        collectAndWait();
-        stat.execute("CHECKPOINT");
-        ArrayList<String> list3 = FileLister.getDatabaseFiles(getBaseDir(), "lob", true);
-        if (list3.size() >= list.size()) {
-            fail("Expected less files, got " + list2.size() + " was " + list.size());
-        }
-        conn.close();
-    }
-
-    private static void collectAndWait() {
-        for (int i = 0; i < 3; i++) {
-            System.gc();
-        }
-        try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            // ignore
-        }
     }
 
     private void testLobVariable() throws SQLException {
@@ -1126,7 +1012,7 @@ public class TestLob extends TestBase {
         time = System.currentTimeMillis() - time;
         trace("time: " + time + " compress: " + compress);
         conn.close();
-        if (!config.memory && SysProperties.LOB_IN_DATABASE) {
+        if (!config.memory) {
             long length = new File(getBaseDir() + "/lob.h2.db").length();
             trace("len: " + length + " compress: " + compress);
         }

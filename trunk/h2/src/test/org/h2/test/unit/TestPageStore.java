@@ -44,7 +44,6 @@ public class TestPageStore extends TestBase {
      */
     public static void main(String... a) throws Exception {
         System.setProperty("h2.check2", "true");
-        System.setProperty("h2.lobInDatabase", "true");
         TestBase.createCaller().init().test();
     }
 

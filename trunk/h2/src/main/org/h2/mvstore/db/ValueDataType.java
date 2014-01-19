@@ -37,7 +37,6 @@ import org.h2.value.ValueFloat;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueJavaObject;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -332,38 +331,16 @@ public class ValueDataType implements DataType {
         case Value.BLOB:
         case Value.CLOB: {
             buff.put((byte) type);
-            if (v instanceof ValueLob) {
-                ValueLob lob = (ValueLob) v;
-                lob.convertToFileIfRequired(handler);
-                byte[] small = lob.getSmall();
-                if (small == null) {
-                    int t = -1;
-                    if (!lob.isLinked()) {
-                        t = -2;
-                    }
-                    buff.putVarInt(t).
-                        putVarInt(lob.getTableId()).
-                        putVarInt(lob.getObjectId()).
-                        putVarLong(lob.getPrecision()).
-                        put((byte) (lob.isCompressed() ? 1 : 0));
-                    if (t == -2) {
-                        writeString(buff, lob.getFileName());
-                    }
-                } else {
-                    buff.putVarInt(small.length).put(small);
-                }
+            ValueLobDb lob = (ValueLobDb) v;
+            byte[] small = lob.getSmall();
+            if (small == null) {
+                buff.putVarInt(-3).
+                    putVarInt(lob.getTableId()).
+                    putVarLong(lob.getLobId()).
+                    putVarLong(lob.getPrecision());
             } else {
-                ValueLobDb lob = (ValueLobDb) v;
-                byte[] small = lob.getSmall();
-                if (small == null) {
-                    buff.putVarInt(-3).
-                        putVarInt(lob.getTableId()).
-                        putVarLong(lob.getLobId()).
-                        putVarLong(lob.getPrecision());
-                } else {
-                    buff.putVarInt(small.length).
-                        put(small);
-                }
+                buff.putVarInt(small.length).
+                    put(small);
             }
             break;
         }
@@ -524,22 +501,7 @@ public class ValueDataType implements DataType {
                 ValueLobDb lob = ValueLobDb.create(type, handler, tableId, lobId, null, precision);
                 return lob;
             } else {
-                int tableId = readVarInt(buff);
-                int objectId = readVarInt(buff);
-                long precision = 0;
-                boolean compression = false;
-                // -1: regular
-                // -2: regular, but not linked (in this case: including file name)
-                if (smallLen == -1 || smallLen == -2) {
-                    precision = readVarLong(buff);
-                    compression = buff.get() == 1;
-                }
-                if (smallLen == -2) {
-                    String filename = readString(buff);
-                    return ValueLob.openUnlinked(type, handler, tableId, objectId, precision, compression, filename);
-                }
-                ValueLob lob = ValueLob.openLinked(type, handler, tableId, objectId, precision, compression);
-                return lob;
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
             }
         }
         case Value.ARRAY: {

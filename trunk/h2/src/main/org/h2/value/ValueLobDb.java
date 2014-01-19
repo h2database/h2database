@@ -602,11 +602,32 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         if (this.precision <= precision) {
             return this;
         }
-        ValueLob lob;
+        ValueLobDb lob;
         if (type == CLOB) {
-            lob = ValueLob.createClob(getReader(), precision, handler);
+            if (handler == null) {
+                try {
+                    int p = MathUtils.convertLongToInt(precision);
+                    String s = IOUtils.readStringAndClose(getReader(), p);
+                    byte[] data = s.getBytes(Constants.UTF8);
+                    lob = ValueLobDb.createSmallLob(type, data, s.length());
+                } catch (IOException e) {
+                    throw DbException.convertIOException(e, null);
+                }
+            } else {
+                lob = ValueLobDb.createTempClob(getReader(), precision, handler);
+            }
         } else {
-            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+            if (handler == null) {
+                try {
+                    int p = MathUtils.convertLongToInt(precision);
+                    byte[] data = IOUtils.readBytesAndClose(getInputStream(), p);
+                    lob = ValueLobDb.createSmallLob(type, data, data.length);
+                } catch (IOException e) {
+                    throw DbException.convertIOException(e, null);
+                }
+            } else {
+                lob = ValueLobDb.createTempBlob(getInputStream(), precision, handler);
+            }
         }
         return lob;
     }

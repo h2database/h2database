@@ -34,7 +34,6 @@ public class TestTempTableCrash {
 
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.check2", "false");
-        System.setProperty("h2.lobInDatabase", "true");
         FilePathRec.register();
         System.setProperty("reopenShift", "4");
         TestReopen reopen = new TestReopen();

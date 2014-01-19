@@ -27,7 +27,6 @@ public class TestDiskSpaceLeak {
      * @param args ignored
      */
     public static void main(String... args) throws Exception {
-        System.setProperty("h2.lobInDatabase", "true");
         DeleteDbFiles.execute("data", null, true);
         Class.forName("org.h2.Driver");
         Connection conn;

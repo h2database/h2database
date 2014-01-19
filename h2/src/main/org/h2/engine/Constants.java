@@ -200,17 +200,10 @@ public class Constants {
     public static final int DEFAULT_LOCK_MODE = LOCK_MODE_READ_COMMITTED;
 
     /**
-     * The default maximum length of an LOB that is stored in the database file.
-     * Only used if h2.lobInDatabase==false.
-     */
-    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 4096;
-
-    /**
      * The default maximum length of an LOB that is stored with the record itself,
      * and not in a separate place.
-     * Only used if h2.lobInDatabase==true.
      */
-    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB2 = 128;
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 128;
 
     /**
      * The default value for the maximum transaction log size.

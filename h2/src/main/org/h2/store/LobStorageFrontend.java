@@ -10,10 +10,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.value.Value;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 
 /**
@@ -77,13 +75,10 @@ public class LobStorageFrontend implements LobStorageInterface {
 
     @Override
     public Value createBlob(InputStream in, long maxLength) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            // need to use a temp file, because the input stream could come from
-            // the same database, which would create a weird situation (trying
-            // to read a block while write something)
-            return ValueLobDb.createTempBlob(in, maxLength, handler);
-        }
-        return ValueLob.createBlob(in, maxLength, handler);
+        // need to use a temp file, because the input stream could come from
+        // the same database, which would create a weird situation (trying
+        // to read a block while write something)
+        return ValueLobDb.createTempBlob(in, maxLength, handler);
     }
 
     /**
@@ -95,13 +90,10 @@ public class LobStorageFrontend implements LobStorageInterface {
      */
     @Override
     public Value createClob(Reader reader, long maxLength) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            // need to use a temp file, because the input stream could come from
-            // the same database, which would create a weird situation (trying
-            // to read a block while write something)
-            return ValueLobDb.createTempClob(reader, maxLength, handler);
-        }
-        return ValueLob.createClob(reader, maxLength, handler);
+        // need to use a temp file, because the input stream could come from
+        // the same database, which would create a weird situation (trying
+        // to read a block while write something)
+        return ValueLobDb.createTempClob(reader, maxLength, handler);
     }
 
 
@@ -113,16 +105,13 @@ public class LobStorageFrontend implements LobStorageInterface {
      * @return the LOB
      */
     public static Value createSmallLob(int type, byte[] small) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            int precision;
-            if (type == Value.CLOB) {
-                precision = new String(small, Constants.UTF8).length();
-            } else {
-                precision = small.length;
-            }
-            return ValueLobDb.createSmallLob(type, small, precision);
+        int precision;
+        if (type == Value.CLOB) {
+            precision = new String(small, Constants.UTF8).length();
+        } else {
+            precision = small.length;
         }
-        return ValueLob.createSmallLob(type, small);
+        return ValueLobDb.createSmallLob(type, small, precision);
     }
 
 }

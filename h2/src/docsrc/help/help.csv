@@ -1323,10 +1323,8 @@ SET MAX_LENGTH_INPLACE_LOB int
 ","
 Sets the maximum size of an in-place LOB object.
 
-If the 'h2.lobInDatabase' property is true, this is the maximum length of an LOB that is stored with the record itself,
+This is the maximum length of an LOB that is stored with the record itself,
 and the default value is 128.
-If the 'h2.lobInDatabase' property is false, this is the maximum length of an LOB that is stored in the database file,
-and the default value is 4096.
 
 This setting has no effect for in-memory databases.
 

@@ -196,8 +196,7 @@ public class Database implements DataHandler {
         this.fileEncryptionKey = ci.getFileEncryptionKey();
         this.databaseName = name;
         this.databaseShortName = parseDatabaseShortName();
-        this.maxLengthInplaceLob = SysProperties.LOB_IN_DATABASE ?
-                Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB2 : Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
+        this.maxLengthInplaceLob = Constants.DEFAULT_MAX_LENGTH_INPLACE_LOB;
         this.cipher = cipher;
         String lockMethodName = ci.getProperty("FILE_LOCK", null);
         this.accessModeData = StringUtils.toLowerEnglish(ci.getProperty("ACCESS_MODE_DATA", "rw"));

@@ -40,7 +40,6 @@ public class TestLobApi extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        // System.setProperty("h2.lobInDatabase", "true");
         TestBase.createCaller().init().test();
     }
 

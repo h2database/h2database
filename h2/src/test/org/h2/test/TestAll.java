@@ -427,7 +427,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
                 System.setProperty("h2.check2", "false");
-                System.setProperty("h2.lobInDatabase", "true");
                 System.setProperty("h2.analyzeAuto", "100");
                 System.setProperty("h2.pageSize", "64");
                 System.setProperty("h2.reopenShift", "5");

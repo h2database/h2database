@@ -32,7 +32,6 @@ import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 
 /**
@@ -196,27 +195,22 @@ public class LobStorageBackend implements LobStorageInterface {
      * @param tableId the table id
      */
     public void removeAllForTable(int tableId) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            init();
-            try {
-                String sql = "SELECT ID FROM " + LOBS + " WHERE TABLE = ?";
-                PreparedStatement prep = prepare(sql);
-                prep.setInt(1, tableId);
-                ResultSet rs = prep.executeQuery();
-                while (rs.next()) {
-                    removeLob(rs.getLong(1));
-                }
-                reuse(sql, prep);
-            } catch (SQLException e) {
-                throw DbException.convert(e);
+        init();
+        try {
+            String sql = "SELECT ID FROM " + LOBS + " WHERE TABLE = ?";
+            PreparedStatement prep = prepare(sql);
+            prep.setInt(1, tableId);
+            ResultSet rs = prep.executeQuery();
+            while (rs.next()) {
+                removeLob(rs.getLong(1));
             }
-            if (tableId == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
-                removeAllForTable(LobStorageFrontend.TABLE_TEMP);
-            }
-            // remove both lobs in the database as well as in the file system
-            // (compatibility)
+            reuse(sql, prep);
+        } catch (SQLException e) {
+            throw DbException.convert(e);
         }
-        ValueLob.removeAllForTable(database, tableId);
+        if (tableId == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
+            removeAllForTable(LobStorageFrontend.TABLE_TEMP);
+        }
     }
 
     /**
@@ -554,23 +548,17 @@ public class LobStorageBackend implements LobStorageInterface {
 
     @Override
     public Value createBlob(InputStream in, long maxLength) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            init();
-            return addLob(in, maxLength, Value.BLOB, null);
-        }
-        return ValueLob.createBlob(in, maxLength, database);
+        init();
+        return addLob(in, maxLength, Value.BLOB, null);
     }
 
     @Override
     public Value createClob(Reader reader, long maxLength) {
-        if (SysProperties.LOB_IN_DATABASE) {
-            init();
-            long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
-            CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
-            ValueLobDb lob = addLob(in, Long.MAX_VALUE, Value.CLOB, in);
-            return lob;
-        }
-        return ValueLob.createClob(reader, maxLength, database);
+        init();
+        long max = maxLength == -1 ? Long.MAX_VALUE : maxLength;
+        CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
+        ValueLobDb lob = addLob(in, Long.MAX_VALUE, Value.CLOB, in);
+        return lob;
     }
 
     @Override

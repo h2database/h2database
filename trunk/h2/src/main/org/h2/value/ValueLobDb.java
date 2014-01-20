@@ -76,17 +76,6 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.tempFile = null;
     }
 
-    private ValueLobDb(int type, DataHandler handler) {
-        this.type = type;
-        this.handler = handler;
-        this.small = null;
-        this.precision = 0;
-        this.lobId = 0;
-        this.hmac = null;
-        this.fileName = null;
-        this.tempFile = null;
-    }
-
     /**
      * Create temporary CLOB from Reader.
      */

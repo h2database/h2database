@@ -314,14 +314,6 @@ public class ValueLob extends Value {
         return newId;
     }
 
-    /**
-     * Reset the directory counter as if the process was stopped. This method is
-     * for debugging only (to simulate stopping a process).
-     */
-    public static void resetDirCounter() {
-        dirCounter = 0;
-    }
-
     private static void invalidateFileList(DataHandler h, String dir) {
         SmallLRUCache<String, String[]> cache = h.getLobFileListCache();
         if (cache != null) {
@@ -783,17 +775,6 @@ public class ValueLob extends Value {
             return small.length + 104;
         }
         return 140;
-    }
-
-    /**
-     * Remove all lobs for a given table id.
-     *
-     * @param handler the data handler
-     * @param tableId the table id
-     */
-    public static void removeAllForTable(DataHandler handler, int tableId) {
-        String dir = ValueLob.getFileNamePrefix(handler.getDatabasePath(), 0);
-        removeAllForTable(handler, dir, tableId);
     }
 
     private static void removeAllForTable(DataHandler handler, String dir, int tableId) {

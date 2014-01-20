@@ -104,7 +104,7 @@ public class ValueLob extends Value {
      * @param small the byte array
      * @return the lob value
      */
-    public static ValueLob createSmallLob(int type, byte[] small) {
+    private static ValueLob createSmallLob(int type, byte[] small) {
         return new ValueLob(type, small);
     }
 
@@ -158,7 +158,7 @@ public class ValueLob extends Value {
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLob createClob(Reader in, long length, DataHandler handler) {
+    private static ValueLob createClob(Reader in, long length, DataHandler handler) {
         try {
             if (handler == null) {
                 String s = IOUtils.readStringAndClose(in, (int) length);
@@ -348,7 +348,7 @@ public class ValueLob extends Value {
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLob createBlob(InputStream in, long length, DataHandler handler) {
+    private static ValueLob createBlob(InputStream in, long length, DataHandler handler) {
         try {
             if (handler == null) {
                 byte[] data = IOUtils.readBytesAndClose(in, (int) length);
@@ -775,18 +775,6 @@ public class ValueLob extends Value {
             return small.length + 104;
         }
         return 140;
-    }
-
-    private static void removeAllForTable(DataHandler handler, String dir, int tableId) {
-        for (String name : FileUtils.newDirectoryStream(dir)) {
-            if (FileUtils.isDirectory(name)) {
-                removeAllForTable(handler, name, tableId);
-            } else {
-                if (name.endsWith(".t" + tableId + Constants.SUFFIX_LOB_FILE)) {
-                    ValueLob.deleteFile(handler, name);
-                }
-            }
-        }
     }
 
     /**

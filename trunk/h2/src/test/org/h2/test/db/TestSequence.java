@@ -41,6 +41,7 @@ public class TestSequence extends TestBase {
         testCreateWithMaxValue();
         testCreationErrors();
         testCreateSql();
+        testDefaultMinMax();
         deleteDb("sequence");
     }
 
@@ -252,6 +253,16 @@ public class TestSequence extends TestBase {
         conn.close();
     }
 
+    private void testDefaultMinMax() throws SQLException {
+        // test that we calculate default MIN and MAX values correctly
+        deleteDb("sequence");
+        Connection conn = getConnection("sequence");
+        Statement stat = conn.createStatement();
+        stat.execute("create sequence a START WITH -7320917853639540658");
+        stat.execute("create sequence b START WITH 7320917853639540658 INCREMENT -1");
+        conn.close();
+    }
+    
     private void testTwo() throws SQLException {
         deleteDb("sequence");
         Connection conn = getConnection("sequence");

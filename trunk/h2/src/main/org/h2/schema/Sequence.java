@@ -66,8 +66,8 @@ public class Sequence extends SchemaObjectBase {
             Long minValue, Long maxValue, boolean cycle, boolean belongsToTable) {
         initSchemaObjectBase(schema, id, name, Trace.SEQUENCE);
         this.increment = increment != null ? increment : 1;
-        this.minValue = minValue != null ? minValue : getDefaultMinValue(this.increment);
-        this.maxValue = maxValue != null ? maxValue : getDefaultMaxValue(this.increment);
+        this.minValue = minValue != null ? minValue : getDefaultMinValue(startValue, this.increment);
+        this.maxValue = maxValue != null ? maxValue : getDefaultMaxValue(startValue, this.increment);
         this.value = startValue != null ? startValue : getDefaultStartValue(this.increment);
         this.valueWithMargin = value;
         this.cacheSize = cacheSize != null ? Math.max(1, cacheSize) : DEFAULT_CACHE_SIZE;
@@ -136,12 +136,20 @@ public class Sequence extends SchemaObjectBase {
                 BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue))) < 0;
     }
 
-    private static long getDefaultMinValue(long increment) {
-        return increment >= 0 ? 1 : Long.MIN_VALUE;
+    private static long getDefaultMinValue(Long startValue, long increment) {
+        long v = increment >= 0 ? 1 : Long.MIN_VALUE;
+        if (startValue != null && increment >= 0 && startValue < v) {
+            v = startValue;
+        }
+        return v;
     }
 
-    private static long getDefaultMaxValue(long increment) {
-        return increment >= 0 ? Long.MAX_VALUE : -1;
+    private static long getDefaultMaxValue(Long startValue, long increment) {
+        long v = increment >= 0 ? Long.MAX_VALUE : -1;
+        if (startValue != null && increment < 0 && startValue > v) {
+            v = startValue;
+        }
+        return v;
     }
 
     private long getDefaultStartValue(long increment) {
@@ -192,10 +200,10 @@ public class Sequence extends SchemaObjectBase {
         if (increment != 1) {
             buff.append(" INCREMENT BY ").append(increment);
         }
-        if (minValue != getDefaultMinValue(increment)) {
+        if (minValue != getDefaultMinValue(value, increment)) {
             buff.append(" MINVALUE ").append(minValue);
         }
-        if (maxValue != getDefaultMaxValue(increment)) {
+        if (maxValue != getDefaultMaxValue(value, increment)) {
             buff.append(" MAXVALUE ").append(maxValue);
         }
         if (cycle) {

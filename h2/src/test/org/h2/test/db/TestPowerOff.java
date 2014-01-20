@@ -141,7 +141,6 @@ public class TestPowerOff extends TestBase {
         }
         deleteDb(dir, DB_NAME);
         Random random = new Random(1);
-        SysProperties.runFinalize = false;
         int repeat = getSize(1, 20);
         for (int i = 0; i < repeat; i++) {
             Connection conn = getConnection(url);
@@ -173,7 +172,6 @@ public class TestPowerOff extends TestBase {
                 }
             }
         }
-        SysProperties.runFinalize = true;
     }
 
     private void testShutdown() throws SQLException {

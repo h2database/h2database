@@ -288,12 +288,6 @@ public class SysProperties {
     public static final String PREFIX_TEMP_FILE = Utils.getProperty("h2.prefixTempFile", "h2.temp");
 
     /**
-     * System property <code>h2.runFinalize</code> (default: true).<br />
-     * Run finalizers to detect unclosed connections.
-     */
-    public static boolean runFinalize = Utils.getProperty("h2.runFinalize", true);
-
-    /**
      * System property <code>h2.serverCachedObjects</code> (default: 64).<br />
      * TCP Server: number of cached objects per session.
      */

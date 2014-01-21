@@ -312,21 +312,18 @@ public class IOUtils {
      *
      * @param in the input stream
      * @param buffer the output buffer
-     * @param off the offset in the buffer
      * @param max the number of bytes to read at most
      * @return the number of bytes read, 0 meaning EOF
      */
-    public static int readFully(InputStream in, byte[] buffer, int off, int max) throws IOException {
+    public static int readFully(InputStream in, byte[] buffer, int max) throws IOException {
         try {
-            int len = Math.min(max, buffer.length);
-            int result = 0;
+            int result = 0, len = Math.min(max, buffer.length);
             while (len > 0) {
-                int l = in.read(buffer, off, len);
+                int l = in.read(buffer, result, len);
                 if (l < 0) {
                     break;
                 }
                 result += l;
-                off += l;
                 len -= l;
             }
             return result;
@@ -343,26 +340,20 @@ public class IOUtils {
      * @param in the reader
      * @param buffer the output buffer
      * @param max the number of characters to read at most
-     * @return the number of characters read
+     * @return the number of characters read, 0 meaning EOF
      */
     public static int readFully(Reader in, char[] buffer, int max) throws IOException {
         try {
-            int off = 0, len = Math.min(max, buffer.length);
-            if (len == 0) {
-                return 0;
-            }
-            while (true) {
-                int l = len - off;
-                if (l <= 0) {
-                    break;
-                }
-                l = in.read(buffer, off, l);
+            int result = 0, len = Math.min(max, buffer.length);
+            while (len > 0) {
+                int l = in.read(buffer, result, len);
                 if (l < 0) {
                     break;
                 }
-                off += l;
+                result += l;
+                len -= l;
             }
-            return off <= 0 ? -1 : off;
+            return result;
         } catch (Exception e) {
             throw DbException.convertToIOException(e);
         }

@@ -453,7 +453,7 @@ public class ScriptCommand extends ScriptBase {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", NULL, '");
-                    int len = IOUtils.readFully(input, bytes, 0, lobBlockSize);
+                    int len = IOUtils.readFully(input, bytes, lobBlockSize);
                     if (len <= 0) {
                         break;
                     }
@@ -474,7 +474,7 @@ public class ScriptCommand extends ScriptBase {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
                     int len = IOUtils.readFully(reader, chars, lobBlockSize);
-                    if (len < 0) {
+                    if (len == 0) {
                         break;
                     }
                     buff.append(StringUtils.quoteStringSQL(new String(chars, 0, len))).

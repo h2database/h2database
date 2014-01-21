@@ -9,10 +9,6 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CodingErrorAction;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,7 +19,6 @@ import java.util.HashMap;
 
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
@@ -35,8 +30,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
 
 /**
- * This class stores LOB objects in the database. This is the back-end i.e. the
- * server side of the LOB storage.
+ * This class stores LOB objects in the database, in tables. This is the
+ * back-end i.e. the server side of the LOB storage.
  * <p>
  * Using the system session
  * <p>
@@ -44,8 +39,8 @@ import org.h2.value.ValueLobDb;
  * take a very long time. If we did them on a normal session, we would be
  * locking the LOB tables for long periods of time, which is extremely
  * detrimental to the rest of the system. Perhaps when we shift to the MVStore
- * engine, we can revisit this design decision
- * (using the StreamStore, that is, no connection at all).
+ * engine, we can revisit this design decision (using the StreamStore, that is,
+ * no connection at all).
  * <p>
  * Locking
  * <p>
@@ -53,7 +48,7 @@ import org.h2.value.ValueLobDb;
  * lock the Database object. However, in the case of the LOB data, we are using
  * the system session to store the data. If we locked the normal way, we see
  * deadlocks caused by the following pattern:
- *
+ * 
  * <pre>
  *  Thread 1:
  *     locks normal session
@@ -63,7 +58,7 @@ import org.h2.value.ValueLobDb;
  *      locks system session
  *      waiting to lock database.
  * </pre>
- *
+ * 
  * So, in this class alone, we do two things: we have our very own dedicated
  * session, the LOB session, and we take the locks in this order: first the
  * Database object, and then the LOB session. Since we own the LOB session,
@@ -107,9 +102,7 @@ public class LobStorageBackend implements LobStorageInterface {
         this.database = database;
     }
 
-    /**
-     * Initialize the lob storage.
-     */
+    @Override
     public void init() {
         if (init) {
             return;
@@ -189,11 +182,7 @@ public class LobStorageBackend implements LobStorageInterface {
         return x;
     }
 
-    /**
-     * Remove all LOBs for this table.
-     *
-     * @param tableId the table id
-     */
+    @Override
     public void removeAllForTable(int tableId) {
         init();
         try {
@@ -278,7 +267,11 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public void removeLob(long lob) {
+    public void removeLob(ValueLobDb lob) {
+        removeLob(lob.getLobId());
+    }
+
+    private void removeLob(long lobId) {
         try {
             // see locking discussion at the top
             assertNotHolds(conn.getSession());
@@ -288,8 +281,8 @@ public class LobStorageBackend implements LobStorageInterface {
                             "AND NOT EXISTS(SELECT 1 FROM " + LOB_MAP + " O " +
                             "WHERE O.BLOCK = D.BLOCK AND O.LOB <> ?)";
                     PreparedStatement prep = prepare(sql);
-                    prep.setLong(1, lob);
-                    prep.setLong(2, lob);
+                    prep.setLong(1, lobId);
+                    prep.setLong(2, lobId);
                     ResultSet rs = prep.executeQuery();
                     ArrayList<Long> blocks = New.arrayList();
                     while (rs.next()) {
@@ -301,7 +294,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
                     sql = "DELETE FROM " + LOB_MAP + " WHERE LOB = ?";
                     prep = prepare(sql);
-                    prep.setLong(1, lob);
+                    prep.setLong(1, lobId);
                     prep.execute();
                     reuse(sql, prep);
 
@@ -315,7 +308,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
                     sql = "DELETE FROM " + LOBS + " WHERE ID = ?";
                     prep = prepare(sql);
-                    prep.setLong(1, lob);
+                    prep.setLong(1, lobId);
                     prep.execute();
                     reuse(sql, prep);
                 }
@@ -326,13 +319,14 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
+    public InputStream getInputStream(ValueLobDb lob, byte[] hmac, long byteCount) throws IOException {
         try {
             init();
             assertNotHolds(conn.getSession());
             // see locking discussion at the top
             synchronized (database) {
                 synchronized (conn.getSession()) {
+                    long lobId = lob.getLobId(); 
                     return new LobInputStream(lobId, byteCount);
                 }
             }
@@ -355,7 +349,7 @@ public class LobStorageBackend implements LobStorageInterface {
                 byte[] small = null;
                 for (int seq = 0; maxLength > 0; seq++) {
                     int len = (int) Math.min(BLOCK_LENGTH, maxLength);
-                    len = IOUtils.readFully(in, buff, 0, len);
+                    len = IOUtils.readFully(in, buff, len);
                     if (len <= 0) {
                         break;
                     }
@@ -429,7 +423,9 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
+    public ValueLobDb copyLob(ValueLobDb old, int tableId, long length) {
+        int type = old.getType();
+        long oldLobId = old.getLobId();
         assertNotHolds(conn.getSession());
         // see locking discussion at the top
         synchronized (database) {
@@ -562,7 +558,8 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public void setTable(long lobId, int table) {
+    public void setTable(ValueLobDb lob, int table) {
+        long lobId = lob.getLobId();
         assertNotHolds(conn.getSession());
         // see locking discussion at the top
         synchronized (database) {
@@ -762,104 +759,16 @@ public class LobStorageBackend implements LobStorageInterface {
                 return;
             }
             try {
+;
+if(lobMapIndex >= lobMapBlocks.length) {
+    System.out.println("??");
+}
                 buffer = readBlock(lobMapBlocks[lobMapIndex]);
                 lobMapIndex++;
                 bufferPos = 0;
             } catch (SQLException e) {
                 throw DbException.convertToIOException(e);
             }
-        }
-
-    }
-
-    /**
-     * An input stream that reads the data from a reader.
-     */
-    public static class CountingReaderInputStream extends InputStream {
-
-        private final Reader reader;
-
-        private final CharBuffer charBuffer = CharBuffer.allocate(Constants.IO_BUFFER_SIZE);
-
-        private final CharsetEncoder encoder = Constants.UTF8.newEncoder().
-                onMalformedInput(CodingErrorAction.REPLACE).
-                onUnmappableCharacter(CodingErrorAction.REPLACE);
-
-        private ByteBuffer byteBuffer = ByteBuffer.allocate(0);
-        private long length;
-        private long remaining;
-
-        CountingReaderInputStream(Reader reader, long maxLength) {
-            this.reader = reader;
-            this.remaining = maxLength;
-        }
-
-        @Override
-        public int read(byte[] buff, int offset, int len) throws IOException {
-            if (!fetch()) {
-                return -1;
-            }
-            len = Math.min(len, byteBuffer.remaining());
-            byteBuffer.get(buff, offset, len);
-            return len;
-        }
-
-        @Override
-        public int read() throws IOException {
-            if (!fetch()) {
-                return -1;
-            }
-            return byteBuffer.get() & 255;
-        }
-
-        private boolean fetch() throws IOException {
-            if (byteBuffer != null && byteBuffer.remaining() == 0) {
-                fillBuffer();
-            }
-            return byteBuffer != null;
-        }
-
-        private void fillBuffer() throws IOException {
-            int len = (int) Math.min(charBuffer.capacity() - charBuffer.position(), remaining);
-            if (len > 0) {
-                len = reader.read(charBuffer.array(), charBuffer.position(), len);
-            }
-            if (len > 0) {
-                remaining -= len;
-            } else {
-                len = 0;
-                remaining = 0;
-            }
-            length += len;
-            charBuffer.limit(charBuffer.position() + len);
-            charBuffer.rewind();
-            byteBuffer = ByteBuffer.allocate(Constants.IO_BUFFER_SIZE);
-            boolean end = remaining == 0;
-            encoder.encode(charBuffer, byteBuffer, end);
-            if (end && byteBuffer.position() == 0) {
-                // EOF
-                byteBuffer = null;
-                return;
-            }
-            byteBuffer.flip();
-            charBuffer.compact();
-            charBuffer.flip();
-            charBuffer.position(charBuffer.limit());
-        }
-
-        /**
-         * The number of characters read so far (but there might still be some bytes
-         * in the buffer).
-         *
-         * @return the number of characters
-         */
-        public long getLength() {
-            return length;
-        }
-
-        @Override
-        public void close() throws IOException {
-            reader.close();
         }
 
     }

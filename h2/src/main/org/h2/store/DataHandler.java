@@ -95,7 +95,7 @@ public interface DataHandler {
     /**
      * Read from a lob.
      *
-     * @param lobId the lob
+     * @param lobId the lob id
      * @param hmac the message authentication code
      * @param offset the offset within the lob
      * @param buff the target buffer

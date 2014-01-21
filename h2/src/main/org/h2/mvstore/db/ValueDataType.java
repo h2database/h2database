@@ -22,7 +22,6 @@ import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.mvstore.type.DataType;
 import org.h2.result.SortOrder;
 import org.h2.store.DataHandler;
-import org.h2.store.LobStorageFrontend;
 import org.h2.tools.SimpleResultSet;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -493,7 +492,7 @@ public class ValueDataType implements DataType {
             if (smallLen >= 0) {
                 byte[] small = DataUtils.newBytes(smallLen);
                 buff.get(small, 0, smallLen);
-                return LobStorageFrontend.createSmallLob(type, small);
+                return ValueLobDb.createSmallLob(type, small);
             } else if (smallLen == -3) {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);

@@ -6,7 +6,12 @@
  */
 package org.h2.test.unit;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -15,6 +20,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Random;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 
 /**
@@ -38,6 +44,7 @@ public class TestUtils extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testIOUtils();
         testSortTopN();
         testSortTopNRandom();
         testWriteReadLong();
@@ -45,6 +52,45 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testReflectionUtils();
+    }
+    
+    private void testIOUtils() throws IOException {
+        for (int i = 0; i < 20; i++) {
+            byte[] data = new byte[i];
+            InputStream in = new ByteArrayInputStream(data);
+            byte[] buffer = new byte[i];
+            assertEquals(0, IOUtils.readFully(in, buffer, -2));
+            assertEquals(0, IOUtils.readFully(in, buffer, -1));
+            assertEquals(0, IOUtils.readFully(in, buffer, 0));
+            for (int j = 1, off = 0;; j += 1) {
+                int read = Math.max(0, Math.min(i - off, j));
+                int l = IOUtils.readFully(in, buffer, j);
+                assertEquals(read, l);
+                off += l;
+                if (l == 0) {
+                    break;
+                }
+            }
+            assertEquals(0, IOUtils.readFully(in, buffer, 1));
+        }
+        for (int i = 0; i < 10; i++) {
+            char[] data = new char[i];
+            Reader in = new StringReader(new String(data));
+            char[] buffer = new char[i];
+            assertEquals(0, IOUtils.readFully(in, buffer, -2));
+            assertEquals(0, IOUtils.readFully(in, buffer, -1));
+            assertEquals(0, IOUtils.readFully(in, buffer, 0));
+            for (int j = 1, off = 0;; j += 1) {
+                int read = Math.max(0, Math.min(i - off, j));
+                int l = IOUtils.readFully(in, buffer, j);
+                assertEquals(read, l);
+                off += l;
+                if (l == 0) {
+                    break;
+                }
+            }
+            assertEquals(0, IOUtils.readFully(in, buffer, 1));
+        }
     }
 
     private void testWriteReadLong() {

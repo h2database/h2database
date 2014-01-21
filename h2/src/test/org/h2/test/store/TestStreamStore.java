@@ -43,6 +43,7 @@ public class TestStreamStore extends TestBase {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testExceptionDuringStore();
         testReadCount();
         testLarge();
         testDetectIllegalId();
@@ -51,6 +52,12 @@ public class TestStreamStore extends TestBase {
         testWithExistingData();
         testWithFullMap();
         testLoop();
+    }
+    
+    private void testExceptionDuringStore() {
+        // TODO test that if there is an IOException while storing
+        // the data, the entries in the map are rolled back
+        ;
     }
 
     private void testReadCount() throws IOException {

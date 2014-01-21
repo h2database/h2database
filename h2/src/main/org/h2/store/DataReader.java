@@ -113,11 +113,10 @@ public class DataReader extends Reader {
      * Read a number of bytes.
      *
      * @param buff the target buffer
-     * @param offset the offset within the target buffer
      * @param len the number of bytes to read
      */
-    public void readFully(byte[] buff, int offset, int len) throws IOException {
-        int got = IOUtils.readFully(in, buff, offset, len);
+    public void readFully(byte[] buff, int len) throws IOException {
+        int got = IOUtils.readFully(in, buff, len);
         if (got < len) {
             throw new FastEOFException();
         }

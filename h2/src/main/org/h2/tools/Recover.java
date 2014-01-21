@@ -8,20 +8,26 @@ package org.h2.tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.SequenceInputStream;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.CRC32;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.compress.CompressLZF;
@@ -33,6 +39,7 @@ import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
+import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.db.TransactionStore;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.mvstore.db.ValueDataType;
@@ -93,6 +100,7 @@ public class Recover extends Tool implements DataHandler {
     private int[] parents;
 
     private Stats stat;
+    private boolean lobMaps;
 
     /**
      * Statistic data
@@ -213,6 +221,59 @@ public class Recover extends Tool implements DataHandler {
     public static Value.ValueClob readClobDb(Connection conn, long lobId, long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         return ValueLobDb.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP, lobId, null, precision);
+    }
+
+    /**
+     * INTERNAL
+     */
+    public static InputStream readBlobMap(Connection conn, long lobId, long precision) throws SQLException {
+        final PreparedStatement prep = conn.prepareStatement(
+                "SELECT DATA FROM INFORMATION_SCHEMA.LOB_BLOCKS " + 
+                "WHERE LOB_ID = ? AND SEQ = ? AND ? > 0");
+        prep.setLong(1, lobId);
+        // precision is currently not really used, 
+        // it is just to improve readability of the script
+        prep.setLong(3, precision);
+        return new SequenceInputStream(
+            new Enumeration<InputStream>() {
+                
+                private int seq;
+                private byte[] data = fetch();
+                
+                private byte[] fetch() {
+                    try {
+                        prep.setInt(2, seq++);
+                        ResultSet rs = prep.executeQuery();
+                        if (rs.next()) {
+                            return rs.getBytes(1);
+                        }
+                        return null;
+                    } catch (SQLException e) {
+                        throw DbException.convert(e);
+                    }
+                }
+                
+                @Override
+                public boolean hasMoreElements() {
+                    return data != null;
+                }
+
+                @Override
+                public InputStream nextElement() {
+                    ByteArrayInputStream in = new ByteArrayInputStream(data);
+                    data = fetch();
+                    return in;
+                }
+            }
+        );
+    }
+
+    /**
+     * INTERNAL
+     */
+    public static Reader readClobMap(Connection conn, long lobId, long precision) throws Exception {
+        InputStream in = readBlobMap(conn, lobId, precision);
+        return new BufferedReader(new InputStreamReader(in, "UTF-8"));
     }
 
     private void trace(String message) {
@@ -353,10 +414,15 @@ public class Recover extends Tool implements DataHandler {
                 String columnType;
                 if (type == Value.BLOB) {
                     columnType = "BLOB";
-                    m = "READ_BLOB_DB";
+                    m = "READ_BLOB";
                 } else {
                     columnType = "CLOB";
-                    m = "READ_CLOB_DB";
+                    m = "READ_CLOB";
+                }
+                if (lobMaps) {
+                    m += "_MAP";
+                } else {
+                    m += "_DB";
                 }
                 columnTypeMap.put(column, columnType);
                 return m + "(" + id + ", " + precision + ")";
@@ -482,24 +548,24 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpMVStoreFile(PrintWriter writer, String fileName) {
-        writer.println("-- mvstore");
+        writer.println("-- MVStore");
         writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + this.getClass().getName() + ".readBlob\";");
         writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + this.getClass().getName() + ".readClob\";");
         writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" + this.getClass().getName() + ".readBlobDb\";");
         writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" + this.getClass().getName() + ".readClobDb\";");
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_MAP FOR \"" + this.getClass().getName() + ".readBlobMap\";");
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_MAP FOR \"" + this.getClass().getName() + ".readClobMap\";");
         resetSchema();
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_MV_FILE.length()));
         MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open();
+        dumpLobMaps(writer, mv);
+        writer.println("-- Tables");        
         TransactionStore store = new TransactionStore(mv);
         try {
-            MVMap<String, String> metaMap = mv.getMetaMap();
-            Iterator<String> it = metaMap.keyIterator(null);
-            while (it.hasNext()) {
-                String key = it.next();
-                if (!key.startsWith("name.table.")) {
+            for (String mapName : mv.getMapNames()) {
+                if (!mapName.startsWith("table.")) {
                     continue;
                 }
-                String mapName = key.substring("name.".length());
                 String tableId = mapName.substring("table.".length());
                 ValueDataType keyType = new ValueDataType(
                         null, this, null);
@@ -552,10 +618,50 @@ public class Recover extends Tool implements DataHandler {
                 }
             }
             writeSchema(writer);
+            writer.println("DROP ALIAS READ_BLOB_MAP;");
+            writer.println("DROP ALIAS READ_CLOB_MAP;");
+            writer.println("DROP TABLE IF EXISTS INFORMATION_SCHEMA.LOB_BLOCKS;");
         } catch (Throwable e) {
             writeError(writer, e);
         } finally {
             mv.close();
+        }
+    }
+    
+    private void dumpLobMaps(PrintWriter writer, MVStore mv) {
+        lobMaps = mv.hasMap("lobData");
+        if (!lobMaps) {
+            return;
+        }
+        MVMap<Long, byte[]> lobData = mv.openMap("lobData");
+        StreamStore streamStore = new StreamStore(lobData);
+        MVMap<Long, Object[]> lobMap = mv.openMap("lobMap");
+        writer.println("-- LOB");
+        writer.println("CREATE TABLE IF NOT EXISTS " + 
+                "INFORMATION_SCHEMA.LOB_BLOCKS(" + 
+                "LOB_ID BIGINT, SEQ INT, DATA BINARY);");
+        for (Entry<Long, Object[]> e : lobMap.entrySet()) {
+            long lobId = e.getKey();
+            Object[] value = e.getValue();
+            byte[] streamStoreId = (byte[]) value[0];
+            InputStream in = streamStore.get(streamStoreId);
+            int len = 8 * 1024;
+            byte[] block = new byte[len];
+            try {
+                for (int seq = 0;; seq++) {
+                    int l = IOUtils.readFully(in, block, block.length);
+                    String x = StringUtils.convertBytesToHex(block, l);
+                    if (l > 0) {
+                        writer.println("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " + 
+                                "VALUES(" + lobId + ", " + seq + ", '" + x + "');");
+                    }
+                    if (l != len) {
+                        break;
+                    }
+                }
+            } catch (IOException ex) {
+                writeError(writer, ex);
+            }
         }
     }
 
@@ -704,12 +810,12 @@ public class Recover extends Tool implements DataHandler {
                 int size = in.readVarInt();
                 byte[] data = new byte[pageSize];
                 if (size == 0) {
-                    in.readFully(data, 0, pageSize);
+                    in.readFully(data, pageSize);
                 } else if (size == 1) {
                     // empty
                 } else {
                     byte[] compressBuffer = new byte[size];
-                    in.readFully(compressBuffer, 0, size);
+                    in.readFully(compressBuffer, size);
                     try {
                         compress.expand(compressBuffer, 0, size, data, 0, pageSize);
                     } catch (ArrayIndexOutOfBoundsException e) {

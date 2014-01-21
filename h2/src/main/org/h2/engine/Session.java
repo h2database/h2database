@@ -33,7 +33,6 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
-import org.h2.store.LobStorageBackend;
 import org.h2.store.LobStorageFrontend;
 import org.h2.table.Table;
 import org.h2.util.New;
@@ -1070,10 +1069,6 @@ public class Session extends SessionWithState {
     @Override
     public DataHandler getDataHandler() {
         return database;
-    }
-
-    public LobStorageBackend getLobStorageBackend() {
-        return database.getLobStorage();
     }
 
     /**

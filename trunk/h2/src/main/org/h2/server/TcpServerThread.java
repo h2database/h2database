@@ -441,7 +441,9 @@ public class TcpServerThread implements Runnable {
             }
             if (in.getPos() != offset) {
                 LobStorageInterface lobStorage = session.getDataHandler().getLobStorage();
-                InputStream lobIn = lobStorage.getInputStream(lobId, hmac, -1);
+                // only the lob id is used
+                ValueLobDb lob = ValueLobDb.create(Value.BLOB, null, -1, lobId, hmac, -1);
+                InputStream lobIn = lobStorage.getInputStream(lob, hmac, -1);
                 in = new CachedInputStream(lobIn);
                 lobs.put(lobId, in);
                 lobIn.skip(offset);
@@ -449,7 +451,7 @@ public class TcpServerThread implements Runnable {
             // limit the buffer size
             length = Math.min(16 * Constants.IO_BUFFER_SIZE, length);
             byte[] buff = new byte[length];
-            length = IOUtils.readFully(in, buff, 0, length);
+            length = IOUtils.readFully(in, buff, length);
             transfer.writeInt(SessionRemote.STATUS_OK);
             transfer.writeInt(length);
             transfer.writeBytes(buff, 0, length);

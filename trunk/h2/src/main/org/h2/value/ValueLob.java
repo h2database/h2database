@@ -178,7 +178,6 @@ public class ValueLob extends Value {
             } else {
                 buff = new char[len];
                 len = IOUtils.readFully(in, buff, len);
-                len = len < 0 ? 0 : len;
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
@@ -227,7 +226,7 @@ public class ValueLob extends Value {
                 }
                 len = getBufferSize(h, compress, remaining);
                 len = IOUtils.readFully(in, buff, len);
-                if (len <= 0) {
+                if (len == 0) {
                     break;
                 }
             }
@@ -366,7 +365,7 @@ public class ValueLob extends Value {
                 len = buff.length;
             } else {
                 buff = DataUtils.newBytes(len);
-                len = IOUtils.readFully(in, buff, 0, len);
+                len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = DataUtils.newBytes(len);
@@ -416,7 +415,7 @@ public class ValueLob extends Value {
                     break;
                 }
                 len = getBufferSize(h, compress, remaining);
-                len = IOUtils.readFully(in, buff, 0, len);
+                len = IOUtils.readFully(in, buff, len);
                 if (len <= 0) {
                     break;
                 }

@@ -43,6 +43,8 @@ import org.h2.store.FileStore;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageBackend;
 import org.h2.store.LobStorageFrontend;
+import org.h2.store.LobStorageInterface;
+import org.h2.store.LobStorageMap;
 import org.h2.store.PageStore;
 import org.h2.store.WriterThread;
 import org.h2.store.fs.FileUtils;
@@ -171,7 +173,7 @@ public class Database implements DataHandler {
     private SourceCompiler compiler;
     private volatile boolean metaTablesInitialized;
     private boolean flushOnEachCommit;
-    private LobStorageBackend lobStorage;
+    private LobStorageInterface lobStorage;
     private final int pageSize;
     private int defaultTableType = Table.TYPE_CACHED;
     private final DbSettings dbSettings;
@@ -2501,9 +2503,13 @@ public class Database implements DataHandler {
     }
 
     @Override
-    public LobStorageBackend getLobStorage() {
+    public LobStorageInterface getLobStorage() {
         if (lobStorage == null) {
-            lobStorage = new LobStorageBackend(this);
+            if (dbSettings.mvStore) {
+                lobStorage = new LobStorageMap(this);
+            } else {
+                lobStorage = new LobStorageBackend(this);
+            }
         }
         return lobStorage;
     }

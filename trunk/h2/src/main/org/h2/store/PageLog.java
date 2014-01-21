@@ -278,12 +278,12 @@ public class PageLog {
                     int pageId = in.readVarInt();
                     int size = in.readVarInt();
                     if (size == 0) {
-                        in.readFully(data.getBytes(), 0, store.getPageSize());
+                        in.readFully(data.getBytes(), store.getPageSize());
                     } else if (size == 1) {
                         // empty
                         Arrays.fill(data.getBytes(), 0, store.getPageSize(), (byte) 0);
                     } else {
-                        in.readFully(compressBuffer, 0, size);
+                        in.readFully(compressBuffer, size);
                         try {
                             compress.expand(compressBuffer, 0, size, data.getBytes(), 0, store.getPageSize());
                         } catch (ArrayIndexOutOfBoundsException e) {
@@ -445,7 +445,7 @@ public class PageLog {
         int len = in.readVarInt();
         data.reset();
         data.checkCapacity(len);
-        in.readFully(data.getBytes(), 0, len);
+        in.readFully(data.getBytes(), len);
         int columnCount = data.readVarInt();
         Value[] values = new Value[columnCount];
         for (int i = 0; i < columnCount; i++) {

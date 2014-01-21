@@ -134,7 +134,9 @@ public class TestLobApi extends TestBase {
         Clob c2 = rs.getClob(2);
         Blob b2 = rs.getBlob(3);
         assertFalse(rs.next());
+        // now close
         rs.close();
+        // but the LOBs must stay open
         assertEquals(0, c1.length());
         assertEquals(0, b1.length());
         assertEquals(chars.length, c2.length());

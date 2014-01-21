@@ -195,7 +195,12 @@ public class StreamStore {
         // do nothing by default
     }
 
-    private long getAndIncrementNextKey() {
+    /**
+     * Generate a new key.
+     * 
+     * @return the new key
+     */
+    public long getAndIncrementNextKey() {
         long key = nextKey.getAndIncrement();
         if (!map.containsKey(key)) {
             return key;

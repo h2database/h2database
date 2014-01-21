@@ -596,7 +596,7 @@ public class Transfer {
                 }
                 int len = (int) length;
                 byte[] small = new byte[len];
-                IOUtils.readFully(in, small, 0, len);
+                IOUtils.readFully(in, small, len);
                 int magic = readInt();
                 if (magic != LOB_MAGIC) {
                     throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);

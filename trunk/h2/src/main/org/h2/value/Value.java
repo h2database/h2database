@@ -24,7 +24,6 @@ import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
-import org.h2.store.LobStorageFrontend;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
@@ -783,7 +782,7 @@ public abstract class Value {
             case BLOB: {
                 switch(getType()) {
                 case BYTES:
-                    return LobStorageFrontend.createSmallLob(Value.BLOB, getBytesNoCopy());
+                    return ValueLobDb.createSmallLob(Value.BLOB, getBytesNoCopy());
                 }
                 break;
             }
@@ -856,9 +855,9 @@ public abstract class Value {
             case FLOAT:
                 return ValueFloat.get(Float.parseFloat(s.trim()));
             case CLOB:
-                return LobStorageFrontend.createSmallLob(CLOB, s.getBytes(Constants.UTF8));
+                return ValueLobDb.createSmallLob(CLOB, s.getBytes(Constants.UTF8));
             case BLOB:
-                return LobStorageFrontend.createSmallLob(BLOB, StringUtils.convertHexToBytes(s.trim()));
+                return ValueLobDb.createSmallLob(BLOB, StringUtils.convertHexToBytes(s.trim()));
             case ARRAY:
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {

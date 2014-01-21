@@ -53,6 +53,7 @@ MVTableEngine:
 - test and possibly allow MVCC & MULTI_THREADED
 - maybe enable MVCC by default (but allow to disable it)
 - use StreamStore to avoid deadlocks
+- config options for compression and page size (maybe combined)
 
 TransactionStore:
 

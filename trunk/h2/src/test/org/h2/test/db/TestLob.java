@@ -219,12 +219,14 @@ public class TestLob extends TestBase {
             prep.execute();
         }
         if (upgraded) {
-            if (config.memory) {
-                stat.execute("update information_schema.lob_map set pos=null");
-            } else {
-                stat.execute("alter table information_schema.lob_map drop column pos");
-                conn.close();
-                conn = getConnection("lob");
+            if (!config.mvStore) {
+                if (config.memory) {
+                    stat.execute("update information_schema.lob_map set pos=null");
+                } else {
+                    stat.execute("alter table information_schema.lob_map drop column pos");
+                    conn.close();
+                    conn = getConnection("lob");
+                }
             }
         }
         prep = conn.prepareStatement("select * from test where id = ?");
@@ -527,7 +529,7 @@ public class TestLob extends TestBase {
     }
 
     private void testDelete() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.mvStore) {
             return;
         }
         deleteDb("lob");

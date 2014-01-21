@@ -10,13 +10,12 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import org.h2.engine.Constants;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
 
 /**
- * This class stores LOB objects in the database.
- * This is the front-end i.e. the client side of the LOB storage.
+ * This factory creates in-memory objects and temporary files. It is used on the
+ * client side.
  */
 public class LobStorageFrontend implements LobStorageInterface {
 
@@ -36,40 +35,39 @@ public class LobStorageFrontend implements LobStorageInterface {
         this.handler = handler;
     }
 
-    /**
-     * Delete a LOB from the database.
-     *
-     * @param lob the lob id
-     */
     @Override
-    public void removeLob(long lob) {
-        // TODO this should not be called at all,
-        // but that's a refactoring for another day
+    public void removeLob(ValueLobDb lob) {
+        // not stored in the database
     }
 
     /**
      * Get the input stream for the given lob.
      *
-     * @param lobId the lob id
+     * @param lob the lob
      * @param hmac the message authentication code (for remote input streams)
      * @param byteCount the number of bytes to read, or -1 if not known
      * @return the stream
      */
     @Override
-    public InputStream getInputStream(long lobId, byte[] hmac, long byteCount) throws IOException {
+    public InputStream getInputStream(ValueLobDb lob, byte[] hmac, long byteCount) throws IOException {
         if (byteCount < 0) {
             byteCount = Long.MAX_VALUE;
         }
-        return new BufferedInputStream(new LobStorageRemoteInputStream(handler, lobId, hmac, byteCount));
+        return new BufferedInputStream(new LobStorageRemoteInputStream(handler, lob, hmac, byteCount));
     }
 
     @Override
-    public ValueLobDb copyLob(int type, long oldLobId, int tableId, long length) {
+    public ValueLobDb copyLob(ValueLobDb old, int tableId, long length) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void setTable(long lobId, int tableIdSessionVariable) {
+    public void setTable(ValueLobDb lob, int tableIdSessionVariable) {
+        throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public void removeAllForTable(int tableId) {
         throw new UnsupportedOperationException();
     }
 
@@ -77,7 +75,7 @@ public class LobStorageFrontend implements LobStorageInterface {
     public Value createBlob(InputStream in, long maxLength) {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
-        // to read a block while write something)
+        // to read a block while writing something)
         return ValueLobDb.createTempBlob(in, maxLength, handler);
     }
 
@@ -92,26 +90,13 @@ public class LobStorageFrontend implements LobStorageInterface {
     public Value createClob(Reader reader, long maxLength) {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
-        // to read a block while write something)
+        // to read a block while writing something)
         return ValueLobDb.createTempClob(reader, maxLength, handler);
     }
 
-
-    /**
-     * Create a LOB object that fits in memory.
-     *
-     * @param type the value type
-     * @param small the byte array
-     * @return the LOB
-     */
-    public static Value createSmallLob(int type, byte[] small) {
-        int precision;
-        if (type == Value.CLOB) {
-            precision = new String(small, Constants.UTF8).length();
-        } else {
-            precision = small.length;
-        }
-        return ValueLobDb.createSmallLob(type, small, precision);
+    @Override
+    public void init() {
+        // nothing to do
     }
 
 }

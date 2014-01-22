@@ -152,7 +152,11 @@ public class Page {
         p.counts = counts;
         p.totalCount = totalCount;
         p.sharedFlags = sharedFlags;
-        p.memory = memory == 0 ? p.calculateMemory() : memory;
+        if (memory == 0) {
+            p.recalculateMemory();
+        } else {
+            p.addMemory(memory);
+        }
         MVStore store = map.store;
         if (store != null) {
             store.registerUnsavedPage();
@@ -286,7 +290,7 @@ public class Page {
                 keyCount, keys, values,
                 childCount, children, childrenPages, counts, totalCount,
                 SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS,
-                memory);
+                getMemory());
         // mark the old as deleted
         removePage();
         newPage.cachedCompare = cachedCompare;
@@ -375,8 +379,8 @@ public class Page {
                 b, bKeys, bValues,
                 0, null, null, null,
                 bKeys.length, 0, 0);
-        memory = calculateMemory();
-        newPage.memory = newPage.calculateMemory();
+        recalculateMemory();
+        newPage.recalculateMemory();
         return newPage;
     }
 
@@ -423,8 +427,8 @@ public class Page {
                 b - 1, bKeys, null,
                 b, bChildren, bChildrenPages, bCounts,
                 t, 0, 0);
-        memory = calculateMemory();
-        newPage.memory = newPage.calculateMemory();
+        recalculateMemory();
+        newPage.recalculateMemory();
         return newPage;
     }
 
@@ -521,10 +525,11 @@ public class Page {
         }
         Object old = keys[index];
         DataType keyType = map.getKeyType();
+        int mem = keyType.getMemory(key);
         if (old != null) {
-            memory -= keyType.getMemory(old);
+            mem -= keyType.getMemory(old);
         }
-        memory += keyType.getMemory(key);
+        addMemory(mem);
         keys[index] = key;
     }
 
@@ -542,8 +547,8 @@ public class Page {
             sharedFlags &= ~SHARED_VALUES;
         }
         DataType valueType = map.getValueType();
-        memory -= valueType.getMemory(old);
-        memory += valueType.getMemory(value);
+        addMemory(valueType.getMemory(value) -
+                valueType.getMemory(old));
         values[index] = value;
         return old;
     }
@@ -598,8 +603,8 @@ public class Page {
         keyCount++;
         sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
         totalCount++;
-        memory += map.getKeyType().getMemory(key);
-        memory += map.getValueType().getMemory(value);
+        addMemory(map.getKeyType().getMemory(key) + 
+                map.getValueType().getMemory(value));
     }
 
     /**
@@ -637,8 +642,8 @@ public class Page {
 
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         totalCount += childPage.totalCount;
-        memory += map.getKeyType().getMemory(key);
-        memory += DataUtils.PAGE_MEMORY_CHILD;
+        addMemory(map.getKeyType().getMemory(key) + 
+                DataUtils.PAGE_MEMORY_CHILD);
     }
 
     /**
@@ -649,7 +654,7 @@ public class Page {
     public void remove(int index) {
         int keyIndex = index >= keyCount ? index - 1 : index;
         Object old = keys[keyIndex];
-        memory -= map.getKeyType().getMemory(old);
+        addMemory(-map.getKeyType().getMemory(old));
         if ((sharedFlags & SHARED_KEYS) == 0 && keys.length > keyCount - 4) {
             if (keyIndex < keyCount - 1) {
                 System.arraycopy(keys, keyIndex + 1, keys, keyIndex, keyCount - keyIndex - 1);
@@ -664,7 +669,7 @@ public class Page {
 
         if (values != null) {
             old = values[index];
-            memory -= map.getValueType().getMemory(old);
+            addMemory(-map.getValueType().getMemory(old));
             if ((sharedFlags & SHARED_VALUES) == 0 && values.length > keyCount - 4) {
                 if (index < keyCount - 1) {
                     System.arraycopy(values, index + 1, values, index, keyCount - index - 1);
@@ -680,7 +685,7 @@ public class Page {
         }
         keyCount--;
         if (children != null) {
-            memory -= DataUtils.PAGE_MEMORY_CHILD;
+            addMemory(-DataUtils.PAGE_MEMORY_CHILD);
             long countOffset = counts[index];
 
             long[] newChildren = new long[childCount - 1];
@@ -782,7 +787,7 @@ public class Page {
             }
             totalCount = len;
         }
-        memory = calculateMemory();
+        recalculateMemory();
     }
 
     /**
@@ -929,15 +934,21 @@ public class Page {
 
     public int getMemory() {
         if (MVStore.ASSERT) {
-            if (memory != calculateMemory()) {
+            int mem = memory;
+            recalculateMemory();
+            if (mem != memory) {
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_INTERNAL, "Memory calculation error");
             }
         }
         return memory;
     }
+    
+    private void addMemory(int mem) {
+        memory += mem;
+    }
 
-    private int calculateMemory() {
+    private void recalculateMemory() {
         int mem = DataUtils.PAGE_MEMORY;
         DataType keyType = map.getKeyType();
         for (int i = 0; i < keyCount; i++) {
@@ -951,7 +962,7 @@ public class Page {
         } else {
             mem += this.getChildPageCount() * DataUtils.PAGE_MEMORY_CHILD;
         }
-        return mem;
+        addMemory(mem - memory);
     }
 
     void setVersion(long version) {

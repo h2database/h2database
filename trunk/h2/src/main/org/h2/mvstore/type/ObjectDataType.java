@@ -210,10 +210,11 @@ public class ObjectDataType implements DataType {
                 }
             }
         }
-        if (typeId != last.typeId) {
-            last = newType(typeId);
+        AutoDetectDataType t = last;
+        if (typeId != t.typeId) {
+            last = t = newType(typeId);
         }
-        return last.read(buff, tag);
+        return t.read(buff, tag);
     }
 
     private static int getTypeId(Object obj) {
@@ -261,7 +262,7 @@ public class ObjectDataType implements DataType {
         int typeId = getTypeId(obj);
         AutoDetectDataType l = last;
         if (typeId != l.typeId) {
-            l = last = newType(typeId);
+            last = l = newType(typeId);
         }
         return l;
     }

@@ -200,7 +200,7 @@ public class StreamStore {
      * 
      * @return the new key
      */
-    public long getAndIncrementNextKey() {
+    private long getAndIncrementNextKey() {
         long key = nextKey.getAndIncrement();
         if (!map.containsKey(key)) {
             return key;
@@ -385,6 +385,9 @@ public class StreamStore {
 
         @Override
         public int read(byte[] b, int off, int len) {
+            if (len <= 0) {
+                return 0;
+            }
             while (true) {
                 if (buffer == null) {
                     buffer = nextBuffer();
@@ -429,7 +432,7 @@ public class StreamStore {
                     return new ByteArrayInputStream(data, s, data.length - s);
                 }
                 case 2: {
-                    long len = DataUtils.readVarInt(idBuffer);
+                    long len = DataUtils.readVarLong(idBuffer);
                     long key = DataUtils.readVarLong(idBuffer);
                     if (skip >= len) {
                         skip -= len;

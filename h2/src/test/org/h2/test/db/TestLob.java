@@ -607,6 +607,9 @@ public class TestLob extends TestBase {
     }
 
     private void testLobCleanupSessionTemporaries() throws SQLException {
+        if (config.mvStore) {
+            return;
+        }
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
@@ -740,25 +743,28 @@ public class TestLob extends TestBase {
         int rows = 0;
         Savepoint sp = null;
         int len = getSize(100, 400);
+        // config.traceTest = true;        
         for (int i = 0; i < len; i++) {
             switch (random.nextInt(10)) {
             case 0:
-                trace("insert");
+                trace("insert " + i);
                 conn.createStatement().execute(
                         "INSERT INTO TEST(DATA, DATA2) VALUES('" + i + "' || SPACE(" + spaceLen + "), '" + i + "')");
                 rows++;
                 break;
             case 1:
                 if (rows > 0) {
-                    trace("delete");
-                    conn.createStatement().execute("DELETE FROM TEST WHERE ID=" + random.nextInt(rows));
+                    int x = random.nextInt(rows);
+                    trace("delete " + x);
+                    conn.createStatement().execute("DELETE FROM TEST WHERE ID=" + x);
                 }
                 break;
             case 2:
                 if (rows > 0) {
-                    trace("update");
+                    int x = random.nextInt(rows);
+                    trace("update " + x);
                     conn.createStatement().execute(
-                            "UPDATE TEST SET DATA='x' || DATA, DATA2='x' || DATA2 WHERE ID=" + random.nextInt(rows));
+                            "UPDATE TEST SET DATA='x' || DATA, DATA2='x' || DATA2 WHERE ID=" + x);
                 }
                 break;
             case 3:
@@ -801,9 +807,10 @@ public class TestLob extends TestBase {
             }
             ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
             while (rs.next()) {
+                int id = rs.getInt("ID");
                 String d1 = rs.getString("DATA").trim();
-                String d2 = rs.getString("DATA2").trim();
-                assertEquals(d1, d2);
+                String d2 = rs.getString("DATA2");
+                assertEquals("id:" + id, d2, d1);
             }
 
         }
@@ -1183,6 +1190,9 @@ public class TestLob extends TestBase {
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(1, ?)");
         String s = new String(getRandomChars(10000, 1));
         byte[] data = s.getBytes("UTF-8");
+        // if we keep the string, debugging with Eclipse is not possible
+        // because Eclipse wants to display the large string and fails
+        s = "";
         prep.setBinaryStream(1, new ByteArrayInputStream(data), 0);
         prep.execute();
 

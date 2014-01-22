@@ -213,6 +213,7 @@ public class TestStreamStore extends TestBase {
         store.setMaxBlockSize(100);
         byte[] id = store.put(new ByteArrayInputStream(new byte[10000]));
         InputStream in = store.get(id);
+        assertEquals(0, in.read(new byte[0]));
         assertEquals(0, in.read());
         assertEquals(3, reads.get());
     }

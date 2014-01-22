@@ -54,6 +54,7 @@ MVTableEngine:
 - maybe enable MVCC by default (but allow to disable it)
 - use StreamStore to avoid deadlocks
 - config options for compression and page size (maybe combined)
+- test with MVStore.ASSERT enabled
 
 TransactionStore:
 
@@ -130,6 +131,8 @@ MVStore:
     and rolled back when opening - is this really needed?
 - compact* should also store uncommitted changes (if there are any)
 - write a LSM-tree (log structured merge tree) utility on top of the MVStore
+- improve memory calculation for transient and cache
+    specially for large pages (StreamStore)
 
 */
 

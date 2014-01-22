@@ -776,7 +776,7 @@ the INIT property. Note that multiple commands may be passed to INIT, but the se
 must be escaped, as in the example below.
 </p>
 <pre>
-String url = "jdbc:h2:mem;INIT=runscript from '~/create.sql'\\;runscript from '~/populate.sql'";
+String url = "jdbc:h2:mem:test;INIT=runscript from '~/create.sql'\\;runscript from '~/populate.sql'";
 </pre>
 <p>
 Please note the double backslash is only required in a Java or properties file.

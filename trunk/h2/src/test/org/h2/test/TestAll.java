@@ -695,7 +695,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestJavaObject().runTest(this);
         new TestJavaObjectSerializer().runTest(this);
         new TestUrlJavaObjectSerializer().runTest(this);
-
         new TestLimitUpdates().runTest(this);
         new TestLobApi().runTest(this);
         new TestManyJdbcObjects().runTest(this);

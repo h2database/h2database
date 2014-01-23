@@ -157,8 +157,6 @@ public class FilePathEncrypt extends FilePathWrapper {
 
         private final FileChannel base;
 
-        private final XTS xts;
-
         /**
          * The current position within the file, from a user perspective.
          */
@@ -170,10 +168,24 @@ public class FilePathEncrypt extends FilePathWrapper {
         private long size;
 
         private final String name;
+        
+        private XTS xts;
 
-        public FileEncrypt(String name, byte[] encryptionKey, FileChannel base) throws IOException {
+        private byte[] encryptionKey;
+
+        public FileEncrypt(String name, byte[] encryptionKey, FileChannel base) {
+            // don't do any read or write operations here, because they could
+            // fail if the file is locked, and we want to give the caller a
+            // chance to lock the file first
             this.name = name;
             this.base = base;
+            this.encryptionKey = encryptionKey;
+        }
+        
+        private void init() throws IOException {
+            if (xts != null) {
+                return;
+            }
             this.size = base.size() - HEADER_LENGTH;
             boolean newFile = size < 0;
             byte[] salt;
@@ -192,6 +204,7 @@ public class FilePathEncrypt extends FilePathWrapper {
             }
             AES cipher = new AES();
             cipher.setKey(SHA256.getPBKDF2(encryptionKey, salt, HASH_ITERATIONS, 16));
+            encryptionKey = null;
             xts = new XTS(cipher);
         }
 
@@ -226,6 +239,7 @@ public class FilePathEncrypt extends FilePathWrapper {
             if (len == 0) {
                 return 0;
             }
+            init();
             len = (int) Math.min(len, size - position);
             if (position >= size) {
                 return -1;
@@ -274,6 +288,7 @@ public class FilePathEncrypt extends FilePathWrapper {
 
         @Override
         public int write(ByteBuffer src, long position) throws IOException {
+            init();
             int len = src.remaining();
             if ((position & BLOCK_SIZE_MASK) != 0 ||
                     (len & BLOCK_SIZE_MASK) != 0) {
@@ -343,11 +358,13 @@ public class FilePathEncrypt extends FilePathWrapper {
 
         @Override
         public long size() throws IOException {
+            init();
             return size;
         }
 
         @Override
         public FileChannel truncate(long newSize) throws IOException {
+            init();
             if (newSize > size) {
                 return this;
             }

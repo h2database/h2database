@@ -406,6 +406,14 @@ public class MVTable extends TableBase {
         }
         if (index.needRebuild()) {
             try {
+                // TODO Speed up creating an index, for example as follows: Read
+                // up to about 1 MB of entries in memory, sort them (detect
+                // duplicates here), write to a new map (in sorted order);
+                // repeat (using a new map for every block of 1 MB) until all
+                // record are read. Merge all maps to the target (using merge
+                // sort; duplicates are detected in the target). This is similar
+                // to a LSM tree. For randomly ordered data, this should use
+                // much less write operations than the current algorithm.
                 Index scan = getScanIndex(session);
                 long remaining = scan.getRowCount(session);
                 long total = remaining;

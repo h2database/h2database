@@ -245,16 +245,15 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public void createDirectory() {
-        File f = new File(name);
-        if (f.exists()) {
-            if (f.isDirectory()) {
-                return;
-            }
-            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a file with this name already exists)");
-        }
         File dir = new File(name);
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
-            if ((dir.exists() && dir.isDirectory()) || dir.mkdir()) {
+            if (dir.exists()) {
+                if (dir.isDirectory()) {
+                    return;
+                }
+                throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, 
+                        name + " (a file with this name already exists)");
+            } else if (dir.mkdir()) {
                 return;
             }
             wait(i);

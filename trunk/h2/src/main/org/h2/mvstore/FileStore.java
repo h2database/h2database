@@ -138,7 +138,6 @@ public class FileStore {
                 file = new FilePathEncrypt.FileEncrypt(fileName, key, file);
             }
             file = FilePathCache.wrap(file);
-            fileSize = file.size();
             try {
                 if (readOnly) {
                     fileLock = file.tryLock(0, Long.MAX_VALUE, true);
@@ -153,6 +152,7 @@ public class FileStore {
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_LOCKED, "The file is locked: {0}", fileName);
             }
+            fileSize = file.size();
         } catch (IOException e) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_READING_FAILED,

@@ -2388,7 +2388,9 @@ public class Function extends Expression implements FunctionCall {
     public int getCost() {
         int cost = 3;
         for (Expression e : args) {
-            cost += e.getCost();
+            if (e != null) {
+                cost += e.getCost();
+            }
         }
         return cost;
     }

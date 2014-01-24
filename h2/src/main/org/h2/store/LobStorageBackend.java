@@ -759,10 +759,6 @@ public class LobStorageBackend implements LobStorageInterface {
                 return;
             }
             try {
-;
-if(lobMapIndex >= lobMapBlocks.length) {
-    System.out.println("??");
-}
                 buffer = readBlock(lobMapBlocks[lobMapIndex]);
                 lobMapIndex++;
                 bufferPos = 0;

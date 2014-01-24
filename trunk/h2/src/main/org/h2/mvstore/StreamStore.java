@@ -99,14 +99,19 @@ public class StreamStore {
     public byte[] put(InputStream in) throws IOException {
         ByteArrayOutputStream id = new ByteArrayOutputStream();
         int level = 0;
-        while (true) {
-            if (put(id, in, level)) {
-                break;
+        try {
+            while (true) {
+                if (put(id, in, level)) {
+                    break;
+                }
+                if (id.size() > maxBlockSize / 2) {
+                    id = putIndirectId(id);
+                    level++;
+                }
             }
-            if (id.size() > maxBlockSize / 2) {
-                id = putIndirectId(id);
-                level++;
-            }
+        } catch (IOException e) {
+            remove(id.toByteArray());
+            throw e;
         }
         if (id.size() > minBlockSize * 2) {
             id = putIndirectId(id);
@@ -159,12 +164,16 @@ public class StreamStore {
         int copied = 0;
         int remaining = target.length;
         while (remaining > 0) {
-            int len = in.read(target, copied, remaining);
-            if (len < 0) {
-                return Arrays.copyOf(target, copied);
+            try {
+                int len = in.read(target, copied, remaining);
+                if (len < 0) {
+                    return Arrays.copyOf(target, copied);
+                }
+                copied += len;
+                remaining -= len;
+            } catch (RuntimeException e) {
+                throw new IOException(e);
             }
-            copied += len;
-            remaining -= len;
         }
         return target;
     }

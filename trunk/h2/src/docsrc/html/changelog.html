@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Various bugs in the MVStore storage and have been fixed.
+<ul><li>MVStore mode: the CLOB and BLOB storage was re-implemented and is
+    now much faster than with the PageStore (which is still the default storage).
+</li><li>Various bugs in the MVStore storage and have been fixed.
 </li><li>The method org.h2.expression.Function.getCost could throw a NullPointException.
 </li><li>Storing LOBs in separate files (outside of the database) is no longer supported for new databases.
 </li><li>Lucene 2 is no longer supported.

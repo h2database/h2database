@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.Random;
 
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -28,6 +29,10 @@ public class TestBenchmark extends TestBase {
 
     @Override
     public void test() throws Exception {
+        
+        ;
+        // TODO this test is currently disabled
+
         test(true);
         test(false);
         test(true);
@@ -37,9 +42,59 @@ public class TestBenchmark extends TestBase {
     }
 
     private void test(boolean mvStore) throws Exception {
+        testBinary(mvStore);
+    }
 
-        ;
-        // TODO this test is currently disabled
+    private void testBinary(boolean mvStore) throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore";
+        if (mvStore) {
+            url += ";MV_STORE=TRUE;MV_STORE=TRUE";
+        }
+
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id bigint primary key, data blob)");
+        conn.setAutoCommit(false);
+        PreparedStatement prep = conn
+                .prepareStatement("insert into test values(?, ?)");
+        byte[] data = new byte[1024 * 1024];
+
+        int rowCount = 100;
+        int readCount = 20 * rowCount;
+
+        long start = System.currentTimeMillis();
+
+        for (int i = 0; i < rowCount; i++) {
+            prep.setInt(1, i);
+            randomize(data, i);
+            prep.setBytes(2, data);
+            prep.execute();
+            if (i % 100 == 0) {
+                conn.commit();
+            }
+        }
+
+        prep = conn.prepareStatement("select * from test where id = ?");
+        for (int i = 0; i < readCount; i++) {
+            prep.setInt(1, i % rowCount);
+            prep.executeQuery();
+        }
+
+        System.out.println((System.currentTimeMillis() - start) + " "
+                + (mvStore ? "mvstore" : "default"));
+        conn.close();
+    }
+    
+    void randomize(byte[] data, int i) {
+        Random r = new Random(i);
+        r.nextBytes(data);
+    }
+    
+    private void testInsertSelect(boolean mvStore) throws Exception {
 
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;

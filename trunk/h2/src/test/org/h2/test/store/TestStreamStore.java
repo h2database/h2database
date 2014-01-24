@@ -54,10 +54,40 @@ public class TestStreamStore extends TestBase {
         testLoop();
     }
     
-    private void testExceptionDuringStore() {
-        // TODO test that if there is an IOException while storing
-        // the data, the entries in the map are rolled back
-        ;
+    private void testExceptionDuringStore() throws IOException {
+        // test that if there is an IOException while storing
+        // the data, the entries in the map are "rolled back"
+        HashMap<Long, byte[]> map = New.hashMap();
+        StreamStore s = new StreamStore(map);
+        s.setMaxBlockSize(1024);
+        assertThrows(IOException.class, s).
+            put(failingStream(new IOException()));
+        assertEquals(0, map.size());
+        // the runtime exception is converted to an IOException
+        assertThrows(IOException.class, s).
+            put(failingStream(new IllegalStateException()));
+        assertEquals(0, map.size());
+    }
+    
+    static void throwUnchecked(Throwable e) {
+        TestStreamStore.<RuntimeException>throwThis(e);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable> void throwThis(Throwable e) throws E {
+        throw (E) e;
+    }
+    
+    private static ByteArrayInputStream failingStream(final Exception e) {
+        return new ByteArrayInputStream(new byte[20 * 1024]) {
+            @Override
+            public int read(byte[] buffer, int off, int len) {
+                if (this.pos > 10 * 1024) {
+                    throwUnchecked(e);
+                }
+                return super.read(buffer, off, len);
+            }
+        };
     }
 
     private void testReadCount() throws IOException {

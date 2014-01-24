@@ -21,6 +21,7 @@ import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore;
 import org.h2.store.fs.FileUtils;
@@ -75,9 +76,37 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testGarbageCollectionForLOB() throws SQLException {
-        
-        // TODO Auto-generated method stub
-        
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore;MV_STORE=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int, data blob)");
+        stat.execute("insert into test select x, repeat('0', 10000) from system_range(1, 10)");
+        stat.execute("drop table test");
+        stat.equals("call @temp := cast(repeat('0', 10000) as blob)");
+        stat.execute("create table test2(id int, data blob)");
+        PreparedStatement prep = conn.prepareStatement("insert into test2 values(?, ?)");
+        prep.setInt(1, 1);
+        assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
+            setBinaryStream(1, createFailingStream(new IOException()));
+        prep.setInt(1, 2);
+        assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
+            setBinaryStream(1, createFailingStream(new IllegalStateException()));
+        conn.close();
+        MVStore s = MVStore.open(getBaseDir()+ "/mvstore.mv.db");
+        assertTrue(s.hasMap("lobData"));
+        MVMap<Long, byte[]> lobData = s.openMap("lobData");
+        assertEquals(0, lobData.sizeAsLong());
+        assertTrue(s.hasMap("lobMap"));
+        MVMap<Long, byte[]> lobMap = s.openMap("lobMap");
+        assertEquals(0, lobMap.sizeAsLong());
+        assertTrue(s.hasMap("lobRef"));
+        MVMap<Long, byte[]> lobRef = s.openMap("lobRef");
+        assertEquals(0, lobRef.sizeAsLong());
+        s.close();
     }
 
     private void testSpatial() throws SQLException {

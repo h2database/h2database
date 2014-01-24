@@ -1477,7 +1477,8 @@ public class MVStore {
 
         // This could result in a cache miss if the operation is rolled back,
         // but we don't optimize for rollback.
-        // We could also keep the page in the cache, as somebody could read it.
+        // We could also keep the page in the cache, as somebody 
+        // could still read it (reading the old version).
         if (cache != null) {
             cache.remove(pos);
         }

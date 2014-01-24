@@ -255,30 +255,31 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @param p the page
      * @param writeVersion the write version
      * @param key the key
-     * @param value the value
-     * @return the old value
+     * @param value the new value
+     * @return the old value (never null)
      */
     private Object set(Page p, long writeVersion, Object key, Object value) {
-        if (!p.isLeaf()) {
+        if (p.isLeaf()) {
+            for (int i = 0; i < p.getKeyCount(); i++) {
+                if (keyType.equals(p.getKey(i), key)) {
+                    return p.setValue(i, value);
+                }
+            }
+        } else {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (contains(p, i, key)) {
-                    Page c = copyOnWrite(p.getChildPage(i), writeVersion);
-                    Object result = set(c, writeVersion, key, value);
-                    if (result != null) {
+                    Page c = p.getChildPage(i);
+                    if (get(c, key) != null) {
+                        c = copyOnWrite(c, writeVersion);
+                        Object result = set(c, writeVersion, key, value);
                         p.setChild(i, c);
                         p.setCounts(i, c);
                         return result;
                     }
                 }
             }
-        } else {
-            for (int i = 0; i < p.getKeyCount(); i++) {
-                if (keyType.equals(p.getKey(i), key)) {
-                    return p.setValue(i, value);
-                }
-            }
         }
-        return null;
+        throw DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "Not found: {0}", key);
     }
 
     private void add(Page p, long writeVersion, Object key, Object value) {

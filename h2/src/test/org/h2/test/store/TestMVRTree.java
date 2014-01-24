@@ -47,12 +47,36 @@ public class TestMVRTree extends TestMVStore {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testRandomInsert();
         testSpatialKey();
         testExample();
         testMany();
         testSimple();
         testRandom();
         testRandomFind();
+    }
+    
+    private void testRandomInsert() {
+        String fileName = getBaseDir() + "/testMany.h3";
+        FileUtils.delete(fileName);
+        MVStore s;
+        s = new MVStore.Builder().fileName(fileName).
+                pageSplitSize(100).open();
+        MVRTreeMap<String> map = s.openMap("data",
+                new MVRTreeMap.Builder<String>());
+        Random r = new Random(1);
+        for (int i = 0; i < 1000; i++) {
+            if (i % 100 == 0) {
+                r.setSeed(1);
+            }
+            float x = r.nextFloat() * 50, y = r.nextFloat() * 50;
+            SpatialKey k = new SpatialKey(i % 100, x, x + 2, y, y + 1);
+            map.put(k, "i:" + i);
+            if (i % 10 == 0) {
+                s.commit();
+            }
+        }
+        s.close();
     }
 
     private void testSpatialKey() {

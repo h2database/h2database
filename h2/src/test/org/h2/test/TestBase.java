@@ -6,6 +6,7 @@
  */
 package org.h2.test;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -1498,6 +1499,41 @@ public abstract class TestBase {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    
+    /**
+     * Construct a stream of 20 KB that fails while reading with the provided
+     * exception.
+     * 
+     * @param e the exception
+     * @return the stream
+     */
+    public static ByteArrayInputStream createFailingStream(final Exception e) {
+        return new ByteArrayInputStream(new byte[20 * 1024]) {
+            @Override
+            public int read(byte[] buffer, int off, int len) {
+                if (this.pos > 10 * 1024) {
+                    throwException(e);
+                }
+                return super.read(buffer, off, len);
+            }
+        };
+    }
+
+    /**
+     * Throw a checked exception, without having to declare the method as
+     * throwing a checked exception.
+     * 
+     * @param e the exception to throw
+     */
+    public static void throwException(Throwable e) {
+        TestBase.<RuntimeException>throwThis(e);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private static <E extends Throwable> void throwThis(Throwable e) throws E {
+        throw (E) e;
     }
 
 }

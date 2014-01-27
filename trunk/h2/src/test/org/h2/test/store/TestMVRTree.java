@@ -55,7 +55,7 @@ public class TestMVRTree extends TestMVStore {
         testRandom();
         testRandomFind();
     }
-    
+
     private void testRandomInsert() {
         String fileName = getBaseDir() + "/testMany.h3";
         FileUtils.delete(fileName);

@@ -206,7 +206,7 @@ public class StreamStore {
 
     /**
      * Generate a new key.
-     * 
+     *
      * @return the new key
      */
     private long getAndIncrementNextKey() {

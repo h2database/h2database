@@ -603,7 +603,7 @@ public class Page {
         keyCount++;
         sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
         totalCount++;
-        addMemory(map.getKeyType().getMemory(key) + 
+        addMemory(map.getKeyType().getMemory(key) +
                 map.getValueType().getMemory(value));
     }
 
@@ -642,7 +642,7 @@ public class Page {
 
         sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         totalCount += childPage.totalCount;
-        addMemory(map.getKeyType().getMemory(key) + 
+        addMemory(map.getKeyType().getMemory(key) +
                 DataUtils.PAGE_MEMORY_CHILD);
     }
 
@@ -943,7 +943,7 @@ public class Page {
         }
         return memory;
     }
-    
+
     private void addMemory(int mem) {
         memory += mem;
     }

@@ -743,7 +743,7 @@ public class TestLob extends TestBase {
         int rows = 0;
         Savepoint sp = null;
         int len = getSize(100, 400);
-        // config.traceTest = true;        
+        // config.traceTest = true;
         for (int i = 0; i < len; i++) {
             switch (random.nextInt(10)) {
             case 0:

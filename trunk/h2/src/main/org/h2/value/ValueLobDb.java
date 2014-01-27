@@ -32,7 +32,7 @@ import org.h2.util.Utils;
 
 /**
  * A implementation of the BLOB and CLOB data types.
- * 
+ *
  * Small objects are kept in memory and stored in the record.
  * Large objects are either stored in the database, or in temporary files.
  */
@@ -561,7 +561,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         int inplace = handler.getMaxLengthInplaceLob();
         long m = compress ? Constants.IO_BUFFER_SIZE_COMPRESS : Constants.IO_BUFFER_SIZE;
         if (m < remaining && m <= inplace) {
-            // using "1L" to force long arithmetic because inplace could be Integer.MAX_VALUE
+            // using "1L" to force long arithmetic because
+            // inplace could be Integer.MAX_VALUE
             m = Math.min(remaining, inplace + 1L);
             // the buffer size must be bigger than the inplace lob, otherwise we can't
             // know if it must be stored in-place or not
@@ -626,7 +627,7 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
         return createSmallLob(type, small, precision);
     }
-    
+
     /**
      * Create a LOB object that fits in memory.
      *

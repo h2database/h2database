@@ -34,35 +34,36 @@ import org.h2.value.ValueLobDb;
  * i.e. the server side of the LOB storage.
  */
 public class LobStorageMap implements LobStorageInterface {
-    
+
     private static final boolean TRACE = false;
-    
+
     private final Database database;
-    
+
     private boolean init;
 
     /**
      * The lob metadata map. It contains the mapping from the lob id
      * (which is a long) to the stream store id (which is a byte array).
-     * 
-     * Key: lobId (long) 
-     * Value: { streamStoreId (byte[]), tableId (int), byteCount (long), hashCode (long) }.
+     *
+     * Key: lobId (long)
+     * Value: { streamStoreId (byte[]), tableId (int),
+     * byteCount (long), hashCode (long) }.
      */
     private MVMap<Long, Object[]> lobMap;
-    
+
     /**
      * The reference map. It is used to remove data from the stream store: if no
      * more entries for the given streamStoreId exist, the data is removed from
      * the stream store.
-     * 
+     *
      * Key: { streamStoreId (byte[]), lobId (long) }.
      * Value: true (boolean).
      */
     private MVMap<Object[], Boolean> refMap;
-    
+
     /**
      * The stream store data map.
-     * 
+     *
      * Key: stream store block id (long).
      * Value: data (byte[]).
      */
@@ -73,7 +74,7 @@ public class LobStorageMap implements LobStorageInterface {
     public LobStorageMap(Database database) {
         this.database = database;
     }
-    
+
     @Override
     public void init() {
         if (init) {
@@ -88,14 +89,15 @@ public class LobStorageMap implements LobStorageInterface {
         } else {
             mvStore = s.getStore();
         }
-        lobMap = mvStore.openMap("lobMap", 
+        lobMap = mvStore.openMap("lobMap",
                 new MVMapConcurrent.Builder<Long, Object[]>());
-        refMap = mvStore.openMap("lobRef", 
+        refMap = mvStore.openMap("lobRef",
                 new MVMapConcurrent.Builder<Object[], Boolean>());
         dataMap = mvStore.openMap("lobData",
                 new MVMapConcurrent.Builder<Long, byte[]>());
         streamStore = new StreamStore(dataMap);
-        // TODO currently needed to avoid out of memory
+        // TODO currently needed to avoid out of memory,
+        // because memory usage is only measure in number of pages currently
         streamStore.setMaxBlockSize(32 * 1024);
     }
 
@@ -165,13 +167,13 @@ public class LobStorageMap implements LobStorageInterface {
             throw DbException.convertIOException(e, null);
         }
     }
-    
+
     private ValueLobDb createLob(InputStream in, int type) throws IOException {
         byte[] streamStoreId;
         try {
             streamStoreId = streamStore.put(in);
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);            
+            throw DbException.convertToIOException(e);
         }
         long lobId = generateLobId();
         long length = streamStore.length(streamStoreId);
@@ -186,7 +188,7 @@ public class LobStorageMap implements LobStorageInterface {
         }
         return lob;
     }
-    
+
     private long generateLobId() {
         Long id = lobMap.lastKey();
         return id == null ? 1 : id + 1;
@@ -211,7 +213,7 @@ public class LobStorageMap implements LobStorageInterface {
         refMap.put(key, Boolean.TRUE);
         ValueLobDb lob = ValueLobDb.create(type, database, tableId, lobId, null, length);
         if (TRACE) {
-            trace("copy " + old.getTableId() + "/" + old.getLobId() + " > " + tableId + "/" + lobId);        
+            trace("copy " + old.getTableId() + "/" + old.getLobId() + " > " + tableId + "/" + lobId);
         }
         return lob;
     }
@@ -220,7 +222,7 @@ public class LobStorageMap implements LobStorageInterface {
     public InputStream getInputStream(ValueLobDb lob, byte[] hmac, long byteCount)
             throws IOException {
         init();
-        Object[] value = lobMap.get(lob.getLobId());      
+        Object[] value = lobMap.get(lob.getLobId());
         byte[] streamStoreId = (byte[]) value[0];
         return streamStore.get(streamStoreId);
     }
@@ -231,16 +233,17 @@ public class LobStorageMap implements LobStorageInterface {
         long lobId = lob.getLobId();
         Object[] value = lobMap.remove(lobId);
         if (TRACE) {
-            trace("move " + lob.getTableId() + "/" + lob.getLobId() + " > " + tableId + "/" + lobId);        
+            trace("move " + lob.getTableId() + "/" + lob.getLobId() + " > " + tableId + "/" + lobId);
         }
         value[1] = tableId;
         lobMap.put(lobId, value);
     }
-    
+
     @Override
     public void removeAllForTable(int tableId) {
         init();
-        // this might not be very efficient - to speed it up, we would need yet another map
+        // this might not be very efficient -
+        // to speed it up, we would need yet another map
         ArrayList<Long> list = New.arrayList();
         for (Entry<Long, Object[]> e : lobMap.entrySet()) {
             Object[] value = e.getValue();
@@ -261,10 +264,10 @@ public class LobStorageMap implements LobStorageInterface {
         long lobId = lob.getLobId();
         removeLob(tableId, lobId);
     }
-    
+
     private void removeLob(int tableId, long lobId) {
         if (TRACE) {
-            trace("remove " + tableId + "/" + lobId);        
+            trace("remove " + tableId + "/" + lobId);
         }
         Object[] value = lobMap.remove(lobId);
         byte[] streamStoreId = (byte[]) value[0];
@@ -284,7 +287,7 @@ public class LobStorageMap implements LobStorageInterface {
             streamStore.remove(streamStoreId);
         }
     }
-    
+
     private static void trace(String op) {
         System.out.println("LOB " + op);
     }

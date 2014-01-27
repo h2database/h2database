@@ -26,7 +26,7 @@ class LobStorageRemoteInputStream extends InputStream {
      * The lob id.
      */
     private final long lob;
-    
+
     private final byte[] hmac;
 
     /**

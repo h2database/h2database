@@ -6,6 +6,7 @@
 package org.h2.mvstore.db;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
@@ -44,7 +45,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
+public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
 
     /**
      * The multi-value table.
@@ -98,6 +99,16 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex {
                 valueType(valueType);
         spatialMap = db.getMvStore().getStore().openMap(mapName, mapBuilder);
         dataMap = mvTable.getTransaction(null).openMap(spatialMap);
+    }
+
+    @Override
+    public void addRowsToBuffer(List<Row> rows, String bufferName) {
+        throw DbException.throwInternalError();
+    }
+
+    @Override
+    public void addBufferedRows(List<String> bufferNames) {
+        throw DbException.throwInternalError();
     }
 
     @Override

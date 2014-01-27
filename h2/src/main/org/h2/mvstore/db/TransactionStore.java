@@ -967,6 +967,22 @@ public class TransactionStore {
             return set(key, value);
         }
 
+        /**
+         * Update the value for the given key, without adding an undo log entry.
+         *
+         * @param key the key
+         * @param value the value
+         * @return the old value
+         */
+        @SuppressWarnings("unchecked")
+        public V putCommitted(K key, V value) {
+            DataUtils.checkArgument(value != null, "The value may not be null");
+            VersionedValue newValue = new VersionedValue();
+            newValue.value = value;
+            VersionedValue oldValue = map.put(key, newValue);
+            return (V) (oldValue == null ? null : oldValue.value);
+        }
+
         private V set(K key, V value) {
             transaction.checkNotClosed();
             V old = get(key);

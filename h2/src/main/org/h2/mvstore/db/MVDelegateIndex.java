@@ -6,6 +6,8 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.List;
+
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
@@ -22,7 +24,7 @@ import org.h2.value.ValueLong;
 /**
  * An index that delegates indexing to another index.
  */
-public class MVDelegateIndex extends BaseIndex {
+public class MVDelegateIndex extends BaseIndex implements MVIndex {
 
     private final MVPrimaryIndex mainIndex;
 
@@ -35,6 +37,16 @@ public class MVDelegateIndex extends BaseIndex {
         if (id < 0) {
             throw DbException.throwInternalError("" + name);
         }
+    }
+
+    @Override
+    public void addRowsToBuffer(List<Row> rows, String bufferName) {
+        throw DbException.throwInternalError();
+    }
+
+    @Override
+    public void addBufferedRows(List<String> bufferNames) {
+        throw DbException.throwInternalError();
     }
 
     @Override

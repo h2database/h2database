@@ -46,17 +46,16 @@ Documentation
 - better document how to do non-unique indexes
 - document pluggable store and OffHeapStore
 
-TestMVStoreDataLoss
-
 MVTableEngine:
-- verify tests don't use the PageStore
+- verify that tests don't use the PageStore
 - test and possibly allow MVCC & MULTI_THREADED
 - maybe enable MVCC by default (but allow to disable it)
-- use StreamStore to avoid deadlocks
 - config options for compression and page size (maybe combined)
 - test with MVStore.ASSERT enabled
 
 TransactionStore:
+- ability to disable the transaction log,
+    if there is only one connection
 
 MVStore:
 - automated 'kill process' and 'power failure' test
@@ -67,7 +66,7 @@ MVStore:
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - chunk header: store changed chunk data as row; maybe after the root
-- chunk checksum (header, last page, 2 bytes per page?)
+- two chunk checksums (header+last page; the second one 2 bytes per page)
 - maybe let a chunk point to a list of potential next chunks
     (so no fixed location header is needed), similar to a skip list
 - store number of write operations per page (maybe defragment
@@ -78,7 +77,6 @@ MVStore:
 - MVStoreTool.dump: dump values (using a callback)
 - ensure data is overwritten eventually if the system doesn't have a
     real-time clock (Raspberry Pi) and if there are few writes per startup
-- SSD-friendly write (always in blocks of 4 MB / 1 second?)
 - close the file on out of memory or disk write error (out of disk space or so)
 - implement a sharded map (in one store, multiple stores)
     to support concurrent updates and writes, and very large maps
@@ -88,9 +86,6 @@ MVStore:
 - maybe rename 'rollback' to 'revert' to distinguish from transactions
 - support other compression algorithms (deflate, LZ4,...)
 - support opening (existing) maps by id
-- more consistent null handling (keys/values sometimes may be null)
-- autocommit (to avoid having to call commit,
-    as it could be called too often or it is easily forgotten)
 - remove features that are not really needed; simplify the code
     possibly using a separate layer or tools
     (retainVersion?)
@@ -117,22 +112,15 @@ MVStore:
 - support log structured merge style operations (blind writes)
     using one map per level plus bloom filter
 - have a strict call order MVStore -> MVMap -> Page -> FileStore
-- autocommit mode (default) and manual mode
-- manual mode: combine commit and store;
-    rollback only to chunk
-- rename writeDelay to commitDelay, default 1 s
-- rollback() to rollback to the latest commit; throws exception
-    in autocommit mode
-- fix documentation (including examples)
 - autocommit commits, stores, and compacts from time to time;
     the background thread should wait at least 90% of the
     configured write delay to store changes
-- currently, uncommitted changes are stored if there are many transient changes,
-    and rolled back when opening - is this really needed?
 - compact* should also store uncommitted changes (if there are any)
 - write a LSM-tree (log structured merge tree) utility on top of the MVStore
 - improve memory calculation for transient and cache
-    specially for large pages (StreamStore)
+    specially for large pages (when using the StreamStore)
+- StreamStore: split blocks similar to rsync crypto, where the split is made
+    "if the sum of the past 8196 bytes divides by 4096 with zero remainder"
 
 */
 
@@ -1477,7 +1465,7 @@ public class MVStore {
 
         // This could result in a cache miss if the operation is rolled back,
         // but we don't optimize for rollback.
-        // We could also keep the page in the cache, as somebody 
+        // We could also keep the page in the cache, as somebody
         // could still read it (reading the old version).
         if (cache != null) {
             cache.remove(pos);

@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import org.h2.constant.ErrorCode;
 import org.h2.message.DbException;
@@ -569,6 +570,25 @@ public class ValueDataType implements DataType {
     private static String readString(ByteBuffer buff) {
         int len = readVarInt(buff);
         return DataUtils.readString(buff, len);
+    }
+
+    @Override
+    public int hashCode() {
+        return compareMode.hashCode() ^ Arrays.hashCode(sortTypes);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (!(obj instanceof ValueDataType)) {
+            return false;
+        }
+        ValueDataType v = (ValueDataType) obj;
+        if (!compareMode.equals(v.compareMode)) {
+            return false;
+        }
+        return Arrays.equals(sortTypes, v.sortTypes);
     }
 
 }

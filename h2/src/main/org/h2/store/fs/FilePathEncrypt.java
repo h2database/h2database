@@ -168,7 +168,7 @@ public class FilePathEncrypt extends FilePathWrapper {
         private long size;
 
         private final String name;
-        
+
         private XTS xts;
 
         private byte[] encryptionKey;
@@ -181,7 +181,7 @@ public class FilePathEncrypt extends FilePathWrapper {
             this.base = base;
             this.encryptionKey = encryptionKey;
         }
-        
+
         private void init() throws IOException {
             if (xts != null) {
                 return;

@@ -1500,12 +1500,12 @@ public abstract class TestBase {
             throw new RuntimeException(e);
         }
     }
-    
-    
+
+
     /**
      * Construct a stream of 20 KB that fails while reading with the provided
      * exception.
-     * 
+     *
      * @param e the exception
      * @return the stream
      */
@@ -1524,13 +1524,13 @@ public abstract class TestBase {
     /**
      * Throw a checked exception, without having to declare the method as
      * throwing a checked exception.
-     * 
+     *
      * @param e the exception to throw
      */
     public static void throwException(Throwable e) {
         TestBase.<RuntimeException>throwThis(e);
     }
-    
+
     @SuppressWarnings("unchecked")
     private static <E extends Throwable> void throwThis(Throwable e) throws E {
         throw (E) e;

@@ -228,18 +228,18 @@ public class Recover extends Tool implements DataHandler {
      */
     public static InputStream readBlobMap(Connection conn, long lobId, long precision) throws SQLException {
         final PreparedStatement prep = conn.prepareStatement(
-                "SELECT DATA FROM INFORMATION_SCHEMA.LOB_BLOCKS " + 
+                "SELECT DATA FROM INFORMATION_SCHEMA.LOB_BLOCKS " +
                 "WHERE LOB_ID = ? AND SEQ = ? AND ? > 0");
         prep.setLong(1, lobId);
-        // precision is currently not really used, 
+        // precision is currently not really used,
         // it is just to improve readability of the script
         prep.setLong(3, precision);
         return new SequenceInputStream(
             new Enumeration<InputStream>() {
-                
+
                 private int seq;
                 private byte[] data = fetch();
-                
+
                 private byte[] fetch() {
                     try {
                         prep.setInt(2, seq++);
@@ -252,7 +252,7 @@ public class Recover extends Tool implements DataHandler {
                         throw DbException.convert(e);
                     }
                 }
-                
+
                 @Override
                 public boolean hasMoreElements() {
                     return data != null;
@@ -559,7 +559,7 @@ public class Recover extends Tool implements DataHandler {
         setDatabaseName(fileName.substring(0, fileName.length() - Constants.SUFFIX_MV_FILE.length()));
         MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open();
         dumpLobMaps(writer, mv);
-        writer.println("-- Tables");        
+        writer.println("-- Tables");
         TransactionStore store = new TransactionStore(mv);
         try {
             for (String mapName : mv.getMapNames()) {
@@ -627,7 +627,7 @@ public class Recover extends Tool implements DataHandler {
             mv.close();
         }
     }
-    
+
     private void dumpLobMaps(PrintWriter writer, MVStore mv) {
         lobMaps = mv.hasMap("lobData");
         if (!lobMaps) {
@@ -637,8 +637,8 @@ public class Recover extends Tool implements DataHandler {
         StreamStore streamStore = new StreamStore(lobData);
         MVMap<Long, Object[]> lobMap = mv.openMap("lobMap");
         writer.println("-- LOB");
-        writer.println("CREATE TABLE IF NOT EXISTS " + 
-                "INFORMATION_SCHEMA.LOB_BLOCKS(" + 
+        writer.println("CREATE TABLE IF NOT EXISTS " +
+                "INFORMATION_SCHEMA.LOB_BLOCKS(" +
                 "LOB_ID BIGINT, SEQ INT, DATA BINARY);");
         for (Entry<Long, Object[]> e : lobMap.entrySet()) {
             long lobId = e.getKey();
@@ -652,7 +652,7 @@ public class Recover extends Tool implements DataHandler {
                     int l = IOUtils.readFully(in, block, block.length);
                     String x = StringUtils.convertBytesToHex(block, l);
                     if (l > 0) {
-                        writer.println("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " + 
+                        writer.println("INSERT INTO INFORMATION_SCHEMA.LOB_BLOCKS " +
                                 "VALUES(" + lobId + ", " + seq + ", '" + x + "');");
                     }
                     if (l != len) {

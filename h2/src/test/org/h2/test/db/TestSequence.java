@@ -262,7 +262,7 @@ public class TestSequence extends TestBase {
         stat.execute("create sequence b START WITH 7320917853639540658 INCREMENT -1");
         conn.close();
     }
-    
+
     private void testTwo() throws SQLException {
         deleteDb("sequence");
         Connection conn = getConnection("sequence");

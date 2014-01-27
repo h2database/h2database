@@ -29,7 +29,7 @@ public class TestBenchmark extends TestBase {
 
     @Override
     public void test() throws Exception {
-        
+
         ;
         // TODO this test is currently disabled
 
@@ -42,7 +42,49 @@ public class TestBenchmark extends TestBase {
     }
 
     private void test(boolean mvStore) throws Exception {
-        testBinary(mvStore);
+        testCreateIndex(mvStore);
+    }
+
+    private void testCreateIndex(boolean mvStore) throws Exception {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore";
+        if (mvStore) {
+            url += ";MV_STORE=TRUE;MV_STORE=TRUE";
+        }
+
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id bigint primary key, data bigint)");
+        conn.setAutoCommit(false);
+        PreparedStatement prep = conn
+                .prepareStatement("insert into test values(?, ?)");
+
+//        int rowCount = 10000000;
+        int rowCount = 1000000;
+
+        Random r = new Random(1);
+
+        for (int i = 0; i < rowCount; i++) {
+            prep.setInt(1, i);
+            prep.setInt(2, i);
+            // prep.setInt(2, r.nextInt());
+            prep.execute();
+            if (i % 10000 == 0) {
+                conn.commit();
+            }
+        }
+
+        long start = System.currentTimeMillis();
+        // Profiler prof = new Profiler().startCollecting();
+        stat.execute("create index on test(data)");
+        // System.out.println(prof.getTop(5));
+
+        System.out.println((System.currentTimeMillis() - start) + " "
+                + (mvStore ? "mvstore" : "default"));
+        conn.close();
     }
 
     private void testBinary(boolean mvStore) throws Exception {
@@ -88,12 +130,12 @@ public class TestBenchmark extends TestBase {
                 + (mvStore ? "mvstore" : "default"));
         conn.close();
     }
-    
-    void randomize(byte[] data, int i) {
+
+    private void randomize(byte[] data, int i) {
         Random r = new Random(i);
         r.nextBytes(data);
     }
-    
+
     private void testInsertSelect(boolean mvStore) throws Exception {
 
         FileUtils.deleteRecursive(getBaseDir(), true);

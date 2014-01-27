@@ -815,7 +815,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return store.getMapName(id);
     }
 
-    MVStore getStore() {
+    public MVStore getStore() {
         return store;
     }
 

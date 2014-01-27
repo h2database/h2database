@@ -24,6 +24,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.store.InDoubtTransaction;
@@ -143,6 +144,8 @@ public class MVTableEngine implements TableEngine {
 
         private long statisticsStart;
 
+        private int temporaryMapId;
+
         public Store(Database db, MVStore store) {
             this.db = db;
             this.store = store;
@@ -207,6 +210,27 @@ public class MVTableEngine implements TableEngine {
                     t.rollback();
                 }
             }
+        }
+
+        /**
+         * Remove all temporary maps.
+         */
+        public void removeTemporaryMaps() {
+            for (String mapName : store.getMapNames()) {
+                if (mapName.startsWith("temp.")) {
+                    MVMap<?, ?> map = store.openMap(mapName);
+                    store.removeMap(map);
+                }
+            }
+        }
+
+        /**
+         * Get the name of the next available temporary map.
+         *
+         * @return the map name
+         */
+        public synchronized String nextTemporaryMapName() {
+            return "temp." + temporaryMapId++;
         }
 
         /**

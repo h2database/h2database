@@ -688,6 +688,7 @@ public class Database implements DataHandler {
         }
         if (mvStore != null) {
             mvStore.initTransactions();
+            mvStore.removeTemporaryMaps();
         }
         recompileInvalidViews(systemSession);
         starting = false;

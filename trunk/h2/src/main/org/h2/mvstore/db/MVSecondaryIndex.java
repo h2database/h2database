@@ -7,8 +7,11 @@
 package org.h2.mvstore.db;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.TreeSet;
 
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
@@ -17,6 +20,7 @@ import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
+import org.h2.mvstore.MVMap;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.result.Row;
@@ -26,6 +30,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLong;
@@ -34,7 +39,7 @@ import org.h2.value.ValueNull;
 /**
  * A table stored in a MVStore.
  */
-public class MVSecondaryIndex extends BaseIndex {
+public class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     /**
      * The multi-value table.
@@ -55,20 +60,128 @@ public class MVSecondaryIndex extends BaseIndex {
         // always store the row key in the map key,
         // even for unique indexes, as some of the index columns could be null
         keyColumns = columns.length + 1;
+        mapName = "index." + getId();
         int[] sortTypes = new int[keyColumns];
         for (int i = 0; i < columns.length; i++) {
             sortTypes[i] = columns[i].sortType;
         }
         sortTypes[keyColumns - 1] = SortOrder.ASCENDING;
-        mapName = "index." + getId();
         ValueDataType keyType = new ValueDataType(
                 db.getCompareMode(), db, sortTypes);
         ValueDataType valueType = new ValueDataType(null, null, null);
         dataMap = mvTable.getTransaction(null).openMap(
                 mapName, keyType, valueType);
-        if (keyType != dataMap.getKeyType()) {
+        if (!keyType.equals(dataMap.getKeyType())) {
             throw DbException.throwInternalError("Incompatible key type");
         }
+    }
+
+    @Override
+    public void addRowsToBuffer(List<Row> rows, String bufferName) {
+        MVMap<Value, Value> map = openMap(bufferName);
+        for (Row row : rows) {
+            ValueArray key = getKey(row);
+            map.put(key, ValueNull.INSTANCE);
+        }
+    }
+
+    @Override
+    public void addBufferedRows(List<String> bufferNames) {
+        ArrayList<String> mapNames = New.arrayList(bufferNames);
+        final CompareMode compareMode = database.getCompareMode();
+        /**
+         * A source of values.
+         */
+        class Source implements Comparable<Source> {
+            Value value;
+            Iterator<Value> next;
+            int sourceId;
+            @Override
+            public int compareTo(Source o) {
+                int comp = value.compareTo(o.value, compareMode);
+                if (comp == 0) {
+                    comp = sourceId - o.sourceId;
+                }
+                return comp;
+            }
+        }
+        TreeSet<Source> sources = new TreeSet<Source>();
+        for (int i = 0; i < bufferNames.size(); i++) {
+            MVMap<Value, Value> map = openMap(bufferNames.get(i));
+            Iterator<Value> it = map.keyIterator(null);
+            if (it.hasNext()) {
+                Source s = new Source();
+                s.value = it.next();
+                s.next = it;
+                s.sourceId = i;
+                sources.add(s);
+            }
+        }
+        try {
+            while (true) {
+                Source s = sources.first();
+                Value v = s.value;
+
+                if (indexType.isUnique()) {
+                    ValueArray unique = (ValueArray) v;
+                    Value[] array = unique.getList();
+                    array = Arrays.copyOf(array, array.length);
+                    unique = ValueArray.get(unique.getList());
+                    unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+                    ValueArray key = (ValueArray) dataMap.getLatestCeilingKey(unique);
+                    if (key != null) {
+                        SearchRow r2 = getRow(key.getList());
+                        SearchRow row = getRow(((ValueArray) v).getList());
+                        if (compareRows(row, r2) == 0) {
+                            if (!containsNullAndAllowMultipleNull(r2)) {
+                                throw getDuplicateKeyException(key.toString());
+                            }
+                        }
+                    }
+                }
+
+                dataMap.putCommitted(v, ValueNull.INSTANCE);
+
+                Iterator<Value> it = s.next;
+                if (!it.hasNext()) {
+                    sources.remove(s);
+                    if (sources.size() == 0) {
+                        break;
+                    }
+                } else {
+                    Value nextValue = it.next();
+                    sources.remove(s);
+                    if (sources.size() == 0) {
+                        break;
+                    }
+                    s.value = nextValue;
+                    sources.add(s);
+                }
+            }
+        } finally {
+            for (String tempMapName : mapNames) {
+                MVMap<Value, Value> map = openMap(tempMapName);
+                map.getStore().removeMap(map);
+            }
+        }
+    }
+
+    private MVMap<Value, Value> openMap(String mapName) {
+        int[] sortTypes = new int[keyColumns];
+        for (int i = 0; i < indexColumns.length; i++) {
+            sortTypes[i] = indexColumns[i].sortType;
+        }
+        sortTypes[keyColumns - 1] = SortOrder.ASCENDING;
+        ValueDataType keyType = new ValueDataType(
+                database.getCompareMode(), database, sortTypes);
+        ValueDataType valueType = new ValueDataType(null, null, null);
+        MVMap.Builder<Value, Value> builder =
+                new MVMap.Builder<Value, Value>().keyType(keyType).valueType(valueType);
+        MVMap<Value, Value> map = database.getMvStore().getStore().openMap(mapName, builder);
+        if (!keyType.equals(map.getKeyType())) {
+            throw DbException.throwInternalError("Incompatible key type");
+        }
+        return map;
     }
 
     @Override
@@ -101,8 +214,6 @@ public class MVSecondaryIndex extends BaseIndex {
             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
         }
         if (indexType.isUnique()) {
-            // check if there is another (uncommitted) entry
-            // TODO use entry iterator
             Iterator<Value> it = map.keyIterator(unique, true);
             while (it.hasNext()) {
                 ValueArray k = (ValueArray) it.next();

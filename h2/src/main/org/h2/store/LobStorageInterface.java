@@ -70,17 +70,17 @@ public interface LobStorageInterface {
      * @param lob the lob
      */
     void removeLob(ValueLobDb lob);
-    
+
     /**
      * Remove all LOBs for this table.
      *
      * @param tableId the table id
      */
     void removeAllForTable(int tableId);
-    
+
     /**
      * Initialize the lob storage.
      */
     void init();
-    
+
 }

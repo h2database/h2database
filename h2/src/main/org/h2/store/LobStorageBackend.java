@@ -48,7 +48,7 @@ import org.h2.value.ValueLobDb;
  * lock the Database object. However, in the case of the LOB data, we are using
  * the system session to store the data. If we locked the normal way, we see
  * deadlocks caused by the following pattern:
- * 
+ *
  * <pre>
  *  Thread 1:
  *     locks normal session
@@ -58,7 +58,7 @@ import org.h2.value.ValueLobDb;
  *      locks system session
  *      waiting to lock database.
  * </pre>
- * 
+ *
  * So, in this class alone, we do two things: we have our very own dedicated
  * session, the LOB session, and we take the locks in this order: first the
  * Database object, and then the LOB session. Since we own the LOB session,
@@ -326,7 +326,7 @@ public class LobStorageBackend implements LobStorageInterface {
             // see locking discussion at the top
             synchronized (database) {
                 synchronized (conn.getSession()) {
-                    long lobId = lob.getLobId(); 
+                    long lobId = lob.getLobId();
                     return new LobInputStream(lobId, byteCount);
                 }
             }

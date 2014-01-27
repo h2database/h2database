@@ -65,7 +65,7 @@ public class LobStorageFrontend implements LobStorageInterface {
     public void setTable(ValueLobDb lob, int tableIdSessionVariable) {
         throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public void removeAllForTable(int tableId) {
         throw new UnsupportedOperationException();

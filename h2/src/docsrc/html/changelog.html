@@ -18,11 +18,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore mode: the CLOB and BLOB storage was re-implemented and is
+<ul><li>The profiler tool can now process files with full thread dumps.
+</li><li>MVStore mode: the CLOB and BLOB storage was re-implemented and is
     now much faster than with the PageStore (which is still the default storage).
-</li><li>Various bugs in the MVStore storage and have been fixed.
+</li><li>MVStore mode: creating indexes is now much faster
+    (in many cases faster than with the default PageStore).
+</li><li>Various bugs in the MVStore storage and have been fixed,
+    including a bug in the R-tree implementation.
 </li><li>The method org.h2.expression.Function.getCost could throw a NullPointException.
-</li><li>Storing LOBs in separate files (outside of the database) is no longer supported for new databases.
+</li><li>Storing LOBs in separate files (outside of the main database file)
+    is no longer supported for new databases.
 </li><li>Lucene 2 is no longer supported.
 </li><li>Fix bug in calculating default MIN and MAX values for SEQUENCE.
 </li></ul>

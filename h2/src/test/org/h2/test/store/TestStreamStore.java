@@ -53,7 +53,7 @@ public class TestStreamStore extends TestBase {
         testWithFullMap();
         testLoop();
     }
-    
+
     private void testExceptionDuringStore() throws IOException {
         // test that if there is an IOException while storing
         // the data, the entries in the map are "rolled back"

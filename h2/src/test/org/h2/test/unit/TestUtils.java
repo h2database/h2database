@@ -53,7 +53,7 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass();
         testReflectionUtils();
     }
-    
+
     private void testIOUtils() throws IOException {
         for (int i = 0; i < 20; i++) {
             byte[] data = new byte[i];

@@ -118,13 +118,13 @@ public class TestMVTableEngine extends TestBase {
         conn = getConnection(url);
         stat = conn.createStatement();
         stat.execute("call rand(1)");
-        stat.execute("create table coords as select rand()*50 x, " + 
+        stat.execute("create table coordinates as select rand()*50 x, " +
                 "rand()*50 y from system_range(1, 5000)");
-        stat.execute("create table geoms(id identity, the_geom geometry)");
-        stat.execute("create spatial index on geoms(the_geom)");
-        stat.execute("insert into geoms(the_geom) select 'polygon(('||" + 
+        stat.execute("create table test(id identity, data geometry)");
+        stat.execute("create spatial index on test(data)");
+        stat.execute("insert into test(data) select 'polygon(('||" +
                 "(1+x)||' '||(1+y)||', '||(2+x)||' '||(2+y)||', "+
-                "'||(3+x)||' '||(1+y)||', '||(1+x)||' '||(1+y)||'))' from coords;");
+                "'||(3+x)||' '||(1+y)||', '||(1+x)||' '||(1+y)||'))' from coordinates;");
         conn.close();
     }
 

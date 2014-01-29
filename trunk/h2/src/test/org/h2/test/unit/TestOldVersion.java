@@ -41,6 +41,9 @@ public class TestOldVersion extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (config.mvStore) {
+            return;
+        }
         cl = getClassLoader("file:ext/h2-1.2.127.jar");
         driver = getDriver(cl);
         if (driver == null) {

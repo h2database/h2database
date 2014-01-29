@@ -306,19 +306,23 @@ public class MVTableEngine implements TableEngine {
          * @param maxCompactTime the maximum time in milliseconds to compact
          */
         public void close(long maxCompactTime) {
-            if (!store.isClosed() && store.getFileStore() != null) {
-                if (!store.getFileStore().isReadOnly()) {
-                    transactionStore.close();
-                    long start = System.currentTimeMillis();
-                    while (store.compact(90)) {
-                        long time = System.currentTimeMillis() - start;
-                        if (time > maxCompactTime) {
-                            break;
+            try {
+                if (!store.isClosed() && store.getFileStore() != null) {
+                    if (!store.getFileStore().isReadOnly()) {
+                        transactionStore.close();
+                        long start = System.currentTimeMillis();
+                        while (store.compact(90)) {
+                            long time = System.currentTimeMillis() - start;
+                            if (time > maxCompactTime) {
+                                break;
+                            }
                         }
                     }
+                    store.close();
                 }
-                store.close();
-            }
+            } catch (IllegalStateException e) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");
+            }                
         }
 
         /**

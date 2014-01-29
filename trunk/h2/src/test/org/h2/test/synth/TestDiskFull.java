@@ -55,6 +55,7 @@ public class TestDiskFull extends TestBase {
         String url = "jdbc:h2:unstable:memFS:diskFull" + x +
             ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0;WRITE_DELAY=10;" +
             "LOCK_TIMEOUT=100;CACHE_SIZE=4096";
+        url = getURL(url, true);
         Connection conn = null;
         Statement stat = null;
         boolean opened = false;
@@ -90,7 +91,8 @@ public class TestDiskFull extends TestBase {
                     conn.close();
                 } catch (SQLException e2) {
                     if (e2.getErrorCode() != ErrorCode.IO_EXCEPTION_1
-                            && e2.getErrorCode() != ErrorCode.IO_EXCEPTION_2) {
+                            && e2.getErrorCode() != ErrorCode.IO_EXCEPTION_2
+                            && e2.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED) {
                         throw e2;
                     }
                 }

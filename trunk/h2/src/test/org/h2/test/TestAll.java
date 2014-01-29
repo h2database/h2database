@@ -729,7 +729,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestBtreeIndex().runTest(this);
         new TestDiskFull().runTest(this);
         new TestCrashAPI().runTest(this);
-
         new TestFuzzOptimizations().runTest(this);
         new TestLimit().runTest(this);
         new TestRandomSQL().runTest(this);

@@ -7,7 +7,6 @@
 package org.h2.test.unit;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,7 +43,7 @@ public class TestAutoReconnect extends TestBase {
                 connServer.close();
             }
             org.h2.Driver.load();
-            connServer = DriverManager.getConnection(url);
+            connServer = getConnection(url);
         } else {
             server.stop();
             server.start();
@@ -95,12 +94,12 @@ public class TestAutoReconnect extends TestBase {
         }
 
         // test the database event listener
-        conn = DriverManager.getConnection(url + ";DATABASE_EVENT_LISTENER='" + MyDatabaseEventListener.class.getName() + "'");
+        conn = getConnection(url + ";DATABASE_EVENT_LISTENER='" + MyDatabaseEventListener.class.getName() + "'");
         conn.close();
 
         Statement stat;
 
-        conn = DriverManager.getConnection(url);
+        conn = getConnection(url);
         restart();
         stat = conn.createStatement();
         restart();

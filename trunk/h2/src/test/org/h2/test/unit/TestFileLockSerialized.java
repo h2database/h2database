@@ -8,7 +8,6 @@ package org.h2.test.unit;
 
 import java.io.OutputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,6 +38,9 @@ public class TestFileLockSerialized extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (config.mvStore) {
+            return;
+        }
         println("testSequence");
         testSequence();
         println("testAutoIncrement");
@@ -81,7 +83,7 @@ public class TestFileLockSerialized extends TestBase {
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized" +
                 ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;RECONNECT_CHECK_DELAY=10";
         ResultSet rs;
-        Connection conn1 = DriverManager.getConnection(url);
+        Connection conn1 = getConnection(url);
         Statement stat1 = conn1.createStatement();
         stat1.execute("create sequence seq");
         // 5 times RECONNECT_CHECK_DELAY
@@ -95,13 +97,13 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         ResultSet rs;
-        Connection conn1 = DriverManager.getConnection(url);
+        Connection conn1 = getConnection(url);
         Statement stat1 = conn1.createStatement();
         stat1.execute("create sequence seq");
         rs = stat1.executeQuery("call seq.nextval");
         rs.next();
         assertEquals(1, rs.getInt(1));
-        Connection conn2 = DriverManager.getConnection(url);
+        Connection conn2 = getConnection(url);
         Statement stat2 = conn2.createStatement();
         rs = stat2.executeQuery("call seq.nextval");
         rs.next();
@@ -115,7 +117,7 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
         final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
 
-        Connection conn = DriverManager.getConnection(url);
+        Connection conn = getConnection(url);
         conn.createStatement().execute("create table test(id int) as select 1");
         conn.close();
 
@@ -128,7 +130,7 @@ public class TestFileLockSerialized extends TestBase {
                 @Override
                 public void run() {
                     try {
-                        Connection c = DriverManager.getConnection(url);
+                        Connection c = getConnection(url);
                         PreparedStatement p = c.prepareStatement("select * from test where id = ?");
                         while (!stop[0]) {
                             Thread.sleep(100);
@@ -162,28 +164,28 @@ public class TestFileLockSerialized extends TestBase {
         if (ex[0] != null) {
             throw ex[0];
         }
-        DriverManager.getConnection(url).close();
+        getConnection(url).close();
     }
 
     private void testTwoReaders() throws Exception {
         deleteDb("fileLockSerialized");
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
-        Connection conn1 = DriverManager.getConnection(url);
+        Connection conn1 = getConnection(url);
         conn1.createStatement().execute("create table test(id int)");
-        Connection conn2 = DriverManager.getConnection(url);
+        Connection conn2 = getConnection(url);
         Statement stat2 = conn2.createStatement();
         stat2.execute("drop table test");
         stat2.execute("create table test(id identity) as select 1");
         conn2.close();
         conn1.close();
-        DriverManager.getConnection(url).close();
+        getConnection(url).close();
     }
 
     private void testTwoWriters() throws Exception {
         deleteDb("fileLockSerialized");
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         final String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
-        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Connection conn = getConnection(writeUrl, "sa", "sa");
         conn.createStatement().execute("create table test(id identity) as select x from system_range(1, 100)");
         conn.close();
         Task task = new Task() {
@@ -191,7 +193,7 @@ public class TestFileLockSerialized extends TestBase {
             public void call() throws Exception {
                 while (!stop) {
                     Thread.sleep(10);
-                    Connection c = DriverManager.getConnection(writeUrl, "sa", "sa");
+                    Connection c = getConnection(writeUrl, "sa", "sa");
                     c.createStatement().execute("select * from test");
                     c.close();
                 }
@@ -199,7 +201,7 @@ public class TestFileLockSerialized extends TestBase {
         }.execute();
         Thread.sleep(20);
         for (int i = 0; i < 2; i++) {
-            conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+            conn = getConnection(writeUrl, "sa", "sa");
             Statement stat = conn.createStatement();
             stat.execute("drop table test");
             stat.execute("create table test(id identity) as select x from system_range(1, 100)");
@@ -207,7 +209,7 @@ public class TestFileLockSerialized extends TestBase {
             conn.close();
         }
         Thread.sleep(100);
-        conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        conn = getConnection(writeUrl, "sa", "sa");
         conn.createStatement().execute("select * from test");
         conn.close();
         task.get();
@@ -218,7 +220,7 @@ public class TestFileLockSerialized extends TestBase {
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
 
-        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Connection conn = getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         Thread.sleep(100);
@@ -242,14 +244,14 @@ public class TestFileLockSerialized extends TestBase {
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
 
-        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Connection conn = getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         ((JdbcConnection) conn).setPowerOffCount(1);
         assertThrows(ErrorCode.DATABASE_IS_CLOSED, stat).
                 execute("insert into test values(1)");
 
-        Connection conn2 = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Connection conn2 = getConnection(writeUrl, "sa", "sa");
         Statement stat2 = conn2.createStatement();
         stat2.execute("insert into test values(1)");
         printResult(stat2, "select * from test");
@@ -269,14 +271,14 @@ public class TestFileLockSerialized extends TestBase {
 
         trace(" create database");
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Connection conn = getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
 
-        Connection conn3 = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Connection conn3 = getConnection(writeUrl, "sa", "sa");
         PreparedStatement prep3 = conn3.prepareStatement("insert into test values(?)");
 
-        Connection conn2 = DriverManager.getConnection(writeUrl, "sa", "sa");
+        Connection conn2 = getConnection(writeUrl, "sa", "sa");
         Statement stat2 = conn2.createStatement();
         printResult(stat2, "select * from test");
 
@@ -339,7 +341,7 @@ public class TestFileLockSerialized extends TestBase {
         final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
                 "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
-        Connection conn = DriverManager.getConnection(url);
+        Connection conn = getConnection(url);
         conn.createStatement().execute("create table test(id int auto_increment, id2 int)");
         conn.close();
 
@@ -355,7 +357,7 @@ public class TestFileLockSerialized extends TestBase {
                 @Override
                 public void run() {
                     try {
-                        Connection c = DriverManager.getConnection(url);
+                        Connection c = getConnection(url);
                         connList[finalNrOfConnection] = c;
                         while (!stop[0]) {
                             synchronized (nextInt) {
@@ -401,7 +403,7 @@ public class TestFileLockSerialized extends TestBase {
         if (ex[0] != null) {
             throw ex[0];
         }
-        DriverManager.getConnection(url).close();
+        getConnection(url).close();
         deleteDb("fileLockSerialized");
     }
 
@@ -411,7 +413,7 @@ public class TestFileLockSerialized extends TestBase {
         final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
                 "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
-        Connection conn = DriverManager.getConnection(url);
+        Connection conn = getConnection(url);
         conn.createStatement().execute("create table test(id int)");
         conn.createStatement().execute("insert into test values(1)");
         conn.close();
@@ -428,7 +430,7 @@ public class TestFileLockSerialized extends TestBase {
                 @Override
                 public void run() {
                     try {
-                        Connection c = DriverManager.getConnection(url);
+                        Connection c = getConnection(url);
                         connList[finalNrOfConnection] = c;
                         while (!stop[0]) {
                             ResultSet rs = c.createStatement().executeQuery("select * from test");
@@ -464,7 +466,7 @@ public class TestFileLockSerialized extends TestBase {
         if (ex[0] != null) {
             throw ex[0];
         }
-        DriverManager.getConnection(url).close();
+        getConnection(url).close();
         deleteDb("fileLockSerialized");
     }
 
@@ -480,7 +482,7 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
 
-        Connection conn = DriverManager.getConnection(url);
+        Connection conn = getConnection(url);
         conn.createStatement().execute("create table test(id int)");
         conn.createStatement().execute("insert into test values(1)");
         for (int i = 0; i < (longRun ? 10000 : 5); i++) {
@@ -500,9 +502,9 @@ public class TestFileLockSerialized extends TestBase {
 
         String urlShared = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
 
-        Connection connShared1 = DriverManager.getConnection(urlShared);
+        Connection connShared1 = getConnection(urlShared);
         Statement statement1   = connShared1.createStatement();
-        Connection connShared2 = DriverManager.getConnection(urlShared);
+        Connection connShared2 = getConnection(urlShared);
         Statement statement2   = connShared2.createStatement();
 
         statement1.execute("create table test1(id int)");
@@ -532,10 +534,10 @@ public class TestFileLockSerialized extends TestBase {
         String urlShared = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
         String urlForNew = urlShared + ";OPEN_NEW=TRUE";
 
-        Connection connShared1 = DriverManager.getConnection(urlShared);
+        Connection connShared1 = getConnection(urlShared);
         Statement statement1   = connShared1.createStatement();
-        Connection connShared2 = DriverManager.getConnection(urlShared);
-        Connection connNew     = DriverManager.getConnection(urlForNew);
+        Connection connShared2 = getConnection(urlShared);
+        Connection connNew     = getConnection(urlForNew);
         statement1.execute("create table test1(id int)");
         connShared1.close();
         connShared2.close();
@@ -559,7 +561,7 @@ public class TestFileLockSerialized extends TestBase {
         final Task importUpdateTask = new Task() {
             @Override
             public void call() throws Exception {
-                Connection conn = DriverManager.getConnection(url);
+                Connection conn = getConnection(url);
                 Statement stat = conn.createStatement();
                 stat.execute("create table test(id int, id2 int)");
                 for (int i = 0; i < howMuchRows; i++) {
@@ -578,7 +580,7 @@ public class TestFileLockSerialized extends TestBase {
         Task selectTask = new Task() {
             @Override
             public void call() throws Exception {
-                Connection conn = DriverManager.getConnection(url);
+                Connection conn = getConnection(url);
                 Statement stat = conn.createStatement();
                 importFinishedLatch.await();
 
@@ -613,7 +615,7 @@ public class TestFileLockSerialized extends TestBase {
         // without serialized
         String url;
         url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
-        Connection conn = DriverManager.getConnection(url);
+        Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
         stat.execute("insert into test values(0)");
@@ -624,7 +626,7 @@ public class TestFileLockSerialized extends TestBase {
 
         // with serialized
         url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
-        conn = DriverManager.getConnection(url);
+        conn = getConnection(url);
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
         Thread.sleep(500);

@@ -16,7 +16,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -251,7 +250,7 @@ public class TestFileSystem extends TestBase {
         FileUtils.deleteRecursive(dir, false);
         Connection conn;
         Statement stat;
-        conn = DriverManager.getConnection("jdbc:h2:split:18:"+dir+"/test");
+        conn = getConnection("jdbc:h2:split:18:"+dir+"/test");
         stat = conn.createStatement();
         stat.execute(
                 "create table test(id int primary key, name varchar) " +
@@ -260,7 +259,7 @@ public class TestFileSystem extends TestBase {
         conn.close();
         Backup.execute(dir + "/test.zip", dir, "", true);
         DeleteDbFiles.execute("split:" + dir, "test", true);
-        conn = DriverManager.getConnection(
+        conn = getConnection(
                 "jdbc:h2:split:zip:"+dir+"/test.zip!/test");
         conn.createStatement().execute("select * from test where id=1");
         conn.close();
@@ -271,12 +270,12 @@ public class TestFileSystem extends TestBase {
         org.h2.Driver.load();
         deleteDb("fsMem");
         String url = "jdbc:h2:" + getBaseDir() + "/fsMem";
-        Connection conn = DriverManager.getConnection(url, "sa", "sa");
+        Connection conn = getConnection(url, "sa", "sa");
         conn.createStatement().execute("CREATE TABLE TEST AS SELECT * FROM DUAL");
         conn.createStatement().execute("BACKUP TO '" + getBaseDir() + "/fsMem.zip'");
         conn.close();
         org.h2.tools.Restore.main("-file", getBaseDir() + "/fsMem.zip", "-dir", "memFS:");
-        conn = DriverManager.getConnection("jdbc:h2:memFS:fsMem", "sa", "sa");
+        conn = getConnection("jdbc:h2:memFS:fsMem", "sa", "sa");
         ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
         rs.close();
         conn.close();
@@ -293,7 +292,7 @@ public class TestFileSystem extends TestBase {
         }
         org.h2.Driver.load();
         String url = "jdbc:h2:" + getBaseDir() + "/fsJar";
-        Connection conn = DriverManager.getConnection(url, "sa", "sa");
+        Connection conn = getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar, b blob, c clob)");
         stat.execute("insert into test values(1, 'Hello', SECURE_RAND(2000), space(2000))");
@@ -303,7 +302,7 @@ public class TestFileSystem extends TestBase {
         byte[] b1 = rs.getBytes(3);
         String s1 = rs.getString(4);
         conn.close();
-        conn = DriverManager.getConnection(url, "sa", "sa");
+        conn = getConnection(url, "sa", "sa");
         stat = conn.createStatement();
         stat.execute("backup to '" + getBaseDir() + "/fsJar.zip'");
         conn.close();
@@ -326,7 +325,7 @@ public class TestFileSystem extends TestBase {
             testReadOnly(f);
         }
         String urlJar = "jdbc:h2:zip:" + getBaseDir() + "/fsJar.zip!/fsJar";
-        conn = DriverManager.getConnection(urlJar, "sa", "sa");
+        conn = getConnection(urlJar, "sa", "sa");
         stat = conn.createStatement();
         rs = stat.executeQuery("select * from test");
         rs.next();

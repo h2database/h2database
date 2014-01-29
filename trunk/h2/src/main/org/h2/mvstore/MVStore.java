@@ -660,7 +660,16 @@ public class MVStore {
         header.position(BLOCK_SIZE);
         header.put(bytes);
         header.rewind();
-        fileStore.writeFully(0, header);
+        write(0, header);
+    }
+    
+    private void write(long pos, ByteBuffer buffer) {
+        try {
+            fileStore.writeFully(pos, buffer);
+        } catch (IllegalStateException e) {
+            close();
+            throw e;
+        }
     }
 
     /**
@@ -945,8 +954,7 @@ public class MVStore {
         buff.put(new byte[BLOCK_SIZE - header.length]);
 
         buff.position(0);
-        fileStore.writeFully(filePos, buff.getBuffer());
-
+        write(filePos, buff.getBuffer());
         releaseWriteBuffer(buff);
 
         // overwrite the header if required
@@ -1214,7 +1222,7 @@ public class MVStore {
             // fill the header with zeroes
             buff.put(new byte[BLOCK_SIZE - header.length]);
             buff.position(0);
-            fileStore.writeFully(end, buff.getBuffer());
+            write(end, buff.getBuffer());
             releaseWriteBuffer(buff);
             markMetaChanged();
             meta.put("chunk." + c.id, c.asString());
@@ -1252,7 +1260,7 @@ public class MVStore {
             // fill the header with zeroes
             buff.put(new byte[BLOCK_SIZE - header.length]);
             buff.position(0);
-            fileStore.writeFully(pos, buff.getBuffer());
+            write(pos, buff.getBuffer());
             releaseWriteBuffer(buff);
             markMetaChanged();
             meta.put("chunk." + c.id, c.asString());
@@ -1772,7 +1780,7 @@ public class MVStore {
             ByteBuffer header = ByteBuffer.allocate(BLOCK_SIZE);
             header.put(bytes);
             header.rewind();
-            fileStore.writeFully(fileStore.size(), header);
+            write(fileStore.size(), header);
             readStoreHeader();
             readMeta();
         }

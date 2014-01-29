@@ -95,7 +95,7 @@ public class TestIndex extends TestBase {
     }
 
     private void testIndexTypes() throws SQLException {
-        Connection conn = getConnection("index;MV_STORE=false");
+        Connection conn = getConnection("index");
         stat = conn.createStatement();
         for (String type : new String[] { "unique", "hash", "unique hash" }) {
             stat.execute("create table test(id int)");

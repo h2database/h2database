@@ -71,7 +71,8 @@ public class TestFileLockProcess extends TestBase {
     }
 
     private void test(int count, String url) throws Exception {
-        Connection conn = DriverManager.getConnection(url);
+        url = getURL(url, true);
+        Connection conn = getConnection(url);
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = { "java", selfDestruct,
                 "-cp", getClassPath(),

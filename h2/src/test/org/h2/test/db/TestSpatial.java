@@ -54,17 +54,10 @@ public class TestSpatial extends TestBase {
             return;
         }
         if (DataType.GEOMETRY_CLASS != null) {
-
             deleteDb("spatial");
             url = "spatial";
             testSpatial();
             deleteDb("spatial");
-
-            if (!config.mvcc) {
-                url = "spatial;MV_STORE=false";
-                testSpatial();
-                deleteDb("spatial");
-            }
         }
     }
 

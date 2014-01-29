@@ -35,10 +35,11 @@ public class TestExit extends TestBase {
             return;
         }
         deleteDb("exit");
+        String url = getURL(OPEN_WITH_CLOSE_ON_EXIT);
         String selfDestruct = SelfDestructor.getPropertyString(60);
         String[] procDef = { "java", selfDestruct,
                 "-cp", getClassPath(),
-                getClass().getName(), "" + OPEN_WITH_CLOSE_ON_EXIT };
+                getClass().getName(), url };
         Process proc = Runtime.getRuntime().exec(procDef);
         while (true) {
             int ch = proc.getErrorStream().read();
@@ -59,9 +60,10 @@ public class TestExit extends TestBase {
         if (!getClosedFile().exists()) {
             fail("did not close database");
         }
+        url = getURL(OPEN_WITHOUT_CLOSE_ON_EXIT);
         procDef = new String[] { "java",
                 "-cp", getClassPath(), getClass().getName(),
-                "" + OPEN_WITHOUT_CLOSE_ON_EXIT };
+                url };
         proc = Runtime.getRuntime().exec(procDef);
         proc.waitFor();
         Thread.sleep(100);
@@ -69,6 +71,23 @@ public class TestExit extends TestBase {
             fail("closed database");
         }
         deleteDb("exit");
+    }
+    
+    private String getURL(int action) {
+        String url = "";
+        switch (action) {
+        case OPEN_WITH_CLOSE_ON_EXIT:
+            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + MyDatabaseEventListener.class.getName()
+                    + "';db_close_on_exit=true";
+            break;
+        case OPEN_WITHOUT_CLOSE_ON_EXIT:
+            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + MyDatabaseEventListener.class.getName()
+                    + "';db_close_on_exit=false";
+            break;
+        default:
+        }
+        url = getURL(url, true);
+        return url;
     }
 
     /**
@@ -82,25 +101,12 @@ public class TestExit extends TestBase {
         if (args.length == 0) {
             System.exit(1);
         }
-        int action = Integer.parseInt(args[0]);
-        TestExit app = new TestExit();
-        app.execute(action);
+        String url = args[0];
+        TestExit.execute(url);
     }
 
-    private void execute(int action) throws SQLException {
+    private static void execute(String url) throws SQLException {
         org.h2.Driver.load();
-        String url = "";
-        switch (action) {
-        case OPEN_WITH_CLOSE_ON_EXIT:
-            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + MyDatabaseEventListener.class.getName()
-                    + "';db_close_on_exit=true";
-            break;
-        case OPEN_WITHOUT_CLOSE_ON_EXIT:
-            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + MyDatabaseEventListener.class.getName()
-                    + "';db_close_on_exit=false";
-            break;
-        default:
-        }
         conn = open(url);
         Connection conn2 = open(url);
         conn2.close();

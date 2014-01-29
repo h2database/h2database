@@ -120,10 +120,6 @@ public class Schema extends DbObjectBase {
             Constraint obj = (Constraint) constraints.values().toArray()[0];
             database.removeSchemaObject(session, obj);
         }
-        while (constraints != null && constraints.size() > 0) {
-            Constraint obj = (Constraint) constraints.values().toArray()[0];
-            database.removeSchemaObject(session, obj);
-        }
         // There can be dependencies between tables e.g. using computed columns,
         // so we might need to loop over them multiple times.
         boolean runLoopAgain = false;

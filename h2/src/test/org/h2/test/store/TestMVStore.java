@@ -292,7 +292,7 @@ public class TestMVStore extends TestBase {
 
                 }).
                 open();
-        s.setAutoCommitDelay(2);
+        s.setAutoCommitDelay(10);
         MVMap<Integer, String> m;
         m = s.openMap("data");
         s.getFileStore().getFile().close();

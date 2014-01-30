@@ -38,6 +38,33 @@ and there is a header after each chunk)
 header:
 H:3,...
 
+Format: 
+Current store header:
+H:3,blockSize:4096,chunk:10,creationTime:1391059293945,format:1,lastMapId:15,rootChunk:8192,version:10,fletcher:5d2a9623
+used:
+chunk,creationTime,format,(formatRead,)lastMapId,rootChunk,version
+(blockSize not used)
+fletcher
+
+map.10 = test
+name.lobData = 10
+
+chunk: store live only if there is garbage!
+
+Plan: (hex encoded values, H:2, rootChunk -> block, creationTime -> created, lastMapId -> map
+{H:2,block:2,blockSize:1000,chunk:a,created:143e19856f9,format:1,map:b,version:a,fletcher:5d2a9623}\n
+{block:2,blocks:a0,chunk:a,max:2030,pages:100,root:a020,time:103}\n
+{<chunk>}\n .... {<storeHeader>}\n
+map.a = test
+name.lobData = a
+
+Chunk: (id -> chunk, start -> block, length -> blocks, pageCount -> pages, 
+pageCountLive -> livePages, maxLength -> max, maxLengthLive -> liveMax, 
+metaRootPos -> root (offset))
++, if different: maxLive:1030,pagesLive:30
+
+compression: support multiple algorithms
+
 TODO:
 
 Documentation
@@ -121,6 +148,8 @@ MVStore:
     specially for large pages (when using the StreamStore)
 - StreamStore: split blocks similar to rsync crypto, where the split is made
     "if the sum of the past 8196 bytes divides by 4096 with zero remainder"
+- Compression: try using a bloom filter before trying to match
+- DataType: change to reading and writing arrays, not individual entries
 
 */
 
@@ -667,7 +696,7 @@ public class MVStore {
         try {
             fileStore.writeFully(pos, buffer);
         } catch (IllegalStateException e) {
-            close();
+            closeImmediately();
             throw e;
         }
     }
@@ -1959,6 +1988,10 @@ public class MVStore {
             return;
         }
         backgroundWriterThread = null;
+        if (Thread.currentThread() == t) {
+            // within the thread itself - can not join
+            return;
+        }
         synchronized (t.sync) {
             t.sync.notifyAll();
         }

@@ -734,7 +734,11 @@ public class DataUtils {
         for (int i = 0; i < arguments.length; i++) {
             Object a = arguments[i];
             if (!(a instanceof Exception)) {
-                arguments[i] = a == null ? "null" : a.toString();
+                String s = a == null ? "null" : a.toString();
+                if (s.length() > 100) {
+                    s = s.substring(0, 100);
+                }
+                arguments[i] = s;
             }
         }
         return MessageFormat.format(message, arguments) +

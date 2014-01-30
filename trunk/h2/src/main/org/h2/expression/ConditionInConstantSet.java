@@ -7,7 +7,9 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Comparator;
+import java.util.TreeSet;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
@@ -30,7 +32,7 @@ public class ConditionInConstantSet extends Condition {
     private Expression left;
     private int queryLevel;
     private final ArrayList<Expression> valueList;
-    private final HashSet<Value> valueSet;
+    private final TreeSet<Value> valueSet;
 
     /**
      * Create a new IN(..) condition.
@@ -39,10 +41,15 @@ public class ConditionInConstantSet extends Condition {
      * @param left the expression before IN
      * @param valueList the value list (at least two elements)
      */
-    public ConditionInConstantSet(Session session, Expression left, ArrayList<Expression> valueList) {
+    public ConditionInConstantSet(final Session session, Expression left, ArrayList<Expression> valueList) {
         this.left = left;
         this.valueList = valueList;
-        this.valueSet = new HashSet<Value>(valueList.size());
+        this.valueSet = new TreeSet<Value>(new Comparator<Value>() {
+            @Override
+            public int compare(Value o1, Value o2) {
+                return session.getDatabase().compare(o1, o2);
+            }
+        });
         int type = left.getType();
         for (Expression expression : valueList) {
             valueSet.add(expression.getValue(session).convertTo(type));

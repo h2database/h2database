@@ -54,7 +54,8 @@ public class TestOptimizations extends TestBase {
         testAutoAnalyze();
         testInAndBetween();
         testNestedIn();
-        testConstantIn();
+        testConstantIn1();
+        testConstantIn2();
         testNestedInSelectAndLike();
         testNestedInSelect();
         testInSelectJoin();
@@ -372,7 +373,7 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    private void testConstantIn() throws SQLException {
+    private void testConstantIn1() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
@@ -387,6 +388,26 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
+    private void testConstantIn2() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations;IGNORECASE=TRUE");
+        Statement stat = conn.createStatement();
+
+        stat.executeUpdate("CREATE TABLE testValues (x VARCHAR(50))");
+        stat.executeUpdate("INSERT INTO testValues (x) SELECT 'foo' x");
+        ResultSet resultSet;
+        resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('foo')");
+        assertTrue(resultSet.next());
+        resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('FOO')");
+        assertTrue(resultSet.next());
+        resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('foo','bar')");
+        assertTrue(resultSet.next());
+        resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('FOO','bar')");
+        assertTrue(resultSet.next());
+        
+        conn.close();
+    }
+    
     private void testNestedInSelect() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");

@@ -30,13 +30,15 @@ import org.h2.util.New;
 /*
 
 File format:
-header: (blockSize) bytes
-header: (blockSize) bytes
+
+store header: (blockSize) bytes
+store header: (blockSize) bytes
 [ chunk ] *
 (there are two headers for security at the beginning of the file,
-and there is a header after each chunk)
-header:
-H:3,...
+and there is a store header at the end of each chunk)
+
+store header:
+{H:2,...
 
 Format: 
 Current store header:
@@ -62,8 +64,6 @@ Chunk: (id -> chunk, start -> block, length -> blocks, pageCount -> pages,
 pageCountLive -> livePages, maxLength -> max, maxLengthLive -> liveMax, 
 metaRootPos -> root (offset))
 +, if different: maxLive:1030,pagesLive:30
-
-compression: support multiple algorithms
 
 TODO:
 
@@ -148,8 +148,7 @@ MVStore:
     specially for large pages (when using the StreamStore)
 - StreamStore: split blocks similar to rsync crypto, where the split is made
     "if the sum of the past 8196 bytes divides by 4096 with zero remainder"
-- Compression: try using a bloom filter before trying to match
-- DataType: change to reading and writing arrays, not individual entries
+- Compression: try using a bloom filter (64 bit) before trying to match
 
 */
 
@@ -336,7 +335,6 @@ public class MVStore {
                 creationTime = 0;
                 creationTime = getTime();
                 lastCommitTime = creationTime;
-                storeHeader.put("H", "3");
                 storeHeader.put("blockSize", "" + BLOCK_SIZE);
                 storeHeader.put("format", "" + FORMAT_WRITE);
                 storeHeader.put("creationTime", "" + creationTime);
@@ -625,7 +623,7 @@ public class MVStore {
             HashMap<String, String> m;
             try {
                 m = DataUtils.parseMap(s);
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalStateException e) {
                 continue;
             }
             String f = m.remove("fletcher");
@@ -664,7 +662,7 @@ public class MVStore {
     }
 
     private byte[] getStoreHeaderBytes() {
-        StringBuilder buff = new StringBuilder();
+        StringBuilder buff = new StringBuilder("{H:2");
         storeHeader.put("lastMapId", "" + lastMapId);
         storeHeader.put("chunk", "" + lastChunkId);
         storeHeader.put("rootChunk", "" + rootChunkStart);
@@ -673,6 +671,7 @@ public class MVStore {
         byte[] bytes = buff.toString().getBytes(DataUtils.UTF8);
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
         DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
+        buff.append("}\n");
         bytes = buff.toString().getBytes(DataUtils.UTF8);
         if (bytes.length > BLOCK_SIZE) {
             throw DataUtils.newIllegalStateException(
@@ -887,8 +886,11 @@ public class MVStore {
         }
         Chunk c;
         c = new Chunk(++lastChunkId);
+        c.pageCount = Integer.MAX_VALUE;
+        c.pageCountLive = Integer.MAX_VALUE;
         c.maxLength = Long.MAX_VALUE;
         c.maxLengthLive = Long.MAX_VALUE;
+        c.metaRootPos = Long.MAX_VALUE;
         c.start = Long.MAX_VALUE;
         c.length = Integer.MAX_VALUE;
         c.time = time;
@@ -924,6 +926,9 @@ public class MVStore {
         WriteBuffer buff = getWriteBuffer();
         // need to patch the header later
         c.writeHeader(buff);
+        long endHeader = buff.position();
+        c.pageCount = 0;
+        c.pageCountLive = 0;
         c.maxLength = 0;
         c.maxLengthLive = 0;
         for (MVMap<?, ?> m : changed) {
@@ -973,6 +978,10 @@ public class MVStore {
         c.metaRootPos = metaRoot.getPos();
         buff.position(0);
         c.writeHeader(buff);
+        while (buff.position() < endHeader - 1) {
+            buff.put((byte) ' ');
+        }
+        buff.put((byte) '\n');
         rootChunkStart = filePos;
         revertTemp(storeVersion);
 
@@ -1185,7 +1194,7 @@ public class MVStore {
     }
 
     private Chunk readChunkHeader(long start) {
-        ByteBuffer buff = fileStore.readFully(start, 40);
+        ByteBuffer buff = fileStore.readFully(start, Chunk.MAX_HEADER_LENGTH);
         return Chunk.fromHeader(buff, start);
     }
 

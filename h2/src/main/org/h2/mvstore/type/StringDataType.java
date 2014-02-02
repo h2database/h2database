@@ -26,6 +26,20 @@ public class StringDataType implements DataType {
     public int getMemory(Object obj) {
         return 24 + 2 * obj.toString().length();
     }
+    
+    @Override
+    public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+        for (int i = 0; i < len; i++) {
+            obj[i] = read(buff);
+        }
+    }
+    
+    @Override
+    public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+        for (int i = 0; i < len; i++) {
+            write(buff, obj[i]);
+        }
+    }
 
     @Override
     public String read(ByteBuffer buff) {

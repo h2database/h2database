@@ -79,15 +79,17 @@ public class TestDataUtils extends TestBase {
         DataUtils.appendMap(buff,  "b", ",");
         DataUtils.appendMap(buff,  "c", "1,2");
         DataUtils.appendMap(buff,  "d", "\"test\"");
-        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\"", buff.toString());
+        DataUtils.appendMap(buff,  "e", "}");
+        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\",e:\"}\"", buff.toString());
 
         HashMap<String, String> m = DataUtils.parseMap(buff.toString());
-        assertEquals(5, m.size());
+        assertEquals(6, m.size());
         assertEquals("", m.get(""));
         assertEquals("1", m.get("a"));
         assertEquals(",", m.get("b"));
         assertEquals("1,2", m.get("c"));
         assertEquals("\"test\"", m.get("d"));
+        assertEquals("}", m.get("e"));
     }
 
     private void testMapRandomized() {

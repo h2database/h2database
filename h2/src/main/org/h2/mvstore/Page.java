@@ -758,11 +758,7 @@ public class Page {
             buff = ByteBuffer.allocate(l);
             compressor.expand(comp, 0, compLen, buff.array(), buff.arrayOffset(), l);
         }
-        DataType keyType = map.getKeyType();
-        for (int i = 0; i < len; i++) {
-            Object k = keyType.read(buff);
-            keys[i] = k;
-        }
+        map.getKeyType().read(buff, keys, len, true);
         if (node) {
             childCount = len + 1;
             children = new long[len + 1];
@@ -780,11 +776,7 @@ public class Page {
             totalCount = total;
         } else {
             values = new Object[len];
-            DataType valueType = map.getValueType();
-            for (int i = 0; i < len; i++) {
-                Object v = valueType.read(buff);
-                values[i] = v;
-            }
+            map.getValueType().read(buff, values, len, false);
             totalCount = len;
         }
         recalculateMemory();
@@ -807,10 +799,7 @@ public class Page {
             putVarInt(len).
             put((byte) type);
         int compressStart = buff.position();
-        DataType keyType = map.getKeyType();
-        for (int i = 0; i < len; i++) {
-            keyType.write(buff, keys[i]);
-        }
+        map.getKeyType().write(buff, keys, len, true);
         if (type == DataUtils.PAGE_TYPE_NODE) {
             for (int i = 0; i <= len; i++) {
                 buff.putLong(children[i]);
@@ -819,10 +808,7 @@ public class Page {
                 buff.putVarLong(counts[i]);
             }
         } else {
-            DataType valueType = map.getValueType();
-            for (int i = 0; i < len; i++) {
-                valueType.write(buff, values[i]);
-            }
+            map.getValueType().write(buff, values, len, false);
         }
         MVStore store = map.getStore();
         if (store.getCompress()) {

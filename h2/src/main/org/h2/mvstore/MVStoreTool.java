@@ -73,30 +73,24 @@ public class MVStoreTool {
                 block.rewind();
                 DataUtils.readFully(file, pos, block);
                 block.rewind();
-                int tag = block.get();
-                if (tag == 'H') {
-                    pw.println("    header at " + pos);
+                if (block.get() != '{') {
+                    continue;
+                }
+                byte headerType = block.get();
+                if (headerType == 'H') {
+                    pw.println("    store header at " + pos);
                     pw.println("    " + new String(block.array(), "UTF-8").trim());
                     pos += blockSize;
                     continue;
                 }
-                if (tag != 'c') {
+                if (headerType != 'c') {
                     pos += blockSize;
                     continue;
                 }
-                int chunkLength = block.getInt();
-                int chunkId = block.getInt();
-                int pageCount = block.getInt();
-                long metaRootPos = block.getLong();
-                long maxLength = block.getLong();
-                long maxLengthLive = block.getLong();
-                pw.println("    chunk " + chunkId +
-                        " at " + pos +
-                        " length " + chunkLength +
-                        " pageCount " + pageCount +
-                        " root " + getPosString(metaRootPos) +
-                        " maxLength " + maxLength +
-                        " maxLengthLive " + maxLengthLive);
+                block.position(0);
+                Chunk c = Chunk.fromHeader(block, pos);
+                int chunkLength = c.length;
+                pw.println("    " + c.toString());
                 ByteBuffer chunk = ByteBuffer.allocate(chunkLength);
                 DataUtils.readFully(file, pos, chunk);
                 int p = block.position();

@@ -15,7 +15,7 @@ import java.util.HashMap;
  * Chunks are page aligned (each page is usually 4096 bytes).
  * There are at most 67 million (2^26) chunks,
  * each chunk is at most 2 GB large.
- * File format:
+ * Chunk format:
  * 1 byte: 'c'
  * 4 bytes: length
  * 4 bytes: chunk id (an incrementing number)
@@ -25,6 +25,11 @@ import java.util.HashMap;
  * [ Page ] *
  */
 public class Chunk {
+
+    /**
+     * The maximum length of a chunk header, in bytes.
+     */
+    static final int MAX_HEADER_LENGTH = 1024;
 
     /**
      * The chunk id.
@@ -93,26 +98,23 @@ public class Chunk {
      * @return the chunk
      */
     static Chunk fromHeader(ByteBuffer buff, long start) {
-        if (buff.get() != 'c') {
+        int pos = buff.position();
+        if (buff.get() != '{') {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
                     "File corrupt reading chunk at position {0}", start);
         }
-        int length = buff.getInt();
-        int chunkId = buff.getInt();
-        int pageCount = buff.getInt();
-        long metaRootPos = buff.getLong();
-        long maxLength = buff.getLong();
-        long maxLengthLive = buff.getLong();
-        Chunk c = new Chunk(chunkId);
-        c.length = length;
-        c.pageCount = pageCount;
-        c.pageCountLive = pageCount;
-        c.start = start;
-        c.metaRootPos = metaRootPos;
-        c.maxLength = maxLength;
-        c.maxLengthLive = maxLengthLive;
-        return c;
+        byte[] data = new byte[Math.min(buff.remaining(), MAX_HEADER_LENGTH)];
+        // set the position to the start of the first page
+        buff.get(data);
+        for (int i = 0; i < data.length; i++) {
+            if (data[i] == '\n') {
+                buff.position(pos + i + 2);
+                break;
+            }
+        }
+        String s = new String(data, 0, data.length, DataUtils.UTF8);
+        return fromString(s);
     }
 
     /**
@@ -121,13 +123,10 @@ public class Chunk {
      * @param buff the target buffer
      */
     void writeHeader(WriteBuffer buff) {
-        buff.put((byte) 'c').
-            putInt(length).
-            putInt(id).
-            putInt(pageCount).
-            putLong(metaRootPos).
-            putLong(maxLength).
-            putLong(maxLengthLive);
+        buff.put((byte) '{');
+        buff.put(asString().getBytes(DataUtils.UTF8));
+        buff.put((byte) '}');
+        buff.put((byte) ' ');
     }
 
     /**
@@ -138,7 +137,7 @@ public class Chunk {
      */
     public static Chunk fromString(String s) {
         HashMap<String, String> map = DataUtils.parseMap(s);
-        int id = Integer.parseInt(map.get("id"));
+        int id = Integer.parseInt(map.get("chunk"));
         Chunk c = new Chunk(id);
         c.start = Long.parseLong(map.get("start"));
         c.length = Integer.parseInt(map.get("length"));
@@ -173,7 +172,7 @@ public class Chunk {
      */
     public String asString() {
         return
-                "id:" + id + "," +
+                "chunk:" + id + "," +
                 "length:" + length + "," +
                 "maxLength:" + maxLength + "," +
                 "maxLengthLive:" + maxLengthLive + "," +

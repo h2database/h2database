@@ -570,7 +570,7 @@ public class DataUtils {
         }
         buff.append(key).append(':');
         String v = value.toString();
-        if (v.indexOf(',') < 0 && v.indexOf('\"') < 0) {
+        if (v.indexOf(',') < 0 && v.indexOf('\"') < 0 && v.indexOf('}') < 0) {
             buff.append(value);
         } else {
             buff.append('\"');
@@ -595,6 +595,9 @@ public class DataUtils {
     public static HashMap<String, String> parseMap(String s) {
         HashMap<String, String> map = New.hashMap();
         for (int i = 0, size = s.length(); i < size;) {
+            if (s.charAt(i) == '}') {
+                break;
+            }
             int startKey = i;
             i = s.indexOf(':', i);
             if (i < 0) {
@@ -606,6 +609,9 @@ public class DataUtils {
             while (i < size) {
                 char c = s.charAt(i++);
                 if (c == ',') {
+                    break;
+                } else if (c == '}') {
+                    i--;
                     break;
                 } else if (c == '\"') {
                     while (i < size) {
@@ -641,7 +647,8 @@ public class DataUtils {
     public static int getFletcher32(byte[] bytes, int length) {
         int s1 = 0xffff, s2 = 0xffff;
         for (int i = 0; i < length;) {
-            for (int end = Math.min(i + 718, length); i < end;) {
+            // reduce after 360 words (each word is two bytes)
+            for (int end = Math.min(i + 720, length); i < end;) {
                 int x = ((bytes[i++] & 0xff) << 8) | (bytes[i++] & 0xff);
                 s2 += s1 += x;
             }
@@ -735,8 +742,8 @@ public class DataUtils {
             Object a = arguments[i];
             if (!(a instanceof Exception)) {
                 String s = a == null ? "null" : a.toString();
-                if (s.length() > 100) {
-                    s = s.substring(0, 100);
+                if (s.length() > 1000) {
+                    s = s.substring(0, 1000) + "...";
                 }
                 arguments[i] = s;
             }

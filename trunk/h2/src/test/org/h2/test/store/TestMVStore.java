@@ -597,7 +597,7 @@ public class TestMVStore extends TestBase {
         }
         s.close();
         int[] expectedReadsForCacheSize = {
-                3406, 2590, 1924, 1440, 1102, 956, 918
+                3407, 2590, 1924, 1440, 1096, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             int cacheMB = 1 + 3 * cacheSize;
@@ -647,7 +647,7 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/testFileHeader.h3";
         MVStore s = openStore(fileName);
         long time = System.currentTimeMillis();
-        assertEquals("3", s.getStoreHeader().get("H"));
+        assertEquals("1", s.getStoreHeader().get("format"));
         long creationTime = Long.parseLong(s.getStoreHeader()
                 .get("creationTime"));
         assertTrue(Math.abs(time - creationTime) < 100);

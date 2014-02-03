@@ -292,12 +292,12 @@ public class TestMVStore extends TestBase {
 
                 }).
                 open();
-        s.setAutoCommitDelay(10);
+        s.setAutoCommitDelay(50);
         MVMap<Integer, String> m;
         m = s.openMap("data");
         s.getFileStore().getFile().close();
         m.put(1, "Hello");
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 200; i++) {
             if (exRef.get() != null) {
                 break;
             }
@@ -597,7 +597,7 @@ public class TestMVStore extends TestBase {
         }
         s.close();
         int[] expectedReadsForCacheSize = {
-                3407, 2590, 1924, 1440, 1096, 956, 918
+                3407, 2590, 1924, 1440, 1111, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             int cacheMB = 1 + 3 * cacheSize;
@@ -612,8 +612,10 @@ public class TestMVStore extends TestBase {
                     assertEquals(10240, x.length());
                 }
             }
-            assertEquals(expectedReadsForCacheSize[cacheSize],
-                    s.getFileStore().getReadCount());
+            long readCount = s.getFileStore().getReadCount();
+            int expected = expectedReadsForCacheSize[cacheSize];
+            assertTrue("reads: " + readCount + " expected: " + expected,
+                    Math.abs(100 - (100 * expected / readCount)) < 5);
             s.close();
         }
 
@@ -648,8 +650,8 @@ public class TestMVStore extends TestBase {
         MVStore s = openStore(fileName);
         long time = System.currentTimeMillis();
         assertEquals("1", s.getStoreHeader().get("format"));
-        long creationTime = Long.parseLong(s.getStoreHeader()
-                .get("creationTime"));
+        long creationTime = Long.parseLong(
+                s.getStoreHeader().get("created"), 16);
         assertTrue(Math.abs(time - creationTime) < 100);
         s.getStoreHeader().put("test", "123");
         MVMap<Integer, Integer> map = s.openMap("test");
@@ -684,7 +686,6 @@ public class TestMVStore extends TestBase {
             }
         }
         s.close();
-
         FilePath f = FilePath.get(fileName);
         int blockSize = 4 * 1024;
         // test corrupt file headers
@@ -692,7 +693,7 @@ public class TestMVStore extends TestBase {
             FileChannel fc = f.open("rw");
             if (i == 0) {
                 // corrupt the last block (the end header)
-                fc.truncate(fc.size() - 4096);
+                fc.write(ByteBuffer.allocate(256), fc.size() - 256);
             }
             ByteBuffer buff = ByteBuffer.allocate(4 * 1024);
             fc.read(buff, i);
@@ -1137,7 +1138,7 @@ public class TestMVStore extends TestBase {
         assertEquals(0, m.size());
         s.commit();
         // ensure only nodes are read, but not leaves
-        assertEquals(42, s.getFileStore().getReadCount());
+        assertEquals(40, s.getFileStore().getReadCount());
         assertEquals(1, s.getFileStore().getWriteCount());
         s.close();
     }
@@ -1295,7 +1296,6 @@ public class TestMVStore extends TestBase {
         data.put("2", "World");
         s.commit();
         assertEquals(1, s.getCurrentVersion());
-        assertTrue(m.containsKey("chunk.1"));
         assertFalse(m.containsKey("chunk.2"));
 
         assertEquals("[data]", s.getMapNames().toString());
@@ -1305,20 +1305,18 @@ public class TestMVStore extends TestBase {
 
         String id = s.getMetaMap().get("name.data");
         assertEquals("name:data", m.get("map." + id));
-        assertTrue(m.containsKey("chunk.1"));
         assertEquals("Hello", data.put("1", "Hallo"));
         s.commit();
         assertEquals("name:data", m.get("map." + id));
         assertTrue(m.get("root.1").length() > 0);
         assertTrue(m.containsKey("chunk.1"));
 
-        assertTrue(m.containsKey("chunk.2"));
         assertEquals(2, s.getCurrentVersion());
 
         s.rollbackTo(1);
         assertEquals("Hello", data.get("1"));
         assertEquals("World", data.get("2"));
-        assertTrue(m.containsKey("chunk.1"));
+        assertFalse(m.containsKey("chunk.1"));
         assertFalse(m.containsKey("chunk.2"));
 
         s.close();

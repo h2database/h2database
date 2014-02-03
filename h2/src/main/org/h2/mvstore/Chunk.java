@@ -15,14 +15,6 @@ import java.util.HashMap;
  * Chunks are page aligned (each page is usually 4096 bytes).
  * There are at most 67 million (2^26) chunks,
  * each chunk is at most 2 GB large.
- * Chunk format:
- * 1 byte: 'c'
- * 4 bytes: length
- * 4 bytes: chunk id (an incrementing number)
- * 4 bytes: pageCount
- * 8 bytes: metaRootPos
- * 8 bytes: maxLengthLive
- * [ Page ] *
  */
 public class Chunk {
 
@@ -37,14 +29,14 @@ public class Chunk {
     public final int id;
 
     /**
-     * The start position within the file.
+     * The start block number within the file.
      */
-    public long start;
+    public long block;
 
     /**
-     * The length in bytes.
+     * The length in number of blocks.
      */
-    public int length;
+    public int blocks;
 
     /**
      * The total number of pages in this chunk.
@@ -122,11 +114,19 @@ public class Chunk {
      *
      * @param buff the target buffer
      */
-    void writeHeader(WriteBuffer buff) {
+    void writeHeader(WriteBuffer buff, int minLength) {
+        long pos = buff.position();
         buff.put((byte) '{');
         buff.put(asString().getBytes(DataUtils.UTF8));
         buff.put((byte) '}');
-        buff.put((byte) ' ');
+        while (buff.position() - pos < minLength - 1) {
+            buff.put((byte) ' ');
+        }
+        buff.put((byte) '\n');
+    }
+    
+    static String getMetaKey(int chunkId) {
+        return "chunk." + Integer.toHexString(chunkId);
     }
 
     /**
@@ -137,17 +137,17 @@ public class Chunk {
      */
     public static Chunk fromString(String s) {
         HashMap<String, String> map = DataUtils.parseMap(s);
-        int id = Integer.parseInt(map.get("chunk"));
+        int id = Integer.parseInt(map.get("chunk"), 16);
         Chunk c = new Chunk(id);
-        c.start = Long.parseLong(map.get("start"));
-        c.length = Integer.parseInt(map.get("length"));
-        c.pageCount = Integer.parseInt(map.get("pageCount"));
-        c.pageCountLive = Integer.parseInt(map.get("pageCountLive"));
-        c.maxLength = Long.parseLong(map.get("maxLength"));
-        c.maxLengthLive = Long.parseLong(map.get("maxLengthLive"));
-        c.metaRootPos = Long.parseLong(map.get("metaRoot"));
-        c.time = Long.parseLong(map.get("time"));
-        c.version = Long.parseLong(map.get("version"));
+        c.block = Long.parseLong(map.get("block"), 16);
+        c.blocks = Integer.parseInt(map.get("blocks"), 16);
+        c.pageCount = Integer.parseInt(map.get("pages"), 16);
+        c.pageCountLive = DataUtils.parseHexInt(map.get("livePages"), c.pageCount);
+        c.maxLength = Long.parseLong(map.get("max"), 16);
+        c.maxLengthLive = DataUtils.parseHexLong(map.get("liveMax"), c.maxLength);
+        c.metaRootPos = Long.parseLong(map.get("root"), 16);
+        c.time = Long.parseLong(map.get("time"), 16);
+        c.version = Long.parseLong(map.get("version"), 16);
         return c;
     }
 
@@ -171,17 +171,22 @@ public class Chunk {
      * @return the string
      */
     public String asString() {
-        return
-                "chunk:" + id + "," +
-                "length:" + length + "," +
-                "maxLength:" + maxLength + "," +
-                "maxLengthLive:" + maxLengthLive + "," +
-                "metaRoot:" + metaRootPos + "," +
-                "pageCount:" + pageCount + "," +
-                "pageCountLive:" + pageCountLive + "," +
-                "start:" + start + "," +
-                "time:" + time + "," +
-                "version:" + version;
+        StringBuilder buff = new StringBuilder();
+        buff.append("chunk:").append(Integer.toHexString(id)).
+            append(",block:").append(Long.toHexString(block)).
+            append(",blocks:").append(Integer.toHexString(blocks));
+        if (maxLength != maxLengthLive) {
+            buff.append(",liveMax:").append(Long.toHexString(maxLengthLive));
+        }
+        if (pageCount != pageCountLive) {
+            buff.append(",livePages:").append(Integer.toHexString(pageCountLive));
+        }
+        buff.append(",max:").append(Long.toHexString(maxLength)).
+            append(",pages:").append(Integer.toHexString(pageCount)).
+            append(",root:").append(Long.toHexString(metaRootPos)).
+            append(",time:").append(Long.toHexString(time)).
+            append(",version:").append(Long.toHexString(version));
+        return buff.toString();
     }
 
     @Override

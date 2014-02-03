@@ -260,13 +260,13 @@ public class Page {
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append("id: ").append(System.identityHashCode(this)).append('\n');
-        buff.append("pos: ").append(pos).append("\n");
+        buff.append("pos: ").append(Long.toHexString(pos)).append("\n");
         for (int i = 0; i <= keyCount; i++) {
             if (i > 0) {
                 buff.append(" ");
             }
             if (children != null) {
-                buff.append("[" + children[i] + "] ");
+                buff.append("[" + Long.toHexString(children[i]) + "] ");
             }
             if (i < keyCount) {
                 buff.append(keys[i]);

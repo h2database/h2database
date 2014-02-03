@@ -828,41 +828,42 @@ public class DataUtils {
     }
 
     /**
-     * Parse a string as a number.
+     * Parse a string as a hexadecimal number.
      *
      * @param x the number
      * @param defaultValue if x is null
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static long parseLong(String x, long defaultValue) {
+    public static long parseHexLong(String x, long defaultValue) {
         if (x == null) {
             return defaultValue;
         }
         try {
-            return Long.parseLong(x);
+            return Long.parseLong(x, 16);
         } catch (NumberFormatException e) {
             throw newIllegalStateException(ERROR_FILE_CORRUPT,
-                    "Error parsing the value {0} as a long", x, e);
+                    "Error parsing the value {0}", x, e);
         }
     }
-
+    
     /**
-     * Try to parse a string as a number.
+     * Parse a string as a hexadecimal number.
      *
      * @param x the number
      * @param defaultValue if x is null
-     * @param errorValue if parsing fails
-     * @return the parsed value if parsing is possible
+     * @return the parsed value
+     * @throws IllegalStateException if parsing fails
      */
-    public static long parseLong(String x, long defaultValue, long errorValue) {
+    public static int parseHexInt(String x, int defaultValue) {
         if (x == null) {
             return defaultValue;
         }
         try {
-            return Long.parseLong(x);
+            return Integer.parseInt(x, 16);
         } catch (NumberFormatException e) {
-            return errorValue;
+            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                    "Error parsing the value {0}", x, e);
         }
     }
 

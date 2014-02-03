@@ -121,7 +121,8 @@ public class TestConcurrent extends TestMVStore {
                     chunkCount++;
                 }
             }
-            assertEquals(1, chunkCount);
+            // the chunk metadata is not yet written
+            assertEquals(0, chunkCount);
             s.close();
         }
         FileUtils.deleteRecursive("memFS:", false);

@@ -72,9 +72,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     protected void init(MVStore store, HashMap<String, String> config) {
         this.store = store;
-        this.id = Integer.parseInt(config.get("id"));
-        String x = config.get("createVersion");
-        this.createVersion = x == null ? 0 : Long.parseLong(x);
+        this.id = Integer.parseInt(config.get("id"), 16);
+        this.createVersion = DataUtils.parseHexLong(config.get("createVersion"), 0);
         this.writeVersion = store.getCurrentVersion();
     }
 
@@ -1038,8 +1037,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
         m.readOnly = true;
         HashMap<String, String> config = New.hashMap();
-        config.put("id", String.valueOf(id));
-        config.put("createVersion", String.valueOf(createVersion));
+        config.put("id", Integer.toHexString(id));
+        config.put("createVersion", Long.toHexString(createVersion));
         m.init(store, config);
         m.root = root;
         return m;
@@ -1098,7 +1097,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             DataUtils.appendMap(buff, "name", name);
         }
         if (createVersion != 0) {
-            DataUtils.appendMap(buff, "createVersion", createVersion);
+            DataUtils.appendMap(buff, "createVersion", Long.toHexString(createVersion));
         }
         String type = getType();
         if (type != null) {

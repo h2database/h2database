@@ -36,7 +36,7 @@ public class Chunk {
     /**
      * The length in number of blocks.
      */
-    public int blocks;
+    public int len;
 
     /**
      * The total number of pages in this chunk.
@@ -56,7 +56,7 @@ public class Chunk {
     /**
      * The sum of the max length of all pages that are in use.
      */
-    public long maxLengthLive;
+    public long maxLenLive;
 
     /**
      * The garbage collection priority.
@@ -78,6 +78,11 @@ public class Chunk {
      */
     public long time;
 
+    /**
+     * The last used map id.
+     */
+    public int mapId;
+
     Chunk(int id) {
         this.id = id;
     }
@@ -91,22 +96,23 @@ public class Chunk {
      */
     static Chunk fromHeader(ByteBuffer buff, long start) {
         int pos = buff.position();
-        if (buff.get() != '{') {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupt reading chunk at position {0}", start);
-        }
         byte[] data = new byte[Math.min(buff.remaining(), MAX_HEADER_LENGTH)];
-        // set the position to the start of the first page
         buff.get(data);
-        for (int i = 0; i < data.length; i++) {
-            if (data[i] == '\n') {
-                buff.position(pos + i + 2);
-                break;
+        try {
+            for (int i = 0; i < data.length; i++) {
+                if (data[i] == '\n') {
+                    // set the position to the start of the first page
+                    buff.position(pos + i + 1);
+                    String s = new String(data, 0, i, DataUtils.LATIN).trim();
+                    return fromString(s);
+                }
             }
+        } catch (Exception e) {
+            // there could be various reasons
         }
-        String s = new String(data, 0, data.length, DataUtils.UTF8);
-        return fromString(s);
+        throw DataUtils.newIllegalStateException(
+                DataUtils.ERROR_FILE_CORRUPT,
+                "File corrupt reading chunk at position {0}", start);
     }
 
     /**
@@ -116,9 +122,7 @@ public class Chunk {
      */
     void writeHeader(WriteBuffer buff, int minLength) {
         long pos = buff.position();
-        buff.put((byte) '{');
-        buff.put(asString().getBytes(DataUtils.UTF8));
-        buff.put((byte) '}');
+        buff.put(asString().getBytes(DataUtils.LATIN));
         while (buff.position() - pos < minLength - 1) {
             buff.put((byte) ' ');
         }
@@ -137,22 +141,23 @@ public class Chunk {
      */
     public static Chunk fromString(String s) {
         HashMap<String, String> map = DataUtils.parseMap(s);
-        int id = Integer.parseInt(map.get("chunk"), 16);
+        int id = DataUtils.readHexInt(map, "chunk", 0);
         Chunk c = new Chunk(id);
-        c.block = Long.parseLong(map.get("block"), 16);
-        c.blocks = Integer.parseInt(map.get("blocks"), 16);
-        c.pageCount = Integer.parseInt(map.get("pages"), 16);
-        c.pageCountLive = DataUtils.parseHexInt(map.get("livePages"), c.pageCount);
-        c.maxLength = Long.parseLong(map.get("max"), 16);
-        c.maxLengthLive = DataUtils.parseHexLong(map.get("liveMax"), c.maxLength);
-        c.metaRootPos = Long.parseLong(map.get("root"), 16);
-        c.time = Long.parseLong(map.get("time"), 16);
-        c.version = Long.parseLong(map.get("version"), 16);
+        c.block = DataUtils.readHexLong(map, "block", 0);
+        c.len = DataUtils.readHexInt(map, "len", 0);
+        c.pageCount = DataUtils.readHexInt(map, "pages", 0);
+        c.pageCountLive = DataUtils.readHexInt(map, "livePages", c.pageCount);
+        c.mapId = Integer.parseInt(map.get("map"), 16);
+        c.maxLength = DataUtils.readHexLong(map, "max", 0);
+        c.maxLenLive = DataUtils.readHexLong(map, "liveMax", c.maxLength);
+        c.metaRootPos = DataUtils.readHexLong(map, "root", 0);
+        c.time = DataUtils.readHexLong(map, "time", 0);
+        c.version = DataUtils.readHexLong(map, "version", 0);
         return c;
     }
 
     public int getFillRate() {
-        return (int) (maxLength == 0 ? 0 : 100 * maxLengthLive / maxLength);
+        return (int) (maxLength == 0 ? 0 : 100 * maxLenLive / maxLength);
     }
 
     @Override
@@ -172,20 +177,21 @@ public class Chunk {
      */
     public String asString() {
         StringBuilder buff = new StringBuilder();
-        buff.append("chunk:").append(Integer.toHexString(id)).
-            append(",block:").append(Long.toHexString(block)).
-            append(",blocks:").append(Integer.toHexString(blocks));
-        if (maxLength != maxLengthLive) {
-            buff.append(",liveMax:").append(Long.toHexString(maxLengthLive));
+        DataUtils.appendMap(buff, "chunk", id);
+        DataUtils.appendMap(buff, "block", block);
+        DataUtils.appendMap(buff, "len", len);
+        if (maxLength != maxLenLive) {
+            DataUtils.appendMap(buff, "liveMax", maxLenLive);
         }
         if (pageCount != pageCountLive) {
-            buff.append(",livePages:").append(Integer.toHexString(pageCountLive));
+            DataUtils.appendMap(buff, "livePages", pageCountLive);
         }
-        buff.append(",max:").append(Long.toHexString(maxLength)).
-            append(",pages:").append(Integer.toHexString(pageCount)).
-            append(",root:").append(Long.toHexString(metaRootPos)).
-            append(",time:").append(Long.toHexString(time)).
-            append(",version:").append(Long.toHexString(version));
+        DataUtils.appendMap(buff, "map", mapId);
+        DataUtils.appendMap(buff, "max", maxLength);
+        DataUtils.appendMap(buff, "pages", pageCount);
+        DataUtils.appendMap(buff, "root", metaRootPos);
+        DataUtils.appendMap(buff, "time", time);
+        DataUtils.appendMap(buff, "version", version);
         return buff.toString();
     }
 

@@ -841,7 +841,7 @@ public class Page {
         store.cachePage(pos, this, getMemory());
         long max = DataUtils.getPageMaxLength(pos);
         chunk.maxLength += max;
-        chunk.maxLengthLive += max;
+        chunk.maxLenLive += max;
         chunk.pageCount++;
         chunk.pageCountLive++;
     }

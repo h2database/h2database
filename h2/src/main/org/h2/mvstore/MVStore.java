@@ -37,6 +37,12 @@ store header: (blockSize) bytes
 (there are two headers for security at the beginning of the file,
 and there is a store header at the end of each chunk)
 
+H:2,block:0,blockSize:1000,chunk:0,created:143fd8e5767,format:1,fletcher:a3acedfb
+chunk:1,block:2,len:1,map:6,max:1c0,pages:2,root:4000004c8c,time:20a,version:1
+chunk:2,block:3,fletcher:ca8cb347
+
+maybe split chunk metadata into static and variable
+
 TODO:
 
 Documentation
@@ -59,7 +65,6 @@ TransactionStore:
 MVStore:
 
 - maybe reduce size of store header
-- maybe make the free space bitset operate on blocks
 - maybe let a chunk point to a list of potential next chunks
     (so no fixed location header is needed), similar to a skip list
 - document and review the file format
@@ -120,6 +125,7 @@ MVStore:
 - StreamStore: split blocks similar to rsync crypto, where the split is made
     "if the sum of the past 8196 bytes divides by 4096 with zero remainder"
 - Compression: try using a bloom filter (64 bit) before trying to match
+- LIRS cache: maybe remove 'mask' field, and dynamically grow the arrays
 
 */
 
@@ -142,7 +148,7 @@ public class MVStore {
     /**
      * The maximum length of the store header.
      */
-    static final int STORE_HEADER_LENGTH = 256;
+    static final int CHUNK_FOOTER_LENGTH = 64;
 
     private static final int FORMAT_WRITE = 1;
     private static final int FORMAT_READ = 1;
@@ -192,7 +198,7 @@ public class MVStore {
 
     private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps = new ConcurrentHashMap<Integer, MVMap<?, ?>>();
 
-    private HashMap<String, String> storeHeader = New.hashMap();
+    private HashMap<String, Object> fileHeader = New.hashMap();
 
     private WriteBuffer writeBuffer;
 
@@ -274,9 +280,9 @@ public class MVStore {
         this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
         meta = new MVMapConcurrent<String, String>(StringDataType.INSTANCE,
                 StringDataType.INSTANCE);
-        HashMap<String, String> c = New.hashMap();
-        c.put("id", "0");
-        c.put("createVersion", Long.toString(currentVersion));
+        HashMap<String, Object> c = New.hashMap();
+        c.put("id", 0);
+        c.put("createVersion", currentVersion);
         meta.init(this, c);
         fileStore = (FileStore) config.get("fileStore");
         if (fileName == null && fileStore == null) {
@@ -311,13 +317,13 @@ public class MVStore {
                 creationTime = 0;
                 creationTime = getTime();
                 lastCommitTime = creationTime;
-                storeHeader.put("blockSize", Integer.toHexString(BLOCK_SIZE));
-                storeHeader.put("format", Integer.toHexString(FORMAT_WRITE));
-                storeHeader.put("created", Long.toHexString(creationTime));
-                writeStoreHeader();
+                fileHeader.put("blockSize", BLOCK_SIZE);
+                fileHeader.put("format", FORMAT_WRITE);
+                fileHeader.put("created", creationTime);
+                writeFileHeader();
             } else {
-                readStoreHeader();
-                long format = DataUtils.parseHexLong(storeHeader.get("format"), 0);
+                readFileHeader();
+                long format = DataUtils.readHexLong(fileHeader, "format", 1);
                 if (format > FORMAT_WRITE && !fileStore.isReadOnly()) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_UNSUPPORTED_FORMAT,
@@ -325,7 +331,7 @@ public class MVStore {
                             "and the file was not opened in read-only mode",
                             format, FORMAT_WRITE);
                 }
-                format = DataUtils.parseHexLong(storeHeader.get("formatRead"), format);
+                format = DataUtils.readHexLong(fileHeader, "formatRead", format);
                 if (format > FORMAT_READ) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_UNSUPPORTED_FORMAT,
@@ -382,8 +388,7 @@ public class MVStore {
     <T extends MVMap<?, ?>> T openMapVersion(long version, int mapId,
             MVMap<?, ?> template) {
         MVMap<String, String> oldMeta = getMetaMap(version);
-        String r = oldMeta.get("root." + Integer.toHexString(mapId));
-        long rootPos = DataUtils.parseHexLong(r, 0);
+        long rootPos = getRootPos(oldMeta, mapId);
         MVMap<?, ?> m = template.openReadOnly();
         m.setRootPos(rootPos, version);
         return (T) m;
@@ -419,7 +424,7 @@ public class MVStore {
         String x = meta.get("name." + name);
         int id;
         long root;
-        HashMap<String, String> c;
+        HashMap<String, Object> c;
         M map;
         if (x != null) {
             id = Integer.parseInt(x, 16);
@@ -430,20 +435,20 @@ public class MVStore {
             }
             map = builder.create();
             String config = meta.get("map." + x);
-            c = DataUtils.parseMap(config);
-            c.put("id", x);
+            c = New.hashMap();
+            c.putAll(DataUtils.parseMap(config));
+            c.put("id", id);
             map.init(this, c);
-            String r = meta.get("root." + x);
-            root = DataUtils.parseHexLong(r, 0);
+            root = getRootPos(meta, id);
         } else {
             c = New.hashMap();
             id = ++lastMapId;
-            x = Integer.toHexString(id);
-            c.put("id", x);
-            c.put("createVersion", Long.toHexString(currentVersion));
+            c.put("id", id);
+            c.put("createVersion", currentVersion);
             map = builder.create();
             map.init(this, c);
             markMetaChanged();
+            x = Integer.toHexString(id);
             meta.put("map." + x, map.asString(name));
             meta.put("name." + name, x);
             root = 0;
@@ -540,6 +545,9 @@ public class MVStore {
                     "Chunk {0} is invalid", header.id);
         }
         lastChunkId = header.id;
+        lastMapId = header.mapId;
+        currentVersion = header.version;
+        setWriteVersion(currentVersion);
         chunks.put(header.id, header);
         meta.setRootPos(header.metaRootPos, -1);
         chunks.put(header.id, header);
@@ -569,100 +577,106 @@ public class MVStore {
                 registerFreePage(currentVersion, c.id, 0, 0);
             }
             long start = c.block * BLOCK_SIZE;
-            int len = c.blocks * BLOCK_SIZE;
-            fileStore.markUsed(start, len);
+            int length = c.len * BLOCK_SIZE;
+            fileStore.markUsed(start, length);
         }
     }
 
-    private void readStoreHeader() {
-        // we don't have a valid header yet
-        currentVersion = -1;
-        // we don't know which chunk is the newest
+    private void readFileHeader() {
+        boolean validHeader = false;
+        // we don't know yet which chunk is the newest
         long newestChunk = -1;
         // read the last block of the file, and then the two first blocks
-        ByteBuffer buffLastBlock = fileStore.readFully(fileStore.size()
-                - BLOCK_SIZE, BLOCK_SIZE);
-        ByteBuffer buffFirst2Blocks = fileStore.readFully(0, BLOCK_SIZE * 2);
-        ByteBuffer buff = ByteBuffer.allocate(3 * BLOCK_SIZE);
-        buff.put(buffLastBlock);
-        buff.put(buffFirst2Blocks);
-        for (int i = 0; i < 3 * BLOCK_SIZE; i += BLOCK_SIZE) {
-            int start = i;
-            if (i == 0) {
-                start = BLOCK_SIZE - STORE_HEADER_LENGTH;
-            }
-            if (buff.array()[start] != '{') {
-                continue;
-            }
-            String s = new String(buff.array(), start, 
-                    STORE_HEADER_LENGTH, DataUtils.UTF8)
-                    .trim();
-            HashMap<String, String> m;
+        ByteBuffer fileHeaderBlocks = fileStore.readFully(0, 2 * BLOCK_SIZE);
+        byte[] buff = new byte[BLOCK_SIZE];
+        for (int i = 0; i <= BLOCK_SIZE; i += BLOCK_SIZE) {
+            fileHeaderBlocks.get(buff);
+            // the following can fail for various reasons
             try {
-                m = DataUtils.parseMap(s);
-            } catch (IllegalStateException e) {
+                String s = new String(buff, 0, BLOCK_SIZE, DataUtils.LATIN).trim();
+                HashMap<String, String> m = DataUtils.parseMap(s);
+                int check = DataUtils.readHexInt(m, "fletcher", 0);
+                m.remove("fletcher");
+                s = s.substring(0, s.lastIndexOf("fletcher") - 1);
+                byte[] bytes = s.getBytes(DataUtils.LATIN);
+                int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+                if (check != checksum) {
+                    continue;
+                }
+                long chunk = DataUtils.readHexLong(m, "chunk", 0);
+                if (chunk > newestChunk) {
+                    newestChunk = chunk;
+                    fileHeader.putAll(m);
+                    lastChunkBlock = DataUtils.readHexLong(m, "block", 0);
+                    creationTime = DataUtils.readHexLong(m, "created", 0);
+                    validHeader = true;
+                }
+            } catch (Exception e) {
                 continue;
-            }
-            String f = m.remove("fletcher");
-            if (f == null) {
-                continue;
-            }
-            int check;
-            try {
-                check = (int) Long.parseLong(f, 16);
-            } catch (NumberFormatException e) {
-                continue;
-            }
-            s = s.substring(0, s.lastIndexOf("fletcher") - 1);
-            byte[] bytes = s.getBytes(DataUtils.UTF8);
-            int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
-            if (check != checksum) {
-                continue;
-            }
-            long chunk = Long.parseLong(m.get("chunk"), 16);
-            if (chunk > newestChunk) {
-                newestChunk = chunk;
-                storeHeader = m;
-                lastChunkBlock = Long.parseLong(m.get("block"), 16);
-                creationTime = Long.parseLong(m.get("created"), 16);
-                lastMapId = Integer.parseInt(m.get("map"), 16);
-                currentVersion = Long.parseLong(m.get("version"), 16);
             }
         }
-        if (currentVersion < 0) {
+        if (!validHeader) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
                     "Store header is corrupt: {0}", fileStore);
         }
-        setWriteVersion(currentVersion);
+        ByteBuffer lastBlock = fileStore.readFully(
+                fileStore.size() - CHUNK_FOOTER_LENGTH, CHUNK_FOOTER_LENGTH);
+        buff = new byte[CHUNK_FOOTER_LENGTH];
+        lastBlock.get(buff);
+        // the following can fail for various reasons
+        try {            
+            String s = new String(buff, DataUtils.LATIN).trim();
+            HashMap<String, String> m = DataUtils.parseMap(s);
+            int check = DataUtils.readHexInt(m, "fletcher", 0);
+            m.remove("fletcher");
+            s = s.substring(0, s.lastIndexOf("fletcher") - 1);
+            byte[] bytes = s.getBytes(DataUtils.LATIN);
+            int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+            if (check == checksum) {
+                long chunk = DataUtils.readHexLong(m, "chunk", 0);
+                if (chunk > newestChunk) {
+                    fileHeader.putAll(m);
+                    lastChunkBlock = DataUtils.readHexLong(m, "block", 0);
+                    validHeader = true;
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }                
         lastStoredVersion = -1;
     }
 
-    private byte[] getStoreHeaderBytes(int minLength) {
-        StringBuilder buff = new StringBuilder("{H:2");
-        storeHeader.put("map", Integer.toHexString(lastMapId));
-        storeHeader.put("chunk", Integer.toHexString(lastChunkId));
-        storeHeader.put("block", Long.toHexString(lastChunkBlock));
-        storeHeader.put("version", Long.toHexString(currentVersion));
-        DataUtils.appendMap(buff, storeHeader);
-        byte[] bytes = buff.toString().getBytes(DataUtils.UTF8);
+    private byte[] getFileHeaderBytes() {
+        StringBuilder buff = new StringBuilder("H:2");
+        fileHeader.put("block", lastChunkBlock);
+        fileHeader.put("chunk", lastChunkId);
+        DataUtils.appendMap(buff, fileHeader);
+        byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
-        DataUtils.appendMap(buff, "fletcher", Integer.toHexString(checksum));
-        buff.append("}");
-        if (buff.length() >= STORE_HEADER_LENGTH - 1) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "Store header too large: {0}", buff);
-        }
-        while (buff.length() < minLength - 1) {
+        DataUtils.appendMap(buff, "fletcher", checksum);
+        buff.append("\n");
+        return buff.toString().getBytes(DataUtils.LATIN);
+    }
+
+    private byte[] getChunkFooterBytes() {
+        StringBuilder buff = new StringBuilder();
+        fileHeader.put("chunk", lastChunkId);
+        fileHeader.put("block", lastChunkBlock);
+        DataUtils.appendMap(buff, "chunk", lastChunkId);
+        DataUtils.appendMap(buff, "block", lastChunkBlock);
+        byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
+        int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+        DataUtils.appendMap(buff, "fletcher", checksum);
+        while (buff.length() < CHUNK_FOOTER_LENGTH - 1) {
             buff.append(' ');
         }
         buff.append("\n");
-        return buff.toString().getBytes(DataUtils.UTF8);
+        return buff.toString().getBytes(DataUtils.LATIN);
     }
 
-    private void writeStoreHeader() {
-        byte[] bytes = getStoreHeaderBytes(0);
+    private void writeFileHeader() {
+        byte[] bytes = getFileHeaderBytes();
         ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
         header.put(bytes);
         header.position(BLOCK_SIZE);
@@ -869,12 +883,13 @@ public class MVStore {
         c.pageCount = Integer.MAX_VALUE;
         c.pageCountLive = Integer.MAX_VALUE;
         c.maxLength = Long.MAX_VALUE;
-        c.maxLengthLive = Long.MAX_VALUE;
+        c.maxLenLive = Long.MAX_VALUE;
         c.metaRootPos = Long.MAX_VALUE;
         c.block = Long.MAX_VALUE;
-        c.blocks = Integer.MAX_VALUE;
+        c.len = Integer.MAX_VALUE;
         c.time = time;
         c.version = version;
+        c.mapId = lastMapId;
         chunks.put(c.id, c);
         // force a metadata update
         meta.put(Chunk.getMetaKey(c.id), c.asString());
@@ -913,7 +928,7 @@ public class MVStore {
         c.pageCount = 0;
         c.pageCountLive = 0;
         c.maxLength = 0;
-        c.maxLengthLive = 0;
+        c.maxLenLive = 0;
         for (MVMap<?, ?> m : changed) {
             Page p = m.getRoot();
             if (p.getTotalCount() > 0) {
@@ -932,13 +947,13 @@ public class MVStore {
 
         // add the store header and round to the next block
         int length = MathUtils.roundUpInt(chunkLength + 
-                STORE_HEADER_LENGTH, BLOCK_SIZE);
+                CHUNK_FOOTER_LENGTH, BLOCK_SIZE);
         buff.limit(length);
 
         // free up the space of unused chunks now
         for (Chunk x : removedChunks) {
             long start = x.block * BLOCK_SIZE;
-            int len = x.blocks * BLOCK_SIZE;
+            int len = x.len * BLOCK_SIZE;
             fileStore.free(start, len);
         }
 
@@ -956,16 +971,15 @@ public class MVStore {
         boolean storeAtEndOfFile = filePos + length >= fileStore.size();
 
         c.block = filePos / BLOCK_SIZE;
-        c.blocks = length / BLOCK_SIZE;
+        c.len = length / BLOCK_SIZE;
         c.metaRootPos = metaRoot.getPos();
         buff.position(0);
         c.writeHeader(buff, headerLength);
         lastChunkBlock = filePos / BLOCK_SIZE;
         revertTemp(storeVersion);
 
-        buff.position(buff.limit() - STORE_HEADER_LENGTH);
-        byte[] header = getStoreHeaderBytes(STORE_HEADER_LENGTH);
-        buff.put(header);
+        buff.position(buff.limit() - CHUNK_FOOTER_LENGTH);
+        buff.put(getChunkFooterBytes());
 
         buff.position(0);
         write(filePos, buff.getBuffer());
@@ -973,7 +987,7 @@ public class MVStore {
 
         // overwrite the header if required
         if (!storeAtEndOfFile) {
-            writeStoreHeader();
+            writeFileHeader();
             shrinkFileIfPossible(1);
         }
 
@@ -1068,29 +1082,29 @@ public class MVStore {
                     }
                     // no need to synchronize, as old entries
                     // are not concurrently modified
-                    c.maxLengthLive += f.maxLengthLive;
+                    c.maxLenLive += f.maxLenLive;
                     c.pageCountLive += f.pageCountLive;
                     if (c.pageCountLive < 0) {
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_INTERNAL,
                                 "Corrupt page count {0}", c.pageCountLive);
                     }
-                    if (c.maxLengthLive < 0) {
+                    if (c.maxLenLive < 0) {
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_INTERNAL,
-                                "Corrupt max length {0}", c.maxLengthLive);
+                                "Corrupt max length {0}", c.maxLenLive);
                     }
-                    if (c.pageCount == 0 && c.maxLengthLive > 0) {
+                    if (c.pageCount == 0 && c.maxLenLive > 0) {
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_INTERNAL,
-                                "Corrupt max length {0}", c.maxLengthLive);
+                                "Corrupt max length {0}", c.maxLenLive);
                     }
                     modified.add(c);
                 }
                 it.remove();
             }
             for (Chunk c : modified) {
-                if (c.maxLengthLive == 0) {
+                if (c.maxLenLive == 0) {
                     if (canOverwriteChunk(c, time)) {
                         removedChunks.add(c);
                         chunks.remove(c.id);
@@ -1141,8 +1155,8 @@ public class MVStore {
     private long getFileLengthInUse() {
         long size = 2 * BLOCK_SIZE;
         for (Chunk c : chunks.values()) {
-            if (c.blocks != Integer.MAX_VALUE) {
-                long x = (c.block + c.blocks) * BLOCK_SIZE;
+            if (c.len != Integer.MAX_VALUE) {
+                long x = (c.block + c.len) * BLOCK_SIZE;
                 size = Math.max(size, x);
             }
         }
@@ -1195,7 +1209,7 @@ public class MVStore {
         long time = getTime();
         ArrayList<Chunk> free = New.arrayList();
         for (Chunk c : chunks.values()) {
-            if (c.maxLengthLive == 0) {
+            if (c.maxLenLive == 0) {
                 if (canOverwriteChunk(c, time)) {
                     free.add(c);
                 }
@@ -1206,7 +1220,7 @@ public class MVStore {
             markMetaChanged();
             meta.remove(Chunk.getMetaKey(c.id));
             long start = c.block * BLOCK_SIZE;
-            int length = c.blocks * BLOCK_SIZE;
+            int length = c.len * BLOCK_SIZE;
             fileStore.free(start, length);
         }
         if (fileStore.getFillRate() == 100) {
@@ -1222,10 +1236,10 @@ public class MVStore {
         for (Chunk c : move) {
             WriteBuffer buff = getWriteBuffer();
             long start = c.block * BLOCK_SIZE;
-            int length = c.blocks * BLOCK_SIZE;
+            int length = c.len * BLOCK_SIZE;
             buff.limit(length);
             ByteBuffer readBuff = fileStore.readFully(start, length);
-            Chunk.fromHeader(readBuff, 0);
+            Chunk.fromHeader(readBuff, start);
             int chunkHeaderLen = readBuff.position();
             buff.position(chunkHeaderLen);
             buff.put(readBuff);
@@ -1235,9 +1249,8 @@ public class MVStore {
             c.block = end / BLOCK_SIZE;
             buff.position(0);
             c.writeHeader(buff, chunkHeaderLen);
-            buff.position(length - STORE_HEADER_LENGTH);
-            byte[] header = getStoreHeaderBytes(STORE_HEADER_LENGTH);
-            buff.put(header);
+            buff.position(length - CHUNK_FOOTER_LENGTH);
+            buff.put(getChunkFooterBytes());
             buff.position(0);
             write(end, buff.getBuffer());
             releaseWriteBuffer(buff);
@@ -1262,7 +1275,7 @@ public class MVStore {
             }
             WriteBuffer buff = getWriteBuffer();
             long start = c.block * BLOCK_SIZE;
-            int length = c.blocks * BLOCK_SIZE;
+            int length = c.len * BLOCK_SIZE;
             buff.limit(length);
             ByteBuffer readBuff = fileStore.readFully(start, length);
             Chunk.fromHeader(readBuff, 0);
@@ -1274,9 +1287,8 @@ public class MVStore {
             buff.position(0);
             c.block = pos / BLOCK_SIZE;
             c.writeHeader(buff, chunkHeaderLen);
-            buff.position(length - STORE_HEADER_LENGTH);
-            byte[] header = getStoreHeaderBytes(STORE_HEADER_LENGTH);
-            buff.put(header);
+            buff.position(length - CHUNK_FOOTER_LENGTH);
+            buff.put(getChunkFooterBytes());
             buff.position(0);
             write(pos, buff.getBuffer());
             releaseWriteBuffer(buff);
@@ -1324,7 +1336,7 @@ public class MVStore {
         long maxLengthSum = 0, maxLengthLiveSum = 0;
         for (Chunk c : chunks.values()) {
             maxLengthSum += c.maxLength;
-            maxLengthLiveSum += c.maxLengthLive;
+            maxLengthLiveSum += c.maxLenLive;
         }
         if (maxLengthSum <= 0) {
             // avoid division by 0
@@ -1369,10 +1381,10 @@ public class MVStore {
         long moved = 0;
         Chunk move = null;
         for (Chunk c : old) {
-            if (move != null && moved + c.maxLengthLive > averageMaxLength) {
+            if (move != null && moved + c.maxLenLive > averageMaxLength) {
                 break;
             }
-            moved += c.maxLengthLive;
+            moved += c.maxLenLive;
             move = c;
         }
 
@@ -1398,8 +1410,8 @@ public class MVStore {
 
     private void copyLive(Chunk chunk, ArrayList<Chunk> old) {
         long start = chunk.block * BLOCK_SIZE;
-        int chunkLength = chunk.blocks * BLOCK_SIZE;
-        ByteBuffer buff = fileStore.readFully(start, chunkLength);
+        int length = chunk.len * BLOCK_SIZE;
+        ByteBuffer buff = fileStore.readFully(start, length);
         Chunk.fromHeader(buff, start);
         int pagesRemaining = chunk.pageCount;
         markMetaChanged();
@@ -1423,7 +1435,7 @@ public class MVStore {
             }
             buff.position(offset);
             Page page = new Page(map, 0);
-            page.read(buff, chunk.id, buff.position(), chunkLength);
+            page.read(buff, chunk.id, buff.position(), length);
             for (int i = 0; i < page.getKeyCount(); i++) {
                 Object k = page.getKey(i);
                 Page p = map.getPage(k);
@@ -1535,7 +1547,7 @@ public class MVStore {
                 f = new Chunk(chunkId);
                 freed.put(chunkId, f);
             }
-            f.maxLengthLive -= maxLengthLive;
+            f.maxLenLive -= maxLengthLive;
             f.pageCountLive -= pageCount;
         }
     }
@@ -1793,18 +1805,21 @@ public class MVStore {
                 }
                 chunks.remove(lastChunkId);
                 long start = last.block * BLOCK_SIZE;
-                int len = last.blocks * BLOCK_SIZE;
-                fileStore.free(start, len);
-                // need to overwrite the last page,
-                // so that old end headers is not used
-                long pos = start + len - STORE_HEADER_LENGTH;
-                ByteBuffer header = ByteBuffer.allocate(STORE_HEADER_LENGTH);
-                write(pos, header);
+                int length = last.len * BLOCK_SIZE;
+                fileStore.free(start, length);
+                // need to overwrite the chunk,
+                // so it can not be used
+                WriteBuffer buff = getWriteBuffer();
+                buff.limit(length);
+                // buff.clear() does not set the data
+                Arrays.fill(buff.getBuffer().array(), (byte) 0);
+                write(start, buff.getBuffer());
+                releaseWriteBuffer(buff);
                 lastChunkId--;
             }
             lastChunkBlock = last.block;
-            writeStoreHeader();
-            readStoreHeader();
+            writeFileHeader();
+            readFileHeader();
             readMeta();
         }
         for (MVMap<?, ?> m : New.arrayList(maps.values())) {
@@ -1814,9 +1829,7 @@ public class MVStore {
                 maps.remove(id);
             } else {
                 if (loadFromFile) {
-                    String r = meta.get("root." + Integer.toHexString(id));
-                    long root = DataUtils.parseHexLong(r, 0);
-                    m.setRootPos(root, -1);
+                    m.setRootPos(getRootPos(meta, id), -1);
                 }
             }
 
@@ -1828,6 +1841,11 @@ public class MVStore {
         }
         currentVersion = version;
         setWriteVersion(version);
+    }
+    
+    private static long getRootPos(MVMap<String, String> map, int mapId) {
+        String root = map.get("root." + Integer.toHexString(mapId));
+        return root == null ? 0 : Long.parseLong(root, 16);
     }
 
     private void revertTemp(long storeVersion) {
@@ -1869,8 +1887,8 @@ public class MVStore {
      *
      * @return the store header
      */
-    public Map<String, String> getStoreHeader() {
-        return storeHeader;
+    public Map<String, Object> getStoreHeader() {
+        return fileHeader;
     }
 
     private void checkOpen() {

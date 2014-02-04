@@ -70,10 +70,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param store the store
      * @param config the configuration
      */
-    protected void init(MVStore store, HashMap<String, String> config) {
+    protected void init(MVStore store, HashMap<String, Object> config) {
         this.store = store;
-        this.id = Integer.parseInt(config.get("id"), 16);
-        this.createVersion = DataUtils.parseHexLong(config.get("createVersion"), 0);
+        this.id = DataUtils.readHexInt(config, "id", 0);
+        this.createVersion = DataUtils.readHexLong(config, "createVersion", 0);
         this.writeVersion = store.getCurrentVersion();
     }
 
@@ -1036,9 +1036,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     MVMap<K, V> openReadOnly() {
         MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
         m.readOnly = true;
-        HashMap<String, String> config = New.hashMap();
-        config.put("id", Integer.toHexString(id));
-        config.put("createVersion", Long.toHexString(createVersion));
+        HashMap<String, Object> config = New.hashMap();
+        config.put("id", id);
+        config.put("createVersion", createVersion);
         m.init(store, config);
         m.root = root;
         return m;
@@ -1097,7 +1097,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             DataUtils.appendMap(buff, "name", name);
         }
         if (createVersion != 0) {
-            DataUtils.appendMap(buff, "createVersion", Long.toHexString(createVersion));
+            DataUtils.appendMap(buff, "createVersion", createVersion);
         }
         String type = getType();
         if (type != null) {

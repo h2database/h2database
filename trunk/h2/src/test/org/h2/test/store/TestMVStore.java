@@ -212,14 +212,21 @@ public class TestMVStore extends TestBase {
                 encryptionKey("007".toCharArray()).
                 fileName(fileName).
                 open();
-        Map<String, String> header = s.getStoreHeader();
-        assertEquals("1", header.get("format"));
+        Map<String, Object> header = s.getStoreHeader();
+        assertEquals("1", header.get("format").toString());
         header.put("formatRead", "1");
         header.put("format", "2");
         MVMap<Integer, String> m = s.openMap("data");
+        // this is to ensure the file header is overwritten
+        for (int i = 0; i < 10; i++) {
+            m.put(0, "Hello World " + i);
+            s.commit();
+            if (i > 5) {
+                s.setRetentionTime(0);
+            }
+        }
         m.put(0, "Hello World");
         s.close();
-
         try {
             s = new MVStore.Builder().
                     encryptionKey("007".toCharArray()).
@@ -523,10 +530,17 @@ public class TestMVStore extends TestBase {
         s = openStore(fileName);
         m = s.openMap("test");
         m.put(1, 1);
-        Map<String, String> header = s.getStoreHeader();
-        int format = Integer.parseInt(header.get("format"));
+        Map<String, Object> header = s.getStoreHeader();
+        int format = Integer.parseInt(header.get("format").toString());
         assertEquals(1, format);
         header.put("format", Integer.toString(format + 1));
+        // ensure the file header is overwritten
+        s.commit();
+        m.put(1, 10);
+        s.commit();
+        m.put(1, 20);
+        s.setRetentionTime(0);
+        s.commit();
         s.close();
         try {
             openStore(fileName).close();
@@ -649,16 +663,23 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/testFileHeader.h3";
         MVStore s = openStore(fileName);
         long time = System.currentTimeMillis();
-        assertEquals("1", s.getStoreHeader().get("format"));
-        long creationTime = Long.parseLong(
-                s.getStoreHeader().get("created"), 16);
+        Map<String, Object> m = s.getStoreHeader();
+        assertEquals("1", m.get("format").toString());
+        long creationTime = (Long) m.get("created");
         assertTrue(Math.abs(time - creationTime) < 100);
-        s.getStoreHeader().put("test", "123");
+        m.put("test", "123");
         MVMap<Integer, Integer> map = s.openMap("test");
         map.put(10, 100);
+        // ensure the file header is overwritten
+        s.commit();
+        map.put(10, 110);
+        s.commit();
+        map.put(1, 120);
+        s.setRetentionTime(0);
+        s.commit();
         s.close();
         s = openStore(fileName);
-        assertEquals("123", s.getStoreHeader().get("test"));
+        assertEquals("123", s.getStoreHeader().get("test").toString());
         s.close();
     }
 

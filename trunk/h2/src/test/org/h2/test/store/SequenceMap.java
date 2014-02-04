@@ -33,7 +33,7 @@ public class SequenceMap extends MVMap<Long, Long> {
     }
 
     @Override
-    public void init(MVStore store, HashMap<String, String> config) {
+    public void init(MVStore store, HashMap<String, Object> config) {
         super.init(store, config);
     }
 

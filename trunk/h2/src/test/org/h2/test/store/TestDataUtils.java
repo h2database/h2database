@@ -80,7 +80,7 @@ public class TestDataUtils extends TestBase {
         DataUtils.appendMap(buff,  "c", "1,2");
         DataUtils.appendMap(buff,  "d", "\"test\"");
         DataUtils.appendMap(buff,  "e", "}");
-        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\",e:\"}\"", buff.toString());
+        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\",e:}", buff.toString());
 
         HashMap<String, String> m = DataUtils.parseMap(buff.toString());
         assertEquals(6, m.size());

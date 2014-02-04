@@ -73,13 +73,7 @@ public class MVStoreTool {
                 block.rewind();
                 DataUtils.readFully(file, pos, block);
                 block.rewind();
-                if (block.get() != '{') {
-                    block.position(MVStore.BLOCK_SIZE - MVStore.STORE_HEADER_LENGTH);
-                    if (block.get() != '{') {
-                        continue;
-                    }
-                }
-                byte headerType = block.get();
+                int headerType = block.get();
                 if (headerType == 'H') {
                     pw.println("    store header at " + Long.toHexString(pos));
                     pw.println("    " + new String(block.array(), "UTF-8").trim());
@@ -92,12 +86,12 @@ public class MVStoreTool {
                 }
                 block.position(0);
                 Chunk c = Chunk.fromHeader(block, pos);
-                int chunkLength = c.blocks * MVStore.BLOCK_SIZE;
+                int length = c.len * MVStore.BLOCK_SIZE;
                 pw.println("    " + c.toString());
-                ByteBuffer chunk = ByteBuffer.allocate(chunkLength);
+                ByteBuffer chunk = ByteBuffer.allocate(length);
                 DataUtils.readFully(file, pos, chunk);
                 int p = block.position();
-                pos += chunkLength;
+                pos += length;
                 int remaining = c.pageCount;
                 while (remaining > 0) {
                     chunk.position(p);
@@ -153,12 +147,9 @@ public class MVStoreTool {
                         }
                     }
                 }
-                chunk.position(chunk.limit() - MVStore.STORE_HEADER_LENGTH);
-                if (chunk.get() == '{' && chunk.get() == 'H') {
-                    pw.println("      store header");
-                    pw.println("      " + new String(chunk.array(), chunk.position() - 2, 
-                            MVStore.STORE_HEADER_LENGTH, "UTF-8").trim());
-                }
+                chunk.position(chunk.limit() - MVStore.CHUNK_FOOTER_LENGTH);
+                pw.println("      store header");
+                pw.println("      " + new String(chunk.array(), chunk.position(), MVStore.CHUNK_FOOTER_LENGTH, "UTF-8").trim());
             }
         } catch (IOException e) {
             pw.println("ERROR: " + e);

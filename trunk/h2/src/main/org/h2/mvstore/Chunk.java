@@ -82,6 +82,12 @@ public class Chunk {
      * The last used map id.
      */
     public int mapId;
+    
+    /**
+     * The predicted position of the next chunk.
+     */
+    public long next;
+    public long nextSize;
 
     Chunk(int id) {
         this.id = id;
@@ -94,7 +100,7 @@ public class Chunk {
      * @param start the start of the chunk in the file
      * @return the chunk
      */
-    static Chunk fromHeader(ByteBuffer buff, long start) {
+    static Chunk readChunkHeader(ByteBuffer buff, long start) {
         int pos = buff.position();
         byte[] data = new byte[Math.min(buff.remaining(), MAX_HEADER_LENGTH)];
         buff.get(data);
@@ -120,7 +126,7 @@ public class Chunk {
      *
      * @param buff the target buffer
      */
-    void writeHeader(WriteBuffer buff, int minLength) {
+    void writeChunkHeader(WriteBuffer buff, int minLength) {
         long pos = buff.position();
         buff.put(asString().getBytes(DataUtils.LATIN));
         while (buff.position() - pos < minLength - 1) {
@@ -152,7 +158,8 @@ public class Chunk {
         c.maxLenLive = DataUtils.readHexLong(map, "liveMax", c.maxLength);
         c.metaRootPos = DataUtils.readHexLong(map, "root", 0);
         c.time = DataUtils.readHexLong(map, "time", 0);
-        c.version = DataUtils.readHexLong(map, "version", 0);
+        c.version = DataUtils.readHexLong(map, "version", id);
+        c.next = DataUtils.readHexLong(map, "next", 0);
         return c;
     }
 
@@ -188,11 +195,33 @@ public class Chunk {
         }
         DataUtils.appendMap(buff, "map", mapId);
         DataUtils.appendMap(buff, "max", maxLength);
+        if (next != 0) {
+            DataUtils.appendMap(buff, "next", next);
+        }
         DataUtils.appendMap(buff, "pages", pageCount);
         DataUtils.appendMap(buff, "root", metaRootPos);
         DataUtils.appendMap(buff, "time", time);
-        DataUtils.appendMap(buff, "version", version);
+        if (version != id) {
+            DataUtils.appendMap(buff, "version", version);
+        }
         return buff.toString();
+    }
+    
+    byte[] getFooterBytes() {
+        StringBuilder buff = new StringBuilder();
+        DataUtils.appendMap(buff, "chunk", id);
+        DataUtils.appendMap(buff, "block", block);
+        if (version != id) {
+            DataUtils.appendMap(buff, "version", version);
+        }
+        byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
+        int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+        DataUtils.appendMap(buff, "fletcher", checksum);
+        while (buff.length() < MVStore.CHUNK_FOOTER_LENGTH - 1) {
+            buff.append(' ');
+        }
+        buff.append("\n");
+        return buff.toString().getBytes(DataUtils.LATIN);
     }
 
     @Override

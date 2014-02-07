@@ -187,7 +187,7 @@ public class Page {
         int length = maxLength;
         if (length < 0) {
             throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                    "Illegal page length {0} reading at {1}; file size {1} ", length, filePos, fileSize);
+                    "Illegal page length {0} reading at {1}; file size {2} ", length, filePos, fileSize);
         }
         buff = fileStore.readFully(filePos, length);
         Page p = new Page(map, 0);

@@ -182,7 +182,7 @@ public class MVTableEngine implements TableEngine {
             if (s == null || s.isReadOnly()) {
                 return;
             }
-            if (!store.compact(50)) {
+            if (!store.compact(50, 1024 * 1024)) {
                 store.commit();
             }
         }
@@ -288,7 +288,7 @@ public class MVTableEngine implements TableEngine {
         public void compactFile(long maxCompactTime) {
             store.setRetentionTime(0);
             long start = System.currentTimeMillis();
-            while (store.compact(99)) {
+            while (store.compact(99, 16 * 1024)) {
                 store.sync();
                 long time = System.currentTimeMillis() - start;
                 if (time > maxCompactTime) {
@@ -311,7 +311,7 @@ public class MVTableEngine implements TableEngine {
                     if (!store.getFileStore().isReadOnly()) {
                         transactionStore.close();
                         long start = System.currentTimeMillis();
-                        while (store.compact(90)) {
+                        while (store.compact(90, 32 * 1024)) {
                             long time = System.currentTimeMillis() - start;
                             if (time > maxCompactTime) {
                                 break;

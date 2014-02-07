@@ -109,7 +109,7 @@ public class TestKillProcessWhileWriting extends TestBase {
                     s.commit();
                     break;
                 case 7:
-                    s.compact(80);
+                    s.compact(80, 1024);
                     break;
                 case 8:
                     m.clear();

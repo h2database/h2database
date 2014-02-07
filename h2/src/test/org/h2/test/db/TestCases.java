@@ -39,6 +39,7 @@ public class TestCases extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testReferenceableIndexUsage();
         testClearSyntaxException();
         testEmptyStatements();
         testViewParameters();
@@ -101,6 +102,19 @@ public class TestCases extends TestBase {
         testCollation();
         testBinaryCollation();
         deleteDb("cases");
+    }
+    
+    private void testReferenceableIndexUsage() throws SQLException {
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists a, b");
+        stat.execute("create table a(id int, x int) as select 1, 100");
+        stat.execute("create index idx1 on a(id, x)");
+        stat.execute("create table b(id int primary key, a_id int) as select 1, 1");
+        stat.execute("alter table b add constraint x foreign key(a_id) references a(id)");
+        stat.execute("update a set x=200");
+        stat.execute("drop table if exists a, b");
+        conn.close();
     }
 
     private void testClearSyntaxException() throws SQLException {

@@ -327,16 +327,13 @@ public class AlterTableAddConstraint extends SchemaCommand {
             return false;
         }
         Column[] indexCols = existingIndex.getColumns();
-        if (indexCols.length < cols.length) {
+        if (indexCols.length != cols.length) {
             return false;
         }
         for (IndexColumn col : cols) {
-            // all columns of the list must be part of the index,
-            // but not all columns of the index need to be part of the list
-            // holes are not allowed (index=a,b,c & list=a,b is ok; but list=a,c
-            // is not)
+            // all columns of the list must be part of the index
             int idx = existingIndex.getColumnIndex(col.column);
-            if (idx < 0 || idx >= cols.length) {
+            if (idx < 0) {
                 return false;
             }
         }

@@ -50,8 +50,7 @@ public class OffHeapStore extends FileStore {
         freeSpace.free(pos, length);
         ByteBuffer buff = memory.remove(pos);
         if (buff == null) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
-                    "Could not find entry at position {0}", pos);
+            // nothing was written (just allocated)
         } else if (buff.remaining() != length) {
             throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
                     "Partial remove is not supported at position {0}", pos);
@@ -105,6 +104,7 @@ public class OffHeapStore extends FileStore {
             memory.clear();
             return;
         }
+        fileSize = size;
         for (Iterator<Long> it = memory.keySet().iterator(); it.hasNext();) {
             long pos = it.next();
             if (pos < size) {

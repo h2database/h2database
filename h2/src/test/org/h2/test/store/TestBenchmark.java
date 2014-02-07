@@ -69,8 +69,8 @@ public class TestBenchmark extends TestBase {
 
         for (int i = 0; i < rowCount; i++) {
             prep.setInt(1, i);
-            prep.setInt(2, i);
-            // prep.setInt(2, r.nextInt());
+            // prep.setInt(2, i);
+            prep.setInt(2, r.nextInt());
             prep.execute();
             if (i % 10000 == 0) {
                 conn.commit();

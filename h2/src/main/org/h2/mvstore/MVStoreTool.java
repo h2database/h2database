@@ -85,7 +85,7 @@ public class MVStoreTool {
                     continue;
                 }
                 block.position(0);
-                Chunk c = Chunk.fromHeader(block, pos);
+                Chunk c = Chunk.readChunkHeader(block, pos);
                 int length = c.len * MVStore.BLOCK_SIZE;
                 pw.println("    " + c.toString());
                 ByteBuffer chunk = ByteBuffer.allocate(length);

@@ -380,6 +380,7 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testFileSystem(String fsBase) throws Exception {
+        testPositionedReadWrite(fsBase);
         testSetReadOnly(fsBase);
         testParentEventuallyReturnsNull(fsBase);
         testSimple(fsBase);
@@ -588,6 +589,42 @@ public class TestFileSystem extends TestBase {
                 assertTrue(!FileUtils.exists(fsBase + "/testDir"));
             }
         }
+    }
+    
+    private void testPositionedReadWrite(String fsBase) throws IOException {
+        FileUtils.deleteRecursive(fsBase + "/testFile", false);
+        FileUtils.delete(fsBase + "/testFile");
+        FileUtils.createDirectories(fsBase);
+        assertTrue(FileUtils.createFile(fsBase + "/testFile"));
+        FileChannel fc = FilePath.get(fsBase + "/testFile").open("rw");
+        ByteBuffer buff = ByteBuffer.allocate(4000);
+        for (int i = 0; i < 4000; i++) {
+            buff.put((byte) i);
+        }
+        buff.flip();
+        fc.write(buff, 96);
+        assertEquals(0, fc.position());
+        assertEquals(4096, fc.size());
+        buff = ByteBuffer.allocate(4000);
+        assertEquals(4000, fc.read(buff, 96));
+        assertEquals(0, fc.position());
+        buff.flip();
+        for (int i = 0; i < 4000; i++) {
+            assertEquals((byte) i, buff.get());
+        }
+        buff = ByteBuffer.allocate(0);
+        assertTrue(fc.read(buff, 8000) <= 0);
+        assertEquals(0, fc.position());
+        assertTrue(fc.read(buff, 4000) <= 0);
+        assertEquals(0, fc.position());
+        assertTrue(fc.read(buff, 2000) <= 0);
+        assertEquals(0, fc.position());
+        buff = ByteBuffer.allocate(1);
+        assertEquals(-1, fc.read(buff, 8000));
+        assertEquals(1, fc.read(buff, 4000));
+        buff.flip();
+        assertEquals(1, fc.read(buff, 2000));
+        fc.close();
     }
 
     private void testRandomAccess(String fsBase) throws Exception {

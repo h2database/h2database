@@ -99,8 +99,6 @@ public class FilePathCache extends FilePathWrapper {
                 }
             }
             dst.put(buff.array(), off, len);
-            ; // add test to TestFileSystem
-            // return len;
             return len == 0 ? -1 : len;
         }
 

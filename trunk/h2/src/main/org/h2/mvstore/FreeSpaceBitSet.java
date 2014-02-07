@@ -177,12 +177,12 @@ public class FreeSpaceBitSet {
                 buff.append(", ");
             }
             int start = set.nextClearBit(i);
-            buff.append(start).append('-');
+            buff.append(Integer.toHexString(start)).append('-');
             int end = set.nextSetBit(start + 1);
             if (end < 0) {
                 break;
             }
-            buff.append(end - 1);
+            buff.append(Integer.toHexString(end - 1));
             i = end + 1;
         }
         return buff.append(']').toString();

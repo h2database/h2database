@@ -196,9 +196,9 @@ public class FreeSpaceTree {
         @Override
         public String toString() {
             if (blocks + start == Integer.MAX_VALUE) {
-                return start + "-";
+                return Integer.toHexString(start) + "-";
             }
-            return start + "-" + (start + blocks - 1);
+            return Integer.toHexString(start) + "-" + Integer.toHexString(start + blocks - 1);
         }
 
     }

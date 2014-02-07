@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The Polish translation was completed and corrected by Wojtek Jurczyk. Thanks a lot!
+<ul><li>Referential integrity constraints sometimes used the wrong index, 
+    such that updating a row in the referenced table incorrectly failed with
+    a constraint violation.
+</li><li>The Polish translation was completed and corrected by Wojtek Jurczyk. Thanks a lot!
 </li><li>Issue 545: Unnecessary duplicate code was removed. 
 </li><li>The profiler tool can now process files with full thread dumps.
 </li><li>MVStore: the file format was changed slightly.

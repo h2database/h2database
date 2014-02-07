@@ -207,9 +207,9 @@ public class FreeSpaceList {
         @Override
         public String toString() {
             if (start + length == Integer.MAX_VALUE) {
-                return start + "-";
+                return Integer.toHexString(start) + "-";
             }
-            return start + "-" + (start + length - 1);
+            return Integer.toHexString(start) + "-" + Integer.toHexString(start + length - 1);
         }
 
     }

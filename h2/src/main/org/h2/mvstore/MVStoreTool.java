@@ -147,9 +147,9 @@ public class MVStoreTool {
                         }
                     }
                 }
-                chunk.position(chunk.limit() - MVStore.CHUNK_FOOTER_LENGTH);
+                chunk.position(chunk.limit() - Chunk.FOOTER_LENGTH);
                 pw.println("      store header");
-                pw.println("      " + new String(chunk.array(), chunk.position(), MVStore.CHUNK_FOOTER_LENGTH, "UTF-8").trim());
+                pw.println("      " + new String(chunk.array(), chunk.position(), Chunk.FOOTER_LENGTH, "UTF-8").trim());
             }
         } catch (IOException e) {
             pw.println("ERROR: " + e);

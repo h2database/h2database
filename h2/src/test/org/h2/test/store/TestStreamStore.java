@@ -97,7 +97,7 @@ public class TestStreamStore extends TestBase {
         long readCount = s.getFileStore().getReadCount();
         // the read count should be low because new blocks
         // are appended at the end (not between existing blocks)
-        assertTrue("rc: " + readCount, readCount < 10);
+        assertTrue("rc: " + readCount, readCount < 15);
         map = s.openMap("data");
         assertTrue("size: " + map.size(), map.sizeAsLong() >= 200);
         s.close();

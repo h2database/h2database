@@ -149,11 +149,6 @@ public class MVStore {
      */
     static final int BLOCK_SIZE = 4 * 1024;
     
-    /**
-     * The maximum length of the store header.
-     */
-    static final int CHUNK_FOOTER_LENGTH = 64;
-
     private static final int FORMAT_WRITE = 1;
     private static final int FORMAT_READ = 1;
 
@@ -527,7 +522,7 @@ public class MVStore {
         // we don't know yet which chunk and version are the newest
         long newestVersion = -1;
         long newestChunkBlock = -1;
-        // read the last block of the file, and then the two first blocks
+        // read the first two blocks
         ByteBuffer fileHeaderBlocks = fileStore.readFully(0, 2 * BLOCK_SIZE);
         byte[] buff = new byte[BLOCK_SIZE];
         for (int i = 0; i <= BLOCK_SIZE; i += BLOCK_SIZE) {
@@ -536,6 +531,13 @@ public class MVStore {
             try {
                 String s = new String(buff, 0, BLOCK_SIZE, DataUtils.LATIN).trim();
                 HashMap<String, String> m = DataUtils.parseMap(s);
+                int blockSize = DataUtils.readHexInt(m, "blockSize", BLOCK_SIZE);
+                if (blockSize != BLOCK_SIZE) {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_UNSUPPORTED_FORMAT,
+                            "Block size {0} is currently not supported",
+                            blockSize);
+                }                
                 int check = DataUtils.readHexInt(m, "fletcher", 0);
                 m.remove("fletcher");
                 s = s.substring(0, s.lastIndexOf("fletcher") - 1);
@@ -579,9 +581,10 @@ public class MVStore {
         }
         lastStoredVersion = -1;
         
+        // read the chunk footer of the last block of the file
         ByteBuffer lastBlock = fileStore.readFully(
-                fileStore.size() - CHUNK_FOOTER_LENGTH, CHUNK_FOOTER_LENGTH);
-        buff = new byte[CHUNK_FOOTER_LENGTH];
+                fileStore.size() - Chunk.FOOTER_LENGTH, Chunk.FOOTER_LENGTH);
+        buff = new byte[Chunk.FOOTER_LENGTH];
         lastBlock.get(buff);
         // the following can fail for various reasons
         try {            
@@ -604,7 +607,35 @@ public class MVStore {
             }
         } catch (Exception e) {
             // ignore
-        }               
+        }          
+        
+        // follow the chain of next chunks
+        long testChunkBlock = newestChunkBlock;
+        while (true) {
+            Chunk header;
+            try {
+                header = readChunkHeader(testChunkBlock);
+            } catch (Exception e) {
+                // ignore the exception, but exit the loop
+                break;
+            }
+            if (header.version <= newestVersion) {
+                // we reached the end
+                break;
+            }
+            fileHeader.put("chunk", header.id);
+            fileHeader.put("version", header.version);
+            fileHeader.put("block", testChunkBlock);
+            newestChunkBlock = testChunkBlock;
+            newestVersion = header.version;
+            if (header.next == 0) {
+                // try the chunk just after this one
+                testChunkBlock = header.block + header.len;
+            } else {
+                testChunkBlock = header.next;
+            }
+        }
+        
         if (newestChunkBlock > 0) {
             readMeta(newestChunkBlock);
         }
@@ -951,7 +982,7 @@ public class MVStore {
 
         // add the store header and round to the next block
         int length = MathUtils.roundUpInt(chunkLength + 
-                CHUNK_FOOTER_LENGTH, BLOCK_SIZE);
+                Chunk.FOOTER_LENGTH, BLOCK_SIZE);
         buff.limit(length);
 
         // the length of the file that is still in use
@@ -1004,7 +1035,7 @@ public class MVStore {
         c.writeChunkHeader(buff, headerLength);
         revertTemp(storeVersion);
 
-        buff.position(buff.limit() - CHUNK_FOOTER_LENGTH);
+        buff.position(buff.limit() - Chunk.FOOTER_LENGTH);
         buff.put(c.getFooterBytes());
 
         buff.position(0);
@@ -1303,7 +1334,7 @@ public class MVStore {
             c.next = 0;
             buff.position(0);
             c.writeChunkHeader(buff, chunkHeaderLen);
-            buff.position(length - CHUNK_FOOTER_LENGTH);
+            buff.position(length - Chunk.FOOTER_LENGTH);
             buff.put(lastChunk.getFooterBytes());
             buff.position(0);
             write(end, buff.getBuffer());
@@ -1341,7 +1372,7 @@ public class MVStore {
             buff.position(0);
             c.block = pos / BLOCK_SIZE;
             c.writeChunkHeader(buff, chunkHeaderLen);
-            buff.position(length - CHUNK_FOOTER_LENGTH);
+            buff.position(length - Chunk.FOOTER_LENGTH);
             buff.put(lastChunk.getFooterBytes());
             buff.position(0);
             write(pos, buff.getBuffer());

@@ -24,6 +24,12 @@ public class Chunk {
     static final int MAX_HEADER_LENGTH = 1024;
 
     /**
+     * The length of the chunk footer. The longest footer is:
+     * chunk:ffffffff,block:ffffffffffffffff,version:ffffffffffffffff,fletcher:ffffffff
+     */
+    static final int FOOTER_LENGTH = 128;
+
+    /**
      * The chunk id.
      */
     public final int id;
@@ -217,7 +223,7 @@ public class Chunk {
         byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
         DataUtils.appendMap(buff, "fletcher", checksum);
-        while (buff.length() < MVStore.CHUNK_FOOTER_LENGTH - 1) {
+        while (buff.length() < Chunk.FOOTER_LENGTH - 1) {
             buff.append(' ');
         }
         buff.append("\n");

@@ -148,7 +148,7 @@ public class MVStoreTool {
                     }
                 }
                 chunk.position(chunk.limit() - Chunk.FOOTER_LENGTH);
-                pw.println("      store header");
+                pw.println("      chunk footer");
                 pw.println("      " + new String(chunk.array(), chunk.position(), Chunk.FOOTER_LENGTH, "UTF-8").trim());
             }
         } catch (IOException e) {

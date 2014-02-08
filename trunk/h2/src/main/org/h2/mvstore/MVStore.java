@@ -66,12 +66,7 @@ TransactionStore:
 
 MVStore:
 
-- maybe let a chunk point to a list of potential next chunks
-    (so no fixed location header is needed), similar to a skip list
-    (options: just after the current chunk, list of next)
 - document and review the file format
-- the newest chunk is the one with the newest version
-    (not necessarily the one with the highest chunk id)
 
 - automated 'kill process' and 'power failure' test
 - update checkstyle
@@ -599,7 +594,6 @@ public class MVStore {
                 int chunk = DataUtils.readHexInt(m, "chunk", 0);
                 long version = DataUtils.readHexLong(m, "version", chunk);
                 if (version > newestVersion) {
-                    fileHeader.putAll(m);
                     newestVersion = version;
                     newestChunkBlock = DataUtils.readHexLong(m, "block", 0);
                     validHeader = true;
@@ -619,21 +613,16 @@ public class MVStore {
                 // ignore the exception, but exit the loop
                 break;
             }
-            if (header.version <= newestVersion) {
-                // we reached the end
+            if (header.version < newestVersion) {
+                // we have reached the end
                 break;
             }
-            fileHeader.put("chunk", header.id);
-            fileHeader.put("version", header.version);
-            fileHeader.put("block", testChunkBlock);
             newestChunkBlock = testChunkBlock;
             newestVersion = header.version;
-            if (header.next == 0) {
-                // try the chunk just after this one
-                testChunkBlock = header.block + header.len;
-            } else {
-                testChunkBlock = header.next;
+            if (header.next == 0 || header.next >= fileStore.size() / BLOCK_SIZE) {
+                break;
             }
+            testChunkBlock = header.next;
         }
         
         if (newestChunkBlock > 0) {
@@ -686,7 +675,7 @@ public class MVStore {
         }
     }
 
-    private byte[] getFileHeaderBytes() {
+    private void writeFileHeader() {
         StringBuilder buff = new StringBuilder("H:2");
         if (lastChunk != null) {
             fileHeader.put("chunk", lastChunk.id);
@@ -702,11 +691,7 @@ public class MVStore {
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
         DataUtils.appendMap(buff, "fletcher", checksum);
         buff.append("\n");
-        return buff.toString().getBytes(DataUtils.LATIN);
-    }
-
-    private void writeFileHeader() {
-        byte[] bytes = getFileHeaderBytes();
+        bytes = buff.toString().getBytes(DataUtils.LATIN);
         ByteBuffer header = ByteBuffer.allocate(2 * BLOCK_SIZE);
         header.put(bytes);
         header.position(BLOCK_SIZE);
@@ -1023,10 +1008,6 @@ public class MVStore {
             long predictedNextStart = fileStore.allocate(predictBlocks * BLOCK_SIZE);
             fileStore.free(predictedNextStart, predictBlocks * BLOCK_SIZE);
             c.next = predictedNextStart / BLOCK_SIZE;
-            if (c.next == c.block + c.len) {
-                // just after this chunk
-                c.next = 0;
-            }
         } else {
             // just after this chunk
             c.next = 0;
@@ -1042,30 +1023,33 @@ public class MVStore {
         write(filePos, buff.getBuffer());
         releaseWriteBuffer(buff);
 
-        // whether to overwrite the file header
+        // whether we need to write the file header
         boolean needHeader = false;
-        // whether to reset the list of next chunks
-        boolean resetNextChain = false;
         if (!storeAtEndOfFile) {
             if (lastChunk == null) {
                 needHeader = true;
-            } else if (lastChunk.block + lastChunk.len == c.block) {
-                // just after the last chunk
-            } else if (lastChunk.next == c.block) {
-                // the last matched
-            } else {
+            } else if (lastChunk.next != c.block) {
+                // the last prediction did not matched
                 needHeader = true;
+            } else {
+                int chunkId = DataUtils.readHexInt(fileHeader, "chunk", 0);
+                if (lastChunk.id - chunkId > 20) {
+                    // we write after at least 20 entries
+                    needHeader = true;
+                } else {
+                    while (chunkId <= lastChunk.id) {
+                        if (chunks.get(chunkId) == null) {
+                            // one of the chunks in between
+                            // was removed
+                            needHeader = true;
+                            break;
+                        }
+                        chunkId++;
+                    }
+                }
             }
-            ; // TODO check the length of the list - if too large
-            // write anyway (lets assume 11 is too large)
-            ; // TODO verify that no chunk between the last known one
-            // and the current chunk were removed
-            
-            ; // TODO remove this once we have implemented
-            // reading and once we have tests
-            needHeader = true;
-            
         }
+        
         lastChunk = c;
         if (needHeader) {
             writeFileHeader();

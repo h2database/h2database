@@ -850,10 +850,50 @@ public class DataUtils {
             return (Long) v;
         }
         try {
-            return Long.parseLong((String) v, 16);
+            return parseHexLong((String) v);
         } catch (NumberFormatException e) {
             throw newIllegalStateException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", v, e);
+        }
+    }
+    
+    /**
+     * Parse an unsigned, hex long.
+     *
+     * @param x the string
+     * @return the parsed value
+     * @throws IllegalStateException if parsing fails
+     */
+    public static long parseHexLong(String x) {
+        try {
+            if (x.length() == 16) {
+                // avoid problems with overflow
+                // in Java 8, this special case is not needed
+                return (Long.parseLong(x.substring(0, 8), 16) << 32) | 
+                        Long.parseLong(x.substring(8, 16), 16);
+            }
+            return Long.parseLong(x, 16);
+        } catch (NumberFormatException e) {
+            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                    "Error parsing the value {0}", x, e);
+        }
+    }
+    
+    /**
+     * Parse an unsigned, hex long.
+     *
+     * @param x the string
+     * @return the parsed value
+     * @throws IllegalStateException if parsing fails
+     */
+    public static int parseHexInt(String x) {
+        try {
+            // avoid problems with overflow
+            // in Java 8, we can use Integer.parseLong(x, 16);
+            return (int) Long.parseLong(x, 16);
+        } catch (NumberFormatException e) {
+            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                    "Error parsing the value {0}", x, e);
         }
     }
     

@@ -66,6 +66,9 @@ TransactionStore:
 
 MVStore:
 
+- ensure data is overwritten eventually if the system doesn't have a
+    real-time clock (Raspberry Pi) and if there are few writes per startup
+- test chunk id rollover    
 - document and review the file format
 
 - automated 'kill process' and 'power failure' test
@@ -81,8 +84,6 @@ MVStore:
 - use a small object value cache (StringCache), test on Android
     for default serialization
 - MVStoreTool.dump: dump values (using a callback)
-- ensure data is overwritten eventually if the system doesn't have a
-    real-time clock (Raspberry Pi) and if there are few writes per startup
 - close the file on out of memory or disk write error (out of disk space or so)
 - implement a sharded map (in one store, multiple stores)
     to support concurrent updates and writes, and very large maps
@@ -312,6 +313,7 @@ public class MVStore {
                 creationTime = 0;
                 creationTime = getTime();
                 lastCommitTime = creationTime;
+                fileHeader.put("H", 2);
                 fileHeader.put("blockSize", BLOCK_SIZE);
                 fileHeader.put("format", FORMAT_WRITE);
                 fileHeader.put("created", creationTime);
@@ -404,7 +406,7 @@ public class MVStore {
         HashMap<String, Object> c;
         M map;
         if (x != null) {
-            id = Integer.parseInt(x, 16);
+            id = DataUtils.parseHexInt(x);
             @SuppressWarnings("unchecked")
             M old = (M) maps.get(id);
             if (old != null) {
@@ -541,8 +543,7 @@ public class MVStore {
                 if (check != checksum) {
                     continue;
                 }
-                int chunk = DataUtils.readHexInt(m, "chunk", 0);
-                long version = DataUtils.readHexLong(m, "version", chunk);
+                long version = DataUtils.readHexLong(m, "version", 0);
                 if (version > newestVersion) {
                     newestVersion = version;
                     fileHeader.putAll(m);
@@ -676,15 +677,11 @@ public class MVStore {
     }
 
     private void writeFileHeader() {
-        StringBuilder buff = new StringBuilder("H:2");
+        StringBuilder buff = new StringBuilder();
         if (lastChunk != null) {
-            fileHeader.put("chunk", lastChunk.id);
-            if (lastChunk.version != lastChunk.id) {
-                fileHeader.put("version", lastChunk.version);
-            } else {
-                fileHeader.remove("version");
-            }
             fileHeader.put("block", lastChunk.block);
+            fileHeader.put("chunk", lastChunk.id);
+            fileHeader.put("version", lastChunk.version);
         }
         DataUtils.appendMap(buff, fileHeader);
         byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
@@ -896,8 +893,11 @@ public class MVStore {
             // never go backward in time
             time = Math.max(lastChunk.time, time);
         }
-        Chunk c;
-        c = new Chunk(lastChunkId + 1);
+        int newChunkId = lastChunkId;
+        do {
+            newChunkId = (newChunkId + 1) % Chunk.MAX_ID;
+        } while (chunks.containsKey(newChunkId));
+        Chunk c = new Chunk(newChunkId);
         
         c.pageCount = Integer.MAX_VALUE;
         c.pageCountLive = Integer.MAX_VALUE;
@@ -1798,7 +1798,7 @@ public class MVStore {
     public int getStoreVersion() {
         checkOpen();
         String x = meta.get("setting.storeVersion");
-        return x == null ? 0 : Integer.parseInt(x, 16);
+        return x == null ? 0 : DataUtils.parseHexInt(x);
     }
 
     /**
@@ -1926,7 +1926,7 @@ public class MVStore {
     
     private static long getRootPos(MVMap<String, String> map, int mapId) {
         String root = map.get("root." + Integer.toHexString(mapId));
-        return root == null ? 0 : Long.parseLong(root, 16);
+        return root == null ? 0 : DataUtils.parseHexLong(root);
     }
 
     private void revertTemp(long storeVersion) {

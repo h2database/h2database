@@ -17,6 +17,11 @@ import java.util.HashMap;
  * each chunk is at most 2 GB large.
  */
 public class Chunk {
+    
+    /**
+     * The maximum chunk id.
+     */
+    public static final int MAX_ID = (1 << 26) - 1;
 
     /**
      * The maximum length of a chunk header, in bytes.
@@ -159,7 +164,7 @@ public class Chunk {
         c.len = DataUtils.readHexInt(map, "len", 0);
         c.pageCount = DataUtils.readHexInt(map, "pages", 0);
         c.pageCountLive = DataUtils.readHexInt(map, "livePages", c.pageCount);
-        c.mapId = Integer.parseInt(map.get("map"), 16);
+        c.mapId = DataUtils.readHexInt(map, "map", 0);
         c.maxLength = DataUtils.readHexLong(map, "max", 0);
         c.maxLenLive = DataUtils.readHexLong(map, "liveMax", c.maxLength);
         c.metaRootPos = DataUtils.readHexLong(map, "root", 0);

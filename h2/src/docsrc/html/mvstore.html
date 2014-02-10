@@ -542,8 +542,8 @@ The pages contain the actual data of the maps; each map consists of a number of 
 </pre>
 <p>
 Each map is a B-tree, and the data is stored as (B-tree-) pages in the chunks.
-Even thought this is not required by the file format, each B-tree is stored 
-"upside down", that means the leave pages first, then the internal nodes, and at last the root page.
+Even though this is not required by the file format, each B-tree is stored 
+"upside down", that means the leaf pages first, then the internal nodes, and lastly the root page.
 In addition to the user maps, there is one metadata map that contains names and 
 positions of user maps, and data about chunks (position, size, fill rate).
 The very last page of a chunk contains the root page of the metadata map.
@@ -554,7 +554,7 @@ This page (directly or indirectly) points to the root pages of all other maps.
 In the example above, each chunk header contains the position 
 of page x (which is the root page of the metadata map), which points to the internal 
 nodes of the metadata map (for example pages 9-11; not shown), and each internal 
-node points to the leave pages (for example pages 1-8).
+node points to the leaf pages (for example pages 1-8).
 Data is never updated in-place. Instead, each chunk contains whatever pages were 
 actually changed in that version (there is one chunk per version, see above), 
 plus all the parent nodes of those pages, recursively, up to the root page.

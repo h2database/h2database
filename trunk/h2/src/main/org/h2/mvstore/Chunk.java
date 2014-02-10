@@ -212,9 +212,7 @@ public class Chunk {
         DataUtils.appendMap(buff, "pages", pageCount);
         DataUtils.appendMap(buff, "root", metaRootPos);
         DataUtils.appendMap(buff, "time", time);
-        if (version != id) {
-            DataUtils.appendMap(buff, "version", version);
-        }
+        DataUtils.appendMap(buff, "version", version);
         return buff.toString();
     }
     
@@ -222,9 +220,7 @@ public class Chunk {
         StringBuilder buff = new StringBuilder();
         DataUtils.appendMap(buff, "chunk", id);
         DataUtils.appendMap(buff, "block", block);
-        if (version != id) {
-            DataUtils.appendMap(buff, "version", version);
-        }
+        DataUtils.appendMap(buff, "version", version);
         byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
         int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
         DataUtils.appendMap(buff, "fletcher", checksum);

@@ -68,6 +68,9 @@ MVStore:
 
 - ensure data is overwritten eventually if the system doesn't have a
     real-time clock (Raspberry Pi) and if there are few writes per startup
+- when opening, verify the footer of the chunk (also when following next pointers)   
+- test max length sum with length code 31 (which is Integer.MAX_VALUE)
+- maybe change the length code to have lower gaps
 - test chunk id rollover    
 - document and review the file format
 

@@ -480,24 +480,20 @@ it is recommended to use it together with the MVCC mode
 <p>
 The data is stored in one file. The file contains two file headers (to be safe), 
 and a number of chunks. The file headers are one block each; a block is 4096 bytes.
-Chunks are at least one block long, but typically 200 blocks or more.
+Each chunk is at least one block, but typically 200 blocks or more.
+There might be a number of free blocks in front of every chunk.
 There is one chunk for every version.
 </p>
 <pre>
-[ file header 1 ]
-[ file header 2 ]
-[ chunk 1 ]
-[ chunk 2 ]
-[ chunk x ]
+[ file header 1 ] [ file header 2 ] [ chunk ] [ chunk ] ... [ chunk ]
 </pre>
 
 <h3>File Header</h3>
 <p>
 There are two file headers, which normally contain the exact same data.
 But once in a while, the file headers are updated, and writing could partially fail, 
-which would leave one header corrupt. That's why there is a second header. 
-The file headers are the only piece of data that is updated in-place. It contains
-the following data:
+which could corrupt a header. That's why there is a second header. 
+Only the file headers are updated in-place. They contain the following data:
 </p>
 <pre>
 H:2,block:2,blockSize:1000,chunk:7,created:1441235ef73,format:1,version:7,fletcher:3044e6cc
@@ -506,63 +502,167 @@ H:2,block:2,blockSize:1000,chunk:7,created:1441235ef73,format:1,version:7,fletch
 The data is stored in the form of a key-value pair. 
 Each value is stored as a hexadecimal number. The entries are:
 </p>
-<ul><li>H:2 stands for the the H2 database.
-</li><li>block: the block number where one of the latest chunks starts.
-</li><li>blockSize: the block size; currently always hex 1000, which is decimal 4096.
-</li><li>chunk: the chunk id, which is normally the same value as version;
+<ul><li>H: The entry "H:2" stands for the the H2 database.
+</li><li>block: The block number where one of the latest chunks starts.
+</li><li>blockSize: The block size of the file; currently always hex 1000, which is decimal 4096.
+</li><li>chunk: The chunk id, which is normally the same value as the version;
     however, the chunk id might roll over to 0, while the version doesn't.
-</li><li>created: the number of milliseconds since 1970 when the file was created.
-</li><li>format: the file format number. Currently 1.
-</li><li>version: the version number of the chunk.
-</li><li>fletcher: the Fletcher-32 checksum of the header.
+</li><li>created: The number of milliseconds since 1970 when the file was created.
+</li><li>format: The file format number. Currently 1.
+</li><li>version: The version number of the chunk.
+</li><li>fletcher: The Fletcher-32 checksum of the header.
 </li></ul>
 <p>
+</p>
+<p>
 When opening the file, both headers are read and the checksum is verified.
-The newest chunk of the valid headers is used to read the chunk header.
-However, this might not be the newest chunk in the file; instead, the chunk header
-contains a pointer where the next chunk might be stored (the predicted position).
-This pointer is followed until the newest chunk was found.
-If the prediction was not correct (which is known when a chunk is stored), then
-the file header is also updated. This is to reduce the number of file header updates.
+If both headers are valid, the one with the newer version is used.
+The chunk with the latest version is then detected (details about this see below),
+and the rest of the metadata is read from there.
+If the chunk id, block and version are not stored in the file header, 
+then the latest chunk lookup starts with the last chunk in the file.
 </p>
 
 <h3>Chunk Format</h3>
 <p>
 There is one chunk per version.
-Each chunk consists of a header, a number of (B-tree) pages, and a footer.
-The pages inside a chunk are stored next to each other (unaligned).
-The pages contain the actual data of the maps; each map consists of a number of pages:
+Each chunk consists of a header, the pages that were modified in this version, and a footer.
+The pages contain the actual data of the maps.
+The pages inside a chunk are stored right after the header, next to each other (unaligned).
+The size of a chunk is a multiple of the block size.
+The footer is stored in the last 128 bytes of the chunk.
 </p>
 <pre>
-[ chunk 2 header | page 1 | page 2 | ... | page x | chunk footer ]
-[ chunk 3 header | page 1 | page 2 | ... | page x | chunk footer ]
-[ chunk 1 header | page 1 | page 2 | ... | page x | chunk footer ]
-[ chunk 2 header | page 1 | page 2 | ... | page x | chunk footer ]
-[ chunk 3 header | page 1 | page 2 | ... | page x | chunk footer ]
+[ header ] [ page ] [ page ] ... [ page ] [ footer ]
 </pre>
 <p>
-Each map is a B-tree, and the data is stored as (B-tree-) pages in the chunks.
-Even though this is not required by the file format, each B-tree is stored 
-"upside down", that means the leaf pages first, then the internal nodes, and lastly the root page.
-In addition to the user maps, there is one metadata map that contains names and 
-positions of user maps, and data about chunks (position, size, fill rate).
-The very last page of a chunk contains the root page of the metadata map.
-The exact position of that root page is stored in the chunk header. 
-This page (directly or indirectly) points to the root pages of all other maps.
+The footer is stored so that a reader can verify the chunk is completely written
+(a chunk is written as one write operation), 
+and to find the start position of the very last chunk in the file.
+The chunk header and footer contain the following data:
+</p>
+<pre>
+chunk:1,block:2,len:1,map:6,max:1c0,next:3,pages:2,root:4000004f8c,time:1fc,version:1
+chunk:1,block:2,version:1,fletcher:aed9a4f6
+</pre>
+<p>
+The fields of the chunk header and footer are:
+</p>
+<ul><li>chunk: The chunk id.
+</li><li>block: The first block of the chunk (multiply by the block size to get the position in the file).
+</li><li>len: The size of the chunk in number of blocks.
+</li><li>map: The id of the newest map; incremented when a new map is created.
+</li><li>max: The sum of all maximum page sizes (see page format). 
+</li><li>next: The predicted start block of the next chunk.
+</li><li>pages: The number of pages in the chunk.
+</li><li>root: The position of the metadata root page (see page format).
+</li><li>time: The time the chunk was written, in milliseconds after the file was created.
+</li><li>version: The version this chunk represents.
+</li><li>fletcher: The checksum of the footer.
+</li></ul>
+<p>
+Chunks are never updated in-place. Each chunk contains the pages that were 
+changed in that version (there is one chunk per version, see above), 
+plus all the parent nodes of those pages, recursively, up to the root page.
+If an entry in a map is changed, removed, or added, then the respective page is copied
+(copy-on-write) to be stored in the next chunk, 
+and the number of live pages in the old chunk is decremented.
+Chunks without live pages are marked as free, so the space can be re-used by more recent chunks.
+Because not all chunks are of the same size, there can be some unused space in front of a chunk
+for some time (until a small chunk is written or the chunks are compacted).
+There is a delay of 45 seconds (by default) 
+before a free chunk is overwritten, to ensure new versions are persisted first
+(as hard disks sometimes re-order write operations).
 </p>
 <p>
-In the example above, each chunk header contains the position 
-of page x (which is the root page of the metadata map), which points to the internal 
-nodes of the metadata map (for example pages 9-11; not shown), and each internal 
-node points to the leaf pages (for example pages 1-8).
-Data is never updated in-place. Instead, each chunk contains whatever pages were 
-actually changed in that version (there is one chunk per version, see above), 
-plus all the parent nodes of those pages, recursively, up to the root page.
+How the newest chunk is located when opening a store:
+The file header contains the position of a recent chunk, but not always the newest one.
+This is to reduce the number of file header updates.
+After opening the file, the file headers, and the chunk footer of the very last chunk 
+(at the end of the file) are read.
+From those candidates, the header of the most recent chunk is read.
+If it contains a "next" pointer (see above), those chunk's header and footer are read as well.
+If it turned out to be a newer valid chunk, this is repeated, until the newest chunk was found.
+Before writing a chunk, the position of the next chunk is predicted based on the assumption
+that the next chunk will be of the same size as the current one. 
+When the next chunk is written, and the previous
+prediction turned out to be incorrect, the file header is updated as well.
+In any case, the file header is updated if the next chain gets longer than 20 hops.
 </p>
 
+<h3>Page Format</h3>
+<p>
+Each map is a B-tree, and the map data is stored in (B-tree-) pages.
+There are leaf pages that contain the key-value pairs of the map, 
+and internal nodes, which only contain keys and pointers to leaf pages.
+The root of a tree is either a leaf or an internal node.
+Unlike file header and chunk header and footer, the page data is not human readable.
+Instead, it is stored as byte arrays, with long (8 bytes), int (4 bytes), short (2 bytes), 
+and variable size int (1 to 5 bytes) and variable size long (1 to 10 bytes). 
+The page format is:
+</p>
+<ul><li>length (int): Length of the page in bytes.
+</li><li>checksum (short): Checksum (chunk id xor offset within the chunk xor page length).
+</li><li>mapId (variable size int): The id of the map this page belongs to.
+</li><li>len (variable size int): The number of keys in the page.
+</li><li>type (byte): The page type (0 for leaf page, 1 for internal node;
+   plus 2 if the page data is compressed).
+</li><li>keys (byte array): All keys, stored depending on the data type.
+</li><li>children (array of long; internal nodes only): The position of the children.
+</li><li>childCounts (array of variable size long; internal nodes only): 
+    The total number of entries for the given child page.
+</li><li>values (byte array; leaf pages only): All values, stored depending on the data type.
+</li></ul>
+<p>
+Even though this is not required by the file format, each B-tree is stored 
+"upside down", that means the leaf pages first, then the internal nodes, and lastly the root page.
+</p>
+<p>
+Variable size values are stored as follows: as long as the value has any bits 
+above bit 7 set, the lower 7 bits plus 128 are stored, and then the value 
+is shifted to the right by 7 bits.
+</p>
+<p>
+Pointers to pages are stored as a long. They have a special format:
+the chunk id (shifted 38 bits to the left), plus the offset within the chunk (shifted 6 bits to the left),
+plus the length code (shifted 1 bit to the left), plus the page type (0 for leaf, 1 for internal node).
+The page type is encoded so that when clearing or 
+removing a map, leaf pages don't have to be read (internal nodes do have to be read 
+in order to know where all the pages are; but in a typical B-tree the vast majority
+of the pages are leaf pages). The absolute file position is not included so that chunks can be 
+moved within the file without having to change page pointers; 
+only the chunk metadata needs to be changed.
+The length code is a number between 0 and 31 (inclusive), where 0 means the maximum length
+of the page is 32 bytes, 1 means 48 bytes, 2: 64, 3: 96, 4: 128, 5: 192, and so on until 30 which
+means 1048576 bytes, and 31 means longer. That way, reading a page only requires one
+read operation (except for very large pages, in which case two read operations might be needed). 
+The sum of those maximum length of all pages in a chunk
+is stored in the chunk metadata (field "max"), 
+and when a page is marked as removed, the maximum length of that page
+is subtracted from the live maximum length. That way we know not just how many pages in a chunk
+are live, but we also have an estimate on the live number of bytes.
+</p>
+<p>
+Data compression: The data after the page type are optionally compressed using the LZF algorithm.
+</p>
 
-
-Copy-on-write
+<h3>Metadata Map</h3>
+<p>
+In addition to the user maps, there is one metadata map that contains names and 
+positions of user maps, and chunk metadata.
+The very last page of a chunk contains the root page of that metadata map.
+The exact position of this root page is stored in the chunk header. 
+This page (directly or indirectly) points to the root pages of all other maps.
+The metadata map of a store with a map named "data", and one chunk,
+contains the following entries:
+</p>
+<ul><li>chunk.1: The metadata of chunk 1. This is the same data as the chunk header,
+    plus the number of live pages, and the maximum live length.
+</li><li>setting.storeVersion: The store version (a user defined value).
+</li><li>map.1: The metadata of map 1. The entries are: name, createVersion, and type.
+</li><li>name.data: The map id of the map named "data". The value is "1".
+</li><li>root.1: The root position of map 1.
+</li></ul>
 
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>
 <p>

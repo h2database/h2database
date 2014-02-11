@@ -163,6 +163,23 @@ public class Shell extends Tool implements Runnable {
             }
         }
     }
+    
+    /**
+     * Run the shell tool with the given connection and command line settings.<br>
+     * The connection will be closed when the shell exits.
+     * This is primary used to integrate the Shell into another application.
+     * <p>
+     * <i>Note:</i> using the "-url" option in {@code args} doesn't make much sense
+     * since it will override the {@code conn} parameter.
+     *
+     * @param conn the connection
+     * @param args the command line settings
+     */
+    public void runTool(Connection conn, String... args) throws SQLException {
+    	this.conn = conn;
+    	this.stat = conn.createStatement();
+    	runTool(args);
+    }
 
     private void showHelp() {
         println("Commands are case insensitive; SQL statements end with ';'");

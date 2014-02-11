@@ -657,13 +657,13 @@ public class MVStore {
      * @return the chunk, or null if not successful
      */
     private Chunk readChunkFooter(long end) {
-        // read the chunk footer of the last block of the file
-        ByteBuffer lastBlock = fileStore.readFully(
-                end - Chunk.FOOTER_LENGTH, Chunk.FOOTER_LENGTH);
-        byte[] buff = new byte[Chunk.FOOTER_LENGTH];
-        lastBlock.get(buff);
         // the following can fail for various reasons
         try {
+            // read the chunk footer of the last block of the file
+            ByteBuffer lastBlock = fileStore.readFully(
+                    end - Chunk.FOOTER_LENGTH, Chunk.FOOTER_LENGTH);
+            byte[] buff = new byte[Chunk.FOOTER_LENGTH];
+            lastBlock.get(buff);
             String s = new String(buff, DataUtils.LATIN).trim();
             HashMap<String, String> m = DataUtils.parseMap(s);
             int check = DataUtils.readHexInt(m, "fletcher", 0);

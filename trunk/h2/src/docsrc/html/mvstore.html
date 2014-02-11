@@ -510,23 +510,20 @@ s.close();
 will result in the following two chunks (excluding metadata):
 </p>
 <p>
-<b>Chunk 1:</b>
+<b>Chunk 1:</b><br />
+- Page 1: leaf with 140 entries (keys 0 - 139)<br />
+- Page 2: leaf with 260 entries (keys 140 - 399)<br />
+- Page 3: (root) node with 2 entries pointing to page 1 and 2<br />
 </p>
-<ul><li>Page 1: leaf with 140 entries (keys 0 - 139)
-</li><li>Page 2: leaf with 260 entries (keys 140 - 399)
-</li><li>Page 3: node with 2 entries pointing to page 1 and 2 (the root)
-</li></ul>
 <p>
-<b>Chunk 2:</b>
+<b>Chunk 2:</b><br />
+- Page 4: leaf with 140 entries (keys 0 - 139)<br />
+- Page 5: (root) node with 2 entries pointing to page 4 and 2<br />
 </p>
-<ul><li>Page 4: leaf with 140 entries (keys 0 - 139)
-</li><li>Page 5: node with 2 entries pointing to page 4 and 1 (the root)
-</li></ul>
 <p>
-That means each chunk contains the changes of one version,
-that means the new version of the changed pages and the parent pages,
-recursively, up to the root page. Pages in subsequent chunks refer to
-pages in earlier chunks.
+That means each chunk contains the changes of one version:
+the new version of the changed pages and the parent pages, recursively, up to the root page. 
+Pages in subsequent chunks refer to pages in earlier chunks.
 </p>
 
 <h3>File Header</h3>

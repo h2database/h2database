@@ -9,7 +9,7 @@ package org.h2.expression;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
-import org.h2.api.AggregateFunction;
+import org.h2.api.Aggregate;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.constant.ErrorCode;
@@ -116,17 +116,15 @@ public class JavaAggregate extends Expression {
         userConnection = session.createConnection(false);
         int len = args.length;
         argTypes = new int[len];
-        int[] argSqlTypes = new int[len];
         for (int i = 0; i < len; i++) {
             Expression expr = args[i];
             args[i] = expr.optimize(session);
             int type = expr.getType();
             argTypes[i] = type;
-            argSqlTypes[i] = DataType.convertTypeToSQLType(type);
         }
         try {
-            AggregateFunction aggregate = getInstance();
-            dataType = DataType.convertSQLTypeToValueType(aggregate.getType(argSqlTypes));
+            Aggregate aggregate = getInstance();
+            dataType = aggregate.getInternalType(argTypes);
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
@@ -140,8 +138,8 @@ public class JavaAggregate extends Expression {
         }
     }
 
-    private AggregateFunction getInstance() throws SQLException {
-        AggregateFunction agg = userAggregate.getInstance();
+    private Aggregate getInstance() throws SQLException {
+        Aggregate agg = userAggregate.getInstance();
         agg.init(userConnection);
         return agg;
     }
@@ -153,7 +151,7 @@ public class JavaAggregate extends Expression {
             throw DbException.get(ErrorCode.INVALID_USE_OF_AGGREGATE_FUNCTION_1, getSQL());
         }
         try {
-            AggregateFunction agg = (AggregateFunction) group.get(this);
+            Aggregate agg = (Aggregate) group.get(this);
             if (agg == null) {
                 agg = getInstance();
             }
@@ -182,7 +180,7 @@ public class JavaAggregate extends Expression {
         }
         lastGroupRowId = groupRowId;
 
-        AggregateFunction agg = (AggregateFunction) group.get(this);
+        Aggregate agg = (Aggregate) group.get(this);
         try {
             if (agg == null) {
                 agg = getInstance();

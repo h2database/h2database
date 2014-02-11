@@ -33,6 +33,8 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
+
+import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
@@ -79,6 +81,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testMathFunctions();
         testVarArgs();
         testAggregate();
+        testAggregateType();
         testFunctions();
         testFileRead();
         testValue();
@@ -556,6 +559,71 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             // nothing to do
         }
 
+    }
+
+    /**
+     * This median implementation keeps all objects in memory.
+     */
+    public static class MedianStringType implements Aggregate {
+
+        private final ArrayList<String> list = New.arrayList();
+
+        @Override
+        public void add(Object value) {
+            list.add(value.toString());
+        }
+
+        @Override
+        public Object getResult() {
+            return list.get(list.size() / 2);
+        }
+
+        @Override
+        public int getInternalType(int[] inputTypes) throws SQLException {
+            return Value.STRING;
+        }
+
+        @Override
+        public void init(Connection conn) {
+            // nothing to do
+        }
+
+    }
+
+    private void testAggregateType() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE AGGREGATE MEDIAN FOR \"" + MedianStringType.class.getName() + "\"");
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" + MedianStringType.class.getName() + "\"");
+        ResultSet rs = stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        rs.next();
+        assertEquals("5", rs.getString(1));
+        conn.close();
+
+        if (config.memory) {
+            return;
+        }
+
+        conn = getConnection("functions");
+        stat = conn.createStatement();
+        stat.executeQuery("SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
+        DatabaseMetaData meta = conn.getMetaData();
+        rs = meta.getProcedures(null, null, "MEDIAN");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        rs = stat.executeQuery("SCRIPT");
+        boolean found = false;
+        while (rs.next()) {
+            String sql = rs.getString(1);
+            if (sql.contains("MEDIAN")) {
+                found = true;
+            }
+        }
+        assertTrue(found);
+        stat.execute("DROP AGGREGATE MEDIAN");
+        stat.execute("DROP AGGREGATE IF EXISTS MEDIAN");
+        conn.close();
     }
 
     private void testAggregate() throws SQLException {

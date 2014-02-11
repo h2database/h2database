@@ -7,11 +7,16 @@
 package org.h2.engine;
 
 import org.h2.api.AggregateFunction;
+import org.h2.api.Aggregate;
 import org.h2.command.Parser;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
 import org.h2.util.Utils;
+import org.h2.value.DataType;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * Represents a user-defined aggregate function.
@@ -29,14 +34,19 @@ public class UserAggregate extends DbObjectBase {
         }
     }
 
-    public AggregateFunction getInstance() {
+    public Aggregate getInstance() {
         if (javaClass == null) {
             javaClass = Utils.loadUserClass(className);
         }
         Object obj;
         try {
             obj = javaClass.newInstance();
-            AggregateFunction agg = (AggregateFunction) obj;
+            Aggregate agg;
+            if (obj instanceof Aggregate) {
+                agg = (Aggregate) obj;
+            } else {
+                agg = new AggregateWrapper((AggregateFunction) obj);
+            }
             return agg;
         } catch (Exception e) {
             throw DbException.convert(e);
@@ -78,6 +88,41 @@ public class UserAggregate extends DbObjectBase {
 
     public String getJavaClassName() {
         return this.className;
+    }
+
+    /**
+     * Wrap {@link AggregateFunction} in order to behave as {@link org.h2.api.Aggregate}
+     **/
+    private static class AggregateWrapper implements Aggregate {
+        private final AggregateFunction aggregateFunction;
+
+        AggregateWrapper(AggregateFunction aggregateFunction) {
+            this.aggregateFunction = aggregateFunction;
+        }
+
+        @Override
+        public void init(Connection conn) throws SQLException {
+            aggregateFunction.init(conn);
+        }
+
+        @Override
+        public int getInternalType(int[] inputTypes) throws SQLException {
+            int[] sqlTypes = new int[inputTypes.length];
+            for (int i = 0; i < inputTypes.length; i++) {
+                sqlTypes[i] = DataType.convertTypeToSQLType(inputTypes[i]);
+            }
+            return  DataType.convertSQLTypeToValueType(aggregateFunction.getType(sqlTypes));
+        }
+
+        @Override
+        public void add(Object value) throws SQLException {
+            aggregateFunction.add(value);
+        }
+
+        @Override
+        public Object getResult() throws SQLException {
+            return aggregateFunction.getResult();
+        }
     }
 
 }

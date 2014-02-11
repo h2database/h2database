@@ -329,7 +329,7 @@ public class FunctionAlias extends SchemaObjectBase {
     public boolean isBufferResultSetToLocalTemp() {
         return bufferResultSetToLocalTemp;
     }
-    
+
     /**
      * There may be multiple Java methods that match a function name.
      * Each method must have a different number of parameters however.

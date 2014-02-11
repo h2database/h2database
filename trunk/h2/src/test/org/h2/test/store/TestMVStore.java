@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.h2.mvstore.Chunk;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
@@ -48,6 +49,8 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testFileFormatExample();
+        testMaxChunkLength();
         testCacheInfo();
         testRollback();
         testVersionsToKeep();
@@ -98,6 +101,37 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testFileFormatExample() {
+        String fileName = getBaseDir() + "/testFileFormatExample.h3";
+        MVStore s = MVStore.open(fileName);
+        MVMap<Integer, String> map = s.openMap("data");
+        for (int i = 0; i < 400; i++) {
+            map.put(i, "Hello");
+        }
+        s.commit();
+        for (int i = 0; i < 100; i++) {
+            map.put(0, "Hi");
+        }
+        s.commit();
+        s.close();
+        // MVStoreTool.dump(fileName);
+    }
+
+    private void testMaxChunkLength() {
+        String fileName = getBaseDir() + "/testMaxChunkLength.h3";
+        MVStore s = new MVStore.Builder().fileName(fileName).open();
+        MVMap<Integer, byte[]> map = s.openMap("data");
+        map.put(0, new byte[2 * 1024 * 1024]);
+        s.commit();
+        map.put(1, new byte[10 * 1024]);
+        s.commit();
+        MVMap<String, String> meta = s.getMetaMap();
+        Chunk c = Chunk.fromString(meta.get("chunk.1"));
+        assertTrue(c.maxLen < Integer.MAX_VALUE);
+        assertTrue(c.maxLenLive < Integer.MAX_VALUE);
+        s.close();
     }
 
     private void testCacheInfo() {

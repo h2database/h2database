@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.h2.constant.ErrorCode;
+import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -46,7 +47,7 @@ public class DbException extends RuntimeException {
                 // message: translated message + english
                 // (otherwise certain applications don't work)
                 if (translations != null) {
-                    Properties p = SortedProperties.fromLines(new String(translations, "UTF-8"));
+                    Properties p = SortedProperties.fromLines(new String(translations, Constants.UTF8));
                     for (Entry<Object, Object> e : p.entrySet()) {
                         String key = (String) e.getKey();
                         String translation = (String) e.getValue();

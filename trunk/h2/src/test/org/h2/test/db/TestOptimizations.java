@@ -404,10 +404,10 @@ public class TestOptimizations extends TestBase {
         assertTrue(resultSet.next());
         resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('FOO','bar')");
         assertTrue(resultSet.next());
-        
+
         conn.close();
     }
-    
+
     private void testNestedInSelect() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");

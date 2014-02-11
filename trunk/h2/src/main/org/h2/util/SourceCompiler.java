@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import org.h2.constant.ErrorCode;
 import org.h2.constant.SysProperties;
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 
@@ -312,7 +313,7 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            String err = new String(buff.toByteArray(), "UTF-8");
+            String err = new String(buff.toByteArray(), Constants.UTF8);
             throwSyntaxError(err);
             return p.exitValue();
         } catch (Exception e) {
@@ -343,7 +344,7 @@ public class SourceCompiler {
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });
-            String err = new String(buff.toByteArray(), "UTF-8");
+            String err = new String(buff.toByteArray(), Constants.UTF8);
             throwSyntaxError(err);
         } catch (Exception e) {
             throw DbException.convert(e);

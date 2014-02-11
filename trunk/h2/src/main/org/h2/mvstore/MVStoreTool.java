@@ -65,18 +65,18 @@ public class MVStoreTool {
         int blockSize = MVStore.BLOCK_SIZE;
         try {
             file = FilePath.get(fileName).open("r");
-            long fileLength = file.size();
-            pw.println("file " + fileName);
-            pw.println("    length " + Long.toHexString(fileLength));
+            long fileSize = file.size();
+            int len = Long.toHexString(fileSize).length();
             ByteBuffer block = ByteBuffer.allocate(4096);
-            for (long pos = 0; pos < fileLength;) {
+            for (long pos = 0; pos < fileSize;) {
                 block.rewind();
                 DataUtils.readFully(file, pos, block);
                 block.rewind();
                 int headerType = block.get();
                 if (headerType == 'H') {
-                    pw.println("    store header at " + Long.toHexString(pos));
-                    pw.println("    " + new String(block.array(), "UTF-8").trim());
+                    pw.printf("%0" + len + "x fileHeader %s%n", 
+                            pos,
+                            new String(block.array(), DataUtils.LATIN).trim());
                     pos += blockSize;
                     continue;
                 }
@@ -87,7 +87,7 @@ public class MVStoreTool {
                 block.position(0);
                 Chunk c = Chunk.readChunkHeader(block, pos);
                 int length = c.len * MVStore.BLOCK_SIZE;
-                pw.println("    " + c.toString());
+                pw.printf("%n%0" + len + "x chunkHeader %s%n", pos, c.toString());
                 ByteBuffer chunk = ByteBuffer.allocate(length);
                 DataUtils.readFully(file, pos, chunk);
                 int p = block.position();
@@ -95,62 +95,94 @@ public class MVStoreTool {
                 int remaining = c.pageCount;
                 while (remaining > 0) {
                     chunk.position(p);
-                    int pageLength = chunk.getInt();
+                    int pageSize = chunk.getInt();
                     // check value (ignored)
                     chunk.getShort();
                     int mapId = DataUtils.readVarInt(chunk);
-                    int len = DataUtils.readVarInt(chunk);
+                    int entries = DataUtils.readVarInt(chunk);
                     int type = chunk.get();
                     boolean compressed = (type & 2) != 0;
                     boolean node = (type & 1) != 0;
-                    pw.println(
-                            "        map " + Integer.toHexString(mapId) + 
-                            " at " + Long.toHexString(p) + " " +
-                            (node ? " node" : " leaf") + 
-                            (compressed ? " compressed" : "") +
-                            " len: " + Integer.toHexString(pageLength) + 
-                            " entries: " + Integer.toHexString(len));
-                    p += pageLength;
+                    pw.printf(
+                            "+%0" + len + "x %s, map %x, %d entries, %d bytes%n", 
+                            p, 
+                            (node ? "node" : "leaf") +
+                            (compressed ? " compressed" : ""),
+                            mapId,
+                            node ? entries + 1 : entries,
+                            pageSize);
+                    p += pageSize;
                     remaining--;
-                    if (mapId == 0 && !compressed) {
-                        String[] keys = new String[len];
-                        for (int i = 0; i < len; i++) {
+                    if (compressed) {
+                        continue;
+                    }
+                    String[] keys = new String[entries];
+                    long[] children = null;
+                    long[] counts = null;
+                    if (node) {
+                        children = new long[entries + 1];
+                        for (int i = 0; i <= entries; i++) {
+                            children[i] = chunk.getLong();
+                        }
+                        counts = new long[entries + 1];
+                        for (int i = 0; i <= entries; i++) {
+                            long s = DataUtils.readVarLong(chunk);
+                            counts[i] = s;
+                        }
+                    }                    
+                    if (mapId == 0) {
+                        for (int i = 0; i < entries; i++) {
                             String k = StringDataType.INSTANCE.read(chunk);
                             keys[i] = k;
                         }
                         if (node) {
-                            long[] children = new long[len + 1];
-                            for (int i = 0; i <= len; i++) {
-                                children[i] = chunk.getLong();
+                            // meta map node
+                            for (int i = 0; i < entries; i++) {
+                                long cp = children[i];
+                                pw.printf("    %d children < %s @ chunk %x +%0" + len + "x%n",
+                                        counts[i],
+                                        keys[i],
+                                        DataUtils.getPageChunkId(cp), 
+                                        DataUtils.getPageOffset(cp));
                             }
-                            long[] counts = new long[len + 1];
-                            for (int i = 0; i <= len; i++) {
-                                long s = DataUtils.readVarLong(chunk);
-                                counts[i] = s;
-                            }
-                            for (int i = 0; i < len; i++) {
-                                pw.println("          < " + keys[i] + ": " +
-                                        counts[i] + " -> " + getPosString(children[i]));
-                            }
-                            pw.println("          >= : " +
-                                    counts[len] + " -> " + getPosString(children[len]));
+                            long cp = children[entries];
+                            pw.printf("    %d children >= %s @ chunk %x +%0" + len + "x%n",
+                                    counts[entries],
+                                    keys[entries],
+                                    DataUtils.getPageChunkId(cp), 
+                                    DataUtils.getPageOffset(cp));
                         } else {
                             // meta map leaf
-                            String[] values = new String[len];
-                            for (int i = 0; i < len; i++) {
+                            String[] values = new String[entries];
+                            for (int i = 0; i < entries; i++) {
                                 String v = StringDataType.INSTANCE.read(chunk);
                                 values[i] = v;
                             }
-                            for (int i = 0; i < len; i++) {
-                                pw.println("          " + keys[i] + "=" + values[i]);
+                            for (int i = 0; i < entries; i++) {
+                                pw.println("    " + keys[i] + " = " + values[i]);
                             }
                         }
-                    }
+                    } else {
+                        if (node) {
+                            for (int i = 0; i <= entries; i++) {
+                                long cp = children[i];
+                                pw.printf("    %d children @ chunk %x +%0" + len + "x%n",
+                                        counts[i],
+                                        DataUtils.getPageChunkId(cp), 
+                                        DataUtils.getPageOffset(cp));
+                            }
+                        }
+                    }                    
                 }
-                chunk.position(chunk.limit() - Chunk.FOOTER_LENGTH);
-                pw.println("      chunk footer");
-                pw.println("      " + new String(chunk.array(), chunk.position(), Chunk.FOOTER_LENGTH, "UTF-8").trim());
+                int footerPos = chunk.limit() - Chunk.FOOTER_LENGTH;
+                chunk.position(footerPos);
+                pw.printf(
+                        "+%0" + len + "x chunkFooter %s%n", 
+                        footerPos, 
+                        new String(chunk.array(), chunk.position(), 
+                                Chunk.FOOTER_LENGTH, DataUtils.LATIN).trim());
             }
+            pw.printf("%n%0" + len + "x eof%n", fileSize);
         } catch (IOException e) {
             pw.println("ERROR: " + e);
             e.printStackTrace(pw);
@@ -163,15 +195,7 @@ public class MVStoreTool {
                 }
             }
         }
-        pw.println();
         pw.flush();
-    }
-
-    private static String getPosString(long pos) {
-        return "pos " + Long.toHexString(pos) + 
-                ", chunk " + Integer.toHexString(DataUtils.getPageChunkId(pos)) +
-                ", offset " + Integer.toHexString(DataUtils.getPageOffset(pos));
-
     }
 
 }

@@ -393,7 +393,7 @@ public class WebApp {
             try {
                 tool.runTool(argList);
                 out.flush();
-                String o = new String(outBuff.toByteArray(), "UTF-8");
+                String o = new String(outBuff.toByteArray(), Constants.UTF8);
                 String result = PageParser.escapeHtml(o);
                 session.put("toolResult", result);
             } catch (Exception e) {

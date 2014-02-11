@@ -116,7 +116,7 @@ public class ObjectDataType implements DataType {
             obj[i] = read(buff);
         }
     }
-    
+
     @Override
     public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
         for (int i = 0; i < len; i++) {
@@ -128,7 +128,7 @@ public class ObjectDataType implements DataType {
     public void write(WriteBuffer buff, Object obj) {
         last.write(buff, obj);
     }
-    
+
     private AutoDetectDataType newType(int typeId) {
         switch (typeId) {
         case TYPE_NULL:
@@ -270,7 +270,7 @@ public class ObjectDataType implements DataType {
 
     /**
      * Switch the last remembered type to match the type of the given object.
-     * 
+     *
      * @param obj the object
      * @return the auto-detected type used
      */
@@ -285,7 +285,7 @@ public class ObjectDataType implements DataType {
 
     /**
      * Check whether this object is a BigInteger.
-     * 
+     *
      * @param obj the object
      * @return true if yes
      */
@@ -295,7 +295,7 @@ public class ObjectDataType implements DataType {
 
     /**
      * Check whether this object is a BigDecimal.
-     * 
+     *
      * @param obj the object
      * @return true if yes
      */
@@ -305,7 +305,7 @@ public class ObjectDataType implements DataType {
 
     /**
      * Check whether this object is a date.
-     * 
+     *
      * @param obj the object
      * @return true if yes
      */
@@ -315,7 +315,7 @@ public class ObjectDataType implements DataType {
 
     /**
      * Check whether this object is an array.
-     * 
+     *
      * @param obj the object
      * @return true if yes
      */
@@ -325,7 +325,7 @@ public class ObjectDataType implements DataType {
 
     /**
      * Get the class id, or null if not found.
-     * 
+     *
      * @param clazz the class
      * @return the class id or null
      */
@@ -342,7 +342,7 @@ public class ObjectDataType implements DataType {
 
     /**
      * Serialize the object to a byte array.
-     * 
+     *
      * @param obj the object to serialize
      * @return the byte array
      */
@@ -360,7 +360,7 @@ public class ObjectDataType implements DataType {
 
     /**
      * De-serialize the byte array to an object.
-     * 
+     *
      * @param data the byte array
      * @return the object
      */
@@ -382,7 +382,7 @@ public class ObjectDataType implements DataType {
      * is returned. If the contents and lengths are the same, 0 is returned.
      * <p>
      * This method interprets bytes as unsigned.
-     * 
+     *
      * @param data1 the first byte array (must not be null)
      * @param data2 the second byte array (must not be null)
      * @return the result of the comparison (-1, 1 or 0)
@@ -442,7 +442,7 @@ public class ObjectDataType implements DataType {
         public void write(WriteBuffer buff, Object o) {
             getType(o).write(buff, o);
         }
-        
+
         @Override
         public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
             for (int i = 0; i < len; i++) {
@@ -458,7 +458,7 @@ public class ObjectDataType implements DataType {
 
         /**
          * Get the type for the given object.
-         * 
+         *
          * @param o the object
          * @return the type
          */
@@ -468,7 +468,7 @@ public class ObjectDataType implements DataType {
 
         /**
          * Read an object from the buffer.
-         * 
+         *
          * @param buff the buffer
          * @param tag the first byte of the object (usually the type)
          * @return the read object

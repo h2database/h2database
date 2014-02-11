@@ -197,7 +197,7 @@ public class Recover extends Tool implements DataHandler {
      * INTERNAL
      */
     public static Reader readClob(String fileName) throws IOException {
-        return new BufferedReader(new InputStreamReader(readBlob(fileName), "UTF-8"));
+        return new BufferedReader(new InputStreamReader(readBlob(fileName), Constants.UTF8));
     }
 
     /**
@@ -273,7 +273,7 @@ public class Recover extends Tool implements DataHandler {
      */
     public static Reader readClobMap(Connection conn, long lobId, long precision) throws Exception {
         InputStream in = readBlobMap(conn, lobId, precision);
-        return new BufferedReader(new InputStreamReader(in, "UTF-8"));
+        return new BufferedReader(new InputStreamReader(in, Constants.UTF8));
     }
 
     private void trace(String message) {

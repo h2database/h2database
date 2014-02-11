@@ -322,7 +322,7 @@ public class MVTableEngine implements TableEngine {
                 }
             } catch (IllegalStateException e) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");
-            }                
+            }
         }
 
         /**

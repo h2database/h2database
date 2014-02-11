@@ -103,7 +103,7 @@ public class TestCases extends TestBase {
         testBinaryCollation();
         deleteDb("cases");
     }
-    
+
     private void testReferenceableIndexUsage() throws SQLException {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();

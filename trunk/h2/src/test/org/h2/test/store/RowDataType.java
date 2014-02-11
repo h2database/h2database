@@ -58,14 +58,14 @@ public class RowDataType implements DataType {
         }
         return memory;
     }
-    
+
     @Override
     public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
         for (int i = 0; i < len; i++) {
             obj[i] = read(buff);
         }
     }
-    
+
     @Override
     public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
         for (int i = 0; i < len; i++) {

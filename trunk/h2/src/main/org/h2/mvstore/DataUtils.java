@@ -131,10 +131,15 @@ public class DataUtils {
     public static final int PAGE_MEMORY_CHILD = 16;
 
     /**
+     * The marker size of a very large page.
+     */
+    public static final int PAGE_LARGE = 2 * 1024 * 1024;
+
+    /**
      * The UTF-8 character encoding format.
      */
     public static final Charset UTF8 = Charset.forName("UTF-8");
-    
+
     /**
      * The ISO Latin character encoding format.
      */
@@ -480,7 +485,7 @@ public class DataUtils {
 
     /**
      * Get the maximum length for the given code.
-     * For the code 31, Integer.MAX_VALUE is returned.
+     * For the code 31, PAGE_LARGE is returned.
      *
      * @param pos the position
      * @return the maximum length
@@ -488,7 +493,7 @@ public class DataUtils {
     public static int getPageMaxLength(long pos) {
         int code = (int) ((pos >> 1) & 31);
         if (code == 31) {
-            return Integer.MAX_VALUE;
+            return PAGE_LARGE;
         }
         return (2 + (code & 1)) << ((code >> 1) + 4);
     }
@@ -559,7 +564,7 @@ public class DataUtils {
         }
         return buff;
     }
-    
+
     /**
      * Append a key-value pair to the string builder. Keys may not contain a
      * colon. Values that contain a comma or a double quote are enclosed in
@@ -856,7 +861,7 @@ public class DataUtils {
                     "Error parsing the value {0}", v, e);
         }
     }
-    
+
     /**
      * Parse an unsigned, hex long.
      *
@@ -869,7 +874,7 @@ public class DataUtils {
             if (x.length() == 16) {
                 // avoid problems with overflow
                 // in Java 8, this special case is not needed
-                return (Long.parseLong(x.substring(0, 8), 16) << 32) | 
+                return (Long.parseLong(x.substring(0, 8), 16) << 32) |
                         Long.parseLong(x.substring(8, 16), 16);
             }
             return Long.parseLong(x, 16);
@@ -878,7 +883,7 @@ public class DataUtils {
                     "Error parsing the value {0}", x, e);
         }
     }
-    
+
     /**
      * Parse an unsigned, hex long.
      *
@@ -896,7 +901,7 @@ public class DataUtils {
                     "Error parsing the value {0}", x, e);
         }
     }
-    
+
     /**
      * Read a hex int value from a map.
      *

@@ -633,7 +633,7 @@ public class Transfer {
                 if (magic != LOB_MAGIC) {
                     throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
                 }
-                byte[] small = new String(buff).getBytes("UTF-8");
+                byte[] small = new String(buff).getBytes(Constants.UTF8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, length);
             }
             Value v = session.getDataHandler().getLobStorage().createClob(new DataReader(in), length);

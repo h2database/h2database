@@ -1508,14 +1508,14 @@ public class TransactionStore {
             }
             return Long.signum(comp);
         }
-        
+
         @Override
         public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
             for (int i = 0; i < len; i++) {
                 obj[i] = read(buff);
             }
         }
-        
+
         @Override
         public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
             for (int i = 0; i < len; i++) {
@@ -1591,14 +1591,14 @@ public class TransactionStore {
             }
             return 0;
         }
-        
+
         @Override
         public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
             for (int i = 0; i < len; i++) {
                 obj[i] = read(buff);
             }
         }
-        
+
         @Override
         public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
             for (int i = 0; i < len; i++) {

@@ -150,7 +150,7 @@
 90126=Baza danych nie jest trwała
 90127=Wynik nie jest uaktualnialny. Kwerenda musi wybrać wszystkie kolumny z klucza unikalnego. Tylko jedna tabela może zostać wybrana.
 90128=Wynik nie jest typu SCROLLABLE i nie może być zresetowany. Być może powinieneś użyć conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ..).
-90129=Transakcja {0} nie znaleziona 
+90129=Transakcja {0} nie znaleziona
 90130=Ta metoda jest niedozwolona dla sparametryzowanych kwerend (prepared statement); użyj zwykłej kwerendy
 90131=Jednoczesna zmiana w tabeli {0}: inna transakcja zaktualizowała lub usunęła ten sam wiersz
 90132=Agregacja {0} nie znaleziona

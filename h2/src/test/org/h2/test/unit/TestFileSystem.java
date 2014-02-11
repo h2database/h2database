@@ -590,7 +590,7 @@ public class TestFileSystem extends TestBase {
             }
         }
     }
-    
+
     private void testPositionedReadWrite(String fsBase) throws IOException {
         FileUtils.deleteRecursive(fsBase + "/testFile", false);
         FileUtils.delete(fsBase + "/testFile");

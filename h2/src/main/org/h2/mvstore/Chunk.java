@@ -17,7 +17,7 @@ import java.util.HashMap;
  * each chunk is at most 2 GB large.
  */
 public class Chunk {
-    
+
     /**
      * The maximum chunk id.
      */
@@ -30,7 +30,8 @@ public class Chunk {
 
     /**
      * The length of the chunk footer. The longest footer is:
-     * chunk:ffffffff,block:ffffffffffffffff,version:ffffffffffffffff,fletcher:ffffffff
+     * chunk:ffffffff,block:ffffffffffffffff,
+     * version:ffffffffffffffff,fletcher:ffffffff
      */
     static final int FOOTER_LENGTH = 128;
 
@@ -62,7 +63,7 @@ public class Chunk {
     /**
      * The sum of the max length of all pages.
      */
-    public long maxLength;
+    public long maxLen;
 
     /**
      * The sum of the max length of all pages that are in use.
@@ -93,12 +94,11 @@ public class Chunk {
      * The last used map id.
      */
     public int mapId;
-    
+
     /**
      * The predicted position of the next chunk.
      */
     public long next;
-    public long nextSize;
 
     Chunk(int id) {
         this.id = id;
@@ -136,6 +136,7 @@ public class Chunk {
      * Write the chunk header.
      *
      * @param buff the target buffer
+     * @param minLength the minimum length
      */
     void writeChunkHeader(WriteBuffer buff, int minLength) {
         long pos = buff.position();
@@ -145,7 +146,13 @@ public class Chunk {
         }
         buff.put((byte) '\n');
     }
-    
+
+    /**
+     * Get the metadata key for the given chunk id.
+     *
+     * @param chunkId the chunk id
+     * @return the metadata key
+     */
     static String getMetaKey(int chunkId) {
         return "chunk." + Integer.toHexString(chunkId);
     }
@@ -165,8 +172,8 @@ public class Chunk {
         c.pageCount = DataUtils.readHexInt(map, "pages", 0);
         c.pageCountLive = DataUtils.readHexInt(map, "livePages", c.pageCount);
         c.mapId = DataUtils.readHexInt(map, "map", 0);
-        c.maxLength = DataUtils.readHexLong(map, "max", 0);
-        c.maxLenLive = DataUtils.readHexLong(map, "liveMax", c.maxLength);
+        c.maxLen = DataUtils.readHexLong(map, "max", 0);
+        c.maxLenLive = DataUtils.readHexLong(map, "liveMax", c.maxLen);
         c.metaRootPos = DataUtils.readHexLong(map, "root", 0);
         c.time = DataUtils.readHexLong(map, "time", 0);
         c.version = DataUtils.readHexLong(map, "version", id);
@@ -175,7 +182,7 @@ public class Chunk {
     }
 
     public int getFillRate() {
-        return (int) (maxLength == 0 ? 0 : 100 * maxLenLive / maxLength);
+        return (int) (maxLen == 0 ? 0 : 100 * maxLenLive / maxLen);
     }
 
     @Override
@@ -198,14 +205,14 @@ public class Chunk {
         DataUtils.appendMap(buff, "chunk", id);
         DataUtils.appendMap(buff, "block", block);
         DataUtils.appendMap(buff, "len", len);
-        if (maxLength != maxLenLive) {
+        if (maxLen != maxLenLive) {
             DataUtils.appendMap(buff, "liveMax", maxLenLive);
         }
         if (pageCount != pageCountLive) {
             DataUtils.appendMap(buff, "livePages", pageCountLive);
         }
         DataUtils.appendMap(buff, "map", mapId);
-        DataUtils.appendMap(buff, "max", maxLength);
+        DataUtils.appendMap(buff, "max", maxLen);
         if (next != 0) {
             DataUtils.appendMap(buff, "next", next);
         }
@@ -215,7 +222,7 @@ public class Chunk {
         DataUtils.appendMap(buff, "version", version);
         return buff.toString();
     }
-    
+
     byte[] getFooterBytes() {
         StringBuilder buff = new StringBuilder();
         DataUtils.appendMap(buff, "chunk", id);

@@ -226,7 +226,7 @@ public class TestDataUtils extends TestBase {
         // 1000... xor 0 = 1000...
         assertEquals((short) (1 << 15), DataUtils.getCheckValue(1 << 31));
     }
-    
+
     private void testParse() {
         for (long i = -1; i != 0; i >>>= 1) {
             String x = Long.toHexString(i);
@@ -246,16 +246,16 @@ public class TestDataUtils extends TestBase {
         assertEquals(0, DataUtils.PAGE_TYPE_LEAF);
         assertEquals(1, DataUtils.PAGE_TYPE_NODE);
 
-        long max = DataUtils.getPagePos(Chunk.MAX_ID, Integer.MAX_VALUE, 
+        long max = DataUtils.getPagePos(Chunk.MAX_ID, Integer.MAX_VALUE,
                     Integer.MAX_VALUE, DataUtils.PAGE_TYPE_NODE);
         String hex = Long.toHexString(max);
         assertEquals(max, DataUtils.parseHexLong(hex));
         assertEquals(Chunk.MAX_ID, DataUtils.getPageChunkId(max));
         assertEquals(Integer.MAX_VALUE, DataUtils.getPageOffset(max));
-        assertEquals(Integer.MAX_VALUE, DataUtils.getPageMaxLength(max));
+        assertEquals(DataUtils.PAGE_LARGE, DataUtils.getPageMaxLength(max));
         assertEquals(DataUtils.PAGE_TYPE_NODE, DataUtils.getPageType(max));
 
-        long overflow = DataUtils.getPagePos(Chunk.MAX_ID + 1, 
+        long overflow = DataUtils.getPagePos(Chunk.MAX_ID + 1,
                 Integer.MAX_VALUE, Integer.MAX_VALUE, DataUtils.PAGE_TYPE_NODE);
         assertTrue(Chunk.MAX_ID + 1 != DataUtils.getPageChunkId(overflow));
 

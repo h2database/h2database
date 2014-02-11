@@ -143,14 +143,14 @@ public class ValueDataType implements DataType {
     private static int getMemory(Value v) {
         return v == null ? 0 : v.getMemory();
     }
-    
+
     @Override
     public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
         for (int i = 0; i < len; i++) {
             obj[i] = read(buff);
         }
     }
-    
+
     @Override
     public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
         for (int i = 0; i < len; i++) {

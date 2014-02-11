@@ -178,7 +178,7 @@ public class Page {
             long pos, long filePos, long fileSize) {
         ByteBuffer buff;
         int maxLength = DataUtils.getPageMaxLength(pos);
-        if (maxLength == Integer.MAX_VALUE) {
+        if (maxLength == DataUtils.PAGE_LARGE) {
             buff = fileStore.readFully(filePos, 128);
             maxLength = buff.getInt();
             // read the first bytes again
@@ -758,7 +758,6 @@ public class Page {
             buff = ByteBuffer.allocate(l);
             compressor.expand(comp, 0, compLen, buff.array(), buff.arrayOffset(), l);
         }
-        map.getKeyType().read(buff, keys, len, true);
         if (node) {
             childCount = len + 1;
             children = new long[len + 1];
@@ -774,7 +773,9 @@ public class Page {
                 counts[i] = s;
             }
             totalCount = total;
-        } else {
+        }
+        map.getKeyType().read(buff, keys, len, true);
+        if (!node) {
             values = new Object[len];
             map.getValueType().read(buff, values, len, false);
             totalCount = len;
@@ -799,7 +800,6 @@ public class Page {
             putVarInt(len).
             put((byte) type);
         int compressStart = buff.position();
-        map.getKeyType().write(buff, keys, len, true);
         if (type == DataUtils.PAGE_TYPE_NODE) {
             for (int i = 0; i <= len; i++) {
                 buff.putLong(children[i]);
@@ -807,7 +807,9 @@ public class Page {
             for (int i = 0; i <= len; i++) {
                 buff.putVarLong(counts[i]);
             }
-        } else {
+        }
+        map.getKeyType().write(buff, keys, len, true);
+        if (type == DataUtils.PAGE_TYPE_LEAF) {
             map.getValueType().write(buff, values, len, false);
         }
         MVStore store = map.getStore();
@@ -840,7 +842,7 @@ public class Page {
         pos = DataUtils.getPagePos(chunkId, start, pageLength, type);
         store.cachePage(pos, this, getMemory());
         long max = DataUtils.getPageMaxLength(pos);
-        chunk.maxLength += max;
+        chunk.maxLen += max;
         chunk.maxLenLive += max;
         chunk.pageCount++;
         chunk.pageCountLive++;

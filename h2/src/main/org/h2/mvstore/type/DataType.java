@@ -40,7 +40,7 @@ public interface DataType {
      * @param obj the value
      */
     void write(WriteBuffer buff, Object obj);
-    
+
     /**
      * Write a list of objects.
      *
@@ -58,7 +58,7 @@ public interface DataType {
      * @return the object
      */
     Object read(ByteBuffer buff);
-    
+
     /**
      * Read a list of objects.
      *

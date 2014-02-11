@@ -72,7 +72,7 @@ public class TestExit extends TestBase {
         }
         deleteDb("exit");
     }
-    
+
     private String getURL(int action) {
         String url = "";
         switch (action) {

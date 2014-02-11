@@ -262,7 +262,8 @@ public class Comparison extends Condition {
      * @param l the first value
      * @param r the second value
      * @param compareType the compare type
-     * @return true if the comparison indicated by the comparison type evaluates to true
+     * @return true if the comparison indicated by the comparison type evaluates
+     *         to true
      */
     static boolean compareNotNull(Database database, Value l, Value r, int compareType) {
         boolean result;

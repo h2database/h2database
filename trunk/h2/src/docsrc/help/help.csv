@@ -132,6 +132,7 @@ case sensitive and can contain spaces.
 
 Instead of a file name, an URL may be used.
 To read a stream from the classpath, use the prefix 'classpath:'.
+See the Pluggable File System section on the Advanced page.
 
 The compression algorithm must match the one used when creating the script.
 Instead of a file, an URL may be used.
@@ -139,6 +140,7 @@ Instead of a file, an URL may be used.
 Admin rights are required to execute this command.
 ","
 RUNSCRIPT FROM 'backup.sql'
+RUNSCRIPT FROM 'classpath:/com/acme/test.sql'
 "
 
 "Commands (DML)","SCRIPT","

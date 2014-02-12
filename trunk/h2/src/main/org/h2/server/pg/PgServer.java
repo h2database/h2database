@@ -175,6 +175,7 @@ public class PgServer implements Service {
 
     @Override
     public void start() {
+        stop = false;
         try {
             serverSocket = NetUtils.createServerSocket(port, false);
         } catch (DbException e) {

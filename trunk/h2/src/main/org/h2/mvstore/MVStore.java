@@ -52,10 +52,6 @@ TransactionStore:
 
 MVStore:
 
-- page format: for nodes, maybe store child pointers first,
-    so we can dump them in the MVStoreTool even if the dataType is unknown
-- ensure data is overwritten eventually if the system doesn't have a
-    real-time clock (Raspberry Pi) and if there are few writes per startup
 - maybe change the length code to have lower gaps
 - test chunk id rollover
 - document and review the file format
@@ -302,7 +298,6 @@ public class MVStore {
         try {
             fileStore.open(fileName, readOnly, encryptionKey);
             if (fileStore.size() == 0) {
-                creationTime = 0;
                 creationTime = getTime();
                 lastCommitTime = creationTime;
                 fileHeader.put("H", 2);
@@ -569,6 +564,22 @@ public class MVStore {
         }
         lastStoredVersion = -1;
         chunks.clear();
+        long now = System.currentTimeMillis();
+        // calculate the year (doesn't have to be exact;
+        // we assume 365.25 days per year, * 4 = 1461)
+        int year =  1970 + (int) (now / (1000L * 60 * 60 * 6 * 1461));
+        if (year < 2014) {
+            // if the year is before 2014,
+            // we assume the system doesn't have a real-time clock,
+            // and we set the creationTime to the past, so that
+            // existing chunks are overwritten
+            creationTime = now - fileStore.getDefaultRetentionTime();
+        } else if (now < creationTime) {
+            // the system time was set to the past:
+            // we change the creation time
+            creationTime = now;
+            fileHeader.put("created", creationTime);
+        }
 
         Chunk footer = readChunkFooter(fileStore.size());
         if (footer != null) {
@@ -2050,7 +2061,7 @@ public class MVStore {
             return;
         }
 
-        // could also store when there are many unsaved pages,
+        // could also commit when there are many unsaved pages,
         // but according to a test it doesn't really help
 
         long time = getTime();

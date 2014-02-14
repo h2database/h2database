@@ -61,6 +61,7 @@ public class TestLob extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testCleaningUpLobsOnRollback();
         testClobWithRandomUnicodeChars();
         testCommitOnExclusiveConnection();
         testReadManyLobs();
@@ -110,7 +111,25 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
-
+    
+    private void testCleaningUpLobsOnRollback() throws Exception {
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE test(id int, data CLOB)");
+        conn.setAutoCommit(false);
+        stat.executeUpdate("insert into test values (1, '" + MORE_THAN_128_CHARS + "')");
+        conn.rollback();
+        ResultSet rs = stat.executeQuery("select count(*) from test");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+        rs = stat.executeQuery("select * from information_schema.lobs");
+        rs = stat.executeQuery("select count(*) from information_schema.lob_data");
+        rs.next();
+        assertEquals(0, rs.getInt(1));
+        conn.close();
+    }
+    
     private void testReadManyLobs() throws Exception {
         //
         deleteDb("lob");

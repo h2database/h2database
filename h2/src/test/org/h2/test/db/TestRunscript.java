@@ -36,6 +36,8 @@ public class TestRunscript extends TestBase implements Trigger {
 
     @Override
     public void test() throws Exception {
+        test(false);
+        test(true);
         testDropReferencedUserDefinedFunction();
         testDropCascade();
         testScriptExcludeSchema();
@@ -50,8 +52,6 @@ public class TestRunscript extends TestBase implements Trigger {
         testCancelScript();
         testEncoding();
         testClobPrimaryKey();
-        test(false);
-        test(true);
         deleteDb("runscript");
     }
 

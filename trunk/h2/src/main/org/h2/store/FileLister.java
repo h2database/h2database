@@ -52,6 +52,7 @@ public class FileLister {
                     FileChannel f = FilePath.get(fileName).open("r");
                     java.nio.channels.FileLock lock = f.tryLock(0, Long.MAX_VALUE, true);
                     lock.release();
+                    f.close();
                 } catch (Exception e) {
                     throw DbException.get(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e, message).getSQLException();

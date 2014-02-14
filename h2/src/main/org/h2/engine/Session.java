@@ -522,6 +522,16 @@ public class Session extends SessionWithState {
                 autoCommitAtTransactionEnd = false;
             }
         }
+        endTransaction();
+    }
+
+    private void checkCommitRollback() {
+        if (commitOrRollbackDisabled && locks.size() > 0) {
+            throw DbException.get(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED);
+        }
+    }
+    
+    private void endTransaction() {
         if (unlinkLobMap != null && unlinkLobMap.size() > 0) {
             // need to flush the transaction log, because we can't unlink lobs if the
             // commit record is not written
@@ -533,12 +543,6 @@ public class Session extends SessionWithState {
             unlinkLobMap = null;
         }
         unlockAll();
-    }
-
-    private void checkCommitRollback() {
-        if (commitOrRollbackDisabled && locks.size() > 0) {
-            throw DbException.get(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED);
-        }
     }
 
     /**
@@ -564,11 +568,11 @@ public class Session extends SessionWithState {
             database.commit(this);
         }
         cleanTempTables(false);
-        unlockAll();
         if (autoCommitAtTransactionEnd) {
             autoCommit = true;
             autoCommitAtTransactionEnd = false;
         }
+        endTransaction();
     }
 
     /**

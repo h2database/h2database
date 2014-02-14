@@ -660,7 +660,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 //        new TestReadOnly().runTest(this);
 //        new TestRecursiveQueries().runTest(this);
 //        new TestRights().runTest(this);
-        new TestRunscript().runTest(this);
+//        new TestRunscript().runTest(this);
 //        new TestSQLInjection().runTest(this);
 //        new TestSessionsLocks().runTest(this);
 //        new TestSelectCountNonNullColumn().runTest(this);
@@ -716,9 +716,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 //        // server
 //        new TestAutoServer().runTest(this);
 //        new TestNestedLoop().runTest(this);
-        new TestWeb().runTest(this);
-
-        // mvcc & row level locking
+//        new TestWeb().runTest(this);
+//
+//        // mvcc & row level locking
 //        new TestMvcc1().runTest(this);
 //        new TestMvcc2().runTest(this);
 //        new TestMvcc3().runTest(this);

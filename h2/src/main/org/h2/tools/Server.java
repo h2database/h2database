@@ -502,16 +502,19 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     }
 
     private void stopAll() {
-        if (web != null && web.isRunning(false)) {
-            web.stop();
+        Server s = web;
+        if (s != null && s.isRunning(false)) {
+            s.stop();
             web = null;
         }
-        if (tcp != null && tcp.isRunning(false)) {
-            tcp.stop();
+        s = tcp;
+        if (s != null && s.isRunning(false)) {
+            s.stop();
             tcp = null;
         }
-        if (pg != null && pg.isRunning(false)) {
-            pg.stop();
+        s = pg;
+        if (s != null && s.isRunning(false)) {
+            s.stop();
             pg = null;
         }
     }

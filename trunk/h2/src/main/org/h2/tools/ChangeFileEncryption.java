@@ -212,33 +212,41 @@ public class ChangeFileEncryption extends Tool {
             return;
         }
         FileChannel fileIn = FilePath.get(fileName).open("r");
-        if (decryptKey != null) {
-            fileIn = new FilePathEncrypt.FileEncrypt(fileName, decryptKey, fileIn);
-        }
-        InputStream inStream = new FileChannelInputStream(fileIn, true);
+        FileChannel fileOut = null;
         String temp = directory + "/temp.db";
-        FileUtils.delete(temp);
-        FileChannel fileOut = FilePath.get(temp).open("rw");
-        if (encryptKey != null) {
-            fileOut = new FilePathEncrypt.FileEncrypt(temp, encryptKey, fileOut);
-        }
-        OutputStream outStream = new FileChannelOutputStream(fileOut, true);
-        byte[] buffer = new byte[4 * 1024];
-        long remaining = fileIn.size();
-        long total = remaining;
-        long time = System.currentTimeMillis();
-        while (remaining > 0) {
-            if (System.currentTimeMillis() - time > 1000) {
-                out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
-                time = System.currentTimeMillis();
+        try {
+            if (decryptKey != null) {
+                fileIn = new FilePathEncrypt.FileEncrypt(fileName, decryptKey, fileIn);
             }
-            int len = (int) Math.min(buffer.length, remaining);
-            len = inStream.read(buffer, 0, len);
-            outStream.write(buffer, 0, len);
-            remaining -= len;
+            InputStream inStream = new FileChannelInputStream(fileIn, true);
+            FileUtils.delete(temp);
+            fileOut = FilePath.get(temp).open("rw");
+            if (encryptKey != null) {
+                fileOut = new FilePathEncrypt.FileEncrypt(temp, encryptKey, fileOut);
+            }
+            OutputStream outStream = new FileChannelOutputStream(fileOut, true);
+            byte[] buffer = new byte[4 * 1024];
+            long remaining = fileIn.size();
+            long total = remaining;
+            long time = System.currentTimeMillis();
+            while (remaining > 0) {
+                if (System.currentTimeMillis() - time > 1000) {
+                    out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
+                    time = System.currentTimeMillis();
+                }
+                int len = (int) Math.min(buffer.length, remaining);
+                len = inStream.read(buffer, 0, len);
+                outStream.write(buffer, 0, len);
+                remaining -= len;
+            }
+            inStream.close();
+            outStream.close();
+        } finally {
+            fileIn.close();
+            if (fileOut != null) {
+                fileOut.close();
+            }
         }
-        inStream.close();
-        outStream.close();
         FileUtils.delete(fileName);
         FileUtils.moveTo(temp, fileName);
     }

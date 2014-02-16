@@ -6,6 +6,7 @@
  */
 package org.h2.store;
 
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -48,14 +49,22 @@ public class FileLister {
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, message).getSQLException();
                 }
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
+                FileChannel f = null;
                 try {
-                    FileChannel f = FilePath.get(fileName).open("r");
+                    f = FilePath.get(fileName).open("r");
                     java.nio.channels.FileLock lock = f.tryLock(0, Long.MAX_VALUE, true);
                     lock.release();
-                    f.close();
                 } catch (Exception e) {
                     throw DbException.get(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e, message).getSQLException();
+                } finally {
+                    if (f != null) {
+                        try {
+                            f.close();
+                        } catch (IOException e) {
+                            // ignore
+                        }
+                    }
                 }
             }
         }

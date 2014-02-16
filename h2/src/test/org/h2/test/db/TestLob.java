@@ -113,6 +113,9 @@ public class TestLob extends TestBase {
     }
     
     private void testCleaningUpLobsOnRollback() throws Exception {
+        if (config.mvStore) {
+            return;
+        }
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
@@ -131,7 +134,6 @@ public class TestLob extends TestBase {
     }
     
     private void testReadManyLobs() throws Exception {
-        //
         deleteDb("lob");
         Connection conn;
         conn = getConnection("lob");

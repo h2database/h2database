@@ -96,9 +96,12 @@ public class LobStorageMap implements LobStorageInterface {
         dataMap = mvStore.openMap("lobData",
                 new MVMapConcurrent.Builder<Long, byte[]>());
         streamStore = new StreamStore(dataMap);
+        
+        ;; int todo; // test and then remove
         // TODO currently needed to avoid out of memory,
         // because memory usage is only measure in number of pages currently
-        streamStore.setMaxBlockSize(32 * 1024);
+        // streamStore.setMaxBlockSize(32 * 1024);
+        
     }
 
     @Override

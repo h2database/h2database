@@ -42,7 +42,7 @@ public class TestStreamStore extends TestBase {
     public void test() throws IOException {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
-
+        testSaveCount();
         testExceptionDuringStore();
         testReadCount();
         testLarge();
@@ -52,6 +52,24 @@ public class TestStreamStore extends TestBase {
         testWithExistingData();
         testWithFullMap();
         testLoop();
+    }
+    
+    private void testSaveCount() throws IOException {
+        String fileName = getBaseDir() + "/testSaveCount.h3";
+        FileUtils.delete(fileName);
+        MVStore s = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        MVMap<Long, byte[]> map = s.openMap("data");
+        StreamStore streamStore = new StreamStore(map);
+        int blockSize = 256 * 1024;
+        assertEquals(blockSize, streamStore.getMaxBlockSize());
+        for (int i = 0; i < 4 * 16; i++) {
+            streamStore.put(new RandomStream(blockSize, i));
+        }
+        long writeCount = s.getFileStore().getWriteCount();
+        assertTrue(writeCount > 2);
+        s.close();
     }
 
     private void testExceptionDuringStore() throws IOException {

@@ -674,7 +674,7 @@ only the chunk metadata needs to be changed.
 The length code is a number from 0 to 31, where 0 means the maximum length
 of the page is 32 bytes, 1 means 48 bytes, 2: 64, 3: 96, 4: 128, 5: 192, and so on until 31 which
 means longer than 1 MB. That way, reading a page only requires one
-read operation (except for very large pages, in which case two read operations might be needed).
+read operation (except for very large pages).
 The sum of the maximum length of all pages is stored in the chunk metadata (field "max"),
 and when a page is marked as removed, the live maximum length is adjusted.
 This allows to estimate the amount of free space within a block, in addition to the number of free pages.
@@ -700,10 +700,10 @@ contains the following entries:
 </p>
 <ul><li>chunk.1: The metadata of chunk 1. This is the same data as the chunk header,
     plus the number of live pages, and the maximum live length.
-</li><li>setting.storeVersion: The store version (a user defined value).
 </li><li>map.1: The metadata of map 1. The entries are: name, createVersion, and type.
 </li><li>name.data: The map id of the map named "data". The value is "1".
 </li><li>root.1: The root position of map 1.
+</li><li>setting.storeVersion: The store version (a user defined value).
 </li></ul>
 
 <h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>

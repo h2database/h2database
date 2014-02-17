@@ -74,7 +74,7 @@ public class MVStoreTool {
                 block.rewind();
                 int headerType = block.get();
                 if (headerType == 'H') {
-                    pw.printf("%0" + len + "x fileHeader %s%n", 
+                    pw.printf("%0" + len + "x fileHeader %s%n",
                             pos,
                             new String(block.array(), DataUtils.LATIN).trim());
                     pos += blockSize;
@@ -104,8 +104,8 @@ public class MVStoreTool {
                     boolean compressed = (type & 2) != 0;
                     boolean node = (type & 1) != 0;
                     pw.printf(
-                            "+%0" + len + "x %s, map %x, %d entries, %d bytes%n", 
-                            p, 
+                            "+%0" + len + "x %s, map %x, %d entries, %d bytes%n",
+                            p,
                             (node ? "node" : "leaf") +
                             (compressed ? " compressed" : ""),
                             mapId,
@@ -129,7 +129,7 @@ public class MVStoreTool {
                             long s = DataUtils.readVarLong(chunk);
                             counts[i] = s;
                         }
-                    }                    
+                    }
                     if (mapId == 0) {
                         for (int i = 0; i < entries; i++) {
                             String k = StringDataType.INSTANCE.read(chunk);
@@ -142,14 +142,14 @@ public class MVStoreTool {
                                 pw.printf("    %d children < %s @ chunk %x +%0" + len + "x%n",
                                         counts[i],
                                         keys[i],
-                                        DataUtils.getPageChunkId(cp), 
+                                        DataUtils.getPageChunkId(cp),
                                         DataUtils.getPageOffset(cp));
                             }
                             long cp = children[entries];
                             pw.printf("    %d children >= %s @ chunk %x +%0" + len + "x%n",
                                     counts[entries],
                                     keys[entries],
-                                    DataUtils.getPageChunkId(cp), 
+                                    DataUtils.getPageChunkId(cp),
                                     DataUtils.getPageOffset(cp));
                         } else {
                             // meta map leaf
@@ -168,18 +168,18 @@ public class MVStoreTool {
                                 long cp = children[i];
                                 pw.printf("    %d children @ chunk %x +%0" + len + "x%n",
                                         counts[i],
-                                        DataUtils.getPageChunkId(cp), 
+                                        DataUtils.getPageChunkId(cp),
                                         DataUtils.getPageOffset(cp));
                             }
                         }
-                    }                    
+                    }
                 }
                 int footerPos = chunk.limit() - Chunk.FOOTER_LENGTH;
                 chunk.position(footerPos);
                 pw.printf(
-                        "+%0" + len + "x chunkFooter %s%n", 
-                        footerPos, 
-                        new String(chunk.array(), chunk.position(), 
+                        "+%0" + len + "x chunkFooter %s%n",
+                        footerPos,
+                        new String(chunk.array(), chunk.position(),
                                 Chunk.FOOTER_LENGTH, DataUtils.LATIN).trim());
             }
             pw.printf("%n%0" + len + "x eof%n", fileSize);

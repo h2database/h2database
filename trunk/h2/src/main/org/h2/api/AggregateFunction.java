@@ -16,6 +16,7 @@ import java.sql.SQLException;
  * Please note this interface only has limited support for data types.
  * If you need data types that don't have a corresponding SQL type
  * (for example GEOMETRY), then use the {@link Aggregate} interface.
+ * </p>
  */
 public interface AggregateFunction {
 

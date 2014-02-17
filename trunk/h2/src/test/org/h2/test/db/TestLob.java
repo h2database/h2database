@@ -111,7 +111,7 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
-    
+
     private void testCleaningUpLobsOnRollback() throws Exception {
         if (config.mvStore) {
             return;
@@ -132,7 +132,7 @@ public class TestLob extends TestBase {
         assertEquals(0, rs.getInt(1));
         conn.close();
     }
-    
+
     private void testReadManyLobs() throws Exception {
         deleteDb("lob");
         Connection conn;

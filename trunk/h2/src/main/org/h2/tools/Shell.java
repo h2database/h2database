@@ -163,7 +163,7 @@ public class Shell extends Tool implements Runnable {
             }
         }
     }
-    
+
     /**
      * Run the shell tool with the given connection and command line settings.
      * The connection will be closed when the shell exits.
@@ -171,6 +171,7 @@ public class Shell extends Tool implements Runnable {
      * <p>
      * Note: using the "-url" option in {@code args} doesn't make much sense
      * since it will override the {@code conn} parameter.
+     * </p>
      *
      * @param conn the connection
      * @param args the command line settings

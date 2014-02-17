@@ -53,7 +53,7 @@ public class TestStreamStore extends TestBase {
         testWithFullMap();
         testLoop();
     }
-    
+
     private void testSaveCount() throws IOException {
         String fileName = getBaseDir() + "/testSaveCount.h3";
         FileUtils.delete(fileName);

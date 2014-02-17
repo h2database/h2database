@@ -49,8 +49,6 @@ TransactionStore:
 
 MVStore:
 
-- console auto-complete: only tab to complete; remove newlines before autocomplete?
-
 - maybe change the length code to have lower gaps
 
 - improve memory calculation for transient and cache
@@ -1617,7 +1615,7 @@ public class MVStore {
         // to support reading old versions and rollback
         if (pos == 0) {
             // the value could be smaller than 0 because
-            // in some cases a page is allocated, 
+            // in some cases a page is allocated,
             // but never stored
             int count = 1 + memory / pageSplitSize;
             unsavedPageCount = Math.max(0, unsavedPageCount - count);
@@ -1806,7 +1804,7 @@ public class MVStore {
 
     /**
      * Increment the number of unsaved pages.
-     * 
+     *
      * @param memory the memory usage of the page
      */
     void registerUnsavedPage(int memory) {

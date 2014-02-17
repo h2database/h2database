@@ -645,8 +645,8 @@ public class TestSpatial extends TestBase {
         rs.addRow(factory.createPoint(new Coordinate(x, y)));
         return rs;
     }
-    
-    public void testAggregateWithGeometry() throws SQLException {
+
+    private void testAggregateWithGeometry() throws SQLException {
         deleteDb("spatialIndex");
         Connection conn = getConnection("spatialIndex");
         try {
@@ -681,7 +681,7 @@ public class TestSpatial extends TestBase {
             }
             return Value.GEOMETRY;
         }
-         
+
         @Override
         public void init(Connection conn) throws SQLException {
             tableEnvelope = null;
@@ -702,6 +702,6 @@ public class TestSpatial extends TestBase {
         public Object getResult() throws SQLException {
             return new GeometryFactory().toGeometry(tableEnvelope);
         }
-    }    
+    }
 
 }

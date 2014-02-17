@@ -982,6 +982,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Remove the given page (make the space available).
      *
      * @param pos the position of the page to remove
+     * @param memory the number of bytes used for this page
      */
     protected void removePage(long pos, int memory) {
         store.removePage(this, pos, memory);

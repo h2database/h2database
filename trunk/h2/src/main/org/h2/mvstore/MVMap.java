@@ -983,8 +983,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param pos the position of the page to remove
      */
-    protected void removePage(long pos) {
-        store.removePage(this, pos);
+    protected void removePage(long pos, int memory) {
+        store.removePage(this, pos, memory);
     }
 
     /**

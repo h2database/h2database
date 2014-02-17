@@ -159,7 +159,7 @@ public class Page {
         }
         MVStore store = map.store;
         if (store != null) {
-            store.registerUnsavedPage();
+            store.registerUnsavedPage(p.memory);
         }
         return p;
     }
@@ -566,7 +566,8 @@ public class Page {
                     long c = children[i];
                     int type = DataUtils.getPageType(c);
                     if (type == DataUtils.PAGE_TYPE_LEAF) {
-                        map.removePage(c);
+                        int mem = DataUtils.getPageMaxLength(c);
+                        map.removePage(c, mem);
                     } else {
                         map.readPage(c).removeAllRecursive();
                     }
@@ -961,7 +962,7 @@ public class Page {
      * Remove the page.
      */
     public void removePage() {
-        map.removePage(pos);
+        map.removePage(pos, memory);
     }
 
 }

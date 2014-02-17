@@ -68,7 +68,7 @@ public class TestRandomMapOps extends TestBase {
                 best = op;
                 size = best;
                 failException = ex;
-                // System.out.println("seed:" + seed + " op:" + op);
+                // System.out.println("seed:" + seed + " op:" + op + " " + ex);
             }
         }
         if (failException != null) {

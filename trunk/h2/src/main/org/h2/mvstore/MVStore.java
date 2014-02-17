@@ -36,11 +36,8 @@ Documentation
 - better document that writes are in background thread
 - better document how to do non-unique indexes
 - document pluggable store and OffHeapStore
-- document file format
-- the chunk id is normally the version
 
 MVTableEngine:
-- verify that tests don't use the PageStore
 - test and possibly allow MVCC & MULTI_THREADED
 - maybe enable MVCC by default (but allow to disable it)
 - config options for compression and page size (maybe combined)
@@ -52,9 +49,12 @@ TransactionStore:
 
 MVStore:
 
+- console auto-complete: only tab to complete; remove newlines before autocomplete?
+
 - maybe change the length code to have lower gaps
-- test chunk id rollover
-- document and review the file format
+
+- improve memory calculation for transient and cache
+    specially for large pages (when using the StreamStore)
 
 - automated 'kill process' and 'power failure' test
 - update checkstyle
@@ -105,15 +105,13 @@ MVStore:
     configured write delay to store changes
 - compact* should also store uncommitted changes (if there are any)
 - write a LSM-tree (log structured merge tree) utility on top of the MVStore
-- improve memory calculation for transient and cache
-    specially for large pages (when using the StreamStore)
 - StreamStore: split blocks similar to rsync crypto, where the split is made
     "if the sum of the past 8196 bytes divides by 4096 with zero remainder"
-- Compression: try using a bloom filter (64 bit) before trying to match
 - LIRS cache: maybe remove 'mask' field, and dynamically grow the arrays
 - chunk metadata: maybe split into static and variable,
     or use a small page size for metadata
 - data type "string": maybe use prefix compression for keys
+- test chunk id rollover
 
 */
 
@@ -208,9 +206,9 @@ public class MVStore {
     private long lastStoredVersion;
 
     /**
-     * The estimated number of unsaved pages (this number may not be completely
-     * accurate, because it may be changed concurrently, and because temporary
-     * pages are counted)
+     * The estimated number of average-sized unsaved pages. This number may not
+     * be completely accurate, because it may be changed concurrently, and
+     * because temporary pages are counted.
      */
     private int unsavedPageCount;
     private int autoCommitPageCount;
@@ -1050,21 +1048,38 @@ public class MVStore {
                 // the last prediction did not matched
                 needHeader = true;
             } else {
-                int chunkId = DataUtils.readHexInt(fileHeader, "chunk", 0);
-                if (lastChunk.id - chunkId > 20) {
+                long headerVersion = DataUtils.readHexLong(fileHeader, "version", 0);
+                if (lastChunk.version - headerVersion > 20) {
                     // we write after at least 20 entries
                     needHeader = true;
                 } else {
-                    while (chunkId <= lastChunk.id) {
-                        if (chunks.get(chunkId) == null) {
+                    int chunkId = DataUtils.readHexInt(fileHeader, "chunk", 0);
+                    while (true) {
+                        Chunk old = chunks.get(chunkId);
+                        if (old == null) {
                             // one of the chunks in between
                             // was removed
                             needHeader = true;
                             break;
                         }
+                        if (chunkId == lastChunk.id) {
+                            break;
+                        }
                         chunkId++;
                     }
                 }
+
+//                    }
+//                    while (chunkId <= lastChunk.id) {
+//                        if (chunks.get(chunkId) == null) {
+//                            // one of the chunks in between
+//                            // was removed
+//                            needHeader = true;
+//                            break;
+//                        }
+//                        chunkId++;
+//                    }
+//                }
             }
         }
 
@@ -1595,14 +1610,17 @@ public class MVStore {
      *
      * @param map the map the page belongs to
      * @param pos the position of the page
+     * @param memory the memory usage
      */
-    void removePage(MVMap<?, ?> map, long pos) {
+    void removePage(MVMap<?, ?> map, long pos, int memory) {
         // we need to keep temporary pages,
         // to support reading old versions and rollback
         if (pos == 0) {
             // the value could be smaller than 0 because
-            // in some cases a page is allocated without a store
-            unsavedPageCount = Math.max(0, unsavedPageCount - 1);
+            // in some cases a page is allocated, 
+            // but never stored
+            int count = 1 + memory / pageSplitSize;
+            unsavedPageCount = Math.max(0, unsavedPageCount - count);
             return;
         }
 
@@ -1788,10 +1806,14 @@ public class MVStore {
 
     /**
      * Increment the number of unsaved pages.
+     * 
+     * @param memory the memory usage of the page
      */
-    void registerUnsavedPage() {
-        int count = ++unsavedPageCount;
-        if (count > autoCommitPageCount && autoCommitPageCount > 0) {
+    void registerUnsavedPage(int memory) {
+        int count = 1 + memory / pageSplitSize;
+        unsavedPageCount += count;
+        int newValue = unsavedPageCount;
+        if (newValue > autoCommitPageCount && autoCommitPageCount > 0) {
             saveNeeded = true;
         }
     }

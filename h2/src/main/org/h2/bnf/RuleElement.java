@@ -61,7 +61,7 @@ public class RuleElement implements Rule {
             String up = sentence.getQueryUpper().trim();
             if (up.startsWith(name)) {
                 query = query.substring(name.length());
-                while (!"_".equals(name) && query.length() > 0 && Character.isSpaceChar(query.charAt(0))) {
+                while (!"_".equals(name) && Bnf.startWithSpace(query)) {
                     query = query.substring(1);
                 }
                 sentence.setQuery(query);

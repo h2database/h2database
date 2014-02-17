@@ -111,7 +111,7 @@ public class RuleFixed implements Rule {
             }
             break;
         case ANY_WORD:
-            while (s.length() > 0 && !Character.isSpaceChar(s.charAt(0))) {
+            while (s.length() > 0 && !Bnf.startWithSpace(s)) {
                 s = s.substring(1);
             }
             if (s.length() == 0) {
@@ -185,7 +185,7 @@ public class RuleFixed implements Rule {
             throw new AssertionError("type="+type);
         }
         if (!s.equals(query)) {
-            while (s.length() > 0 && Character.isSpaceChar(s.charAt(0))) {
+            while (Bnf.startWithSpace(s)) {
                 s = s.substring(1);
             }
             sentence.setQuery(s);

@@ -8,6 +8,8 @@ package org.h2.bnf.context;
 
 import java.util.HashMap;
 import java.util.HashSet;
+
+import org.h2.bnf.Bnf;
 import org.h2.bnf.BnfVisitor;
 import org.h2.bnf.Rule;
 import org.h2.bnf.RuleElement;
@@ -211,14 +213,14 @@ public class DbContextRule implements Rule {
             }
             break;
         }
-            case PROCEDURE:
-                autoCompleteProcedure(sentence);
-                break;
+        case PROCEDURE:
+            autoCompleteProcedure(sentence);
+            break;
         default:
             throw DbException.throwInternalError("type=" + type);
         }
         if (!s.equals(query)) {
-            while (s.length() > 0 && Character.isSpaceChar(s.charAt(0))) {
+            while (Bnf.startWithSpace(s)) {
                 s = s.substring(1);
             }
             sentence.setQuery(s);

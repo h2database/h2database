@@ -247,7 +247,7 @@ public class Parser {
                     // do {
                     // c = parseCommand();
                     // list.addCommand(c);
-                    // } while(currentToken.equals(";"));
+                    // } while (currentToken.equals(";"));
                     c = list;
                 }
             }

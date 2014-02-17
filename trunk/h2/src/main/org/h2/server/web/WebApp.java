@@ -291,7 +291,7 @@ public class WebApp {
                 String space = "";
                 if (sql.length() > 0) {
                     char last = sql.charAt(sql.length() - 1);
-                    if (!Character.isSpaceChar(last) && (last != '.' && last >= ' ' && last != '\'' && last != '"')) {
+                    if (!Character.isWhitespace(last) && (last != '.' && last >= ' ' && last != '\'' && last != '"')) {
                         space = " ";
                     }
                 }
@@ -1337,7 +1337,7 @@ public class WebApp {
             time = System.currentTimeMillis() - time;
             buff.append(getResultSet(sql, rs, metadata, list, edit, time, allowEdit));
             // SQLWarning warning = stat.getWarnings();
-            // if(warning != null) {
+            // if (warning != null) {
             // buff.append("<br />Warning:<br />").
             // append(getStackTrace(id, warning));
             // }

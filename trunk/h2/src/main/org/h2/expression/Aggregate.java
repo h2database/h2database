@@ -222,7 +222,7 @@ public class Aggregate extends Expression {
     @Override
     public void updateAggregate(Session session) {
         // TODO aggregates: check nested MIN(MAX(ID)) and so on
-        // if(on != null) {
+        // if (on != null) {
         // on.updateAggregate();
         // }
         HashMap<Expression, Object> group = select.getCurrentGroup();

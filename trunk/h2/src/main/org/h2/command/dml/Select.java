@@ -97,7 +97,7 @@ public class Select extends Query {
     public void addTableFilter(TableFilter filter, boolean isTop) {
         // Oracle doesn't check on duplicate aliases
         // String alias = filter.getAlias();
-        // if(filterNames.contains(alias)) {
+        // if (filterNames.contains(alias)) {
         //     throw Message.getSQLException(
         //         ErrorCode.DUPLICATE_TABLE_ALIAS, alias);
         // }

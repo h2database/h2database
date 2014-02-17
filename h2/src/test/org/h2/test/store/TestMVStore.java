@@ -102,7 +102,7 @@ public class TestMVStore extends TestBase {
         // longer running tests
         testLargerThan2G();
     }
-    
+
     private void testFileFormatExample() {
         String fileName = getBaseDir() + "/testFileFormatExample.h3";
         MVStore s = MVStore.open(fileName);

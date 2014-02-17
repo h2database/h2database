@@ -24,12 +24,12 @@ public interface Aggregate {
     void init(Connection conn) throws SQLException;
 
     /**
-     * This method must return the H2 data type, {@link org.h2.value.Value}, 
-     * of the aggregate function, given the H2 data type of the input data. 
+     * This method must return the H2 data type, {@link org.h2.value.Value},
+     * of the aggregate function, given the H2 data type of the input data.
      * The method should check here if the number of parameters
      * passed is correct, and if not it should throw an exception.
      *
-     * @param inputTypes the H2 data type of the parameters, 
+     * @param inputTypes the H2 data type of the parameters,
      * @return the H2 data type of the result
      * @throws SQLException if the number/type of parameters passed is incorrect
      */

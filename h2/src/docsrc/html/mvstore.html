@@ -478,11 +478,11 @@ it is recommended to use it together with the MVCC mode
 
 <h2 id="fileFormat">File Format</h2>
 <p>
-The data is stored in one file. 
-The file contains two file headers (for safety), and a number of chunks. 
+The data is stored in one file.
+The file contains two file headers (for safety), and a number of chunks.
 The file headers are one block each; a block is 4096 bytes.
 Each chunk is at least one block, but typically 200 blocks or more.
-Data is stored in the chunks in the form of a 
+Data is stored in the chunks in the form of a
 <a href="https://en.wikipedia.org/wiki/Log-structured_file_system">log structured storage</a>.
 There is one chunk for every version.
 </p>
@@ -495,12 +495,12 @@ As an example, the following code:
 </p>
 <pre>
 MVStore s = MVStore.open(fileName);
-MVMap<Integer, String> map = s.openMap("data");
-for (int i = 0; i < 400; i++) {
+MVMap&lt;Integer, String&gt; map = s.openMap("data");
+for (int i = 0; i &lt; 400; i++) {
     map.put(i, "Hello");
 }
 s.commit();
-for (int i = 0; i < 100; i++) {
+for (int i = 0; i &lt; 100; i++) {
     map.put(0, "Hi");
 }
 s.commit();
@@ -522,7 +522,7 @@ will result in the following two chunks (excluding metadata):
 </p>
 <p>
 That means each chunk contains the changes of one version:
-the new version of the changed pages and the parent pages, recursively, up to the root page. 
+the new version of the changed pages and the parent pages, recursively, up to the root page.
 Pages in subsequent chunks refer to pages in earlier chunks.
 </p>
 

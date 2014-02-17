@@ -91,7 +91,8 @@ public class UserAggregate extends DbObjectBase {
     }
 
     /**
-     * Wrap {@link AggregateFunction} in order to behave as {@link org.h2.api.Aggregate}
+     * Wrap {@link AggregateFunction} in order to behave as
+     * {@link org.h2.api.Aggregate}
      **/
     private static class AggregateWrapper implements Aggregate {
         private final AggregateFunction aggregateFunction;

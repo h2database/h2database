@@ -137,10 +137,10 @@ public class Bnf {
         rule.setLinks(ruleMap);
         rule.accept(visitor);
     }
-    
+
     /**
      * Check whether the statement starts with a whitespace.
-     * 
+     *
      * @param s the statement
      * @return if the statement is not empty and starts with a whitespace
      */

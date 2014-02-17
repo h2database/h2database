@@ -23,16 +23,16 @@ function addTable(name, columns, i) {
 }
 
 function ins(s, isTable) {
-    if(top.h2query) {
-        if(top.h2query.insertText) {
+    if (top.h2query) {
+        if (top.h2query.insertText) {
             top.h2query.insertText(s, isTable);
         }
     }
 }
 
 function refreshQueryTables() {
-    if(top.frames['h2query']) {
-        if(top.frames['h2query'].refreshTables) {
+    if (top.frames['h2query']) {
+        if (top.frames['h2query'].refreshTables) {
             top.frames['h2query'].refreshTables();
         }
     }
@@ -40,7 +40,7 @@ function refreshQueryTables() {
 
 function goToTable(s) {
     var t = tablesByName[s];
-    if(t) {
+    if (t) {
         hitOpen(t.id);
         return true;
     }
@@ -67,10 +67,10 @@ function setNode(id, level, type, icon, text, link) {
 }
 
 function writeDiv(i, level, dist) {
-    if(dist>0) {
+    if (dist>0) {
         document.write("<div id=\"div"+(i-1)+"\" style=\"display: none;\">");
     } else {
-        while(dist++<0) {
+        while (dist++<0) {
             document.write("</div>");
         }
     }
@@ -84,18 +84,18 @@ function writeTree() {
         writeDiv(i, node.level, node.level-last.level);
         last=node;
         var j=node.level;
-        while(j-->0) {
+        while (j-->0) {
             document.write("<img src=\"tree_empty.gif\"/>");
         }
         if (node.type==1) {
-            if( i < nodeList.length-1 && nodeList[i+1].level > node.level) {
+            if (i < nodeList.length-1 && nodeList[i+1].level > node.level) {
                 document.write("<img onclick=\"hit("+i+");\" id=\"join"+i+"\" src=\"tree_plus.gif\"/>");
             } else {
                 document.write("<img src=\"tree_empty.gif\"/>");
             }
         }
         document.write("<img src=\"tree_"+node.icon+".gif\"/>&nbsp;");
-        if(node.link==null) {
+        if (node.link==null) {
             document.write(node.text);
         } else {
             document.write("<a id='"+node.text+"' href=\""+node.link+"\" >"+node.text+"</a>");

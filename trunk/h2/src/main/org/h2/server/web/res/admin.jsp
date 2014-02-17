@@ -14,7 +14,7 @@ Initial Developer: H2 Group
 
     <script type="text/javascript">
         <!--
-        if(self != top) {
+        if (self != top) {
             top.location = "admin.jsp";
         }
         //-->

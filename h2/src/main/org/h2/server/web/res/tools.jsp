@@ -21,7 +21,7 @@ function go(name) {
     var tools = document.getElementsByTagName('div');
     for (i = 0; i < tools.length; i++) {
         var div = tools[i];
-        if(div.id.substring(0, 4) == 'tool') {
+        if (div.id.substring(0, 4) == 'tool') {
             div.style.display = (div.id == 'tool' + name) ? '' : 'none';
         }
     }
@@ -36,7 +36,7 @@ function quote(x) {
     var q = '';
     for (var i=0; i<x.length; i++) {
         var c = x.charAt(i);
-        if(c == '"' || c == '\\' || c == ',') {
+        if (c == '"' || c == '\\' || c == ',') {
             q += '\\';
         }
         q += c;

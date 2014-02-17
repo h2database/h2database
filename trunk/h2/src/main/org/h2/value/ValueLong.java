@@ -122,7 +122,7 @@ public class ValueLong extends Value {
         }
         // just checking one case is not enough: Long.MIN_VALUE * -1
         // probably this is correct but I'm not sure
-        // if(result / value == other.value && result / other.value == value) {
+        // if (result / value == other.value && result / other.value == value) {
         //    return ValueLong.get(result);
         //}
         BigInteger bv = BigInteger.valueOf(value);

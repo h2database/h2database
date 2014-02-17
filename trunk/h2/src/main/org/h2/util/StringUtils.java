@@ -193,7 +193,7 @@ public class StringUtils {
                 if (ch >= ' ' && (ch < 0x80)) {
                     buff.append(c);
                 // not supported in properties files
-                // } else if(ch < 0xff) {
+                // } else if (ch < 0xff) {
                 // buff.append("\\");
                 // // make sure it's three characters (0x200 is octal 1000)
                 // buff.append(Integer.toOctalString(0x200 | ch).substring(1));

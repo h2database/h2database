@@ -120,7 +120,7 @@ public class ValueHashMap<V> extends HashBase {
                 return;
             }
             index = (index + plus++) & mask;
-        } while(plus <= len);
+        } while (plus <= len);
         // not found
     }
 

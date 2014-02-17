@@ -240,7 +240,7 @@ public class WebServer implements Service {
         String newId;
         do {
             newId = generateSessionId();
-        } while(sessions.get(newId) != null);
+        } while (sessions.get(newId) != null);
         WebSession session = new WebSession(this);
         session.lastAccess = System.currentTimeMillis();
         session.put("sessionId", newId);
@@ -298,7 +298,7 @@ public class WebServer implements Service {
                 trace = true;
             }
         }
-//            if(driverList != null) {
+//            if (driverList != null) {
 //                try {
 //                    String[] drivers =
 //                        StringUtils.arraySplit(driverList, ',', false);

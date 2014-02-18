@@ -327,6 +327,13 @@ public class DbSettings extends SettingsBase {
      * Use the MVStore storage engine.
      */
     public final boolean mvStore = get("MV_STORE", false);
+    
+    /**
+     * Database setting <code>COMPRESS</code>
+     * (default: false).<br />
+     * Compress data when storing.
+     */
+    public final boolean compressData = get("COMPRESS", false);
 
     private DbSettings(HashMap<String, String> s) {
         super(s);

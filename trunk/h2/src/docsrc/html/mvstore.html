@@ -266,6 +266,7 @@ Serialization is pluggable. The default serialization currently supports many co
 and uses Java serialization for other objects. The following classes are currently directly supported:
 <code>Boolean, Byte, Short, Character, Integer, Long, Float, Double, BigInteger, BigDecimal,
 String, UUID, Date</code> and arrays (both primitive arrays and object arrays).
+For serialized objects, the size estimate is adjusted using an exponential moving average.
 </p><p>
 Parameterized data types are supported
 (for example one could build a string data type that limits the length).
@@ -511,14 +512,14 @@ will result in the following two chunks (excluding metadata):
 </p>
 <p>
 <b>Chunk 1:</b><br />
-- Page 1: leaf with 140 entries (keys 0 - 139)<br />
-- Page 2: leaf with 260 entries (keys 140 - 399)<br />
-- Page 3: (root) node with 2 entries pointing to page 1 and 2<br />
+- Page 1: (root) node with 2 entries pointing to page 2 and 3<br />
+- Page 2: leaf with 140 entries (keys 0 - 139)<br />
+- Page 3: leaf with 260 entries (keys 140 - 399)<br />
 </p>
 <p>
 <b>Chunk 2:</b><br />
-- Page 4: leaf with 140 entries (keys 0 - 139)<br />
-- Page 5: (root) node with 2 entries pointing to page 4 and 2<br />
+- Page 4: (root) node with 2 entries pointing to page 3 and 5<br />
+- Page 5: leaf with 140 entries (keys 0 - 139)<br />
 </p>
 <p>
 That means each chunk contains the changes of one version:
@@ -650,7 +651,7 @@ and <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">variable si
 </li><li>mapId (variable size int): The id of the map this page belongs to.
 </li><li>len (variable size int): The number of keys in the page.
 </li><li>type (byte): The page type (0 for leaf page, 1 for internal node;
-    plus 2 if the page data is compressed).
+    plus 2 if the keys and values are compressed).
 </li><li>children (array of long; internal nodes only): The position of the children.
 </li><li>childCounts (array of variable size long; internal nodes only):
     The total number of entries for the given child page.
@@ -658,8 +659,11 @@ and <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">variable si
 </li><li>values (byte array; leaf pages only): All values, stored depending on the data type.
 </li></ul>
 <p>
-Even though this is not required by the file format, each B-tree is stored
-"upside down", that means the leaf pages first, then the internal nodes, and lastly the root page.
+Even though this is not required by the file format, pages are stored in the following order:
+For each map, the root page is stored first, then the internal nodes (if there are any), 
+and then the leaf pages.
+This should speed up reads for media where sequential reads are faster than random access reads.
+The metadata map is stored at the end of a chunk.
 </p>
 <p>
 Pointers to pages are stored as a long, using a special format:
@@ -680,7 +684,7 @@ and when a page is marked as removed, the live maximum length is adjusted.
 This allows to estimate the amount of free space within a block, in addition to the number of free pages.
 </p>
 <p>
-The total number of entries in a child nodes is kept to allow efficient range counting,
+The total number of entries in child nodes are kept to allow efficient range counting,
 lookup by index, and skip operations.
 The pages form a <a href="http://www.chiark.greenend.org.uk/~sgtatham/algorithms/cbtree.html">counted B-tree</a>.
 </p>

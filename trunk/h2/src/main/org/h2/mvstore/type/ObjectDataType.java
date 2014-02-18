@@ -1471,6 +1471,8 @@ public class ObjectDataType implements DataType {
      * The type for serialized objects.
      */
     class SerializedObjectType extends AutoDetectDataType {
+        
+        int averageSize = 10000;
 
         SerializedObjectType(ObjectDataType base) {
             super(base, TYPE_SERIALIZED_OBJECT);
@@ -1508,7 +1510,7 @@ public class ObjectDataType implements DataType {
         public int getMemory(Object obj) {
             DataType t = getType(obj);
             if (t == this) {
-                return 1000;
+                return averageSize;
             }
             return t.getMemory(obj);
         }
@@ -1521,6 +1523,10 @@ public class ObjectDataType implements DataType {
                 return;
             }
             byte[] data = serialize(obj);
+            int size = data.length;
+            // adjust the average size
+            // using an exponential moving average
+            averageSize = (size + 15 * averageSize) / 16;
             buff.put((byte) TYPE_SERIALIZED_OBJECT).putVarInt(data.length)
                     .put(data);
         }

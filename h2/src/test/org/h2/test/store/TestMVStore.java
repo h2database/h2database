@@ -49,6 +49,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testCompressed();
         testFileFormatExample();
         testMaxChunkLength();
         testCacheInfo();
@@ -102,6 +103,23 @@ public class TestMVStore extends TestBase {
         // longer running tests
         testLargerThan2G();
     }
+    
+    private void testCompressed() {
+        String fileName = getBaseDir() + "/testCompressed.h3";
+        MVStore s = new MVStore.Builder().fileName(fileName).compressData().open();
+        MVMap<String, String> map = s.openMap("data");
+        String data = "xxxxxxxxxx";
+        for (int i = 0; i < 400; i++) {
+            map.put(data + i, data);
+        }
+        s.close();
+        s = new MVStore.Builder().fileName(fileName).open();
+        map = s.openMap("data");
+        for (int i = 0; i < 400; i++) {
+            assertEquals(data, map.get(data + i));
+        }
+        s.close();
+    }
 
     private void testFileFormatExample() {
         String fileName = getBaseDir() + "/testFileFormatExample.h3";
@@ -116,7 +134,7 @@ public class TestMVStore extends TestBase {
         }
         s.commit();
         s.close();
-        // MVStoreTool.dump(fileName);
+        // ;MVStoreTool.dump(fileName);
     }
 
     private void testMaxChunkLength() {

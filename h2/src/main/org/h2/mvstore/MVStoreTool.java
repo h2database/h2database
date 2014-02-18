@@ -113,10 +113,6 @@ public class MVStoreTool {
                             pageSize);
                     p += pageSize;
                     remaining--;
-                    if (compressed) {
-                        continue;
-                    }
-                    String[] keys = new String[entries];
                     long[] children = null;
                     long[] counts = null;
                     if (node) {
@@ -130,10 +126,13 @@ public class MVStoreTool {
                             counts[i] = s;
                         }
                     }
+                    String[] keys = new String[entries];
                     if (mapId == 0) {
-                        for (int i = 0; i < entries; i++) {
-                            String k = StringDataType.INSTANCE.read(chunk);
-                            keys[i] = k;
+                        if (!compressed) {
+                            for (int i = 0; i < entries; i++) {
+                                String k = StringDataType.INSTANCE.read(chunk);
+                                keys[i] = k;
+                            }
                         }
                         if (node) {
                             // meta map node
@@ -151,7 +150,7 @@ public class MVStoreTool {
                                     keys[entries],
                                     DataUtils.getPageChunkId(cp),
                                     DataUtils.getPageOffset(cp));
-                        } else {
+                        } else if (!compressed) {
                             // meta map leaf
                             String[] values = new String[entries];
                             for (int i = 0; i < entries; i++) {

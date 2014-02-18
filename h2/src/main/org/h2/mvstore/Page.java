@@ -113,7 +113,7 @@ public class Page {
      * @param version the version
      * @return the new page
      */
-    public static Page createEmpty(MVMap<?, ?> map, long version) {
+    static Page createEmpty(MVMap<?, ?> map, long version) {
         return create(map, version,
                 0, EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY,
                 0, null, null, null,
@@ -355,7 +355,7 @@ public class Page {
      * @param at the split index
      * @return the page with the entries after the split index
      */
-    public Page split(int at) {
+    Page split(int at) {
         return isLeaf() ? splitLeaf(at) : splitNode(at);
     }
 
@@ -500,7 +500,7 @@ public class Page {
      * @param index the index
      * @param total the new value
      */
-    public void setCounts(int index, long total) {
+    private void setCounts(int index, long total) {
         if (total != counts[index]) {
             if ((sharedFlags & SHARED_COUNTS) != 0) {
                 counts = Arrays.copyOf(counts, counts.length);
@@ -748,17 +748,6 @@ public class Page {
         keyCount = len;
         int type = buff.get();
         boolean node = (type & 1) == DataUtils.PAGE_TYPE_NODE;
-        boolean compressed = (type & DataUtils.PAGE_COMPRESSED) != 0;
-        if (compressed) {
-            Compressor compressor = map.getStore().getCompressor();
-            int lenAdd = DataUtils.readVarInt(buff);
-            int compLen = pageLength + start - buff.position();
-            byte[] comp = DataUtils.newBytes(compLen);
-            buff.get(comp);
-            int l = compLen + lenAdd;
-            buff = ByteBuffer.allocate(l);
-            compressor.expand(comp, 0, compLen, buff.array(), buff.arrayOffset(), l);
-        }
         if (node) {
             childCount = len + 1;
             children = new long[len + 1];
@@ -775,6 +764,17 @@ public class Page {
             }
             totalCount = total;
         }
+        boolean compressed = (type & DataUtils.PAGE_COMPRESSED) != 0;
+        if (compressed) {
+            Compressor compressor = map.getStore().getCompressor();
+            int lenAdd = DataUtils.readVarInt(buff);
+            int compLen = pageLength + start - buff.position();
+            byte[] comp = DataUtils.newBytes(compLen);
+            buff.get(comp);
+            int l = compLen + lenAdd;
+            buff = ByteBuffer.allocate(l);
+            compressor.expand(comp, 0, compLen, buff.array(), buff.arrayOffset(), l);
+        }
         map.getKeyType().read(buff, keys, len, true);
         if (!node) {
             values = new Object[len];
@@ -789,8 +789,9 @@ public class Page {
      *
      * @param chunk the chunk
      * @param buff the target buffer
+     * @return the position of the buffer just after the type
      */
-    private void write(Chunk chunk, WriteBuffer buff) {
+    private int write(Chunk chunk, WriteBuffer buff) {
         int start = buff.position();
         int len = keyCount;
         int type = children != null ? DataUtils.PAGE_TYPE_NODE
@@ -798,17 +799,16 @@ public class Page {
         buff.putInt(0).
             putShort((byte) 0).
             putVarInt(map.getId()).
-            putVarInt(len).
-            put((byte) type);
-        int compressStart = buff.position();
+            putVarInt(len);
+        int typePos = buff.position();
+        buff.put((byte) type);
         if (type == DataUtils.PAGE_TYPE_NODE) {
-            for (int i = 0; i <= len; i++) {
-                buff.putLong(children[i]);
-            }
+            writeChildren(buff);
             for (int i = 0; i <= len; i++) {
                 buff.putVarLong(counts[i]);
             }
         }
+        int compressStart = buff.position();
         map.getKeyType().write(buff, keys, len, true);
         if (type == DataUtils.PAGE_TYPE_LEAF) {
             map.getValueType().write(buff, values, len, false);
@@ -818,13 +818,13 @@ public class Page {
             Compressor compressor = map.getStore().getCompressor();
             int expLen = buff.position() - compressStart;
             byte[] exp = new byte[expLen];
-            buff.position(compressStart).
-                get(exp);
+            buff.position(compressStart).get(exp);
             byte[] comp = new byte[exp.length * 2];
             int compLen = compressor.compress(exp, exp.length, comp, 0);
             if (compLen + DataUtils.getVarIntLen(compLen - expLen) < expLen) {
-                buff.position(compressStart - 1).
-                    put((byte) (type + DataUtils.PAGE_COMPRESSED)).
+                buff.position(typePos).
+                    put((byte) (type + DataUtils.PAGE_COMPRESSED));
+                buff.position(compressStart).
                     putVarInt(expLen - compLen).
                     put(comp, 0, compLen);
             }
@@ -847,6 +847,14 @@ public class Page {
         chunk.maxLenLive += max;
         chunk.pageCount++;
         chunk.pageCountLive++;
+        return typePos + 1;
+    }
+    
+    private void writeChildren(WriteBuffer buff) {
+        int len = keyCount;
+        for (int i = 0; i <= len; i++) {
+            buff.putLong(children[i]);
+        }
     }
 
     /**
@@ -861,6 +869,7 @@ public class Page {
             // already stored before
             return;
         }
+        int patch = write(chunk, buff);
         if (!isLeaf()) {
             int len = childCount;
             for (int i = 0; i < len; i++) {
@@ -870,8 +879,11 @@ public class Page {
                     children[i] = p.getPos();
                 }
             }
+            int old = buff.position();
+            buff.position(patch);
+            writeChildren(buff);
+            buff.position(old);
         }
-        write(chunk, buff);
     }
 
     /**

@@ -51,12 +51,7 @@ MVStore:
 
 - maybe change the length code to have lower gaps
 
-- improve memory calculation for transient and cache
-    specially for large pages (when using the StreamStore)
-
 - automated 'kill process' and 'power failure' test
-- update checkstyle
-- feature to auto-compact from time to time and on close
 - test and possibly improve compact operation (for large dbs)
 - possibly split chunk metadata into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
@@ -75,7 +70,6 @@ MVStore:
 - serialization for lists, sets, sets, sorted sets, maps, sorted maps
 - maybe rename 'rollback' to 'revert' to distinguish from transactions
 - support other compression algorithms (deflate, LZ4,...)
-- support opening (existing) maps by id
 - remove features that are not really needed; simplify the code
     possibly using a separate layer or tools
     (retainVersion?)
@@ -110,6 +104,8 @@ MVStore:
     or use a small page size for metadata
 - data type "string": maybe use prefix compression for keys
 - test chunk id rollover
+- feature to auto-compact from time to time and on close
+- compact very small chunks
 
 */
 
@@ -790,7 +786,7 @@ public class MVStore {
      * @param pos the position
      * @return the chunk
      */
-    Chunk getChunk(long pos) {
+    private Chunk getChunk(long pos) {
         int chunkId = DataUtils.getPageChunkId(pos);
         Chunk c = chunks.get(chunkId);
         if (c == null) {

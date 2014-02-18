@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Random;
 
+import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 
@@ -42,6 +43,8 @@ public class TestBenchmark extends TestBase {
     }
 
     private void test(boolean mvStore) throws Exception {
+        // testInsertSelect(mvStore);
+        // testBinary(mvStore);
         testCreateIndex(mvStore);
     }
 
@@ -51,7 +54,7 @@ public class TestBenchmark extends TestBase {
         Statement stat;
         String url = "mvstore";
         if (mvStore) {
-            url += ";MV_STORE=TRUE;MV_STORE=TRUE";
+            url += ";MV_STORE=TRUE"; // ;COMPRESS=TRUE";
         }
 
         url = getURL(url, true);
@@ -84,7 +87,11 @@ public class TestBenchmark extends TestBase {
 
         System.out.println((System.currentTimeMillis() - start) + " "
                 + (mvStore ? "mvstore" : "default"));
+        conn.createStatement().execute("shutdown compact");
         conn.close();
+        for (String f : FileLister.getDatabaseFiles(getBaseDir(), "mvstore", true)) {
+            System.out.println("   " + f + " " + FileUtils.size(f));
+        }
     }
 
     private void testBinary(boolean mvStore) throws Exception {
@@ -93,7 +100,7 @@ public class TestBenchmark extends TestBase {
         Statement stat;
         String url = "mvstore";
         if (mvStore) {
-            url += ";MV_STORE=TRUE;MV_STORE=TRUE";
+            url += ";MV_STORE=TRUE";
         }
 
         url = getURL(url, true);
@@ -143,7 +150,7 @@ public class TestBenchmark extends TestBase {
         Statement stat;
         String url = "mvstore";
         if (mvStore) {
-            url += ";MV_STORE=TRUE;LOG=0";
+            url += ";MV_STORE=TRUE;LOG=0;COMPRESS=TRUE";
         }
 
         url = getURL(url, true);
@@ -176,7 +183,11 @@ public class TestBenchmark extends TestBase {
 
         System.out.println((System.currentTimeMillis() - start) + " "
                 + (mvStore ? "mvstore" : "default"));
+        conn.createStatement().execute("shutdown compact");
         conn.close();
+        for (String f : FileLister.getDatabaseFiles(getBaseDir(), "mvstore", true)) {
+            System.out.println("   " + f + " " + FileUtils.size(f));
+        }
 
     }
 

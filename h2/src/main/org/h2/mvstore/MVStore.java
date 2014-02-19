@@ -40,7 +40,6 @@ Documentation
 MVTableEngine:
 - test and possibly allow MVCC & MULTI_THREADED
 - maybe enable MVCC by default (but allow to disable it)
-- config options for compression and page size (maybe combined)
 - test with MVStore.ASSERT enabled
 
 TransactionStore:

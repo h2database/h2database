@@ -36,8 +36,8 @@ public class TestDuplicateKeyUpdate extends TestBase {
         testDuplicateOnUnique(conn);
         testDuplicateCache(conn);
         testDuplicateExpression(conn);
-//        testOnDuplicateKeyInsertBatch(conn);
-//        testOnDuplicateKeyInsertMultiValue(conn);
+        testOnDuplicateKeyInsertBatch(conn);
+        testOnDuplicateKeyInsertMultiValue(conn);
         conn.close();
         deleteDb("duplicateKeyUpdate");
     }

@@ -29,7 +29,6 @@ import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
-import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -327,22 +326,26 @@ public class Insert extends Prepared implements ResultTarget {
             variableNames.add(key);
             session.setVariable(key, list.get(getCurrentRowNumber() - 1)[i].getValue(session));
         }
-
-        Update command = new Update(session);
-        command.setTableFilter(new TableFilter(session, table, null, true, null));
+        
+        StatementBuilder buff = new StatementBuilder("UPDATE ");
+        buff.append(table.getSQL()).append(" SET ");
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
-            command.setAssignment(column, duplicateKeyAssignmentMap.get(column));
+            buff.appendExceptFirst(", ");
+            Expression ex = duplicateKeyAssignmentMap.get(column);
+            buff.append(column.getSQL()).append("=").append(ex.getSQL());
         }
-
+        buff.append(" WHERE ");
         Index foundIndex = searchForUpdateIndex();
-
-        if (foundIndex != null) {
-            command.setCondition(prepareUpdateCondition(foundIndex));
-        } else {
+        if (foundIndex == null) {
             throw DbException.getUnsupportedException("Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
-
-        command.prepare();
+        buff.append(prepareUpdateCondition(foundIndex).getSQL());
+        String sql = buff.toString();
+        Prepared command = session.prepare(sql);        
+        for (Parameter param : command.getParameters()) {
+            Parameter insertParam = parameters.get(param.getIndex());
+            param.setValue(insertParam.getValue(session));
+        }
         command.update();
         for (String variableName : variableNames) {
             session.setVariable(variableName, ValueNull.INSTANCE);
@@ -374,25 +377,24 @@ public class Insert extends Prepared implements ResultTarget {
     }
 
     private Expression prepareUpdateCondition(Index foundIndex) {
-        Expression expression = null;
-
+        Expression condition = null;
         for (Column column : foundIndex.getColumns()) {
-            ExpressionColumn expressionColumn = new ExpressionColumn(session.getDatabase(),
-                    session.getCurrentSchemaName(), null, column.getName());
+            ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),
+                    session.getCurrentSchemaName(), table.getName(), column.getName());
             for (int i = 0; i < columns.length; i++) {
-                if (expressionColumn.getColumnName().equals(columns[i].getName())) {
-                    if (expression == null) {
-                        expression = new Comparison(session, Comparison.EQUAL, expressionColumn,
-                                list.get(getCurrentRowNumber() - 1)[i++]);
+                if (expr.getColumnName().equals(columns[i].getName())) {
+                    if (condition == null) {
+                        condition = new Comparison(session, Comparison.EQUAL, 
+                                expr, list.get(getCurrentRowNumber() - 1)[i++]);
                     } else {
-                        expression = new ConditionAndOr(ConditionAndOr.AND, expression, new Comparison(session,
-                                Comparison.EQUAL, expressionColumn, list.get(0)[i++]));
+                        condition = new ConditionAndOr(ConditionAndOr.AND, condition, 
+                                new Comparison(session, Comparison.EQUAL, 
+                                expr, list.get(0)[i++]));
                     }
                 }
             }
         }
-        return expression;
+        return condition;
     }
-
 
 }

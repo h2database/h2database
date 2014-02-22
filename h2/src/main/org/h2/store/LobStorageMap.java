@@ -46,8 +46,7 @@ public class LobStorageMap implements LobStorageInterface {
      * (which is a long) to the stream store id (which is a byte array).
      *
      * Key: lobId (long)
-     * Value: { streamStoreId (byte[]), tableId (int),
-     * byteCount (long), hashCode (long) }.
+     * Value: { streamStoreId (byte[]), tableId (int), byteCount (long), hash (long) }.
      */
     private MVMap<Long, Object[]> lobMap;
 

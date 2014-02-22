@@ -149,10 +149,12 @@ public class StreamStore {
         }
         boolean eof = len < maxBlockSize;
         if (len < minBlockSize) {
+            // in-place: 0, len (int), data
             id.write(0);
             DataUtils.writeVarInt(id, len);
             id.write(buff);
         } else {
+            // block: 1, len (int), blockId (long)
             id.write(1);
             DataUtils.writeVarInt(id, len);
             DataUtils.writeVarLong(id, writeBlock(buff));
@@ -181,6 +183,7 @@ public class StreamStore {
     private ByteArrayOutputStream putIndirectId(ByteArrayOutputStream id) throws IOException {
         byte[] data = id.toByteArray();
         id = new ByteArrayOutputStream();
+        // indirect: 2, total len (long), blockId (long)
         id.write(2);
         DataUtils.writeVarLong(id, length(data));
         DataUtils.writeVarLong(id, writeBlock(data));
@@ -241,15 +244,18 @@ public class StreamStore {
         while (idBuffer.hasRemaining()) {
             switch (idBuffer.get()) {
             case 0:
+                // in-place: 0, len (int), data
                 int len = DataUtils.readVarInt(idBuffer);
                 idBuffer.position(idBuffer.position() + len);
                 break;
             case 1:
+                // block: 1, len (int), blockId (long)
                 DataUtils.readVarInt(idBuffer);
                 long k = DataUtils.readVarLong(idBuffer);
                 map.remove(k);
                 break;
             case 2:
+                // indirect: 2, total len (long), blockId (long)
                 DataUtils.readVarLong(idBuffer);
                 long k2 = DataUtils.readVarLong(idBuffer);
                 // recurse
@@ -276,15 +282,18 @@ public class StreamStore {
         while (idBuffer.hasRemaining()) {
             switch (idBuffer.get()) {
             case 0:
+                // in-place: 0, len (int), data
                 int len = DataUtils.readVarInt(idBuffer);
                 idBuffer.position(idBuffer.position() + len);
                 length += len;
                 break;
             case 1:
+                // block: 1, len (int), blockId (long)
                 length += DataUtils.readVarInt(idBuffer);
                 DataUtils.readVarLong(idBuffer);
                 break;
             case 2:
+                // indirect: 2, total len (long), blockId (long)
                 length += DataUtils.readVarLong(idBuffer);
                 DataUtils.readVarLong(idBuffer);
                 break;

@@ -27,6 +27,7 @@ import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.utils.AssertThrows;
 
 /**
  * Tests the MVStore.
@@ -55,6 +56,7 @@ public class TestMVStore extends TestBase {
         testCacheInfo();
         testRollback();
         testVersionsToKeep();
+        testVersionsToKeep2();
         testRemoveMap();
         testIsEmpty();
         testOffHeapStorage();
@@ -184,15 +186,42 @@ public class TestMVStore extends TestBase {
             map.put(i, i);
             s.commit();
             if (version >= 6) {
-                map.openVersion(version - 6);
+                map.openVersion(version - 5);
                 try {
-                    map.openVersion(version - 7);
+                    map.openVersion(version - 6);
                     fail();
                 } catch (IllegalArgumentException e) {
                     // expected
                 }
             }
         }
+    }
+    
+    private void testVersionsToKeep2() {
+        MVStore s = new MVStore.Builder().autoCommitDisabled().open();
+        s.setVersionsToKeep(2);
+        final MVMap<Integer, String> m = s.openMap("data");
+        s.commit();
+        assertEquals(1, s.getCurrentVersion());
+        m.put(1, "version 1");
+        s.commit();
+        assertEquals(2, s.getCurrentVersion());
+        m.put(1, "version 2");
+        s.commit();
+        assertEquals(3, s.getCurrentVersion());
+        m.put(1, "version 3");
+        s.commit();
+        m.put(1, "version 4");
+        assertEquals("version 4", m.openVersion(4).get(1));
+        assertEquals("version 3", m.openVersion(3).get(1));
+        assertEquals("version 2", m.openVersion(2).get(1));
+        new AssertThrows(IllegalArgumentException.class) {
+            @Override
+            public void test() throws Exception {
+                m.openVersion(1);
+            }
+        };
+        s.close();
     }
 
     private void testRemoveMap() throws Exception {
@@ -1083,7 +1112,7 @@ public class TestMVStore extends TestBase {
             // System.out.println("size: " + FileUtils.size(fileName));
         }
     }
-
+    
     private void testOldVersion() {
         MVStore s;
         for (int op = 0; op <= 1; op++) {

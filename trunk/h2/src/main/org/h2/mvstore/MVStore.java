@@ -49,6 +49,7 @@ TransactionStore:
 MVStore:
 
 - maybe change the length code to have lower gaps
+- data kept in stream store if transaction is not committed?
 
 - automated 'kill process' and 'power failure' test
 - test and possibly improve compact operation (for large dbs)
@@ -1722,9 +1723,9 @@ public class MVStore {
     }
 
     /**
-     * How many versions to retain for in-memory stores. If not set, 5 versions
-     * are retained.
-     *
+     * How many versions to retain for in-memory stores. If not set, 5 old
+     * versions are retained.
+     * 
      * @param count the number of versions to keep
      */
     public void setVersionsToKeep(int count) {
@@ -1732,7 +1733,7 @@ public class MVStore {
     }
 
     /**
-     * Get the oldest version to retain in memory.
+     * Get the oldest version to retain in memory (for in-memory stores).
      *
      * @return the version
      */
@@ -1749,7 +1750,7 @@ public class MVStore {
     long getOldestVersionToKeep() {
         long v = currentVersion;
         if (fileStore == null) {
-            return v - versionsToKeep;
+            return v - versionsToKeep + 1;
         }
         long storeVersion = currentStoreVersion;
         if (storeVersion > -1) {
@@ -2321,12 +2322,12 @@ public class MVStore {
 
         /**
          * Encrypt / decrypt the file using the given password. This method has
-         * no effect for in-memory stores. The password is passed as a char
-         * array so that it can be cleared as soon as possible. Please note
+         * no effect for in-memory stores. The password is passed as a
+         * char array so that it can be cleared as soon as possible. Please note
          * there is still a small risk that password stays in memory (due to
          * Java garbage collection). Also, the hashed encryption key is kept in
          * memory as long as the file is open.
-         *
+         * 
          * @param password the password
          * @return this
          */
@@ -2402,8 +2403,11 @@ public class MVStore {
         }
 
         /**
-         * Use the provided file store instead of the default one.
-         *
+         * Use the provided file store instead of the default one. Please note
+         * that any kind of store (including an off-heap store) is considered a
+         * "persistence", while an "in-memory store" means objects are not
+         * persisted and fully kept in the JVM heap.
+         * 
          * @param store the file store
          * @return this
          */

@@ -7,9 +7,11 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.h2.test.TestBase;
 
 /**
@@ -34,6 +36,8 @@ public class TestDuplicateKeyUpdate extends TestBase {
         testDuplicateOnUnique(conn);
         testDuplicateCache(conn);
         testDuplicateExpression(conn);
+//        testOnDuplicateKeyInsertBatch(conn);
+//        testOnDuplicateKeyInsertMultiValue(conn);
         conn.close();
         deleteDb("duplicateKeyUpdate");
     }
@@ -42,11 +46,11 @@ public class TestDuplicateKeyUpdate extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("CREATE TABLE `table_test` (\n" +
-                "  `id` bigint(20) NOT NULL ,\n" +
-                "  `a_text` varchar(254) NOT NULL,\n" +
-                "  `some_text` varchar(254) NULL,\n" +
-                "  PRIMARY KEY (`id`)\n" +
+        stat.execute("CREATE TABLE table_test (\n" +
+                "  id bigint(20) NOT NULL ,\n" +
+                "  a_text varchar(254) NOT NULL,\n" +
+                "  some_text varchar(254) NULL,\n" +
+                "  PRIMARY KEY (id)\n" +
                 ") ;");
 
         stat.execute("INSERT INTO table_test ( id, a_text, some_text ) VALUES " +
@@ -76,9 +80,9 @@ public class TestDuplicateKeyUpdate extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("CREATE TABLE `table_test2` (\n" + "  `id` bigint(20) NOT NULL AUTO_INCREMENT,\n"
-                + "  `a_text` varchar(254) NOT NULL,\n" + "  `some_text` varchar(254) NOT NULL,\n"
-                + "  `updatable_text` varchar(254) NULL,\n" + "  PRIMARY KEY (`id`)\n" + ") ;");
+        stat.execute("CREATE TABLE table_test2 (\n" + "  id bigint(20) NOT NULL AUTO_INCREMENT,\n"
+                + "  a_text varchar(254) NOT NULL,\n" + "  some_text varchar(254) NOT NULL,\n"
+                + "  updatable_text varchar(254) NULL,\n" + "  PRIMARY KEY (id)\n" + ") ;");
 
         stat.execute("CREATE UNIQUE INDEX index_name \n" + "ON table_test2 (a_text, some_text);");
 
@@ -107,11 +111,11 @@ public class TestDuplicateKeyUpdate extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("CREATE TABLE `table_test3` (\n" +
-                "  `id` bigint(20) NOT NULL ,\n" +
-                "  `a_text` varchar(254) NOT NULL,\n" +
-                "  `some_text` varchar(254) NULL,\n" +
-                "  PRIMARY KEY (`id`)\n" +
+        stat.execute("CREATE TABLE table_test3 (\n" +
+                "  id bigint(20) NOT NULL ,\n" +
+                "  a_text varchar(254) NOT NULL,\n" +
+                "  some_text varchar(254) NULL,\n" +
+                "  PRIMARY KEY (id)\n" +
                 ") ;");
 
         stat.execute("INSERT INTO table_test3 ( id, a_text, some_text ) " +
@@ -138,11 +142,11 @@ public class TestDuplicateKeyUpdate extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("CREATE TABLE `table_test4` (\n" +
-                "  `id` bigint(20) NOT NULL ,\n" +
-                "  `a_text` varchar(254) NOT NULL,\n" +
-                "  `some_value` int(10) NULL,\n" +
-                "  PRIMARY KEY (`id`)\n" +
+        stat.execute("CREATE TABLE table_test4 (\n" +
+                "  id bigint(20) NOT NULL ,\n" +
+                "  a_text varchar(254) NOT NULL,\n" +
+                "  some_value int(10) NULL,\n" +
+                "  PRIMARY KEY (id)\n" +
                 ") ;");
 
         stat.execute("INSERT INTO table_test4 ( id, a_text, some_value ) " +
@@ -162,6 +166,64 @@ public class TestDuplicateKeyUpdate extends TestBase {
         rs = stat.executeQuery("SELECT some_value FROM table_test4 where id = 2");
         rs.next();
         assertEquals(2, rs.getInt(1));
+    }
+
+    public void testOnDuplicateKeyInsertBatch(Connection conn)
+            throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("create table test (key varchar(1) primary key, count int not null)");
+
+        // Insert multiple values as a batch
+        for (int i = 0; i <= 2; ++i) {
+            PreparedStatement prep = conn.prepareStatement(
+                    "insert into test(key, count) values(?, ?) " +
+                    "on duplicate key update count = count + 1");
+            prep.setString(1, "a");
+            prep.setInt(2, 1);
+            prep.addBatch();
+            prep.setString(1, "b");
+            prep.setInt(2, 1);
+            prep.addBatch();
+            prep.setString(1, "b");
+            prep.setInt(2, 1);
+            prep.addBatch();
+            prep.executeBatch();
+        }
+
+        // Check result
+        ResultSet rs = stat.executeQuery("select count from test where key = 'a'");
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+        
+        stat.execute("drop table test");
+    }
+
+    public void testOnDuplicateKeyInsertMultiValue(Connection conn)
+            throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(key varchar(1) primary key, count int not null)");
+
+        // Insert multiple values in single insert operation
+        for (int i = 0; i <= 2; ++i) {
+            PreparedStatement prep = conn.prepareStatement(
+                    "insert into test(key, count) values(?, ?), (?, ?), (?, ?) " + 
+                    "on duplicate key update count = count + 1");
+            prep.setString(1, "a");
+            prep.setInt(2, 1);
+            prep.setString(3, "b");
+            prep.setInt(4, 1);
+            prep.setString(5, "b");
+            prep.setInt(6, 1);
+            prep.executeUpdate();
+        }
+        conn.commit();
+
+        // Check result
+        ResultSet rs = stat.executeQuery("select count from test where key = 'a'");
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+        
+        stat.execute("drop table test");
     }
 
 }

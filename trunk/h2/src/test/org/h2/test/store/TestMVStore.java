@@ -50,6 +50,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testCompressEmptyPage();
         testCompressed();
         testFileFormatExample();
         testMaxChunkLength();
@@ -104,6 +105,23 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testCompressEmptyPage() {
+        String fileName = getBaseDir() + "/testDeletedMap.h3";
+        MVStore store = new MVStore.Builder().
+                cacheSize(100).fileName(fileName).
+                compressData().
+                autoCommitBufferSize(10 * 1024).
+                open();
+        MVMap<String, String> map = store.openMap("test");
+        store.removeMap(map);
+        store.commit();
+        store.close();
+        store = new MVStore.Builder().
+                compressData().
+                open();
+        store.close();
     }
     
     private void testCompressed() {

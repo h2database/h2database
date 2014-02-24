@@ -814,13 +814,13 @@ public class Page {
             map.getValueType().write(buff, values, len, false);
         }
         MVStore store = map.getStore();
-        if (store.getCompress()) {
+        int expLen = buff.position() - compressStart;
+        if (expLen > 16 && store.getCompress()) {
             Compressor compressor = map.getStore().getCompressor();
-            int expLen = buff.position() - compressStart;
             byte[] exp = new byte[expLen];
             buff.position(compressStart).get(exp);
-            byte[] comp = new byte[exp.length * 2];
-            int compLen = compressor.compress(exp, exp.length, comp, 0);
+            byte[] comp = new byte[expLen * 2];
+            int compLen = compressor.compress(exp, expLen, comp, 0);
             if (compLen + DataUtils.getVarIntLen(compLen - expLen) < expLen) {
                 buff.position(typePos).
                     put((byte) (type + DataUtils.PAGE_COMPRESSED));

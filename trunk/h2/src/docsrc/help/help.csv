@@ -1753,7 +1753,8 @@ multiple lines long.
 "Other Grammar","Compare","
 <> | <= | >= | = | < | > | != | &&
 ","
-Comparison operator. The operator != is the same as <>. && means overlapping, can only be used with geometry types.
+Comparison operator. The operator != is the same as <>. 
+The operator ""&&"" means overlapping; it can only be used with geometry types.
 ","
 <>
 "
@@ -2243,7 +2244,7 @@ DECIMAL(20, 2)
 "
 
 "Data Types","DOUBLE Type","
-{ DOUBLE [ PRECISION ] | FLOAT | FLOAT4 | FLOAT8 }
+{ DOUBLE [ PRECISION ] | FLOAT | FLOAT8 }
 ","
 A floating point number. Should not be used to represent currency values, because
 of rounding problems.
@@ -2254,7 +2255,7 @@ DOUBLE
 "
 
 "Data Types","REAL Type","
-REAL
+{ REAL | FLOAT4 }
 ","
 A single precision floating point number. Should not be used to represent currency
 values, because of rounding problems.
@@ -2441,13 +2442,13 @@ ARRAY
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","
-A spatial geometry type, based on the com.vividsolutions.jts library.
-Normally represented in textual format using the WKT (Well Known Text) format.
+A spatial geometry type, based on the ""com.vividsolutions.jts"" library.
+Normally represented in textual format using the WKT (well known text) format.
 
 Use a quoted string containing a WKT formatted string or ""PreparedStatement.setObject()"" to store values,
 and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the values.
 ","
-ARRAY
+GEOMETRY
 "
 
 "Functions (Aggregate)","AVG","

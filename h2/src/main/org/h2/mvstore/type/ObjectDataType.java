@@ -1471,7 +1471,7 @@ public class ObjectDataType implements DataType {
      * The type for serialized objects.
      */
     class SerializedObjectType extends AutoDetectDataType {
-        
+
         private int averageSize = 10000;
 
         SerializedObjectType(ObjectDataType base) {

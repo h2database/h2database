@@ -326,7 +326,7 @@ public class Insert extends Prepared implements ResultTarget {
             variableNames.add(key);
             session.setVariable(key, list.get(getCurrentRowNumber() - 1)[i].getValue(session));
         }
-        
+
         StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(table.getSQL()).append(" SET ");
         for (Column column : duplicateKeyAssignmentMap.keySet()) {
@@ -341,7 +341,7 @@ public class Insert extends Prepared implements ResultTarget {
         }
         buff.append(prepareUpdateCondition(foundIndex).getSQL());
         String sql = buff.toString();
-        Prepared command = session.prepare(sql);        
+        Prepared command = session.prepare(sql);
         for (Parameter param : command.getParameters()) {
             Parameter insertParam = parameters.get(param.getIndex());
             param.setValue(insertParam.getValue(session));
@@ -384,11 +384,11 @@ public class Insert extends Prepared implements ResultTarget {
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName().equals(columns[i].getName())) {
                     if (condition == null) {
-                        condition = new Comparison(session, Comparison.EQUAL, 
+                        condition = new Comparison(session, Comparison.EQUAL,
                                 expr, list.get(getCurrentRowNumber() - 1)[i++]);
                     } else {
-                        condition = new ConditionAndOr(ConditionAndOr.AND, condition, 
-                                new Comparison(session, Comparison.EQUAL, 
+                        condition = new ConditionAndOr(ConditionAndOr.AND, condition,
+                                new Comparison(session, Comparison.EQUAL,
                                 expr, list.get(0)[i++]));
                     }
                 }

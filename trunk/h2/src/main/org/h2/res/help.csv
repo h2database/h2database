@@ -757,11 +757,11 @@ Auto-Increment value."
 ","
 Data type with fixed precision and scale."
 "Data Types","DOUBLE Type","
-{ DOUBLE [ PRECISION ] | FLOAT | FLOAT4 | FLOAT8 }
+{ DOUBLE [ PRECISION ] | FLOAT | FLOAT8 }
 ","
 A floating point number."
 "Data Types","REAL Type","
-REAL
+{ REAL | FLOAT4 }
 ","
 A single precision floating point number."
 "Data Types","TIME Type","
@@ -816,7 +816,7 @@ An array of values."
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","
-A spatial geometry type, based on the com."
+A spatial geometry type, based on the ""com."
 "Functions (Aggregate)","AVG","
 AVG ( [ DISTINCT ] { numeric } )
 ","

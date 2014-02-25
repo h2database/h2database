@@ -106,7 +106,7 @@ public class TestMVStore extends TestBase {
         // longer running tests
         testLargerThan2G();
     }
-    
+
     private void testCompressEmptyPage() {
         String fileName = getBaseDir() + "/testDeletedMap.h3";
         MVStore store = new MVStore.Builder().
@@ -123,7 +123,7 @@ public class TestMVStore extends TestBase {
                 open();
         store.close();
     }
-    
+
     private void testCompressed() {
         String fileName = getBaseDir() + "/testCompressed.h3";
         MVStore s = new MVStore.Builder().fileName(fileName).compressData().open();
@@ -214,7 +214,7 @@ public class TestMVStore extends TestBase {
             }
         }
     }
-    
+
     private void testVersionsToKeep2() {
         MVStore s = new MVStore.Builder().autoCommitDisabled().open();
         s.setVersionsToKeep(2);
@@ -1130,7 +1130,7 @@ public class TestMVStore extends TestBase {
             // System.out.println("size: " + FileUtils.size(fileName));
         }
     }
-    
+
     private void testOldVersion() {
         MVStore s;
         for (int op = 0; op <= 1; op++) {

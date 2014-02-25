@@ -327,7 +327,7 @@ public class DbSettings extends SettingsBase {
      * Use the MVStore storage engine.
      */
     public final boolean mvStore = get("MV_STORE", false);
-    
+
     /**
      * Database setting <code>COMPRESS</code>
      * (default: false).<br />

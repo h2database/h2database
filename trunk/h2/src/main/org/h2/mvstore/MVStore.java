@@ -1725,7 +1725,7 @@ public class MVStore {
     /**
      * How many versions to retain for in-memory stores. If not set, 5 old
      * versions are retained.
-     * 
+     *
      * @param count the number of versions to keep
      */
     public void setVersionsToKeep(int count) {
@@ -2327,7 +2327,7 @@ public class MVStore {
          * there is still a small risk that password stays in memory (due to
          * Java garbage collection). Also, the hashed encryption key is kept in
          * memory as long as the file is open.
-         * 
+         *
          * @param password the password
          * @return this
          */
@@ -2407,7 +2407,7 @@ public class MVStore {
          * that any kind of store (including an off-heap store) is considered a
          * "persistence", while an "in-memory store" means objects are not
          * persisted and fully kept in the JVM heap.
-         * 
+         *
          * @param store the file store
          * @return this
          */

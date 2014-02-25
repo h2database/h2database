@@ -194,7 +194,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
         ResultSet rs = stat.executeQuery("select count from test where key = 'a'");
         rs.next();
         assertEquals(3, rs.getInt(1));
-        
+
         stat.execute("drop table test");
     }
 
@@ -206,7 +206,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
         // Insert multiple values in single insert operation
         for (int i = 0; i <= 2; ++i) {
             PreparedStatement prep = conn.prepareStatement(
-                    "insert into test(key, count) values(?, ?), (?, ?), (?, ?) " + 
+                    "insert into test(key, count) values(?, ?), (?, ?), (?, ?) " +
                     "on duplicate key update count = count + 1");
             prep.setString(1, "a");
             prep.setInt(2, 1);
@@ -222,7 +222,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
         ResultSet rs = stat.executeQuery("select count from test where key = 'a'");
         rs.next();
         assertEquals(3, rs.getInt(1));
-        
+
         stat.execute("drop table test");
     }
 

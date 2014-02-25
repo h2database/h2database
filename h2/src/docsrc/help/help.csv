@@ -1753,7 +1753,7 @@ multiple lines long.
 "Other Grammar","Compare","
 <> | <= | >= | = | < | > | != | &&
 ","
-Comparison operator. The operator != is the same as <>. 
+Comparison operator. The operator != is the same as <>.
 The operator ""&&"" means overlapping; it can only be used with geometry types.
 ","
 <>

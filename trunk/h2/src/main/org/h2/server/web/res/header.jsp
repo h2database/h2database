@@ -121,10 +121,10 @@ Initial Developer: H2 Group
                     ${text.toolbar.autoComplete}&nbsp;
                     <select name="autoComplete" size="1"
                         onchange="javascript:top.frames['h2query'].setAutoComplete(this.value)">
-                        <option value="0">
+                        <option selected="selected" value="0">
                             ${text.toolbar.autoComplete.off}
                         </option>
-                        <option selected="selected" value="1">
+                        <option value="1">
                             ${text.toolbar.autoComplete.normal}
                         </option>
                         <option value="2">

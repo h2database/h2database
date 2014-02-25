@@ -28,34 +28,35 @@ function set(s) {
 <table>
 <tr>
     <td style="padding:0px"><img src="icon_help.gif" alt="${text.a.help}"/></td>
-    <td style="vertical-align: middle;">
-        ${text.helpDisplayThis}
-    </td>
+    <td style="vertical-align: middle;"></td>
+    <td style="vertical-align: middle;">${text.helpDisplayThis}</td>
 </tr>
 <tr>
     <td style="padding:0px"><img src="icon_history.gif" alt="${text.toolbar.history}"/></td>
-    <td style="vertical-align: middle;">
-        ${text.helpCommandHistory}
-    </td>
+    <td style="vertical-align: middle;"></td>
+    <td style="vertical-align: middle;">${text.helpCommandHistory}</td>
 </tr>
 <tr>
-    <td style="padding:0px"><img src="icon_run_selected.gif" alt="${text.toolbar.run}"/></td>
-    <td style="vertical-align: middle;">
-        ${text.helpExecuteCurrent}
-    </td>
+    <td style="padding:0px"><img src="icon_run.gif" alt="${text.toolbar.run}"/></td>
+    <td style="vertical-align: middle;">${text.key.ctrl}+${text.key.enter}</td>
+    <td style="vertical-align: middle;">${text.helpExecuteCurrent}</td>
 </tr>
 <tr>
-    <td style="padding:0px"><img src="icon_run.gif" alt="${text.toolbar.runSelected}"/></td>
-    <td style="vertical-align: middle;">
-        ${text.helpExecuteSelected}
-    </td>
+    <td style="padding:0px"><img src="icon_run_selected.gif" alt="${text.toolbar.runSelected}"/></td>
+    <td style="vertical-align: middle;">${text.key.shift}+${text.key.enter}</td>
+    <td style="vertical-align: middle;">${text.helpExecuteSelected}</td>
+</tr>
+<tr>
+    <td style="padding:0px"></td>
+    <td style="vertical-align: middle;">${text.key.ctrl}+${text.key.space}</td>
+    <td style="vertical-align: middle;">${text.toolbar.autoComplete}</td>
 </tr>
 <tr>
     <td style="padding:0px"><img src="icon_disconnect.gif" alt="${text.toolbar.disconnect}"/></td>
-    <td style="vertical-align: middle;">
-        ${text.helpDisconnect}
-    </td>
+    <td style="vertical-align: middle;"></td>
+    <td style="vertical-align: middle;">${text.helpDisconnect}</td>
 </tr>
+
 </table>
 
 <h3>${text.helpSampleSQL}</h3>

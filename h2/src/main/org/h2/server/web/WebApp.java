@@ -300,6 +300,9 @@ public class WebApp {
                     String key = entry.getKey();
                     String value = entry.getValue();
                     String type = "" + key.charAt(0);
+                    if (Integer.parseInt(type) > 2) {
+                        continue;
+                    }
                     key = key.substring(2);
                     if (Character.isLetter(key.charAt(0)) && lowercase) {
                         key = StringUtils.toLowerEnglish(key);

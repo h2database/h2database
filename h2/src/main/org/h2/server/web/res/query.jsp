@@ -16,7 +16,7 @@ Initial Developer: H2 Group
 
 var agent=navigator.userAgent.toLowerCase();
 var is_opera = agent.indexOf("opera") >= 0;
-var autoComplete = 1; // 0: off, 1: normal, 2: full
+var autoComplete = 0; // 0: off, 1: normal, 2: full
 var selectedRow = -1;
 var lastList = '';
 var lastQuery = null;
@@ -212,10 +212,7 @@ function keyDown(event) {
         return false;
     } else if (key == 32 && (event.ctrlKey || event.altKey)) {
         // ctrl + space
-        autoCompleteManual = true;
-        lastQuery = null;
-        lastList = '';
-        showAutoCompleteNow();
+        manualAutoComplete();
         return false;
     } else if (key == 190 && autoComplete == 0) {
         // dot
@@ -231,16 +228,14 @@ function keyDown(event) {
             }
             showOutput('');
             return false;
-        } else if (key == 9 && !event.shiftKey) {
+        } else if ((key == 9 && !event.shiftKey) || (key == 13 && !event.shiftKey && !event.ctrlKey && !event.altKey)) {
             // tab
             if (table.rows.length > selectedRow) {
                 var row = table.rows[selectedRow];
                 if (row.cells.length>1) {
                     insertText(row.cells[1].innerHTML);
                 }
-                if (autoComplete == 0) {
-                    setAutoComplete(0);
-                }
+                removeAutoComplete();
                 return false;
             }
         } else if (key == 38 && !event.shiftKey) {
@@ -248,15 +243,22 @@ function keyDown(event) {
             if (table.rows.length > selectedRow) {
                 selectedRow = selectedRow <= 0 ? table.rows.length-1 : selectedRow-1;
                 highlightRow(selectedRow);
+                return false;
             }
-            return false;
         } else if (key == 40 && !event.shiftKey) {
             // down
             if (table.rows.length > selectedRow) {
                 selectedRow = selectedRow >= table.rows.length-1 ? 0 : selectedRow+1;
                 highlightRow(selectedRow);
+                return false;
             }
-            return false;
+        }
+        if (autoComplete == 0) {
+            // remove auto-complete if manually started
+            while (table.rows.length > 0) {
+                table.deleteRow(0);
+            }
+            showOutput('');
         }
     }
     // alert('key:' + key);
@@ -285,17 +287,28 @@ function keyUp(event) {
 
 function setAutoComplete(value) {
     autoComplete = value;
-    if (value != 1) {
+    if (value == 0) {
+        removeAutoComplete();
+    } else {
         var s = lastList;
         lastList = '';
         showList(s);
-    } else {
-        var table = getAutoCompleteTable();
-        while (table.rows.length > 0) {
-            table.deleteRow(0);
-        }
-        showOutput('');
     }
+}
+
+function manualAutoComplete() {
+    autoCompleteManual = true;
+    lastQuery = null;
+    lastList = '';
+    showAutoCompleteNow();
+}
+
+function removeAutoComplete() {
+    var table = getAutoCompleteTable();
+    while (table.rows.length > 0) {
+        table.deleteRow(0);
+    }
+    showOutput('');
 }
 
 function highlightRow(row) {
@@ -341,9 +354,6 @@ function showList(s) {
     }
     while (table.rows.length > 0) {
         table.deleteRow(0);
-    }
-    if (autoComplete==0) {
-        return;
     }
     selectedRow = 0;
     var count = 0;
@@ -482,6 +492,7 @@ function submitSelected() {
             <span style="white-space:nowrap">
                 <input type="button" class="button" value="${text.toolbar.run}" onclick="javascript:submitAll();sql.focus();return true;" />
                 <input type="button" class="button" value="${text.toolbar.runSelected}" onclick="javascript:submitSelected();sql.focus();return true;" />
+                <input type="button" class="button" value="${text.toolbar.autoComplete}" onclick="javascript:manualAutoComplete();sql.focus();return true;" />
                 <input type="button" class="button" value="${text.toolbar.clear}" onclick="javascript:sql.value='';keyUp();sql.focus();return true;" />
                 ${text.toolbar.sqlStatement}:
             </span>

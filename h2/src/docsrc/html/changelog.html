@@ -18,10 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 368: ON DUPLICATE KEY UPDATE did not work for multi-row inserts.
+<ul><li>Issue 551: the datatype documentation was incorrect (found by Bernd Eckenfels).
+</li><li>Issue 368: ON DUPLICATE KEY UPDATE did not work for multi-row inserts.
     Test case from Angus Macdonald.
 </li><li>OSGi: the package javax.tools is now imported (as an optional).
-</li><li>H2 Console: auto-complete is now triggered by the tab key.
+</li><li>H2 Console: auto-complete is now disabled by default, but there is a hot-key (Ctrl+Space).
 </li><li>H2 Console: auto-complete did not work with multi-line statements.
 </li><li>CLOB and BLOB data was not immediately removed after a rollback.
 </li><li>There is a new Aggregate API that supports the internal H2 data types

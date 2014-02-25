@@ -666,6 +666,7 @@ public class TestWeb extends TestBase {
         }
 
         @Override
+        @Deprecated
         public String getRealPath(String path) {
             return null;
         }
@@ -837,6 +838,7 @@ public class TestWeb extends TestBase {
         }
 
         @Override
+        @Deprecated
         public boolean isRequestedSessionIdFromUrl() {
             return false;
         }
@@ -970,6 +972,7 @@ public class TestWeb extends TestBase {
         }
 
         @Override
+        @Deprecated
         public String encodeRedirectUrl(String arg0) {
             return null;
         }
@@ -980,6 +983,7 @@ public class TestWeb extends TestBase {
         }
 
         @Override
+        @Deprecated
         public String encodeUrl(String arg0) {
             return null;
         }
@@ -1020,6 +1024,7 @@ public class TestWeb extends TestBase {
         }
 
         @Override
+        @Deprecated
         public void setStatus(int arg0, String arg1) {
             // ignore
         }

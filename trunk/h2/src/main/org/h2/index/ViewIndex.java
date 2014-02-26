@@ -35,7 +35,7 @@ import org.h2.value.Value;
  * This object represents a virtual index for a query.
  * Actually it only represents a prepared SELECT statement.
  */
-public class ViewIndex extends BaseIndex {
+public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     private final TableView view;
     private final String querySQL;
@@ -144,6 +144,9 @@ public class ViewIndex extends BaseIndex {
                 if ((mask & IndexCondition.EQUALITY) != 0) {
                     Parameter param = new Parameter(nextParamIndex);
                     q.addGlobalCondition(param, idx, Comparison.EQUAL_NULL_SAFE);
+                } else if ((mask & IndexCondition.SPATIAL_INTERSECTS) != 0) {
+                    Parameter param = new Parameter(nextParamIndex);
+                    q.addGlobalCondition(param, idx, Comparison.SPATIAL_INTERSECTS);
                 } else {
                     if ((mask & IndexCondition.START) != 0) {
                         Parameter param = new Parameter(nextParamIndex);
@@ -168,6 +171,15 @@ public class ViewIndex extends BaseIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
+        return find(session, first, last, null);
+    }
+    
+    @Override
+    public Cursor findByGeometry(TableFilter filter, SearchRow intersection) {
+        return find(filter.getSession(), null, null, intersection);
+    }
+
+    private Cursor find(Session session, SearchRow first, SearchRow last, SearchRow intersection) {
         if (recursive) {
             ResultInterface recResult = view.getRecursiveResult();
             if (recResult != null) {
@@ -226,6 +238,8 @@ public class ViewIndex extends BaseIndex {
             len = first.getColumnCount();
         } else if (last != null) {
             len = last.getColumnCount();
+        } else if (intersection != null) {
+            len = intersection.getColumnCount();
         } else {
             len = 0;
         }
@@ -239,9 +253,19 @@ public class ViewIndex extends BaseIndex {
                     setParameter(paramList, x, v);
                 }
             }
-            // for equality, only one parameter is used (first == last)
-            if (last != null && indexMasks[i] != IndexCondition.EQUALITY) {
-                Value v = last.getValue(i);
+            if (last != null) {
+                int mask = indexMasks[i];
+                // for equality, only one parameter is used (first == last)
+                if (mask != IndexCondition.EQUALITY) {
+                    Value v = last.getValue(i);
+                    if (v != null) {
+                        int x = idx++;
+                        setParameter(paramList, x, v);
+                    }
+                }
+            }
+            if (intersection != null) {
+                Value v = intersection.getValue(i);
                 if (v != null) {
                     int x = idx++;
                     setParameter(paramList, x, v);
@@ -292,19 +316,24 @@ public class ViewIndex extends BaseIndex {
             int idx = paramIndex.get(i);
             columnList.add(table.getColumn(idx));
             int mask = masks[idx];
-            if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
+            if ((mask & IndexCondition.EQUALITY) != 0) {
                 Parameter param = new Parameter(firstIndexParam + i);
                 q.addGlobalCondition(param, idx, Comparison.EQUAL_NULL_SAFE);
                 i++;
             }
-            if ((mask & IndexCondition.START) == IndexCondition.START) {
+            if ((mask & IndexCondition.START) != 0) {
                 Parameter param = new Parameter(firstIndexParam + i);
                 q.addGlobalCondition(param, idx, Comparison.BIGGER_EQUAL);
                 i++;
             }
-            if ((mask & IndexCondition.END) == IndexCondition.END) {
+            if ((mask & IndexCondition.END) != 0) {
                 Parameter param = new Parameter(firstIndexParam + i);
                 q.addGlobalCondition(param, idx, Comparison.SMALLER_EQUAL);
+                i++;
+            }
+            if ((mask & IndexCondition.SPATIAL_INTERSECTS) != 0) {
+                Parameter param = new Parameter(firstIndexParam + i);
+                q.addGlobalCondition(param, idx, Comparison.SPATIAL_INTERSECTS);
                 i++;
             }
         }
@@ -321,13 +350,13 @@ public class ViewIndex extends BaseIndex {
                     continue;
                 }
                 if (type == 0) {
-                    if ((mask & IndexCondition.EQUALITY) != IndexCondition.EQUALITY) {
+                    if ((mask & IndexCondition.EQUALITY) == 0) {
                         // the first columns need to be equality conditions
                         continue;
                     }
                 } else {
-                    if ((mask & IndexCondition.EQUALITY) == IndexCondition.EQUALITY) {
-                        // then only range conditions
+                    if ((mask & IndexCondition.EQUALITY) != 0) {
+                        // after that only range conditions
                         continue;
                     }
                 }

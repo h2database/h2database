@@ -81,6 +81,8 @@ public class TestSpatial extends TestBase {
         testTableFunctionGeometry();
         testHashCode();
         testAggregateWithGeometry();
+        testTableViewSpatialPredicate();
+        testValueGeometryScript();
     }
 
     private void testHashCode() {
@@ -704,4 +706,55 @@ public class TestSpatial extends TestBase {
         }
     }
 
+    private void testTableViewSpatialPredicate() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("drop table if exists test");
+            stat.execute("drop view if exists test_view");
+            stat.execute("create table test(id int primary key, poly geometry)");
+            stat.execute("insert into test values(1, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
+            stat.execute("insert into test values(2, 'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
+            stat.execute("insert into test values(3, 'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
+            stat.execute("create view test_view as select * from test");
+
+            //Check result with view
+            ResultSet rs;
+            rs = stat.executeQuery(
+                    "select * from test where poly && 'POINT (1.5 1.5)'::Geometry");
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt("id"));
+            assertFalse(rs.next());
+            
+            rs = stat.executeQuery(
+                    "select * from test_view where poly && 'POINT (1.5 1.5)'::Geometry");
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt("id"));
+            assertFalse(rs.next());
+            rs.close();
+        } finally {
+            // Close the database
+            conn.close();
+        }
+        deleteDb("spatial");
+    }
+
+    /**
+     * Check ValueGeometry conversion into SQL script
+     */
+    private void testValueGeometryScript() throws SQLException {
+        ValueGeometry valueGeometry = ValueGeometry.get("POINT(1 1 5)");
+        Connection conn = getConnection(url);
+        try {
+            ResultSet rs = conn.createStatement().executeQuery(
+                    "SELECT " + valueGeometry.getSQL());
+            assertTrue(rs.next());
+            Object obj = rs.getObject(1);
+            ValueGeometry g = ValueGeometry.getFromGeometry(obj);
+            assertTrue("got: " + g + " exp: " + valueGeometry, valueGeometry.equals(g));
+        } finally {
+            conn.close();
+        }
+    }
 }

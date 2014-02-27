@@ -20,7 +20,8 @@ public class RuleFixed implements Rule {
     public static final int ANY_UNTIL_END = 6;
     public static final int ANY_WORD = 7;
     public static final int ANY_EXCEPT_2_DOLLAR = 8;
-    public static final int HEX_START = 10, CONCAT = 11, AZ_UNDERSCORE = 12, AF = 13, DIGIT = 14;
+    public static final int HEX_START = 10, CONCAT = 11;
+    public static final int AZ_UNDERSCORE = 12, AF = 13, DIGIT = 14;
     public static final int OPEN_BRACKET = 15, CLOSE_BRACKET = 16;
 
     private final int type;

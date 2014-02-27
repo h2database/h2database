@@ -55,7 +55,8 @@ public interface Compressor {
      * @param outPos the offset at the output array
      * @param outLen the size of the uncompressed data
      */
-    void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos, int outLen);
+    void expand(byte[] in, int inPos, int inLen, byte[] out, int outPos,
+            int outLen);
 
     /**
      * Set the compression options. This may include settings for

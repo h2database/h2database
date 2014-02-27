@@ -250,7 +250,8 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public ArrayList<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
+    public ArrayList<Session> checkDeadlock(Session session, Session clash,
+            Set<Session> visited) {
         // only one deadlock check at any given time
         synchronized (RegularTable.class) {
             if (clash == null) {
@@ -370,7 +371,9 @@ public class MVTable extends TableBase {
             for (IndexColumn c : cols) {
                 Column column = c.column;
                 if (column.isNullable()) {
-                    throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+                    throw DbException.get(
+                            ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1,
+                            column.getName());
                 }
                 column.setPrimaryKey(true);
             }
@@ -493,7 +496,8 @@ public class MVTable extends TableBase {
             addRowsToIndex(session, buffer, index);
         }
         if (SysProperties.CHECK && remaining != 0) {
-            DbException.throwInternalError("rowcount remaining=" + remaining + " " + getName());
+            DbException.throwInternalError("rowcount remaining=" + remaining
+                    + " " + getName());
         }
     }
 
@@ -519,7 +523,8 @@ public class MVTable extends TableBase {
         }
         addRowsToIndex(session, buffer, index);
         if (SysProperties.CHECK && remaining != 0) {
-            DbException.throwInternalError("rowcount remaining=" + remaining + " " + getName());
+            DbException.throwInternalError("rowcount remaining=" + remaining
+                    + " " + getName());
         }
     }
 
@@ -546,7 +551,8 @@ public class MVTable extends TableBase {
         return first.column.getColumnId();
     }
 
-    private static void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
+    private static void addRowsToIndex(Session session, ArrayList<Row> list,
+            Index index) {
         sortRows(list, index);
         for (Row row : list) {
             index.add(session, row);

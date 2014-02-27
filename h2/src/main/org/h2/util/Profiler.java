@@ -30,7 +30,8 @@ import java.util.Map;
 public class Profiler implements Runnable {
 
     private static Instrumentation instrumentation;
-    private static final String LINE_SEPARATOR = System.getProperty("line.separator", "\n");
+    private static final String LINE_SEPARATOR = 
+            System.getProperty("line.separator", "\n");
     private static final int MAX_ELEMENTS = 1000;
 
     public int interval = 2;
@@ -72,13 +73,15 @@ public class Profiler implements Runnable {
             ).split(",");
 
     private volatile boolean stop;
-    private final HashMap<String, Integer> counts = new HashMap<String, Integer>();
+    private final HashMap<String, Integer> counts = 
+            new HashMap<String, Integer>();
 
     /**
      * The summary (usually one entry per package, unless sumClasses is enabled,
      * in which case it's one entry per class).
      */
-    private final HashMap<String, Integer> summary = new HashMap<String, Integer>();
+    private final HashMap<String, Integer> summary = 
+            new HashMap<String, Integer>();
     private int minCount = 1;
     private int total;
     private Thread thread;
@@ -119,7 +122,8 @@ public class Profiler implements Runnable {
     private void run(String... args) {
         if (args.length == 0) {
             System.out.println("Show profiling data");
-            System.out.println("Usage: java " + getClass().getName() + " <pid> | <stackTraceFileNames>");
+            System.out.println("Usage: java " + getClass().getName() + 
+                    " <pid> | <stackTraceFileNames>");
             System.out.println("Processes:");
             String processes = exec("jps", "-l");
             System.out.println(processes);
@@ -143,7 +147,8 @@ public class Profiler implements Runnable {
             for (String file : args) {
                 Reader reader;
                 LineNumberReader r;
-                reader = new InputStreamReader(new FileInputStream(file), "CP1252");
+                reader = new InputStreamReader(
+                        new FileInputStream(file), "CP1252");
                 r = new LineNumberReader(reader);
                 while (true) {
                     String line = r.readLine();
@@ -154,7 +159,8 @@ public class Profiler implements Runnable {
                     }
                 }
                 reader.close();
-                reader = new InputStreamReader(new FileInputStream(file), "CP1252");
+                reader = new InputStreamReader(
+                        new FileInputStream(file), "CP1252");
                 r = new LineNumberReader(reader);
                 processList(readStackTrace(r));
                 reader.close();
@@ -185,14 +191,16 @@ public class Profiler implements Runnable {
     private static List<Object[]> readRunnableStackTraces(int pid) {
         try {
             String jstack = exec("jstack", "" + pid);
-            LineNumberReader r = new LineNumberReader(new StringReader(jstack));
+            LineNumberReader r = new LineNumberReader(
+                    new StringReader(jstack));
             return readStackTrace(r);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static List<Object[]> readStackTrace(LineNumberReader r) throws IOException {
+    private static List<Object[]> readStackTrace(LineNumberReader r)
+            throws IOException {
         ArrayList<Object[]> list = new ArrayList<Object[]>();
         while (true) {
             String line = r.readLine();
@@ -254,7 +262,8 @@ public class Profiler implements Runnable {
         }
     }
 
-    private static void copyInThread(final InputStream in, final OutputStream out) {
+    private static void copyInThread(final InputStream in,
+            final OutputStream out) {
         new Thread("Profiler stream copy") {
             @Override
             public void run() {
@@ -391,7 +400,8 @@ public class Profiler implements Runnable {
         return false;
     }
 
-    private static int increment(HashMap<String, Integer> map, String trace, int minCount) {
+    private static int increment(HashMap<String, Integer> map, String trace,
+            int minCount) {
         Integer oldCount = map.get(trace);
         if (oldCount == null) {
             map.put(trace, 1);
@@ -399,7 +409,8 @@ public class Profiler implements Runnable {
             map.put(trace, oldCount + 1);
         }
         while (map.size() > MAX_ELEMENTS) {
-            for (Iterator<Map.Entry<String, Integer>> ei = map.entrySet().iterator(); ei.hasNext();) {
+            for (Iterator<Map.Entry<String, Integer>> ei = 
+                    map.entrySet().iterator(); ei.hasNext();) {
                 Map.Entry<String, Integer> e = ei.next();
                 if (e.getValue() <= minCount) {
                     ei.remove();
@@ -445,7 +456,8 @@ public class Profiler implements Runnable {
         return buff.toString();
     }
 
-    private static void appendTop(StringBuilder buff, HashMap<String, Integer> map, int count, int total, boolean table) {
+    private static void appendTop(StringBuilder buff,
+            HashMap<String, Integer> map, int count, int total, boolean table) {
         for (int x = 0, min = 0;;) {
             int highest = 0;
             Map.Entry<String, Integer> best = null;

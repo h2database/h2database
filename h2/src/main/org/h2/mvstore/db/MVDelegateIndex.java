@@ -31,7 +31,8 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     public MVDelegateIndex(MVTable table, int id, String name,
             MVPrimaryIndex mainIndex,
             IndexType indexType) {
-        IndexColumn[] cols = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
+        IndexColumn[] cols = IndexColumn.wrap(new Column[] { table
+                .getColumn(mainIndex.getMainIndexColumn()) });
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
         if (id < 0) {
@@ -66,10 +67,12 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        ValueLong min = mainIndex.getKey(first, MVPrimaryIndex.MIN, MVPrimaryIndex.MIN);
+        ValueLong min = mainIndex.getKey(first, 
+                MVPrimaryIndex.MIN, MVPrimaryIndex.MIN);
         // ifNull is MIN_VALUE as well, because the column is never NULL
         // so avoid returning all rows (returning one row is OK)
-        ValueLong max = mainIndex.getKey(last, MVPrimaryIndex.MAX, MVPrimaryIndex.MIN);
+        ValueLong max = mainIndex.getKey(last, 
+                MVPrimaryIndex.MAX, MVPrimaryIndex.MIN);
         return mainIndex.find(session, min, max);
     }
 
@@ -87,8 +90,10 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
-        return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(), filter, sortOrder);
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
+        return 10 * getCostRangeIndex(masks,
+                mainIndex.getRowCountApproximation(), filter, sortOrder);
     }
 
     @Override

@@ -26,7 +26,8 @@ public class SecureFileStore extends FileStore {
     private final byte[] bufferForInitVector;
     private final int keyIterations;
 
-    public SecureFileStore(DataHandler handler, String name, String mode, String cipher, byte[] key, int keyIterations) {
+    public SecureFileStore(DataHandler handler, String name, String mode,
+            String cipher, byte[] key, int keyIterations) {
         super(handler, name, mode);
         this.key = key;
         this.cipher = CipherFactory.getBlockCipher(cipher);

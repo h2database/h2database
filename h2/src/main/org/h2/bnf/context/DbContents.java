@@ -118,7 +118,8 @@ public class DbContents {
      * @param url the database URL
      * @param conn the connection
      */
-    public synchronized void readContents(String url, Connection conn) throws SQLException {
+    public synchronized void readContents(String url, Connection conn)
+            throws SQLException {
         isH2 = url.startsWith("jdbc:h2:");
         if (isH2) {
             PreparedStatement prep = conn.prepareStatement(
@@ -147,14 +148,15 @@ public class DbContents {
         schemas = new DbSchema[schemaNames.length];
         for (int i = 0; i < schemaNames.length; i++) {
             String schemaName = schemaNames[i];
-            boolean isDefault = defaultSchemaName == null || defaultSchemaName.equals(schemaName);
+            boolean isDefault = defaultSchemaName == null || 
+                    defaultSchemaName.equals(schemaName);
             DbSchema schema = new DbSchema(this, schemaName, isDefault);
             if (isDefault) {
                 defaultSchema = schema;
             }
             schemas[i] = schema;
-            String[] tableTypes = { "TABLE", "SYSTEM TABLE", "VIEW", "SYSTEM VIEW",
-                    "TABLE LINK", "SYNONYM", "EXTERNAL" };
+            String[] tableTypes = { "TABLE", "SYSTEM TABLE", "VIEW",
+                    "SYSTEM VIEW", "TABLE LINK", "SYNONYM", "EXTERNAL" };
             schema.readTables(meta, tableTypes);
             if (!isPostgreSQL) {
                 schema.readProcedures(meta);
@@ -168,7 +170,9 @@ public class DbContents {
                     defaultSchema = schema;
                     break;
                 }
-                if (defaultSchema == null || best == null || schema.name.length() < best.length()) {
+                if (defaultSchema == null || 
+                        best == null || 
+                        schema.name.length() < best.length()) {
                     best = schema.name;
                     defaultSchema = schema;
                 }

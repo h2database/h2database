@@ -161,12 +161,17 @@ public class MathUtils {
             // host name and ip addresses (if any)
             try {
                 // workaround for the Google App Engine: don't use InetAddress
-                Class<?> inetAddressClass = Class.forName("java.net.InetAddress");
-                Object localHost = inetAddressClass.getMethod("getLocalHost").invoke(null);
-                String hostName = inetAddressClass.getMethod("getHostName").invoke(localHost).toString();
+                Class<?> inetAddressClass = Class.forName(
+                        "java.net.InetAddress");
+                Object localHost = inetAddressClass.getMethod(
+                        "getLocalHost").invoke(null);
+                String hostName = inetAddressClass.getMethod(
+                        "getHostName").invoke(localHost).toString();
                 out.writeUTF(hostName);
-                Object[] list = (Object[]) inetAddressClass.getMethod("getAllByName", String.class).invoke(null, hostName);
-                Method getAddress = inetAddressClass.getMethod("getAddress");
+                Object[] list = (Object[]) inetAddressClass.getMethod(
+                        "getAllByName", String.class).invoke(null, hostName);
+                Method getAddress = inetAddressClass.getMethod(
+                        "getAddress");
                 for (Object o : list) {
                     out.write((byte[]) getAddress.invoke(o));
                 }

@@ -76,7 +76,8 @@ public class ValueDataType implements DataType {
     final int[] sortTypes;
     final SpatialDataType spatialType = new SpatialDataType(2);
 
-    public ValueDataType(CompareMode compareMode, DataHandler handler, int[] sortTypes) {
+    public ValueDataType(CompareMode compareMode, DataHandler handler,
+            int[] sortTypes) {
         this.compareMode = compareMode;
         this.handler = handler;
         this.sortTypes = sortTypes;
@@ -182,7 +183,8 @@ public class ValueDataType implements DataType {
         int type = v.getType();
         switch (type) {
         case Value.BOOLEAN:
-            buff.put((byte) (v.getBoolean().booleanValue() ? BOOLEAN_TRUE : BOOLEAN_FALSE));
+            buff.put((byte) (v.getBoolean().booleanValue() ? 
+                    BOOLEAN_TRUE : BOOLEAN_FALSE));
             break;
         case Value.BYTE:
             buff.put((byte) type).put(v.getByte());
@@ -444,10 +446,12 @@ public class ValueDataType implements DataType {
         case DECIMAL_0_1 + 1:
             return ValueDecimal.ONE;
         case DECIMAL_SMALL_0:
-            return ValueDecimal.get(BigDecimal.valueOf(readVarLong(buff)));
+            return ValueDecimal.get(BigDecimal.valueOf(
+                    readVarLong(buff)));
         case DECIMAL_SMALL: {
             int scale = readVarInt(buff);
-            return ValueDecimal.get(BigDecimal.valueOf(readVarLong(buff), scale));
+            return ValueDecimal.get(BigDecimal.valueOf(
+                    readVarLong(buff), scale));
         }
         case Value.DECIMAL: {
             int scale = readVarInt(buff);
@@ -498,9 +502,11 @@ public class ValueDataType implements DataType {
         case DOUBLE_0_1 + 1:
             return ValueDouble.get(1);
         case Value.DOUBLE:
-            return ValueDouble.get(Double.longBitsToDouble(Long.reverse(readVarLong(buff))));
+            return ValueDouble.get(Double.longBitsToDouble(
+                    Long.reverse(readVarLong(buff))));
         case Value.FLOAT:
-            return ValueFloat.get(Float.intBitsToFloat(Integer.reverse(readVarInt(buff))));
+            return ValueFloat.get(Float.intBitsToFloat(
+                    Integer.reverse(readVarInt(buff))));
         case Value.BLOB:
         case Value.CLOB: {
             int smallLen = readVarInt(buff);
@@ -512,10 +518,12 @@ public class ValueDataType implements DataType {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);
                 long precision = readVarLong(buff);
-                ValueLobDb lob = ValueLobDb.create(type, handler, tableId, lobId, null, precision);
+                ValueLobDb lob = ValueLobDb.create(type, 
+                        handler, tableId, lobId, null, precision);
                 return lob;
             } else {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "lob type: " + smallLen);
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, 
+                        "lob type: " + smallLen);
             }
         }
         case Value.ARRAY: {
@@ -530,7 +538,10 @@ public class ValueDataType implements DataType {
             SimpleResultSet rs = new SimpleResultSet();
             int columns = readVarInt(buff);
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(buff), readVarInt(buff), readVarInt(buff), readVarInt(buff));
+                rs.addColumn(readString(buff), 
+                        readVarInt(buff), 
+                        readVarInt(buff), 
+                        readVarInt(buff));
             }
             while (true) {
                 if (buff.get() == 0) {

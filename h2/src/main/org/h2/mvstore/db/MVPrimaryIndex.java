@@ -60,21 +60,20 @@ public class MVPrimaryIndex extends BaseIndex {
     private long lastKey;
     private int mainIndexColumn = -1;
 
-    public MVPrimaryIndex(Database db, MVTable table, int id, IndexColumn[] columns,
-                IndexType indexType) {
+    public MVPrimaryIndex(Database db, MVTable table, int id,
+            IndexColumn[] columns, IndexType indexType) {
         this.mvTable = table;
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
         int[] sortTypes = new int[columns.length];
         for (int i = 0; i < columns.length; i++) {
             sortTypes[i] = SortOrder.ASCENDING;
         }
-        ValueDataType keyType = new ValueDataType(
-                null, null, null);
-        ValueDataType valueType = new ValueDataType(
-                db.getCompareMode(), db, sortTypes);
+        ValueDataType keyType = new ValueDataType(null, null, null);
+        ValueDataType valueType = new ValueDataType(db.getCompareMode(), db,
+                sortTypes);
         mapName = "table." + getId();
-        dataMap = mvTable.getTransaction(null).openMap(
-                mapName, keyType, valueType);
+        dataMap = mvTable.getTransaction(null).openMap(mapName, keyType,
+                valueType);
         Value k = dataMap.lastKey();
         lastKey = k == null ? 0 : k.getLong();
     }
@@ -132,7 +131,7 @@ public class MVPrimaryIndex extends BaseIndex {
         if (old != null) {
             String sql = "PRIMARY KEY ON " + table.getSQL();
             if (mainIndexColumn >= 0 && mainIndexColumn < indexColumns.length) {
-                sql +=  "(" + indexColumns[mainIndexColumn].getSQL() + ")";
+                sql += "(" + indexColumns[mainIndexColumn].getSQL() + ")";
             }
             DbException e = DbException.get(ErrorCode.DUPLICATE_KEY_1, sql);
             e.setSource(this);
@@ -141,7 +140,8 @@ public class MVPrimaryIndex extends BaseIndex {
         try {
             map.put(key, ValueArray.get(row.getValueList()));
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
+                    table.getName());
         }
         lastKey = Math.max(lastKey, row.getKey());
     }
@@ -164,7 +164,8 @@ public class MVPrimaryIndex extends BaseIndex {
                         getSQL() + ": " + row.getKey());
             }
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
+                    table.getName());
         }
     }
 
@@ -192,8 +193,7 @@ public class MVPrimaryIndex extends BaseIndex {
             }
         }
         TransactionMap<Value, Value> map = getMap(session);
-        return new MVStoreCursor(map.entryIterator(
-                min), max);
+        return new MVStoreCursor(map.entryIterator(min), max);
     }
 
     @Override
@@ -212,7 +212,8 @@ public class MVPrimaryIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
         try {
             long cost = 10 * (dataMap.sizeAsLongMax() + Constants.COST_ROW_OFFSET);
             return cost;
@@ -226,7 +227,6 @@ public class MVPrimaryIndex extends BaseIndex {
         // can not use this index - use the delegate index instead
         return -1;
     }
-
 
     @Override
     public void remove(Session session) {
@@ -256,7 +256,8 @@ public class MVPrimaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         ValueLong v = (ValueLong) (first ? map.firstKey() : map.lastKey());
         if (v == null) {
-            return new MVStoreCursor(Collections.<Entry<Value, Value>>emptyList().iterator(), null);
+            return new MVStoreCursor(Collections
+                    .<Entry<Value, Value>> emptyList().iterator(), null);
         }
         Value value = map.get(v);
         Entry<Value, Value> e = new DataUtils.MapEntry<Value, Value>(v, value);
@@ -280,7 +281,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * The maximum number of rows, including uncommitted rows of any session.
-     *
+     * 
      * @return the maximum number of rows
      */
     public long getRowCountMax() {
@@ -313,7 +314,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * Get the key from the row.
-     *
+     * 
      * @param row the row
      * @param ifEmpty the value to use if the row is empty
      * @param ifNull the value to use if the column is NULL
@@ -334,7 +335,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * Search for a specific row or a set of rows.
-     *
+     * 
      * @param session the session
      * @param first the key of the first row
      * @param last the key of the last row
@@ -352,7 +353,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * Get the map to store the data.
-     *
+     * 
      * @param session the session
      * @return the map
      */

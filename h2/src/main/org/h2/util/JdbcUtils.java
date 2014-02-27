@@ -126,7 +126,8 @@ public class JdbcUtils {
      * @param prop the properties containing at least the user name and password
      * @return the database connection
      */
-    public static Connection getConnection(String driver, String url, Properties prop) throws SQLException {
+    public static Connection getConnection(String driver, String url,
+            Properties prop) throws SQLException {
         if (StringUtils.isNullOrEmpty(driver)) {
             JdbcUtils.load(url);
         } else {

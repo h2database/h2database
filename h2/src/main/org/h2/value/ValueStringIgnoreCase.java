@@ -14,7 +14,8 @@ import org.h2.util.StringUtils;
  */
 public class ValueStringIgnoreCase extends ValueString {
 
-    private static final ValueStringIgnoreCase EMPTY = new ValueStringIgnoreCase("");
+    private static final ValueStringIgnoreCase EMPTY = 
+            new ValueStringIgnoreCase("");
     private int hash;
 
     protected ValueStringIgnoreCase(String value) {
@@ -34,7 +35,8 @@ public class ValueStringIgnoreCase extends ValueString {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueString && value.equalsIgnoreCase(((ValueString) other).value);
+        return other instanceof ValueString
+                && value.equalsIgnoreCase(((ValueString) other).value);
     }
 
     @Override

@@ -122,7 +122,8 @@ public class ValueBytes extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         prep.setBytes(parameterIndex, value);
     }
 
@@ -138,7 +139,8 @@ public class ValueBytes extends Value {
 
     @Override
     public boolean equals(Object other) {
-        return other instanceof ValueBytes && Arrays.equals(value, ((ValueBytes) other).value);
+        return other instanceof ValueBytes
+                && Arrays.equals(value, ((ValueBytes) other).value);
     }
 
     @Override

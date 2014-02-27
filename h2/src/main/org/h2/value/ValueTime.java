@@ -133,7 +133,8 @@ public class ValueTime extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         prep.setTime(parameterIndex, getTime());
     }
 
@@ -176,7 +177,8 @@ public class ValueTime extends Value {
      * @param nanos the time in nanoseconds
      * @param alwaysAddMillis whether to always add at least ".0"
      */
-    static void appendTime(StringBuilder buff, long nanos, boolean alwaysAddMillis) {
+    static void appendTime(StringBuilder buff, long nanos,
+            boolean alwaysAddMillis) {
         if (nanos < 0) {
             buff.append('-');
             nanos = -nanos;

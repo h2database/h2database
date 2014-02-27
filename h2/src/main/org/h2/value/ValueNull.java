@@ -158,7 +158,8 @@ public class ValueNull extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         prep.setNull(parameterIndex, DataType.convertTypeToSQLType(Value.NULL));
     }
 

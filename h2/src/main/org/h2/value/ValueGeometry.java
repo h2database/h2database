@@ -135,7 +135,8 @@ public class ValueGeometry extends Value {
      */
     public boolean intersectsBoundingBox(ValueGeometry r) {
         // the Geometry object caches the envelope
-        return getGeometry().getEnvelopeInternal().intersects(r.getGeometry().getEnvelopeInternal());
+        return getGeometry().getEnvelopeInternal().intersects(
+                r.getGeometry().getEnvelopeInternal());
     }
 
     /**
@@ -178,9 +179,9 @@ public class ValueGeometry extends Value {
 
     @Override
     public String getSQL() {
-        // WKT does not hold Z or SRID with JTS 1.13
-        // As getSQL is used to export database, it should contains all object attributes
-        // Moreover using bytes is faster than converting WKB to Geometry then to WKT.
+        // WKT does not hold Z or SRID with JTS 1.13. As getSQL is used to
+        // export database, it should contains all object attributes. Moreover
+        // using bytes is faster than converting WKB to Geometry then to WKT.
         return "X'" + StringUtils.convertBytesToHex(getBytesNoCopy()) + "'::Geometry";
     }
 
@@ -221,7 +222,8 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         prep.setObject(parameterIndex, getGeometry());
     }
 
@@ -239,7 +241,8 @@ public class ValueGeometry extends Value {
     public boolean equals(Object other) {
         // The JTS library only does half-way support for 3D coordinates, so
         // their equals method only checks the first two coordinates.
-        return other instanceof ValueGeometry && Arrays.equals(getWKB(), ((ValueGeometry) other).getWKB());
+        return other instanceof ValueGeometry && 
+                Arrays.equals(getWKB(), ((ValueGeometry) other).getWKB());
     }
 
     /**

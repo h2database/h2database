@@ -114,7 +114,8 @@ public class DbSettings extends SettingsBase {
      * The estimated number of rows in a function table (for example, CSVREAD or
      * FTL_SEARCH). This value is used by the optimizer.
      */
-    public final int estimatedFunctionTableRows = get("ESTIMATED_FUNCTION_TABLE_ROWS", 1000);
+    public final int estimatedFunctionTableRows = get(
+            "ESTIMATED_FUNCTION_TABLE_ROWS", 1000);
 
     /**
      * Database setting <code>FUNCTIONS_IN_SCHEMA</code> (default:
@@ -130,7 +131,8 @@ public class DbSettings extends SettingsBase {
      * Buffer size for large result sets. Set this value to 0 to disable the
      * buffer.
      */
-    public final int largeResultBufferSize = get("LARGE_RESULT_BUFFER_SIZE", 4 * 1024);
+    public final int largeResultBufferSize = get("LARGE_RESULT_BUFFER_SIZE",
+            4 * 1024);
 
     /**
      * Database setting <code>LARGE_TRANSACTIONS</code> (default: true).<br />
@@ -143,7 +145,8 @@ public class DbSettings extends SettingsBase {
      * (default: Integer.MAX_VALUE).<br />
      * The maximum number of pages to move when closing a database.
      */
-    public final int maxCompactCount = get("MAX_COMPACT_COUNT", Integer.MAX_VALUE);
+    public final int maxCompactCount = get("MAX_COMPACT_COUNT",
+            Integer.MAX_VALUE);
 
     /**
      * Database setting <code>MAX_COMPACT_TIME</code> (default: 200).<br />
@@ -158,7 +161,8 @@ public class DbSettings extends SettingsBase {
      * more than this number of rows are in a result set, a temporary table is
      * used.
      */
-    public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT", 10000);
+    public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT",
+            10000);
 
     /**
      * Database setting <code>MAX_QUERY_TIMEOUT</code> (default: 0).<br />
@@ -193,7 +197,8 @@ public class DbSettings extends SettingsBase {
      * true).<br />
      * Optimize subqueries that are not dependent on the outer query.
      */
-    public final boolean optimizeEvaluatableSubqueries = get("OPTIMIZE_EVALUATABLE_SUBQUERIES", true);
+    public final boolean optimizeEvaluatableSubqueries = get(
+            "OPTIMIZE_EVALUATABLE_SUBQUERIES", true);
 
     /**
      * Database setting <code>OPTIMIZE_INSERT_FROM_SELECT</code>
@@ -201,7 +206,8 @@ public class DbSettings extends SettingsBase {
      * Insert into table from query directly bypassing temporary disk storage.
      * This also applies to create table as select.
      */
-    public final boolean optimizeInsertFromSelect = get("OPTIMIZE_INSERT_FROM_SELECT", true);
+    public final boolean optimizeInsertFromSelect = get(
+            "OPTIMIZE_INSERT_FROM_SELECT", true);
 
     /**
      * Database setting <code>OPTIMIZE_IN_LIST</code> (default: true).<br />
@@ -248,14 +254,16 @@ public class DbSettings extends SettingsBase {
      * (default: 128 * 1024).<br />
      * The maximum number of pages the file grows at any time.
      */
-    public final int pageStoreMaxGrowth = get("PAGE_STORE_MAX_GROWTH", 128 * 1024);
+    public final int pageStoreMaxGrowth = get("PAGE_STORE_MAX_GROWTH",
+            128 * 1024);
 
     /**
      * Database setting <code>PAGE_STORE_INTERNAL_COUNT</code>
      * (default: false).<br />
      * Update the row counts on a node level.
      */
-    public final boolean pageStoreInternalCount = get("PAGE_STORE_INTERNAL_COUNT", false);
+    public final boolean pageStoreInternalCount = get(
+            "PAGE_STORE_INTERNAL_COUNT", false);
 
     /**
      * Database setting <code>PAGE_STORE_TRIM</code> (default: true).<br />
@@ -312,7 +320,8 @@ public class DbSettings extends SettingsBase {
      * database should be used for all linked tables that connect to the same
      * database.
      */
-    public final boolean shareLinkedConnections = get("SHARE_LINKED_CONNECTIONS", true);
+    public final boolean shareLinkedConnections = get(
+            "SHARE_LINKED_CONNECTIONS", true);
 
     /**
      * Database setting <code>DEFAULT_TABLE_ENGINE</code>

@@ -279,7 +279,8 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 }
             }
         }
-        throw DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL, "Not found: {0}", key);
+        throw DataUtils.newIllegalStateException(DataUtils.ERROR_INTERNAL,
+                "Not found: {0}", key);
     }
 
     private void add(Page p, long writeVersion, Object key, Object value) {

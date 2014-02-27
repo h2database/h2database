@@ -19,7 +19,8 @@ public class TestObjectDeserialization extends TestBase {
 
     private static final String CLAZZ = "org.h2.test.unit.SampleObject";
     private static final String OBJECT =
-        "aced00057372001d6f72672e68322e746573742e756e69742e53616d706c654f626a65637400000000000000010200007870";
+        "aced00057372001d6f72672e68322e746573742e756" + 
+        "e69742e53616d706c654f626a65637400000000000000010200007870";
 
     /**
      * The thread context class loader was used.
@@ -63,7 +64,8 @@ public class TestObjectDeserialization extends TestBase {
         }
 
         @Override
-        protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        protected synchronized Class<?> loadClass(String name, boolean resolve)
+                throws ClassNotFoundException {
             if (name.equals(CLAZZ)) {
                 usesThreadContextClassLoader = true;
             }

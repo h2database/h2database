@@ -22,7 +22,8 @@ import org.h2.tools.Restore;
  */
 public class TestPageStoreCoverage extends TestBase {
 
-    private static final String URL = "pageStoreCoverage;PAGE_SIZE=64;CACHE_SIZE=16;MAX_LOG_SIZE=1";
+    private static final String URL = "pageStoreCoverage;" + 
+            "PAGE_SIZE=64;CACHE_SIZE=16;MAX_LOG_SIZE=1";
 
     /**
      * Run just this test.
@@ -56,9 +57,11 @@ public class TestPageStoreCoverage extends TestBase {
 
         conn = getConnection(URL);
         Statement stat = conn.createStatement();
-        stat.execute("create memory table test(id int primary key) as select x from system_range(1, 20)");
+        stat.execute("create memory table test(id int primary key) " + 
+                "as select x from system_range(1, 20)");
         for (int i = 0; i < 10; i++) {
-            stat.execute("create memory table test" + i + "(id int primary key) as select x from system_range(1, 2)");
+            stat.execute("create memory table test" + i + 
+                    "(id int primary key) as select x from system_range(1, 2)");
         }
         stat.execute("drop table test");
         conn.close();
@@ -70,9 +73,11 @@ public class TestPageStoreCoverage extends TestBase {
 
         conn = getConnection(URL);
         stat = conn.createStatement();
-        stat.execute("create table test(id int primary key) as select x from system_range(1, 100)");
+        stat.execute("create table test(id int primary key) " + 
+                "as select x from system_range(1, 100)");
         for (int i = 0; i < 10; i++) {
-            stat.execute("create table test" + i + "(id int primary key) as select x from system_range(1, 2)");
+            stat.execute("create table test" + i + "(id int primary key) " + 
+                    "as select x from system_range(1, 2)");
         }
         stat.execute("drop table test");
         conn.close();
@@ -202,14 +207,18 @@ public class TestPageStoreCoverage extends TestBase {
         Connection conn;
         conn = getConnection(URL);
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name varchar)");
-        stat.execute("create index idx_name on test(name, id)");
-        stat.execute("insert into test select x, x || space(200 * x) from system_range(1, 10)");
+        stat.execute(
+                "create table test(id int primary key, name varchar)");
+        stat.execute(
+                "create index idx_name on test(name, id)");
+        stat.execute(
+                "insert into test select x, x || space(200 * x) from system_range(1, 10)");
         conn.setAutoCommit(false);
         stat.execute("delete from test where id > 5");
         stat.execute("backup to '" + getBaseDir() + "/backup.zip'");
         conn.rollback();
-        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "pageStore2");
+        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(),
+                "pageStore2");
         Connection conn2;
         conn2 = getConnection("pageStore2");
         Statement stat2 = conn2.createStatement();

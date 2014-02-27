@@ -179,8 +179,11 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testSplit() {
-        assertEquals(3, StringUtils.arraySplit("ABC,DEF,G\\,HI", ',', false).length);
-        assertEquals(StringUtils.arrayCombine(new String[] { "", " ", "," }, ','), ", ,\\,");
+        assertEquals(3,
+                StringUtils.arraySplit("ABC,DEF,G\\,HI", ',', false).length);
+        assertEquals(
+                StringUtils.arrayCombine(new String[] { "", " ", "," }, ','),
+                ", ,\\,");
         Random random = new Random(1);
         for (int i = 0; i < 100; i++) {
             int len = random.nextInt(10);

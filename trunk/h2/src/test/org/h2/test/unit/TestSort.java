@@ -94,7 +94,8 @@ public class TestSort extends TestBase {
 
         // long t = System.currentTimeMillis();
 
-        clazz.getMethod("sort", Object[].class, Comparator.class).invoke(null, array, comp);
+        clazz.getMethod("sort", Object[].class, Comparator.class).invoke(null,
+                array, comp);
 
         // System.out.printf(
         //    "%4d ms; %10d comparisons order: %s data: %s\n",

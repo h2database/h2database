@@ -62,7 +62,8 @@ public class TestValue extends TestBase {
         Value v;
         String spaces = new String(new char[100]).replace((char) 0, ' ');
 
-        v = ValueArray.get(new Value[]{ValueString.get("hello"), ValueString.get("world")});
+        v = ValueArray.get(new Value[] { ValueString.get("hello"),
+                ValueString.get("world") });
         assertEquals(10, v.getPrecision());
         assertEquals(5, v.convertPrecision(5, true).getPrecision());
         v = ValueArray.get(new Value[]{ValueString.get(""), ValueString.get("")});
@@ -79,10 +80,12 @@ public class TestValue extends TestBase {
         final Value vd = ValueDecimal.get(new BigDecimal("1234567890.123456789"));
         assertEquals(19, vd.getPrecision());
         assertEquals("1234567890.1234567", vd.convertPrecision(10, true).getString());
-        new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) { @Override
-        public void test() {
-            vd.convertPrecision(10, false);
-        }};
+        new AssertThrows(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1) {
+            @Override
+            public void test() {
+                vd.convertPrecision(10, false);
+            }
+        };
 
         v = ValueLobDb.createSmallLob(Value.CLOB, spaces.getBytes(), 100);
         assertEquals(100, v.getPrecision());
@@ -200,7 +203,8 @@ public class TestValue extends TestBase {
         };
         Value[] values = new Value[d.length];
         for (int i = 0; i < d.length; i++) {
-            Value v = useFloat ? (Value) ValueFloat.get((float) d[i]) : (Value) ValueDouble.get(d[i]);
+            Value v = useFloat ? (Value) ValueFloat.get((float) d[i])
+                    : (Value) ValueDouble.get(d[i]);
             values[i] = v;
             assertTrue(values[i].compareTypeSave(values[i], null) == 0);
             assertTrue(v.equals(v));

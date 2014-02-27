@@ -56,8 +56,10 @@ public class TestMathUtils extends TestBase {
 
     private void testReverse() {
         assertEquals(Integer.reverse(0), Integer.reverse(0));
-        assertEquals(Integer.reverse(Integer.MAX_VALUE), Integer.reverse(Integer.MAX_VALUE));
-        assertEquals(Integer.reverse(Integer.MIN_VALUE), Integer.reverse(Integer.MIN_VALUE));
+        assertEquals(Integer.reverse(Integer.MAX_VALUE),
+                Integer.reverse(Integer.MAX_VALUE));
+        assertEquals(Integer.reverse(Integer.MIN_VALUE),
+                Integer.reverse(Integer.MIN_VALUE));
         assertEquals(Long.reverse(0), Long.reverse(0L));
         assertEquals(Long.reverse(Long.MAX_VALUE), Long.reverse(Long.MAX_VALUE));
         assertEquals(Long.reverse(Long.MIN_VALUE), Long.reverse(Long.MIN_VALUE));

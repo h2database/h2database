@@ -30,7 +30,8 @@ public class Engine implements SessionFactory {
     private static final Engine INSTANCE = new Engine();
     private static final HashMap<String, Database> DATABASES = New.hashMap();
 
-    private volatile long wrongPasswordDelay = SysProperties.DELAY_WRONG_PASSWORD_MIN;
+    private volatile long wrongPasswordDelay = 
+            SysProperties.DELAY_WRONG_PASSWORD_MIN;
     private boolean jmx;
 
     public static Engine getInstance() {
@@ -58,7 +59,8 @@ public class Engine implements SessionFactory {
             if (database.getAllUsers().size() == 0) {
                 // users is the last thing we add, so if no user is around,
                 // the database is new (or not initialized correctly)
-                user = new User(database, database.allocateObjectId(), ci.getUserName(), false);
+                user = new User(database, database.allocateObjectId(), 
+                        ci.getUserName(), false);
                 user.setAdmin(true);
                 user.setUserPasswordHash(ci.getUserPasswordHash());
                 database.setMasterUser(user);
@@ -100,7 +102,8 @@ public class Engine implements SessionFactory {
             Session session = database.createSession(user);
             if (ci.getProperty("JMX", false)) {
                 try {
-                    Utils.callStaticMethod("org.h2.jmx.DatabaseInfo.registerMBean", ci, database);
+                    Utils.callStaticMethod(
+                            "org.h2.jmx.DatabaseInfo.registerMBean", ci, database);
                 } catch (Exception e) {
                     database.removeSession(session);
                     throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
@@ -152,7 +155,8 @@ public class Engine implements SessionFactory {
 
     private synchronized Session openSession(ConnectionInfo ci) {
         boolean ifExists = ci.removeProperty("IFEXISTS", false);
-        boolean ignoreUnknownSetting = ci.removeProperty("IGNORE_UNKNOWN_SETTINGS", false);
+        boolean ignoreUnknownSetting = ci.removeProperty(
+                "IGNORE_UNKNOWN_SETTINGS", false);
         String cipher = ci.removeProperty("CIPHER", null);
         String init = ci.removeProperty("INIT", null);
         Session session;
@@ -183,8 +187,9 @@ public class Engine implements SessionFactory {
             }
             String value = ci.getProperty(setting);
             try {
-                CommandInterface command = session.prepareCommand("SET " + Parser.quoteIdentifier(setting) + " "
-                        + value, Integer.MAX_VALUE);
+                CommandInterface command = session.prepareCommand(
+                        "SET " + Parser.quoteIdentifier(setting) + " " + value, 
+                        Integer.MAX_VALUE);
                 command.executeUpdate();
             } catch (DbException e) {
                 if (!ignoreUnknownSetting) {
@@ -195,7 +200,8 @@ public class Engine implements SessionFactory {
         }
         if (init != null) {
             try {
-                CommandInterface command = session.prepareCommand(init, Integer.MAX_VALUE);
+                CommandInterface command = session.prepareCommand(init, 
+                        Integer.MAX_VALUE);
                 command.executeUpdate();
             } catch (DbException e) {
                 if (!ignoreUnknownSetting) {
@@ -221,9 +227,12 @@ public class Engine implements SessionFactory {
             if (!Constants.CLUSTERING_ENABLED.equals(clusterSession)) {
                 if (!StringUtils.equals(clusterSession, clusterDb)) {
                     if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
-                        throw DbException.get(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
+                        throw DbException.get(
+                                ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
                     }
-                    throw DbException.get(ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, clusterDb);
+                    throw DbException.get(
+                            ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, 
+                            clusterDb);
                 }
             }
         }

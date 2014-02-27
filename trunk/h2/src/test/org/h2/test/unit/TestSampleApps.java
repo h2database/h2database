@@ -40,18 +40,24 @@ public class TestSampleApps extends TestBase {
             return;
         }
         deleteDb("optimizations");
-        InputStream in = getClass().getClassLoader().getResourceAsStream("org/h2/samples/optimizations.sql");
+        InputStream in = getClass().getClassLoader().getResourceAsStream(
+                "org/h2/samples/optimizations.sql");
         new File(getBaseDir()).mkdirs();
-        FileOutputStream out = new FileOutputStream(getBaseDir() + "/optimizations.sql");
+        FileOutputStream out = new FileOutputStream(getBaseDir() +
+                "/optimizations.sql");
         IOUtils.copyAndClose(in, out);
         String url = "jdbc:h2:" + getBaseDir() + "/optimizations";
-        testApp("", org.h2.tools.RunScript.class, "-url", url, "-user", "sa", "-password", "sa", "-script",
-                getBaseDir() + "/optimizations.sql", "-checkResults");
+        testApp("", org.h2.tools.RunScript.class, "-url", url, "-user", "sa",
+                "-password", "sa", "-script", getBaseDir() +
+                        "/optimizations.sql", "-checkResults");
         deleteDb("optimizations");
         testApp("Compacting...\nDone.", org.h2.samples.Compact.class);
-        testApp("NAME: Bob Meier\n" + "EMAIL: bob.meier@abcde.abc\n"
-                + "PHONE: +41123456789\n\n" + "NAME: John Jones\n" + "EMAIL: john.jones@abcde.abc\n"
-                + "PHONE: +41976543210\n",
+        testApp("NAME: Bob Meier\n" + 
+                "EMAIL: bob.meier@abcde.abc\n" + 
+                "PHONE: +41123456789\n\n" + 
+                "NAME: John Jones\n" + 
+                "EMAIL: john.jones@abcde.abc\n" + 
+                "PHONE: +41976543210\n",
                 org.h2.samples.CsvSample.class);
         testApp("",
                 org.h2.samples.CachedPreparedStatements.class);
@@ -106,7 +112,8 @@ public class TestSampleApps extends TestBase {
         FileUtils.delete(getBaseDir() + "/optimizations.sql");
     }
 
-    private void testApp(String expected, Class<?> clazz, String... args) throws Exception {
+    private void testApp(String expected, Class<?> clazz, String... args)
+            throws Exception {
         DeleteDbFiles.execute("data", "test", true);
         Method m = clazz.getMethod("main", String[].class);
         PrintStream oldOut = System.out, oldErr = System.err;

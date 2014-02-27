@@ -233,8 +233,9 @@ public class TestServlet extends TestBase {
         listener.contextDestroyed(event);
 
         // listener must be stopped
-        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
-                getConnection("jdbc:h2:tcp://localhost:8888/" + getBaseDir() + "/servlet", getUser(), getPassword());
+        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).getConnection(
+                "jdbc:h2:tcp://localhost:8888/" + getBaseDir() + "/servlet",
+                getUser(), getPassword());
 
         // connection must be closed
         assertThrows(ErrorCode.OBJECT_CLOSED, stat1).

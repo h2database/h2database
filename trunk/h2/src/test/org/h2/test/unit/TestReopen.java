@@ -36,7 +36,8 @@ public class TestReopen extends TestBase implements Recorder {
     private String testDatabase = "memFS:" + TestBase.BASE_TEST_DIR + "/reopen";
     private int writeCount = Utils.getProperty("h2.reopenOffset", 0);
     private final int testEvery = 1 << Utils.getProperty("h2.reopenShift", 6);
-    private final long maxFileSize = Utils.getProperty("h2.reopenMaxFileSize", Integer.MAX_VALUE) * 1024L * 1024;
+    private final long maxFileSize = Utils.getProperty("h2.reopenMaxFileSize",
+            Integer.MAX_VALUE) * 1024L * 1024;
     private int verifyCount;
     private final HashSet<String> knownErrors = New.hashSet();
     private volatile boolean testing;
@@ -100,9 +101,11 @@ public class TestReopen extends TestBase implements Recorder {
 
         try {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-                IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+                IOUtils.copyFiles(fileName, testDatabase + 
+                        Constants.SUFFIX_PAGE_FILE);
             } else {
-                IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_MV_FILE);
+                IOUtils.copyFiles(fileName, testDatabase + 
+                        Constants.SUFFIX_MV_FILE);
             }
             verifyCount++;
             // avoid using the Engine class to avoid deadlocks
@@ -110,7 +113,8 @@ public class TestReopen extends TestBase implements Recorder {
             String userName =  getUser();
             p.setProperty("user", userName);
             p.setProperty("password", getPassword());
-            String url = "jdbc:h2:" + testDatabase + ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
+            String url = "jdbc:h2:" + testDatabase + 
+                    ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
             if (config.mvStore) {
                 url += ";MV_STORE=TRUE";
             }
@@ -146,7 +150,8 @@ public class TestReopen extends TestBase implements Recorder {
             }
             e.printStackTrace(System.out);
         }
-        System.out.println("begin ------------------------------ " + writeCount);
+        System.out.println(
+                "begin ------------------------------ " + writeCount);
         try {
             Recover.execute(fileName.substring(0, fileName.lastIndexOf('/')), null);
         } catch (SQLException e) {
@@ -155,9 +160,11 @@ public class TestReopen extends TestBase implements Recorder {
         testDatabase += "X";
         try {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-                IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_PAGE_FILE);
+                IOUtils.copyFiles(fileName, testDatabase +
+                        Constants.SUFFIX_PAGE_FILE);
             } else {
-                IOUtils.copyFiles(fileName, testDatabase + Constants.SUFFIX_MV_FILE);
+                IOUtils.copyFiles(fileName, testDatabase +
+                        Constants.SUFFIX_MV_FILE);
             }
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
@@ -187,7 +194,8 @@ public class TestReopen extends TestBase implements Recorder {
             }
             String s = buff.toString();
             if (!knownErrors.contains(s)) {
-                System.out.println(writeCount + " code: " + errorCode + " " + e.toString());
+                System.out.println(writeCount + " code: " + errorCode + " " +
+                        e.toString());
                 e.printStackTrace(System.out);
                 knownErrors.add(s);
             } else {

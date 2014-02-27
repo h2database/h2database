@@ -56,7 +56,8 @@ import org.h2.value.ValueUuid;
 public class TestValueMemory extends TestBase implements DataHandler {
 
     private final Random random = new Random(1);
-    private final SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache.newInstance(128);
+    private final SmallLRUCache<String, String[]> lobFileListCache = SmallLRUCache
+            .newInstance(128);
     private LobStorageFrontend lobStorage;
 
     /**
@@ -198,7 +199,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
             if (DataType.GEOMETRY_CLASS == null) {
                 return ValueNull.INSTANCE;
             }
-            return ValueGeometry.get("POINT (" + random.nextInt(100) + " "+random.nextInt(100)+")");
+            return ValueGeometry.get("POINT (" + random.nextInt(100) + " " +
+                    random.nextInt(100) + ")");
         default:
             throw new AssertionError("type=" + type);
         }
@@ -278,7 +280,8 @@ public class TestValueMemory extends TestBase implements DataHandler {
     }
 
     @Override
-    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
+            int off, int length) {
         return -1;
     }
 

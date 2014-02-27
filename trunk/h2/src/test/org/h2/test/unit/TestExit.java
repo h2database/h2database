@@ -17,14 +17,14 @@ import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
 
 /**
- * Tests the flag db_close_on_exit.
- * A new process is started.
+ * Tests the flag db_close_on_exit. A new process is started.
  */
 public class TestExit extends TestBase {
 
     private static Connection conn;
 
-    private static final int OPEN_WITH_CLOSE_ON_EXIT = 1, OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
+    private static final int OPEN_WITH_CLOSE_ON_EXIT = 1,
+            OPEN_WITHOUT_CLOSE_ON_EXIT = 2;
 
     @Override
     public void test() throws Exception {
@@ -37,8 +37,7 @@ public class TestExit extends TestBase {
         deleteDb("exit");
         String url = getURL(OPEN_WITH_CLOSE_ON_EXIT);
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = { "java", selfDestruct,
-                "-cp", getClassPath(),
+        String[] procDef = { "java", selfDestruct, "-cp", getClassPath(),
                 getClass().getName(), url };
         Process proc = Runtime.getRuntime().exec(procDef);
         while (true) {
@@ -61,9 +60,8 @@ public class TestExit extends TestBase {
             fail("did not close database");
         }
         url = getURL(OPEN_WITHOUT_CLOSE_ON_EXIT);
-        procDef = new String[] { "java",
-                "-cp", getClassPath(), getClass().getName(),
-                url };
+        procDef = new String[] { "java", "-cp", getClassPath(),
+                getClass().getName(), url };
         proc = Runtime.getRuntime().exec(procDef);
         proc.waitFor();
         Thread.sleep(100);
@@ -77,12 +75,16 @@ public class TestExit extends TestBase {
         String url = "";
         switch (action) {
         case OPEN_WITH_CLOSE_ON_EXIT:
-            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + MyDatabaseEventListener.class.getName()
-                    + "';db_close_on_exit=true";
+            url = "jdbc:h2:" + getBaseDir() +
+                    "/exit;database_event_listener='" +
+                    MyDatabaseEventListener.class.getName() +
+                    "';db_close_on_exit=true";
             break;
         case OPEN_WITHOUT_CLOSE_ON_EXIT:
-            url = "jdbc:h2:" + getBaseDir() + "/exit;database_event_listener='" + MyDatabaseEventListener.class.getName()
-                    + "';db_close_on_exit=false";
+            url = "jdbc:h2:" + getBaseDir() +
+                    "/exit;database_event_listener='" +
+                    MyDatabaseEventListener.class.getName() +
+                    "';db_close_on_exit=false";
             break;
         default:
         }
@@ -93,7 +95,7 @@ public class TestExit extends TestBase {
     /**
      * This method is called when executing this application from the command
      * line.
-     *
+     * 
      * @param args the command line parameters
      */
     public static void main(String... args) throws SQLException {
@@ -126,7 +128,8 @@ public class TestExit extends TestBase {
     /**
      * A database event listener used in this test.
      */
-    public static final class MyDatabaseEventListener implements DatabaseEventListener {
+    public static final class MyDatabaseEventListener implements
+            DatabaseEventListener {
 
         @Override
         public void exceptionThrown(SQLException e, String sql) {

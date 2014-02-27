@@ -107,7 +107,8 @@ public class JdbcUtils {
      * @param password the password
      * @return the database connection
      */
-    public static Connection getConnection(String driver, String url, String user, String password) throws SQLException {
+    public static Connection getConnection(String driver, String url,
+            String user, String password) throws SQLException {
         Properties prop = new Properties();
         if (user != null) {
             prop.setProperty("user", user);

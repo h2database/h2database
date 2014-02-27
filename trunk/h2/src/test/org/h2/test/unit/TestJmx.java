@@ -51,28 +51,45 @@ public class TestJmx extends TestBase {
 
         name = new ObjectName("org.h2:name=JMX,path=mem_jmx");
         info = mbeanServer.getMBeanInfo(name);
-        assertEquals("0", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "CacheSizeMax").toString());
         // cache size is ignored for in-memory databases
         mbeanServer.setAttribute(name, new Attribute("CacheSizeMax", 1));
-        assertEquals("0", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
-        assertEquals("0", mbeanServer.getAttribute(name, "CacheSize").toString());
-        assertEquals("false", mbeanServer.getAttribute(name, "Exclusive").toString());
-        assertEquals("0", mbeanServer.getAttribute(name, "FileSize").toString());
-        assertEquals("0", mbeanServer.getAttribute(name, "FileReadCount").toString());
-        assertEquals("0", mbeanServer.getAttribute(name, "FileWriteCount").toString());
-        assertEquals("0", mbeanServer.getAttribute(name, "FileWriteCountTotal").toString());
-        assertEquals("0", mbeanServer.getAttribute(name, "LogMode").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "CacheSizeMax").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "CacheSize").toString());
+        assertEquals("false", mbeanServer.
+                getAttribute(name, "Exclusive").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "FileSize").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "FileReadCount").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "FileWriteCount").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "FileWriteCountTotal").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "LogMode").toString());
         // ignored for in-memory databases
         mbeanServer.setAttribute(name, new Attribute("LogMode", 1));
-        assertEquals("0", mbeanServer.getAttribute(name, "LogMode").toString());
-        assertEquals("REGULAR", mbeanServer.getAttribute(name, "Mode").toString());
-        assertEquals("false", mbeanServer.getAttribute(name, "MultiThreaded").toString());
-        assertEquals("false", mbeanServer.getAttribute(name, "Mvcc").toString());
-        assertEquals("false", mbeanServer.getAttribute(name, "ReadOnly").toString());
-        assertEquals("1", mbeanServer.getAttribute(name, "TraceLevel").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "LogMode").toString());
+        assertEquals("REGULAR", mbeanServer.
+                getAttribute(name, "Mode").toString());
+        assertEquals("false", mbeanServer.
+                getAttribute(name, "MultiThreaded").toString());
+        assertEquals("false", mbeanServer.
+                getAttribute(name, "Mvcc").toString());
+        assertEquals("false", mbeanServer.
+                getAttribute(name, "ReadOnly").toString());
+        assertEquals("1", mbeanServer.
+                getAttribute(name, "TraceLevel").toString());
         mbeanServer.setAttribute(name, new Attribute("TraceLevel", 0));
-        assertEquals("0", mbeanServer.getAttribute(name, "TraceLevel").toString());
-        assertTrue(mbeanServer.getAttribute(name, "Version").toString().startsWith("1."));
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "TraceLevel").toString());
+        assertTrue(mbeanServer.
+                getAttribute(name, "Version").toString().startsWith("1."));
         assertEquals(14, info.getAttributes().length);
         result = mbeanServer.invoke(name, "listSettings", null, null).toString();
         assertTrue(result.indexOf("ANALYZE_AUTO") >= 0);
@@ -110,24 +127,37 @@ public class TestJmx extends TestBase {
         Set set = mbeanServer.queryNames(name, null);
         name = (ObjectName) set.iterator().next();
 
-        assertEquals("16384", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
+        assertEquals("16384", mbeanServer.
+                getAttribute(name, "CacheSizeMax").toString());
         mbeanServer.setAttribute(name, new Attribute("CacheSizeMax", 1));
         if (config.mvStore) {
-            assertEquals("1024", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
-            assertEquals("0", mbeanServer.getAttribute(name, "CacheSize").toString());
-            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileReadCount"));
-            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileWriteCount"));
-            assertEquals("0", mbeanServer.getAttribute(name, "FileWriteCountTotal").toString());
+            assertEquals("1024", mbeanServer.
+                    getAttribute(name, "CacheSizeMax").toString());
+            assertEquals("0", mbeanServer.
+                    getAttribute(name, "CacheSize").toString());
+            assertTrue(0 < (Long) mbeanServer.
+                    getAttribute(name, "FileReadCount"));
+            assertTrue(0 < (Long) mbeanServer.
+                    getAttribute(name, "FileWriteCount"));
+            assertEquals("0", mbeanServer.
+                    getAttribute(name, "FileWriteCountTotal").toString());
         } else {
-            assertEquals("1", mbeanServer.getAttribute(name, "CacheSizeMax").toString());
-            assertTrue(0 < (Integer) mbeanServer.getAttribute(name, "CacheSize"));
-            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileSize"));
-            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileReadCount"));
-            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileWriteCount"));
-            assertTrue(0 < (Long) mbeanServer.getAttribute(name, "FileWriteCountTotal"));
+            assertEquals("1", mbeanServer.
+                    getAttribute(name, "CacheSizeMax").toString());
+            assertTrue(0 < (Integer) mbeanServer.
+                    getAttribute(name, "CacheSize"));
+            assertTrue(0 < (Long) mbeanServer.
+                    getAttribute(name, "FileSize"));
+            assertTrue(0 < (Long) mbeanServer.
+                    getAttribute(name, "FileReadCount"));
+            assertTrue(0 < (Long) mbeanServer.
+                    getAttribute(name, "FileWriteCount"));
+            assertTrue(0 < (Long) mbeanServer.
+                    getAttribute(name, "FileWriteCountTotal"));
         }
         mbeanServer.setAttribute(name, new Attribute("LogMode", 0));
-        assertEquals("0", mbeanServer.getAttribute(name, "LogMode").toString());
+        assertEquals("0", mbeanServer.
+                getAttribute(name, "LogMode").toString());
 
         conn.close();
 

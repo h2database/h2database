@@ -76,7 +76,8 @@ public class TestScriptReader extends TestBase {
             case 1: {
                 buff.append('\'');
                 int l = random.nextInt(4);
-                String[] ch = { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\"", "$ " };
+                String[] ch = { ";", "\n", "\r", "--", "//", "/", "-", "*",
+                        "/*", "*/", "\"", "$ " };
                 for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }
@@ -86,7 +87,8 @@ public class TestScriptReader extends TestBase {
             case 2: {
                 buff.append('"');
                 int l = random.nextInt(4);
-                String[] ch = { ";", "\n", "\r", "--", "//", "/", "-", "*", "/*", "*/", "\'", "$" };
+                String[] ch = { ";", "\n", "\r", "--", "//", "/", "-", "*",
+                        "/*", "*/", "\'", "$" };
                 for (int j = 0; j < l; j++) {
                     buff.append(ch[random.nextInt(ch.length)]);
                 }

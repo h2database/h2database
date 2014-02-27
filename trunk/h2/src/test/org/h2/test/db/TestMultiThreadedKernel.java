@@ -51,7 +51,8 @@ public class TestMultiThreadedKernel extends TestBase {
         testConcurrentRead();
         testCache();
         deleteDb("multiThreadedKernel");
-        final String url = getURL("multiThreadedKernel;DB_CLOSE_DELAY=-1;MULTI_THREADED=1", true);
+        final String url = getURL("multiThreadedKernel;" + 
+                "DB_CLOSE_DELAY=-1;MULTI_THREADED=1", true);
         final String user = getUser(), password = getPassword();
         int len = 3;
         Thread[] threads = new Thread[len];
@@ -64,8 +65,10 @@ public class TestMultiThreadedKernel extends TestBase {
                         for (int j = 0; j < 100 && !stop; j++) {
                             conn = DriverManager.getConnection(url, user, password);
                             Statement stat = conn.createStatement();
-                            stat.execute("create local temporary table temp(id identity)");
-                            stat.execute("insert into temp values(1)");
+                            stat.execute(
+                                    "create local temporary table temp(id identity)");
+                            stat.execute(
+                                    "insert into temp values(1)");
                             conn.close();
                         }
                     } catch (Exception e) {

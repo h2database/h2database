@@ -59,8 +59,10 @@ public class TestPerformance implements Database.DatabaseTest {
         try {
             conn = getResultConnection();
             stat = conn.createStatement();
-            stat.execute("CREATE TABLE IF NOT EXISTS RESULTS(TESTID INT, TEST VARCHAR, "
-                    + "UNIT VARCHAR, DBID INT, DB VARCHAR, RESULT VARCHAR)");
+            stat.execute(
+                    "CREATE TABLE IF NOT EXISTS RESULTS(" + 
+                    "TESTID INT, TEST VARCHAR, " + 
+                    "UNIT VARCHAR, DBID INT, DB VARCHAR, RESULT VARCHAR)");
         } finally {
             JdbcUtils.closeSilently(stat);
             JdbcUtils.closeSilently(conn);
@@ -128,8 +130,9 @@ public class TestPerformance implements Database.DatabaseTest {
             openResults();
             conn = getResultConnection();
             stat = conn.createStatement();
-            prep = conn
-                    .prepareStatement("INSERT INTO RESULTS(TESTID, TEST, UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
+            prep = conn.prepareStatement(
+                        "INSERT INTO RESULTS(TESTID, TEST, " + 
+                        "UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
             for (int i = 0; i < results.size(); i++) {
                 Object[] res = results.get(i);
                 prep.setInt(1, i);
@@ -146,15 +149,19 @@ public class TestPerformance implements Database.DatabaseTest {
 
             writer = new PrintWriter(new FileWriter(out));
             ResultSet rs = stat.executeQuery(
-                    "CALL '<table><tr><th>Test Case</th><th>Unit</th>' "
-                    +"|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' ORDER BY DBID SEPARATOR '') FROM "
-                    +"(SELECT DISTINCT DBID, DB FROM RESULTS)"
-                    +"|| '</tr>' || CHAR(10) "
-                    +"|| SELECT GROUP_CONCAT('<tr><td>' || TEST || '</td><td>' || UNIT || '</td>' || ( "
-                    +"SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' ORDER BY DBID SEPARATOR '') FROM RESULTS R2 WHERE "
-                    +"R2.TESTID = R1.TESTID) || '</tr>' ORDER BY TESTID SEPARATOR CHAR(10)) FROM "
-                    +"(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1"
-                    +"|| '</table>'"
+                    "CALL '<table><tr><th>Test Case</th><th>Unit</th>' " +
+                    "|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' " + 
+                    "ORDER BY DBID SEPARATOR '') FROM " +
+                    "(SELECT DISTINCT DBID, DB FROM RESULTS)" +
+                    "|| '</tr>' || CHAR(10) " + 
+                    "|| SELECT GROUP_CONCAT('<tr><td>' || TEST || " + 
+                    "'</td><td>' || UNIT || '</td>' || ( " +
+                    "SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' " + 
+                    "ORDER BY DBID SEPARATOR '') FROM RESULTS R2 WHERE " +
+                    "R2.TESTID = R1.TESTID) || '</tr>' " + 
+                    "ORDER BY TESTID SEPARATOR CHAR(10)) FROM " +
+                    "(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1" +
+                    "|| '</table>'"
             );
             rs.next();
             String result = rs.getString(1);
@@ -211,7 +218,8 @@ public class TestPerformance implements Database.DatabaseTest {
         }
     }
 
-    private void testAll(ArrayList<Database> dbs, ArrayList<Bench> tests, int size) throws Exception {
+    private void testAll(ArrayList<Database> dbs, ArrayList<Bench> tests,
+            int size) throws Exception {
         for (int i = 0; i < dbs.size(); i++) {
             if (i > 0) {
                 Thread.sleep(1000);
@@ -224,7 +232,8 @@ public class TestPerformance implements Database.DatabaseTest {
             db.startServer();
             Connection conn = db.openNewConnection();
             DatabaseMetaData meta = conn.getMetaData();
-            System.out.println(" " + meta.getDatabaseProductName() + " " + meta.getDatabaseProductVersion());
+            System.out.println(" " + meta.getDatabaseProductName() + " " +
+                    meta.getDatabaseProductVersion());
             runDatabase(db, tests, 1);
             runDatabase(db, tests, 1);
             collect = true;
@@ -240,13 +249,15 @@ public class TestPerformance implements Database.DatabaseTest {
         }
     }
 
-    private static void runDatabase(Database db, ArrayList<Bench> tests, int size) throws Exception {
+    private static void runDatabase(Database db, ArrayList<Bench> tests,
+            int size) throws Exception {
         for (Bench bench : tests) {
             runTest(db, bench, size);
         }
     }
 
-    private static void runTest(Database db, Bench bench, int size) throws Exception {
+    private static void runTest(Database db, Bench bench, int size)
+            throws Exception {
         bench.init(db, size);
         bench.runTest();
     }

@@ -25,13 +25,17 @@ import org.h2.util.Utils;
  */
 public class SpellChecker {
 
-    private static final String[] SUFFIX = { "html", "java", "sql", "txt", "xml", "jsp", "css", "bat",
-            "csv", "xml", "js", "Driver", "properties", "task", "MF", "mf", "sh", "" };
-    private static final String[] IGNORE = { "dev", "nsi", "gif", "png", "odg", "ico", "sxd", "zip",
-            "bz2", "rc", "layout", "res", "dll", "jar", "svg", "prefs", "prop", "iml" };
-    private static final String DELIMITERS = " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
+    private static final String[] SUFFIX = { "html", "java", "sql", "txt",
+            "xml", "jsp", "css", "bat", "csv", "xml", "js", "Driver",
+            "properties", "task", "MF", "mf", "sh", "" };
+    private static final String[] IGNORE = { "dev", "nsi", "gif", "png", "odg",
+            "ico", "sxd", "zip", "bz2", "rc", "layout", "res", "dll", "jar",
+            "svg", "prefs", "prop", "iml" };
+    private static final String DELIMITERS = 
+            " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
     private static final String PREFIX_IGNORE = "abc";
-    private static final String[] IGNORE_FILES = {"mainWeb.html", "pg_catalog.sql"};
+    private static final String[] IGNORE_FILES = { "mainWeb.html",
+            "pg_catalog.sql" };
 
     // These are public so we can set them during development testing
 
@@ -45,9 +49,12 @@ public class SpellChecker {
      */
     public boolean printDictionary;
 
-    private final HashSet<String> dictionary = new HashSet<String>();
-    private final HashSet<String> used = new HashSet<String>();
-    private final HashMap<String, Integer> unknown = new HashMap<String, Integer>();
+    private final HashSet<String> dictionary = 
+            new HashSet<String>();
+    private final HashSet<String> used = 
+            new HashSet<String>();
+    private final HashMap<String, Integer> unknown = 
+            new HashMap<String, Integer>();
     private boolean addToDictionary;
     private int errorCount;
     private int contextCount;
@@ -140,7 +147,8 @@ public class SpellChecker {
                 }
             }
             if (!ok) {
-                throw new IOException("Unsupported suffix: " + suffix + " for file: " + fileName);
+                throw new IOException("Unsupported suffix: " + 
+                        suffix + " for file: " + fileName);
             }
             String text = new String(BuildBase.readFile(file));
             if (fileName.endsWith("dictionary.txt")) {
@@ -198,7 +206,8 @@ public class SpellChecker {
             pos += "http://".length();
             while (true) {
                 char c = text.charAt(pos);
-                if (!Character.isJavaIdentifierPart(c) && ".#/?&=%+_-:".indexOf(c) < 0) {
+                if (!Character.isJavaIdentifierPart(c) && 
+                        ".#/?&=%+_-:".indexOf(c) < 0) {
                     break;
                 }
                 pos++;
@@ -219,11 +228,13 @@ public class SpellChecker {
         for (int i = 1; i < token.length(); i++) {
             char charLeft = token.charAt(i - 1);
             char charRight = token.charAt(i);
-            if (Character.isLowerCase(charLeft) && Character.isUpperCase(charRight)) {
+            if (Character.isLowerCase(charLeft)
+                    && Character.isUpperCase(charRight)) {
                 scanToken(notFound, token.substring(0, i));
                 token = token.substring(i);
                 i = 1;
-            } else if (Character.isUpperCase(charLeft) && Character.isLowerCase(charRight)) {
+            } else if (Character.isUpperCase(charLeft)
+                    && Character.isLowerCase(charRight)) {
                 scanToken(notFound, token.substring(0, i - 1));
                 token = token.substring(i - 1);
                 i = 1;

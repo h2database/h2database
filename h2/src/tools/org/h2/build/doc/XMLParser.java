@@ -119,7 +119,8 @@ public class XMLParser {
     }
 
     private void error(String expected) {
-        throw new RuntimeException("Expected: " + expected + " got: " + xml.substring(pos, Math.min(pos + 1000, xml.length())));
+        throw new RuntimeException("Expected: " + expected + " got: "
+                + xml.substring(pos, Math.min(pos + 1000, xml.length())));
     }
 
     private void read(String chars) {
@@ -343,7 +344,8 @@ public class XMLParser {
             if (localNameStart == start) {
                 addAttributeName("", xml.substring(localNameStart, end));
             } else {
-                addAttributeName(xml.substring(start, localNameStart - 1), xml.substring(localNameStart, end));
+                addAttributeName(xml.substring(start, localNameStart - 1),
+                        xml.substring(localNameStart, end));
             }
             if (noValue) {
                 noValue = false;
@@ -512,7 +514,8 @@ public class XMLParser {
      * @return the full name
      */
     public String getName() {
-        return prefix == null || prefix.length() == 0 ? localName : prefix + ":" + localName;
+        return prefix == null || prefix.length() == 0 ? localName : prefix
+                + ":" + localName;
     }
 
     /**

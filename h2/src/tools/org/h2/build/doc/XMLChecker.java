@@ -113,7 +113,8 @@ public class XMLChecker {
                 if (html) {
                     for (String n : noClose) {
                         if (name.equals(n)) {
-                            throw new Exception("Unnecessary closing element " + name + " at " + parser.getRemaining());
+                            throw new Exception("Unnecessary closing element "
+                                    + name + " at " + parser.getRemaining());
                         }
                     }
                 }
@@ -137,7 +138,8 @@ public class XMLChecker {
                 // ignore
             } else {
                 int eventType = parser.getEventType();
-                throw new Exception("Unexpected event " + eventType + " at " + parser.getRemaining());
+                throw new Exception("Unexpected event " + eventType + " at "
+                        + parser.getRemaining());
             }
         }
         if (stack.size() != 0) {

@@ -172,7 +172,8 @@ public abstract class TestBase {
      * @return the connection
      */
     public Connection getConnection(String name) throws SQLException {
-        return getConnectionInternal(getURL(name, true), getUser(), getPassword());
+        return getConnectionInternal(getURL(name, true), getUser(),
+                getPassword());
     }
 
     /**
@@ -183,7 +184,8 @@ public abstract class TestBase {
      * @param password the password to use
      * @return the connection
      */
-    public Connection getConnection(String name, String user, String password) throws SQLException {
+    public Connection getConnection(String name, String user, String password)
+            throws SQLException {
         return getConnectionInternal(getURL(name, false), user, password);
     }
 
@@ -270,7 +272,8 @@ public abstract class TestBase {
                 url = "tcp://localhost:9192/" + name;
             }
         } else if (config.googleAppEngine) {
-            url = "gae://" + name + ";FILE_LOCK=NO;AUTO_SERVER=FALSE;DB_CLOSE_ON_EXIT=FALSE";
+            url = "gae://" + name + 
+                    ";FILE_LOCK=NO;AUTO_SERVER=FALSE;DB_CLOSE_ON_EXIT=FALSE";
         } else {
             url = name;
         }
@@ -333,7 +336,8 @@ public abstract class TestBase {
         return url;
     }
 
-    private static Connection getConnectionInternal(String url, String user, String password) throws SQLException {
+    private static Connection getConnectionInternal(String url, String user,
+            String password) throws SQLException {
         org.h2.Driver.load();
         // url += ";DEFAULT_TABLE_TYPE=1";
         // Class.forName("org.hsqldb.jdbcDriver");
@@ -459,7 +463,8 @@ public abstract class TestBase {
             e = new Exception(s);
         }
         System.out.flush();
-        System.err.println("ERROR: " + s + " " + e.toString() + " ------------------------------");
+        System.err.println("ERROR: " + s + " " + e.toString()
+                + " ------------------------------");
         e.printStackTrace();
         try {
             TraceSystem ts = new TraceSystem(null);
@@ -654,7 +659,8 @@ public abstract class TestBase {
      * @param len the maximum length, or -1
      * @throws AssertionError if the values are not equal
      */
-    protected void assertEqualReaders(Reader expected, Reader actual, int len) throws IOException {
+    protected void assertEqualReaders(Reader expected, Reader actual, int len)
+            throws IOException {
         for (int i = 0; len < 0 || i < len; i++) {
             int ce = expected.read();
             int ca = actual.read();
@@ -675,7 +681,8 @@ public abstract class TestBase {
      * @param len the maximum length, or -1
      * @throws AssertionError if the values are not equal
      */
-    protected void assertEqualStreams(InputStream expected, InputStream actual, int len) throws IOException {
+    protected void assertEqualStreams(InputStream expected, InputStream actual,
+            int len) throws IOException {
         // this doesn't actually read anything - just tests reading 0 bytes
         actual.read(new byte[0]);
         expected.read(new byte[0]);
@@ -730,7 +737,8 @@ public abstract class TestBase {
             if (bl > 4000) {
                 actual = actual.substring(0, 4000);
             }
-            fail("Expected: " + expected + " (" + al + ") actual: " + actual + " (" + bl + ") " + message);
+            fail("Expected: " + expected + " (" + al + ") actual: " + actual
+                    + " (" + bl + ") " + message);
         }
     }
 
@@ -753,7 +761,8 @@ public abstract class TestBase {
      * @param rs1 the second result set
      * @throws AssertionError if the values are not equal
      */
-    protected void assertEquals(String message, ResultSet rs0, ResultSet rs1) throws SQLException {
+    protected void assertEquals(String message, ResultSet rs0, ResultSet rs1)
+            throws SQLException {
         ResultSetMetaData meta = rs0.getMetaData();
         int columns = meta.getColumnCount();
         assertEquals(columns, rs1.getMetaData().getColumnCount());
@@ -948,7 +957,8 @@ public abstract class TestBase {
      * @param expected the expected result value
      * @throws AssertionError if a different result value was returned
      */
-    protected void assertSingleValue(Statement stat, String sql, int expected) throws SQLException {
+    protected void assertSingleValue(Statement stat, String sql, int expected)
+            throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         assertTrue(rs.next());
         assertEquals(expected, rs.getInt(1));
@@ -963,7 +973,8 @@ public abstract class TestBase {
      * @param sql the SQL statement to execute
      * @throws AssertionError if a different result value was returned
      */
-    protected void assertResult(String expected, Statement stat, String sql) throws SQLException {
+    protected void assertResult(String expected, Statement stat, String sql)
+            throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         if (rs.next()) {
             String actual = rs.getString(1);
@@ -980,7 +991,8 @@ public abstract class TestBase {
      * @param stat the statement
      * @param sql the SQL statement to execute
      */
-    protected void assertThrows(String expectedErrorMessage, Statement stat, String sql) {
+    protected void assertThrows(String expectedErrorMessage, Statement stat,
+            String sql) {
         try {
             stat.executeQuery(sql);
             fail("Expected error: " + expectedErrorMessage);
@@ -999,8 +1011,9 @@ public abstract class TestBase {
      * @param precision the expected precisions
      * @param scale the expected scales
      */
-    protected void assertResultSetMeta(ResultSet rs, int columnCount, String[] labels, int[] datatypes, int[] precision,
-            int[] scale) throws SQLException {
+    protected void assertResultSetMeta(ResultSet rs, int columnCount,
+            String[] labels, int[] datatypes, int[] precision, int[] scale)
+            throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         int cc = meta.getColumnCount();
         if (cc != columnCount) {
@@ -1069,7 +1082,8 @@ public abstract class TestBase {
      * @param data the expected data
      * @throws AssertionError if there is a mismatch
      */
-    protected void assertResultSetOrdered(ResultSet rs, String[][] data) throws SQLException {
+    protected void assertResultSetOrdered(ResultSet rs, String[][] data)
+            throws SQLException {
         assertResultSet(true, rs, data);
     }
 
@@ -1081,7 +1095,8 @@ public abstract class TestBase {
      * @param data the expected data
      * @throws AssertionError if there is a mismatch
      */
-    private void assertResultSet(boolean ordered, ResultSet rs, String[][] data) throws SQLException {
+    private void assertResultSet(boolean ordered, ResultSet rs, String[][] data)
+            throws SQLException {
         int len = rs.getMetaData().getColumnCount();
         int rows = data.length;
         if (rows == 0) {
@@ -1102,7 +1117,8 @@ public abstract class TestBase {
             if (ordered) {
                 String[] good = data[i];
                 if (!testRow(good, row, good.length)) {
-                    fail("testResultSet row not equal, got:\n" + formatRow(row) + "\n" + formatRow(good));
+                    fail("testResultSet row not equal, got:\n" + formatRow(row)
+                            + "\n" + formatRow(good));
                 }
             } else {
                 boolean found = false;
@@ -1120,7 +1136,8 @@ public abstract class TestBase {
         }
         if (rs.next()) {
             String[] row = getData(rs, len);
-            fail("testResultSet expected rowcount:" + rows + " got:>=" + (rows + 1) + " data:" + formatRow(row));
+            fail("testResultSet expected rowcount:" + rows + " got:>="
+                    + (rows + 1) + " data:" + formatRow(row));
         }
     }
 
@@ -1253,8 +1270,11 @@ public abstract class TestBase {
      * @param stat2 the connection to the second database
      * @throws AssertionError if the databases don't match
      */
-    protected void assertEqualDatabases(Statement stat1, Statement stat2) throws SQLException {
-        ResultSet rs = stat1.executeQuery("select value from information_schema.settings where name='ANALYZE_AUTO'");
+    protected void assertEqualDatabases(Statement stat1, Statement stat2)
+            throws SQLException {
+        ResultSet rs = stat1.executeQuery(
+                "select value from information_schema.settings " + 
+                "where name='ANALYZE_AUTO'");
         int analyzeAuto = rs.next() ? rs.getInt(1) : 0;
         if (analyzeAuto > 0) {
             stat1.execute("analyze");
@@ -1356,10 +1376,12 @@ public abstract class TestBase {
      * @param obj the object to wrap
      * @return a proxy for the object
      */
-    protected <T> T assertThrows(final Class<?> expectedExceptionClass, final T obj) {
+    protected <T> T assertThrows(final Class<?> expectedExceptionClass,
+            final T obj) {
         return assertThrows(new ResultVerifier() {
             @Override
-            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+            public boolean verify(Object returnValue, Throwable t, Method m,
+                    Object... args) {
                 if (t == null) {
                     throw new AssertionError("Expected an exception of type " +
                             expectedExceptionClass.getSimpleName() +
@@ -1394,7 +1416,8 @@ public abstract class TestBase {
     protected <T> T assertThrows(final int expectedErrorCode, final T obj) {
         return assertThrows(new ResultVerifier() {
             @Override
-            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+            public boolean verify(Object returnValue, Throwable t, Method m,
+                    Object... args) {
                 int errorCode;
                 if (t instanceof DbException) {
                     errorCode = ((DbException) t).getErrorCode();
@@ -1405,7 +1428,8 @@ public abstract class TestBase {
                 }
                 if (errorCode != expectedErrorCode) {
                     AssertionError ae = new AssertionError(
-                            "Expected an SQLException or DbException with error code " + expectedErrorCode);
+                            "Expected an SQLException or DbException with error code "
+                                    + expectedErrorCode);
                     ae.initCause(t);
                     throw ae;
                 }
@@ -1434,7 +1458,8 @@ public abstract class TestBase {
                 }
             }
             @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Exception {
+            public Object invoke(Object proxy, Method method, Object[] args)
+                    throws Exception {
                 try {
                     called = null;
                     Object ret = method.invoke(obj, args);
@@ -1469,7 +1494,8 @@ public abstract class TestBase {
         };
         if (!ProxyCodeGenerator.isGenerated(c)) {
             Class<?>[] interfaces = c.getInterfaces();
-            if (Modifier.isFinal(c.getModifiers()) || (interfaces.length > 0 && getClass() != c)) {
+            if (Modifier.isFinal(c.getModifiers())
+                    || (interfaces.length > 0 && getClass() != c)) {
                 // interface class proxies
                 if (interfaces.length == 0) {
                     throw new RuntimeException("Can not create a proxy for the class " +
@@ -1481,7 +1507,8 @@ public abstract class TestBase {
         }
         try {
             Class<?> pc = ProxyCodeGenerator.getClassProxy(c);
-            Constructor<?> cons = pc.getConstructor(new Class<?>[] { InvocationHandler.class });
+            Constructor<?> cons = pc
+                    .getConstructor(new Class<?>[] { InvocationHandler.class });
             return (T) cons.newInstance(new Object[] { ih });
         } catch (Exception e) {
             throw new RuntimeException(e);

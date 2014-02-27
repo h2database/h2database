@@ -17,12 +17,14 @@ import android.database.Cursor;
 public class Test extends Activity {
 
     public static void main(String... args) throws Exception {
-        H2Database db = H2Utils.openOrCreateDatabase("helloWorld.db", MODE_PRIVATE, null);
+        H2Database db = H2Utils.openOrCreateDatabase(
+                "helloWorld.db", MODE_PRIVATE, null);
         log("opened ps=" + db.getPageSize());
         try {
             // db.execSQL("DROP TABLE IF EXISTS test");
             // log("dropped");
-            db.execSQL("CREATE TABLE if not exists test(ID INTEGER PRIMARY KEY, NAME VARCHAR)");
+            db.execSQL(
+                    "CREATE TABLE if not exists test(ID INTEGER PRIMARY KEY, NAME VARCHAR)");
             log("created");
             for (int j = 0; j < 10; j++) {
                 Cursor c = db.rawQuery("select * from test", new String[0]);
@@ -39,13 +41,15 @@ public class Test extends Activity {
             log("delete");
             db.beginTransaction();
             for (int i = 0; i < 1000; i++) {
-                db.execSQL("INSERT INTO TEST VALUES(?, 'Hello')", new Object[] { i });
+                db.execSQL(
+                        "INSERT INTO TEST VALUES(?, 'Hello')", new Object[] { i });
             }
             db.setTransactionSuccessful();
             db.endTransaction();
             log("inserted");
             for (int i = 0; i < 10; i++) {
-                Cursor c = db.rawQuery("select * from test where id=?", new String[] { "" + i });
+                Cursor c = db.rawQuery(
+                        "select * from test where id=?", new String[] { "" + i });
                 int count = c.getCount();
                 if (count > 0) {
                     c.move(1);

@@ -24,7 +24,8 @@ public class H2Cursor extends AbstractWindowedCursor {
     private H2Database database;
     private ResultInterface result;
 
-    H2Cursor(H2Database db, H2CursorDriver driver, String editTable, H2Query query) {
+    H2Cursor(H2Database db, H2CursorDriver driver, String editTable,
+            H2Query query) {
         this.database = db;
         // TODO
     }

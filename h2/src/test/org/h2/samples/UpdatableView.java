@@ -74,7 +74,8 @@ public class UpdatableView extends TriggerAdapter {
     }
 
     @Override
-    public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
+    public void fire(Connection conn, ResultSet oldRow, ResultSet newRow)
+            throws SQLException {
         if (oldRow != null && oldRow.next()) {
             prepDelete.setInt(1, oldRow.getInt(1));
             prepDelete.execute();

@@ -39,7 +39,8 @@ public class BnfRailroad implements BnfVisitor {
         StringBuilder buff = new StringBuilder();
         for (String s : syntaxList) {
             bnf.visit(this, s);
-            html = StringUtils.replaceAll(html, "</code></td><td class=\"d\"><code class=\"c\">", " ");
+            html = StringUtils.replaceAll(html, "</code></td>" + 
+                    "<td class=\"d\"><code class=\"c\">", " ");
             if (buff.length() > 0) {
                 buff.append("<br />");
             }
@@ -137,7 +138,8 @@ public class BnfRailroad implements BnfVisitor {
             for (Rule r : list) {
                 String a = i == 0 ? "t" : i == list.size() - 1 ? "l" : "k";
                 i++;
-                buff.append("<tr class=\"railroad\"><td class=\"" + a + "s\"></td><td class=\"d\">");
+                buff.append("<tr class=\"railroad\"><td class=\"" + 
+                        a + "s\"></td><td class=\"d\">");
                 r.accept(this);
                 buff.append(html);
                 buff.append("</td><td class=\"" + a + "e\"></td></tr>");
@@ -161,8 +163,10 @@ public class BnfRailroad implements BnfVisitor {
     public void visitRuleOptional(Rule rule) {
         StringBuilder buff = new StringBuilder();
         buff.append("<table class=\"railroad\">");
-        buff.append("<tr class=\"railroad\"><td class=\"ts\"></td><td class=\"d\">&nbsp;</td><td class=\"te\"></td></tr>");
-        buff.append("<tr class=\"railroad\"><td class=\"ls\"></td><td class=\"d\">");
+        buff.append("<tr class=\"railroad\"><td class=\"ts\"></td>" + 
+                "<td class=\"d\">&nbsp;</td><td class=\"te\"></td></tr>");
+        buff.append("<tr class=\"railroad\">" + 
+                "<td class=\"ls\"></td><td class=\"d\">");
         rule.accept(this);
         buff.append(html);
         buff.append("</td><td class=\"le\"></td></tr></table>");

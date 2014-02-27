@@ -36,7 +36,8 @@ public class GenerateDoc {
     private String inDir = "src/docsrc/html";
     private String outDir = "docs/html";
     private Connection conn;
-    private final HashMap<String, Object> session = new HashMap<String, Object>();
+    private final HashMap<String, Object> session = 
+            new HashMap<String, Object>();
     private Bnf bnf;
 
     /**
@@ -68,22 +69,38 @@ public class GenerateDoc {
         session.put("stableVersion", Constants.getVersionStable());
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
-        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
-        map("commands", help + "LIKE 'Commands%' ORDER BY ID", true);
-        map("commandsDML", help + "= 'Commands (DML)' ORDER BY ID", false);
-        map("commandsDDL", help + "= 'Commands (DDL)' ORDER BY ID", false);
-        map("commandsOther", help + "= 'Commands (Other)' ORDER BY ID", false);
-        map("otherGrammar", help + "= 'Other Grammar' ORDER BY ID", true);
-        map("functionsAggregate", help + "= 'Functions (Aggregate)' ORDER BY ID", false);
-        map("functionsNumeric", help + "= 'Functions (Numeric)' ORDER BY ID", false);
-        map("functionsString", help + "= 'Functions (String)' ORDER BY ID", false);
-        map("functionsTimeDate", help + "= 'Functions (Time and Date)' ORDER BY ID", false);
-        map("functionsSystem", help + "= 'Functions (System)' ORDER BY ID", false);
-        map("functionsAll", help + "LIKE 'Functions%' ORDER BY SECTION, ID", true);
-        map("dataTypes", help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
-        map("informationSchema", "SELECT TABLE_NAME TOPIC, GROUP_CONCAT(COLUMN_NAME "
-                + "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX FROM INFORMATION_SCHEMA.COLUMNS "
-                + "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false);
+        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + 
+                IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
+        map("commands", 
+                help + "LIKE 'Commands%' ORDER BY ID", true);
+        map("commandsDML", 
+                help + "= 'Commands (DML)' ORDER BY ID", false);
+        map("commandsDDL", 
+                help + "= 'Commands (DDL)' ORDER BY ID", false);
+        map("commandsOther", 
+                help + "= 'Commands (Other)' ORDER BY ID", false);
+        map("otherGrammar", 
+                help + "= 'Other Grammar' ORDER BY ID", true);
+        map("functionsAggregate", 
+                help + "= 'Functions (Aggregate)' ORDER BY ID", false);
+        map("functionsNumeric", 
+                help + "= 'Functions (Numeric)' ORDER BY ID", false);
+        map("functionsString", 
+                help + "= 'Functions (String)' ORDER BY ID", false);
+        map("functionsTimeDate", 
+                help + "= 'Functions (Time and Date)' ORDER BY ID", false);
+        map("functionsSystem", 
+                help + "= 'Functions (System)' ORDER BY ID", false);
+        map("functionsAll", 
+                help + "LIKE 'Functions%' ORDER BY SECTION, ID", true);
+        map("dataTypes", 
+                help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
+        map("informationSchema", "SELECT TABLE_NAME TOPIC, " + 
+                "GROUP_CONCAT(COLUMN_NAME " + 
+                "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX " + 
+                "FROM INFORMATION_SCHEMA.COLUMNS " + 
+                "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' " + 
+                "GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false);
         processAll("");
         conn.close();
     }
@@ -118,13 +135,15 @@ public class GenerateDoc {
         out.close();
     }
 
-    private void map(String key, String sql, boolean railroads) throws Exception {
+    private void map(String key, String sql, boolean railroads)
+            throws Exception {
         ResultSet rs = null;
         Statement stat = null;
         try {
             stat = conn.createStatement();
             rs = stat.executeQuery(sql);
-            ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+            ArrayList<HashMap<String, String>> list = 
+                    new ArrayList<HashMap<String, String>>();
             while (rs.next()) {
                 HashMap<String, String> map = new HashMap<String, String>();
                 ResultSetMetaData meta = rs.getMetaData();
@@ -149,8 +168,10 @@ public class GenerateDoc {
                 String text = map.get("text");
                 if (text != null) {
                     // text is enclosed in <p> .. </p> so this works.
-                    text = StringUtils.replaceAll(text, "<br /><br />", "</p><p>");
-                    text = StringUtils.replaceAll(text, "<br />", " ");
+                    text = StringUtils.replaceAll(text, 
+                            "<br /><br />", "</p><p>");
+                    text = StringUtils.replaceAll(text, 
+                            "<br />", " ");
                     text = addCode(text);
                     map.put("text", text);
                 }
@@ -167,7 +188,8 @@ public class GenerateDoc {
             int div = 3;
             int part = (list.size() + div - 1) / div;
             for (int i = 0, start = 0; i < div; i++, start += part) {
-                List<HashMap<String, String>> listThird = list.subList(start, Math.min(start + part, list.size()));
+                List<HashMap<String, String>> listThird = list.subList(start,
+                        Math.min(start + part, list.size()));
                 session.put(key + "-" + i, listThird);
             }
         } finally {

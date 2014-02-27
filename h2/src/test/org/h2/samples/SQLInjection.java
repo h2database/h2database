@@ -54,7 +54,8 @@ public class SQLInjection {
      * @param user the user name
      * @param password the password
      */
-    void run(String driver, String url, String user, String password) throws Exception {
+    void run(String driver, String url, String user, String password)
+            throws Exception {
         Class.forName(driver);
         conn = DriverManager.getConnection(url, user, password);
         stat = conn.createStatement();
@@ -147,7 +148,8 @@ public class SQLInjection {
      * @param password the password
      * @return a result set with the user record if the password matches
      */
-    public static ResultSet getUser(Connection conn, String userName, String password) throws Exception {
+    public static ResultSet getUser(Connection conn, String userName,
+            String password) throws Exception {
         PreparedStatement prep = conn.prepareStatement(
                 "SELECT * FROM USERS WHERE NAME=? AND PASSWORD=?");
         prep.setString(1, userName);
@@ -164,7 +166,8 @@ public class SQLInjection {
      * @param password the password
      * @return the new password
      */
-    public static String changePassword(Connection conn, String userName, String password) throws Exception {
+    public static String changePassword(Connection conn, String userName,
+            String password) throws Exception {
         PreparedStatement prep = conn.prepareStatement(
                 "UPDATE USERS SET PASSWORD=? WHERE NAME=?");
         prep.setString(1, password);

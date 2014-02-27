@@ -130,7 +130,9 @@ public class BuildBase {
                 pattern = pattern.substring(1);
             }
             if (pattern.indexOf('*') >= 0) {
-                throw new RuntimeException("Unsupported pattern, may only start or end with *:" + pattern);
+                throw new RuntimeException(
+                        "Unsupported pattern, may only start or end with *:"
+                                + pattern);
             }
             // normalize / and \
             pattern = BuildBase.replaceAll(pattern, "/", File.separator);
@@ -211,7 +213,8 @@ public class BuildBase {
     private void runShell() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String last = "", line;
-        System.out.println("Shell mode. Type the target, then [Enter]. Just [Enter] repeats the last target.");
+        System.out.println("Shell mode. Type the target, then [Enter]. " + 
+                "Just [Enter] repeats the last target.");
         while (true) {
             System.out.print("build> ");
             try {
@@ -283,7 +286,8 @@ public class BuildBase {
         sysOut.println("Targets:");
         for (Method m : methods) {
             int mod = m.getModifiers();
-            if (!Modifier.isStatic(mod) && Modifier.isPublic(mod) && m.getParameterTypes().length == 0) {
+            if (!Modifier.isStatic(mod) && Modifier.isPublic(mod)
+                    && m.getParameterTypes().length == 0) {
                 sysOut.println(m.getName());
             }
         }
@@ -374,7 +378,8 @@ public class BuildBase {
             Field field = clazz.getField(fieldName);
             return field.get(null).toString();
         } catch (Exception e) {
-            throw new RuntimeException("Can not read field " + className + "." + fieldName, e);
+            throw new RuntimeException("Can not read field " + className + "."
+                    + fieldName, e);
         }
     }
 
@@ -391,7 +396,8 @@ public class BuildBase {
             Method method = clazz.getMethod(methodName);
             return method.invoke(null).toString();
         } catch (Exception e) {
-            throw new RuntimeException("Can not read value " + className + "." + methodName + "()", e);
+            throw new RuntimeException("Can not read value " + className + "."
+                    + methodName + "()", e);
         }
     }
 
@@ -533,13 +539,15 @@ public class BuildBase {
      * @param version the Maven version id
      * @param sha1Checksum the SHA-1 checksum or null
      */
-    protected void downloadUsingMaven(String target, String group, String artifact, String version, String sha1Checksum) {
+    protected void downloadUsingMaven(String target, String group,
+            String artifact, String version, String sha1Checksum) {
         String repoDir = "http://repo1.maven.org/maven2";
         File targetFile = new File(target);
         if (targetFile.exists()) {
             return;
         }
-        String repoFile = group + "/" + artifact + "/" + version + "/" + artifact + "-" + version + ".jar";
+        String repoFile = group + "/" + artifact + "/" + version + "/"
+                + artifact + "-" + version + ".jar";
         mkdirs(targetFile.getAbsoluteFile().getParentFile());
         String localMavenDir = getLocalMavenDir();
         if (new File(localMavenDir).exists()) {
@@ -758,7 +766,8 @@ public class BuildBase {
      * @param storeOnly if the files should not be compressed
      * @param sortBySuffix if the file should be sorted by the file suffix
      */
-    protected void zip(String destFile, FileList files, String basePath, boolean storeOnly, boolean sortBySuffix) {
+    protected void zip(String destFile, FileList files, String basePath,
+            boolean storeOnly, boolean sortBySuffix) {
         long kb = zipOrJar(destFile, files, basePath, storeOnly, sortBySuffix, false);
         println("Zip " + destFile + " (" + kb + " KB)");
     }
@@ -785,7 +794,9 @@ public class BuildBase {
         basePath = new File(basePath).getPath();
         try {
             if (new File(destFile).isDirectory()) {
-                throw new IOException("Can't create the file as a directory with this name already exists: " + destFile);
+                throw new IOException(
+                        "Can't create the file as a directory with this name already exists: "
+                                + destFile);
             }
             OutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
             ZipOutputStream zipOut;
@@ -897,7 +908,8 @@ public class BuildBase {
         File f = new File(dir);
         if (f.exists()) {
             if (f.isFile()) {
-                throw new RuntimeException("Can not create directory " + dir + " because a file with this name exists");
+                throw new RuntimeException("Can not create directory " + dir
+                        + " because a file with this name exists");
             }
         } else {
             mkdirs(f);

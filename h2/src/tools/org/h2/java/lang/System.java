@@ -28,7 +28,8 @@ public class System {
      * @param destPos the first element in the destination
      * @param length the number of element to copy
      */
-    public static void arraycopy(char[] src, int srcPos, char[] dest, int destPos, int length) {
+    public static void arraycopy(char[] src, int srcPos, char[] dest,
+            int destPos, int length) {
         /* c:
         memmove(((jchar*)dest->getPointer()) + destPos,
             ((jchar*)src->getPointer()) + srcPos, sizeof(jchar) * length);
@@ -47,7 +48,8 @@ public class System {
      * @param destPos the first element in the destination
      * @param length the number of element to copy
      */
-    public static void arraycopy(byte[] src, int srcPos, byte[] dest, int destPos, int length) {
+    public static void arraycopy(byte[] src, int srcPos, byte[] dest,
+            int destPos, int length) {
         /* c:
         memmove(((jbyte*)dest->getPointer()) + destPos,
             ((jbyte*)src->getPointer()) + srcPos, sizeof(jbyte) * length);

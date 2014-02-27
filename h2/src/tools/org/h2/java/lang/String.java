@@ -166,6 +166,7 @@ public class String {
         System.arraycopy(chars, offset, this.chars, 0, count);
     }
 
+    @Override
     public int hashCode() {
         int h = hash;
         if (h == 0) {

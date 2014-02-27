@@ -44,7 +44,8 @@ public class ClassReader {
         }
     }
 
-    public Token decompile(Object instance, Map<String, Object> fields, String method) {
+    public Token decompile(Object instance, Map<String, Object> fields,
+            String method) {
         this.fieldMap = fields;
         this.convertMethodName = method;
         Class<?> clazz = instance.getClass();
@@ -52,7 +53,9 @@ public class ClassReader {
         debug("class name " + className);
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
-            InputStream in = clazz.getClassLoader().getResource(className.replace('.', '/') + ".class").openStream();
+            InputStream in = clazz.getClassLoader()
+                    .getResource(className.replace('.', '/') + ".class")
+                    .openStream();
             while (true) {
                 int x = in.read();
                 if (x < 0) {
@@ -73,7 +76,7 @@ public class ClassReader {
         constantPool = new Constant[constantPoolCount];
         for (int i = 1; i < constantPoolCount; i++) {
             int type = readByte();
-            switch(type) {
+            switch (type) {
             case 1:
                 constantPool[i] = ConstantString.get(readString());
                 break;
@@ -84,7 +87,8 @@ public class ClassReader {
             }
             case 4: {
                 int x = readInt();
-                constantPool[i] = ConstantNumber.get("" + Float.intBitsToFloat(x), x, Constant.Type.FLOAT);
+                constantPool[i] = ConstantNumber.get(
+                        "" + Float.intBitsToFloat(x), x, Constant.Type.FLOAT);
                 break;
             }
             case 5: {
@@ -95,38 +99,46 @@ public class ClassReader {
             }
             case 6: {
                 long x = readLong();
-                constantPool[i] = ConstantNumber.get("" + Double.longBitsToDouble(x), x, Constant.Type.DOUBLE);
+                constantPool[i] = ConstantNumber.get(
+                        "" + Double.longBitsToDouble(x), x,
+                        Constant.Type.DOUBLE);
                 i++;
                 break;
             }
             case 7: {
                 int x = readShort();
-                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.CLASS_REF);
+                constantPool[i] = ConstantNumber.get(null, x,
+                        ConstantNumber.Type.CLASS_REF);
                 break;
             }
             case 8: {
                 int x = readShort();
-                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.STRING_REF);
+                constantPool[i] = ConstantNumber.get(null, x,
+                        ConstantNumber.Type.STRING_REF);
                 break;
             }
             case 9: {
                 int x = readInt();
-                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.FIELD_REF);
+                constantPool[i] = ConstantNumber.get(null, x,
+                        ConstantNumber.Type.FIELD_REF);
                 break;
             }
             case 10: {
                 int x = readInt();
-                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.METHOD_REF);
+                constantPool[i] = ConstantNumber.get(null, x,
+                        ConstantNumber.Type.METHOD_REF);
                 break;
             }
             case 11: {
                 int x = readInt();
-                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.INTERFACE_METHOD_REF);
+                constantPool[i] = ConstantNumber.get(null, x,
+                        ConstantNumber.Type.INTERFACE_METHOD_REF);
                 break;
             }
             case 12: {
                 int x = readInt();
-                constantPool[i] = ConstantNumber.get(null, x, ConstantNumber.Type.NAME_AND_TYPE);
+                constantPool[i] = ConstantNumber.get(null, x,
+                        ConstantNumber.Type.NAME_AND_TYPE);
                 break;
             }
             default:
@@ -160,7 +172,8 @@ public class ClassReader {
         int accessFlags = readShort();
         int nameIndex = readShort();
         int descIndex = readShort();
-        debug("    " + constantPool[descIndex] + " " + constantPool[nameIndex] + " " + accessFlags);
+        debug("    " + constantPool[descIndex] + " " + constantPool[nameIndex]
+                + " " + accessFlags);
         readAttributes();
     }
 
@@ -1001,7 +1014,8 @@ public class ClassReader {
 //            break;
         case 148: {
             Token b = stack.pop(), a = stack.pop();
-            stack.push(new Function("SIGN", Operation.get(a, Operation.Type.SUBTRACT, b)));
+            stack.push(new Function("SIGN", Operation.get(a,
+                    Operation.Type.SUBTRACT, b)));
             op = "lcmp";
             break;
         }
@@ -1020,37 +1034,43 @@ public class ClassReader {
         case 153:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push(Operation.get(stack.pop(), Operation.Type.EQUALS, ConstantNumber.get(0)));
+            stack.push(Operation.get(stack.pop(), Operation.Type.EQUALS,
+                    ConstantNumber.get(0)));
             op = "ifeq " + nextPc;
             break;
         case 154:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push(Operation.get(stack.pop(), Operation.Type.NOT_EQUALS, ConstantNumber.get(0)));
+            stack.push(Operation.get(stack.pop(), Operation.Type.NOT_EQUALS,
+                    ConstantNumber.get(0)));
             op = "ifne " + nextPc;
             break;
         case 155:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push(Operation.get(stack.pop(), Operation.Type.SMALLER, ConstantNumber.get(0)));
+            stack.push(Operation.get(stack.pop(), Operation.Type.SMALLER,
+                    ConstantNumber.get(0)));
             op = "iflt " + nextPc;
             break;
         case 156:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push(Operation.get(stack.pop(), Operation.Type.BIGGER_EQUALS, ConstantNumber.get(0)));
+            stack.push(Operation.get(stack.pop(), Operation.Type.BIGGER_EQUALS,
+                    ConstantNumber.get(0)));
             op = "ifge " + nextPc;
             break;
         case 157:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push(Operation.get(stack.pop(), Operation.Type.BIGGER, ConstantNumber.get(0)));
+            stack.push(Operation.get(stack.pop(), Operation.Type.BIGGER,
+                    ConstantNumber.get(0)));
             op = "ifgt " + nextPc;
             break;
         case 158:
             condition = true;
             nextPc = getAbsolutePos(pos, readShort());
-            stack.push(Operation.get(stack.pop(), Operation.Type.SMALLER_EQUALS, ConstantNumber.get(0)));
+            stack.push(Operation.get(stack.pop(),
+                    Operation.Type.SMALLER_EQUALS, ConstantNumber.get(0)));
             op = "ifle " + nextPc;
             break;
         case 159: {
@@ -1198,7 +1218,10 @@ public class ClassReader {
         case 180: {
             String field = getField(readShort());
             Token p = stack.pop();
-            String s = p + "." + field.substring(field.lastIndexOf('.') + 1, field.indexOf(' '));
+            String s = p
+                    + "."
+                    + field.substring(field.lastIndexOf('.') + 1,
+                            field.indexOf(' '));
             if (s.startsWith("this.")) {
                 s = s.substring(5);
             }
@@ -1239,7 +1262,8 @@ public class ClassReader {
 //            break;
 //        }
         case 187: {
-            String className = constantPool[constantPool[readShort()].intValue()].toString();
+            String className = constantPool[constantPool[readShort()]
+                    .intValue()].toString();
             op = "new " + className;
             break;
         }
@@ -1367,9 +1391,9 @@ public class ClassReader {
         int field = constantPool[fieldRef].intValue();
         int classIndex = field >>> 16;
         int nameAndType = constantPool[field & 0xffff].intValue();
-        String className = constantPool[constantPool[classIndex].intValue()] + "." +
-                constantPool[nameAndType >>> 16] + " " +
-                constantPool[nameAndType & 0xffff];
+        String className = constantPool[constantPool[classIndex].intValue()]
+                + "." + constantPool[nameAndType >>> 16] + " "
+                + constantPool[nameAndType & 0xffff];
         return className;
     }
 
@@ -1377,9 +1401,9 @@ public class ClassReader {
         int method = constantPool[methodRef].intValue();
         int classIndex = method >>> 16;
         int nameAndType = constantPool[method & 0xffff].intValue();
-        String className = constantPool[constantPool[classIndex].intValue()] + "." +
-            constantPool[nameAndType >>> 16] + " " +
-            constantPool[nameAndType & 0xffff];
+        String className = constantPool[constantPool[classIndex].intValue()]
+                + "." + constantPool[nameAndType >>> 16] + " "
+                + constantPool[nameAndType & 0xffff];
         return className;
     }
 
@@ -1409,7 +1433,8 @@ public class ClassReader {
             if (x < 0x80) {
                 chars[j] = (char) x;
             } else if (x >= 0xe0) {
-                chars[j] = (char) (((x & 0xf) << 12) + ((buff[p++] & 0x3f) << 6) + (buff[p++] & 0x3f));
+                chars[j] = (char) (((x & 0xf) << 12)
+                        + ((buff[p++] & 0x3f) << 6) + (buff[p++] & 0x3f));
             } else {
                 chars[j] = (char) (((x & 0x1f) << 6) + (buff[p++] & 0x3f));
             }
@@ -1433,7 +1458,8 @@ public class ClassReader {
 
     private int readInt() {
         byte[] buff = data;
-        return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
+        return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16)
+                + ((buff[pos++] & 0xff) << 8) + (buff[pos++] & 0xff);
     }
 
     private long readLong() {

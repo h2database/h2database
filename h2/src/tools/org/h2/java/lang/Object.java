@@ -11,6 +11,7 @@ package org.h2.java.lang;
  */
 public class Object {
 
+    @Override
     public int hashCode() {
         return 0;
     }
@@ -19,6 +20,7 @@ public class Object {
         return other == this;
     }
 
+    @Override
     public java.lang.String toString() {
         return "?";
     }

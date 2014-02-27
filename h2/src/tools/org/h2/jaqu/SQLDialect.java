@@ -18,7 +18,7 @@ public interface SQLDialect {
 
     /**
      * Get the SQL snippet for the table name.
-     *
+     * 
      * @param schema the schema name, or null for no schema
      * @param table the table name
      * @return the SQL snippet
@@ -27,7 +27,7 @@ public interface SQLDialect {
 
     /**
      * Get the CREATE INDEX statement.
-     *
+     * 
      * @param schema the schema name
      * @param table the table name
      * @param index the index definition
@@ -37,7 +37,7 @@ public interface SQLDialect {
 
     /**
      * Append "LIMIT limit" to the SQL statement.
-     *
+     * 
      * @param stat the statement
      * @param limit the limit
      */
@@ -45,7 +45,7 @@ public interface SQLDialect {
 
     /**
      * Append "OFFSET offset" to the SQL statement.
-     *
+     * 
      * @param stat the statement
      * @param offset the offset
      */
@@ -53,14 +53,14 @@ public interface SQLDialect {
 
     /**
      * Whether memory tables are supported.
-     *
+     * 
      * @return true if they are
      */
     boolean supportsMemoryTables();
 
     /**
-     *  Default implementation of an SQL dialect.
-     *  Designed for an H2 database, and may be suitable for others.
+     * Default implementation of an SQL dialect. Designed for an H2 database,
+     * and may be suitable for others.
      */
     public static class DefaultSQLDialect implements SQLDialect {
 
@@ -78,10 +78,11 @@ public interface SQLDialect {
         }
 
         @Override
-        public String getCreateIndex(String schema, String table, IndexDefinition index) {
+        public String getCreateIndex(String schema, String table,
+                IndexDefinition index) {
             StatementBuilder buff = new StatementBuilder();
             buff.append("CREATE ");
-            switch(index.type) {
+            switch (index.type) {
             case STANDARD:
                 break;
             case UNIQUE:
@@ -99,7 +100,7 @@ public interface SQLDialect {
             buff.append(" ON ");
             buff.append(table);
             buff.append("(");
-            for (String col:index.columnNames) {
+            for (String col : index.columnNames) {
                 buff.appendExceptFirst(", ");
                 buff.append(col);
             }

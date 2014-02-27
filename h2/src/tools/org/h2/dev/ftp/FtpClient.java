@@ -68,7 +68,8 @@ public class FtpClient {
             if (message != null) {
                 int idxSpace = message.indexOf(' ');
                 int idxMinus = message.indexOf('-');
-                int idx = idxSpace < 0 ? idxMinus : idxMinus < 0 ? idxSpace : Math.min(idxSpace, idxMinus);
+                int idx = idxSpace < 0 ? idxMinus : idxMinus < 0 ? idxSpace
+                        : Math.min(idxSpace, idxMinus);
                 if (idx < 0) {
                     code = 0;
                 } else {
@@ -86,7 +87,8 @@ public class FtpClient {
             readLine();
         }
         if (code != expected) {
-            throw new IOException("Expected: " + expected + " got: " + code + " " + message);
+            throw new IOException("Expected: " + expected + " got: " + code
+                    + " " + message);
         }
     }
 
@@ -227,7 +229,8 @@ public class FtpClient {
         readCode(226, 227);
         int first = message.indexOf('(') + 1;
         int last = message.indexOf(')');
-        String[] address = StringUtils.arraySplit(message.substring(first, last), ',', true);
+        String[] address = StringUtils.arraySplit(
+                message.substring(first, last), ',', true);
         StatementBuilder buff = new StatementBuilder();
         for (int i = 0; i < 4; i++) {
             buff.appendExceptFirst(".");
@@ -273,7 +276,8 @@ public class FtpClient {
      * @param out the output stream
      * @param restartAt restart at the given position (0 if no restart is required).
      */
-    void retrieve(String fileName, OutputStream out, long restartAt) throws IOException {
+    void retrieve(String fileName, OutputStream out, long restartAt)
+            throws IOException {
         passive();
         if (restartAt > 0) {
             send("REST " + restartAt);

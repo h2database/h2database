@@ -51,6 +51,7 @@ public class StringBuilder {
         return this;
     }
 
+    @Override
     public java.lang.String toString() {
         return new java.lang.String(buffer, 0, length);
     }

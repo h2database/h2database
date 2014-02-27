@@ -47,14 +47,16 @@ public class FtpControl extends Thread {
     @Override
     public void run() {
         try {
-            output = new PrintWriter(new OutputStreamWriter(control.getOutputStream(), Constants.UTF8));
+            output = new PrintWriter(new OutputStreamWriter(
+                    control.getOutputStream(), Constants.UTF8));
             if (stop) {
                 reply(421, "Too many users");
             } else {
                 reply(220, SERVER_NAME);
                 // TODO need option to configure the serverIpAddress?
                 serverIpAddress = control.getLocalAddress().getHostAddress().replace('.', ',');
-                BufferedReader input = new BufferedReader(new InputStreamReader(control.getInputStream()));
+                BufferedReader input = new BufferedReader(
+                        new InputStreamReader(control.getInputStream()));
                 while (!stop) {
                     String command = null;
                     try {
@@ -169,7 +171,9 @@ public class FtpControl extends Thread {
         case 'D':
             if ("DELE".equals(command)) {
                 String fileName = getFileName(param);
-                if (!readonly && FileUtils.exists(fileName) && !FileUtils.isDirectory(fileName) && FileUtils.tryDelete(fileName)) {
+                if (!readonly && FileUtils.exists(fileName)
+                        && !FileUtils.isDirectory(fileName)
+                        && FileUtils.tryDelete(fileName)) {
                     if (server.getAllowTask() && fileName.endsWith(FtpServer.TASK_SUFFIX)) {
                         server.stopTask(fileName);
                     }
@@ -217,7 +221,8 @@ public class FtpControl extends Thread {
                 data = new FtpData(server, control.getInetAddress(), dataSocket);
                 data.start();
                 int port = dataSocket.getLocalPort();
-                reply(227, "Passive Mode (" + serverIpAddress + "," + (port >> 8) + "," + (port & 255) + ")");
+                reply(227, "Passive Mode (" + serverIpAddress + ","
+                        + (port >> 8) + "," + (port & 255) + ")");
             } else if ("PORT".equals(command)) {
                 String[] list = StringUtils.arraySplit(param, ',', true);
                 String host = list[0] + "." + list[1] + "." + list[2] + "." + list[3];
@@ -227,7 +232,8 @@ public class FtpControl extends Thread {
                     data = new FtpData(server, address, port);
                     reply(200, "Ok");
                 } else {
-                    server.trace("Port REJECTED:" + address + " expected:" + control.getInetAddress());
+                    server.trace("Port REJECTED:" + address + " expected:"
+                            + control.getInetAddress());
                     reply(550, "Failed");
                 }
             }
@@ -304,7 +310,8 @@ public class FtpControl extends Thread {
                 }
             } else if ("STOR".equals(command)) {
                 String fileName = getFileName(param);
-                if (!readonly && !FileUtils.exists(fileName) || !FileUtils.isDirectory(fileName)) {
+                if (!readonly && !FileUtils.exists(fileName)
+                        || !FileUtils.isDirectory(fileName)) {
                     reply(150, "Starting transfer");
                     try {
                         data.receive(fileName);
@@ -368,7 +375,9 @@ public class FtpControl extends Thread {
 
     private void processRemoveDir(String param) {
         String fileName = getFileName(param);
-        if (!readonly && FileUtils.exists(fileName) && FileUtils.isDirectory(fileName) && FileUtils.tryDelete(fileName)) {
+        if (!readonly && FileUtils.exists(fileName)
+                && FileUtils.isDirectory(fileName)
+                && FileUtils.tryDelete(fileName)) {
             reply(250, "Ok");
         } else {
             reply(500, "Failed");

@@ -30,6 +30,7 @@ public interface Expr {
  * The base expression class.
  */
 abstract class ExprBase implements Expr {
+    @Override
     public final String toString() {
         return "_" + asString() + "_";
     }
@@ -75,6 +76,7 @@ class CallExpr extends ExprBase {
         }
     }
 
+    @Override
     public String asString() {
         StringBuilder buff = new StringBuilder();
         initMethod();
@@ -112,11 +114,13 @@ class CallExpr extends ExprBase {
         return buff.toString();
     }
 
+    @Override
     public Type getType() {
         initMethod();
         return method.returnType;
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }
@@ -148,15 +152,18 @@ class AssignExpr extends ExprBase {
      */
     Type type;
 
+    @Override
     public String asString() {
         right.setType(left.getType());
         return left.asString() + " " + op + " " + right.asString();
     }
 
+    @Override
     public Type getType() {
         return left.getType();
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }
@@ -183,14 +190,18 @@ class ConditionalExpr extends ExprBase {
      */
     Expr ifFalse;
 
+    @Override
     public String asString() {
-        return condition.asString() + " ? " + ifTrue.asString() + " : " + ifFalse.asString();
+        return condition.asString() + " ? " + ifTrue.asString() + " : "
+                + ifFalse.asString();
     }
 
+    @Override
     public Type getType() {
         return ifTrue.getType();
     }
 
+    @Override
     public void setType(Type type) {
         ifTrue.setType(type);
         ifFalse.setType(type);
@@ -217,6 +228,7 @@ class LiteralExpr extends ExprBase {
         this.className = className;
     }
 
+    @Override
     public String asString() {
         if ("null".equals(literal)) {
             Type t = getType();
@@ -228,6 +240,7 @@ class LiteralExpr extends ExprBase {
         return literal;
     }
 
+    @Override
     public Type getType() {
         if (type == null) {
             type = new Type();
@@ -236,6 +249,7 @@ class LiteralExpr extends ExprBase {
         return type;
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }
@@ -269,6 +283,7 @@ class OpExpr extends ExprBase {
         this.context = context;
     }
 
+    @Override
     public String asString() {
         if (left == null) {
             return op + right.asString();
@@ -316,6 +331,7 @@ class OpExpr extends ExprBase {
                 op.equals(">=") || op.equals("<=") || op.equals("!=");
     }
 
+    @Override
     public Type getType() {
         if (left == null) {
             return right.getType();
@@ -343,6 +359,7 @@ class OpExpr extends ExprBase {
         return lt;
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }
@@ -374,6 +391,7 @@ class NewExpr extends ExprBase {
      */
     Type type;
 
+    @Override
     public String asString() {
         boolean refCount = type.refCount;
         StringBuilder buff = new StringBuilder();
@@ -416,6 +434,7 @@ class NewExpr extends ExprBase {
         return buff.toString();
     }
 
+    @Override
     public Type getType() {
         Type t = new Type();
         t.classObj = classObj;
@@ -423,6 +442,7 @@ class NewExpr extends ExprBase {
         return t;
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }
@@ -451,10 +471,12 @@ class StringExpr extends ExprBase {
         this.context = context;
     }
 
+    @Override
     public String asString() {
         return constantName;
     }
 
+    @Override
     public Type getType() {
         if (type == null) {
             type = new Type();
@@ -517,6 +539,7 @@ class StringExpr extends ExprBase {
         return buff.toString();
     }
 
+    @Override
     public void setType(Type type) {
         // ignore
     }
@@ -550,6 +573,7 @@ class VariableExpr extends ExprBase {
         this.context = context;
     }
 
+    @Override
     public String asString() {
         init();
         StringBuilder buff = new StringBuilder();
@@ -586,11 +610,13 @@ class VariableExpr extends ExprBase {
         }
     }
 
+    @Override
     public Type getType() {
         init();
         return field.type;
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }
@@ -612,10 +638,12 @@ class ArrayInitExpr extends ExprBase {
      */
     Type type;
 
+    @Override
     public Type getType() {
         return type;
     }
 
+    @Override
     public String asString() {
         StringBuilder buff = new StringBuilder("{ ");
         int i = 0;
@@ -629,6 +657,7 @@ class ArrayInitExpr extends ExprBase {
         return buff.toString();
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }
@@ -650,14 +679,17 @@ class CastExpr extends ExprBase {
      */
     Type type;
 
+    @Override
     public Type getType() {
         return type;
     }
 
+    @Override
     public String asString() {
         return "(" + type.asString() + ") " + expr.asString();
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }
@@ -684,6 +716,7 @@ class ArrayAccessExpr extends ExprBase {
      */
     Type type;
 
+    @Override
     public Type getType() {
         Type t = new Type();
         t.classObj = base.getType().classObj;
@@ -691,10 +724,12 @@ class ArrayAccessExpr extends ExprBase {
         return t;
     }
 
+    @Override
     public String asString() {
         return base.asString() + "->at(" + index.asString() + ")";
     }
 
+    @Override
     public void setType(Type type) {
         this.type = type;
     }

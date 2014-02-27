@@ -23,7 +23,7 @@ import org.h2.util.New;
 
 /**
  * This class represents a query.
- *
+ * 
  * @param <T> the return type
  */
 public class Query<T> {
@@ -31,9 +31,11 @@ public class Query<T> {
     private final Db db;
     private SelectTable<T> from;
     private final ArrayList<Token> conditions = New.arrayList();
-    private final ArrayList<UpdateColumn> updateColumnDeclarations = New.arrayList();
+    private final ArrayList<UpdateColumn> updateColumnDeclarations = New
+            .arrayList();
     private final ArrayList<SelectTable<?>> joins = New.arrayList();
-    private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = ClassUtils.newIdentityHashMap();
+    private final IdentityHashMap<Object, SelectColumn<T>> aliasMap = ClassUtils
+            .newIdentityHashMap();
     private final ArrayList<OrderExpression<T>> orderByList = New.arrayList();
     private Object[] groupByExpressions;
     private long limit;
@@ -46,7 +48,8 @@ public class Query<T> {
     @SuppressWarnings("unchecked")
     static <T> Query<T> from(Db db, T alias) {
         Query<T> query = new Query<T>(db);
-        TableDefinition<T> def = (TableDefinition<T>) db.define(alias.getClass());
+        TableDefinition<T> def = (TableDefinition<T>) db.define(alias
+                .getClass());
         query.from = new SelectTable<T>(db, query, alias, false);
         def.initSelectObject(query.from, alias, query.aliasMap);
         return query;
@@ -253,7 +256,8 @@ public class Query<T> {
             try {
                 Object obj = f.get(filter);
                 if (obj == from.getAlias()) {
-                    List<TableDefinition.FieldDefinition> fields = from.getAliasDefinition().getFields();
+                    List<TableDefinition.FieldDefinition> fields = from
+                            .getAliasDefinition().getFields();
                     String name = f.getName();
                     for (TableDefinition.FieldDefinition field : fields) {
                         String n = name + "." + field.field.getName();
@@ -266,7 +270,8 @@ public class Query<T> {
                 throw new RuntimeException(e);
             }
         }
-        Token filterCode = new ClassReader().decompile(filter, fieldMap, "where");
+        Token filterCode = new ClassReader().decompile(filter, fieldMap,
+                "where");
         // String filterQuery = filterCode.toString();
         conditions.add(filterCode);
         return new QueryWhere<T>(this);
@@ -280,7 +285,7 @@ public class Query<T> {
 
     /**
      * Sets the Limit and Offset of a query.
-     *
+     * 
      * @return the query
      */
     public Query<T> limit(long limit) {
@@ -295,22 +300,22 @@ public class Query<T> {
 
     /**
      * Order by a number of columns.
-     *
+     * 
      * @param expressions the columns
      * @return the query
      */
     public Query<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
-            OrderExpression<T> e =
-                new OrderExpression<T>(this, expr, false, false, false);
+            OrderExpression<T> e = new OrderExpression<T>(this, expr, false,
+                    false, false);
             addOrderBy(e);
         }
         return this;
     }
 
     public Query<T> orderByDesc(Object expr) {
-        OrderExpression<T> e =
-            new OrderExpression<T>(this, expr, true, false, false);
+        OrderExpression<T> e = new OrderExpression<T>(this, expr, true, false,
+                false);
         addOrderBy(e);
         return this;
     }
@@ -322,7 +327,7 @@ public class Query<T> {
 
     /**
      * INTERNAL
-     *
+     * 
      * @param stat the statement
      * @param x the alias object
      */
@@ -404,13 +409,14 @@ public class Query<T> {
 
     /**
      * Join another table.
-     *
+     * 
      * @param alias an alias for the table to join
      * @return the joined query
      */
     @SuppressWarnings("unchecked")
     public <U> QueryJoin innerJoin(U alias) {
-        TableDefinition<T> def = (TableDefinition<T>) db.define(alias.getClass());
+        TableDefinition<T> def = (TableDefinition<T>) db.define(alias
+                .getClass());
         SelectTable<T> join = new SelectTable(db, this, alias, false);
         def.initSelectObject(join, alias, aliasMap);
         joins.add(join);

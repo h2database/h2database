@@ -34,12 +34,14 @@ public class Define {
 
     public static void hashIndex(Object column) {
         checkInDefine();
-        currentTableDefinition.addIndex(IndexType.HASH, new Object [] { column });
+        currentTableDefinition
+                .addIndex(IndexType.HASH, new Object[] { column });
     }
 
     public static void uniqueHashIndex(Object column) {
         checkInDefine();
-        currentTableDefinition.addIndex(IndexType.UNIQUE_HASH, new Object [] { column });
+        currentTableDefinition.addIndex(IndexType.UNIQUE_HASH,
+                new Object[] { column });
     }
 
     public static void maxLength(Object column, int length) {
@@ -62,9 +64,10 @@ public class Define {
 
     private static void checkInDefine() {
         if (currentTable == null) {
-            throw new RuntimeException("This method may only be called " +
-                "from within the define() method, and the define() method " +
-                "is called by the framework.");
+            throw new RuntimeException(
+                    "This method may only be called "
+                            + "from within the define() method, and the define() method "
+                            + "is called by the framework.");
         }
     }
 

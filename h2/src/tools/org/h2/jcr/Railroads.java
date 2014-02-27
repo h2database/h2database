@@ -79,7 +79,8 @@ public class Railroads {
     }
 
     private void map(String key, ResultSet rs, boolean railroads) throws Exception {
-        ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+        ArrayList<HashMap<String, String>> list;
+        list = new ArrayList<HashMap<String, String>>();
         while (rs.next()) {
             HashMap<String, String> map = new HashMap<String, String>();
             ResultSetMetaData meta = rs.getMetaData();
@@ -119,7 +120,8 @@ public class Railroads {
         int div = 3;
         int part = (list.size() + div - 1) / div;
         for (int i = 0, start = 0; i < div; i++, start += part) {
-            List<HashMap<String, String>> listThird = list.subList(start, Math.min(start + part, list.size()));
+            List<HashMap<String, String>> listThird = list.subList(start,
+                    Math.min(start + part, list.size()));
             session.put(key + "-" + i, listThird);
         }
         rs.close();

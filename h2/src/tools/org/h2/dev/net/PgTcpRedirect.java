@@ -99,7 +99,8 @@ public class PgTcpRedirect {
             }
         }
 
-        private boolean processClient(InputStream inStream, OutputStream outStream) throws IOException {
+        private boolean processClient(InputStream inStream,
+                OutputStream outStream) throws IOException {
             DataInputStream dataIn = new DataInputStream(inStream);
             ByteArrayOutputStream buff = new ByteArrayOutputStream();
             DataOutputStream dataOut = new DataOutputStream(buff);
@@ -121,7 +122,8 @@ public class PgTcpRedirect {
                     println("SSLRequest");
                 } else {
                     println("StartupMessage");
-                    println(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
+                    println(" version " + version + " (" + (version >> 16)
+                            + "." + (version & 0xff) + ")");
                     while (true) {
                         String param = readStringNull(dataIn);
                         if (param.length() == 0) {
@@ -266,7 +268,8 @@ public class PgTcpRedirect {
             return true;
         }
 
-        private boolean processServer(InputStream inStream, OutputStream outStream) throws IOException {
+        private boolean processServer(InputStream inStream,
+                OutputStream outStream) throws IOException {
             DataInputStream dataIn = new DataInputStream(inStream);
             ByteArrayOutputStream buff = new ByteArrayOutputStream();
             DataOutputStream dataOut = new DataOutputStream(buff);
@@ -453,7 +456,8 @@ public class PgTcpRedirect {
             }
             case 'S': {
                 println("ParameterStatus");
-                println(" parameter " + readStringNull(dataIn) + " = " + readStringNull(dataIn));
+                println(" parameter " + readStringNull(dataIn) + " = "
+                        + readStringNull(dataIn));
                 break;
             }
             case '1': {
@@ -466,7 +470,8 @@ public class PgTcpRedirect {
             }
             case 'Z': {
                 println("ReadyForQuery");
-                println(" status (I:idle, T:transaction, E:failed): " + (char) dataIn.readByte());
+                println(" status (I:idle, T:transaction, E:failed): "
+                        + (char) dataIn.readByte());
                 break;
             }
             case 'T': {

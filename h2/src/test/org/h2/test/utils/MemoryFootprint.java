@@ -54,7 +54,8 @@ public class MemoryFootprint {
             print("long[" + i +"]", new long[i]);
             print("double[" + i +"]", new double[i]);
 
-            System.out.println(getArraySize(Constants.MEMORY_POINTER, i) + " bytes per obj[]");
+            System.out.println(getArraySize(Constants.MEMORY_POINTER, i) +
+                    " bytes per obj[]");
             print("Object[" + i +"]", new Object[i]);
 
             System.out.println();

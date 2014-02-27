@@ -84,12 +84,14 @@ public class TestCache extends TestBase implements CacheWriter {
     }
 
     private void testTQ(String cacheType, boolean scanResistant) throws Exception {
-        Connection conn = getConnection("cache;CACHE_TYPE=" + cacheType + ";CACHE_SIZE=4096");
+        Connection conn = getConnection(
+                "cache;CACHE_TYPE=" + cacheType + ";CACHE_SIZE=4096");
         Statement stat = conn.createStatement();
         PreparedStatement prep;
         for (int k = 0; k < 10; k++) {
             int rc;
-            prep = conn.prepareStatement("select * from test where id = ?");
+            prep = conn.prepareStatement(
+                    "select * from test where id = ?");
             rc = getReadCount(stat);
             for (int x = 0; x < 2; x++) {
                 for (int i = 0; i < 15000; i++) {
@@ -106,7 +108,8 @@ public class TestCache extends TestBase implements CacheWriter {
                 assertTrue(rcData > 0);
             }
             rc = getReadCount(stat);
-            ResultSet rs = stat.executeQuery("select * from lob where id = " + k);
+            ResultSet rs = stat.executeQuery(
+                    "select * from lob where id = " + k);
             rs.next();
             InputStream in = rs.getBinaryStream(2);
             while (in.read() >= 0) {
@@ -121,7 +124,9 @@ public class TestCache extends TestBase implements CacheWriter {
 
     private static int getReadCount(Statement stat) throws Exception {
         ResultSet rs;
-        rs = stat.executeQuery("select value from information_schema.settings where name = 'info.FILE_READ'");
+        rs = stat.executeQuery(
+                "select value from information_schema.settings " + 
+                "where name = 'info.FILE_READ'");
         rs.next();
         return rs.getInt(1);
     }
@@ -152,12 +157,16 @@ public class TestCache extends TestBase implements CacheWriter {
 
         //  -XX:+HeapDumpOnOutOfMemoryError
 
-        stat.execute("insert into test select x, random_uuid() || space(1) from system_range(1, 10000)");
+        stat.execute(
+                "insert into test select x, random_uuid() || space(1) " + 
+                "from system_range(1, 10000)");
 
         // stat.execute("create index idx_test_n on test(data)");
         // stat.execute("select data from test where data >= ''");
 
-        rs = stat.executeQuery("select value from information_schema.settings where name = 'info.CACHE_SIZE'");
+        rs = stat.executeQuery(
+                "select value from information_schema.settings " + 
+                "where name = 'info.CACHE_SIZE'");
         rs.next();
         int calculated = rs.getInt(1);
         rs = null;
@@ -167,8 +176,10 @@ public class TestCache extends TestBase implements CacheWriter {
         stat = null;
         conn = null;
         long afterClose = getRealMemory();
-        trace("Used memory: " + (afterInsert - afterClose) + " calculated cache size: " + calculated);
-        trace("Before: " + before + " after: " + afterInsert + " after closing: " + afterClose);
+        trace("Used memory: " + (afterInsert - afterClose) +
+                " calculated cache size: " + calculated);
+        trace("Before: " + before + " after: " + afterInsert +
+                " after closing: " + afterClose);
     }
 
     private int getRealMemory() {
@@ -240,13 +251,16 @@ public class TestCache extends TestBase implements CacheWriter {
             return;
         }
         deleteDb("cache");
-        Connection conn = getConnection("cache;CACHE_TYPE=" + (lru ? "LRU" : "SOFT_LRU"));
+        Connection conn = getConnection(
+                "cache;CACHE_TYPE=" + (lru ? "LRU" : "SOFT_LRU"));
         Statement stat = conn.createStatement();
         stat.execute("SET CACHE_SIZE 1024");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("CREATE TABLE MAIN(ID INT PRIMARY KEY, NAME VARCHAR)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
-        PreparedStatement prep2 = conn.prepareStatement("INSERT INTO MAIN VALUES(?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?)");
+        PreparedStatement prep2 = conn.prepareStatement(
+                "INSERT INTO MAIN VALUES(?, ?)");
         int max = 10000;
         for (int i = 0; i < max; i++) {
             prep.setInt(1, i);

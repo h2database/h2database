@@ -67,7 +67,8 @@ public class Utils {
     /**
      *  In order to manage more than one class loader
      */
-    private static ArrayList<ClassFactory> userClassFactories = new ArrayList<ClassFactory>();
+    private static ArrayList<ClassFactory> userClassFactories = 
+            new ArrayList<ClassFactory>();
 
     private static String[] allowedClassNamePrefixes;
 
@@ -114,7 +115,10 @@ public class Utils {
     }
 
     private static int readInt(byte[] buff, int pos) {
-        return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
+        return (buff[pos++] << 24) + 
+                ((buff[pos++] & 0xff) << 16) + 
+                ((buff[pos++] & 0xff) << 8) + 
+                (buff[pos] & 0xff);
     }
 
     /**
@@ -397,7 +401,8 @@ public class Utils {
                 final ClassLoader loader = Thread.currentThread().getContextClassLoader();
                 is = new ObjectInputStream(in) {
                     @Override
-                    protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+                    protected Class<?> resolveClass(ObjectStreamClass desc) 
+                            throws IOException, ClassNotFoundException {
                         try {
                             return Class.forName(desc.getName(), true, loader);
                         } catch (ClassNotFoundException e) {
@@ -529,7 +534,8 @@ public class Utils {
      */
     private static <X> void partitionTopN(X[] array, int offset, int limit,
             Comparator<? super X> comp) {
-        partialQuickSort(array, 0, array.length - 1, comp, offset, offset + limit - 1);
+        partialQuickSort(array, 0, array.length - 1, comp, offset, offset +
+                limit - 1);
     }
 
     private static <X> void partialQuickSort(X[] array, int low, int high,
@@ -577,7 +583,8 @@ public class Utils {
      * @param c2 the second class
      * @return true if they have
      */
-    public static boolean haveCommonComparableSuperclass(Class<?> c1, Class<?> c2) {
+    public static boolean haveCommonComparableSuperclass(
+            Class<?> c1, Class<?> c2) {
         if (c1 == c2 || c1.isAssignableFrom(c2) || c2.isAssignableFrom(c1)) {
             return true;
         }
@@ -633,7 +640,8 @@ public class Utils {
                 }
             }
             if (!allowed) {
-                throw DbException.get(ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
+                throw DbException.get(
+                        ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
             }
         }
         // Use provided class factory first.
@@ -645,7 +653,8 @@ public class Utils {
                         return userClass;
                     }
                 } catch (Exception e) {
-                    throw DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+                    throw DbException.get(
+                            ErrorCode.CLASS_NOT_FOUND_1, e, className);
                 }
             }
         }
@@ -654,15 +663,20 @@ public class Utils {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
             try {
-                return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+                return Class.forName(
+                        className, true, 
+                        Thread.currentThread().getContextClassLoader());
             } catch (Exception e2) {
-                throw DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+                throw DbException.get(
+                        ErrorCode.CLASS_NOT_FOUND_1, e, className);
             }
         } catch (NoClassDefFoundError e) {
-            throw DbException.get(ErrorCode.CLASS_NOT_FOUND_1, e, className);
+            throw DbException.get(
+                    ErrorCode.CLASS_NOT_FOUND_1, e, className);
         } catch (Error e) {
             // UnsupportedClassVersionError
-            throw DbException.get(ErrorCode.GENERAL_ERROR_1, e, className);
+            throw DbException.get(
+                    ErrorCode.GENERAL_ERROR_1, e, className);
         }
     }
 
@@ -728,7 +742,8 @@ public class Utils {
      * @param params the method parameters
      * @return the return value from this call
      */
-    public static Object callStaticMethod(String classAndMethod, Object... params) throws Exception {
+    public static Object callStaticMethod(String classAndMethod,
+            Object... params) throws Exception {
         int lastDot = classAndMethod.lastIndexOf('.');
         String className = classAndMethod.substring(0, lastDot);
         String methodName = classAndMethod.substring(lastDot + 1);
@@ -760,7 +775,8 @@ public class Utils {
         int bestMatch = 0;
         boolean isStatic = instance == null;
         for (Method m : clazz.getMethods()) {
-            if (Modifier.isStatic(m.getModifiers()) == isStatic && m.getName().equals(methodName)) {
+            if (Modifier.isStatic(m.getModifiers()) == isStatic && 
+                    m.getName().equals(methodName)) {
                 int p = match(m.getParameterTypes(), params);
                 if (p > bestMatch) {
                     bestMatch = p;
@@ -783,7 +799,8 @@ public class Utils {
      * @param params the constructor parameters
      * @return the newly created object
      */
-    public static Object newInstance(String className, Object... params) throws Exception {
+    public static Object newInstance(String className, Object... params)
+            throws Exception {
         Constructor<?> best = null;
         int bestMatch = 0;
         for (Constructor<?> c : Class.forName(className).getConstructors()) {
@@ -840,7 +857,8 @@ public class Utils {
      * @param fieldName the field name
      * @return the field value
      */
-    public static Object getField(Object instance, String fieldName) throws Exception {
+    public static Object getField(Object instance, String fieldName)
+            throws Exception {
         return instance.getClass().getField(fieldName).get(instance);
     }
 

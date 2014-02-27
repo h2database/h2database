@@ -21,7 +21,8 @@ public class TestStringCache extends TestBase {
      */
     volatile boolean stop;
     private final Random random = new Random(1);
-    private final String[] some = { null, "", "ABC", "this is a medium sized string", "1", "2" };
+    private final String[] some = { null, "", "ABC",
+            "this is a medium sized string", "1", "2" };
     private boolean returnNew;
     private boolean useIntern;
 
@@ -88,7 +89,8 @@ public class TestStringCache extends TestBase {
                 TestBase.logError("error", e);
             }
             if (a != null && a == b && a.length() > 0) {
-                throw new AssertionError("a=" + System.identityHashCode(a) + " b=" + System.identityHashCode(b));
+                throw new AssertionError("a=" + System.identityHashCode(a) +
+                        " b=" + System.identityHashCode(b));
             }
         } else {
             String b;

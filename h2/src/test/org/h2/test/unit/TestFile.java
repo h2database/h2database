@@ -24,7 +24,7 @@ public class TestFile extends TestBase implements DataHandler {
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -45,7 +45,8 @@ public class TestFile extends TestBase implements DataHandler {
         FileStore mem = null, file = null;
         byte[] buffMem = null;
         byte[] buffFile = null;
-        String prefix = nioMem ? (compress ? "nioMemLZF:" : "nioMemFS:") : (compress ? "memLZF:" : "memFS:");
+        String prefix = nioMem ? (compress ? "nioMemLZF:" : "nioMemFS:")
+                : (compress ? "memLZF:" : "memFS:");
         FileUtils.delete(prefix + "test");
         FileUtils.delete("~/testFile");
 
@@ -91,7 +92,8 @@ public class TestFile extends TestBase implements DataHandler {
                 if (buffFile.length > 16) {
                     int off = random.nextInt(buffFile.length - 16);
                     int l = random.nextInt((buffFile.length - off) / 16) * 16;
-                    l = (int) Math.min(l, file.length() - file.getFilePointer());
+                    l = (int) Math
+                            .min(l, file.length() - file.getFilePointer());
                     trace("read " + off + " " + l);
                     Exception a = null, b = null;
                     try {
@@ -186,7 +188,8 @@ public class TestFile extends TestBase implements DataHandler {
     }
 
     @Override
-    public int readLob(long lobId,  byte[] hmac, long offset, byte[] buff, int off, int length) {
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
+            int off, int length) {
         return -1;
     }
 

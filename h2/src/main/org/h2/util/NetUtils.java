@@ -41,7 +41,8 @@ public class NetUtils {
      * @param ssl if SSL should be used
      * @return the socket
      */
-    public static Socket createLoopbackSocket(int port, boolean ssl) throws IOException {
+    public static Socket createLoopbackSocket(int port, boolean ssl)
+            throws IOException {
         InetAddress address = getBindAddress();
         if (address == null) {
             address = InetAddress.getLocalHost();
@@ -84,7 +85,8 @@ public class NetUtils {
      * @param ssl if SSL should be used
      * @return the socket
      */
-    public static Socket createSocket(String server, int defaultPort, boolean ssl) throws IOException {
+    public static Socket createSocket(String server, int defaultPort,
+            boolean ssl) throws IOException {
         int port = defaultPort;
         // IPv6: RFC 2732 format is '[a:b:c:d:e:f:g:h]' or
         // '[a:b:c:d:e:f:g:h]:port'
@@ -108,7 +110,8 @@ public class NetUtils {
      * @param ssl if SSL should be used
      * @return the socket
      */
-    public static Socket createSocket(InetAddress address, int port, boolean ssl) throws IOException {
+    public static Socket createSocket(InetAddress address, int port, boolean ssl)
+            throws IOException {
         long start = System.currentTimeMillis();
         for (int i = 0;; i++) {
             try {
@@ -120,7 +123,8 @@ public class NetUtils {
                         SysProperties.SOCKET_CONNECT_TIMEOUT);
                 return socket;
             } catch (IOException e) {
-                if (System.currentTimeMillis() - start >= SysProperties.SOCKET_CONNECT_TIMEOUT) {
+                if (System.currentTimeMillis() - start >= 
+                        SysProperties.SOCKET_CONNECT_TIMEOUT) {
                     // either it was a connect timeout,
                     // or list of different exceptions
                     throw e;
@@ -200,7 +204,8 @@ public class NetUtils {
      * @param socket the socket
      * @return true if it is
      */
-    public static boolean isLocalAddress(Socket socket) throws UnknownHostException {
+    public static boolean isLocalAddress(Socket socket)
+            throws UnknownHostException {
         InetAddress test = socket.getInetAddress();
         if (test.isLoopbackAddress()) {
             return true;

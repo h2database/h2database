@@ -48,10 +48,16 @@ public class BenchA implements Bench {
         db.dropTable("ACCOUNTS");
         db.dropTable("HISTORY");
 
-        String[] create = { "CREATE TABLE BRANCHES(BID INT NOT NULL PRIMARY KEY, BBALANCE DECIMAL(15,2), FILLER VARCHAR(88))",
-                "CREATE TABLE TELLERS(TID INT NOT NULL PRIMARY KEY, BID INT, TBALANCE DECIMAL(15,2), FILLER VARCHAR(84))",
-                "CREATE TABLE ACCOUNTS(AID INT NOT NULL PRIMARY KEY, BID INT, ABALANCE DECIMAL(15,2), FILLER VARCHAR(84))",
-                "CREATE TABLE HISTORY(TID INT, BID INT, AID INT, DELTA DECIMAL(15,2), HTIME DATETIME, FILLER VARCHAR(40))" };
+        String[] create = { 
+                "CREATE TABLE BRANCHES(BID INT NOT NULL PRIMARY KEY, " + 
+                "BBALANCE DECIMAL(15,2), FILLER VARCHAR(88))",
+                "CREATE TABLE TELLERS(TID INT NOT NULL PRIMARY KEY, " + 
+                "BID INT, TBALANCE DECIMAL(15,2), FILLER VARCHAR(84))",
+                "CREATE TABLE ACCOUNTS(AID INT NOT NULL PRIMARY KEY, " + 
+                "BID INT, ABALANCE DECIMAL(15,2), FILLER VARCHAR(84))",
+                "CREATE TABLE HISTORY(TID INT, " + 
+                "BID INT, AID INT, DELTA DECIMAL(15,2), HTIME DATETIME, " + 
+                "FILLER VARCHAR(40))" };
 
         for (String sql : create) {
             db.update(sql);
@@ -60,7 +66,9 @@ public class BenchA implements Bench {
         PreparedStatement prep;
         db.setAutoCommit(false);
         int commitEvery = 1000;
-        prep = db.prepare("INSERT INTO BRANCHES(BID,BBALANCE,FILLER) VALUES(?,10000.00,'" + FILLER + "')");
+        prep = db.prepare(
+                "INSERT INTO BRANCHES(BID, BBALANCE, FILLER) " + 
+                "VALUES(?, 10000.00, '" + FILLER + "')");
         for (int i = 0; i < branches * scale; i++) {
             prep.setInt(1, i);
             db.update(prep, "insertBranches");
@@ -69,7 +77,9 @@ public class BenchA implements Bench {
             }
         }
         db.commit();
-        prep = db.prepare("INSERT INTO TELLERS(TID,BID,TBALANCE,FILLER) VALUES(?,?,10000.00,'" + FILLER + "')");
+        prep = db.prepare(
+                "INSERT INTO TELLERS(TID, BID, TBALANCE, FILLER) " + 
+                "VALUES(?, ?, 10000.00, '" + FILLER + "')");
         for (int i = 0; i < tellers * scale; i++) {
             prep.setInt(1, i);
             prep.setInt(2, i / tellers);
@@ -80,7 +90,9 @@ public class BenchA implements Bench {
         }
         db.commit();
         int len = accounts * scale;
-        prep = db.prepare("INSERT INTO ACCOUNTS(AID,BID,ABALANCE,FILLER) VALUES(?,?,10000.00,'" + FILLER + "')");
+        prep = db.prepare(
+                "INSERT INTO ACCOUNTS(AID, BID, ABALANCE, FILLER) " +
+                "VALUES(?, ?, 10000.00, '" + FILLER + "')");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.setInt(2, i / accounts);
@@ -129,7 +141,8 @@ public class BenchA implements Bench {
         PreparedStatement updateBranch = database.prepare(
                 "UPDATE BRANCHES SET BBALANCE=BBALANCE+? WHERE BID=?");
         PreparedStatement insertHistory = database.prepare(
-                "INSERT INTO HISTORY(AID,TID,BID,DELTA,HTIME,FILLER) VALUES(?,?,?,?,?,?)");
+                "INSERT INTO HISTORY(AID, TID, BID, DELTA, HTIME, FILLER) " +
+                "VALUES(?, ?, ?, ?, ?, ?)");
         int accountsPerBranch = accounts / branches;
         database.setAutoCommit(false);
 

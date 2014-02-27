@@ -52,20 +52,28 @@ public class TestConnectionInfo extends TestBase {
                         ";IFEXISTS=TRUE",
                 info);
 
-        assertEquals("jdbc:h2:mem:test", connectionInfo.getURL());
+        assertEquals("jdbc:h2:mem:test", 
+                connectionInfo.getURL());
 
-        assertEquals("2", connectionInfo.getProperty("LOG", ""));
-        assertEquals("rws", connectionInfo.getProperty("ACCESS_MODE_DATA", ""));
-        assertEquals("CREATE this...;INSERT that...", connectionInfo.getProperty("INIT", ""));
-        assertEquals("TRUE", connectionInfo.getProperty("IFEXISTS", ""));
-        assertEquals("undefined", connectionInfo.getProperty("CACHE_TYPE", "undefined"));
+        assertEquals("2", 
+                connectionInfo.getProperty("LOG", ""));
+        assertEquals("rws", 
+                connectionInfo.getProperty("ACCESS_MODE_DATA", ""));
+        assertEquals("CREATE this...;INSERT that...", 
+                connectionInfo.getProperty("INIT", ""));
+        assertEquals("TRUE", 
+                connectionInfo.getProperty("IFEXISTS", ""));
+        assertEquals("undefined", 
+                connectionInfo.getProperty("CACHE_TYPE", "undefined"));
     }
 
     private void testName() throws Exception {
         char differentFileSeparator = File.separatorChar == '/' ? '\\' : '/';
-        ConnectionInfo connectionInfo = new ConnectionInfo("test" + differentFileSeparator + "subDir");
+        ConnectionInfo connectionInfo = new ConnectionInfo("test" +
+                differentFileSeparator + "subDir");
         File file = new File("test" + File.separatorChar + "subDir");
-        assertEquals(file.getCanonicalPath().replace('\\', '/'), connectionInfo.getName());
+        assertEquals(file.getCanonicalPath().replace('\\', '/'),
+                connectionInfo.getName());
     }
 
 }

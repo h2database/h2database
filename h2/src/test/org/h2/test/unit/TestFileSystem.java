@@ -271,12 +271,16 @@ public class TestFileSystem extends TestBase {
         deleteDb("fsMem");
         String url = "jdbc:h2:" + getBaseDir() + "/fsMem";
         Connection conn = getConnection(url, "sa", "sa");
-        conn.createStatement().execute("CREATE TABLE TEST AS SELECT * FROM DUAL");
-        conn.createStatement().execute("BACKUP TO '" + getBaseDir() + "/fsMem.zip'");
+        conn.createStatement().execute(
+                "CREATE TABLE TEST AS SELECT * FROM DUAL");
+        conn.createStatement().execute(
+                "BACKUP TO '" + getBaseDir() + "/fsMem.zip'");
         conn.close();
-        org.h2.tools.Restore.main("-file", getBaseDir() + "/fsMem.zip", "-dir", "memFS:");
+        org.h2.tools.Restore.main("-file", getBaseDir() + "/fsMem.zip", "-dir",
+                "memFS:");
         conn = getConnection("jdbc:h2:memFS:fsMem", "sa", "sa");
-        ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM TEST");
+        ResultSet rs = conn.createStatement()
+                .executeQuery("SELECT * FROM TEST");
         rs.close();
         conn.close();
         deleteDb("fsMem");
@@ -294,8 +298,10 @@ public class TestFileSystem extends TestBase {
         String url = "jdbc:h2:" + getBaseDir() + "/fsJar";
         Connection conn = getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name varchar, b blob, c clob)");
-        stat.execute("insert into test values(1, 'Hello', SECURE_RAND(2000), space(2000))");
+        stat.execute("create table test(id int primary key, " + 
+                "name varchar, b blob, c clob)");
+        stat.execute("insert into test values(1, 'Hello', " + 
+                "SECURE_RAND(2000), space(2000))");
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
@@ -308,7 +314,8 @@ public class TestFileSystem extends TestBase {
         conn.close();
 
         deleteDb("fsJar");
-        for (String f : FileUtils.newDirectoryStream("zip:" + getBaseDir() + "/fsJar.zip")) {
+        for (String f : FileUtils.newDirectoryStream(
+                "zip:" + getBaseDir() + "/fsJar.zip")) {
             assertFalse(FileUtils.isAbsolute(f));
             assertTrue(!FileUtils.isDirectory(f));
             assertTrue(FileUtils.size(f) > 0);
@@ -735,7 +742,8 @@ public class TestFileSystem extends TestBase {
         }
     }
 
-    private static ByteBuffer createSlicedBuffer(byte[] buffer, int offset, int len) {
+    private static ByteBuffer createSlicedBuffer(byte[] buffer, int offset,
+            int len) {
         ByteBuffer byteBuff = ByteBuffer.wrap(buffer);
         byteBuff.position(offset);
         // force the arrayOffset to be non-0

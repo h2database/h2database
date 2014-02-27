@@ -63,8 +63,10 @@ public class TestClassLoaderLeak extends TestBase {
                 memory.add(new byte[1024]);
             }
         }
-        DriverManager.registerDriver((Driver) Class.forName("org.h2.Driver").newInstance());
-        DriverManager.registerDriver((Driver) Class.forName("org.h2.upgrade.v1_1.Driver").newInstance());
+        DriverManager.registerDriver((Driver) 
+                Class.forName("org.h2.Driver").newInstance());
+        DriverManager.registerDriver((Driver) 
+                Class.forName("org.h2.upgrade.v1_1.Driver").newInstance());
     }
 
     private static WeakReference<ClassLoader> createClassLoader() throws Exception {
@@ -98,13 +100,14 @@ public class TestClassLoaderLeak extends TestBase {
     private static class TestClassLoader extends URLClassLoader {
 
         public TestClassLoader() {
-            super(((URLClassLoader) TestClassLoader.class.getClassLoader()).getURLs(), ClassLoader
-                    .getSystemClassLoader());
+            super(((URLClassLoader) TestClassLoader.class.getClassLoader())
+                    .getURLs(), ClassLoader.getSystemClassLoader());
         }
 
         // allows delegation of H2 to the AppClassLoader
         @Override
-        public synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        public synchronized Class<?> loadClass(String name, boolean resolve)
+                throws ClassNotFoundException {
             if (!name.contains(CLASS_NAME) && !name.startsWith("org.h2.")) {
                 return super.loadClass(name, resolve);
             }

@@ -105,7 +105,8 @@ public class Database implements DataHandler {
     private final HashMap<String, UserAggregate> aggregates = New.hashMap();
     private final HashMap<String, Comment> comments = New.hashMap();
 
-    private final Set<Session> userSessions = Collections.synchronizedSet(new HashSet<Session>());
+    private final Set<Session> userSessions = 
+            Collections.synchronizedSet(new HashSet<Session>());
     private Session exclusiveSession;
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
@@ -154,7 +155,8 @@ public class Database implements DataHandler {
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getInstance(Mode.REGULAR);
     private boolean multiThreaded;
-    private int maxOperationMemory = Constants.DEFAULT_MAX_OPERATION_MEMORY;
+    private int maxOperationMemory = 
+            Constants.DEFAULT_MAX_OPERATION_MEMORY;
     private SmallLRUCache<String, String[]> lobFileListCache;
     private final boolean autoServerMode;
     private final int autoServerPort;
@@ -228,19 +230,28 @@ public class Database implements DataHandler {
         if (modeName != null) {
             this.mode = Mode.getInstance(modeName);
         }
-        this.multiVersion = ci.getProperty("MVCC", false);
-        this.logMode = ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
-        this.javaObjectSerializerName = ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
+        this.multiVersion = 
+                ci.getProperty("MVCC", false);
+        this.logMode = 
+                ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
+        this.javaObjectSerializerName = 
+                ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
 
-        boolean closeAtVmShutdown = dbSettings.dbCloseOnExit;
-        int traceLevelFile = ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
-        int traceLevelSystemOut = ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
+        boolean closeAtVmShutdown = 
+                dbSettings.dbCloseOnExit;
+        int traceLevelFile = 
+                ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, 
+                TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
+        int traceLevelSystemOut = 
+                ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
-        this.cacheType = StringUtils.toUpperEnglish(ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
+        this.cacheType = StringUtils.toUpperEnglish(
+                ci.removeProperty("CACHE_TYPE", Constants.CACHE_TYPE_DEFAULT));
         openDatabase(traceLevelFile, traceLevelSystemOut, closeAtVmShutdown);
     }
 
-    private void openDatabase(int traceLevelFile, int traceLevelSystemOut, boolean closeAtVmShutdown) {
+    private void openDatabase(int traceLevelFile, int traceLevelSystemOut,
+            boolean closeAtVmShutdown) {
         try {
             open(traceLevelFile, traceLevelSystemOut);
             if (closeAtVmShutdown) {
@@ -547,8 +558,10 @@ public class Database implements DataHandler {
             boolean existsPage = FileUtils.exists(pageFileName);
             boolean existsMv = FileUtils.exists(mvFileName);
             if (existsData && (!existsPage && !existsMv)) {
-                throw DbException.get(ErrorCode.FILE_VERSION_ERROR_1,
-                        "Old database: " + dataFileName + " - please convert the database to a SQL script and re-create it.");
+                throw DbException.get(
+                        ErrorCode.FILE_VERSION_ERROR_1, "Old database: " +
+                        dataFileName +
+                        " - please convert the database to a SQL script and re-create it.");
             }
             if (existsPage && !FileUtils.canWrite(pageFileName)) {
                 readOnly = true;
@@ -576,7 +589,8 @@ public class Database implements DataHandler {
                         fileLockMethod == FileLock.LOCK_SERIALIZED ||
                         fileLockMethod == FileLock.LOCK_FS ||
                         !persistent) {
-                    throw DbException.getUnsupportedException("autoServerMode && (readOnly || fileLockMethod == NO" +
+                    throw DbException.getUnsupportedException(
+                            "autoServerMode && (readOnly || fileLockMethod == NO" +
                             " || fileLockMethod == SERIALIZED || inMemory)");
                 }
             }
@@ -634,7 +648,8 @@ public class Database implements DataHandler {
             }
         } else {
             if (autoServerMode) {
-                throw DbException.getUnsupportedException("autoServerMode && inMemory");
+                throw DbException.getUnsupportedException(
+                        "autoServerMode && inMemory");
             }
             traceSystem = new TraceSystem(null);
             trace = traceSystem.getTrace(Trace.DATABASE);
@@ -671,7 +686,8 @@ public class Database implements DataHandler {
         data.session = systemSession;
         meta = mainSchema.createTable(data);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
-        metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 0, pkCols, IndexType.createPrimaryKey(
+        metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 
+                0, pkCols, IndexType.createPrimaryKey(
                 false, false), true, null);
         objectIds.set(0);
         starting = true;

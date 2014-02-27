@@ -149,7 +149,8 @@ public class TestCompress extends TestBase {
         while (rs.next()) {
             String table = rs.getString(1);
             if (!"COLLATIONS".equals(table)) {
-                stat2.execute("create table " + table + " as select * from information_schema." + table);
+                stat2.execute("create table " + table + 
+                        " as select * from information_schema." + table);
             }
         }
         conn.close();
@@ -240,12 +241,14 @@ public class TestCompress extends TestBase {
             }
             CompressTool utils = CompressTool.getInstance();
             // level 9 is highest, strategy 2 is huffman only
-            for (String a : new String[] { "LZF", "No", "Deflate", "Deflate level 9 strategy 2" }) {
+            for (String a : new String[] { "LZF", "No", 
+                    "Deflate", "Deflate level 9 strategy 2" }) {
                 long time = System.currentTimeMillis();
                 byte[] out = utils.compress(b, a);
                 byte[] test = utils.expand(out);
                 if (testPerformance) {
-                    System.out.println("p:" + pattern + " len: " + out.length + " time: " + (System.currentTimeMillis() - time) + " " + a);
+                    System.out.println("p:" + pattern + " len: " + out.length + 
+                            " time: " + (System.currentTimeMillis() - time) + " " + a);
                 }
                 assertEquals(b.length, test.length);
                 assertEquals(b, test);

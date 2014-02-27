@@ -199,8 +199,8 @@ public class FilePathUnstable extends FilePathWrapper {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir)
-            throws IOException {
+    public FilePath createTempFile(String suffix, boolean deleteOnExit,
+            boolean inTempDir) throws IOException {
         return super.createTempFile(suffix, deleteOnExit, inTempDir);
     }
 
@@ -296,7 +296,8 @@ class FileUnstable extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public synchronized FileLock tryLock(long position, long size,
+            boolean shared) throws IOException {
         return channel.tryLock(position, size, shared);
     }
 

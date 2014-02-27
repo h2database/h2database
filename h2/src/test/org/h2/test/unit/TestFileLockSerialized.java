@@ -29,7 +29,7 @@ public class TestFileLockSerialized extends TestBase {
 
     /**
      * Run just this test.
-     *
+     * 
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -95,7 +95,8 @@ public class TestFileLockSerialized extends TestBase {
 
     private void testSequenceFlush() throws Exception {
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        String url = "jdbc:h2:" + getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         ResultSet rs;
         Connection conn1 = getConnection(url);
         Statement stat1 = conn1.createStatement();
@@ -115,7 +116,8 @@ public class TestFileLockSerialized extends TestBase {
     private void testThreeMostlyReaders(final boolean write) throws Exception {
         boolean longRun = false;
         deleteDb("fileLockSerialized");
-        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        final String url = "jdbc:h2:" + getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
 
         Connection conn = getConnection(url);
         conn.createStatement().execute("create table test(id int) as select 1");
@@ -131,12 +133,14 @@ public class TestFileLockSerialized extends TestBase {
                 public void run() {
                     try {
                         Connection c = getConnection(url);
-                        PreparedStatement p = c.prepareStatement("select * from test where id = ?");
+                        PreparedStatement p = c
+                                .prepareStatement("select * from test where id = ?");
                         while (!stop[0]) {
                             Thread.sleep(100);
                             if (write) {
                                 if (Math.random() > 0.9) {
-                                    c.createStatement().execute("update test set id = id");
+                                    c.createStatement().execute(
+                                            "update test set id = id");
                                 }
                             }
                             p.setInt(1, 1);
@@ -169,7 +173,8 @@ public class TestFileLockSerialized extends TestBase {
 
     private void testTwoReaders() throws Exception {
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        String url = "jdbc:h2:" + getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         Connection conn1 = getConnection(url);
         conn1.createStatement().execute("create table test(id int)");
         Connection conn2 = getConnection(url);
@@ -186,7 +191,9 @@ public class TestFileLockSerialized extends TestBase {
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
         final String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
         Connection conn = getConnection(writeUrl, "sa", "sa");
-        conn.createStatement().execute("create table test(id identity) as select x from system_range(1, 100)");
+        conn.createStatement()
+                .execute(
+                        "create table test(id identity) as select x from system_range(1, 100)");
         conn.close();
         Task task = new Task() {
             @Override
@@ -218,7 +225,8 @@ public class TestFileLockSerialized extends TestBase {
     private void testPendingWrite() throws Exception {
         deleteDb("fileLockSerialized");
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
-        String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
+        String writeUrl = url +
+                ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
 
         Connection conn = getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
@@ -242,14 +250,15 @@ public class TestFileLockSerialized extends TestBase {
     private void testKillWriter() throws Exception {
         deleteDb("fileLockSerialized");
         String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized";
-        String writeUrl = url + ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
+        String writeUrl = url +
+                ";FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;WRITE_DELAY=0";
 
         Connection conn = getConnection(writeUrl, "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         ((JdbcConnection) conn).setPowerOffCount(1);
-        assertThrows(ErrorCode.DATABASE_IS_CLOSED, stat).
-                execute("insert into test values(1)");
+        assertThrows(ErrorCode.DATABASE_IS_CLOSED, stat).execute(
+                "insert into test values(1)");
 
         Connection conn2 = getConnection(writeUrl, "sa", "sa");
         Statement stat2 = conn2.createStatement();
@@ -276,7 +285,8 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("create table test(id int primary key)");
 
         Connection conn3 = getConnection(writeUrl, "sa", "sa");
-        PreparedStatement prep3 = conn3.prepareStatement("insert into test values(?)");
+        PreparedStatement prep3 = conn3
+                .prepareStatement("insert into test values(?)");
 
         Connection conn2 = getConnection(writeUrl, "sa", "sa");
         Statement stat2 = conn2.createStatement();
@@ -314,7 +324,8 @@ public class TestFileLockSerialized extends TestBase {
         if (longRun) {
             for (int waitTime = 100; waitTime < 10000; waitTime += 20) {
                 for (int howManyThreads = 1; howManyThreads < 10; howManyThreads++) {
-                    testConcurrentUpdates(waitTime, howManyThreads, waitTime * howManyThreads * 10);
+                    testConcurrentUpdates(waitTime, howManyThreads, waitTime *
+                            howManyThreads * 10);
                 }
             }
         } else {
@@ -335,14 +346,19 @@ public class TestFileLockSerialized extends TestBase {
         }
     }
 
-    private void testAutoIncrement(final int waitTime, int howManyThreads, int runTime) throws Exception {
-        println("testAutoIncrement waitTime: " + waitTime + " howManyThreads: " + howManyThreads + " runTime: " + runTime);
+    private void testAutoIncrement(final int waitTime, int howManyThreads,
+            int runTime) throws Exception {
+        println("testAutoIncrement waitTime: " + waitTime +
+                " howManyThreads: " + howManyThreads + " runTime: " + runTime);
         deleteDb("fileLockSerialized");
-        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
+        final String url = "jdbc:h2:" +
+                getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
                 "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
         Connection conn = getConnection(url);
-        conn.createStatement().execute("create table test(id int auto_increment, id2 int)");
+        conn.createStatement().execute(
+                "create table test(id int auto_increment, id2 int)");
         conn.close();
 
         final long endTime = System.currentTimeMillis() + runTime;
@@ -361,19 +377,25 @@ public class TestFileLockSerialized extends TestBase {
                         connList[finalNrOfConnection] = c;
                         while (!stop[0]) {
                             synchronized (nextInt) {
-                                ResultSet rs = c.createStatement().executeQuery("select id, id2 from test");
+                                ResultSet rs = c.createStatement()
+                                        .executeQuery(
+                                                "select id, id2 from test");
                                 while (rs.next()) {
                                     if (rs.getInt(1) != rs.getInt(2)) {
-                                        throw new Exception(
-                                                Thread.currentThread().getId() +
-                                                " nextInt: " + nextInt [0] +
-                                                " rs.getInt(1): " + rs.getInt(1) +
-                                                " rs.getInt(2): " + rs.getInt(2));
+                                        throw new Exception(Thread
+                                                .currentThread().getId() +
+                                                " nextInt: " +
+                                                nextInt[0] +
+                                                " rs.getInt(1): " +
+                                                rs.getInt(1) +
+                                                " rs.getInt(2): " +
+                                                rs.getInt(2));
                                     }
                                 }
                                 nextInt[0]++;
                                 Statement stat = c.createStatement();
-                                stat.execute("insert into test (id2) values(" + nextInt[0] + ")");
+                                stat.execute("insert into test (id2) values(" +
+                                        nextInt[0] + ")");
                                 ResultSet rsKeys = stat.getGeneratedKeys();
                                 while (rsKeys.next()) {
                                     assertEquals(nextInt[0], rsKeys.getInt(1));
@@ -407,10 +429,14 @@ public class TestFileLockSerialized extends TestBase {
         deleteDb("fileLockSerialized");
     }
 
-    private void testConcurrentUpdates(final int waitTime, int howManyThreads, int runTime) throws Exception {
-        println("testConcurrentUpdates waitTime: " + waitTime + " howManyThreads: " + howManyThreads + " runTime: " + runTime);
+    private void testConcurrentUpdates(final int waitTime, int howManyThreads,
+            int runTime) throws Exception {
+        println("testConcurrentUpdates waitTime: " + waitTime +
+                " howManyThreads: " + howManyThreads + " runTime: " + runTime);
         deleteDb("fileLockSerialized");
-        final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
+        final String url = "jdbc:h2:" +
+                getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
                 "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
         Connection conn = getConnection(url);
@@ -433,15 +459,19 @@ public class TestFileLockSerialized extends TestBase {
                         Connection c = getConnection(url);
                         connList[finalNrOfConnection] = c;
                         while (!stop[0]) {
-                            ResultSet rs = c.createStatement().executeQuery("select * from test");
+                            ResultSet rs = c.createStatement().executeQuery(
+                                    "select * from test");
                             rs.next();
                             if (rs.getInt(1) != lastInt[0]) {
-                                throw new Exception(finalNrOfConnection + "  Expected: " + lastInt[0] + " got " + rs.getInt(1));
+                                throw new Exception(finalNrOfConnection +
+                                        "  Expected: " + lastInt[0] + " got " +
+                                        rs.getInt(1));
                             }
                             Thread.sleep(waitTime);
                             if (Math.random() > 0.7) {
                                 int newLastInt = (int) (Math.random() * 1000);
-                                c.createStatement().execute("update test set id = " + newLastInt);
+                                c.createStatement().execute(
+                                        "update test set id = " + newLastInt);
                                 lastInt[0] = newLastInt;
                             }
                         }
@@ -471,16 +501,18 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     /**
-     * If a checkpoint occurs between beforeWriting and checkWritingAllowed
-     * then the result of checkWritingAllowed is READ_ONLY, which is wrong.
-     *
+     * If a checkpoint occurs between beforeWriting and checkWritingAllowed then
+     * the result of checkWritingAllowed is READ_ONLY, which is wrong.
+     * 
      * Also, if a checkpoint started before beforeWriting, and ends between
-     * between beforeWriting and checkWritingAllowed, then the same error occurs.
+     * between beforeWriting and checkWritingAllowed, then the same error
+     * occurs.
      */
     private void testCheckpointInUpdateRaceCondition() throws Exception {
         boolean longRun = false;
         deleteDb("fileLockSerialized");
-        String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
+        String url = "jdbc:h2:" + getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE";
 
         Connection conn = getConnection(url);
         conn.createStatement().execute("create table test(id int)");
@@ -494,18 +526,19 @@ public class TestFileLockSerialized extends TestBase {
     }
 
     /**
-     * Caches must be cleared. Session.reconnect only closes the DiskFile (which is
-     * associated with the cache) if there is one session
+     * Caches must be cleared. Session.reconnect only closes the DiskFile (which
+     * is associated with the cache) if there is one session
      */
     private void testCache() throws Exception {
         deleteDb("fileLockSerialized");
 
-        String urlShared = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
+        String urlShared = "jdbc:h2:" + getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED";
 
         Connection connShared1 = getConnection(urlShared);
-        Statement statement1   = connShared1.createStatement();
+        Statement statement1 = connShared1.createStatement();
         Connection connShared2 = getConnection(urlShared);
-        Statement statement2   = connShared2.createStatement();
+        Statement statement2 = connShared2.createStatement();
 
         statement1.execute("create table test1(id int)");
         statement1.execute("insert into test1 values(1)");
@@ -531,13 +564,14 @@ public class TestFileLockSerialized extends TestBase {
     private void testWrongDatabaseInstanceOnReconnect() throws Exception {
         deleteDb("fileLockSerialized");
 
-        String urlShared = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
+        String urlShared = "jdbc:h2:" + getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED";
         String urlForNew = urlShared + ";OPEN_NEW=TRUE";
 
         Connection connShared1 = getConnection(urlShared);
-        Statement statement1   = connShared1.createStatement();
+        Statement statement1 = connShared1.createStatement();
         Connection connShared2 = getConnection(urlShared);
-        Connection connNew     = getConnection(urlForNew);
+        Connection connNew = getConnection(urlForNew);
         statement1.execute("create table test1(id int)");
         connShared1.close();
         connShared2.close();
@@ -555,9 +589,8 @@ public class TestFileLockSerialized extends TestBase {
         final CountDownLatch select1FinishedLatch = new CountDownLatch(1);
 
         final String url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized" +
-                ";FILE_LOCK=SERIALIZED" +
-                ";OPEN_NEW=TRUE" +
-                ";CACHE_SIZE=" + cacheSizeKb;
+                ";FILE_LOCK=SERIALIZED" + ";OPEN_NEW=TRUE" + ";CACHE_SIZE=" +
+                cacheSizeKb;
         final Task importUpdateTask = new Task() {
             @Override
             public void call() throws Exception {
@@ -565,7 +598,8 @@ public class TestFileLockSerialized extends TestBase {
                 Statement stat = conn.createStatement();
                 stat.execute("create table test(id int, id2 int)");
                 for (int i = 0; i < howMuchRows; i++) {
-                    stat.execute("insert into test values(" + i + ", " + i + ")");
+                    stat.execute("insert into test values(" + i + ", " + i +
+                            ")");
                 }
                 importFinishedLatch.countDown();
 
@@ -584,7 +618,8 @@ public class TestFileLockSerialized extends TestBase {
                 Statement stat = conn.createStatement();
                 importFinishedLatch.await();
 
-                ResultSet rs = stat.executeQuery("select id2 from test where id=500");
+                ResultSet rs = stat
+                        .executeQuery("select id2 from test where id=500");
                 assertTrue(rs.next());
                 assertEquals(500, rs.getInt(1));
                 rs.close();
@@ -621,11 +656,13 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        List<String> filesWithoutSerialized = FileUtils.newDirectoryStream(getBaseDir());
+        List<String> filesWithoutSerialized = FileUtils
+                .newDirectoryStream(getBaseDir());
         deleteDb("fileLockSerialized");
 
         // with serialized
-        url = "jdbc:h2:" + getBaseDir() + "/fileLockSerialized;FILE_LOCK=SERIALIZED";
+        url = "jdbc:h2:" + getBaseDir() +
+                "/fileLockSerialized;FILE_LOCK=SERIALIZED";
         conn = getConnection(url);
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
@@ -633,16 +670,23 @@ public class TestFileLockSerialized extends TestBase {
         stat.execute("insert into test values(0)");
         conn.close();
 
-        List<String> filesWithSerialized = FileUtils.newDirectoryStream(getBaseDir());
-        if (filesWithoutSerialized.size() !=  filesWithSerialized.size()) {
+        List<String> filesWithSerialized = FileUtils
+                .newDirectoryStream(getBaseDir());
+        if (filesWithoutSerialized.size() != filesWithSerialized.size()) {
             for (int i = 0; i < filesWithoutSerialized.size(); i++) {
-                if (!filesWithSerialized.contains(filesWithoutSerialized.get(i))) {
-                    System.out.println("File left from 'without serialized' mode: " + filesWithoutSerialized.get(i));
+                if (!filesWithSerialized
+                        .contains(filesWithoutSerialized.get(i))) {
+                    System.out
+                            .println("File left from 'without serialized' mode: " +
+                                    filesWithoutSerialized.get(i));
                 }
             }
             for (int i = 0; i < filesWithSerialized.size(); i++) {
-                if (!filesWithoutSerialized.contains(filesWithSerialized.get(i))) {
-                    System.out.println("File left from 'with serialized' mode: " + filesWithSerialized.get(i));
+                if (!filesWithoutSerialized
+                        .contains(filesWithSerialized.get(i))) {
+                    System.out
+                            .println("File left from 'with serialized' mode: " +
+                                    filesWithSerialized.get(i));
                 }
             }
             fail("With serialized it must create the same files than without serialized");

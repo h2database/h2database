@@ -200,8 +200,8 @@ public class TestDataPage extends TestBase implements DataHandler {
             }
         }
         testValue(ValueArray.get(new Value[0]));
-        testValue(ValueArray.get(new Value[] {ValueBoolean.get(true), ValueInt.get(10)}));
-
+        testValue(ValueArray.get(new Value[] { ValueBoolean.get(true),
+                ValueInt.get(10) }));
 
         SimpleResultSet rs = new SimpleResultSet();
         rs.setAutoClose(false);
@@ -332,7 +332,8 @@ public class TestDataPage extends TestBase implements DataHandler {
     }
 
     @Override
-    public int readLob(long lobId,  byte[] hmac, long offset, byte[] buff, int off, int length) {
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
+            int off, int length) {
         return -1;
     }
 

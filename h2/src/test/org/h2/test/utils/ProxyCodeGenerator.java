@@ -122,7 +122,8 @@ public class ProxyCodeGenerator {
             }
             if (constructor == null) {
                 constructor = c;
-            } else if (c.getParameterTypes().length < constructor.getParameterTypes().length) {
+            } else if (c.getParameterTypes().length < 
+                    constructor.getParameterTypes().length) {
                 constructor = c;
             }
         }
@@ -203,7 +204,8 @@ public class ProxyCodeGenerator {
         writer.println("    public " + className + "() {");
         writer.println("        this(new InvocationHandler() {");
         writer.println("            public Object invoke(Object proxy,");
-        writer.println("                    Method method, Object[] args) throws Throwable {");
+        writer.println("                    Method method, Object[] args) " +
+                "throws Throwable {");
         writer.println("                return method.invoke(proxy, args);");
         writer.println("            }});");
         writer.println("    }");
@@ -243,7 +245,8 @@ public class ProxyCodeGenerator {
         writer.println("        this.ih = ih;");
         writer.println("    }");
         writer.println("    @SuppressWarnings(\"unchecked\")");
-        writer.println("    private static <T extends RuntimeException> T convertException(Throwable e) {");
+        writer.println("    private static <T extends RuntimeException> " +
+                "T convertException(Throwable e) {");
         writer.println("        if (e instanceof Error) {");
         writer.println("            throw (Error) e;");
         writer.println("        }");

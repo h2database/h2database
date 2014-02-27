@@ -63,7 +63,8 @@ public class TestPattern extends TestBase {
         boolean resultRegexp = value.matches(regexp);
         boolean result = comp.test(pattern, value, '\\');
         if (result != resultRegexp) {
-            fail("Error: >" + value + "< LIKE >" + pattern + "< result=" + result + " resultReg=" + resultRegexp);
+            fail("Error: >" + value + "< LIKE >" + pattern + "< result=" +
+                    result + " resultReg=" + resultRegexp);
         }
     }
 

@@ -64,16 +64,21 @@ public class TestAutoReconnect extends TestBase {
         deleteDb("autoReconnect");
         Server tcp = Server.createTcpServer().start();
         try {
-            conn = getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE");
+            conn = getConnection("jdbc:h2:" + getBaseDir() + 
+                    "/autoReconnect;AUTO_SERVER=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
+                    getConnection("jdbc:h2:" + getBaseDir() + 
+                            "/autoReconnect;OPEN_NEW=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;OPEN_NEW=TRUE");
+                    getConnection("jdbc:h2:" + getBaseDir() + 
+                            "/autoReconnect;OPEN_NEW=TRUE");
             conn.close();
 
-            conn = getConnection("jdbc:h2:tcp://localhost/" + getBaseDir() + "/autoReconnect");
+            conn = getConnection("jdbc:h2:tcp://localhost/" + getBaseDir() + 
+                    "/autoReconnect");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() + "/autoReconnect;AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
+                    getConnection("jdbc:h2:" + getBaseDir() + 
+                            "/autoReconnect;AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
             conn.close();
         } finally {
             tcp.stop();
@@ -94,7 +99,8 @@ public class TestAutoReconnect extends TestBase {
         }
 
         // test the database event listener
-        conn = getConnection(url + ";DATABASE_EVENT_LISTENER='" + MyDatabaseEventListener.class.getName() + "'");
+        conn = getConnection(url + ";DATABASE_EVENT_LISTENER='" + 
+        MyDatabaseEventListener.class.getName() + "'");
         conn.close();
 
         Statement stat;
@@ -105,7 +111,8 @@ public class TestAutoReconnect extends TestBase {
         restart();
         stat.execute("create table test(id identity, name varchar)");
         restart();
-        PreparedStatement prep = conn.prepareStatement("insert into test values(null, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test values(null, ?)");
         restart();
         prep.setString(1, "Hello");
         restart();

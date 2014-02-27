@@ -29,7 +29,8 @@ public abstract class AssertThrows {
     public AssertThrows(final Class<? extends Exception> expectedExceptionClass) {
         this(new ResultVerifier() {
             @Override
-            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+            public boolean verify(Object returnValue, Throwable t, Method m,
+                    Object... args) {
                 if (t == null) {
                     throw new AssertionError("Expected an exception of type " +
                             expectedExceptionClass.getSimpleName() +
@@ -77,7 +78,8 @@ public abstract class AssertThrows {
     public AssertThrows(final int expectedErrorCode) {
         this(new ResultVerifier() {
             @Override
-            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+            public boolean verify(Object returnValue, Throwable t, Method m,
+                    Object... args) {
                 int errorCode;
                 if (t instanceof DbException) {
                     errorCode = ((DbException) t).getErrorCode();

@@ -25,7 +25,8 @@ public class FilePathDebug extends FilePathWrapper {
 
     private static final FilePathDebug INSTANCE = new FilePathDebug();
 
-    private static final IOException POWER_OFF = new IOException("Simulated power failure");
+    private static final IOException POWER_OFF = new IOException(
+            "Simulated power failure");
 
     private int powerOffCount;
     private boolean trace;
@@ -191,8 +192,8 @@ public class FilePathDebug extends FilePathWrapper {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir)
-            throws IOException {
+    public FilePath createTempFile(String suffix, boolean deleteOnExit,
+            boolean inTempDir) throws IOException {
         trace(name, "createTempFile", suffix, deleteOnExit, inTempDir);
         return super.createTempFile(suffix, deleteOnExit, inTempDir);
     }
@@ -323,7 +324,8 @@ class FileDebug extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public synchronized FileLock tryLock(long position, long size,
+            boolean shared) throws IOException {
         debug("tryLock");
         return channel.tryLock(position, size, shared);
     }

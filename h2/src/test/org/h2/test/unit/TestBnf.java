@@ -81,10 +81,17 @@ public class TestBnf extends TestBase {
 
     private void testProcedures(Connection conn, boolean isMySQLMode) throws Exception {
         // Register a procedure and check if it is present in DbContents
-        conn.createStatement().execute("DROP ALIAS IF EXISTS CUSTOM_PRINT");
-        conn.createStatement().execute("CREATE ALIAS CUSTOM_PRINT AS $$ void print(String s) { System.out.println(s); } $$");
-        conn.createStatement().execute("DROP TABLE IF EXISTS TABLE_WITH_STRING_FIELD");
-        conn.createStatement().execute("CREATE TABLE TABLE_WITH_STRING_FIELD (STRING_FIELD VARCHAR(50), INT_FIELD integer)");
+        conn.createStatement().execute(
+                "DROP ALIAS IF EXISTS CUSTOM_PRINT");
+        conn.createStatement().execute(
+                "CREATE ALIAS CUSTOM_PRINT " + 
+                "AS $$ void print(String s) { System.out.println(s); } $$");
+        conn.createStatement().execute(
+                "DROP TABLE IF EXISTS " + 
+                "TABLE_WITH_STRING_FIELD");
+        conn.createStatement().execute(
+                "CREATE TABLE " + 
+                "TABLE_WITH_STRING_FIELD (STRING_FIELD VARCHAR(50), INT_FIELD integer)");
         DbContents dbContents = new DbContents();
         dbContents.readContents("jdbc:h2:test", conn);
         assertTrue(dbContents.isH2());
@@ -126,9 +133,11 @@ public class TestBnf extends TestBase {
 
         // Test completion
         Bnf bnf = Bnf.getInstance(null);
-        DbContextRule columnRule = new DbContextRule(dbContents, DbContextRule.COLUMN);
+        DbContextRule columnRule = new 
+                DbContextRule(dbContents, DbContextRule.COLUMN);
         bnf.updateTopic("column_name", columnRule);
-        bnf.updateTopic("expression", new DbContextRule(dbContents, DbContextRule.PROCEDURE));
+        bnf.updateTopic("expression", new 
+                DbContextRule(dbContents, DbContextRule.PROCEDURE));
         bnf.linkStatements();
         // Test partial
         Map<String, String> tokens = bnf.getNextTokenList("SELECT CUSTOM_PR");

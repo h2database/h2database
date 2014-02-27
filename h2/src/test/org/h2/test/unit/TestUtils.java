@@ -149,7 +149,8 @@ public class TestUtils extends TestBase {
             Arrays.sort(arr2, comp);
             for (int i = offset, end = Math.min(offset + limit, arr.length); i < end; i++) {
                 if (!arr[i].equals(arr2[i])) {
-                    fail(offset + " " + end + "\n" + Arrays.toString(arr) + "\n" + Arrays.toString(arr2));
+                    fail(offset + " " + end + "\n" + Arrays.toString(arr) +
+                            "\n" + Arrays.toString(arr2));
                 }
             }
         }
@@ -176,7 +177,8 @@ public class TestUtils extends TestBase {
     private void testReflectionUtils() throws Exception {
         // Static method call
         long currentTimeMillis1 = System.currentTimeMillis();
-        long currentTimeMillis2 = (Long) Utils.callStaticMethod("java.lang.System.currentTimeMillis");
+        long currentTimeMillis2 = (Long) Utils.callStaticMethod(
+                "java.lang.System.currentTimeMillis");
         assertTrue(currentTimeMillis1 <= currentTimeMillis2);
         // New Instance
         Object instance = Utils.newInstance("java.lang.StringBuilder");
@@ -201,11 +203,21 @@ public class TestUtils extends TestBase {
         Utils.callStaticMethod("java.awt.AWTKeyStroke.getAWTKeyStroke",
                 'x', java.awt.event.InputEvent.SHIFT_DOWN_MASK);
         // Common comparable superclass
-        assertFalse(Utils.haveCommonComparableSuperclass(Integer.class, Long.class));
-        assertTrue(Utils.haveCommonComparableSuperclass(Integer.class, Integer.class));
-        assertTrue(Utils.haveCommonComparableSuperclass(Timestamp.class, Date.class));
-        assertFalse(Utils.haveCommonComparableSuperclass(ArrayList.class, Long.class));
-        assertFalse(Utils.haveCommonComparableSuperclass(Integer.class, ArrayList.class));
+        assertFalse(Utils.haveCommonComparableSuperclass(
+                Integer.class,
+                Long.class));
+        assertTrue(Utils.haveCommonComparableSuperclass(
+                Integer.class,
+                Integer.class));
+        assertTrue(Utils.haveCommonComparableSuperclass(
+                Timestamp.class,
+                Date.class));
+        assertFalse(Utils.haveCommonComparableSuperclass(
+                ArrayList.class,
+                Long.class));
+        assertFalse(Utils.haveCommonComparableSuperclass(
+                Integer.class,
+                ArrayList.class));
     }
 
 }

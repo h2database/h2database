@@ -95,7 +95,8 @@ class Database {
             serverH2 = Server.createTcpServer().start();
             Thread.sleep(100);
         } else if (url.startsWith("jdbc:derby://")) {
-            serverDerby = Class.forName("org.apache.derby.drda.NetworkServerControl").newInstance();
+            serverDerby = Class.forName(
+                    "org.apache.derby.drda.NetworkServerControl").newInstance();
             Method m = serverDerby.getClass().getMethod("start", PrintWriter.class);
             m.invoke(serverDerby, new Object[] { null });
             // serverDerby = new NetworkServerControl();
@@ -152,7 +153,8 @@ class Database {
      * @param threadCount the number of threads to use
      * @return a new database object with the given settings
      */
-    static Database parse(DatabaseTest test, int id, String dbString, int threadCount) {
+    static Database parse(DatabaseTest test, int id, String dbString,
+            int threadCount) {
         try {
             StringTokenizer tokenizer = new StringTokenizer(dbString, ",");
             Database db = new Database();

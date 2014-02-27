@@ -50,7 +50,8 @@ public class TestShell extends TestBase {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         shell.setOut(new PrintStream(buff));
         shell.runTool("-url", "jdbc:h2:mem:", "-driver", "org.h2.Driver",
-                "-user", "sa", "-password", "sa", "-properties", "null", "-sql", "select 'Hello ' || 'World' as hi");
+                "-user", "sa", "-password", "sa", "-properties", "null",
+                "-sql", "select 'Hello ' || 'World' as hi");
         String s = new String(buff.toByteArray());
         assertContains(s, "HI");
         assertContains(s, "Hello World");
@@ -61,7 +62,8 @@ public class TestShell extends TestBase {
         shell.setOut(new PrintStream(buff));
         shell.runTool("-help");
         s = new String(buff.toByteArray());
-        assertContains(s, "Interactive command line tool to access a database using JDBC.");
+        assertContains(s, 
+                "Interactive command line tool to access a database using JDBC.");
 
         test(true);
         test(false);

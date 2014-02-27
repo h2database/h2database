@@ -159,7 +159,8 @@ public class TestPageStore extends TestBase {
 
     private void testRecoverLobInDatabase() throws SQLException {
         deleteDb("pageStoreRecoverLobInDatabase");
-        String url = getURL("pageStoreRecoverLobInDatabase;MVCC=TRUE;CACHE_SIZE=1", true);
+        String url = getURL("pageStoreRecoverLobInDatabase;" + 
+                "MVCC=TRUE;CACHE_SIZE=1", true);
         Connection conn;
         Statement stat;
         conn = getConnection(url, getUser(), getPassword());
@@ -191,14 +192,16 @@ public class TestPageStore extends TestBase {
 
     private void testWriteTransactionLogBeforeData() throws SQLException {
         deleteDb("pageStoreWriteTransactionLogBeforeData");
-        String url = getURL("pageStoreWriteTransactionLogBeforeData;CACHE_SIZE=16;WRITE_DELAY=1000000", true);
+        String url = getURL("pageStoreWriteTransactionLogBeforeData;" + 
+                "CACHE_SIZE=16;WRITE_DELAY=1000000", true);
         Connection conn;
         Statement stat;
         conn = getConnection(url, getUser(), getPassword());
         stat = conn.createStatement();
         stat.execute("create table test(name varchar) as select space(100000)");
         for (int i = 0; i < 100; i++) {
-            stat.execute("create table test" + i + "(id int) as select x from system_range(1, 1000)");
+            stat.execute("create table test" + i + "(id int) " + 
+                    "as select x from system_range(1, 1000)");
         }
         conn.close();
         conn = getConnection(url, getUser(), getPassword());
@@ -381,14 +384,17 @@ public class TestPageStore extends TestBase {
         deleteDb("pageStoreTruncateReconnect");
         Connection conn;
         conn = getConnection("pageStoreTruncateReconnect");
-        conn.createStatement().execute("create table test(id int primary key, name varchar)");
-        conn.createStatement().execute("insert into test(id) select x from system_range(1, 390)");
+        conn.createStatement().execute(
+                "create table test(id int primary key, name varchar)");
+        conn.createStatement().execute(
+                "insert into test(id) select x from system_range(1, 390)");
         conn.createStatement().execute("checkpoint");
         conn.createStatement().execute("shutdown immediately");
         JdbcUtils.closeSilently(conn);
         conn = getConnection("pageStoreTruncateReconnect");
         conn.createStatement().execute("truncate table test");
-        conn.createStatement().execute("insert into test(id) select x from system_range(1, 390)");
+        conn.createStatement().execute(
+                "insert into test(id) select x from system_range(1, 390)");
         conn.createStatement().execute("shutdown immediately");
         JdbcUtils.closeSilently(conn);
         conn = getConnection("pageStoreTruncateReconnect");
@@ -448,10 +454,11 @@ public class TestPageStore extends TestBase {
         Statement stat = conn.createStatement();
         int size = 1500;
         stat.execute("call rand(1)");
-        stat.execute("create table test(id int primary key, data varchar, test int) as "
-                + "select x, '', 123 from system_range(1, " + size + ")");
+        stat.execute("create table test(id int primary key, data varchar, test int) as " +
+                "select x, '', 123 from system_range(1, " + size + ")");
         Random random = new Random(1);
-        PreparedStatement prep = conn.prepareStatement("update test set data=space(?) where id=?");
+        PreparedStatement prep = conn.prepareStatement(
+                "update test set data=space(?) where id=?");
         for (int i = 0; i < 2500; i++) {
             int id = random.nextInt(size);
             int newSize = random.nextInt(6000);
@@ -489,9 +496,12 @@ public class TestPageStore extends TestBase {
         Connection conn;
         String url = "pageStoreLargeDatabaseFastOpen";
         conn = getConnection(url);
-        conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        conn.createStatement().execute("create unique index idx_test_name on test(name)");
-        conn.createStatement().execute("INSERT INTO TEST SELECT X, X || space(10) FROM SYSTEM_RANGE(1, 1000)");
+        conn.createStatement().execute(
+                "CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        conn.createStatement().execute(
+                "create unique index idx_test_name on test(name)");
+        conn.createStatement().execute(
+                "INSERT INTO TEST SELECT X, X || space(10) FROM SYSTEM_RANGE(1, 1000)");
         conn.close();
         conn = getConnection(url);
         conn.createStatement().execute("DELETE FROM TEST WHERE ID=1");
@@ -516,12 +526,15 @@ public class TestPageStore extends TestBase {
         Connection conn;
         String url = "pageStoreUniqueIndexReopen";
         conn = getConnection(url);
-        conn.createStatement().execute("CREATE TABLE test(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-        conn.createStatement().execute("create unique index idx_test_name on test(name)");
+        conn.createStatement().execute(
+                "CREATE TABLE test(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        conn.createStatement().execute(
+                "create unique index idx_test_name on test(name)");
         conn.createStatement().execute("INSERT INTO TEST VALUES(1, 'Hello')");
         conn.close();
         conn = getConnection(url);
-        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).execute("INSERT INTO TEST VALUES(2, 'Hello')");
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement())
+                .execute("INSERT INTO TEST VALUES(2, 'Hello')");
         conn.close();
     }
 
@@ -549,12 +562,16 @@ public class TestPageStore extends TestBase {
             PreparedStatement[] deleteMany = new PreparedStatement[tableCount];
             PreparedStatement[] updateMany = new PreparedStatement[tableCount];
             for (int i = 0; i < tableCount; i++) {
-                stat.execute("create table test" + i + "(id int primary key, name varchar)");
-                stat.execute("create index idx_test" + i + " on test" + i + "(name)");
-                insert[i] = conn.prepareStatement("insert into test" + i + " values(?, ? || space(?))");
-                deleteMany[i] = conn.prepareStatement("delete from test" + i + " where id between ? and ?");
-                updateMany[i] = conn.prepareStatement("update test" + i
-                        + " set name=? || space(?) where id between ? and ?");
+                stat.execute("create table test" + i +
+                        "(id int primary key, name varchar)");
+                stat.execute("create index idx_test" + i + " on test" + i +
+                        "(name)");
+                insert[i] = conn.prepareStatement("insert into test" + i +
+                        " values(?, ? || space(?))");
+                deleteMany[i] = conn.prepareStatement("delete from test" + i +
+                        " where id between ? and ?");
+                updateMany[i] = conn.prepareStatement("update test" + i +
+                        " set name=? || space(?) where id between ? and ?");
             }
             Random random = new Random(seed);
             for (int i = 0; i < 1000; i++) {
@@ -621,7 +638,8 @@ public class TestPageStore extends TestBase {
         Connection conn = getConnection("pageStoreRecoverDropIndex");
         Statement stat = conn.createStatement();
         stat.execute("set write_delay 0");
-        stat.execute("create table test(id int, name varchar) as select x, x from system_range(1, 1400)");
+        stat.execute("create table test(id int, name varchar) " + 
+                "as select x, x from system_range(1, 1400)");
         stat.execute("create index idx_name on test(name)");
         conn.close();
         conn = getConnection("pageStoreRecoverDropIndex");
@@ -647,12 +665,14 @@ public class TestPageStore extends TestBase {
         conn = getConnection("pageStoreDropPk");
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
-        stat.execute("insert into test values(" + Integer.MIN_VALUE + "), (" + Integer.MAX_VALUE + ")");
+        stat.execute("insert into test values(" + Integer.MIN_VALUE + "), (" +
+                Integer.MAX_VALUE + ")");
         stat.execute("alter table test drop primary key");
         conn.close();
         conn = getConnection("pageStoreDropPk");
         stat = conn.createStatement();
-        stat.execute("insert into test values(" + Integer.MIN_VALUE + "), (" + Integer.MAX_VALUE + ")");
+        stat.execute("insert into test values(" + Integer.MIN_VALUE + "), (" +
+                Integer.MAX_VALUE + ")");
         conn.close();
     }
 
@@ -702,8 +722,10 @@ public class TestPageStore extends TestBase {
         }
         deleteDb("pageStoreLargeIndex");
         Connection conn = getConnection("pageStoreLargeIndex");
-        conn.createStatement().execute("create table test(id varchar primary key, d varchar)");
-        PreparedStatement prep = conn.prepareStatement("insert into test values(?, space(500))");
+        conn.createStatement().execute(
+                "create table test(id varchar primary key, d varchar)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test values(?, space(500))");
         for (int i = 0; i < 20000; i++) {
             prep.setString(1, "" + i);
             prep.executeUpdate();
@@ -722,7 +744,8 @@ public class TestPageStore extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(1)");
         conn.close();
         conn = getConnection("pageStoreUniqueIndex");
-        assertThrows(ErrorCode.DUPLICATE_KEY_1, conn.createStatement()).execute("INSERT INTO TEST VALUES(1)");
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, 
+                conn.createStatement()).execute("INSERT INTO TEST VALUES(1)");
         conn.close();
     }
 
@@ -757,8 +780,10 @@ public class TestPageStore extends TestBase {
         Statement stat = conn.createStatement();
         log("DROP TABLE IF EXISTS TEST;");
         stat.execute("DROP TABLE IF EXISTS TEST");
-        log("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR DEFAULT 'Hello World');");
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR DEFAULT 'Hello World')");
+        log("CREATE TABLE TEST(ID INT PRIMARY KEY, " + 
+                "NAME VARCHAR DEFAULT 'Hello World');");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, " + 
+                "NAME VARCHAR DEFAULT 'Hello World')");
         Set<Integer> rows = new TreeSet<Integer>();
         Random random = new Random(seed);
         for (int i = 0; i < len; i++) {
@@ -817,7 +842,8 @@ public class TestPageStore extends TestBase {
     /**
      * A database event listener used in this test.
      */
-    public static final class MyDatabaseEventListener implements DatabaseEventListener {
+    public static final class MyDatabaseEventListener implements
+            DatabaseEventListener {
 
         @Override
         public void closingDatabase() {

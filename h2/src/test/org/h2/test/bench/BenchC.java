@@ -23,8 +23,9 @@ public class BenchC implements Bench {
 
     private static final int COMMIT_EVERY = 1000;
 
-    private static final String[] TABLES = { "WAREHOUSE", "DISTRICT", "CUSTOMER", "HISTORY", "ORDERS",
-            "NEW_ORDER", "ITEM", "STOCK", "ORDER_LINE", "RESULTS" };
+    private static final String[] TABLES = { "WAREHOUSE", "DISTRICT",
+            "CUSTOMER", "HISTORY", "ORDERS", "NEW_ORDER", "ITEM", "STOCK",
+            "ORDER_LINE", "RESULTS" };
 
     private static final String[] CREATE_SQL = {
             "CREATE TABLE  WAREHOUSE(\n" +

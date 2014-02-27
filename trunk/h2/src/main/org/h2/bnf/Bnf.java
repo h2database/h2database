@@ -193,7 +193,8 @@ public class Bnf {
 
     private Rule parseList() {
         Rule r = parseToken();
-        if (firstChar != '|' && firstChar != ']' && firstChar != '}' && firstChar != 0) {
+        if (firstChar != '|' && firstChar != ']' && firstChar != '}'
+                && firstChar != 0) {
             r = new RuleList(r, parseList(), false);
         }
         lastRepeat = r;
@@ -202,7 +203,8 @@ public class Bnf {
 
     private Rule parseToken() {
         Rule r;
-        if ((firstChar >= 'A' && firstChar <= 'Z') || (firstChar >= 'a' && firstChar <= 'z')) {
+        if ((firstChar >= 'A' && firstChar <= 'Z')
+                || (firstChar >= 'a' && firstChar <= 'z')) {
             // r = new RuleElement(currentToken+ " syntax:" + syntax);
             r = new RuleElement(currentToken, currentTopic);
         } else if (firstChar == '[') {
@@ -210,13 +212,15 @@ public class Bnf {
             Rule r2 = parseOr();
             r = new RuleOptional(r2);
             if (firstChar != ']') {
-                throw new AssertionError("expected ], got " + currentToken + " syntax:" + syntax);
+                throw new AssertionError("expected ], got " + currentToken
+                        + " syntax:" + syntax);
             }
         } else if (firstChar == '{') {
             read();
             r = parseOr();
             if (firstChar != '}') {
-                throw new AssertionError("expected }, got " + currentToken + " syntax:" + syntax);
+                throw new AssertionError("expected }, got " + currentToken
+                        + " syntax:" + syntax);
             }
         } else if ("@commaDots@".equals(currentToken)) {
             r = new RuleList(new RuleElement(",", currentTopic), lastRepeat, false);

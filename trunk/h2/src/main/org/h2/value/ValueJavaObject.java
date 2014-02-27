@@ -19,7 +19,8 @@ import org.h2.util.Utils;
  */
 public class ValueJavaObject extends ValueBytes {
 
-    private static final ValueJavaObject EMPTY = new ValueJavaObject(Utils.EMPTY_BYTES, null);
+    private static final ValueJavaObject EMPTY = 
+            new ValueJavaObject(Utils.EMPTY_BYTES, null);
     private final DataHandler dataHandler;
 
     protected ValueJavaObject(byte[] v, DataHandler dataHandler) {
@@ -36,7 +37,8 @@ public class ValueJavaObject extends ValueBytes {
      * @param dataHandler provides the object serializer
      * @return the value
      */
-    public static ValueJavaObject getNoCopy(Object javaObject, byte[] b, DataHandler dataHandler) {
+    public static ValueJavaObject getNoCopy(Object javaObject, byte[] b,
+            DataHandler dataHandler) {
         if (b != null && b.length == 0) {
             return EMPTY;
         }
@@ -61,7 +63,8 @@ public class ValueJavaObject extends ValueBytes {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         Object obj = Utils.deserialize(getBytesNoCopy(), getDataHandler());
         prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);
     }
@@ -84,7 +87,8 @@ public class ValueJavaObject extends ValueBytes {
         }
 
         @Override
-        public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+        public void set(PreparedStatement prep, int parameterIndex)
+                throws SQLException {
             prep.setObject(parameterIndex, getObject(), Types.JAVA_OBJECT);
         }
 

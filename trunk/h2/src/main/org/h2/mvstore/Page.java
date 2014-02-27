@@ -30,7 +30,8 @@ import org.h2.mvstore.type.DataType;
  */
 public class Page {
 
-    private static final int SHARED_KEYS = 1, SHARED_VALUES = 2, SHARED_CHILDREN = 4, SHARED_COUNTS = 8;
+    private static final int SHARED_KEYS = 1, SHARED_VALUES = 2, 
+            SHARED_CHILDREN = 4, SHARED_COUNTS = 8;
 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
@@ -186,8 +187,10 @@ public class Page {
         maxLength = (int) Math.min(fileSize - filePos, maxLength);
         int length = maxLength;
         if (length < 0) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_FILE_CORRUPT,
-                    "Illegal page length {0} reading at {1}; file size {2} ", length, filePos, fileSize);
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "Illegal page length {0} reading at {1}; file size {2} ",
+                    length, filePos, fileSize);
         }
         buff = fileStore.readFully(filePos, length);
         Page p = new Page(map, 0);

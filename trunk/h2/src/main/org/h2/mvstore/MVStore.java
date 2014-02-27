@@ -156,7 +156,8 @@ public class MVStore {
     /**
      * The map of chunks.
      */
-    private final ConcurrentHashMap<Integer, Chunk> chunks = new ConcurrentHashMap<Integer, Chunk>();
+    private final ConcurrentHashMap<Integer, Chunk> chunks = 
+            new ConcurrentHashMap<Integer, Chunk>();
 
     /**
      * The map of temporarily freed storage space caused by freed pages. The key
@@ -172,7 +173,8 @@ public class MVStore {
      */
     private MVMapConcurrent<String, String> meta;
 
-    private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps = new ConcurrentHashMap<Integer, MVMap<?, ?>>();
+    private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps = 
+            new ConcurrentHashMap<Integer, MVMap<?, ?>>();
 
     private HashMap<String, Object> fileHeader = New.hashMap();
 
@@ -377,7 +379,8 @@ public class MVStore {
      * @param builder the map builder
      * @return the map
      */
-    public synchronized <M extends MVMap<K, V>, K, V> M openMap(String name, MVMap.MapBuilder<M, K, V> builder) {
+    public synchronized <M extends MVMap<K, V>, K, V> M openMap(
+            String name, MVMap.MapBuilder<M, K, V> builder) {
         checkOpen();
         String x = meta.get("name." + name);
         int id;
@@ -1908,7 +1911,8 @@ public class MVStore {
             c = chunks.get(c.id - 1);
         }
         Chunk last = lastChunk;
-        if (removeChunksNewerThan != null && last.version > removeChunksNewerThan.version) {
+        if (removeChunksNewerThan != null && 
+                last.version > removeChunksNewerThan.version) {
             revertTemp(version);
             loadFromFile = true;
             while (true) {
@@ -2154,7 +2158,9 @@ public class MVStore {
         // start the background thread if needed
         if (millis > 0) {
             int sleep = Math.max(1, millis / 10);
-            BackgroundWriterThread t = new BackgroundWriterThread(this, sleep, fileStore.toString());
+            BackgroundWriterThread t = 
+                    new BackgroundWriterThread(this, sleep, 
+                            fileStore.toString());
             t.start();
             backgroundWriterThread = t;
         }

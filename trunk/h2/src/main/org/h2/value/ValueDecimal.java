@@ -93,7 +93,9 @@ public class ValueDecimal extends Value {
         if (dec.value.signum() == 0) {
             throw DbException.get(ErrorCode.DIVISION_BY_ZERO_1, getSQL());
         }
-        BigDecimal bd = value.divide(dec.value, value.scale() + DIVIDE_SCALE_ADD, BigDecimal.ROUND_HALF_DOWN);
+        BigDecimal bd = value.divide(dec.value, 
+                value.scale() + DIVIDE_SCALE_ADD, 
+                BigDecimal.ROUND_HALF_DOWN);
         if (bd.signum() == 0) {
             bd = BigDecimal.ZERO;
         } else if (bd.scale() > 0) {
@@ -193,7 +195,8 @@ public class ValueDecimal extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         prep.setBigDecimal(parameterIndex, value);
     }
 
@@ -219,7 +222,9 @@ public class ValueDecimal extends Value {
         if (force) {
             return get(BigDecimal.valueOf(value.doubleValue()));
         }
-        throw DbException.get(ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(precision));
+        throw DbException.get(
+                ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1,
+                Long.toString(precision));
     }
 
     /**
@@ -249,7 +254,8 @@ public class ValueDecimal extends Value {
         // value and scale (thus 2.0 is not equal to 2.00 when using equals;
         // however -0.0 and 0.0 are). Can not use compareTo because 2.0 and 2.00
         // have different hash codes
-        return other instanceof ValueDecimal && value.equals(((ValueDecimal) other).value);
+        return other instanceof ValueDecimal && 
+                value.equals(((ValueDecimal) other).value);
     }
 
     @Override

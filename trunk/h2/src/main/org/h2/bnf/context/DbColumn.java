@@ -24,7 +24,8 @@ public class DbColumn {
 
     private int position;
 
-    private DbColumn(DbContents contents, ResultSet rs, boolean procedureColumn) throws SQLException {
+    private DbColumn(DbContents contents, ResultSet rs, boolean procedureColumn)
+            throws SQLException {
         name = rs.getString("COLUMN_NAME");
         quotedName = contents.quoteIdentifier(name);
         String type = rs.getString("TYPE_NAME");
@@ -66,7 +67,8 @@ public class DbColumn {
      * @param rs the result set
      * @return the column
      */
-    public static DbColumn getProcedureColumn(DbContents contents, ResultSet rs) throws SQLException {
+    public static DbColumn getProcedureColumn(DbContents contents, ResultSet rs)
+            throws SQLException {
         return new DbColumn(contents, rs, true);
     }
 
@@ -77,7 +79,8 @@ public class DbColumn {
      * @param rs the result set
      * @return the column
      */
-    public static DbColumn getColumn(DbContents contents, ResultSet rs) throws SQLException {
+    public static DbColumn getColumn(DbContents contents, ResultSet rs)
+            throws SQLException {
         return new DbColumn(contents, rs, false);
     }
 

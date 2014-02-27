@@ -79,9 +79,11 @@ public class DbSchema {
             isSystem = true;
         } else if ("INFORMATION_SCHEMA".equals(name)) {
             isSystem = true;
-        } else if (!contents.isH2() && StringUtils.toUpperEnglish(name).startsWith("INFO")) {
+        } else if (!contents.isH2() && 
+                StringUtils.toUpperEnglish(name).startsWith("INFO")) {
             isSystem = true;
-        } else if (contents.isPostgreSQL() && StringUtils.toUpperEnglish(name).startsWith("PG_")) {
+        } else if (contents.isPostgreSQL() && 
+                StringUtils.toUpperEnglish(name).startsWith("PG_")) {
             isSystem = true;
         } else if (contents.isDerby() && name.startsWith("SYS")) {
             isSystem = true;
@@ -117,7 +119,8 @@ public class DbSchema {
      * @param meta the database meta data
      * @param tableTypes the table types to read
      */
-    public void readTables(DatabaseMetaData meta, String[] tableTypes) throws SQLException {
+    public void readTables(DatabaseMetaData meta, String[] tableTypes)
+            throws SQLException {
         ResultSet rs = meta.getTables(null, name, null, tableTypes);
         ArrayList<DbTableOrView> list = New.arrayList();
         while (rs.next()) {

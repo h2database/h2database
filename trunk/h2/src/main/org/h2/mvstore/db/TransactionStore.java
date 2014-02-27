@@ -493,7 +493,8 @@ public class TransactionStore {
      * @param toLogId the minimum log id
      * @return the changes
      */
-    Iterator<Change> getChanges(final Transaction t, final long maxLogId, final long toLogId) {
+    Iterator<Change> getChanges(final Transaction t, final long maxLogId,
+            final long toLogId) {
         return new Iterator<Change>() {
 
             private long logId = maxLogId - 1;
@@ -626,7 +627,8 @@ public class TransactionStore {
 
         private String name;
 
-        Transaction(TransactionStore store, int transactionId, int status, String name, long logId) {
+        Transaction(TransactionStore store, int transactionId, int status,
+                String name, long logId) {
             this.store = store;
             this.transactionId = transactionId;
             this.status = status;
@@ -707,7 +709,8 @@ public class TransactionStore {
          * @param valueType the value data type
          * @return the transaction map
          */
-        public <K, V> TransactionMap<K, V> openMap(String name, DataType keyType, DataType valueType) {
+        public <K, V> TransactionMap<K, V> openMap(String name,
+                DataType keyType, DataType valueType) {
             checkNotClosed();
             MVMap<K, VersionedValue> map = store.openMap(name, keyType, valueType);
             int mapId = map.getId();
@@ -837,7 +840,8 @@ public class TransactionStore {
 
         private Transaction transaction;
 
-        TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map, int mapId) {
+        TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,
+                int mapId) {
             this.transaction = transaction;
             this.map = map;
             this.mapId = mapId;
@@ -860,8 +864,10 @@ public class TransactionStore {
          * @param savepoint the savepoint
          * @return the map
          */
-        public TransactionMap<K, V> getInstance(Transaction transaction, long savepoint) {
-            TransactionMap<K, V> m = new TransactionMap<K, V>(transaction, map, mapId);
+        public TransactionMap<K, V> getInstance(Transaction transaction,
+                long savepoint) {
+            TransactionMap<K, V> m = 
+                    new TransactionMap<K, V>(transaction, map, mapId);
             m.setSavepoint(savepoint);
             return m;
         }
@@ -1400,7 +1406,8 @@ public class TransactionStore {
          * @param includeUncommitted whether uncommitted entries should be included
          * @return the iterator
          */
-        public Iterator<K> wrapIterator(final Iterator<K> iterator, final boolean includeUncommitted) {
+        public Iterator<K> wrapIterator(final Iterator<K> iterator,
+                final boolean includeUncommitted) {
             // TODO duplicate code for wrapIterator and entryIterator
             return new Iterator<K>() {
                 private K current;

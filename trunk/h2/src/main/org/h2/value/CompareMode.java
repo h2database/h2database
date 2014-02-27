@@ -86,7 +86,8 @@ public class CompareMode {
      * @param binaryUnsigned whether to compare binaries as unsigned
      * @return the compare mode
      */
-    public static synchronized CompareMode getInstance(String name, int strength, boolean binaryUnsigned) {
+    public static synchronized CompareMode getInstance(String name,
+            int strength, boolean binaryUnsigned) {
         if (lastUsed != null) {
             if (StringUtils.equals(lastUsed.name, name) &&
                     lastUsed.strength == strength &&
@@ -126,7 +127,8 @@ public class CompareMode {
      * @param ignoreCase true if a case-insensitive comparison should be made
      * @return true if the characters are equals
      */
-    public boolean equalsChars(String a, int ai, String b, int bi, boolean ignoreCase) {
+    public boolean equalsChars(String a, int ai, String b, int bi,
+            boolean ignoreCase) {
         char ca = a.charAt(ai);
         char cb = b.charAt(bi);
         if (ignoreCase) {
@@ -160,7 +162,8 @@ public class CompareMode {
      */
     public static String getName(Locale l) {
         Locale english = Locale.ENGLISH;
-        String name = l.getDisplayLanguage(english) + ' ' + l.getDisplayCountry(english) + ' ' + l.getVariant();
+        String name = l.getDisplayLanguage(english) + ' ' + 
+                l.getDisplayCountry(english) + ' ' + l.getVariant();
         name = StringUtils.toUpperEnglish(name.trim().replace(' ', '_'));
         return name;
     }
@@ -174,7 +177,8 @@ public class CompareMode {
      * @return true if they match
      */
     static boolean compareLocaleNames(Locale locale, String name) {
-        return name.equalsIgnoreCase(locale.toString()) || name.equalsIgnoreCase(getName(locale));
+        return name.equalsIgnoreCase(locale.toString()) || 
+                name.equalsIgnoreCase(getName(locale));
     }
 
     /**

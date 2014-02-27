@@ -118,7 +118,8 @@ public class ValueDate extends Value {
         if (this == other) {
             return true;
         }
-        return other instanceof ValueDate && dateValue == (((ValueDate) other).dateValue);
+        return other instanceof ValueDate
+                && dateValue == (((ValueDate) other).dateValue);
     }
 
     @Override
@@ -132,7 +133,8 @@ public class ValueDate extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         prep.setDate(parameterIndex, getDate());
     }
 

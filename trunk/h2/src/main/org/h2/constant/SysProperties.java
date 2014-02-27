@@ -48,38 +48,44 @@ public class SysProperties {
      * It is usually set by the system and is the default encoding used for the
      * RunScript and CSV tool.
      */
-    public static final String FILE_ENCODING = Utils.getProperty("file.encoding", "Cp1252");
+    public static final String FILE_ENCODING = 
+            Utils.getProperty("file.encoding", "Cp1252");
 
     /**
      * System property <code>file.separator</code> (default: /).<br />
      * It is usually set by the system, and used to build absolute file names.
      */
-    public static final String FILE_SEPARATOR = Utils.getProperty("file.separator", "/");
+    public static final String FILE_SEPARATOR = 
+            Utils.getProperty("file.separator", "/");
 
     /**
      * System property <code>java.specification.version</code>.<br />
      * It is set by the system. Examples: 1.4, 1.5, 1.6.
      */
-    public static final String JAVA_SPECIFICATION_VERSION = Utils.getProperty("java.specification.version", "1.4");
+    public static final String JAVA_SPECIFICATION_VERSION = 
+            Utils.getProperty("java.specification.version", "1.4");
 
     /**
      * System property <code>line.separator</code> (default: \n).<br />
      * It is usually set by the system, and used by the script and trace tools.
      */
-    public static final String LINE_SEPARATOR = Utils.getProperty("line.separator", "\n");
+    public static final String LINE_SEPARATOR = 
+            Utils.getProperty("line.separator", "\n");
 
     /**
      * System property <code>user.home</code> (empty string if not set).<br />
      * It is usually set by the system, and used as a replacement for ~ in file
      * names.
      */
-    public static final String USER_HOME = Utils.getProperty("user.home", "");
+    public static final String USER_HOME = 
+            Utils.getProperty("user.home", "");
 
     /**
      * System property <code>h2.allowedClasses</code> (default: *).<br />
      * Comma separated list of class names or prefixes.
      */
-    public static final String ALLOWED_CLASSES = Utils.getProperty("h2.allowedClasses", "*");
+    public static final String ALLOWED_CLASSES = 
+            Utils.getProperty("h2.allowedClasses", "*");
 
     /**
      * System property <code>h2.browser</code> (default: null).<br />
@@ -88,27 +94,31 @@ public class SysProperties {
      * For Mac OS, if the default browser is not Safari and you want to use Safari,
      * use: <code>java -Dh2.browser="open,-a,Safari,%url" ...</code>.
      */
-    public static final String BROWSER = Utils.getProperty(H2_BROWSER, null);
+    public static final String BROWSER = 
+            Utils.getProperty(H2_BROWSER, null);
 
     /**
      * System property <code>h2.enableAnonymousSSL</code> (default: true).<br />
      * When using SSL connection, the anonymous cipher suite
      * SSL_DH_anon_WITH_RC4_128_MD5 should be enabled.
      */
-    public static final boolean ENABLE_ANONYMOUS_SSL = Utils.getProperty("h2.enableAnonymousSSL", true);
+    public static final boolean ENABLE_ANONYMOUS_SSL = 
+            Utils.getProperty("h2.enableAnonymousSSL", true);
 
     /**
      * System property <code>h2.bindAddress</code> (default: null).<br />
      * The bind address to use.
      */
-    public static final String BIND_ADDRESS = Utils.getProperty("h2.bindAddress", null);
+    public static final String BIND_ADDRESS = 
+            Utils.getProperty("h2.bindAddress", null);
 
     /**
      * System property <code>h2.check</code> (default: true).<br />
      * Assertions in the database engine.
      */
     //## CHECK ##
-    public static final boolean CHECK = Utils.getProperty("h2.check", true);
+    public static final boolean CHECK = 
+            Utils.getProperty("h2.check", true);
     /*/
     public static final boolean CHECK = false;
     //*/
@@ -118,7 +128,8 @@ public class SysProperties {
      * Additional assertions in the database engine.
      */
     //## CHECK ##
-    public static final boolean CHECK2 = Utils.getProperty("h2.check2", false);
+    public static final boolean CHECK2 = 
+            Utils.getProperty("h2.check2", false);
     /*/
     public static final boolean CHECK2 = false;
     //*/
@@ -129,33 +140,38 @@ public class SysProperties {
      * Directory where the trace files of the JDBC client are stored (only for
      * client / server).
      */
-    public static final String CLIENT_TRACE_DIRECTORY = Utils.getProperty("h2.clientTraceDirectory", "trace.db/");
+    public static final String CLIENT_TRACE_DIRECTORY = 
+            Utils.getProperty("h2.clientTraceDirectory", "trace.db/");
 
     /**
      * System property <code>h2.collatorCacheSize</code> (default: 32000).<br />
      * The cache size for collation keys (in elements). Used when a collator has
      * been set for the database.
      */
-    public static final int COLLATOR_CACHE_SIZE = Utils.getProperty("h2.collatorCacheSize", 32000);
+    public static final int COLLATOR_CACHE_SIZE = 
+            Utils.getProperty("h2.collatorCacheSize", 32000);
 
     /**
      * System property <code>h2.consoleStream</code> (default: true).<br />
      * H2 Console: stream query results.
      */
-    public static final boolean CONSOLE_STREAM = Utils.getProperty("h2.consoleStream", true);
+    public static final boolean CONSOLE_STREAM = 
+            Utils.getProperty("h2.consoleStream", true);
 
     /**
      * System property <code>h2.consoleTimeout</code> (default: 1800000).<br />
      * H2 Console: session timeout in milliseconds. The default is 30 minutes.
      */
-    public static final int CONSOLE_TIMEOUT = Utils.getProperty("h2.consoleTimeout", 30 * 60 * 1000);
+    public static final int CONSOLE_TIMEOUT = 
+            Utils.getProperty("h2.consoleTimeout", 30 * 60 * 1000);
 
     /**
      * System property <code>h2.dataSourceTraceLevel</code> (default: 1).<br />
      * The trace level of the data source implementation. Default is 1 for
      * error.
      */
-    public static final int DATASOURCE_TRACE_LEVEL = Utils.getProperty("h2.dataSourceTraceLevel", TraceSystem.ERROR);
+    public static final int DATASOURCE_TRACE_LEVEL = 
+            Utils.getProperty("h2.dataSourceTraceLevel", TraceSystem.ERROR);
 
     /**
      * System property <code>h2.delayWrongPasswordMin</code> (default: 250).<br />
@@ -165,7 +181,8 @@ public class SysProperties {
      * logins will double the time until DELAY_WRONG_PASSWORD_MAX.
      * To disable the delay, set this system property to 0.
      */
-    public static final int DELAY_WRONG_PASSWORD_MIN = Utils.getProperty("h2.delayWrongPasswordMin", 250);
+    public static final int DELAY_WRONG_PASSWORD_MIN = 
+            Utils.getProperty("h2.delayWrongPasswordMin", 250);
 
     /**
      * System property <code>h2.delayWrongPasswordMax</code> (default: 4000).<br />
@@ -174,7 +191,8 @@ public class SysProperties {
      * delay is reset after a successful login. The value 0 means there is no
      * maximum delay.
      */
-    public static final int DELAY_WRONG_PASSWORD_MAX = Utils.getProperty("h2.delayWrongPasswordMax", 4000);
+    public static final int DELAY_WRONG_PASSWORD_MAX = 
+            Utils.getProperty("h2.delayWrongPasswordMax", 4000);
 
     /**
      * System property <code>h2.javaSystemCompiler</code> (default: true).<br />
@@ -184,19 +202,22 @@ public class SysProperties {
      * available, the com.sun.tools.javac compiler is used if available, and
      * "javac" (as an external process) is used if not.
      */
-    public static final boolean JAVA_SYSTEM_COMPILER = Utils.getProperty("h2.javaSystemCompiler", true);
+    public static final boolean JAVA_SYSTEM_COMPILER = 
+            Utils.getProperty("h2.javaSystemCompiler", true);
 
     /**
      * System property <code>h2.lobCloseBetweenReads</code> (default: false).<br />
      * Close LOB files between read operations.
      */
-    public static boolean lobCloseBetweenReads = Utils.getProperty("h2.lobCloseBetweenReads", false);
+    public static boolean lobCloseBetweenReads = 
+            Utils.getProperty("h2.lobCloseBetweenReads", false);
 
     /**
      * System property <code>h2.lobFilesPerDirectory</code> (default: 256).<br />
      * Maximum number of LOB files per directory.
      */
-    public static final int LOB_FILES_PER_DIRECTORY = Utils.getProperty("h2.lobFilesPerDirectory", 256);
+    public static final int LOB_FILES_PER_DIRECTORY = 
+            Utils.getProperty("h2.lobFilesPerDirectory", 256);
 
     /**
      * System property <code>h2.lobClientMaxSizeMemory</code> (default:
@@ -204,7 +225,8 @@ public class SysProperties {
      * The maximum size of a LOB object to keep in memory on the client side
      * when using the server mode.
      */
-    public static final int LOB_CLIENT_MAX_SIZE_MEMORY = Utils.getProperty("h2.lobClientMaxSizeMemory", 1024 * 1024);
+    public static final int LOB_CLIENT_MAX_SIZE_MEMORY = 
+            Utils.getProperty("h2.lobClientMaxSizeMemory", 1024 * 1024);
 
     /**
      * System property <code>h2.maxFileRetry</code> (default: 16).<br />
@@ -214,19 +236,22 @@ public class SysProperties {
      * running garbage collection may close files if the user forgot to call
      * Connection.close() or InputStream.close().
      */
-    public static final int MAX_FILE_RETRY = Math.max(1, Utils.getProperty("h2.maxFileRetry", 16));
+    public static final int MAX_FILE_RETRY = 
+            Math.max(1, Utils.getProperty("h2.maxFileRetry", 16));
 
     /**
      * System property <code>h2.maxReconnect</code> (default: 3).<br />
      * The maximum number of tries to reconnect in a row.
      */
-    public static final int MAX_RECONNECT = Utils.getProperty("h2.maxReconnect", 3);
+    public static final int MAX_RECONNECT = 
+            Utils.getProperty("h2.maxReconnect", 3);
 
     /**
      * System property <code>h2.maxTraceDataLength</code> (default: 65535).<br />
      * The maximum size of a LOB value that is written as data to the trace system.
      */
-    public static final long MAX_TRACE_DATA_LENGTH = Utils.getProperty("h2.maxTraceDataLength", 65535);
+    public static final long MAX_TRACE_DATA_LENGTH = 
+            Utils.getProperty("h2.maxTraceDataLength", 65535);
 
     /**
      * System property <code>h2.modifyOnWrite</code> (default: false).<br />
@@ -235,14 +260,16 @@ public class SysProperties {
      * file (except if the database is read-only). When enabled, the serialized
      * file lock is faster.
      */
-    public static final boolean MODIFY_ON_WRITE = Utils.getProperty("h2.modifyOnWrite", false);
+    public static final boolean MODIFY_ON_WRITE = 
+            Utils.getProperty("h2.modifyOnWrite", false);
 
     /**
      * System property <code>h2.nioLoadMapped</code> (default: false).<br />
      * If the mapped buffer should be loaded when the file is opened.
      * This can improve performance.
      */
-    public static final boolean NIO_LOAD_MAPPED = Utils.getProperty("h2.nioLoadMapped", false);
+    public static final boolean NIO_LOAD_MAPPED = 
+            Utils.getProperty("h2.nioLoadMapped", false);
 
     /**
      * System property <code>h2.nioCleanerHack</code> (default: false).<br />
@@ -251,54 +278,62 @@ public class SysProperties {
      * is garbage collected. See also
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038
      */
-    public static final boolean NIO_CLEANER_HACK = Utils.getProperty("h2.nioCleanerHack", false);
+    public static final boolean NIO_CLEANER_HACK = 
+            Utils.getProperty("h2.nioCleanerHack", false);
 
     /**
      * System property <code>h2.objectCache</code> (default: true).<br />
      * Cache commonly used values (numbers, strings). There is a shared cache
      * for all values.
      */
-    public static final boolean OBJECT_CACHE = Utils.getProperty("h2.objectCache", true);
+    public static final boolean OBJECT_CACHE = 
+            Utils.getProperty("h2.objectCache", true);
 
     /**
      * System property <code>h2.objectCacheMaxPerElementSize</code> (default:
      * 4096).<br />
      * The maximum size (precision) of an object in the cache.
      */
-    public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = Utils.getProperty("h2.objectCacheMaxPerElementSize", 4096);
+    public static final int OBJECT_CACHE_MAX_PER_ELEMENT_SIZE = 
+            Utils.getProperty("h2.objectCacheMaxPerElementSize", 4096);
 
     /**
      * System property <code>h2.objectCacheSize</code> (default: 1024).<br />
      * The maximum number of objects in the cache.
      * This value must be a power of 2.
      */
-    public static final int OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(Utils.getProperty("h2.objectCacheSize", 1024));
+    public static final int OBJECT_CACHE_SIZE = 
+            MathUtils.nextPowerOf2(Utils.getProperty("h2.objectCacheSize", 1024));
 
     /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
      * Default client encoding for PG server. It is used if the client does not
      * sends his encoding.
      */
-    public static final String PG_DEFAULT_CLIENT_ENCODING = Utils.getProperty("h2.pgClientEncoding", "UTF-8");
+    public static final String PG_DEFAULT_CLIENT_ENCODING = 
+            Utils.getProperty("h2.pgClientEncoding", "UTF-8");
 
     /**
      * System property <code>h2.prefixTempFile</code> (default: h2.temp).<br />
      * The prefix for temporary files in the temp directory.
      */
-    public static final String PREFIX_TEMP_FILE = Utils.getProperty("h2.prefixTempFile", "h2.temp");
+    public static final String PREFIX_TEMP_FILE = 
+            Utils.getProperty("h2.prefixTempFile", "h2.temp");
 
     /**
      * System property <code>h2.serverCachedObjects</code> (default: 64).<br />
      * TCP Server: number of cached objects per session.
      */
-    public static final int SERVER_CACHED_OBJECTS = Utils.getProperty("h2.serverCachedObjects", 64);
+    public static final int SERVER_CACHED_OBJECTS = 
+            Utils.getProperty("h2.serverCachedObjects", 64);
 
     /**
      * System property <code>h2.serverResultSetFetchSize</code>
      * (default: 100).<br />
      * The default result set fetch size when using the server mode.
      */
-    public static final int SERVER_RESULT_SET_FETCH_SIZE = Utils.getProperty("h2.serverResultSetFetchSize", 100);
+    public static final int SERVER_RESULT_SET_FETCH_SIZE = 
+            Utils.getProperty("h2.serverResultSetFetchSize", 100);
 
     /**
      * System property <code>h2.socketConnectRetry</code> (default: 16).<br />
@@ -306,13 +341,15 @@ public class SysProperties {
      * to open a socket, see bug
      * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6213296
      */
-    public static final int SOCKET_CONNECT_RETRY = Utils.getProperty("h2.socketConnectRetry", 16);
+    public static final int SOCKET_CONNECT_RETRY = 
+            Utils.getProperty("h2.socketConnectRetry", 16);
 
     /**
      * System property <code>h2.socketConnectTimeout</code> (default: 2000).<br />
      * The timeout in milliseconds to connect to a server.
      */
-    public static final int SOCKET_CONNECT_TIMEOUT = Utils.getProperty("h2.socketConnectTimeout", 2000);
+    public static final int SOCKET_CONNECT_TIMEOUT = 
+            Utils.getProperty("h2.socketConnectTimeout", 2000);
 
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
@@ -320,20 +357,23 @@ public class SysProperties {
      * is at the end of a result set in an ascending sort and at
      * the beginning of a result set in a descending sort.
      */
-    public static final boolean SORT_NULLS_HIGH = Utils.getProperty("h2.sortNullsHigh", false);
+    public static final boolean SORT_NULLS_HIGH = 
+            Utils.getProperty("h2.sortNullsHigh", false);
 
     /**
      * System property <code>h2.splitFileSizeShift</code> (default: 30).<br />
      * The maximum file size of a split file is 1L &lt;&lt; x.
      */
-    public static final long SPLIT_FILE_SIZE_SHIFT = Utils.getProperty("h2.splitFileSizeShift", 30);
+    public static final long SPLIT_FILE_SIZE_SHIFT = 
+            Utils.getProperty("h2.splitFileSizeShift", 30);
 
     /**
      * System property <code>h2.storeLocalTime</code> (default: false).<br />
      * Store the local time. If disabled, the daylight saving offset is not
      * taken into account.
      */
-    public static final boolean STORE_LOCAL_TIME = Utils.getProperty("h2.storeLocalTime", false);
+    public static final boolean STORE_LOCAL_TIME = 
+            Utils.getProperty("h2.storeLocalTime", false);
 
     /**
      * System property <code>h2.syncMethod</code> (default: sync).<br />
@@ -345,13 +385,15 @@ public class SysProperties {
      * "": do not call a method (fast but there is a risk of data loss
      * on power failure).
      */
-    public static final String SYNC_METHOD = Utils.getProperty("h2.syncMethod", "sync");
+    public static final String SYNC_METHOD = 
+            Utils.getProperty("h2.syncMethod", "sync");
 
     /**
      * System property <code>h2.traceIO</code> (default: false).<br />
      * Trace all I/O operations.
      */
-    public static final boolean TRACE_IO = Utils.getProperty("h2.traceIO", false);
+    public static final boolean TRACE_IO = 
+            Utils.getProperty("h2.traceIO", false);
 
     /**
      * System property <code>h2.urlMap</code> (default: null).<br />
@@ -359,7 +401,8 @@ public class SysProperties {
      * connections are written into the file. An empty value in the map means no
      * redirection is used for the given URL.
      */
-    public static final String URL_MAP = Utils.getProperty("h2.urlMap", null);
+    public static final String URL_MAP = 
+            Utils.getProperty("h2.urlMap", null);
 
     /**
      * System property <code>h2.useThreadContextClassLoader</code>
@@ -399,7 +442,8 @@ public class SysProperties {
      * defensive copy himself before storing, or ensure that the value object is
      * immutable.
      */
-    public static boolean serializeJavaObject = Utils.getProperty("h2.serializeJavaObject", true);
+    public static boolean serializeJavaObject = 
+            Utils.getProperty("h2.serializeJavaObject", true);
 
     /**
      * System property <code>h2.javaObjectSerializer</code> (default: null).<br />
@@ -407,7 +451,8 @@ public class SysProperties {
      * column of type OTHER. It must be the same on client and server to work
      * correctly.
      */
-    public static final String JAVA_OBJECT_SERIALIZER = Utils.getProperty("h2.javaObjectSerializer", null);
+    public static final String JAVA_OBJECT_SERIALIZER = 
+            Utils.getProperty("h2.javaObjectSerializer", null);
 
     private static final String H2_BASE_DIR = "h2.baseDir";
 

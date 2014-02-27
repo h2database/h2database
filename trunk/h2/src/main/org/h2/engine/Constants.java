@@ -239,7 +239,8 @@ public class Constants {
      * The default result set concurrency for statements created with
      * Connection.createStatement() or prepareStatement(String sql).
      */
-    public static final int DEFAULT_RESULT_SET_CONCURRENCY = ResultSet.CONCUR_READ_ONLY;
+    public static final int DEFAULT_RESULT_SET_CONCURRENCY = 
+            ResultSet.CONCUR_READ_ONLY;
 
     /**
      * The default port of the TCP server.
@@ -310,12 +311,14 @@ public class Constants {
     /**
      * The memory needed by an object of class PageBtree.
      */
-    public static final int MEMORY_PAGE_BTREE = 112 + MEMORY_DATA + 2 * MEMORY_OBJECT;
+    public static final int MEMORY_PAGE_BTREE = 
+            112 + MEMORY_DATA + 2 * MEMORY_OBJECT;
 
     /**
      * The memory needed by an object of class PageData.
      */
-    public static final int MEMORY_PAGE_DATA = 144 + MEMORY_DATA + 3 * MEMORY_OBJECT;
+    public static final int MEMORY_PAGE_DATA = 
+            144 + MEMORY_DATA + 3 * MEMORY_OBJECT;
 
     /**
      * The memory needed by an object of class PageDataOverflow.
@@ -457,7 +460,8 @@ public class Constants {
      * The database URL format in simplified Backus-Naur form.
      */
     public static final String URL_FORMAT = START_URL +
-    "{ {.|mem:}[name] | [file:]fileName | {tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";
+            "{ {.|mem:}[name] | [file:]fileName | " + 
+            "{tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";
 
     /**
      * The package name of user defined classes.

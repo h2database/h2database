@@ -316,7 +316,8 @@ public class DataUtils {
             if (x < 0x80) {
                 chars[i] = (char) x;
             } else if (x >= 0xe0) {
-                chars[i] = (char) (((x & 0xf) << 12) + ((buff.get() & 0x3f) << 6) + (buff.get() & 0x3f));
+                chars[i] = (char) (((x & 0xf) << 12)
+                        + ((buff.get() & 0x3f) << 6) + (buff.get() & 0x3f));
             } else {
                 chars[i] = (char) (((x & 0x1f) << 6) + (buff.get() & 0x3f));
             }
@@ -360,12 +361,14 @@ public class DataUtils {
      * @param oldSize the size of the old array
      * @param gapIndex the index of the gap
      */
-    public static void copyWithGap(Object src, Object dst, int oldSize, int gapIndex) {
+    public static void copyWithGap(Object src, Object dst, int oldSize,
+            int gapIndex) {
         if (gapIndex > 0) {
             System.arraycopy(src, 0, dst, 0, gapIndex);
         }
         if (gapIndex < oldSize) {
-            System.arraycopy(src, gapIndex, dst, gapIndex + 1, oldSize - gapIndex);
+            System.arraycopy(src, gapIndex, dst, gapIndex + 1, oldSize
+                    - gapIndex);
         }
     }
 
@@ -377,12 +380,14 @@ public class DataUtils {
      * @param oldSize the size of the old array
      * @param removeIndex the index of the entry to remove
      */
-    public static void copyExcept(Object src, Object dst, int oldSize, int removeIndex) {
+    public static void copyExcept(Object src, Object dst, int oldSize,
+            int removeIndex) {
         if (removeIndex > 0 && oldSize > 0) {
             System.arraycopy(src, 0, dst, 0, removeIndex);
         }
         if (removeIndex < oldSize) {
-            System.arraycopy(src, removeIndex + 1, dst, removeIndex, oldSize - removeIndex - 1);
+            System.arraycopy(src, removeIndex + 1, dst, removeIndex, oldSize
+                    - removeIndex - 1);
         }
     }
 
@@ -556,7 +561,8 @@ public class DataUtils {
      * @param map the map
      * @return the string builder
      */
-    public static StringBuilder appendMap(StringBuilder buff, HashMap<String, ?> map) {
+    public static StringBuilder appendMap(StringBuilder buff,
+            HashMap<String, ?> map) {
         ArrayList<String> list = New.arrayList(map.keySet());
         Collections.sort(list);
         for (String k : list) {
@@ -679,7 +685,8 @@ public class DataUtils {
      * @param arguments the arguments
      * @throws IllegalArgumentException if the argument is invalid
      */
-    public static void checkArgument(boolean test, String message, Object... arguments) {
+    public static void checkArgument(boolean test, String message,
+            Object... arguments) {
         if (!test) {
             throw newIllegalArgumentException(message, arguments);
         }
@@ -716,8 +723,8 @@ public class DataUtils {
      * @param message the message
      * @return the exception
      */
-    public static ConcurrentModificationException newConcurrentModificationException(
-            String message) {
+    public static ConcurrentModificationException 
+            newConcurrentModificationException(String message) {
         return new ConcurrentModificationException(formatMessage(0, message));
     }
 
@@ -747,7 +754,8 @@ public class DataUtils {
         return e;
     }
 
-    private static String formatMessage(int errorCode, String message, Object... arguments) {
+    private static String formatMessage(int errorCode, String message,
+            Object... arguments) {
         // convert arguments to strings, to avoid locale specific formatting
         for (int i = 0; i < arguments.length; i++) {
             Object a = arguments[i];
@@ -847,7 +855,8 @@ public class DataUtils {
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static long readHexLong(HashMap<String, ? extends Object> map, String key, long defaultValue) {
+    public static long readHexLong(HashMap<String, ? extends Object> map,
+            String key, long defaultValue) {
         Object v = map.get(key);
         if (v == null) {
             return defaultValue;
@@ -911,7 +920,8 @@ public class DataUtils {
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static int readHexInt(HashMap<String, ? extends Object> map, String key, int defaultValue) {
+    public static int readHexInt(HashMap<String, ? extends Object> map,
+            String key, int defaultValue) {
         Object v = map.get(key);
         if (v == null) {
             return defaultValue;

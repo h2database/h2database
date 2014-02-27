@@ -33,7 +33,8 @@ public class FileStore {
     /**
      * The magic file header.
      */
-    private static final String HEADER = "-- H2 0.5/B --      ".substring(0, Constants.FILE_BLOCK_SIZE - 1) + "\n";
+    private static final String HEADER = 
+            "-- H2 0.5/B --      ".substring(0, Constants.FILE_BLOCK_SIZE - 1) + "\n";
 
     /**
      * The file name.
@@ -118,13 +119,14 @@ public class FileStore {
      * @param keyIterations the number of iterations the key should be hashed
      * @return the created object
      */
-    public static FileStore open(DataHandler handler, String name, String mode, String cipher,
-            byte[] key, int keyIterations) {
+    public static FileStore open(DataHandler handler, String name, String mode,
+            String cipher, byte[] key, int keyIterations) {
         FileStore store;
         if (cipher == null) {
             store = new FileStore(handler, name, mode);
         } else {
-            store = new SecureFileStore(handler, name, mode, cipher, key, keyIterations);
+            store = new SecureFileStore(handler, name, mode, 
+                    cipher, key, keyIterations);
         }
         return store;
     }

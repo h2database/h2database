@@ -20,7 +20,8 @@ import org.h2.message.DbException;
  */
 public class StringUtils {
 
-    private static SoftReference<String[]> softCache = new SoftReference<String[]>(null);
+    private static SoftReference<String[]> softCache = 
+            new SoftReference<String[]>(null);
     private static long softCacheCreated;
     private static final char[] HEX = "0123456789abcdef".toCharArray();
     private static final int[] HEX_DECODE = new int['f' + 1];
@@ -424,7 +425,8 @@ public class StringUtils {
             } else {
                 if (SysProperties.CHECK) {
                     if (ch > 127 || ch < ' ') {
-                        throw new IllegalArgumentException("Unexpected char " + (int) ch + " decoding " + encoded);
+                        throw new IllegalArgumentException(
+                                "Unexpected char " + (int) ch + " decoding " + encoded);
                     }
                 }
                 buff[j++] = (byte) ch;
@@ -536,7 +538,8 @@ public class StringUtils {
      * @param indent whether to indent the content if it contains a newline
      * @return the node
      */
-    public static String xmlNode(String name, String attributes, String content, boolean indent) {
+    public static String xmlNode(String name, String attributes,
+            String content, boolean indent) {
         String start = attributes == null ? name : name + attributes;
         if (content == null) {
             return "<" + start + "/>\n";
@@ -708,7 +711,8 @@ public class StringUtils {
         if (next < 0) {
             return s;
         }
-        StringBuilder buff = new StringBuilder(s.length() - before.length() + after.length());
+        StringBuilder buff = new StringBuilder(
+                s.length() - before.length() + after.length());
         int index = 0;
         while (true) {
             buff.append(s.substring(index, next)).append(after);
@@ -832,7 +836,8 @@ public class StringUtils {
      *      or null for a space
      * @return the trimmed string
      */
-    public static String trim(String s, boolean leading, boolean trailing, String sp) {
+    public static String trim(String s, boolean leading, boolean trailing,
+            String sp) {
         char space = (sp == null || sp.length() < 1) ? ' ' : sp.charAt(0);
         if (leading) {
             int len = s.length(), i = 0;
@@ -1015,7 +1020,8 @@ public class StringUtils {
      * @param length the number of characters to append
      * @param positiveValue the number to append
      */
-    public static void appendZeroPadded(StringBuilder buff, int length, long positiveValue) {
+    public static void appendZeroPadded(StringBuilder buff, int length,
+            long positiveValue) {
         if (length == 2) {
             if (positiveValue < 10) {
                 buff.append('0');

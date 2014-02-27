@@ -70,20 +70,25 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             Database db, MVTable table, int id, String indexName,
             IndexColumn[] columns, IndexType indexType) {
         if (columns.length != 1) {
-            throw DbException.getUnsupportedException("Can only index one column");
+            throw DbException.getUnsupportedException(
+                    "Can only index one column");
         }
         IndexColumn col = columns[0];
         if ((col.sortType & SortOrder.DESCENDING) != 0) {
-            throw DbException.getUnsupportedException("Cannot index in descending order");
+            throw DbException.getUnsupportedException(
+                    "Cannot index in descending order");
         }
         if ((col.sortType & SortOrder.NULLS_FIRST) != 0) {
-            throw DbException.getUnsupportedException("Nulls first is not supported");
+            throw DbException.getUnsupportedException(
+                    "Nulls first is not supported");
         }
         if ((col.sortType & SortOrder.NULLS_LAST) != 0) {
-            throw DbException.getUnsupportedException("Nulls last is not supported");
+            throw DbException.getUnsupportedException(
+                    "Nulls last is not supported");
         }
         if (col.column.getType() != Value.GEOMETRY) {
-            throw DbException.getUnsupportedException("Spatial index on non-geometry column, "
+            throw DbException.getUnsupportedException(
+                    "Spatial index on non-geometry column, "
                     + col.column.getCreateSQL());
         }
         this.mvTable = table;
@@ -207,7 +212,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         if (intersection == null) {
             return find(session);
         }
-        Iterator<SpatialKey> cursor = spatialMap.findIntersectingKeys(getEnvelope(intersection));
+        Iterator<SpatialKey> cursor = 
+                spatialMap.findIntersectingKeys(getEnvelope(intersection));
         TransactionMap<SpatialKey, Value> map = getMap(session);
         Iterator<SpatialKey> it = map.wrapIterator(cursor, false);
         return new MVStoreCursor(session, it);
@@ -241,12 +247,15 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, table.getRowCountApproximation(), filter, sortOrder);
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
+        return getCostRangeIndex(masks, table.getRowCountApproximation(),
+                filter, sortOrder);
     }
 
     @Override
-    protected long getCostRangeIndex(int[] masks, long rowCount, TableFilter filter, SortOrder sortOrder) {
+    protected long getCostRangeIndex(int[] masks, long rowCount,
+            TableFilter filter, SortOrder sortOrder) {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;
         if (masks == null) {
@@ -285,7 +294,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         if (!first) {
-            throw DbException.throwInternalError("Spatial Index can only be fetch in ascending order");
+            throw DbException.throwInternalError(
+                    "Spatial Index can only be fetch in ascending order");
         }
         return find(session);
     }

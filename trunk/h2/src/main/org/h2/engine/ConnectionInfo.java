@@ -320,7 +320,8 @@ public class ConnectionInfo implements Cloneable {
         userPasswordHash = hashPassword(passwordHash, user, password);
     }
 
-    private static byte[] hashPassword(boolean passwordHash, String userName, char[] password) {
+    private static byte[] hashPassword(boolean passwordHash, String userName,
+            char[] password) {
         if (passwordHash) {
             return StringUtils.convertHexToBytes(new String(password));
         }

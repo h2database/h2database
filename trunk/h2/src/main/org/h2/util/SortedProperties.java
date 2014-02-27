@@ -52,7 +52,8 @@ public class SortedProperties extends Properties {
      * @param def the default value
      * @return the value if set, or the default value if not
      */
-    public static boolean getBooleanProperty(Properties prop, String key, boolean def) {
+    public static boolean getBooleanProperty(Properties prop, String key,
+            boolean def) {
         String value = prop.getProperty(key, "" + def);
         try {
             return Boolean.parseBoolean(value);
@@ -86,7 +87,8 @@ public class SortedProperties extends Properties {
      * @param fileName the name of the properties file
      * @return the properties object
      */
-    public static synchronized SortedProperties loadProperties(String fileName) throws IOException {
+    public static synchronized SortedProperties loadProperties(String fileName)
+            throws IOException {
         SortedProperties prop = new SortedProperties();
         if (FileUtils.exists(fileName)) {
             InputStream in = null;

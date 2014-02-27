@@ -41,7 +41,8 @@ public class StreamStore {
     private int minBlockSize = 256;
     private int maxBlockSize = 256 * 1024;
     private final AtomicLong nextKey = new AtomicLong();
-    private final AtomicReference<byte[]> nextBuffer = new AtomicReference<byte[]>();
+    private final AtomicReference<byte[]> nextBuffer = 
+            new AtomicReference<byte[]>();
 
     /**
      * Create a stream store instance.
@@ -119,7 +120,8 @@ public class StreamStore {
         return id.toByteArray();
     }
 
-    private boolean put(ByteArrayOutputStream id, InputStream in, int level) throws IOException {
+    private boolean put(ByteArrayOutputStream id, InputStream in, int level)
+            throws IOException {
         if (level > 0) {
             ByteArrayOutputStream id2 = new ByteArrayOutputStream();
             while (true) {
@@ -180,7 +182,8 @@ public class StreamStore {
         return target;
     }
 
-    private ByteArrayOutputStream putIndirectId(ByteArrayOutputStream id) throws IOException {
+    private ByteArrayOutputStream putIndirectId(ByteArrayOutputStream id)
+            throws IOException {
         byte[] data = id.toByteArray();
         id = new ByteArrayOutputStream();
         // indirect: 2, total len (long), blockId (long)
@@ -457,7 +460,8 @@ public class StreamStore {
                         continue;
                     }
                     byte[] k = store.getBlock(key);
-                    ByteBuffer newBuffer = ByteBuffer.allocate(k.length + idBuffer.limit() - idBuffer.position());
+                    ByteBuffer newBuffer = ByteBuffer.allocate(k.length
+                            + idBuffer.limit() - idBuffer.position());
                     newBuffer.put(k);
                     newBuffer.put(idBuffer);
                     newBuffer.flip();

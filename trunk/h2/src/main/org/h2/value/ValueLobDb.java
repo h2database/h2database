@@ -36,7 +36,8 @@ import org.h2.util.Utils;
  * Small objects are kept in memory and stored in the record.
  * Large objects are either stored in the database, or in temporary files.
  */
-public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlob {
+public class ValueLobDb extends Value implements Value.ValueClob,
+        Value.ValueBlob {
 
     private final int type;
     private final long lobId;
@@ -55,7 +56,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     private int tableId;
     private int hash;
 
-    private ValueLobDb(int type, DataHandler handler, int tableId, long lobId, byte[] hmac, long precision) {
+    private ValueLobDb(int type, DataHandler handler, int tableId, long lobId,
+            byte[] hmac, long precision) {
         this.type = type;
         this.handler = handler;
         this.tableId = tableId;
@@ -81,7 +83,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     /**
      * Create a CLOB in a temporary file.
      */
-    private ValueLobDb(DataHandler handler, Reader in, long remaining) throws IOException {
+    private ValueLobDb(DataHandler handler, Reader in, long remaining)
+            throws IOException {
         this.type = Value.CLOB;
         this.handler = handler;
         this.small = null;
@@ -143,7 +146,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         this.precision = tmpPrecision;
     }
 
-    private static String createTempLobFileName(DataHandler handler) throws IOException {
+    private static String createTempLobFileName(DataHandler handler)
+            throws IOException {
         String path = handler.getDatabasePath();
         if (path.length() == 0) {
             path = SysProperties.PREFIX_TEMP_FILE;
@@ -180,14 +184,16 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
             return this;
         } else if (t == Value.CLOB) {
             if (handler != null) {
-                Value copy = handler.getLobStorage().createClob(getReader(), -1);
+                Value copy = handler.getLobStorage().
+                        createClob(getReader(), -1);
                 return copy;
             } else if (small != null) {
                 return ValueLobDb.createSmallLob(t, small);
             }
         } else if (t == Value.BLOB) {
             if (handler != null) {
-                Value copy = handler.getLobStorage().createBlob(getInputStream(), -1);
+                Value copy = handler.getLobStorage().
+                        createBlob(getInputStream(), -1);
                 return copy;
             } else if (small != null) {
                 return ValueLobDb.createSmallLob(t, small);
@@ -198,7 +204,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     @Override
     public boolean isLinked() {
-        return tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE && small == null;
+        return tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE && 
+                small == null;
     }
 
     public boolean isStored() {
@@ -224,8 +231,10 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     @Override
     public void unlink(DataHandler database) {
-        if (small == null && tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
-            database.getLobStorage().setTable(this, LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+        if (small == null && 
+                tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
+            database.getLobStorage().setTable(this,
+                    LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
             tableId = LobStorageFrontend.TABLE_ID_SESSION_VARIABLE;
         }
     }
@@ -274,7 +283,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
 
     @Override
     public String getString() {
-        int len = precision > Integer.MAX_VALUE || precision == 0 ? Integer.MAX_VALUE : (int) precision;
+        int len = precision > Integer.MAX_VALUE || precision == 0 ? 
+                Integer.MAX_VALUE : (int) precision;
         try {
             if (type == Value.CLOB) {
                 if (small != null) {
@@ -375,8 +385,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         } else if (fileName != null) {
             FileStore store = handler.openFile(fileName, "r", true);
             boolean alwaysClose = SysProperties.lobCloseBetweenReads;
-            return new BufferedInputStream(new FileStoreInputStream(store, handler, false, alwaysClose),
-                    Constants.IO_BUFFER_SIZE);
+            return new BufferedInputStream(new FileStoreInputStream(store,
+                    handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
         }
         long byteCount = (type == Value.BLOB) ? precision : -1;
         try {
@@ -387,7 +397,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         long p = getPrecision();
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
@@ -422,7 +433,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         } else {
             buff.append("CAST(REPEAT('00', ").append(getPrecision()).append(") AS BINARY");
         }
-        buff.append(" /* table: ").append(tableId).append(" id: ").append(lobId).append(" */)");
+        buff.append(" /* table: ").append(tableId).append(" id: ")
+                .append(lobId).append(" */)");
         return buff.toString();
     }
 
@@ -482,7 +494,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLobDb createTempClob(Reader in, long length, DataHandler handler) {
+    public static ValueLobDb createTempClob(Reader in, long length,
+            DataHandler handler) {
         BufferedReader reader;
         if (in instanceof BufferedReader) {
             reader = (BufferedReader) in;
@@ -526,7 +539,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      * @param handler the data handler
      * @return the lob value
      */
-    public static ValueLobDb createTempBlob(InputStream in, long length, DataHandler handler) {
+    public static ValueLobDb createTempBlob(InputStream in, long length,
+            DataHandler handler) {
         try {
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -554,12 +568,14 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
         }
     }
 
-    private static int getBufferSize(DataHandler handler, boolean compress, long remaining) {
+    private static int getBufferSize(DataHandler handler, boolean compress,
+            long remaining) {
         if (remaining < 0 || remaining > Integer.MAX_VALUE) {
             remaining = Integer.MAX_VALUE;
         }
         int inplace = handler.getMaxLengthInplaceLob();
-        long m = compress ? Constants.IO_BUFFER_SIZE_COMPRESS : Constants.IO_BUFFER_SIZE;
+        long m = compress ? Constants.IO_BUFFER_SIZE_COMPRESS
+                : Constants.IO_BUFFER_SIZE;
         if (m < remaining && m <= inplace) {
             // using "1L" to force long arithmetic because
             // inplace could be Integer.MAX_VALUE
@@ -636,7 +652,8 @@ public class ValueLobDb extends Value implements Value.ValueClob, Value.ValueBlo
      * @param precision the precision
      * @return the LOB
      */
-    public static ValueLobDb createSmallLob(int type, byte[] small, long precision) {
+    public static ValueLobDb createSmallLob(int type, byte[] small,
+            long precision) {
         return new ValueLobDb(type, small, precision);
     }
 

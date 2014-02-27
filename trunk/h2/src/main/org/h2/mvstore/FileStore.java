@@ -39,7 +39,8 @@ public class FileStore {
      * The free spaces between the chunks. The first block to use is block 2
      * (the first two blocks are the store header).
      */
-    protected final FreeSpaceBitSet freeSpace = new FreeSpaceBitSet(2, MVStore.BLOCK_SIZE);
+    protected final FreeSpaceBitSet freeSpace = 
+            new FreeSpaceBitSet(2, MVStore.BLOCK_SIZE);
 
     /**
      * The file name.
@@ -124,7 +125,8 @@ public class FileStore {
         FilePath f = FilePath.get(fileName);
         FilePath parent = f.getParent();
         if (parent != null && !parent.exists()) {
-            throw DataUtils.newIllegalArgumentException("Directory does not exist: {0}", parent);
+            throw DataUtils.newIllegalArgumentException(
+                    "Directory does not exist: {0}", parent);
         }
         if (f.exists() && !f.canWrite()) {
             readOnly = true;

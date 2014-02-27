@@ -177,7 +177,8 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         ValueDataType valueType = new ValueDataType(null, null, null);
         MVMap.Builder<Value, Value> builder =
                 new MVMap.Builder<Value, Value>().keyType(keyType).valueType(valueType);
-        MVMap<Value, Value> map = database.getMvStore().getStore().openMap(mapName, builder);
+        MVMap<Value, Value> map = database.getMvStore().
+                getStore().openMap(mapName, builder);
         if (!keyType.equals(map.getKeyType())) {
             throw DbException.throwInternalError("Incompatible key type");
         }
@@ -304,9 +305,11 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
         try {
-            return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(), filter, sortOrder);
+            return 10 * getCostRangeIndex(masks, 
+                    dataMap.sizeAsLongMax(), filter, sortOrder);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -338,7 +341,8 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         Value key = first ? map.firstKey() : map.lastKey();
         while (true) {
             if (key == null) {
-                return new MVStoreCursor(session, Collections.<Value>emptyList().iterator(), null);
+                return new MVStoreCursor(session, 
+                        Collections.<Value>emptyList().iterator(), null);
             }
             if (((ValueArray) key).getList()[0] != ValueNull.INSTANCE) {
                 break;

@@ -164,7 +164,8 @@ public class ValueInt extends Value {
     }
 
     @Override
-    public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
+    public void set(PreparedStatement prep, int parameterIndex)
+            throws SQLException {
         prep.setInt(parameterIndex, value);
     }
 

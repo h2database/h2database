@@ -30,9 +30,10 @@ public class MergeDocs {
      */
     public static void main(String... args) throws Exception {
         // the order of pages is important here
-        String[] pages = { "quickstart.html", "installation.html", "tutorial.html", "features.html",
-                "performance.html", "advanced.html", "grammar.html", "functions.html", "datatypes.html", "build.html",
-                "history.html", "faq.html" };
+        String[] pages = { "quickstart.html", "installation.html",
+                "tutorial.html", "features.html", "performance.html",
+                "advanced.html", "grammar.html", "functions.html",
+                "datatypes.html", "build.html", "history.html", "faq.html" };
         StringBuilder buff = new StringBuilder();
         for (String fileName : pages) {
             String text = getContent(fileName);
@@ -46,9 +47,11 @@ public class MergeDocs {
         String finalText = buff.toString();
         File output = new File(BASE_DIR, "onePage.html");
         PrintWriter writer = new PrintWriter(new FileWriter(output));
-        writer.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\" /><title>");
+        writer.println("<html><head><meta http-equiv=\"Content-Type\" " + 
+                "content=\"text/html;charset=utf-8\" /><title>");
         writer.println("H2 Documentation");
-        writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" href=\"stylesheetPdf.css\" /></head><body>");
+        writer.println("</title><link rel=\"stylesheet\" type=\"text/css\" " + 
+                "href=\"stylesheetPdf.css\" /></head><body>");
         writer.println("<h1>H2 Database Engine</h1>");
         writer.println("<p>Version " + Constants.getFullVersion() + "</p>");
         writer.println(finalText);
@@ -57,10 +60,18 @@ public class MergeDocs {
     }
 
     private static String disableRailroads(String text) {
-        text = StringUtils.replaceAll(text, "<!-- railroad-start -->", "<!-- railroad-start ");
-        text = StringUtils.replaceAll(text, "<!-- railroad-end -->", " railroad-end -->");
-        text = StringUtils.replaceAll(text, "<!-- syntax-start", "<!-- syntax-start -->");
-        text = StringUtils.replaceAll(text, "syntax-end -->", "<!-- syntax-end -->");
+        text = StringUtils.replaceAll(text, 
+                "<!-- railroad-start -->",
+                "<!-- railroad-start ");
+        text = StringUtils.replaceAll(text, 
+                "<!-- railroad-end -->",
+                " railroad-end -->");
+        text = StringUtils.replaceAll(text, 
+                "<!-- syntax-start",
+                "<!-- syntax-start -->");
+        text = StringUtils.replaceAll(text, 
+                "syntax-end -->",
+                "<!-- syntax-end -->");
         return text;
     }
 
@@ -69,7 +80,8 @@ public class MergeDocs {
         // String end = "</body>";
 
         String start = "<!-- } -->";
-        String end = "<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>";
+        String end = "<!-- [close] { --></div></td></tr></table>" + 
+                "<!-- } --><!-- analytics --></body></html>";
 
         int idx = text.indexOf(end);
         if (idx < 0) {

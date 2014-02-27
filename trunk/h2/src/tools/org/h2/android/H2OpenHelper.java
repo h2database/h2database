@@ -22,7 +22,8 @@ public abstract class H2OpenHelper {
      * @param factory the cursor factory to use
      * @param version the expected database version
      */
-    H2OpenHelper(Context context, String name, H2Database.CursorFactory factory, int version) {
+    H2OpenHelper(Context context, String name,
+            H2Database.CursorFactory factory, int version) {
         // TODO
     }
 

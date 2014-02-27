@@ -18,7 +18,7 @@ import java.io.RandomAccessFile;
 public class CheckJavadoc {
 
     private static final int MAX_COMMENT_LINE_SIZE = 80;
-    private static final int MAX_SOURCE_LINE_SIZE = 120;
+    private static final int MAX_SOURCE_LINE_SIZE = 80;
     private int errorCount;
 
     /**
@@ -55,7 +55,9 @@ public class CheckJavadoc {
                 }
             }
             if (foundJava && !foundPackageHtml) {
-                System.out.println("No package.html file, but a Java file found at: " + file.getAbsolutePath());
+                System.out.println(
+                        "No package.html file, but a Java file found at: "
+                        + file.getAbsolutePath());
                 errorCount++;
             }
         } else {
@@ -112,6 +114,7 @@ public class CheckJavadoc {
             } else if (!inComment && line.length() > MAX_SOURCE_LINE_SIZE) {
                 System.out.println("Long line: " + file.getAbsolutePath()
                         + " (" + file.getName() + ":" + lineNumber + ")");
+                errorCount++;
             }
             lineNumber++;
             pos = next + 1;

@@ -82,13 +82,15 @@ public class TriggerPassData implements Trigger {
      * @param trigger the trigger name
      * @param data the data
      */
-    public static void setTriggerData(Connection conn, String trigger, String data) throws SQLException {
+    public static void setTriggerData(Connection conn, String trigger,
+            String data) throws SQLException {
         TRIGGERS.get(getPrefix(conn) + trigger).triggerData = data;
     }
 
     private static String getPrefix(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("call ifnull(database_path() || '_', '') || database() || '_'");
+        ResultSet rs = stat.executeQuery(
+                "call ifnull(database_path() || '_', '') || database() || '_'");
         rs.next();
         return rs.getString(1);
     }

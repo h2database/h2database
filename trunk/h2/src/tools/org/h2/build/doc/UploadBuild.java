@@ -53,7 +53,8 @@ public class UploadBuild {
         boolean coverage = new File("coverage/index.html").exists();
         boolean coverageFailed;
         if (coverage) {
-            byte[] data = IOUtils.readBytesAndClose(new FileInputStream("coverage/index.html"), -1);
+            byte[] data = IOUtils.readBytesAndClose(
+                    new FileInputStream("coverage/index.html"), -1);
             String index = new String(data, "ISO-8859-1");
             coverageFailed = index.indexOf("CLASS=\"h\"") >= 0;
             while (true) {
@@ -87,7 +88,8 @@ public class UploadBuild {
         String testOutput;
         boolean error;
         if (new File("docs/html/testOutput.html").exists()) {
-            testOutput = IOUtils.readStringAndClose(new FileReader("docs/html/testOutput.html"), -1);
+            testOutput = IOUtils.readStringAndClose(
+                    new FileReader("docs/html/testOutput.html"), -1);
             error = testOutput.indexOf(OutputCatcher.START_ERROR) >= 0;
         } else if (new File("log.txt").exists()) {
             testOutput = IOUtils.readStringAndClose(new FileReader("log.txt"), -1);
@@ -103,7 +105,8 @@ public class UploadBuild {
         if (ftp.exists("/httpdocs/automated", "history.sql")) {
             buildSql = new String(ftp.retrieve("/httpdocs/automated/history.sql"));
         } else {
-            buildSql = "create table item(id identity, title varchar, issued timestamp, desc varchar);\n";
+            buildSql = "create table item(id identity, title varchar, " + 
+                    "issued timestamp, desc varchar);\n";
         }
         String ts = new java.sql.Timestamp(System.currentTimeMillis()).toString();
         String now = ts.substring(0, 16);
@@ -111,16 +114,22 @@ public class UploadBuild {
         if (idx >= 0) {
             int end = testOutput.indexOf("<br />", idx);
             if (end >= 0) {
-                String result = testOutput.substring(idx + "Statements per second: ".length(), end);
+                String result = testOutput.substring(idx + 
+                        "Statements per second: ".length(), end);
                 now += " " + result + " op/s";
             }
         }
-        String sql = "insert into item(title, issued, desc) values('Build " + now +
+        String sql = "insert into item(title, issued, desc) values('Build " + 
+            now +
             (error ? " FAILED" : "") +
             (coverageFailed ? " COVERAGE" : "") +
-            "', '" + ts + "', '<a href=\"http://www.h2database.com/html/testOutput.html\">Output</a>" +
-            " - <a href=\"http://www.h2database.com/coverage/overview.html\">Coverage</a>" +
-            " - <a href=\"http://www.h2database.com/automated/h2-latest.jar\">Jar</a>');\n";
+            "', '" + ts + 
+            "', '<a href=\"http://www.h2database.com/" + 
+            "html/testOutput.html\">Output</a>" +
+            " - <a href=\"http://www.h2database.com/" + 
+            "coverage/overview.html\">Coverage</a>" +
+            " - <a href=\"http://www.h2database.com/" + 
+            "automated/h2-latest.jar\">Jar</a>');\n";
         buildSql += sql;
         Connection conn;
         try {
@@ -131,7 +140,8 @@ public class UploadBuild {
             conn = DriverManager.getConnection("jdbc:h2v1_1:mem:");
         }
         conn.createStatement().execute(buildSql);
-        String newsfeed = IOUtils.readStringAndClose(new FileReader("src/tools/org/h2/build/doc/buildNewsfeed.sql"), -1);
+        String newsfeed = IOUtils.readStringAndClose(
+                new FileReader("src/tools/org/h2/build/doc/buildNewsfeed.sql"), -1);
         ScriptReader r = new ScriptReader(new StringReader(newsfeed));
         Statement stat = conn.createStatement();
         ResultSet rs = null;
@@ -147,22 +157,29 @@ public class UploadBuild {
         rs.next();
         String content = rs.getString("content");
         conn.close();
-        ftp.store("/httpdocs/automated/history.sql", new ByteArrayInputStream(buildSql.getBytes()));
-        ftp.store("/httpdocs/automated/news.xml", new ByteArrayInputStream(content.getBytes()));
-        ftp.store("/httpdocs/html/testOutput.html", new ByteArrayInputStream(testOutput.getBytes()));
+        ftp.store("/httpdocs/automated/history.sql", 
+                new ByteArrayInputStream(buildSql.getBytes()));
+        ftp.store("/httpdocs/automated/news.xml", 
+                new ByteArrayInputStream(content.getBytes()));
+        ftp.store("/httpdocs/html/testOutput.html", 
+                new ByteArrayInputStream(testOutput.getBytes()));
         String jarFileName = "bin/h2-" + Constants.getVersion() + ".jar";
         if (FileUtils.exists(jarFileName)) {
-            ftp.store("/httpdocs/automated/h2-latest.jar", new FileInputStream(jarFileName));
+            ftp.store("/httpdocs/automated/h2-latest.jar", 
+                    new FileInputStream(jarFileName));
         }
         if (coverage) {
-            ftp.store("/httpdocs/coverage/overview.html", new FileInputStream("coverage/overview.html"));
-            ftp.store("/httpdocs/coverage/coverage.zip", new FileInputStream("coverage.zip"));
+            ftp.store("/httpdocs/coverage/overview.html", 
+                    new FileInputStream("coverage/overview.html"));
+            ftp.store("/httpdocs/coverage/coverage.zip", 
+                    new FileInputStream("coverage.zip"));
             FileUtils.delete("coverage.zip");
         }
         ftp.close();
     }
 
-    private static void zip(String destFile, String directory, boolean storeOnly) throws IOException {
+    private static void zip(String destFile, String directory, boolean storeOnly)
+            throws IOException {
         OutputStream out = new FileOutputStream(destFile);
         ZipOutputStream zipOut = new ZipOutputStream(out);
         if (storeOnly) {
@@ -174,7 +191,8 @@ public class UploadBuild {
         zipOut.close();
     }
 
-    private static void addFiles(File base, File file, ZipOutputStream out) throws IOException {
+    private static void addFiles(File base, File file, ZipOutputStream out)
+            throws IOException {
         if (file.isDirectory()) {
             for (File f : file.listFiles()) {
                 addFiles(base, f, out);

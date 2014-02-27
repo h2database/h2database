@@ -32,13 +32,16 @@ public class RowAccessRights extends TriggerAdapter {
         DeleteDbFiles.execute("~", "test", true);
 
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:~/test");
+        Connection conn = DriverManager.getConnection(
+                "jdbc:h2:~/test");
         Statement stat = conn.createStatement();
 
-        stat.execute("create table test_data(id int, user varchar, data varchar, primary key(id, user))");
+        stat.execute("create table test_data(" + 
+                "id int, user varchar, data varchar, primary key(id, user))");
         stat.execute("create index on test_data(id, user)");
 
-        stat.execute("create view test as select id, data from test_data where user = user()");
+        stat.execute("create view test as select id, data " +
+                "from test_data where user = user()");
         stat.execute("create trigger t_test instead of " +
                 "insert, update, delete on test for each row " +
                 "call \"" + RowAccessRights.class.getName() + "\"");
@@ -49,13 +52,15 @@ public class RowAccessRights extends TriggerAdapter {
 
         ResultSet rs;
 
-        Connection connA = DriverManager.getConnection("jdbc:h2:~/test", "a", "a");
+        Connection connA = DriverManager.getConnection(
+                "jdbc:h2:~/test", "a", "a");
         Statement statA = connA.createStatement();
         statA.execute("insert into test values(1, 'Hello'), (2, 'World')");
         statA.execute("update test set data = 'Hello!' where id = 1");
         statA.execute("delete from test where id = 2");
 
-        Connection connB = DriverManager.getConnection("jdbc:h2:~/test", "b", "b");
+        Connection connB = DriverManager.getConnection(
+                "jdbc:h2:~/test", "b", "b");
         Statement statB = connB.createStatement();
         statB.execute("insert into test values(1, 'Hallo'), (2, 'Welt')");
         statB.execute("update test set data = 'Hallo!' where id = 1");
@@ -68,7 +73,8 @@ public class RowAccessRights extends TriggerAdapter {
 
         rs = statB.executeQuery("select * from test");
         while (rs.next()) {
-            System.out.println("b: " + rs.getInt(1) + "/" + rs.getString(2));
+            System.out.println("b: " + 
+                    rs.getInt(1) + "/" + rs.getString(2));
         }
 
         connA.close();
@@ -76,7 +82,8 @@ public class RowAccessRights extends TriggerAdapter {
 
         rs = stat.executeQuery("select * from test_data");
         while (rs.next()) {
-            System.out.println(rs.getInt(1) + "/" + rs.getString(2) + "/" + rs.getString(3));
+            System.out.println(rs.getInt(1) + "/" + 
+                    rs.getString(2) + "/" + rs.getString(3));
         }
         conn.close();
 
@@ -85,13 +92,16 @@ public class RowAccessRights extends TriggerAdapter {
     @Override
     public void init(Connection conn, String schemaName, String triggerName,
             String tableName, boolean before, int type) throws SQLException {
-        prepDelete = conn.prepareStatement("delete from test_data where id = ? and user = ?");
-        prepInsert = conn.prepareStatement("insert into test_data values(?, ?, ?)");
+        prepDelete = conn.prepareStatement(
+                "delete from test_data where id = ? and user = ?");
+        prepInsert = conn.prepareStatement(
+                "insert into test_data values(?, ?, ?)");
         super.init(conn, schemaName, triggerName, tableName, before, type);
     }
 
     @Override
-    public void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException {
+    public void fire(Connection conn, ResultSet oldRow, ResultSet newRow)
+            throws SQLException {
         String user = conn.getMetaData().getUserName();
         if (oldRow != null && oldRow.next()) {
             prepDelete.setInt(1, oldRow.getInt(1));

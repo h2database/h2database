@@ -66,7 +66,8 @@ public class FileFunctions {
      * @param encoding the encoding
      * @return the text
      */
-    public static String readTextFileWithEncoding(String fileName, String encoding) throws IOException {
+    public static String readTextFileWithEncoding(String fileName,
+            String encoding) throws IOException {
         byte[] buff = readFile(fileName);
         String s = new String(buff, encoding);
         return s;

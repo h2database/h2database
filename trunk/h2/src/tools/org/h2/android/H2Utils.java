@@ -19,7 +19,8 @@ public class H2Utils {
      * @param factory the cursor factory to use
      * @return the database connection
      */
-    public static H2Database openOrCreateDatabase(String name, int mode, H2Database.CursorFactory factory) {
+    public static H2Database openOrCreateDatabase(String name, int mode,
+            H2Database.CursorFactory factory) {
         return H2Database.openOrCreateDatabase(name, factory);
     }
 

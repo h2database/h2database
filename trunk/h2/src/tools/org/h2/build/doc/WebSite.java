@@ -26,7 +26,8 @@ public class WebSite {
 
     private static final String ANALYTICS_TAG = "<!-- analytics -->";
     private static final String ANALYTICS_SCRIPT =
-        "<script src=\"http://www.google-analytics.com/ga.js\" type=\"text/javascript\"></script>\n" +
+        "<script src=\"http://www.google-analytics.com/ga.js\" " + 
+        "type=\"text/javascript\"></script>\n" +
         "<script type=\"text/javascript\">" +
         "var pageTracker=_gat._getTracker(\"UA-2351060-1\");" +
         "pageTracker._initData();pageTracker._trackPageview();" +
@@ -116,7 +117,8 @@ public class WebSite {
         dir.delete();
     }
 
-    private void copy(File source, File target, boolean replaceFragments, boolean web) throws IOException {
+    private void copy(File source, File target, boolean replaceFragments,
+            boolean web) throws IOException {
         if (source.isDirectory()) {
             target.mkdirs();
             for (File f : source.listFiles()) {

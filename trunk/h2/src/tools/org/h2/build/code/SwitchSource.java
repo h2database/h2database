@@ -143,7 +143,8 @@ public class SwitchSource {
             f.renameTo(fileBack);
             File fileCopy = new File(name);
             if (!fileNew.renameTo(fileCopy)) {
-                throw new IOException("Could not rename " + fileNew.getAbsolutePath() + " to " + name);
+                throw new IOException("Could not rename "
+                        + fileNew.getAbsolutePath() + " to " + name);
             }
             if (!fileBack.delete()) {
                 throw new IOException("Could not delete " + fileBack.getAbsolutePath());

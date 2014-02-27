@@ -43,10 +43,15 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testHex() {
-        assertEquals("face", StringUtils.convertBytesToHex(new byte[] { (byte) 0xfa, (byte) 0xce }));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("face"));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("fAcE"));
-        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, StringUtils.convertHexToBytes("FaCe"));
+        assertEquals("face", 
+                StringUtils.convertBytesToHex(new byte[] 
+                        { (byte) 0xfa, (byte) 0xce }));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, 
+                StringUtils.convertHexToBytes("face"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, 
+                StringUtils.convertHexToBytes("fAcE"));
+        assertEquals(new byte[] { (byte) 0xfa, (byte) 0xce }, 
+                StringUtils.convertHexToBytes("FaCe"));
         new AssertThrows(DbException.class) { @Override
         public void test() {
             StringUtils.convertHexToBytes("120");
@@ -69,40 +74,67 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testXML() {
-        assertEquals("<!-- - - - - - -abc- - - - - - -->\n", StringUtils.xmlComment("------abc------"));
-        assertEquals("<test/>\n", StringUtils.xmlNode("test", null, null));
-        assertEquals("<test>Gr&#xfc;bel</test>\n", StringUtils.xmlNode("test", null, StringUtils.xmlText("Gr\u00fcbel")));
-        assertEquals("Rand&amp;Blue", StringUtils.xmlText("Rand&Blue"));
-        assertEquals("&lt;&lt;[[[]]]&gt;&gt;", StringUtils.xmlCData("<<[[[]]]>>"));
-        Date dt = DateTimeUtils.parseDateTime("2001-02-03 04:05:06 GMT", "yyyy-MM-dd HH:mm:ss z", "en", "GMT");
+        assertEquals("<!-- - - - - - -abc- - - - - - -->\n", 
+                StringUtils.xmlComment("------abc------"));
+        assertEquals("<test/>\n", 
+                StringUtils.xmlNode("test", null, null));
+        assertEquals("<test>Gr&#xfc;bel</test>\n", 
+                StringUtils.xmlNode("test", null, 
+                        StringUtils.xmlText("Gr\u00fcbel")));
+        assertEquals("Rand&amp;Blue", 
+                StringUtils.xmlText("Rand&Blue"));
+        assertEquals("&lt;&lt;[[[]]]&gt;&gt;", 
+                StringUtils.xmlCData("<<[[[]]]>>"));
+        Date dt = DateTimeUtils.parseDateTime(
+                "2001-02-03 04:05:06 GMT", 
+                "yyyy-MM-dd HH:mm:ss z", "en", "GMT");
         String s = StringUtils.xmlStartDoc()
                 + StringUtils.xmlComment("Test Comment")
-                + StringUtils.xmlNode("rss", StringUtils.xmlAttr("version", "2.0"), StringUtils
-                        .xmlComment("Test Comment\nZeile2")
-                        + StringUtils.xmlNode("channel", null, StringUtils.xmlNode("title", null, "H2 Database Engine")
+                + StringUtils.xmlNode("rss", 
+                    StringUtils.xmlAttr("version", "2.0"), 
+                    StringUtils.xmlComment("Test Comment\nZeile2")
+                    + StringUtils.xmlNode("channel", null, 
+                        StringUtils.xmlNode("title", null, "H2 Database Engine")
+                        + StringUtils.xmlNode("link", null, "http://www.h2database.com")
+                        + StringUtils.xmlNode("description", null, "H2 Database Engine")
+                        + StringUtils.xmlNode("language", null, "en-us")
+                        + StringUtils.xmlNode("pubDate", null, 
+                                DateTimeUtils.formatDateTime(dt,
+                                "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
+                        + StringUtils.xmlNode("lastBuildDate", null, 
+                                DateTimeUtils.formatDateTime(dt,
+                                "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
+                        + StringUtils.xmlNode("item", null, 
+                                StringUtils.xmlNode("title", null,
+                                "New Version 0.9.9.9.9")
                                 + StringUtils.xmlNode("link", null, "http://www.h2database.com")
-                                + StringUtils.xmlNode("description", null, "H2 Database Engine")
-                                + StringUtils.xmlNode("language", null, "en-us")
-                                + StringUtils.xmlNode("pubDate", null, DateTimeUtils.formatDateTime(dt,
-                                        "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
-                                + StringUtils.xmlNode("lastBuildDate", null, DateTimeUtils.formatDateTime(dt,
-                                        "EEE, d MMM yyyy HH:mm:ss z", "en", "GMT"))
-                                + StringUtils.xmlNode("item", null, StringUtils.xmlNode("title", null,
-                                        "New Version 0.9.9.9.9")
-                                        + StringUtils.xmlNode("link", null, "http://www.h2database.com")
-                                        + StringUtils.xmlNode("description", null, StringUtils
-                                                .xmlCData("\nNew Features\nTest\n")))));
-        assertEquals(s, "<?xml version=\"1.0\"?>\n" + "<!-- Test Comment -->\n" + "<rss version=\"2.0\">\n" + "    <!--\n"
-                + "        Test Comment\n" + "        Zeile2\n" + "    -->\n" + "    <channel>\n"
-                + "        <title>H2 Database Engine</title>\n" + "        <link>http://www.h2database.com</link>\n"
-                + "        <description>H2 Database Engine</description>\n" + "        <language>en-us</language>\n"
-                + "        <pubDate>Sat, 3 Feb 2001 04:05:06 GMT</pubDate>\n"
-                + "        <lastBuildDate>Sat, 3 Feb 2001 04:05:06 GMT</lastBuildDate>\n" + "        <item>\n"
-                + "            <title>New Version 0.9.9.9.9</title>\n"
-                + "            <link>http://www.h2database.com</link>\n" + "            <description>\n"
-                + "                <![CDATA[\n" + "                New Features\n" + "                Test\n"
-                + "                ]]>\n" + "            </description>\n" + "        </item>\n" + "    </channel>\n"
-                + "</rss>\n");
+                                + StringUtils.xmlNode("description", null, 
+                                        StringUtils.xmlCData("\nNew Features\nTest\n")))));
+        assertEquals(
+                s,
+                "<?xml version=\"1.0\"?>\n"
+                        + "<!-- Test Comment -->\n"
+                        + "<rss version=\"2.0\">\n"
+                        + "    <!--\n"
+                        + "        Test Comment\n"
+                        + "        Zeile2\n"
+                        + "    -->\n"
+                        + "    <channel>\n"
+                        + "        <title>H2 Database Engine</title>\n"
+                        + "        <link>http://www.h2database.com</link>\n"
+                        + "        <description>H2 Database Engine</description>\n"
+                        + "        <language>en-us</language>\n"
+                        + "        <pubDate>Sat, 3 Feb 2001 04:05:06 GMT</pubDate>\n"
+                        + "        <lastBuildDate>Sat, 3 Feb 2001 04:05:06 GMT</lastBuildDate>\n"
+                        + "        <item>\n"
+                        + "            <title>New Version 0.9.9.9.9</title>\n"
+                        + "            <link>http://www.h2database.com</link>\n"
+                        + "            <description>\n"
+                        + "                <![CDATA[\n"
+                        + "                New Features\n"
+                        + "                Test\n" + "                ]]>\n"
+                        + "            </description>\n" + "        </item>\n"
+                        + "    </channel>\n" + "</rss>\n");
     }
 
     private void testURL() throws UnsupportedEncodingException {
@@ -172,15 +204,24 @@ public class TestStringUtils extends TestBase {
     }
 
     private void testReplaceAll() {
-        assertEquals("def", StringUtils.replaceAll("abc def", "abc ", ""));
-        assertEquals("af", StringUtils.replaceAll("abc def", "bc de", ""));
-        assertEquals("abc def", StringUtils.replaceAll("abc def", "bc ", "bc "));
-        assertEquals("abc ", StringUtils.replaceAll("abc def", "def", ""));
-        assertEquals(" ", StringUtils.replaceAll("abc abc", "abc", ""));
-        assertEquals("xyz xyz", StringUtils.replaceAll("abc abc", "abc", "xyz"));
-        assertEquals("abc def", StringUtils.replaceAll("abc def", "xyz", "abc"));
-        assertEquals("", StringUtils.replaceAll("abcabcabc", "abc", ""));
-        assertEquals("abcabcabc", StringUtils.replaceAll("abcabcabc", "aBc", ""));
+        assertEquals("def", 
+                StringUtils.replaceAll("abc def", "abc ", ""));
+        assertEquals("af", 
+                StringUtils.replaceAll("abc def", "bc de", ""));
+        assertEquals("abc def", 
+                StringUtils.replaceAll("abc def", "bc ", "bc "));
+        assertEquals("abc ", 
+                StringUtils.replaceAll("abc def", "def", ""));
+        assertEquals(" ", 
+                StringUtils.replaceAll("abc abc", "abc", ""));
+        assertEquals("xyz xyz", 
+                StringUtils.replaceAll("abc abc", "abc", "xyz"));
+        assertEquals("abc def", 
+                StringUtils.replaceAll("abc def", "xyz", "abc"));
+        assertEquals("", 
+                StringUtils.replaceAll("abcabcabc", "abc", ""));
+        assertEquals("abcabcabc", 
+                StringUtils.replaceAll("abcabcabc", "aBc", ""));
     }
 
 }

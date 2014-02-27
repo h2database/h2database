@@ -43,7 +43,8 @@ public class FileConverter {
             }
         }
         String languageCode = Locale.KOREA.getLanguage();
-        String language = new Locale(languageCode).getDisplayLanguage(new Locale(languageCode));
+        String language = new Locale(languageCode)
+                .getDisplayLanguage(new Locale(languageCode));
         System.out.println(language);
         System.out.println(StringUtils.javaEncode(language));
         convert();

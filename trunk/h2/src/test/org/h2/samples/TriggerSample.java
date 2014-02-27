@@ -77,7 +77,8 @@ public class TriggerSample {
          * @param type the operation type: INSERT, UPDATE, or DELETE
          */
         @Override
-        public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
+        public void init(Connection conn, String schemaName,
+                String triggerName, String tableName, boolean before, int type) {
             // initialize the trigger object is necessary
         }
 

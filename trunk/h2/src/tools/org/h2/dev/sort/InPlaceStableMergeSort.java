@@ -195,7 +195,8 @@ public class InPlaceStableMergeSort<T> {
      * @param from2 the index of the first element in the second source array
      * @param to2 the index of the last element in the second source array
      */
-    private void mergeSmall(T[] target, int pos, T[] s1, int from1, int to1, T[] s2, int from2, int to2) {
+    private void mergeSmall(T[] target, int pos, T[] s1, int from1, int to1,
+            T[] s2, int from2, int to2) {
         T x1 = s1[from1], x2 = s2[from2];
         while (true) {
             if (comp.compare(x1, x2) <= 0) {

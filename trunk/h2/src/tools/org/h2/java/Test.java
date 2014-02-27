@@ -25,6 +25,7 @@ public class Test extends TestBase {
         new Test().test();
     }
 
+    @Override
     public void test() throws IOException {
         // g++ -o test test.cpp
         // chmod +x test

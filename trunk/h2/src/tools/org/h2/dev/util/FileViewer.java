@@ -124,7 +124,8 @@ public class FileViewer extends Tool {
         }
     }
 
-    private static long find(RandomAccessFile file, byte[] find, boolean quiet) throws IOException {
+    private static long find(RandomAccessFile file, byte[] find, boolean quiet)
+            throws IOException {
         long pos = file.getFilePointer();
         long length = file.length();
         int bufferSize = 4 * 1024;
@@ -176,7 +177,8 @@ public class FileViewer extends Tool {
         System.out.println("-----------------------------------------------");
     }
 
-    private static ArrayList<String> readLines(RandomAccessFile file, int maxLines) throws IOException {
+    private static ArrayList<String> readLines(RandomAccessFile file,
+            int maxLines) throws IOException {
         ArrayList<String> lines = new ArrayList<String>();
         ByteArrayOutputStream buff = new ByteArrayOutputStream(100);
         boolean lastNewline = false;

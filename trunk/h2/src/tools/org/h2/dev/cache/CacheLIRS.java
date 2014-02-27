@@ -84,11 +84,14 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      *        of the stack before the current item is moved
      */
     @SuppressWarnings("unchecked")
-    public CacheLIRS(long maxMemory, int averageMemory, int segmentCount, int stackMoveDistance) {
+    public CacheLIRS(long maxMemory, int averageMemory, int segmentCount,
+            int stackMoveDistance) {
         setMaxMemory(maxMemory);
         setAverageMemory(averageMemory);
         if (Integer.bitCount(segmentCount) != 1) {
-            throw new IllegalArgumentException("The segment count must be a power of 2, is " + segmentCount);
+            throw new IllegalArgumentException(
+                    "The segment count must be a power of 2, is "
+                            + segmentCount);
         }
         this.segmentCount = segmentCount;
         this.segmentMask = segmentCount - 1;
@@ -513,7 +516,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
          * @param stackMoveDistance the number of other entries to be moved to
          *        the top of the stack before moving an entry to the top
          */
-        Segment(CacheLIRS<K, V> cache, long maxMemory, int averageMemory, int stackMoveDistance) {
+        Segment(CacheLIRS<K, V> cache, long maxMemory, int averageMemory,
+                int stackMoveDistance) {
             this.cache = cache;
             setMaxMemory(maxMemory);
             setAverageMemory(averageMemory);
@@ -589,7 +593,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
             }
             if (e.isHot()) {
                 if (e != stack.stackNext) {
-                    if (stackMoveDistance == 0 || stackMoveCounter - e.topMove > stackMoveDistance) {
+                    if (stackMoveDistance == 0
+                            || stackMoveCounter - e.topMove > stackMoveDistance) {
                         access(key, hash);
                     }
                 }
@@ -612,7 +617,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
             }
             if (e.isHot()) {
                 if (e != stack.stackNext) {
-                    if (stackMoveDistance == 0 || stackMoveCounter - e.topMove > stackMoveDistance) {
+                    if (stackMoveDistance == 0
+                            || stackMoveCounter - e.topMove > stackMoveDistance) {
                         // move a hot entry to the top of the stack
                         // unless it is already there
                         boolean wasEnd = e == stack.stackPrev;

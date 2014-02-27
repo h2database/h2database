@@ -26,7 +26,8 @@ public class ModelUtils {
      * The list of supported data types. It is used by the runtime mapping for
      * CREATE statements.
      */
-    private static final Map<Class<?>, String> SUPPORTED_TYPES = new HashMap<Class<?>, String>();
+    private static final Map<Class<?>, String> SUPPORTED_TYPES = 
+            new HashMap<Class<?>, String>();
 
     static {
         Map<Class<?>, String> m = SUPPORTED_TYPES;
@@ -50,7 +51,8 @@ public class ModelUtils {
      * Convert SQL type aliases to the list of supported types.
      * This map is used by generation and validation.
      */
-    private static final Map<String, String> SQL_TYPES = new HashMap<String, String>();
+    private static final Map<String, String> SQL_TYPES = 
+            new HashMap<String, String>();
 
     static {
         Map<String, String> m = SQL_TYPES;
@@ -99,12 +101,15 @@ public class ModelUtils {
         m.put("SMALLDATETIME", "TIMESTAMP");
     }
 
-    private static final List<String> KEYWORDS = Arrays.asList("abstract", "assert", "boolean", "break", "byte", "case",
-            "catch", "char", "class", "const", "continue", "default", "do", "double", "else", "enum", "extends",
-            "final", "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int", "interface",
-            "long", "native", "new", "package", "private", "protected", "public", "return", "short", "static",
-            "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void",
-            "volatile", "while", "false", "null", "true");
+    private static final List<String> KEYWORDS = Arrays.asList("abstract",
+            "assert", "boolean", "break", "byte", "case", "catch", "char",
+            "class", "const", "continue", "default", "do", "double", "else",
+            "enum", "extends", "final", "finally", "float", "for", "goto",
+            "if", "implements", "import", "instanceof", "int", "interface",
+            "long", "native", "new", "package", "private", "protected",
+            "public", "return", "short", "static", "strictfp", "super",
+            "switch", "synchronized", "this", "throw", "throws", "transient",
+            "try", "void", "volatile", "while", "false", "null", "true");
 
     private int todoReviewWholeClass;
 

@@ -12,7 +12,8 @@ import org.h2.jaqu.Table.JQTable;
 /**
  * A system table to track database and table versions.
  */
-@JQTable(name = "_jq_versions", primaryKey = "schemaName tableName", memoryTable = true)
+@JQTable(name = "_jq_versions", 
+        primaryKey = "schemaName tableName", memoryTable = true)
 public class DbVersion {
 
     @JQColumn(name = "schemaName", allowNull = false)
@@ -31,7 +32,7 @@ public class DbVersion {
     /**
      * Constructor for defining a version entry. Both the schema and the table
      * are empty strings, which means this is the row for the 'database'.
-     *
+     * 
      * @param version the database version
      */
     public DbVersion(int version) {

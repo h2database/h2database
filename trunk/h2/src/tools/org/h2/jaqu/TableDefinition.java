@@ -354,7 +354,8 @@ class TableDefinition<T> {
         }
         SQLStatement stat = new SQLStatement(db);
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(db.getDialect().getTableName(schemaName, tableName)).append(" SET ");
+        buff.append(db.getDialect().getTableName(schemaName, tableName))
+                .append(" SET ");
         buff.resetCount();
 
         for (FieldDefinition field : fields) {

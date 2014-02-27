@@ -71,12 +71,16 @@ public class FtpServer extends Tool implements Service {
     private int port = DEFAULT_PORT;
     private int openConnectionCount;
 
-    private final SimpleDateFormat dateFormatNew = new SimpleDateFormat("MMM dd HH:mm", Locale.ENGLISH);
-    private final SimpleDateFormat dateFormatOld = new SimpleDateFormat("MMM dd  yyyy", Locale.ENGLISH);
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+    private final SimpleDateFormat dateFormatNew = new SimpleDateFormat(
+            "MMM dd HH:mm", Locale.ENGLISH);
+    private final SimpleDateFormat dateFormatOld = new SimpleDateFormat(
+            "MMM dd  yyyy", Locale.ENGLISH);
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat(
+            "yyyyMMddHHmmss");
 
     private String root = DEFAULT_ROOT;
-    private String writeUserName = DEFAULT_WRITE, writePassword = DEFAULT_WRITE_PASSWORD;
+    private String writeUserName = DEFAULT_WRITE,
+            writePassword = DEFAULT_WRITE_PASSWORD;
     private String readUserName = DEFAULT_READ;
     private final HashMap<String, Process> tasks = new HashMap<String, Process>();
 
@@ -234,7 +238,9 @@ public class FtpServer extends Tool implements Service {
         buff.append(' ');
         Date now = new Date(), mod = new Date(FileUtils.lastModified(fileName));
         String date;
-        if (mod.after(now) || Math.abs((now.getTime() - mod.getTime()) / 1000 / 60 / 60 / 24) > 180) {
+        if (mod.after(now)
+                || Math.abs((now.getTime() - mod.getTime()) / 
+                        1000 / 60 / 60 / 24) > 180) {
             synchronized (dateFormatOld) {
                 date = dateFormatOld.format(mod);
             }
@@ -296,7 +302,8 @@ public class FtpServer extends Tool implements Service {
     String getDirectoryListing(String directory, boolean listDirectories) {
         StringBuilder buff = new StringBuilder();
         for (String fileName : FileUtils.newDirectoryStream(directory)) {
-            if (!FileUtils.isDirectory(fileName) || (FileUtils.isDirectory(fileName) && listDirectories)) {
+            if (!FileUtils.isDirectory(fileName)
+                    || (FileUtils.isDirectory(fileName) && listDirectories)) {
                 appendFile(buff, fileName);
             }
         }
@@ -311,7 +318,8 @@ public class FtpServer extends Tool implements Service {
      * @return true if this user may write
      */
     boolean checkUserPasswordWrite(String userName, String password) {
-        return userName.equals(this.writeUserName) && password.equals(this.writePassword);
+        return userName.equals(this.writeUserName)
+                && password.equals(this.writePassword);
     }
 
     /**
@@ -451,8 +459,10 @@ public class FtpServer extends Tool implements Service {
         Properties prop = SortedProperties.loadProperties(path);
         String command = prop.getProperty("command");
         String outFile = path.substring(0, path.length() - TASK_SUFFIX.length());
-        String errorFile = root + "/" + prop.getProperty("error", outFile + ".err.txt");
-        String outputFile = root + "/" + prop.getProperty("output", outFile + ".out.txt");
+        String errorFile = root + "/"
+                + prop.getProperty("error", outFile + ".err.txt");
+        String outputFile = root + "/"
+                + prop.getProperty("output", outFile + ".out.txt");
         trace("start process: " + path + " / " + command);
         Process p = Runtime.getRuntime().exec(command, null, new File(root));
         new StreamRedirect(path, p.getErrorStream(), errorFile).start();

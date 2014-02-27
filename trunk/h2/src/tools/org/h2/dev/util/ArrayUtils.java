@@ -22,7 +22,8 @@ public class ArrayUtils {
      * @param right the index of the rightmost element
      * @param comp the comparison class
      */
-    public static <T> void binaryInsertionSort(T[] d, int left, int right, Comparator<T> comp) {
+    public static <T> void binaryInsertionSort(T[] d, int left, int right,
+            Comparator<T> comp) {
         for (int i = left + 1; i <= right; i++) {
             T t = d[i];
             int l = left;
@@ -50,7 +51,8 @@ public class ArrayUtils {
      * @param right the index of the rightmost element
      * @param comp the comparison class
      */
-    public static <T> void insertionSort(T[] d, int left, int right, Comparator<T> comp) {
+    public static <T> void insertionSort(T[] d, int left, int right,
+            Comparator<T> comp) {
         for (int i = left + 1, j; i <= right; i++) {
             T t = d[i];
             for (j = i - 1; j >= left && comp.compare(d[j], t) > 0; j--) {

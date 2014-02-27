@@ -113,7 +113,8 @@ public class FunctionsMySQL {
      * @return a formatted date/time String in the format "yyyy-MM-dd HH:mm:ss".
      */
     public static String fromUnixTime(int seconds) {
-        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH);
+        SimpleDateFormat formatter = new SimpleDateFormat(DATE_TIME_FORMAT,
+                Locale.ENGLISH);
         return formatter.format(new Date(seconds * 1000L));
     }
 

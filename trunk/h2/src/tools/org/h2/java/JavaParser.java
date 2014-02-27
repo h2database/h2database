@@ -32,7 +32,8 @@ public class JavaParser {
      */
     public static final boolean REF_COUNT_STATIC = false;
 
-    private static final HashMap<String, ClassObj> BUILT_IN_CLASSES = New.hashMap();
+    private static final HashMap<String, ClassObj> BUILT_IN_CLASSES = New
+            .hashMap();
 
     private static final int TOKEN_LITERAL_CHAR = 0;
     private static final int TOKEN_LITERAL_STRING = 1;
@@ -42,7 +43,8 @@ public class JavaParser {
     private static final int TOKEN_OTHER = 5;
 
     private static final HashSet<String> RESERVED = New.hashSet();
-    private static final HashMap<String, String> JAVA_IMPORT_MAP = New.hashMap();
+    private static final HashMap<String, String> JAVA_IMPORT_MAP = New
+            .hashMap();
 
     private final ArrayList<ClassObj> allClasses = New.arrayList();
 
@@ -57,24 +59,28 @@ public class JavaParser {
     private FieldObj thisPointer;
     private final HashMap<String, String> importMap = New.hashMap();
     private final HashMap<String, ClassObj> classes = New.hashMap();
-    private final LinkedHashMap<String, FieldObj> localVars = new LinkedHashMap<String, FieldObj>();
+    private final LinkedHashMap<String, FieldObj> localVars = 
+            new LinkedHashMap<String, FieldObj>();
     private final HashMap<String, MethodObj> allMethodsMap = New.hashMap();
-
     private final ArrayList<Statement> nativeHeaders = New.arrayList();
-
-    private final HashMap<String, String> stringToStringConstantMap = New.hashMap();
-    private final HashMap<String, String> stringConstantToStringMap = New.hashMap();
+    private final HashMap<String, String> stringToStringConstantMap = New
+            .hashMap();
+    private final HashMap<String, String> stringConstantToStringMap = New
+            .hashMap();
 
     public JavaParser() {
         addBuiltInTypes();
     }
 
     private void addBuiltInTypes() {
-        String[] list = { "abstract", "continue", "for", "new", "switch", "assert", "default", "if",
-                "package", "synchronized", "boolean", "do", "goto", "private", "this", "break", "double", "implements",
-                "protected", "throw", "byte", "else", "import", "public", "throws", "case", "enum", "instanceof",
-                "return", "transient", "catch", "extends", "int", "short", "try", "char", "final", "interface",
-                "static", "void", "class", "finally", "long", "strictfp", "volatile", "const", "float", "native",
+        String[] list = { "abstract", "continue", "for", "new", "switch",
+                "assert", "default", "if", "package", "synchronized",
+                "boolean", "do", "goto", "private", "this", "break", "double",
+                "implements", "protected", "throw", "byte", "else", "import",
+                "public", "throws", "case", "enum", "instanceof", "return",
+                "transient", "catch", "extends", "int", "short", "try", "char",
+                "final", "interface", "static", "void", "class", "finally",
+                "long", "strictfp", "volatile", "const", "float", "native",
                 "super", "while", "true", "false", "null" };
         for (String s : list) {
             RESERVED.add(s);
@@ -89,9 +95,11 @@ public class JavaParser {
         addBuiltInType(id++, true, 6, "long");
         addBuiltInType(id++, true, 7, "float");
         addBuiltInType(id++, true, 8, "double");
-        String[] java = { "Boolean", "Byte", "Character", "Class", "ClassLoader", "Double", "Float",
-                "Integer", "Long", "Math", "Number", "Object", "Runtime", "Short", "String", "StringBuffer",
-                "StringBuilder", "System", "Thread", "ThreadGroup", "ThreadLocal", "Throwable", "Void" };
+        String[] java = { "Boolean", "Byte", "Character", "Class",
+                "ClassLoader", "Double", "Float", "Integer", "Long", "Math",
+                "Number", "Object", "Runtime", "Short", "String",
+                "StringBuffer", "StringBuilder", "System", "Thread",
+                "ThreadGroup", "ThreadLocal", "Throwable", "Void" };
         for (String s : java) {
             JAVA_IMPORT_MAP.put(s, "java.lang." + s);
             addBuiltInType(id++, false, 0, "java.lang." + s);
@@ -101,7 +109,7 @@ public class JavaParser {
 
     /**
      * Get the wrapper class for the given primitive class.
-     *
+     * 
      * @param c the class
      * @return the wrapper class
      */
@@ -127,7 +135,8 @@ public class JavaParser {
         throw new RuntimeException("not a primitive type: " + classObj);
     }
 
-    private void addBuiltInType(int id, boolean primitive, int primitiveType, String type) {
+    private void addBuiltInType(int id, boolean primitive, int primitiveType,
+            String type) {
         ClassObj c = new ClassObj();
         c.id = id;
         c.className = type;
@@ -147,7 +156,7 @@ public class JavaParser {
 
     /**
      * Parse the source code.
-     *
+     * 
      * @param baseDir the base directory
      * @param className the fully qualified name of the class to parse
      */
@@ -169,12 +178,14 @@ public class JavaParser {
             readToken();
             parseCompilationUnit();
         } catch (Exception e) {
-            throw new RuntimeException(source.substring(0, current.index) + "[*]" + source.substring(current.index), e);
+            throw new RuntimeException(source.substring(0, current.index)
+                    + "[*]" + source.substring(current.index), e);
         }
     }
 
     private static String cleanPackageName(String name) {
-        if (name.startsWith("org.h2.java.lang") || name.startsWith("org.h2.java.io")) {
+        if (name.startsWith("org.h2.java.lang")
+                || name.startsWith("org.h2.java.io")) {
             return name.substring("org.h2.".length());
         }
         return name;
@@ -187,7 +198,8 @@ public class JavaParser {
         }
         while (readIf("import")) {
             String importPackageName = cleanPackageName(readQualifiedIdentifier());
-            String importClass = importPackageName.substring(importPackageName.lastIndexOf('.') + 1);
+            String importClass = importPackageName.substring(importPackageName
+                    .lastIndexOf('.') + 1);
             importMap.put(importClass, importPackageName);
             read(";");
         }
@@ -215,7 +227,8 @@ public class JavaParser {
             }
             classObj.isPublic = isPublic;
             classObj.isInterface = isInterface;
-            classObj.className = packageName == null ? "" : (packageName + ".") + name;
+            classObj.className = packageName == null ? "" : (packageName + ".")
+                    + name;
             // import this class
             importMap.put(name, classObj.className);
             addClass(classObj);
@@ -255,7 +268,7 @@ public class JavaParser {
 
     /**
      * Get the class for a built-in type.
-     *
+     * 
      * @param type the type
      * @return the class or null if not found
      */
@@ -360,7 +373,8 @@ public class JavaParser {
                 }
                 if (readIf("(")) {
                     if (type.classObj != classObj) {
-                        throw getSyntaxException("Constructor of wrong type: " + type);
+                        throw getSyntaxException("Constructor of wrong type: "
+                                + type);
                     }
                     method.name = "";
                     method.isConstructor = true;
@@ -373,7 +387,8 @@ public class JavaParser {
                 } else {
                     String name = readIdentifier();
                     if (name.endsWith("Method")) {
-                        name = name.substring(0, name.length() - "Method".length());
+                        name = name.substring(0,
+                                name.length() - "Method".length());
                     }
                     method.name = name;
                     if (readIf("(")) {
@@ -518,7 +533,8 @@ public class JavaParser {
         } else if (readIf("/*")) {
             boolean isC = readIdentifierIf("c");
             int start = current.index;
-            while (source.charAt(current.index) != '*' || source.charAt(current.index + 1) != '/') {
+            while (source.charAt(current.index) != '*'
+                    || source.charAt(current.index + 1) != '/') {
                 current.index++;
             }
             String s = source.substring(start, current.index).trim();
@@ -582,7 +598,9 @@ public class JavaParser {
                     switchStat.setDefaultBlock(block);
                     while (true) {
                         block.instructions.add(readStatement());
-                        if (current.token.equals("case") || current.token.equals("default") || current.token.equals("}")) {
+                        if (current.token.equals("case")
+                                || current.token.equals("default")
+                                || current.token.equals("}")) {
                             break;
                         }
                     }
@@ -592,7 +610,9 @@ public class JavaParser {
                     StatementBlock block = new StatementBlock();
                     while (true) {
                         block.instructions.add(readStatement());
-                        if (current.token.equals("case") || current.token.equals("default") || current.token.equals("}")) {
+                        if (current.token.equals("case")
+                                || current.token.equals("default")
+                                || current.token.equals("}")) {
                             break;
                         }
                     }
@@ -699,8 +719,10 @@ public class JavaParser {
     private Expr readExpr() {
         Expr expr = readExpr1();
         String assign = current.token;
-        if (readIf("=") || readIf("+=") || readIf("-=") || readIf("*=") || readIf("/=") || readIf("&=") || readIf("|=")
-                || readIf("^=") || readIf("%=") || readIf("<<=") || readIf(">>=") || readIf(">>>=")) {
+        if (readIf("=") || readIf("+=") || readIf("-=") || readIf("*=")
+                || readIf("/=") || readIf("&=") || readIf("|=") || readIf("^=")
+                || readIf("%=") || readIf("<<=") || readIf(">>=")
+                || readIf(">>>=")) {
             AssignExpr assignOp = new AssignExpr();
             assignOp.left = expr;
             assignOp.op = assign;
@@ -914,7 +936,8 @@ public class JavaParser {
             return expr;
         }
         String prefix = current.token;
-        if (readIf("++") || readIf("--") || readIf("!") || readIf("~") || readIf("+") || readIf("-")) {
+        if (readIf("++") || readIf("--") || readIf("!") || readIf("~")
+                || readIf("+") || readIf("-")) {
             OpExpr expr = new OpExpr(this);
             expr.op = prefix;
             expr.right = readExpr3();
@@ -1180,7 +1203,8 @@ public class JavaParser {
 
     private String readIdentifier() {
         if (current.type != TOKEN_IDENTIFIER) {
-            throw getSyntaxException("identifier expected, got " + current.token);
+            throw getSyntaxException("identifier expected, got "
+                    + current.token);
         }
         String result = current.token;
         readToken();
@@ -1210,12 +1234,13 @@ public class JavaParser {
     }
 
     private RuntimeException getSyntaxException(String message) {
-        return new RuntimeException(message, new ParseException(source, current.index));
+        return new RuntimeException(message, new ParseException(source,
+                current.index));
     }
 
     /**
      * Replace all Unicode escapes.
-     *
+     * 
      * @param s the text
      * @return the cleaned text
      */
@@ -1245,7 +1270,7 @@ public class JavaParser {
 
     /**
      * Replace all Unicode escapes and remove all remarks.
-     *
+     * 
      * @param s the source code
      * @return the cleaned source code
      */
@@ -1322,7 +1347,9 @@ public class JavaParser {
                 current.type = TOKEN_IDENTIFIER;
             }
             return;
-        } else if (Character.isDigit(ch) || (ch == '.' && Character.isDigit(source.charAt(current.index + 1)))) {
+        } else if (Character.isDigit(ch)
+                || (ch == '.' && Character.isDigit(source
+                        .charAt(current.index + 1)))) {
             String s = source.substring(current.index);
             current.token = "0" + readNumber(s);
             current.index += current.token.length() - 1;
@@ -1374,17 +1401,20 @@ public class JavaParser {
         case '@':
             break;
         case '.':
-            if (source.charAt(current.index) == '.' && source.charAt(current.index + 1) == '.') {
+            if (source.charAt(current.index) == '.'
+                    && source.charAt(current.index + 1) == '.') {
                 current.index += 2;
             }
             break;
         case '+':
-            if (source.charAt(current.index) == '=' || source.charAt(current.index) == '+') {
+            if (source.charAt(current.index) == '='
+                    || source.charAt(current.index) == '+') {
                 current.index++;
             }
             break;
         case '-':
-            if (source.charAt(current.index) == '=' || source.charAt(current.index) == '-') {
+            if (source.charAt(current.index) == '='
+                    || source.charAt(current.index) == '-') {
                 current.index++;
             }
             break;
@@ -1408,7 +1438,8 @@ public class JavaParser {
             }
             break;
         case '/':
-            if (source.charAt(current.index) == '*' || source.charAt(current.index) == '/'
+            if (source.charAt(current.index) == '*'
+                    || source.charAt(current.index) == '/'
                     || source.charAt(current.index) == '=') {
                 current.index++;
             }
@@ -1444,7 +1475,7 @@ public class JavaParser {
 
     /**
      * Parse a number literal and returns it.
-     *
+     * 
      * @param s the source code
      * @return the number
      */
@@ -1454,7 +1485,8 @@ public class JavaParser {
             i = 2;
             while (true) {
                 char ch = s.charAt(i);
-                if ((ch < '0' || ch > '9') && (ch < 'a' || ch > 'f') && (ch < 'A' || ch > 'F')) {
+                if ((ch < '0' || ch > '9') && (ch < 'a' || ch > 'f')
+                        && (ch < 'A' || ch > 'F')) {
                     break;
                 }
                 i++;
@@ -1480,7 +1512,8 @@ public class JavaParser {
                 }
             }
             if (s.charAt(i) == 'f' || s.charAt(i) == 'F' || s.charAt(i) == 'd'
-                    || s.charAt(i) == 'D' || s.charAt(i) == 'L' || s.charAt(i) == 'l') {
+                    || s.charAt(i) == 'D' || s.charAt(i) == 'L'
+                    || s.charAt(i) == 'l') {
                 i++;
             }
         }
@@ -1529,7 +1562,8 @@ public class JavaParser {
                     break;
                 case 'u': {
                     try {
-                        c = (char) (Integer.parseInt(s.substring(i + 1, i + 5), 16));
+                        c = (char) (Integer.parseInt(s.substring(i + 1, i + 5),
+                                16));
                     } catch (NumberFormatException e) {
                         throw getFormatException(s, i);
                     }
@@ -1540,7 +1574,8 @@ public class JavaParser {
                 default:
                     if (c >= '0' && c <= '9') {
                         try {
-                            c = (char) (Integer.parseInt(s.substring(i, i + 3), 8));
+                            c = (char) (Integer.parseInt(s.substring(i, i + 3),
+                                    8));
                         } catch (NumberFormatException e) {
                             throw getFormatException(s, i);
                         }
@@ -1559,7 +1594,7 @@ public class JavaParser {
 
     /**
      * Write the C++ header.
-     *
+     * 
      * @param out the output writer
      */
     void writeHeader(PrintWriter out) {
@@ -1636,7 +1671,8 @@ public class JavaParser {
                     if (m.isConstructor) {
                         out.print("    " + toC(c.className) + "(");
                     } else {
-                        out.print("    " + m.returnType.asString() + " " + m.name + "(");
+                        out.print("    " + m.returnType.asString() + " "
+                                + m.name + "(");
                     }
                     int i = 0;
                     for (FieldObj p : m.parameters.values()) {
@@ -1652,21 +1688,24 @@ public class JavaParser {
             }
             out.println("};");
         }
-        ArrayList<String> constantNames = New.arrayList(stringConstantToStringMap.keySet());
+        ArrayList<String> constantNames = New
+                .arrayList(stringConstantToStringMap.keySet());
         Collections.sort(constantNames);
         for (String c : constantNames) {
             String s = stringConstantToStringMap.get(c);
             if (JavaParser.REF_COUNT_STATIC) {
-                out.println("ptr<java_lang_String> " + c + " = STRING(L\"" + s + "\");");
+                out.println("ptr<java_lang_String> " + c + " = STRING(L\"" + s
+                        + "\");");
             } else {
-                out.println("java_lang_String* " + c + " = STRING(L\"" + s + "\");");
+                out.println("java_lang_String* " + c + " = STRING(L\"" + s
+                        + "\");");
             }
         }
     }
 
     /**
      * Write the C++ source code.
-     *
+     * 
      * @param out the output writer
      */
     void writeSource(PrintWriter out) {
@@ -1694,11 +1733,14 @@ public class JavaParser {
                         continue;
                     }
                     if (m.isStatic) {
-                        out.print(m.returnType.asString() + " " + toC(c.className + "_" + m.name) + "(");
-                    } else  if (m.isConstructor) {
-                        out.print(toC(c.className) + "::" + toC(c.className) + "(");
+                        out.print(m.returnType.asString() + " "
+                                + toC(c.className + "_" + m.name) + "(");
+                    } else if (m.isConstructor) {
+                        out.print(toC(c.className) + "::" + toC(c.className)
+                                + "(");
                     } else {
-                        out.print(m.returnType.asString() + " " + toC(c.className) + "::" + m.name + "(");
+                        out.print(m.returnType.asString() + " "
+                                + toC(c.className) + "::" + m.name + "(");
                     }
                     int i = 0;
                     for (FieldObj p : m.parameters.values()) {
@@ -1747,7 +1789,7 @@ public class JavaParser {
 
     /**
      * Move the source code 4 levels to the right.
-     *
+     * 
      * @param o the source code
      * @return the indented code
      */
@@ -1757,7 +1799,7 @@ public class JavaParser {
 
     /**
      * Get the C++ representation of this identifier.
-     *
+     * 
      * @param identifier the identifier
      * @return the C representation
      */
@@ -1771,7 +1813,7 @@ public class JavaParser {
 
     /**
      * Get the class of the given name.
-     *
+     * 
      * @param className the name
      * @return the class
      */

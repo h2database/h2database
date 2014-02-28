@@ -162,7 +162,7 @@ public class CompareMode {
      */
     public static String getName(Locale l) {
         Locale english = Locale.ENGLISH;
-        String name = l.getDisplayLanguage(english) + ' ' + 
+        String name = l.getDisplayLanguage(english) + ' ' +
                 l.getDisplayCountry(english) + ' ' + l.getVariant();
         name = StringUtils.toUpperEnglish(name.trim().replace(' ', '_'));
         return name;
@@ -177,7 +177,7 @@ public class CompareMode {
      * @return true if they match
      */
     static boolean compareLocaleNames(Locale locale, String name) {
-        return name.equalsIgnoreCase(locale.toString()) || 
+        return name.equalsIgnoreCase(locale.toString()) ||
                 name.equalsIgnoreCase(getName(locale));
     }
 

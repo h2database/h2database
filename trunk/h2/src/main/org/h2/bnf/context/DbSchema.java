@@ -79,10 +79,10 @@ public class DbSchema {
             isSystem = true;
         } else if ("INFORMATION_SCHEMA".equals(name)) {
             isSystem = true;
-        } else if (!contents.isH2() && 
+        } else if (!contents.isH2() &&
                 StringUtils.toUpperEnglish(name).startsWith("INFO")) {
             isSystem = true;
-        } else if (contents.isPostgreSQL() && 
+        } else if (contents.isPostgreSQL() &&
                 StringUtils.toUpperEnglish(name).startsWith("PG_")) {
             isSystem = true;
         } else if (contents.isDerby() && name.startsWith("SYS")) {

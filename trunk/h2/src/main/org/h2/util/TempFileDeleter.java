@@ -111,7 +111,8 @@ public class TempFileDeleter {
             String f2 = refMap.remove(ref);
             if (SysProperties.CHECK) {
                 if (f2 == null || !f2.equals(fileName)) {
-                    DbException.throwInternalError("f2:" + f2 + " " + (f2 == null ? "" : f2) + " f:" + fileName);
+                    DbException.throwInternalError("f2:" + f2 + 
+                            " " + (f2 == null ? "" : f2) + " f:" + fileName);
                 }
             }
         }

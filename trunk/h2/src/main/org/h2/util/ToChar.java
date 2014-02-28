@@ -120,7 +120,8 @@ public class ToChar {
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted number
      */
-    public static String toChar(BigDecimal number, String format, String nlsParam) {
+    public static String toChar(BigDecimal number, String format,
+            String nlsParam) {
 
         // short-circuit logic for formats that don't follow common logic below
         String formatUp = format != null ? format.toUpperCase() : null;
@@ -130,7 +131,8 @@ public class ToChar {
         } else if (formatUp.equals("TME")) {
             int pow = number.precision() - number.scale() - 1;
             number = number.movePointLeft(pow);
-            return number.toPlainString() + "E" + (pow < 0 ? '-' : '+') + (abs(pow) < 10 ? "0" : "") + abs(pow);
+            return number.toPlainString() + "E" + 
+                    (pow < 0 ? '-' : '+') + (abs(pow) < 10 ? "0" : "") + abs(pow);
         } else if (formatUp.equals("RN")) {
             boolean lowercase = format.startsWith("r");
             String rn = StringUtils.pad(toRomanNumeral(number.intValue()), 15, " ", false);
@@ -256,7 +258,8 @@ public class ToChar {
                 String cs = currency.getSymbol();
                 output.insert(0, cs);
             } else {
-                throw DbException.get(ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
+                throw DbException.get(
+                        ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
             }
         }
 
@@ -295,12 +298,14 @@ public class ToChar {
                         }
                     }
                 } else {
-                    throw DbException.get(ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
+                    throw DbException.get(
+                            ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
                 }
             }
         }
 
-        addSign(output, number.signum(), leadingSign, trailingSign, trailingMinus, angleBrackets, fillMode);
+        addSign(output, number.signum(), leadingSign, trailingSign,
+                trailingMinus, angleBrackets, fillMode);
 
         if (power != null) {
             output.append('E');
@@ -322,8 +327,9 @@ public class ToChar {
         return output.toString();
     }
 
-    private static void addSign(StringBuilder output, int signum, boolean leadingSign, boolean trailingSign,
-            boolean trailingMinus, boolean angleBrackets, boolean fillMode) {
+    private static void addSign(StringBuilder output, int signum,
+            boolean leadingSign, boolean trailingSign, boolean trailingMinus,
+            boolean angleBrackets, boolean fillMode) {
         if (angleBrackets) {
             if (signum < 0) {
                 output.insert(0, '<');
@@ -381,8 +387,10 @@ public class ToChar {
     }
 
     private static String toRomanNumeral(int number) {
-        int[] values = new int[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
-        String[] numerals = new String[] { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+        int[] values = new int[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
+                5, 4, 1 };
+        String[] numerals = new String[] { "M", "CM", "D", "CD", "C", "XC",
+                "L", "XL", "X", "IX", "V", "IV", "I" };
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < values.length; i++) {
             int value = values[i];
@@ -673,7 +681,8 @@ public class ToChar {
 
                 // Fractional seconds
 
-            } else if ((cap = containsAt(format, i, "FF1", "FF2", "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
+            } else if ((cap = containsAt(format, i, "FF1", "FF2", 
+                    "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
                 int x = Integer.parseInt(format.substring(i + 2, i + 3));
                 int ff = (int) (cal.get(Calendar.MILLISECOND) * Math.pow(10, x - 3));
                 output.append(ff);
@@ -780,8 +789,12 @@ public class ToChar {
                         break;
                     }
                 }
-            } else if (format.charAt(i) == '-' || format.charAt(i) == '/' || format.charAt(i) == ','
-                    || format.charAt(i) == '.' || format.charAt(i) == ';' || format.charAt(i) == ':'
+            } else if (format.charAt(i) == '-' 
+                    || format.charAt(i) == '/' 
+                    || format.charAt(i) == ','
+                    || format.charAt(i) == '.' 
+                    || format.charAt(i) == ';' 
+                    || format.charAt(i) == ':'
                     || format.charAt(i) == ' ') {
                 output.append(format.charAt(i));
                 i += 1;
@@ -818,7 +831,8 @@ public class ToChar {
      *         the specified substrings at the specified index,
      *         <code>null</code> otherwise
      */
-    private static Capitalization containsAt(String s, int index, String... substrings) {
+    private static Capitalization containsAt(String s, int index,
+            String... substrings) {
         for (String substring : substrings) {
             if (index + substring.length() <= s.length()) {
                 boolean found = true;
@@ -902,9 +916,11 @@ public class ToChar {
             case LOWERCASE:
                 return s.toLowerCase();
             case CAPITALIZE:
-                return Character.toUpperCase(s.charAt(0)) + (s.length() > 1 ? s.toLowerCase().substring(1) : "");
+                return Character.toUpperCase(s.charAt(0)) + 
+                        (s.length() > 1 ? s.toLowerCase().substring(1) : "");
             default:
-                throw new IllegalArgumentException("Unknown capitalization strategy: " + this);
+                throw new IllegalArgumentException(
+                        "Unknown capitalization strategy: " + this);
             }
         }
     }

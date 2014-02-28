@@ -308,7 +308,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     public double getCost(Session session, int[] masks, TableFilter filter,
             SortOrder sortOrder) {
         try {
-            return 10 * getCostRangeIndex(masks, 
+            return 10 * getCostRangeIndex(masks,
                     dataMap.sizeAsLongMax(), filter, sortOrder);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
@@ -341,7 +341,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         Value key = first ? map.firstKey() : map.lastKey();
         while (true) {
             if (key == null) {
-                return new MVStoreCursor(session, 
+                return new MVStoreCursor(session,
                         Collections.<Value>emptyList().iterator(), null);
             }
             if (((ValueArray) key).getList()[0] != ValueNull.INSTANCE) {

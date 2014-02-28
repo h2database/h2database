@@ -123,7 +123,7 @@ public class NetUtils {
                         SysProperties.SOCKET_CONNECT_TIMEOUT);
                 return socket;
             } catch (IOException e) {
-                if (System.currentTimeMillis() - start >= 
+                if (System.currentTimeMillis() - start >=
                         SysProperties.SOCKET_CONNECT_TIMEOUT) {
                     // either it was a connect timeout,
                     // or list of different exceptions

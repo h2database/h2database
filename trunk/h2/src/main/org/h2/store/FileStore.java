@@ -33,7 +33,7 @@ public class FileStore {
     /**
      * The magic file header.
      */
-    private static final String HEADER = 
+    private static final String HEADER =
             "-- H2 0.5/B --      ".substring(0, Constants.FILE_BLOCK_SIZE - 1) + "\n";
 
     /**
@@ -125,7 +125,7 @@ public class FileStore {
         if (cipher == null) {
             store = new FileStore(handler, name, mode);
         } else {
-            store = new SecureFileStore(handler, name, mode, 
+            store = new SecureFileStore(handler, name, mode,
                     cipher, key, keyIterations);
         }
         return store;

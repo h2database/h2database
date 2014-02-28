@@ -114,7 +114,8 @@ public class SourceCompiler {
      * @param packageAndClassName the class name
      * @return the class
      */
-    public Class<?> getClass(String packageAndClassName) throws ClassNotFoundException {
+    public Class<?> getClass(String packageAndClassName)
+            throws ClassNotFoundException {
 
         Class<?> compiledClass = compiled.get(packageAndClassName);
         if (compiledClass != null) {
@@ -238,7 +239,8 @@ public class SourceCompiler {
      * @param source the (possibly shortened) source code
      * @return the full source code
      */
-    static String getCompleteSourceCode(String packageName, String className, String source) {
+    static String getCompleteSourceCode(String packageName, String className,
+            String source) {
         if (source.startsWith("package ")) {
             return source;
         }
@@ -410,15 +412,18 @@ public class SourceCompiler {
             INIT_FAIL_EXCEPTION = initFailException;
         }
 
-        public static Class<?> parseClass(String source, String packageAndClassName) {
+        public static Class<?> parseClass(String source,
+                String packageAndClassName) {
             if (LOADER == null) {
-                throw new RuntimeException("Compile fail: no Groovy jar in the classpath", INIT_FAIL_EXCEPTION);
+                throw new RuntimeException(
+                        "Compile fail: no Groovy jar in the classpath", INIT_FAIL_EXCEPTION);
             }
             try {
                 Object codeSource = Utils.newInstance("groovy.lang.GroovyCodeSource",
                         source, packageAndClassName + ".groovy", "UTF-8");
                 Utils.callMethod(codeSource, "setCachable", false);
-                Class<?> clazz = (Class<?>) Utils.callMethod(LOADER, "parseClass", codeSource);
+                Class<?> clazz = (Class<?>) Utils.callMethod(
+                        LOADER, "parseClass", codeSource);
                 return clazz;
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -471,7 +476,8 @@ public class SourceCompiler {
     /**
      * An in-memory class file manager.
      */
-    static class ClassFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
+    static class ClassFileManager extends
+            ForwardingJavaFileManager<StandardJavaFileManager> {
 
         /**
          * The class (only one class is kept).

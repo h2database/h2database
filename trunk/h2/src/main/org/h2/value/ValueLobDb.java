@@ -204,7 +204,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public boolean isLinked() {
-        return tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE && 
+        return tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE &&
                 small == null;
     }
 
@@ -231,7 +231,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public void unlink(DataHandler database) {
-        if (small == null && 
+        if (small == null &&
                 tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
             database.getLobStorage().setTable(this,
                     LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
@@ -283,7 +283,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public String getString() {
-        int len = precision > Integer.MAX_VALUE || precision == 0 ? 
+        int len = precision > Integer.MAX_VALUE || precision == 0 ?
                 Integer.MAX_VALUE : (int) precision;
         try {
             if (type == Value.CLOB) {

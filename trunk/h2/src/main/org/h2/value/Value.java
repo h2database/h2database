@@ -164,11 +164,11 @@ public abstract class Value {
      */
     public static final int TYPE_COUNT = GEOMETRY + 1;
 
-    private static SoftReference<Value[]> softCache = 
+    private static SoftReference<Value[]> softCache =
             new SoftReference<Value[]>(null);
-    private static final BigDecimal MAX_LONG_DECIMAL = 
+    private static final BigDecimal MAX_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MAX_VALUE);
-    private static final BigDecimal MIN_LONG_DECIMAL = 
+    private static final BigDecimal MIN_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MIN_VALUE);
 
     /**
@@ -376,7 +376,7 @@ public abstract class Value {
             }
             // cacheMiss++;
             // cache[cacheCleaner] = null;
-            // cacheCleaner = (cacheCleaner + 1) & 
+            // cacheCleaner = (cacheCleaner + 1) &
             //     (Constants.OBJECT_CACHE_SIZE - 1);
             cache[index] = v;
         }
@@ -863,7 +863,7 @@ public abstract class Value {
                 return ValueBytes.getNoCopy(
                         StringUtils.convertHexToBytes(s.trim()));
             case JAVA_OBJECT:
-                return ValueJavaObject.getNoCopy(null, 
+                return ValueJavaObject.getNoCopy(null,
                         StringUtils.convertHexToBytes(s.trim()), getDataHandler());
             case STRING:
                 return ValueString.get(s);
@@ -1010,7 +1010,7 @@ public abstract class Value {
     }
 
     private static long convertToLong(BigDecimal x) {
-        if (x.compareTo(MAX_LONG_DECIMAL) > 0 || 
+        if (x.compareTo(MAX_LONG_DECIMAL) > 0 ||
                 x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
             throw DbException.get(
                     ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, x.toString());

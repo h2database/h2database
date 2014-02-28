@@ -30,7 +30,7 @@ import org.h2.mvstore.type.DataType;
  */
 public class Page {
 
-    private static final int SHARED_KEYS = 1, SHARED_VALUES = 2, 
+    private static final int SHARED_KEYS = 1, SHARED_VALUES = 2,
             SHARED_CHILDREN = 4, SHARED_COUNTS = 8;
 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];

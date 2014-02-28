@@ -43,16 +43,16 @@ public class CipherFactory {
     /**
      * The default password to use for the .h2.keystore file
      */
-    public static final String KEYSTORE_PASSWORD = 
+    public static final String KEYSTORE_PASSWORD =
             "h2pass";
 
-    private static final String KEYSTORE = 
+    private static final String KEYSTORE =
             "~/.h2.keystore";
-    private static final String KEYSTORE_KEY = 
+    private static final String KEYSTORE_KEY =
             "javax.net.ssl.keyStore";
-    private static final String KEYSTORE_PASSWORD_KEY = 
+    private static final String KEYSTORE_PASSWORD_KEY =
             "javax.net.ssl.keyStorePassword";
-    private static final String ANONYMOUS_CIPHER_SUITE = 
+    private static final String ANONYMOUS_CIPHER_SUITE =
             "SSL_DH_anon_WITH_RC4_128_MD5";
 
     private CipherFactory() {

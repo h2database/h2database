@@ -22,10 +22,10 @@ public class RuleElement implements Rule {
 
     public RuleElement(String name, String topic) {
         this.name = name;
-        this.keyword = name.length() == 1 || 
+        this.keyword = name.length() == 1 ||
                 name.equals(StringUtils.toUpperEnglish(name));
         topic = StringUtils.toLowerEnglish(topic);
-        this.type = topic.startsWith("function") ? 
+        this.type = topic.startsWith("function") ?
                 Sentence.FUNCTION : Sentence.KEYWORD;
     }
 

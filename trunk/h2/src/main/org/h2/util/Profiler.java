@@ -30,7 +30,7 @@ import java.util.Map;
 public class Profiler implements Runnable {
 
     private static Instrumentation instrumentation;
-    private static final String LINE_SEPARATOR = 
+    private static final String LINE_SEPARATOR =
             System.getProperty("line.separator", "\n");
     private static final int MAX_ELEMENTS = 1000;
 
@@ -73,14 +73,14 @@ public class Profiler implements Runnable {
             ).split(",");
 
     private volatile boolean stop;
-    private final HashMap<String, Integer> counts = 
+    private final HashMap<String, Integer> counts =
             new HashMap<String, Integer>();
 
     /**
      * The summary (usually one entry per package, unless sumClasses is enabled,
      * in which case it's one entry per class).
      */
-    private final HashMap<String, Integer> summary = 
+    private final HashMap<String, Integer> summary =
             new HashMap<String, Integer>();
     private int minCount = 1;
     private int total;
@@ -122,7 +122,7 @@ public class Profiler implements Runnable {
     private void run(String... args) {
         if (args.length == 0) {
             System.out.println("Show profiling data");
-            System.out.println("Usage: java " + getClass().getName() + 
+            System.out.println("Usage: java " + getClass().getName() +
                     " <pid> | <stackTraceFileNames>");
             System.out.println("Processes:");
             String processes = exec("jps", "-l");
@@ -409,7 +409,7 @@ public class Profiler implements Runnable {
             map.put(trace, oldCount + 1);
         }
         while (map.size() > MAX_ELEMENTS) {
-            for (Iterator<Map.Entry<String, Integer>> ei = 
+            for (Iterator<Map.Entry<String, Integer>> ei =
                     map.entrySet().iterator(); ei.hasNext();) {
                 Map.Entry<String, Integer> e = ei.next();
                 if (e.getValue() <= minCount) {

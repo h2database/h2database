@@ -866,7 +866,7 @@ public class TransactionStore {
          */
         public TransactionMap<K, V> getInstance(Transaction transaction,
                 long savepoint) {
-            TransactionMap<K, V> m = 
+            TransactionMap<K, V> m =
                     new TransactionMap<K, V>(transaction, map, mapId);
             m.setSavepoint(savepoint);
             return m;

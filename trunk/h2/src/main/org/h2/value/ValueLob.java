@@ -115,7 +115,7 @@ public class ValueLob extends Value {
             DbException.throwInternalError("0 LOB");
         }
         String table = tableId < 0 ? ".temp" : ".t" + tableId;
-        return getFileNamePrefix(handler.getDatabasePath(), objectId) + 
+        return getFileNamePrefix(handler.getDatabasePath(), objectId) +
                 table + Constants.SUFFIX_LOB_FILE;
     }
 
@@ -204,7 +204,7 @@ public class ValueLob extends Value {
             remaining = Integer.MAX_VALUE;
         }
         int inplace = handler.getMaxLengthInplaceLob();
-        long m = compress ? 
+        long m = compress ?
                 Constants.IO_BUFFER_SIZE_COMPRESS : Constants.IO_BUFFER_SIZE;
         if (m < remaining && m <= inplace) {
             // using "1L" to force long arithmetic
@@ -256,11 +256,11 @@ public class ValueLob extends Value {
         objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         while (objectId > 0) {
             f = objectId % SysProperties.LOB_FILES_PER_DIRECTORY;
-            name = SysProperties.FILE_SEPARATOR + f + 
+            name = SysProperties.FILE_SEPARATOR + f +
                     Constants.SUFFIX_LOBS_DIRECTORY + name;
             objectId /= SysProperties.LOB_FILES_PER_DIRECTORY;
         }
-        name = FileUtils.toRealPath(path + 
+        name = FileUtils.toRealPath(path +
                 Constants.SUFFIX_LOBS_DIRECTORY + name);
         return name;
     }
@@ -268,7 +268,7 @@ public class ValueLob extends Value {
     private static int getNewObjectId(DataHandler h) {
         String path = h.getDatabasePath();
         if ((path != null) && (path.length() == 0)) {
-            path = new File(Utils.getProperty("java.io.tmpdir", "."), 
+            path = new File(Utils.getProperty("java.io.tmpdir", "."),
                     SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
         }
         int newId = 0;
@@ -406,7 +406,7 @@ public class ValueLob extends Value {
         synchronized (h) {
             String path = h.getDatabasePath();
             if ((path != null) && (path.length() == 0)) {
-                path = new File(Utils.getProperty("java.io.tmpdir", "."), 
+                path = new File(Utils.getProperty("java.io.tmpdir", "."),
                         SysProperties.PREFIX_TEMP_FILE).getAbsolutePath();
             }
             objectId = getNewObjectId(h);
@@ -568,7 +568,7 @@ public class ValueLob extends Value {
 
     @Override
     public String getString() {
-        int len = precision > Integer.MAX_VALUE || precision == 0 ? 
+        int len = precision > Integer.MAX_VALUE || precision == 0 ?
                 Integer.MAX_VALUE : (int) precision;
         try {
             if (type == Value.CLOB) {

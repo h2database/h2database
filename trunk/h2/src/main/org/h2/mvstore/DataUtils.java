@@ -723,7 +723,7 @@ public class DataUtils {
      * @param message the message
      * @return the exception
      */
-    public static ConcurrentModificationException 
+    public static ConcurrentModificationException
             newConcurrentModificationException(String message) {
         return new ConcurrentModificationException(formatMessage(0, message));
     }

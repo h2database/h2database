@@ -41,7 +41,7 @@ public class StreamStore {
     private int minBlockSize = 256;
     private int maxBlockSize = 256 * 1024;
     private final AtomicLong nextKey = new AtomicLong();
-    private final AtomicReference<byte[]> nextBuffer = 
+    private final AtomicReference<byte[]> nextBuffer =
             new AtomicReference<byte[]>();
 
     /**

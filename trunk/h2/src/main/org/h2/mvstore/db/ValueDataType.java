@@ -183,7 +183,7 @@ public class ValueDataType implements DataType {
         int type = v.getType();
         switch (type) {
         case Value.BOOLEAN:
-            buff.put((byte) (v.getBoolean().booleanValue() ? 
+            buff.put((byte) (v.getBoolean().booleanValue() ?
                     BOOLEAN_TRUE : BOOLEAN_FALSE));
             break;
         case Value.BYTE:
@@ -518,11 +518,11 @@ public class ValueDataType implements DataType {
                 int tableId = readVarInt(buff);
                 long lobId = readVarLong(buff);
                 long precision = readVarLong(buff);
-                ValueLobDb lob = ValueLobDb.create(type, 
+                ValueLobDb lob = ValueLobDb.create(type,
                         handler, tableId, lobId, null, precision);
                 return lob;
             } else {
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, 
+                throw DbException.get(ErrorCode.FILE_CORRUPTED_1,
                         "lob type: " + smallLen);
             }
         }
@@ -538,9 +538,9 @@ public class ValueDataType implements DataType {
             SimpleResultSet rs = new SimpleResultSet();
             int columns = readVarInt(buff);
             for (int i = 0; i < columns; i++) {
-                rs.addColumn(readString(buff), 
-                        readVarInt(buff), 
-                        readVarInt(buff), 
+                rs.addColumn(readString(buff),
+                        readVarInt(buff),
+                        readVarInt(buff),
                         readVarInt(buff));
             }
             while (true) {

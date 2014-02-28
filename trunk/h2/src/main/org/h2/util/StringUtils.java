@@ -20,7 +20,7 @@ import org.h2.message.DbException;
  */
 public class StringUtils {
 
-    private static SoftReference<String[]> softCache = 
+    private static SoftReference<String[]> softCache =
             new SoftReference<String[]>(null);
     private static long softCacheCreated;
     private static final char[] HEX = "0123456789abcdef".toCharArray();

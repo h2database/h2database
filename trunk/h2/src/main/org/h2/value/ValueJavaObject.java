@@ -19,7 +19,7 @@ import org.h2.util.Utils;
  */
 public class ValueJavaObject extends ValueBytes {
 
-    private static final ValueJavaObject EMPTY = 
+    private static final ValueJavaObject EMPTY =
             new ValueJavaObject(Utils.EMPTY_BYTES, null);
     private final DataHandler dataHandler;
 

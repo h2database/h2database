@@ -148,7 +148,7 @@ public class DbContents {
         schemas = new DbSchema[schemaNames.length];
         for (int i = 0; i < schemaNames.length; i++) {
             String schemaName = schemaNames[i];
-            boolean isDefault = defaultSchemaName == null || 
+            boolean isDefault = defaultSchemaName == null ||
                     defaultSchemaName.equals(schemaName);
             DbSchema schema = new DbSchema(this, schemaName, isDefault);
             if (isDefault) {
@@ -170,8 +170,8 @@ public class DbContents {
                     defaultSchema = schema;
                     break;
                 }
-                if (defaultSchema == null || 
-                        best == null || 
+                if (defaultSchema == null ||
+                        best == null ||
                         schema.name.length() < best.length()) {
                     best = schema.name;
                     defaultSchema = schema;

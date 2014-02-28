@@ -35,7 +35,7 @@ public class ValueGeometry extends Value {
     /**
      * As conversion from/to WKB cost a significant amount of CPU cycles, WKB
      * are kept in ValueGeometry instance.
-     * 
+     *
      * We always calculate the WKB, because not all WKT values can be
      * represented in WKB, but since we persist it in WKB format, it has to be
      * valid in WKB
@@ -43,7 +43,7 @@ public class ValueGeometry extends Value {
     private final byte[] bytes;
 
     private final int hashCode;
-    
+
     /**
      * The value. Converted from WKB only on request as conversion from/to WKB
      * cost a significant amount of CPU cycles.
@@ -52,7 +52,7 @@ public class ValueGeometry extends Value {
 
     /**
      * Create a new geometry objects.
-     * 
+     *
      * @param bytes the bytes (always known)
      * @param geometry the geometry object (may be null)
      */
@@ -76,20 +76,20 @@ public class ValueGeometry extends Value {
         byte[] bytes = convertToWKB(g);
         return (ValueGeometry) Value.cache(new ValueGeometry(bytes, g));
     }
-    
+
     private static byte[] convertToWKB(Geometry g) {
         boolean includeSRID = g.getSRID() != 0;
         int dimensionCount = getDimensionCount(g);
         WKBWriter writer = new WKBWriter(dimensionCount, includeSRID);
-        return writer.write(g);        
+        return writer.write(g);
     }
-    
+
     private static int getDimensionCount(Geometry geometry) {
         ZVisitor finder = new ZVisitor();
         geometry.apply(finder);
         return finder.isFoundZ() ? 3 : 2;
     }
-    
+
     /**
      * Get or create a geometry value for the given geometry.
      *
@@ -125,7 +125,7 @@ public class ValueGeometry extends Value {
         }
         return geometry;
     }
-    
+
     /**
      * Test if this geometry envelope intersects with the other geometry
      * envelope.
@@ -241,7 +241,7 @@ public class ValueGeometry extends Value {
     public boolean equals(Object other) {
         // The JTS library only does half-way support for 3D coordinates, so
         // their equals method only checks the first two coordinates.
-        return other instanceof ValueGeometry && 
+        return other instanceof ValueGeometry &&
                 Arrays.equals(getWKB(), ((ValueGeometry) other).getWKB());
     }
 

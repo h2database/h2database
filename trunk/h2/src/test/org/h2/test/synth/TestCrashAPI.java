@@ -53,14 +53,16 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
     private static final boolean RECOVER_ALL = false;
 
-    private static final Class<?>[] INTERFACES = { Connection.class, PreparedStatement.class, Statement.class,
-            ResultSet.class, ResultSetMetaData.class, Savepoint.class,
-            ParameterMetaData.class, Clob.class, Blob.class, Array.class, CallableStatement.class };
+    private static final Class<?>[] INTERFACES = { Connection.class,
+            PreparedStatement.class, Statement.class, ResultSet.class,
+            ResultSetMetaData.class, Savepoint.class, ParameterMetaData.class,
+            Clob.class, Blob.class, Array.class, CallableStatement.class };
 
     private static final String DIR = "synth";
 
     private final ArrayList<Object> objects = New.arrayList();
-    private final HashMap<Class <?>, ArrayList<Method>> classMethods = New.hashMap();
+    private final HashMap<Class <?>, ArrayList<Method>> classMethods =
+            New.hashMap();
     private RandomGen random = new RandomGen();
     private final ArrayList<String> statements = New.arrayList();
     private int openCount;

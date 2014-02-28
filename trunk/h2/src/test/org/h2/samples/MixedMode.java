@@ -46,7 +46,7 @@ public class MixedMode {
         stat.execute("CREATE TABLE TIMER(ID INT PRIMARY KEY, TIME VARCHAR)");
         System.out.println("Execute this a few times: " +
                 "SELECT TIME FROM TIMER");
-        System.out.println("To stop this application " + 
+        System.out.println("To stop this application " +
                 "(and the server), run: DROP TABLE TIMER");
         try {
             while (true) {

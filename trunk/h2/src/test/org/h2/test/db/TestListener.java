@@ -48,7 +48,8 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         conn = getConnection("listener");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, 'Test' || SPACE(100))");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, 'Test' || SPACE(100))");
         int len = getSize(100, 100000);
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
@@ -56,7 +57,8 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         }
         crash(conn);
 
-        conn = getConnection("listener;database_event_listener='" + getClass().getName() + "'");
+        conn = getConnection("listener;database_event_listener='" + 
+                getClass().getName() + "'");
         conn.close();
         deleteDb("listener");
     }
@@ -72,7 +74,9 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         if (state == lastState && time < last + 1000) {
             return;
         }
-        if (state == STATE_STATEMENT_START || state == STATE_STATEMENT_END || state == STATE_STATEMENT_PROGRESS) {
+        if (state == STATE_STATEMENT_START || 
+                state == STATE_STATEMENT_END || 
+                state == STATE_STATEMENT_PROGRESS) {
             return;
         }
         if (name.length() > 30) {
@@ -100,7 +104,8 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         } catch (InterruptedException e) {
             // ignore
         }
-        printTime("state: " + stateName + " " + (100 * current / max) + " " + (time - start));
+        printTime("state: " + stateName + " " + 
+                (100 * current / max) + " " + (time - start));
     }
 
     @Override

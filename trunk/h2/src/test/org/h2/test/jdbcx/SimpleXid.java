@@ -22,7 +22,8 @@ public class SimpleXid implements Xid {
     private final byte[] branchQualifier;
     private final byte[] globalTransactionId;
 
-    private SimpleXid(int formatId, byte[] branchQualifier, byte[] globalTransactionId) {
+    private SimpleXid(int formatId, byte[] branchQualifier,
+            byte[] globalTransactionId) {
         this.formatId = formatId;
         this.branchQualifier = branchQualifier;
         this.globalTransactionId = globalTransactionId;

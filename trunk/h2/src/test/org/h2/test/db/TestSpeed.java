@@ -100,13 +100,15 @@ public class TestSpeed extends TestBase {
 
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE CACHED TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?)");
 
         int max = getSize(1, 10000);
         for (int i = 0; i < max; i++) {
             prep.setInt(1, i);
             prep.setString(2,
-                    "abchelloasdfaldsjflajdflajdslfoajlskdfkjasdfadsfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd" + i);
+                    "abchelloasdfaldsjflajdflajdslfoajlskdfkjasdf" + 
+                    "abcfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd" + i);
             prep.execute();
         }
 
@@ -129,7 +131,8 @@ public class TestSpeed extends TestBase {
 
         time = System.currentTimeMillis();
 
-        prep = conn.prepareStatement("UPDATE TEST SET NAME='Another data row which is long' WHERE ID=?");
+        prep = conn.prepareStatement("UPDATE TEST " + 
+                "SET NAME='Another data row which is long' WHERE ID=?");
         for (int i = 0; i < max; i++) {
             prep.setInt(1, i);
             prep.execute();

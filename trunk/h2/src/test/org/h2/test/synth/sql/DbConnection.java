@@ -29,7 +29,8 @@ class DbConnection implements DbInterface {
     private Connection sentinel;
     private final boolean useSentinel;
 
-    DbConnection(TestSynth config, String driver, String url, String user, String password, int id, boolean useSentinel) {
+    DbConnection(TestSynth config, String driver, String url, String user,
+            String password, int id, boolean useSentinel) {
         this.config = config;
         this.driver = driver;
         this.url = url;
@@ -129,7 +130,8 @@ class DbConnection implements DbInterface {
     }
 
     @Override
-    public Result insert(Table table, Column[] c, Value[] v) throws SQLException {
+    public Result insert(Table table, Column[] c, Value[] v)
+            throws SQLException {
         String sql = table.getInsertSQL(c, v);
         execute(sql);
         return new Result(sql, 1);
@@ -161,7 +163,8 @@ class DbConnection implements DbInterface {
     }
 
     @Override
-    public Result update(Table table, Column[] columns, Value[] values, String condition) throws SQLException {
+    public Result update(Table table, Column[] columns, Value[] values,
+            String condition) throws SQLException {
         String sql = "UPDATE " + table.getName() + " SET ";
         for (int i = 0; i < columns.length; i++) {
             if (i > 0) {

@@ -36,7 +36,8 @@ public class Test {
         // nothing to do
     }
 
-    private Test(String driver, String url, String user, String password, boolean writeDelay0) {
+    private Test(String driver, String url, String user, String password,
+            boolean writeDelay0) {
         this.url = url;
         try {
             Class.forName(driver);
@@ -59,7 +60,8 @@ public class Test {
             // ignore
         }
         try {
-            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+            stat.execute("CREATE TABLE TEST" +
+                    "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
             prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         } catch (SQLException e) {
             System.out.println(url + ": " + e.toString());
@@ -100,7 +102,8 @@ public class Test {
         test(connect, port, file);
     }
 
-    private static void test(String connect, int port, boolean file) throws Exception {
+    private static void test(String connect, int port, boolean file)
+            throws Exception {
         Socket socket = new Socket(connect, port);
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         System.out.println("Connected to " + socket.toString());
@@ -139,15 +142,22 @@ public class Test {
 
     private static void testDatabases(DataOutputStream out) throws Exception {
         Test[] dbs = {
-                new Test("org.h2.Driver", "jdbc:h2:test1", "sa", "", true),
-                new Test("org.h2.Driver", "jdbc:h2:test2", "sa", "", false),
-                new Test("org.hsqldb.jdbcDriver", "jdbc:hsqldb:test4", "sa", "", false),
+                new Test("org.h2.Driver",
+                        "jdbc:h2:test1", "sa", "", true),
+                new Test("org.h2.Driver",
+                        "jdbc:h2:test2", "sa", "", false),
+                new Test("org.hsqldb.jdbcDriver",
+                        "jdbc:hsqldb:test4", "sa", "", false),
                 // new Test("com.mysql.jdbc.Driver",
                 // "jdbc:mysql://localhost/test", "sa", ""),
-                new Test("org.postgresql.Driver", "jdbc:postgresql:test", "sa", "sa", false),
-                new Test("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:test;create=true", "sa", "", false),
-                new Test("org.h2.Driver", "jdbc:h2:test5", "sa", "", true),
-                new Test("org.h2.Driver", "jdbc:h2:test6", "sa", "", false), };
+                new Test("org.postgresql.Driver",
+                        "jdbc:postgresql:test", "sa", "sa", false),
+                new Test("org.apache.derby.jdbc.EmbeddedDriver",
+                        "jdbc:derby:test;create=true", "sa", "", false),
+                new Test("org.h2.Driver",
+                        "jdbc:h2:test5", "sa", "", true),
+                new Test("org.h2.Driver",
+                        "jdbc:h2:test6", "sa", "", false), };
         for (int i = 0;; i++) {
             for (Test t : dbs) {
                 t.insert(i);

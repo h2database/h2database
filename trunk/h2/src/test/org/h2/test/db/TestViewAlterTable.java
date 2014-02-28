@@ -70,7 +70,8 @@ public class TestViewAlterTable extends TestBase {
 
     private void testAlterTableDropColumnInView() throws SQLException {
         // simple
-        stat.execute("create table test(id identity, name varchar) as select x, 'Hello'");
+        stat.execute("create table test(id identity, name varchar) " + 
+                "as select x, 'Hello'");
         stat.execute("create view test_view as select * from test");
         assertThrows(ErrorCode.VIEW_IS_INVALID_2, stat).
                 execute("alter table test drop name");
@@ -93,7 +94,8 @@ public class TestViewAlterTable extends TestBase {
         checkViewRemainsValid();
     }
 
-    private void testAlterTableAlterColumnDataTypeWithView() throws SQLException {
+    private void testAlterTableAlterColumnDataTypeWithView()
+            throws SQLException {
         createTestData();
         stat.execute("alter table test alter b char(1)");
         checkViewRemainsValid();
@@ -113,7 +115,8 @@ public class TestViewAlterTable extends TestBase {
 
     private void testJoinAndAlias() throws SQLException {
         createTestData();
-        stat.execute("create view v4 as select v1.a dog, v3.a cat from v1 join v3 on v1.b = v3.a");
+        stat.execute("create view v4 as select v1.a dog, v3.a cat " + 
+                "from v1 join v3 on v1.b = v3.a");
         // should make no difference
         stat.execute("alter table test add d int default 6");
         ResultSet rs = stat.executeQuery("select cat, dog from v4");
@@ -126,7 +129,8 @@ public class TestViewAlterTable extends TestBase {
 
     private void testSubSelect() throws SQLException {
         createTestData();
-        stat.execute("create view v4 as select * from v3 where a in (select b from v2)");
+        stat.execute("create view v4 as select * from v3 " + 
+                "where a in (select b from v2)");
         // should make no difference
         stat.execute("alter table test add d int default 6");
         ResultSet rs = stat.executeQuery("select a from v4");
@@ -138,7 +142,8 @@ public class TestViewAlterTable extends TestBase {
 
     private void testForeignKey() throws SQLException {
         createTestData();
-        stat.execute("create table test2(z int, a int, primary key(z), foreign key (a) references TEST(a))");
+        stat.execute("create table test2(z int, a int, primary key(z), " + 
+                "foreign key (a) references TEST(a))");
         stat.execute("insert into test2(z, a) values (99, 1)");
         // should make no difference
         stat.execute("alter table test add d int default 6");

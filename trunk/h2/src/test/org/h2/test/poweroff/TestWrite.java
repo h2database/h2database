@@ -38,11 +38,16 @@ public class TestWrite {
         testFile("rw", true);
         testFile("rwd", true);
         testFile("rws", true);
-        testDatabase("org.h2.Driver", "jdbc:h2:test", "sa", "");
-        testDatabase("org.hsqldb.jdbcDriver", "jdbc:hsqldb:test4", "sa", "");
-        testDatabase("org.apache.derby.jdbc.EmbeddedDriver", "jdbc:derby:test;create=true", "sa", "");
-        testDatabase("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test", "sa", "sa");
-        testDatabase("org.postgresql.Driver", "jdbc:postgresql:test", "sa", "sa");
+        testDatabase("org.h2.Driver",
+                "jdbc:h2:test", "sa", "");
+        testDatabase("org.hsqldb.jdbcDriver",
+                "jdbc:hsqldb:test4", "sa", "");
+        testDatabase("org.apache.derby.jdbc.EmbeddedDriver",
+                "jdbc:derby:test;create=true", "sa", "");
+        testDatabase("com.mysql.jdbc.Driver",
+                "jdbc:mysql://localhost/test", "sa", "sa");
+        testDatabase("org.postgresql.Driver",
+                "jdbc:postgresql:test", "sa", "sa");
     }
 
     private static void testFile(String mode, boolean flush) throws Exception {
@@ -90,7 +95,8 @@ public class TestWrite {
         new File("test.txt").delete();
     }
 
-    private static void testDatabase(String driver, String url, String user, String password) throws Exception {
+    private static void testDatabase(String driver, String url, String user,
+            String password) throws Exception {
         Class.forName(driver);
         Connection conn = DriverManager.getConnection(url, user, password);
         System.out.println("Testing Database, URL=" + url);
@@ -101,7 +107,8 @@ public class TestWrite {
             // ignore
         }
         stat.execute("CREATE TABLE TEST(ID INT)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?)");
         long start = System.currentTimeMillis();
         int i = 0;
         for (;; i++) {

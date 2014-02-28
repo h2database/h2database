@@ -138,8 +138,10 @@ public class TestMultiConn extends TestBase {
         }
         deleteDb("multiConn");
         Connection conn = getConnection("multiConn");
-        conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        conn.createStatement().execute("INSERT INTO TEST VALUES(0, 'Hello'), (1, 'World')");
+        conn.createStatement().execute(
+                "CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        conn.createStatement().execute(
+                "INSERT INTO TEST VALUES(0, 'Hello'), (1, 'World')");
         conn.createStatement().execute("SHUTDOWN");
         conn.close();
         final String listener = MyDatabaseEventListener.class.getName();
@@ -205,7 +207,8 @@ public class TestMultiConn extends TestBase {
     /**
      * A database event listener used in this test.
      */
-    public static final class MyDatabaseEventListener implements DatabaseEventListener {
+    public static final class MyDatabaseEventListener implements
+            DatabaseEventListener {
 
         @Override
         public void exceptionThrown(SQLException e, String sql) {

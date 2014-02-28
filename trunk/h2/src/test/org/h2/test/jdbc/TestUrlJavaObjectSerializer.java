@@ -42,12 +42,14 @@ public class TestUrlJavaObjectSerializer extends TestBase {
         try {
             deleteDb("javaSerializer");
             String fqn = FakeJavaObjectSerializer.class.getName();
-            Connection conn = getConnection("javaSerializer;JAVA_OBJECT_SERIALIZER='"+fqn+"'");
+            Connection conn = getConnection(
+                    "javaSerializer;JAVA_OBJECT_SERIALIZER='"+fqn+"'");
 
             Statement stat = conn.createStatement();
             stat.execute("create table t1(id identity, val other)");
 
-            PreparedStatement ins = conn.prepareStatement("insert into t1(val) values(?)");
+            PreparedStatement ins = conn.prepareStatement(
+                    "insert into t1(val) values(?)");
 
             ins.setObject(1, 100500, Types.JAVA_OBJECT);
             assertEquals(1, ins.executeUpdate());

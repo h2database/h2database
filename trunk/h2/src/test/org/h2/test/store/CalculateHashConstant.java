@@ -27,7 +27,8 @@ public class CalculateHashConstant implements Runnable {
     private static BitSet primeNumbers = new BitSet();
     private static int[] randomValues;
     private static AtomicInteger high = new AtomicInteger(0x20);
-    private static Set<Integer> candidates = Collections.synchronizedSet(new HashSet<Integer>());
+    private static Set<Integer> candidates =
+            Collections.synchronizedSet(new HashSet<Integer>());
 
     private int constant;
     private int[] fromTo = new int[32 * 32];

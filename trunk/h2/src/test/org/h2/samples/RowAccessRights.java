@@ -36,7 +36,7 @@ public class RowAccessRights extends TriggerAdapter {
                 "jdbc:h2:~/test");
         Statement stat = conn.createStatement();
 
-        stat.execute("create table test_data(" + 
+        stat.execute("create table test_data(" +
                 "id int, user varchar, data varchar, primary key(id, user))");
         stat.execute("create index on test_data(id, user)");
 
@@ -73,7 +73,7 @@ public class RowAccessRights extends TriggerAdapter {
 
         rs = statB.executeQuery("select * from test");
         while (rs.next()) {
-            System.out.println("b: " + 
+            System.out.println("b: " +
                     rs.getInt(1) + "/" + rs.getString(2));
         }
 
@@ -82,7 +82,7 @@ public class RowAccessRights extends TriggerAdapter {
 
         rs = stat.executeQuery("select * from test_data");
         while (rs.next()) {
-            System.out.println(rs.getInt(1) + "/" + 
+            System.out.println(rs.getInt(1) + "/" +
                     rs.getString(2) + "/" + rs.getString(3));
         }
         conn.close();

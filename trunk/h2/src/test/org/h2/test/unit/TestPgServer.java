@@ -139,7 +139,7 @@ public class TestPgServer extends TestBase {
                 future.get();
                 throw new IllegalStateException();
             } catch (ExecutionException e) {
-                assertStartsWith(e.getCause().getMessage(), 
+                assertStartsWith(e.getCause().getMessage(),
                         "ERROR: canceling statement due to user request");
             } finally {
                 conn.close();
@@ -199,7 +199,7 @@ public class TestPgServer extends TestBase {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
         prep = conn.prepareStatement(
-                "select * from test " + 
+                "select * from test " +
                 "where id = ? and name = ?");
         prep.setInt(1, 1);
         prep.setString(2, "Hello");
@@ -249,7 +249,7 @@ public class TestPgServer extends TestBase {
         assertEquals("Hallo", rs.getString(2));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("select id, name, pg_get_userbyid(id) " + 
+        rs = stat.executeQuery("select id, name, pg_get_userbyid(id) " +
                 "from information_schema.users order by id");
         rs.next();
         assertEquals(rs.getString(2), rs.getString(3));
@@ -305,18 +305,20 @@ public class TestPgServer extends TestBase {
         rs.next();
         assertEquals("", rs.getString(1));
 
-        rs = stat.executeQuery("select id from information_schema.indexes " + 
+        rs = stat.executeQuery("select id from information_schema.indexes " +
                 "where index_name='IDX_TEST_NAME'");
         rs.next();
         int indexId = rs.getInt(1);
 
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 0, false)");
         rs.next();
-        assertEquals("CREATE INDEX PUBLIC.IDX_TEST_NAME ON PUBLIC.TEST(NAME, ID)", rs.getString(1));
+        assertEquals(
+                "CREATE INDEX PUBLIC.IDX_TEST_NAME ON PUBLIC.TEST(NAME, ID)",
+                rs.getString(1));
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", null, false)");
         rs.next();
         assertEquals(
-                "CREATE INDEX PUBLIC.IDX_TEST_NAME ON PUBLIC.TEST(NAME, ID)", 
+                "CREATE INDEX PUBLIC.IDX_TEST_NAME ON PUBLIC.TEST(NAME, ID)",
                 rs.getString(1));
         rs = stat.executeQuery("select pg_get_indexdef("+indexId+", 1, false)");
         rs.next();
@@ -344,7 +346,7 @@ public class TestPgServer extends TestBase {
             // by creating a table and checking flags
             stat.execute("create table test(id int primary key, name varchar)");
             ResultSet rs = stat.executeQuery(
-                    "select storage_type from information_schema.tables " + 
+                    "select storage_type from information_schema.tables " +
                     "where table_name = 'TEST'");
             assertTrue(rs.next());
             assertEquals("MEMORY", rs.getString(1));
@@ -369,7 +371,7 @@ public class TestPgServer extends TestBase {
             Statement stat = conn.createStatement();
 
             stat.execute(
-                    "create table test(x1 varchar, x2 int, " + 
+                    "create table test(x1 varchar, x2 int, " +
                     "x3 smallint, x4 bigint, x5 double, x6 float, " +
                     "x7 real, x8 boolean, x9 char, x10 bytea)");
 

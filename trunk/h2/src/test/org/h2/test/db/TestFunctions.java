@@ -1017,7 +1017,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         assertEquals(1.23d, rs.getDouble(1));
 
-        rs = stat.executeQuery("SELECT CURRENT_TIMESTAMP(), TRUNCATE(CURRENT_TIMESTAMP()) FROM dual");
+        rs = stat.executeQuery(
+                "SELECT CURRENT_TIMESTAMP(), " + 
+                "TRUNCATE(CURRENT_TIMESTAMP()) FROM dual");
         rs.next();
         Calendar c = Calendar.getInstance();
         c.setTime(rs.getTimestamp(1));
@@ -1072,21 +1074,36 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("1979-11-12 08:12:34.56", stat, "SELECT X FROM T");
         assertResult("-100-01-15 14:04:02.12", stat, "SELECT X FROM U");
         assertResult("12-NOV-79 08.12.34.560000 AM", stat, "SELECT TO_CHAR(X) FROM T");
-        assertResult("- / , . ; : text - /", stat, "SELECT TO_CHAR(X, '- / , . ; : \"text\" - /') FROM T");
-        assertResult("1979-11-12", stat, "SELECT TO_CHAR(X, 'YYYY-MM-DD') FROM T");
-        assertResult("1979/11/12", stat, "SELECT TO_CHAR(X, 'YYYY/MM/DD') FROM T");
-        assertResult("1979,11,12", stat, "SELECT TO_CHAR(X, 'YYYY,MM,DD') FROM T");
-        assertResult("1979.11.12", stat, "SELECT TO_CHAR(X, 'YYYY.MM.DD') FROM T");
-        assertResult("1979;11;12", stat, "SELECT TO_CHAR(X, 'YYYY;MM;DD') FROM T");
-        assertResult("1979:11:12", stat, "SELECT TO_CHAR(X, 'YYYY:MM:DD') FROM T");
-        assertResult("year 1979!", stat, "SELECT TO_CHAR(X, '\"year \"YYYY\"!\"') FROM T");
-        assertResult("1979 AD", stat, "SELECT TO_CHAR(X, 'YYYY AD') FROM T");
-        assertResult("1979 A.D.", stat, "SELECT TO_CHAR(X, 'YYYY A.D.') FROM T");
-        assertResult("0100 B.C.", stat, "SELECT TO_CHAR(X, 'YYYY A.D.') FROM U");
-        assertResult("1979 AD", stat, "SELECT TO_CHAR(X, 'YYYY BC') FROM T");
-        assertResult("100 BC", stat, "SELECT TO_CHAR(X, 'YYY BC') FROM U");
-        assertResult("00 BC", stat, "SELECT TO_CHAR(X, 'YY BC') FROM U");
-        assertResult("0 BC", stat, "SELECT TO_CHAR(X, 'Y BC') FROM U");
+        assertResult("- / , . ; : text - /", stat, 
+                "SELECT TO_CHAR(X, '- / , . ; : \"text\" - /') FROM T");
+        assertResult("1979-11-12", stat, 
+                "SELECT TO_CHAR(X, 'YYYY-MM-DD') FROM T");
+        assertResult("1979/11/12", stat, 
+                "SELECT TO_CHAR(X, 'YYYY/MM/DD') FROM T");
+        assertResult("1979,11,12", stat, 
+                "SELECT TO_CHAR(X, 'YYYY,MM,DD') FROM T");
+        assertResult("1979.11.12", stat, 
+                "SELECT TO_CHAR(X, 'YYYY.MM.DD') FROM T");
+        assertResult("1979;11;12", stat, 
+                "SELECT TO_CHAR(X, 'YYYY;MM;DD') FROM T");
+        assertResult("1979:11:12", stat, 
+                "SELECT TO_CHAR(X, 'YYYY:MM:DD') FROM T");
+        assertResult("year 1979!", stat, 
+                "SELECT TO_CHAR(X, '\"year \"YYYY\"!\"') FROM T");
+        assertResult("1979 AD", stat, 
+                "SELECT TO_CHAR(X, 'YYYY AD') FROM T");
+        assertResult("1979 A.D.", stat, 
+                "SELECT TO_CHAR(X, 'YYYY A.D.') FROM T");
+        assertResult("0100 B.C.", stat, 
+                "SELECT TO_CHAR(X, 'YYYY A.D.') FROM U");
+        assertResult("1979 AD", stat, 
+                "SELECT TO_CHAR(X, 'YYYY BC') FROM T");
+        assertResult("100 BC", stat, 
+                "SELECT TO_CHAR(X, 'YYY BC') FROM U");
+        assertResult("00 BC", stat, 
+                "SELECT TO_CHAR(X, 'YY BC') FROM U");
+        assertResult("0 BC", stat, 
+                "SELECT TO_CHAR(X, 'Y BC') FROM U");
         assertResult("1979 A.D.", stat, "SELECT TO_CHAR(X, 'YYYY B.C.') FROM T");
         assertResult("08:12 AM", stat, "SELECT TO_CHAR(X, 'HH:MI AM') FROM T");
         assertResult("08:12 A.M.", stat, "SELECT TO_CHAR(X, 'HH:MI A.M.') FROM T");
@@ -1108,14 +1125,17 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("monday   ", stat, "SELECT TO_CHAR(X, 'day') FROM T");
         assertResult("monday   ", stat, "SELECT TO_CHAR(X, 'dAY') FROM T");
         assertResult("Monday", stat, "SELECT TO_CHAR(X, 'fmDay') FROM T");
-        assertResult("monday   -monday-monday-monday   -monday", stat, "SELECT TO_CHAR(X, 'day-fmday-day-fmday-fmday') FROM T");
+        assertResult("monday   -monday-monday-monday   -monday", stat, 
+                "SELECT TO_CHAR(X, 'day-fmday-day-fmday-fmday') FROM T");
         assertResult("12", stat, "SELECT TO_CHAR(X, 'DD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'DDD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'DdD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'dDD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'ddd') FROM T");
-        assertResult("Monday, November 12, 1979", stat, "SELECT TO_CHAR(X, 'DL') FROM T");
-        assertResult("Monday, November 12, 1979", stat, "SELECT TO_CHAR(X, 'DL', 'NLS_DATE_LANGUAGE = English') FROM T");
+        assertResult("Monday, November 12, 1979", stat, 
+                "SELECT TO_CHAR(X, 'DL') FROM T");
+        assertResult("Monday, November 12, 1979", stat, 
+                "SELECT TO_CHAR(X, 'DL', 'NLS_DATE_LANGUAGE = English') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'DS') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'Ds') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'dS') FROM T");
@@ -1124,18 +1144,30 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("Mon", stat, "SELECT TO_CHAR(X, 'Dy') FROM T");
         assertResult("mon", stat, "SELECT TO_CHAR(X, 'dy') FROM T");
         assertResult("mon", stat, "SELECT TO_CHAR(X, 'dY') FROM T");
-        assertResult("08:12:34.560000", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF') FROM T");
-        assertResult("08:12:34.5", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF1') FROM T");
-        assertResult("08:12:34.56", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF2') FROM T");
-        assertResult("08:12:34.560", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF3') FROM T");
-        assertResult("08:12:34.5600", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF4') FROM T");
-        assertResult("08:12:34.56000", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF5') FROM T");
-        assertResult("08:12:34.560000", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF6') FROM T");
-        assertResult("08:12:34.5600000", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF7') FROM T");
-        assertResult("08:12:34.56000000", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF8') FROM T");
-        assertResult("08:12:34.560000000", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.FF9') FROM T");
-        assertResult("08:12:34.560000000", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.ff9') FROM T");
-        assertResult("08:12:34.560000000", stat, "SELECT TO_CHAR(X, 'HH:MI:SS.fF9') FROM T");
+        assertResult("08:12:34.560000", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF') FROM T");
+        assertResult("08:12:34.5", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF1') FROM T");
+        assertResult("08:12:34.56", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF2') FROM T");
+        assertResult("08:12:34.560", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF3') FROM T");
+        assertResult("08:12:34.5600", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF4') FROM T");
+        assertResult("08:12:34.56000", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF5') FROM T");
+        assertResult("08:12:34.560000", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF6') FROM T");
+        assertResult("08:12:34.5600000", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF7') FROM T");
+        assertResult("08:12:34.56000000", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF8') FROM T");
+        assertResult("08:12:34.560000000", stat,
+                "SELECT TO_CHAR(X, 'HH:MI:SS.FF9') FROM T");
+        assertResult("08:12:34.560000000", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.ff9') FROM T");
+        assertResult("08:12:34.560000000", stat, 
+                "SELECT TO_CHAR(X, 'HH:MI:SS.fF9') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH:MI') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH12:MI') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH24:MI') FROM T");
@@ -1193,86 +1225,161 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         String cc = currency.getCurrencyCode();
         String cs = currency.getSymbol();
 
-        assertResult(".45", stat, "SELECT TO_CHAR(0.45) FROM DUAL");
-        assertResult("12923", stat, "SELECT TO_CHAR(12923) FROM DUAL");
-        assertResult(" 12923.00", stat, "SELECT TO_CHAR(12923, '99999.99', 'NLS_CURRENCY = BTC') FROM DUAL");
-        assertResult("12923.", stat, "SELECT TO_CHAR(12923, 'FM99999.99', 'NLS_CURRENCY = BTC') FROM DUAL");
-        assertResult("######", stat, "SELECT TO_CHAR(12345, '9,999') FROM DUAL");
-        assertResult("######", stat, "SELECT TO_CHAR(1234567, '9,999') FROM DUAL");
-        assertResult(" 12,345", stat, "SELECT TO_CHAR(12345, '99,999') FROM DUAL");
-        assertResult(" 123,45", stat, "SELECT TO_CHAR(12345, '999,99') FROM DUAL");
-        assertResult("######", stat, "SELECT TO_CHAR(12345, '9.999') FROM DUAL");
-        assertResult("#######", stat, "SELECT TO_CHAR(12345, '99.999') FROM DUAL");
-        assertResult("########", stat, "SELECT TO_CHAR(12345, '999.999') FROM DUAL");
-        assertResult("#########", stat, "SELECT TO_CHAR(12345, '9999.999') FROM DUAL");
-        assertResult(" 12345.000", stat, "SELECT TO_CHAR(12345, '99999.999') FROM DUAL");
-        assertResult("###", stat, "SELECT TO_CHAR(12345, '$9') FROM DUAL");
-        assertResult("#####", stat, "SELECT TO_CHAR(12345, '$999') FROM DUAL");
-        assertResult("######", stat, "SELECT TO_CHAR(12345, '$9999') FROM DUAL");
-        assertResult("    " + cs + "12345", stat, "SELECT TO_CHAR(12345, '$99999999') FROM DUAL");
-        assertResult("     " + cs + "12,345.35", stat, "SELECT TO_CHAR(12345.345, '$99,999,999.99') FROM DUAL");
-        assertResult("     " + cs + "12,345", stat, "SELECT TO_CHAR(12345.345, '$99g999g999') FROM DUAL");
-        assertResult("     12,345.35", stat, "SELECT TO_CHAR(12345.345, '99,999,999.99') FROM DUAL");
-        assertResult("12,345.35", stat, "SELECT TO_CHAR(12345.345, 'FM99,999,999.99') FROM DUAL");
-        assertResult(" 00,012,345.35", stat, "SELECT TO_CHAR(12345.345, '00,000,000.00') FROM DUAL");
-        assertResult("00,012,345.35", stat, "SELECT TO_CHAR(12345.345, 'FM00,000,000.00') FROM DUAL");
-        assertResult("###", stat, "SELECT TO_CHAR(12345, '09') FROM DUAL");
-        assertResult("#####", stat, "SELECT TO_CHAR(12345, '0999') FROM DUAL");
-        assertResult(" 00012345", stat, "SELECT TO_CHAR(12345, '09999999') FROM DUAL");
-        assertResult(" 0000012345", stat, "SELECT TO_CHAR(12345, '0009999999') FROM DUAL");
-        assertResult("###", stat, "SELECT TO_CHAR(12345, '90') FROM DUAL");
-        assertResult("#####", stat, "SELECT TO_CHAR(12345, '9990') FROM DUAL");
-        assertResult("    12345", stat, "SELECT TO_CHAR(12345, '99999990') FROM DUAL");
-        assertResult("      12345", stat, "SELECT TO_CHAR(12345, '9999999000') FROM DUAL");
-        assertResult("      12345", stat, "SELECT TO_CHAR(12345, '9999999990') FROM DUAL");
-        assertResult("12345", stat, "SELECT TO_CHAR(12345, 'FM9999999990') FROM DUAL");
-        assertResult("   12345.2300", stat, "SELECT TO_CHAR(12345.23, '9999999.9000') FROM DUAL");
-        assertResult("   12345", stat, "SELECT TO_CHAR(12345, '9999999') FROM DUAL");
-        assertResult("  12345", stat, "SELECT TO_CHAR(12345, '999999') FROM DUAL");
-        assertResult(" 12345", stat, "SELECT TO_CHAR(12345, '99999') FROM DUAL");
-        assertResult(" 12345", stat, "SELECT TO_CHAR(12345, '00000') FROM DUAL");
-        assertResult("#####", stat, "SELECT TO_CHAR(12345, '9999') FROM DUAL");
-        assertResult("#####", stat, "SELECT TO_CHAR(12345, '0000') FROM DUAL");
-        assertResult("   -12345", stat, "SELECT TO_CHAR(-12345, '99999999') FROM DUAL");
-        assertResult("  -12345", stat, "SELECT TO_CHAR(-12345, '9999999') FROM DUAL");
-        assertResult(" -12345", stat, "SELECT TO_CHAR(-12345, '999999') FROM DUAL");
-        assertResult("-12345", stat, "SELECT TO_CHAR(-12345, '99999') FROM DUAL");
-        assertResult("#####", stat, "SELECT TO_CHAR(-12345, '9999') FROM DUAL");
-        assertResult("####", stat, "SELECT TO_CHAR(-12345, '999') FROM DUAL");
-        assertResult("       0", stat, "SELECT TO_CHAR(0, '9999999') FROM DUAL");
-        assertResult(" 00.30", stat, "SELECT TO_CHAR(0.3, '00.99') FROM DUAL");
-        assertResult("00.3", stat, "SELECT TO_CHAR(0.3, 'FM00.99') FROM DUAL");
-        assertResult(" 00.30", stat, "SELECT TO_CHAR(0.3, '00.00') FROM DUAL");
-        assertResult("   .30000", stat, "SELECT TO_CHAR(0.3, '99.00000') FROM DUAL");
-        assertResult(".30000", stat, "SELECT TO_CHAR(0.3, 'FM99.00000') FROM DUAL");
-        assertResult(" 00.30", stat, "SELECT TO_CHAR(0.3, 'B00.99') FROM DUAL");
-        assertResult("   .30", stat, "SELECT TO_CHAR(0.3, 'B99.99') FROM DUAL");
-        assertResult("   .30", stat, "SELECT TO_CHAR(0.3, '99.99') FROM DUAL");
-        assertResult(".3", stat, "SELECT TO_CHAR(0.3, 'FMB99.99') FROM DUAL");
-        assertResult(" 00.30", stat, "SELECT TO_CHAR(0.3, 'B09.99') FROM DUAL");
-        assertResult(" 00.30", stat, "SELECT TO_CHAR(0.3, 'B00.00') FROM DUAL");
-        assertResult("     " + cc + "123.45", stat, "SELECT TO_CHAR(123.45, 'C999.99') FROM DUAL");
-        assertResult("    -" + cc + "123.45", stat, "SELECT TO_CHAR(-123.45, 'C999.99') FROM DUAL");
-        assertResult("         " + cc + "123.45", stat, "SELECT TO_CHAR(123.45, 'C999,999.99') FROM DUAL");
-        assertResult("         " + cc + "123", stat, "SELECT TO_CHAR(123.45, 'C999g999') FROM DUAL");
-        assertResult(cc + "123.45", stat, "SELECT TO_CHAR(123.45, 'FMC999,999.99') FROM DUAL");
-        assertResult("          " + cs + "123.45", stat, "SELECT TO_CHAR(123.45, 'L999.99') FROM DUAL");
-        assertResult("         -" + cs + "123.45", stat, "SELECT TO_CHAR(-123.45, 'L999.99') FROM DUAL");
-        assertResult(cs + "123.45", stat, "SELECT TO_CHAR(123.45, 'FML999.99') FROM DUAL");
-        assertResult("          " + cs + "123.45", stat, "SELECT TO_CHAR(123.45, 'U999.99') FROM DUAL");
-        assertResult("          " + cs + "123.45", stat, "SELECT TO_CHAR(123.45, 'u999.99') FROM DUAL");
-        assertResult("   .33", stat, "SELECT TO_CHAR(0.326, '99D99') FROM DUAL");
-        assertResult("  1.2E+02", stat, "SELECT TO_CHAR(123.456, '9.9EEEE') FROM DUAL");
-        assertResult("  1.2E+14", stat, "SELECT TO_CHAR(123456789012345, '9.9EEEE') FROM DUAL");
+        assertResult(".45", stat, 
+                "SELECT TO_CHAR(0.45) FROM DUAL");
+        assertResult("12923", stat, 
+                "SELECT TO_CHAR(12923) FROM DUAL");
+        assertResult(" 12923.00", stat, 
+                "SELECT TO_CHAR(12923, '99999.99', 'NLS_CURRENCY = BTC') FROM DUAL");
+        assertResult("12923.", stat, 
+                "SELECT TO_CHAR(12923, 'FM99999.99', 'NLS_CURRENCY = BTC') FROM DUAL");
+        assertResult("######", stat, 
+                "SELECT TO_CHAR(12345, '9,999') FROM DUAL");
+        assertResult("######", stat, 
+                "SELECT TO_CHAR(1234567, '9,999') FROM DUAL");
+        assertResult(" 12,345", stat, 
+                "SELECT TO_CHAR(12345, '99,999') FROM DUAL");
+        assertResult(" 123,45", stat,
+                "SELECT TO_CHAR(12345, '999,99') FROM DUAL");
+        assertResult("######", stat, 
+                "SELECT TO_CHAR(12345, '9.999') FROM DUAL");
+        assertResult("#######", stat, 
+                "SELECT TO_CHAR(12345, '99.999') FROM DUAL");
+        assertResult("########", stat, 
+                "SELECT TO_CHAR(12345, '999.999') FROM DUAL");
+        assertResult("#########", stat, 
+                "SELECT TO_CHAR(12345, '9999.999') FROM DUAL");
+        assertResult(" 12345.000", stat,
+                "SELECT TO_CHAR(12345, '99999.999') FROM DUAL");
+        assertResult("###", stat, 
+                "SELECT TO_CHAR(12345, '$9') FROM DUAL");
+        assertResult("#####", stat, 
+                "SELECT TO_CHAR(12345, '$999') FROM DUAL");
+        assertResult("######", stat, 
+                "SELECT TO_CHAR(12345, '$9999') FROM DUAL");
+        assertResult("    " + cs + "12345", stat, 
+                "SELECT TO_CHAR(12345, '$99999999') FROM DUAL");
+        assertResult("     " + cs + "12,345.35", stat,
+                "SELECT TO_CHAR(12345.345, '$99,999,999.99') FROM DUAL");
+        assertResult("     " + cs + "12,345", stat, 
+                "SELECT TO_CHAR(12345.345, '$99g999g999') FROM DUAL");
+        assertResult("     12,345.35", stat, 
+                "SELECT TO_CHAR(12345.345, '99,999,999.99') FROM DUAL");
+        assertResult("12,345.35", stat, 
+                "SELECT TO_CHAR(12345.345, 'FM99,999,999.99') FROM DUAL");
+        assertResult(" 00,012,345.35", stat, 
+                "SELECT TO_CHAR(12345.345, '00,000,000.00') FROM DUAL");
+        assertResult("00,012,345.35", stat, 
+                "SELECT TO_CHAR(12345.345, 'FM00,000,000.00') FROM DUAL");
+        assertResult("###", stat, 
+                "SELECT TO_CHAR(12345, '09') FROM DUAL");
+        assertResult("#####", stat, 
+                "SELECT TO_CHAR(12345, '0999') FROM DUAL");
+        assertResult(" 00012345", stat, 
+                "SELECT TO_CHAR(12345, '09999999') FROM DUAL");
+        assertResult(" 0000012345", stat, 
+                "SELECT TO_CHAR(12345, '0009999999') FROM DUAL");
+        assertResult("###", stat,
+                "SELECT TO_CHAR(12345, '90') FROM DUAL");
+        assertResult("#####", stat, 
+                "SELECT TO_CHAR(12345, '9990') FROM DUAL");
+        assertResult("    12345", stat, 
+                "SELECT TO_CHAR(12345, '99999990') FROM DUAL");
+        assertResult("      12345", stat, 
+                "SELECT TO_CHAR(12345, '9999999000') FROM DUAL");
+        assertResult("      12345", stat,
+                "SELECT TO_CHAR(12345, '9999999990') FROM DUAL");
+        assertResult("12345", stat, 
+                "SELECT TO_CHAR(12345, 'FM9999999990') FROM DUAL");
+        assertResult("   12345.2300", stat, 
+                "SELECT TO_CHAR(12345.23, '9999999.9000') FROM DUAL");
+        assertResult("   12345", stat, 
+                "SELECT TO_CHAR(12345, '9999999') FROM DUAL");
+        assertResult("  12345", stat, 
+                "SELECT TO_CHAR(12345, '999999') FROM DUAL");
+        assertResult(" 12345", stat, 
+                "SELECT TO_CHAR(12345, '99999') FROM DUAL");
+        assertResult(" 12345", stat, 
+                "SELECT TO_CHAR(12345, '00000') FROM DUAL");
+        assertResult("#####", stat, 
+                "SELECT TO_CHAR(12345, '9999') FROM DUAL");
+        assertResult("#####", stat, 
+                "SELECT TO_CHAR(12345, '0000') FROM DUAL");
+        assertResult("   -12345", stat, 
+                "SELECT TO_CHAR(-12345, '99999999') FROM DUAL");
+        assertResult("  -12345", stat, 
+                "SELECT TO_CHAR(-12345, '9999999') FROM DUAL");
+        assertResult(" -12345", stat, 
+                "SELECT TO_CHAR(-12345, '999999') FROM DUAL");
+        assertResult("-12345", stat, 
+                "SELECT TO_CHAR(-12345, '99999') FROM DUAL");
+        assertResult("#####", stat, 
+                "SELECT TO_CHAR(-12345, '9999') FROM DUAL");
+        assertResult("####", stat, 
+                "SELECT TO_CHAR(-12345, '999') FROM DUAL");
+        assertResult("       0", stat, 
+                "SELECT TO_CHAR(0, '9999999') FROM DUAL");
+        assertResult(" 00.30", stat, 
+                "SELECT TO_CHAR(0.3, '00.99') FROM DUAL");
+        assertResult("00.3", stat, 
+                "SELECT TO_CHAR(0.3, 'FM00.99') FROM DUAL");
+        assertResult(" 00.30", stat, 
+                "SELECT TO_CHAR(0.3, '00.00') FROM DUAL");
+        assertResult("   .30000", stat, 
+                "SELECT TO_CHAR(0.3, '99.00000') FROM DUAL");
+        assertResult(".30000", stat, 
+                "SELECT TO_CHAR(0.3, 'FM99.00000') FROM DUAL");
+        assertResult(" 00.30", stat, 
+                "SELECT TO_CHAR(0.3, 'B00.99') FROM DUAL");
+        assertResult("   .30", stat, 
+                "SELECT TO_CHAR(0.3, 'B99.99') FROM DUAL");
+        assertResult("   .30", stat, 
+                "SELECT TO_CHAR(0.3, '99.99') FROM DUAL");
+        assertResult(".3", stat, 
+                "SELECT TO_CHAR(0.3, 'FMB99.99') FROM DUAL");
+        assertResult(" 00.30", stat, 
+                "SELECT TO_CHAR(0.3, 'B09.99') FROM DUAL");
+        assertResult(" 00.30", stat, 
+                "SELECT TO_CHAR(0.3, 'B00.00') FROM DUAL");
+        assertResult("     " + cc + "123.45", stat,
+                "SELECT TO_CHAR(123.45, 'C999.99') FROM DUAL");
+        assertResult("    -" + cc + "123.45", stat, 
+                "SELECT TO_CHAR(-123.45, 'C999.99') FROM DUAL");
+        assertResult("         " + cc + "123.45", stat, 
+                "SELECT TO_CHAR(123.45, 'C999,999.99') FROM DUAL");
+        assertResult("         " + cc + "123", stat, 
+                "SELECT TO_CHAR(123.45, 'C999g999') FROM DUAL");
+        assertResult(cc + "123.45", stat, 
+                "SELECT TO_CHAR(123.45, 'FMC999,999.99') FROM DUAL");
+        assertResult("          " + cs + "123.45", stat, 
+                "SELECT TO_CHAR(123.45, 'L999.99') FROM DUAL");
+        assertResult("         -" + cs + "123.45", stat, 
+                "SELECT TO_CHAR(-123.45, 'L999.99') FROM DUAL");
+        assertResult(cs + "123.45", stat, 
+                "SELECT TO_CHAR(123.45, 'FML999.99') FROM DUAL");
+        assertResult("          " + cs + "123.45", stat, 
+                "SELECT TO_CHAR(123.45, 'U999.99') FROM DUAL");
+        assertResult("          " + cs + "123.45", stat, 
+                "SELECT TO_CHAR(123.45, 'u999.99') FROM DUAL");
+        assertResult("   .33", stat, 
+                "SELECT TO_CHAR(0.326, '99D99') FROM DUAL");
+        assertResult("  1.2E+02", stat, 
+                "SELECT TO_CHAR(123.456, '9.9EEEE') FROM DUAL");
+        assertResult("  1.2E+14", stat, 
+                "SELECT TO_CHAR(123456789012345, '9.9EEEE') FROM DUAL");
         assertResult("  1E+02", stat, "SELECT TO_CHAR(123.456, '9EEEE') FROM DUAL");
         assertResult("  1E+02", stat, "SELECT TO_CHAR(123.456, '999EEEE') FROM DUAL");
         assertResult("  1E-03", stat, "SELECT TO_CHAR(.00123456, '999EEEE') FROM DUAL");
         assertResult("  1E+00", stat, "SELECT TO_CHAR(1, '999EEEE') FROM DUAL");
         assertResult(" -1E+00", stat, "SELECT TO_CHAR(-1, '999EEEE') FROM DUAL");
-        assertResult("  1.23456000E+02", stat, "SELECT TO_CHAR(123.456, '00.00000000EEEE') FROM DUAL");
-        assertResult("1.23456000E+02", stat, "SELECT TO_CHAR(123.456, 'fm00.00000000EEEE') FROM DUAL");
-        assertResult(" 1,234,567", stat, "SELECT TO_CHAR(1234567, '9G999G999') FROM DUAL");
-        assertResult("-1,234,567", stat, "SELECT TO_CHAR(-1234567, '9G999G999') FROM DUAL");
+        assertResult("  1.23456000E+02", stat, 
+                "SELECT TO_CHAR(123.456, '00.00000000EEEE') FROM DUAL");
+        assertResult("1.23456000E+02", stat, 
+                "SELECT TO_CHAR(123.456, 'fm00.00000000EEEE') FROM DUAL");
+        assertResult(" 1,234,567", stat, 
+                "SELECT TO_CHAR(1234567, '9G999G999') FROM DUAL");
+        assertResult("-1,234,567", stat, 
+                "SELECT TO_CHAR(-1234567, '9G999G999') FROM DUAL");
         assertResult("123.45-", stat, "SELECT TO_CHAR(-123.45, '999.99MI') FROM DUAL");
         assertResult("123.45-", stat, "SELECT TO_CHAR(-123.45, '999.99mi') FROM DUAL");
         assertResult("123.45-", stat, "SELECT TO_CHAR(-123.45, '999.99mI') FROM DUAL");
@@ -1301,14 +1408,16 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult(" 42-", stat, "SELECT TO_CHAR(-42, '999S') FROM DUAL");
         assertResult("42", stat, "SELECT TO_CHAR(42, 'TM') FROM DUAL");
         assertResult("-42", stat, "SELECT TO_CHAR(-42, 'TM') FROM DUAL");
-        assertResult("4212341241234.23412342", stat, "SELECT TO_CHAR(4212341241234.23412342, 'tm') FROM DUAL");
+        assertResult("4212341241234.23412342", stat, 
+                "SELECT TO_CHAR(4212341241234.23412342, 'tm') FROM DUAL");
         assertResult(".23412342", stat, "SELECT TO_CHAR(0.23412342, 'tm') FROM DUAL");
         assertResult(" 12300", stat, "SELECT TO_CHAR(123, '999V99') FROM DUAL");
         assertResult("######", stat, "SELECT TO_CHAR(1234, '999V99') FROM DUAL");
         assertResult("123400", stat, "SELECT TO_CHAR(1234, 'FM9999v99') FROM DUAL");
         assertResult("1234", stat, "SELECT TO_CHAR(123.4, 'FM9999V9') FROM DUAL");
         assertResult("123", stat, "SELECT TO_CHAR(123.4, 'FM9999V') FROM DUAL");
-        assertResult("123400000", stat, "SELECT TO_CHAR(123.4, 'FM9999V090909') FROM DUAL");
+        assertResult("123400000", stat, 
+                "SELECT TO_CHAR(123.4, 'FM9999V090909') FROM DUAL");
         assertResult("##", stat, "SELECT TO_CHAR(123, 'X') FROM DUAL");
         assertResult(" 7B", stat, "SELECT TO_CHAR(123, 'XX') FROM DUAL");
         assertResult(" 7b", stat, "SELECT TO_CHAR(123, 'Xx') FROM DUAL");
@@ -1324,12 +1433,16 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("123", stat, "SELECT TO_CHAR(123, 'tm') FROM DUAL");
         assertResult("123", stat, "SELECT TO_CHAR(123, 'tM9') FROM DUAL");
         assertResult("1.23E+02", stat, "SELECT TO_CHAR(123, 'TME') FROM DUAL");
-        assertResult("1.23456789012345E+14", stat, "SELECT TO_CHAR(123456789012345, 'TME') FROM DUAL");
+        assertResult("1.23456789012345E+14", stat, 
+                "SELECT TO_CHAR(123456789012345, 'TME') FROM DUAL");
         assertResult("4.5E-01", stat, "SELECT TO_CHAR(0.45, 'TME') FROM DUAL");
         assertResult("4.5E-01", stat, "SELECT TO_CHAR(0.45, 'tMe') FROM DUAL");
-        assertThrows("Invalid TO_CHAR format \"999.99q\"", stat, "SELECT TO_CHAR(123.45, '999.99q') FROM DUAL");
-        assertThrows("Invalid TO_CHAR format \"fm999.99q\"", stat, "SELECT TO_CHAR(123.45, 'fm999.99q') FROM DUAL");
-        assertThrows("Invalid TO_CHAR format \"q999.99\"", stat, "SELECT TO_CHAR(123.45, 'q999.99') FROM DUAL");
+        assertThrows("Invalid TO_CHAR format \"999.99q\"", stat,
+                "SELECT TO_CHAR(123.45, '999.99q') FROM DUAL");
+        assertThrows("Invalid TO_CHAR format \"fm999.99q\"", stat, 
+                "SELECT TO_CHAR(123.45, 'fm999.99q') FROM DUAL");
+        assertThrows("Invalid TO_CHAR format \"q999.99\"", stat, 
+                "SELECT TO_CHAR(123.45, 'q999.99') FROM DUAL");
 
         conn.close();
     }
@@ -1342,7 +1455,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
-    private void assertCallResult(String expected, Statement stat, String sql) throws SQLException {
+    private void assertCallResult(String expected, Statement stat, String sql)
+            throws SQLException {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();
         String s = rs.getString(1);
@@ -1355,11 +1469,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param value the blob
      * @return the input stream
      */
-    public static BufferedInputStream blob2stream(Blob value) throws SQLException {
+    public static BufferedInputStream blob2stream(Blob value)
+            throws SQLException {
         if (value == null) {
             return null;
         }
-        BufferedInputStream bufferedInStream = new BufferedInputStream(value.getBinaryStream());
+        BufferedInputStream bufferedInStream = new BufferedInputStream(
+                value.getBinaryStream());
         return bufferedInStream;
     }
 
@@ -1406,8 +1522,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @return the count
      */
     public static int addRow(Connection conn, int id, String name) throws SQLException {
-        conn.createStatement().execute("INSERT INTO TEST VALUES(" + id + ", '" + name + "')");
-        ResultSet rs = conn.createStatement().executeQuery("SELECT COUNT(*) FROM TEST");
+        conn.createStatement().execute(
+                "INSERT INTO TEST VALUES(" + id + ", '" + name + "')");
+        ResultSet rs = conn.createStatement().executeQuery(
+                "SELECT COUNT(*) FROM TEST");
         rs.next();
         int result = rs.getInt(1);
         rs.close();
@@ -1422,7 +1540,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @return the result set
      */
     public static ResultSet select(Connection conn, String sql) throws SQLException {
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         return stat.executeQuery(sql);
     }
 
@@ -1433,7 +1552,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @return the result set
      */
     public static ResultSet selectMaxId(Connection conn) throws SQLException {
-        return conn.createStatement().executeQuery("SELECT MAX(ID) FROM TEST");
+        return conn.createStatement().executeQuery(
+                "SELECT MAX(ID) FROM TEST");
     }
 
     /**
@@ -1452,7 +1572,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @return the result set
      */
     public static ResultSet resultSetWithNull(Connection conn) throws SQLException {
-        PreparedStatement statement = conn.prepareStatement("select null from system_range(1,1)");
+        PreparedStatement statement = conn.prepareStatement(
+                "select null from system_range(1,1)");
         return statement.executeQuery();
     }
 
@@ -1468,7 +1589,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * Test method to create a simple result set.
-     *
+     * 
      * @param rowCount the number of rows
      * @param ip an int
      * @param bp a boolean
@@ -1479,8 +1600,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param sp a short
      * @return a result set
      */
-    public static ResultSet simpleResultSet(Integer rowCount, int ip, boolean bp, float fp, double dp, long lp,
-            byte byParam, short sp) {
+    public static ResultSet simpleResultSet(Integer rowCount, int ip,
+            boolean bp, float fp, double dp, long lp, byte byParam, short sp) {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
@@ -1490,7 +1611,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             }
         }
         if (rowCount != null) {
-            if (ip != 1 || !bp || fp != 1.0 || dp != 1.0 || sp != 1 || lp != 1 || byParam != 1) {
+            if (ip != 1 || !bp || fp != 1.0 || dp != 1.0 || 
+                    sp != 1 || lp != 1 || byParam != 1) {
                 throw new AssertionError("params not 1/true");
             }
             if (rowCount.intValue() >= 1) {

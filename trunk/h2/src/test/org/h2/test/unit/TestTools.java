@@ -199,7 +199,9 @@ public class TestTools extends TestBase {
         assertFalse(rs.wasNull());
         assertEquals("C1", rs.getMetaData().getColumnLabel(1));
         assertEquals("C1", rs.getColumnName(1));
-        assertEquals(ResultSetMetaData.columnNullableUnknown, rs.getMetaData().isNullable(1));
+        assertEquals(
+                ResultSetMetaData.columnNullableUnknown,
+                rs.getMetaData().isNullable(1));
         assertFalse(rs.getMetaData().isAutoIncrement(1));
         assertTrue(rs.getMetaData().isCaseSensitive(1));
         assertFalse(rs.getMetaData().isCurrency(1));
@@ -436,9 +438,12 @@ public class TestTools extends TestBase {
     }
 
     private void testJdbcDriverUtils() {
-        assertEquals("org.h2.Driver", JdbcUtils.getDriver("jdbc:h2:~/test"));
-        assertEquals("org.postgresql.Driver", JdbcUtils.getDriver("jdbc:postgresql:test"));
-        assertEquals(null, JdbcUtils.getDriver("jdbc:unknown:test"));
+        assertEquals("org.h2.Driver",
+                JdbcUtils.getDriver("jdbc:h2:~/test"));
+        assertEquals("org.postgresql.Driver",
+                JdbcUtils.getDriver("jdbc:postgresql:test"));
+        assertEquals(null,
+                JdbcUtils.getDriver("jdbc:unknown:test"));
     }
 
     private void testWrongServer() throws Exception {
@@ -501,7 +506,7 @@ public class TestTools extends TestBase {
         result = runServer(1, new String[]{"-xy"});
         assertTrue(result.indexOf("Starts the H2 Console") >= 0);
         assertTrue(result.indexOf("Feature not supported") >= 0);
-        result = runServer(0, new String[]{"-tcp", 
+        result = runServer(0, new String[]{"-tcp",
                 "-tcpPort", "9001", "-tcpPassword", "abc"});
         assertTrue(result.indexOf("tcp://") >= 0);
         assertTrue(result.indexOf(":9001") >= 0);
@@ -509,11 +514,11 @@ public class TestTools extends TestBase {
         assertTrue(result.indexOf("Starts the H2 Console") < 0);
         conn = getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
         conn.close();
-        result = runServer(0, new String[]{"-tcpShutdown", 
+        result = runServer(0, new String[]{"-tcpShutdown",
                 "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"});
         assertTrue(result.indexOf("Shutting down") >= 0);
 
-        result = runServer(0, new String[]{"-tcp", 
+        result = runServer(0, new String[]{"-tcp",
                 "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});
         assertTrue(result.indexOf("ssl://") >= 0);
         assertTrue(result.indexOf(":9001") >= 0);
@@ -522,7 +527,7 @@ public class TestTools extends TestBase {
         conn = getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
         conn.close();
 
-        result = runServer(0, new String[]{"-tcpShutdown", 
+        result = runServer(0, new String[]{"-tcpShutdown",
                 "ssl://localhost:9001", "-tcpPassword", "abcdef"});
         assertTrue(result.indexOf("Shutting down") >= 0);
         assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
@@ -545,7 +550,7 @@ public class TestTools extends TestBase {
         conn = getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
         conn.close();
 
-        result = runServer(0, new String[]{"-tcpShutdown", 
+        result = runServer(0, new String[]{"-tcpShutdown",
                 "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"});
         assertTrue(result.indexOf("Shutting down") >= 0);
         stop.shutdown();
@@ -588,7 +593,7 @@ public class TestTools extends TestBase {
         prep.executeUpdate();
         stat.execute("create table test2(id int primary key,\n" +
                 "a real, b double, c bigint,\n" +
-                "d smallint, e boolean, f binary, g date, h time, i timestamp)", 
+                "d smallint, e boolean, f binary, g date, h time, i timestamp)",
                 Statement.NO_GENERATED_KEYS);
         prep = conn.prepareStatement(
                 "insert into test2 values(1, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -689,10 +694,12 @@ public class TestTools extends TestBase {
         String url = getURL("toolsRecover", true);
         Connection conn = getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name varchar, b blob, c clob)");
+        stat.execute("create table test(id int primary key, " +
+                "name varchar, b blob, c clob)");
         stat.execute("create table \"test 2\"(id int primary key, name varchar)");
         stat.execute("comment on table test is ';-)'");
-        stat.execute("insert into test values(1, 'Hello', SECURE_RAND(4100), '\u00e4' || space(4100))");
+        stat.execute("insert into test values" +
+                "(1, 'Hello', SECURE_RAND(4100), '\u00e4' || space(4100))");
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
@@ -704,7 +711,8 @@ public class TestTools extends TestBase {
 
         // deleteDb would delete the .lob.db directory as well
         // deleteDb("toolsRecover");
-        ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(), "toolsRecover", true);
+        ArrayList<String> list = FileLister.getDatabaseFiles(getBaseDir(),
+                "toolsRecover", true);
         for (String fileName : list) {
             if (!FileUtils.isDirectory(fileName)) {
                 FileUtils.delete(fileName);
@@ -1027,7 +1035,7 @@ public class TestTools extends TestBase {
 
         /**
          * Get the reader.
-         * 
+         *
          * @param pos the position
          * @param length the length
          * @return the reader
@@ -1112,7 +1120,7 @@ public class TestTools extends TestBase {
 
         /**
          * Get the binary stream.
-         * 
+         *
          * @param pos the position
          * @param length the length
          * @return the input stream

@@ -56,10 +56,12 @@ public class TestMultiDimension extends TestBase {
         assertEquals(10, m.interleave(new int[] { 0, 3 }));
         long v = Integer.MAX_VALUE | ((long) Integer.MAX_VALUE << 31L);
         assertEquals(v, m.interleave(Integer.MAX_VALUE, Integer.MAX_VALUE));
-        assertEquals(v, m.interleave(new int[] { Integer.MAX_VALUE, Integer.MAX_VALUE }));
+        assertEquals(v, m.interleave(new int[] { 
+                Integer.MAX_VALUE, Integer.MAX_VALUE }));
         Random random = new Random(1);
         for (int i = 0; i < 1000; i++) {
-            int x = random.nextInt(Integer.MAX_VALUE), y = random.nextInt(Integer.MAX_VALUE);
+            int x = random.nextInt(Integer.MAX_VALUE), y = 
+                    random.nextInt(Integer.MAX_VALUE);
             v = m.interleave(new int[] {x, y});
             long v2 = m.interleave(x, y);
             assertEquals(v, v2);
@@ -69,7 +71,8 @@ public class TestMultiDimension extends TestBase {
             assertEquals(y, y1);
         }
         for (int i = 0; i < 1000; i++) {
-            int x = random.nextInt(1000), y = random.nextInt(1000), z = random.nextInt(1000);
+            int x = random.nextInt(1000), y = random.nextInt(1000), 
+                    z = random.nextInt(1000);
             MultiDimension tool = MultiDimension.getInstance();
             long xyz = tool.interleave(new int[] { x, y, z });
             assertEquals(x, tool.deinterleave(3, xyz, 0));
@@ -93,7 +96,8 @@ public class TestMultiDimension extends TestBase {
         Connection conn;
         conn = getConnection("multiDimension");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS MAP FOR \"" + getClass().getName() + ".interleave\"");
+        stat.execute("CREATE ALIAS MAP FOR \"" + 
+        getClass().getName() + ".interleave\"");
         stat.execute("CREATE TABLE TEST(X INT NOT NULL, Y INT NOT NULL, " +
                 "XY BIGINT AS MAP(X, Y), DATA VARCHAR)");
         stat.execute("CREATE INDEX IDX_X ON TEST(X, Y)");
@@ -108,7 +112,8 @@ public class TestMultiDimension extends TestBase {
             for (int y = 0; y < max; y++) {
                 long t2 = System.currentTimeMillis();
                 if (t2 - time > 1000) {
-                    int percent = (int) (100.0 * ((double) x * max + y) / ((double) max * max));
+                    int percent = (int) (100.0 * ((double) x * max + y) / 
+                            ((double) max * max));
                     trace(percent + "%");
                     time = t2;
                 }
@@ -123,7 +128,8 @@ public class TestMultiDimension extends TestBase {
                 "SELECT * FROM TEST WHERE X BETWEEN ? AND ? " +
                 "AND Y BETWEEN ? AND ? ORDER BY X, Y");
         MultiDimension multi = MultiDimension.getInstance();
-        String sql = multi.generatePreparedQuery("TEST", "XY", new String[] { "X", "Y" });
+        String sql = multi.generatePreparedQuery("TEST", "XY", 
+                new String[] { "X", "Y" });
         sql += " ORDER BY X, Y";
         PreparedStatement prepMulti = conn.prepareStatement(sql);
         long timeMulti = 0, timeRegular = 0;
@@ -135,7 +141,8 @@ public class TestMultiDimension extends TestBase {
             int minY = rand.nextInt(max - size);
             int maxX = minX + size, maxY = minY + size;
             time = System.currentTimeMillis();
-            ResultSet rs1 = multi.getResult(prepMulti, new int[] { minX, minY }, new int[] { maxX, maxY });
+            ResultSet rs1 = multi.getResult(prepMulti, 
+                    new int[] { minX, minY }, new int[] { maxX, maxY });
             timeMulti += System.currentTimeMillis() - time;
             time = System.currentTimeMillis();
             prepRegular.setInt(1, minX);
@@ -161,9 +168,11 @@ public class TestMultiDimension extends TestBase {
         Connection conn;
         conn = getConnection("multiDimension");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS MAP FOR \"" + getClass().getName() + ".interleave\"");
-        stat.execute("CREATE TABLE TEST(X INT NOT NULL, Y INT NOT NULL, Z INT NOT NULL, " +
-                "XYZ BIGINT AS MAP(X, Y, Z), DATA VARCHAR)");
+        stat.execute("CREATE ALIAS MAP FOR \"" + 
+                getClass().getName() + ".interleave\"");
+        stat.execute("CREATE TABLE TEST(X INT NOT NULL, " + 
+                "Y INT NOT NULL, Z INT NOT NULL, "
+                + "XYZ BIGINT AS MAP(X, Y, Z), DATA VARCHAR)");
         stat.execute("CREATE INDEX IDX_X ON TEST(X, Y, Z)");
         stat.execute("CREATE INDEX IDX_XYZ ON TEST(XYZ)");
         PreparedStatement prep = conn.prepareStatement(
@@ -194,7 +203,8 @@ public class TestMultiDimension extends TestBase {
                 "SELECT * FROM TEST WHERE X BETWEEN ? AND ? " +
                 "AND Y BETWEEN ? AND ? AND Z BETWEEN ? AND ? ORDER BY X, Y, Z");
         MultiDimension multi = MultiDimension.getInstance();
-        String sql = multi.generatePreparedQuery("TEST", "XYZ", new String[] { "X", "Y", "Z" });
+        String sql = multi.generatePreparedQuery("TEST", "XYZ", new String[] {
+                "X", "Y", "Z" });
         sql += " ORDER BY X, Y, Z";
         PreparedStatement prepMulti = conn.prepareStatement(sql);
         long timeMulti = 0, timeRegular = 0;
@@ -207,7 +217,8 @@ public class TestMultiDimension extends TestBase {
             int minZ = rand.nextInt(max - size);
             int maxX = minX + size, maxY = minY + size, maxZ = minZ + size;
             time = System.currentTimeMillis();
-            ResultSet rs1 = multi.getResult(prepMulti, new int[] { minX, minY, minZ }, new int[] { maxX, maxY, maxZ });
+            ResultSet rs1 = multi.getResult(prepMulti, new int[] { minX, minY,
+                    minZ }, new int[] { maxX, maxY, maxZ });
             timeMulti += System.currentTimeMillis() - time;
             time = System.currentTimeMillis();
             prepRegular.setInt(1, minX);

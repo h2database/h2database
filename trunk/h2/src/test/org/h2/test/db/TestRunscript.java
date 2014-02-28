@@ -62,8 +62,10 @@ public class TestRunscript extends TestBase implements Trigger {
         Statement stat = conn.createStatement();
         stat.execute("create alias int_decode for \"java.lang.Integer.decode\"");
         stat.execute("create table test(x varchar, y int as int_decode(x))");
-        stat.execute("script simple drop to '" + getBaseDir() + "/backup.sql'");
-        stat.execute("runscript from '" + getBaseDir() + "/backup.sql'");
+        stat.execute("script simple drop to '" + 
+                getBaseDir() + "/backup.sql'");
+        stat.execute("runscript from '" + 
+                getBaseDir() + "/backup.sql'");
         conn.close();
     }
 
@@ -74,8 +76,10 @@ public class TestRunscript extends TestBase implements Trigger {
         Statement stat = conn.createStatement();
         stat.execute("create table b(x int)");
         stat.execute("create view a as select * from b");
-        stat.execute("script simple drop to '" + getBaseDir() + "/backup.sql'");
-        stat.execute("runscript from '" + getBaseDir() + "/backup.sql'");
+        stat.execute("script simple drop to '" + 
+                getBaseDir() + "/backup.sql'");
+        stat.execute("runscript from '" + 
+                getBaseDir() + "/backup.sql'");
         conn.close();
     }
 
@@ -160,7 +164,8 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The function alias 'int_decode' should not be present in the script",
+            assertTrue("The function alias 'int_decode' " + 
+                    "should not be present in the script",
                     rs.getString(1).indexOf("int_decode".toUpperCase()) == -1);
         }
         rs.close();
@@ -177,11 +182,13 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("create schema b");
         stat.execute("create schema c");
         stat.execute("create constant a.default_email value 'no@thanks.org'");
-        stat.execute("create table a.test1(x varchar, email varchar default a.default_email)");
+        stat.execute("create table a.test1(x varchar, " + 
+                "email varchar default a.default_email)");
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The constant 'default_email' should not be present in the script",
+            assertTrue("The constant 'default_email' " + 
+                    "should not be present in the script",
                     rs.getString(1).indexOf("default_email".toUpperCase()) == -1);
         }
         rs.close();
@@ -218,11 +225,13 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("create schema b");
         stat.execute("create schema c");
         stat.execute("create table a.test1(x varchar, y int)");
-        stat.execute("alter table a.test1 add constraint unique_constraint unique (x, y) ");
+        stat.execute("alter table a.test1 add constraint " + 
+                "unique_constraint unique (x, y) ");
         stat.execute("script schema b");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The sequence 'unique_constraint' should not be present in the script",
+            assertTrue("The sequence 'unique_constraint' " + 
+                    "should not be present in the script",
                     rs.getString(1).indexOf("unique_constraint".toUpperCase()) == -1);
         }
         rs.close();
@@ -230,7 +239,8 @@ public class TestRunscript extends TestBase implements Trigger {
         stat.execute("script table a.test2");
         rs = stat.getResultSet();
         while (rs.next()) {
-            assertTrue("The sequence 'unique_constraint' should not be present in the script",
+            assertTrue("The sequence 'unique_constraint' " + 
+                    "should not be present in the script",
                     rs.getString(1).indexOf("unique_constraint".toUpperCase()) == -1);
         }
         rs.close();
@@ -319,8 +329,10 @@ public class TestRunscript extends TestBase implements Trigger {
         Connection conn;
         conn = getConnection("runscript");
         final Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key) as select x from system_range(1, 20000)");
-        stat.execute("script simple drop to '"+getBaseDir()+"/backup.sql'");
+        stat.execute("create table test(id int primary key) as " + 
+                "select x from system_range(1, 20000)");
+        stat.execute("script simple drop to '"+
+                getBaseDir()+"/backup.sql'");
         stat.execute("set throttle 1000");
         // need to wait a bit (throttle is only used every 50 ms)
         Thread.sleep(200);
@@ -367,13 +379,17 @@ public class TestRunscript extends TestBase implements Trigger {
         conn = getConnection("runscript");
         stat = conn.createStatement();
         stat.execute("create table \"t\u00f6\"(id int)");
-        stat.execute("script to '"+getBaseDir()+"/backup.sql'");
+        stat.execute("script to '"+
+                getBaseDir()+"/backup.sql'");
         stat.execute("drop all objects");
-        stat.execute("runscript from '"+getBaseDir()+"/backup.sql'");
+        stat.execute("runscript from '"+
+                getBaseDir()+"/backup.sql'");
         stat.execute("select * from \"t\u00f6\"");
-        stat.execute("script to '"+getBaseDir()+"/backup.sql' charset 'UTF-8'");
+        stat.execute("script to '"+
+                getBaseDir()+"/backup.sql' charset 'UTF-8'");
         stat.execute("drop all objects");
-        stat.execute("runscript from '"+getBaseDir()+"/backup.sql' charset 'UTF-8'");
+        stat.execute("runscript from '"+
+                getBaseDir()+"/backup.sql' charset 'UTF-8'");
         stat.execute("select * from \"t\u00f6\"");
         conn.close();
         FileUtils.delete(getBaseDir() + "/backup.sql");
@@ -395,7 +411,8 @@ public class TestRunscript extends TestBase implements Trigger {
         Statement stat;
         conn = getConnection("runscript");
         stat = conn.createStatement();
-        stat.execute("create table test(id int not null, data clob) as select 1, space(4100)");
+        stat.execute("create table test(id int not null, data clob) " + 
+                "as select 1, space(4100)");
         // the primary key for SYSTEM_LOB_STREAM used to be named like this
         stat.execute("create primary key primary_key_e on test(id)");
         stat.execute("script to '" + getBaseDir() + "/backup.sql'");
@@ -417,25 +434,32 @@ public class TestRunscript extends TestBase implements Trigger {
         stat1 = conn1.createStatement();
         stat1.execute("create table test (id identity, name varchar(12))");
         stat1.execute("insert into test (name) values ('first'), ('second')");
-        stat1.execute("create table test2(id int primary key) as select x from system_range(1, 5000)");
+        stat1.execute("create table test2(id int primary key) as " + 
+                "select x from system_range(1, 5000)");
         stat1.execute("create sequence testSeq start with 100 increment by 10");
-        stat1.execute("create alias myTest for \"" + getClass().getName() + ".test\"");
-        stat1.execute("create trigger myTrigger before insert on test nowait call \"" + getClass().getName() + "\"");
-        stat1.execute("create view testView as select * from test where 1=0 union all " +
+        stat1.execute("create alias myTest for \"" + 
+                getClass().getName() + ".test\"");
+        stat1.execute("create trigger myTrigger before insert " + 
+                "on test nowait call \"" + getClass().getName() + "\"");
+        stat1.execute("create view testView as select * " + 
+                "from test where 1=0 union all " +
                 "select * from test where 0=1");
         stat1.execute("create user testAdmin salt '00' hash '01' admin");
         stat1.execute("create schema testSchema authorization testAdmin");
-        stat1.execute("create table testSchema.parent(id int primary key, name varchar)");
+        stat1.execute("create table testSchema.parent" + 
+                "(id int primary key, name varchar)");
         stat1.execute("create index idxname on testSchema.parent(name)");
         stat1.execute("create table testSchema.child(id int primary key, " +
-                "parentId int, name varchar, foreign key(parentId) references parent(id))");
+                "parentId int, name varchar, foreign key(parentId) " + 
+                "references parent(id))");
         stat1.execute("create user testUser salt '02' hash '03'");
         stat1.execute("create role testRole");
         stat1.execute("grant all on testSchema.child to testUser");
         stat1.execute("grant select, insert on testSchema.parent to testRole");
         stat1.execute("grant testRole to testUser");
         stat1.execute("create table blob (value blob)");
-        PreparedStatement prep = conn1.prepareStatement("insert into blob values (?)");
+        PreparedStatement prep = conn1.prepareStatement(
+                "insert into blob values (?)");
         prep.setBytes(1, new byte[65536]);
         prep.execute();
         String sql = "script to ?";
@@ -473,7 +497,8 @@ public class TestRunscript extends TestBase implements Trigger {
             conn1.close();
 
             if (config.cipher != null) {
-                ChangeFileEncryption.execute(getBaseDir(), "runscript", config.cipher, getFilePassword().toCharArray(), null, true);
+                ChangeFileEncryption.execute(getBaseDir(), "runscript", 
+                        config.cipher, getFilePassword().toCharArray(), null, true);
             }
             Recover.execute(getBaseDir(), "runscript");
 
@@ -486,7 +511,8 @@ public class TestRunscript extends TestBase implements Trigger {
             stat3 = conn3.createStatement();
 
             if (config.cipher != null) {
-                ChangeFileEncryption.execute(getBaseDir(), "runscript", config.cipher, null, getFilePassword().toCharArray(), true);
+                ChangeFileEncryption.execute(getBaseDir(), 
+                        "runscript", config.cipher, null, getFilePassword().toCharArray(), true);
             }
 
             conn1 = getConnection("runscript");
@@ -508,7 +534,8 @@ public class TestRunscript extends TestBase implements Trigger {
     }
 
     @Override
-    public void init(Connection conn, String schemaName, String triggerName, String tableName, boolean before, int type) {
+    public void init(Connection conn, String schemaName, String triggerName,
+            String tableName, boolean before, int type) {
         if (!before) {
             throw new InternalError("before:" + before);
         }

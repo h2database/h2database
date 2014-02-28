@@ -29,7 +29,7 @@ public class TestFileLockSerialized extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -193,7 +193,8 @@ public class TestFileLockSerialized extends TestBase {
         Connection conn = getConnection(writeUrl, "sa", "sa");
         conn.createStatement()
                 .execute(
-                        "create table test(id identity) as select x from system_range(1, 100)");
+                        "create table test(id identity) as " +
+                        "select x from system_range(1, 100)");
         conn.close();
         Task task = new Task() {
             @Override
@@ -211,7 +212,8 @@ public class TestFileLockSerialized extends TestBase {
             conn = getConnection(writeUrl, "sa", "sa");
             Statement stat = conn.createStatement();
             stat.execute("drop table test");
-            stat.execute("create table test(id identity) as select x from system_range(1, 100)");
+            stat.execute("create table test(id identity) as " +
+                    "select x from system_range(1, 100)");
             conn.createStatement().execute("select * from test");
             conn.close();
         }
@@ -354,7 +356,8 @@ public class TestFileLockSerialized extends TestBase {
         final String url = "jdbc:h2:" +
                 getBaseDir() +
                 "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
-                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
+                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;" +
+                "COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
         Connection conn = getConnection(url);
         conn.createStatement().execute(
@@ -437,7 +440,8 @@ public class TestFileLockSerialized extends TestBase {
         final String url = "jdbc:h2:" +
                 getBaseDir() +
                 "/fileLockSerialized;FILE_LOCK=SERIALIZED;OPEN_NEW=TRUE;" +
-                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
+                "AUTO_RECONNECT=TRUE;MAX_LENGTH_INPLACE_LOB=8192;" +
+                "COMPRESS_LOB=DEFLATE;CACHE_SIZE=65536";
 
         Connection conn = getConnection(url);
         conn.createStatement().execute("create table test(id int)");
@@ -503,7 +507,7 @@ public class TestFileLockSerialized extends TestBase {
     /**
      * If a checkpoint occurs between beforeWriting and checkWritingAllowed then
      * the result of checkWritingAllowed is READ_ONLY, which is wrong.
-     * 
+     *
      * Also, if a checkpoint started before beforeWriting, and ends between
      * between beforeWriting and checkWritingAllowed, then the same error
      * occurs.

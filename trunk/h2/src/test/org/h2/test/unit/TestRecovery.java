@@ -74,7 +74,9 @@ public class TestRecovery extends TestBase {
         conn.close();
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection("recovery;init=runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                getBaseDir() + "/recovery.h2.sql'");
         stat = conn.createStatement();
         stat.execute("select * from test");
         conn.close();
@@ -84,14 +86,18 @@ public class TestRecovery extends TestBase {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_INIT FOR \"org.h2.fulltext.FullTextLucene.init\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_INIT " +
+                "FOR \"org.h2.fulltext.FullTextLucene.init\"");
         stat.execute("CALL FTL_INIT()");
-        stat.execute("create table test(id int primary key, name varchar) as select 1, 'Hello'");
+        stat.execute("create table test(id int primary key, name varchar) as " +
+                "select 1, 'Hello'");
         stat.execute("CALL FTL_CREATE_INDEX('PUBLIC', 'TEST', 'NAME')");
         conn.close();
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection("recovery;init=runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection(
+                "recovery;init=runscript from '" +
+                getBaseDir() + "/recovery.h2.sql'");
         conn.close();
     }
 
@@ -118,7 +124,8 @@ public class TestRecovery extends TestBase {
         }
         Recover.main("-dir", getBaseDir(), "-db", "recovery", "-transactionLog");
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
-        conn = getConnection("recovery;init=runscript from '" + getBaseDir() + "/recovery.h2.sql'");
+        conn = getConnection("recovery;init=runscript from '" +
+                getBaseDir() + "/recovery.h2.sql'");
         stat = conn.createStatement();
         ResultSet rs;
         rs = stat.executeQuery("select * from test order by id");
@@ -146,7 +153,8 @@ public class TestRecovery extends TestBase {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int, name varchar) as select 1, 'Hello World1'");
+        stat.execute("create table test(id int, name varchar) as " +
+                "select 1, 'Hello World1'");
         conn.close();
         FileChannel f = FileUtils.open(getBaseDir() + "/recovery.h2.db", "rw");
         byte[] buff = new byte[Constants.DEFAULT_PAGE_SIZE];
@@ -176,10 +184,12 @@ public class TestRecovery extends TestBase {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
-        stat.execute("create table truncate(id int primary key) as select x from system_range(1, 1000)");
+        stat.execute("create table truncate(id int primary key) as " +
+                "select x from system_range(1, 1000)");
         stat.execute("create table test(id int primary key, data int, text varchar)");
         stat.execute("create index on test(data, id)");
-        stat.execute("insert into test direct select x, 0, null from system_range(1, 1000)");
+        stat.execute("insert into test direct select x, 0, null " +
+                "from system_range(1, 1000)");
         stat.execute("insert into test values(-1, -1, space(10000))");
         stat.execute("checkpoint");
         stat.execute("delete from test where id = -1");
@@ -187,7 +197,9 @@ public class TestRecovery extends TestBase {
         conn.setAutoCommit(false);
         long base = 0;
         while (true) {
-            ResultSet rs = stat.executeQuery("select value from information_schema.settings where name = 'info.FILE_WRITE'");
+            ResultSet rs = stat.executeQuery(
+                        "select value from information_schema.settings " +
+                        "where name = 'info.FILE_WRITE'");
             rs.next();
             long count = rs.getLong(1);
             if (base == 0) {
@@ -253,16 +265,24 @@ public class TestRecovery extends TestBase {
         org.h2.Driver.load();
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();
-        stat.execute("create table \"Joe\"\"s Table\" as select 1");
-        stat.execute("create table test as select * from system_range(1, 100)");
-        stat.execute("create view \"TEST VIEW OF TABLE TEST\" as select * from test");
-        stat.execute("create table a(id int primary key) as select * from system_range(1, 100)");
-        stat.execute("create table b(id int references a(id)) as select * from system_range(1, 100)");
-        stat.execute("create table lob(c clob, b blob) as select space(10000) || 'end', SECURE_RAND(10000)");
-        stat.execute("create table d(d varchar) as select space(10000) || 'end'");
+        stat.execute("create table \"Joe\"\"s Table\" as " +
+                "select 1");
+        stat.execute("create table test as " +
+                "select * from system_range(1, 100)");
+        stat.execute("create view \"TEST VIEW OF TABLE TEST\" as " +
+                "select * from test");
+        stat.execute("create table a(id int primary key) as " +
+                "select * from system_range(1, 100)");
+        stat.execute("create table b(id int references a(id)) as " +
+                "select * from system_range(1, 100)");
+        stat.execute("create table lob(c clob, b blob) as " +
+                "select space(10000) || 'end', SECURE_RAND(10000)");
+        stat.execute("create table d(d varchar) as " +
+                "select space(10000) || 'end'");
         stat.execute("alter table a add foreign key(id) references b(id)");
         // all rows have the same value - so that SCRIPT can't re-order the rows
-        stat.execute("create table e(id varchar) as select space(10) from system_range(1, 1000)");
+        stat.execute("create table e(id varchar) as " +
+                "select space(10) from system_range(1, 1000)");
         stat.execute("create index idx_e_id on e(id)");
         conn.close();
 

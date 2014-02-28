@@ -50,7 +50,9 @@ public class TestBtreeIndex extends TestBase {
             Statement stat = conn.createStatement();
             stat.execute("CREATE TABLE TEST(ID bigint primary key)");
             int count = 1000;
-            stat.execute("insert into test select x from system_range(1, " + count + ")");
+            stat.execute(
+                    "insert into test select x from system_range(1, " +
+                    count + ")");
             if (!config.memory) {
                 conn.close();
                 conn = getConnection("index");
@@ -105,9 +107,12 @@ public class TestBtreeIndex extends TestBase {
         try {
             Statement stat = conn.createStatement();
             stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
-            PreparedStatement prepInsert = conn.prepareStatement("INSERT INTO a VALUES(?)");
-            PreparedStatement prepDelete = conn.prepareStatement("DELETE FROM a WHERE text=?");
-            PreparedStatement prepDeleteAllButOne = conn.prepareStatement("DELETE FROM a WHERE text <> ?");
+            PreparedStatement prepInsert = conn.prepareStatement(
+                    "INSERT INTO a VALUES(?)");
+            PreparedStatement prepDelete = conn.prepareStatement(
+                    "DELETE FROM a WHERE text=?");
+            PreparedStatement prepDeleteAllButOne = conn.prepareStatement(
+                    "DELETE FROM a WHERE text <> ?");
             int count = 0;
             for (int i = 0; i < 1000; i++) {
                 int y = random.nextInt(distinct);
@@ -153,8 +158,10 @@ public class TestBtreeIndex extends TestBase {
             }
             int testCount;
             testCount = 0;
-            ResultSet rs = stat.executeQuery("SELECT text FROM a ORDER BY text");
-            ResultSet rs2 = conn.createStatement().executeQuery("SELECT text FROM a ORDER BY 'x' || text");
+            ResultSet rs = stat.executeQuery(
+                    "SELECT text FROM a ORDER BY text");
+            ResultSet rs2 = conn.createStatement().executeQuery(
+                    "SELECT text FROM a ORDER BY 'x' || text");
 
 //System.out.println("-----------");
 //while(rs.next()) {
@@ -178,7 +185,8 @@ public class TestBtreeIndex extends TestBase {
             if (testCount != count) {
                 printError(seed, "count:" + count + " testCount:" + testCount);
             }
-            rs = stat.executeQuery("SELECT text, count(*) FROM a GROUP BY text HAVING COUNT(*)>1");
+            rs = stat.executeQuery("SELECT text, count(*) FROM a " +
+                    "GROUP BY text HAVING COUNT(*)>1");
             if (rs.next()) {
                 printError(seed, "testCount:" + testCount + " " + rs.getString(1));
             }

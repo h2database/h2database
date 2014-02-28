@@ -44,8 +44,10 @@ public class TestRecover {
 
     private static final String TEST_DIRECTORY = DIR + "/data" + NODE;
     private static final String BACKUP_DIRECTORY = DIR + "/last";
-    private static final String URL = System.getProperty("test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test");
-    private static final String DRIVER = System.getProperty("test.driver", "org.h2.Driver");
+    private static final String URL = System.getProperty(
+            "test.url", "jdbc:h2:" + TEST_DIRECTORY + "/test");
+    private static final String DRIVER = System.getProperty(
+            "test.driver", "org.h2.Driver");
 
     // private static final String DIR =
     //     System.getProperty("test.dir", "/temp/derby");
@@ -66,11 +68,13 @@ public class TestRecover {
         System.out.println("URL=" + URL);
         System.out.println("backup...");
         new File(TEST_DIRECTORY).mkdirs();
-        File backup = backup(TEST_DIRECTORY, BACKUP_DIRECTORY, "data", 10, NODE);
+        File backup = backup(TEST_DIRECTORY,
+                BACKUP_DIRECTORY, "data", 10, NODE);
         System.out.println("check consistency...");
         if (!testConsistency()) {
             System.out.println("error! renaming file");
-            backup.renameTo(new File(backup.getParentFile(), "error-" + backup.getName()));
+            backup.renameTo(new File(backup.getParentFile(),
+                    "error-" + backup.getName()));
         }
         System.out.println("deleting old run...");
         deleteRecursive(new File(TEST_DIRECTORY));
@@ -148,7 +152,8 @@ public class TestRecover {
         return zipFile;
     }
 
-    private static void listRecursive(List<File> list, File file) throws IOException {
+    private static void listRecursive(List<File> list, File file)
+            throws IOException {
         File[] l = file.listFiles();
         for (int i = 0; l != null && i < l.length; i++) {
             File f = l[i];
@@ -183,7 +188,8 @@ public class TestRecover {
         Connection conn = DriverManager.getConnection(URL, "sa", "sa");
         Statement stat = conn.createStatement();
         try {
-            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, D INT, NAME VARCHAR("+MAX_STRING_LENGTH+"))");
+            stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, " +
+                    "D INT, NAME VARCHAR("+MAX_STRING_LENGTH+"))");
             stat.execute("CREATE INDEX IDX_TEST_D ON TEST(D)");
         } catch (SQLException e) {
             // ignore
@@ -259,7 +265,8 @@ public class TestRecover {
 //            }
             if (random.nextBoolean()) {
                 if (prepInsert == null) {
-                    prepInsert = conn.prepareStatement("INSERT INTO TEST(ID, D, NAME) VALUES(?, ?, ?)");
+                    prepInsert = conn.prepareStatement(
+                            "INSERT INTO TEST(ID, D, NAME) VALUES(?, ?, ?)");
                 }
                 prepInsert.setInt(1, id);
                 prepInsert.setInt(2, random.nextInt(10000));

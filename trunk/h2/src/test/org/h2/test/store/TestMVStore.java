@@ -1,7 +1,8 @@
 /*
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
- * 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.test.store;
 
@@ -387,7 +388,8 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/testBackgroundExceptionListener.h3";
         FileUtils.delete(fileName);
         MVStore s;
-        final AtomicReference<Throwable> exRef = new AtomicReference<Throwable>();
+        final AtomicReference<Throwable> exRef =
+                new AtomicReference<Throwable>();
         s = new MVStore.Builder().
                 fileName(fileName).
                 backgroundExceptionHandler(new UncaughtExceptionHandler() {
@@ -412,7 +414,8 @@ public class TestMVStore extends TestBase {
         }
         Throwable e = exRef.get();
         assertTrue(e != null);
-        assertEquals(DataUtils.ERROR_WRITING_FAILED, DataUtils.getErrorCode(e.getMessage()));
+        assertEquals(DataUtils.ERROR_WRITING_FAILED,
+                DataUtils.getErrorCode(e.getMessage()));
 
         s.closeImmediately();
         FileUtils.delete(fileName);
@@ -1646,7 +1649,8 @@ public class TestMVStore extends TestBase {
             if (initialLength == 0) {
                 initialLength = len;
             } else {
-                assertTrue("initial: " + initialLength + " len: " + len, len <= initialLength * 3);
+                assertTrue("initial: " + initialLength + " len: " + len,
+                        len <= initialLength * 3);
             }
         }
         // long len = FileUtils.size(fileName);

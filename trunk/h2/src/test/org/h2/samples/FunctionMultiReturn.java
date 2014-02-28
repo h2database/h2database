@@ -63,7 +63,7 @@ public class FunctionMultiReturn {
                     " (x=" + x + ", y="+y+")");
         }
 
-        stat.execute("CREATE ALIAS P2C_A " + 
+        stat.execute("CREATE ALIAS P2C_A " +
                 "FOR \"org.h2.samples.FunctionMultiReturn.polar2CartesianArray\" ");
         rs = conn.createStatement().executeQuery(
                 "SELECT R, A, P2C_A(R, A) FROM TEST");

@@ -23,19 +23,24 @@ public class ProductInheritedAnnotation extends ProductMixedAnnotation {
         // public constructor
     }
 
-    private ProductInheritedAnnotation(int productId, String productName, String category, double unitPrice,
-            int unitsInStock, String mappedField) {
-        super(productId, productName, category, unitPrice, unitsInStock, mappedField);
+    private ProductInheritedAnnotation(int productId, String productName,
+            String category, double unitPrice, int unitsInStock,
+            String mappedField) {
+        super(productId, productName, category, unitPrice, unitsInStock,
+                mappedField);
     }
 
-    private static ProductInheritedAnnotation create(int productId, String productName, String category,
-            double unitPrice, int unitsInStock, String mappedField) {
-        return new ProductInheritedAnnotation(productId, productName, category, unitPrice, unitsInStock, mappedField);
+    private static ProductInheritedAnnotation create(int productId,
+            String productName, String category, double unitPrice,
+            int unitsInStock, String mappedField) {
+        return new ProductInheritedAnnotation(productId, productName, category,
+                unitPrice, unitsInStock, mappedField);
     }
 
     public static List<ProductInheritedAnnotation> getData() {
         String mappedField = "mapped";
-        ProductInheritedAnnotation[] list = { create(1, "Chai", "Beverages", 18, 39, mappedField),
+        ProductInheritedAnnotation[] list = { 
+                create(1, "Chai", "Beverages", 18, 39, mappedField),
                 create(2, "Chang", "Beverages", 19.0, 17, mappedField),
                 create(3, "Aniseed Syrup", "Condiments", 10.0, 13, mappedField),
                 create(4, "Chef Anton's Cajun Seasoning", "Condiments", 22.0, 53, mappedField),

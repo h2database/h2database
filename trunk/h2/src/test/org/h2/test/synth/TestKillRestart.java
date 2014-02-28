@@ -90,14 +90,17 @@ public class TestKillRestart extends TestBase {
                 password = args[++i];
             }
         }
-        System.out.println("#Started; driver: " + driver + " url: " + url + " user: " + user + " password: " + password);
+        System.out.println("#Started; driver: " + driver + " url: " + url +
+                " user: " + user + " password: " + password);
         try {
             Class.forName(driver);
             System.out.println("#Opening...");
             Connection conn = DriverManager.getConnection(url, user, password);
             Statement stat = conn.createStatement();
-            stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID IDENTITY, NAME VARCHAR)");
-            stat.execute("CREATE TABLE IF NOT EXISTS TEST2(ID IDENTITY, NAME VARCHAR)");
+            stat.execute("CREATE TABLE IF NOT EXISTS TEST" +
+                    "(ID IDENTITY, NAME VARCHAR)");
+            stat.execute("CREATE TABLE IF NOT EXISTS TEST2" +
+                    "(ID IDENTITY, NAME VARCHAR)");
             ResultSet rs = stat.executeQuery("SELECT * FROM TEST");
             while (rs.next()) {
                 rs.getLong("ID");
@@ -118,8 +121,10 @@ public class TestKillRestart extends TestBase {
             stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
             stat.execute("CREATE TABLE TEST2(ID IDENTITY, NAME VARCHAR)");
             stat.execute("CREATE TABLE TEST_META(ID INT)");
-            PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(NAME) VALUES(?)");
-            PreparedStatement prep2 = conn.prepareStatement("INSERT INTO TEST2(NAME) VALUES(?)");
+            PreparedStatement prep = conn.prepareStatement(
+                    "INSERT INTO TEST(NAME) VALUES(?)");
+            PreparedStatement prep2 = conn.prepareStatement(
+                    "INSERT INTO TEST2(NAME) VALUES(?)");
             Random r = new Random(0);
 //            Runnable stopper = new Runnable() {
 //                public void run() {
@@ -137,7 +142,9 @@ public class TestKillRestart extends TestBase {
                     System.out.println("#Running...");
                 }
                 if (r.nextInt(100) < 10) {
-                    conn.createStatement().execute("ALTER TABLE TEST_META ALTER COLUMN ID INT DEFAULT 10");
+                    conn.createStatement().execute(
+                            "ALTER TABLE TEST_META " +
+                            "ALTER COLUMN ID INT DEFAULT 10");
                 }
                 if (r.nextBoolean()) {
                     if (r.nextBoolean()) {
@@ -149,9 +156,11 @@ public class TestKillRestart extends TestBase {
                     }
                 } else {
                     if (r.nextBoolean()) {
-                        conn.createStatement().execute("UPDATE TEST SET NAME = NULL");
+                        conn.createStatement().execute(
+                                "UPDATE TEST SET NAME = NULL");
                     } else {
-                        conn.createStatement().execute("UPDATE TEST2 SET NAME = NULL");
+                        conn.createStatement().execute(
+                                "UPDATE TEST2 SET NAME = NULL");
                     }
                 }
             }

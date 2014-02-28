@@ -138,7 +138,8 @@ public class Value {
      * @param index the column index
      * @return the value
      */
-    static Value read(TestSynth config, ResultSet rs, int index) throws SQLException {
+    static Value read(TestSynth config, ResultSet rs, int index)
+            throws SQLException {
         ResultSetMetaData meta = rs.getMetaData();
         Object data;
         int type = meta.getColumnType(index);
@@ -205,7 +206,8 @@ public class Value {
      * @param mayBeNull if the value may be null or not
      * @return the value
      */
-    static Value getRandom(TestSynth config, int type, int precision, int scale, boolean mayBeNull) {
+    static Value getRandom(TestSynth config, int type, int precision,
+            int scale, boolean mayBeNull) {
         Object data;
         if (mayBeNull && config.random().getBoolean(20)) {
             return new Value(config, type, null);
@@ -268,7 +270,8 @@ public class Value {
         return data;
     }
 
-    private static BigDecimal randomDecimal(TestSynth config, int precision, int scale) {
+    private static BigDecimal randomDecimal(TestSynth config, int precision,
+            int scale) {
         int len = config.random().getLog(precision - scale) + scale;
         if (len == 0) {
             len++;

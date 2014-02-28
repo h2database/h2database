@@ -105,47 +105,73 @@ public class TestResultSet extends TestBase {
     @SuppressWarnings("deprecation")
     private void testUnsupportedOperations() throws SQLException {
         ResultSet rs = stat.executeQuery("select 1 as x from dual");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getUnicodeStream(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getUnicodeStream("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+        getUnicodeStream(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+        getUnicodeStream("x");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getObject(1, Collections.<String, Class<?>>emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getObject("x", Collections.<String, Class<?>>emptyMap());
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getRef(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getRef("x");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getURL(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getURL("x");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getRowId(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getRowId("x");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getSQLXML(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getSQLXML("x");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateRef(1, (Ref) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateRef("x", (Ref) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateArray(1, (Array) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateArray("x", (Array) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateRowId(1, (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateRowId("x", (RowId) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateNClob(1, (NClob) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateNClob("x", (NClob) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateSQLXML(1, (SQLXML) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).updateSQLXML("x", (SQLXML) null);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).getCursorName();
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).setFetchDirection(ResultSet.FETCH_FORWARD);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).unwrap(Object.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).isWrapperFor(Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getRef(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getRef("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getURL(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getURL("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getRowId(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getRowId("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getSQLXML(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getSQLXML("x");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateRef(1, (Ref) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateRef("x", (Ref) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateArray(1, (Array) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateArray("x", (Array) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateRowId(1, (RowId) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateRowId("x", (RowId) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateNClob(1, (NClob) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateNClob("x", (NClob) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateSQLXML(1, (SQLXML) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                updateSQLXML("x", (SQLXML) null);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                getCursorName();
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                setFetchDirection(ResultSet.FETCH_FORWARD);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                unwrap(Object.class);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                isWrapperFor(Object.class);
     }
 
     private void testAmbiguousColumnNames() throws SQLException {
         stat.execute("create table test(id int)");
         stat.execute("insert into test values(1)");
-        ResultSet rs = stat.executeQuery("select 1 x, 2 x, 3 x, 4 x, 5 x, 6 x from test");
+        ResultSet rs = stat.executeQuery(
+                "select 1 x, 2 x, 3 x, 4 x, 5 x, 6 x from test");
         rs.next();
         assertEquals(1, rs.getInt("x"));
         stat.execute("drop table test");
     }
 
     private void testInsertRowWithUpdatableResultSetDefault() throws Exception {
-        stat.execute("create table test(id int primary key, data varchar(255) default 'Hello')");
+        stat.execute("create table test(id int primary key, " + 
+                "data varchar(255) default 'Hello')");
         PreparedStatement prep = conn.prepareStatement("select * from test",
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         ResultSet rs = prep.executeQuery();
@@ -303,7 +329,8 @@ public class TestResultSet extends TestBase {
         try {
             // when using Turkish as the default locale, "i".toUpperCase() is not "I"
             Locale.setDefault(new Locale("tr"));
-            stat.execute("create table test(I1 int, i2 int, b int, c int, d int) as select 1, 1, 1, 1, 1");
+            stat.execute("create table test(I1 int, i2 int, b int, c int, d int) " +
+                    "as select 1, 1, 1, 1, 1");
             ResultSet rs = stat.executeQuery("select * from test");
             rs.next();
             rs.getString("I1");
@@ -348,7 +375,8 @@ public class TestResultSet extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
         // there was a problem when more than MAX_MEMORY_ROWS where in the result set
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 200)");
-        Statement s2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement s2 = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         ResultSet rs = s2.executeQuery("SELECT * FROM TEST ORDER BY ID");
         for (int i = 100; i > 0; i--) {
             rs.absolute(i);
@@ -495,7 +523,8 @@ public class TestResultSet extends TestBase {
         assertEquals(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
         assertEquals(Integer.MAX_VALUE, meta.getPrecision(1));
 
-        rs = stat.executeQuery("select group_concat(table_name) from information_schema.tables");
+        rs = stat.executeQuery("select group_concat(table_name) " +
+                "from information_schema.tables");
         rs.next();
         meta = rs.getMetaData();
         assertEquals(Integer.MAX_VALUE, meta.getColumnDisplaySize(1));
@@ -513,7 +542,8 @@ public class TestResultSet extends TestBase {
         ResultSet rs2 = stat.executeQuery("SELECT UPPER (C)  FROM one;");
         ResultSetMetaData md2 = rs2.getMetaData();
         assertEquals(10, md2.getPrecision(1));
-        rs = stat.executeQuery("SELECT UPPER (C), CHAR(10), CONCAT(C,C,C), HEXTORAW(C), RAWTOHEX(C) FROM one");
+        rs = stat.executeQuery("SELECT UPPER (C), CHAR(10), " +
+                "CONCAT(C,C,C), HEXTORAW(C), RAWTOHEX(C) FROM one");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(10, meta.getPrecision(1));
         assertEquals(1, meta.getPrecision(2));
@@ -602,7 +632,8 @@ public class TestResultSet extends TestBase {
         assertEquals(null, meta.getColumnClassName(3));
 
         assertTrue(rs.getRow() == 0);
-        assertResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" }, new int[] { Types.INTEGER, Types.INTEGER,
+        assertResultSetMeta(rs, 3, new String[] { "ID", "VALUE", "N" },
+                new int[] { Types.INTEGER, Types.INTEGER,
                 Types.NULL }, new int[] { 10, 10, 1 }, new int[] { 0, 0, 0 });
         rs.next();
         assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
@@ -712,7 +743,8 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(10,'\\''')");
         stat.execute("INSERT INTO TEST VALUES(11,'\\%')");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.VARCHAR }, new int[] {
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
+                new int[] { Types.INTEGER, Types.VARCHAR }, new int[] {
                 10, 255 }, new int[] { 0, 0 });
         String value;
         rs.next();
@@ -792,7 +824,8 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(7,-99999998.99)");
         stat.execute("INSERT INTO TEST VALUES(8,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
+                new int[] { Types.INTEGER, Types.DECIMAL }, new int[] {
                 10, 10 }, new int[] { 0, 2 });
         BigDecimal bd;
 
@@ -852,7 +885,8 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(8, NULL, NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 3, new String[] { "ID", "D", "R" },
-                new int[] { Types.INTEGER, Types.DOUBLE, Types.REAL }, new int[] { 10, 17, 7 }, new int[] { 0, 0, 0 });
+                new int[] { Types.INTEGER, Types.DOUBLE, Types.REAL },
+                new int[] { 10, 17, 7 }, new int[] { 0, 0, 0 });
         BigDecimal bd;
         rs.next();
         assertTrue(rs.getInt(1) == 1);
@@ -927,11 +961,14 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(3,TIMESTAMP '1800-1-1 0:0:0')");
         stat.execute("INSERT INTO TEST VALUES(4,TIMESTAMP '9999-12-31 23:59:59')");
         stat.execute("INSERT INTO TEST VALUES(5,NULL)");
-        rs = stat.executeQuery("SELECT 0 ID, TIMESTAMP '9999-12-31 23:59:59' VALUE FROM TEST ORDER BY ID");
-        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.TIMESTAMP },
+        rs = stat.executeQuery("SELECT 0 ID, " +
+                "TIMESTAMP '9999-12-31 23:59:59' VALUE FROM TEST ORDER BY ID");
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
+                new int[] { Types.INTEGER, Types.TIMESTAMP },
                 new int[] { 10, 23 }, new int[] { 0, 10 });
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.TIMESTAMP },
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
+                new int[] { Types.INTEGER, Types.TIMESTAMP },
                 new int[] { 10, 23 }, new int[] { 0, 10 });
         rs.next();
         java.sql.Date date;
@@ -943,20 +980,30 @@ public class TestResultSet extends TestBase {
         assertTrue(!rs.wasNull());
         ts = rs.getTimestamp(2);
         assertTrue(!rs.wasNull());
-        trace("Date: " + date.toString() + " Time:" + time.toString() + " Timestamp:" + ts.toString());
-        trace("Date ms: " + date.getTime() + " Time ms:" + time.getTime() + " Timestamp ms:" + ts.getTime());
-        trace("1970 ms: " + java.sql.Timestamp.valueOf("1970-01-01 00:00:00.0").getTime());
-        assertEquals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime(), date.getTime());
-        assertEquals(java.sql.Timestamp.valueOf("1970-01-01 00:00:00.0").getTime(), time.getTime());
-        assertEquals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime(), ts.getTime());
-        assertTrue(date.equals(java.sql.Date.valueOf("2011-11-11")));
-        assertTrue(time.equals(java.sql.Time.valueOf("00:00:00")));
-        assertTrue(ts.equals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
+        trace("Date: " + date.toString() + " Time:" + time.toString() +
+                " Timestamp:" + ts.toString());
+        trace("Date ms: " + date.getTime() + " Time ms:" + time.getTime() +
+                " Timestamp ms:" + ts.getTime());
+        trace("1970 ms: " + java.sql.Timestamp.valueOf(
+                "1970-01-01 00:00:00.0").getTime());
+        assertEquals(java.sql.Timestamp.valueOf(
+                "2011-11-11 00:00:00.0").getTime(), date.getTime());
+        assertEquals(java.sql.Timestamp.valueOf(
+                "1970-01-01 00:00:00.0").getTime(), time.getTime());
+        assertEquals(java.sql.Timestamp.valueOf(
+                "2011-11-11 00:00:00.0").getTime(), ts.getTime());
+        assertTrue(date.equals(
+                java.sql.Date.valueOf("2011-11-11")));
+        assertTrue(time.equals(
+                java.sql.Time.valueOf("00:00:00")));
+        assertTrue(ts.equals(
+                java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
         assertFalse(rs.wasNull());
         o = rs.getObject(2);
         trace(o.getClass().getName());
         assertTrue(o instanceof java.sql.Timestamp);
-        assertTrue(((java.sql.Timestamp) o).equals(java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
+        assertTrue(((java.sql.Timestamp) o).equals(
+                java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
         assertFalse(rs.wasNull());
         rs.next();
 
@@ -966,26 +1013,30 @@ public class TestResultSet extends TestBase {
         assertTrue(!rs.wasNull());
         ts = rs.getTimestamp("VALUE");
         assertTrue(!rs.wasNull());
-        trace("Date: " + date.toString() + " Time:" + time.toString() + " Timestamp:" + ts.toString());
+        trace("Date: " + date.toString() +
+                " Time:" + time.toString() + " Timestamp:" + ts.toString());
         assertEquals("2002-02-02", date.toString());
         assertEquals("02:02:02", time.toString());
         assertEquals("2002-02-02 02:02:02.0", ts.toString());
         rs.next();
         assertEquals("1800-01-01", rs.getDate("value").toString());
         assertEquals("00:00:00", rs.getTime("value").toString());
-        assertEquals("1800-01-01 00:00:00.0", rs.getTimestamp("value").toString());
+        assertEquals("1800-01-01 00:00:00.0",
+                rs.getTimestamp("value").toString());
         rs.next();
         assertEquals("9999-12-31", rs.getDate("Value").toString());
         assertEquals("23:59:59", rs.getTime("Value").toString());
-        assertEquals("9999-12-31 23:59:59.0", rs.getTimestamp("Value").toString());
+        assertEquals("9999-12-31 23:59:59.0",
+                rs.getTimestamp("Value").toString());
         rs.next();
         assertTrue(rs.getDate("Value") == null && rs.wasNull());
         assertTrue(rs.getTime("vALUe") == null && rs.wasNull());
         assertTrue(rs.getTimestamp(2) == null && rs.wasNull());
         assertTrue(!rs.next());
 
-        rs = stat
-                .executeQuery("SELECT DATE '2001-02-03' D, TIME '14:15:16', TIMESTAMP '2007-08-09 10:11:12.141516171' TS FROM TEST");
+        rs = stat.executeQuery("SELECT DATE '2001-02-03' D, " +
+                "TIME '14:15:16', " +
+                "TIMESTAMP '2007-08-09 10:11:12.141516171' TS FROM TEST");
         rs.next();
         date = (Date) rs.getObject(1);
         time = (Time) rs.getObject(2);
@@ -1001,27 +1052,31 @@ public class TestResultSet extends TestBase {
         trace("Test DATETIME with Calendar");
         ResultSet rs;
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, D DATE, T TIME, TS TIMESTAMP)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?, ?)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, " +
+                "D DATE, T TIME, TS TIMESTAMP)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?, ?, ?)");
         Calendar regular = Calendar.getInstance();
         Calendar other = null;
         // search a locale that has a _different_ raw offset
         long testTime = java.sql.Date.valueOf("2001-02-03").getTime();
         for (String s : TimeZone.getAvailableIDs()) {
             TimeZone zone = TimeZone.getTimeZone(s);
-            long rawOffsetDiff = regular.getTimeZone().getRawOffset() - zone.getRawOffset();
+            long rawOffsetDiff = regular.getTimeZone().getRawOffset() -
+                    zone.getRawOffset();
             // must not be the same timezone (not 0 h and not 24 h difference
             // as for Pacific/Auckland and Etc/GMT+12)
             if (rawOffsetDiff != 0 && rawOffsetDiff != 1000 * 60 * 60 * 24) {
-                if (regular.getTimeZone().getOffset(testTime) != zone.getOffset(testTime)) {
+                if (regular.getTimeZone().getOffset(testTime) !=
+                        zone.getOffset(testTime)) {
                     other = Calendar.getInstance(zone);
                     break;
                 }
             }
         }
 
-        trace("regular offset = " + regular.getTimeZone().getRawOffset() + " other = "
-                + other.getTimeZone().getRawOffset());
+        trace("regular offset = " + regular.getTimeZone().getRawOffset() +
+                " other = " + other.getTimeZone().getRawOffset());
 
         prep.setInt(1, 0);
         prep.setDate(2, null, regular);
@@ -1038,25 +1093,29 @@ public class TestResultSet extends TestBase {
         prep.setInt(1, 2);
         prep.setDate(2, java.sql.Date.valueOf("2001-02-03"), regular);
         prep.setTime(3, java.sql.Time.valueOf("04:05:06"), regular);
-        prep.setTimestamp(4, java.sql.Timestamp.valueOf("2007-08-09 10:11:12.131415"), regular);
+        prep.setTimestamp(4,
+                java.sql.Timestamp.valueOf("2007-08-09 10:11:12.131415"), regular);
         prep.execute();
 
         prep.setInt(1, 3);
         prep.setDate(2, java.sql.Date.valueOf("2101-02-03"), other);
         prep.setTime(3, java.sql.Time.valueOf("14:05:06"), other);
-        prep.setTimestamp(4, java.sql.Timestamp.valueOf("2107-08-09 10:11:12.131415"), other);
+        prep.setTimestamp(4,
+                java.sql.Timestamp.valueOf("2107-08-09 10:11:12.131415"), other);
         prep.execute();
 
         prep.setInt(1, 4);
         prep.setDate(2, java.sql.Date.valueOf("2101-02-03"));
         prep.setTime(3, java.sql.Time.valueOf("14:05:06"));
-        prep.setTimestamp(4, java.sql.Timestamp.valueOf("2107-08-09 10:11:12.131415"));
+        prep.setTimestamp(4,
+                java.sql.Timestamp.valueOf("2107-08-09 10:11:12.131415"));
         prep.execute();
 
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 4,
                 new String[] { "ID", "D", "T", "TS" },
-                new int[] { Types.INTEGER, Types.DATE, Types.TIME, Types.TIMESTAMP },
+                new int[] { Types.INTEGER, Types.DATE,
+                Types.TIME, Types.TIMESTAMP },
                 new int[] { 10, 8, 6, 23 }, new int[] { 0, 0, 0, 10 });
 
         rs.next();
@@ -1076,21 +1135,27 @@ public class TestResultSet extends TestBase {
         assertEquals("2001-02-03", rs.getDate(2, regular).toString());
         assertEquals("04:05:06", rs.getTime(3, regular).toString());
         assertFalse(rs.getTime(3, other).toString().equals("04:05:06"));
-        assertEquals("2007-08-09 10:11:12.131415", rs.getTimestamp(4, regular).toString());
-        assertFalse(rs.getTimestamp(4, other).toString().equals("2007-08-09 10:11:12.131415"));
+        assertEquals("2007-08-09 10:11:12.131415", 
+                rs.getTimestamp(4, regular).toString());
+        assertFalse(rs.getTimestamp(4, other).toString().
+                equals("2007-08-09 10:11:12.131415"));
 
         rs.next();
         assertEquals(3, rs.getInt("ID"));
-        assertFalse(rs.getTimestamp("TS", regular).toString().equals("2107-08-09 10:11:12.131415"));
-        assertEquals("2107-08-09 10:11:12.131415", rs.getTimestamp("TS", other).toString());
+        assertFalse(rs.getTimestamp("TS", regular).toString().
+                equals("2107-08-09 10:11:12.131415"));
+        assertEquals("2107-08-09 10:11:12.131415",
+                rs.getTimestamp("TS", other).toString());
         assertFalse(rs.getTime("T", regular).toString().equals("14:05:06"));
-        assertEquals("14:05:06", rs.getTime("T", other).toString());
+        assertEquals("14:05:06",
+                rs.getTime("T", other).toString());
         // checkFalse(rs.getDate(2, regular).toString(), "2101-02-03");
         // check(rs.getDate("D", other).toString(), "2101-02-03");
 
         rs.next();
         assertEquals(4, rs.getInt("ID"));
-        assertEquals("2107-08-09 10:11:12.131415", rs.getTimestamp("TS").toString());
+        assertEquals("2107-08-09 10:11:12.131415",
+                rs.getTimestamp("TS").toString());
         assertEquals("14:05:06", rs.getTime("T").toString());
         assertEquals("2101-02-03", rs.getDate("D").toString());
 
@@ -1110,19 +1175,26 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(5,X'0bcec1')");
         stat.execute("INSERT INTO TEST VALUES(6,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.BLOB }, new int[] {
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
+                new int[] { Types.INTEGER, Types.BLOB }, new int[] {
                 10, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
-        assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01, (byte) 0x01, (byte) 0x01 }, rs.getBytes(2));
+        assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
+                (byte) 0x01, (byte) 0x01 },
+                rs.getBytes(2));
         assertTrue(!rs.wasNull());
         rs.next();
-        assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02, (byte) 0x02, (byte) 0x02 }, rs.getBytes("value"));
+        assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
+                (byte) 0x02, (byte) 0x02 },
+                rs.getBytes("value"));
         assertTrue(!rs.wasNull());
         rs.next();
-        assertEqualsWithNull(new byte[] { (byte) 0x00 }, readAllBytes(rs.getBinaryStream(2)));
+        assertEqualsWithNull(new byte[] { (byte) 0x00 },
+                readAllBytes(rs.getBinaryStream(2)));
         assertTrue(!rs.wasNull());
         rs.next();
-        assertEqualsWithNull(new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0xff }, readAllBytes(rs.getBinaryStream("VaLuE")));
+        assertEqualsWithNull(new byte[] { (byte) 0xff, (byte) 0xff, (byte) 0xff },
+                readAllBytes(rs.getBinaryStream("VaLuE")));
         assertTrue(!rs.wasNull());
         rs.next();
         InputStream in = rs.getBinaryStream("value");
@@ -1140,7 +1212,8 @@ public class TestResultSet extends TestBase {
         trace("Test CLOB");
         ResultSet rs;
         String string;
-        stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+        stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE CLOB)");
         stat.execute("INSERT INTO TEST VALUES(1,'Test')");
         stat.execute("INSERT INTO TEST VALUES(2,'Hello')");
@@ -1150,7 +1223,8 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(6,NULL)");
         stat.execute("INSERT INTO TEST VALUES(7,NULL)");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
-        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" }, new int[] { Types.INTEGER, Types.CLOB }, new int[] {
+        assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
+                new int[] { Types.INTEGER, Types.CLOB }, new int[] {
                 10, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
         Object obj = rs.getObject(2);
@@ -1291,7 +1365,8 @@ public class TestResultSet extends TestBase {
         }
     }
 
-    private void checkColumnBigDecimal(ResultSet rs, int column, int i, String bd) throws SQLException {
+    private void checkColumnBigDecimal(ResultSet rs, int column, int i,
+            String bd) throws SQLException {
         BigDecimal bd1 = rs.getBigDecimal(column);
         int i1 = rs.getInt(column);
         if (bd == null) {

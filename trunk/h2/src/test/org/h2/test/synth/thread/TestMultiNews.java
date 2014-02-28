@@ -46,9 +46,11 @@ public class TestMultiNews extends TestMultiThread {
             if (random.nextBoolean()) {
                 PreparedStatement prep;
                 if (random.nextBoolean()) {
-                    prep = conn.prepareStatement("SELECT * FROM NEWS WHERE LINK = ?");
+                    prep = conn.prepareStatement(
+                            "SELECT * FROM NEWS WHERE LINK = ?");
                 } else {
-                    prep = conn.prepareStatement("SELECT * FROM NEWS WHERE VALUE = ?");
+                    prep = conn.prepareStatement(
+                            "SELECT * FROM NEWS WHERE VALUE = ?");
                 }
                 prep.setString(1, PREFIX_URL + random.nextInt(LEN));
                 ResultSet rs = prep.executeQuery();
@@ -59,7 +61,8 @@ public class TestMultiNews extends TestMultiThread {
                     throw new SQLException("expected one row, got more");
                 }
             } else {
-                PreparedStatement prep = conn.prepareStatement("UPDATE NEWS SET STATE = ? WHERE FID = ?");
+                PreparedStatement prep = conn.prepareStatement(
+                        "UPDATE NEWS SET STATE = ? WHERE FID = ?");
                 prep.setInt(1, random.nextInt(100));
                 prep.setInt(2, random.nextInt(LEN));
                 int count = prep.executeUpdate();
@@ -90,14 +93,20 @@ public class TestMultiNews extends TestMultiThread {
         Connection c = base.getConnection();
         Statement stat = c.createStatement();
         stat.execute("CREATE TABLE TEST (ID IDENTITY, NAME VARCHAR)");
-        stat.execute("CREATE TABLE NEWS (FID NUMERIC(19) PRIMARY KEY, COMMENTS LONGVARCHAR, "
-                + "LINK VARCHAR(255), STATE INTEGER, VALUE VARCHAR(255))");
-        stat.execute("CREATE INDEX IF NOT EXISTS NEWS_GUID_VALUE_INDEX ON NEWS(VALUE)");
-        stat.execute("CREATE INDEX IF NOT EXISTS NEWS_LINK_INDEX ON NEWS(LINK)");
-        stat.execute("CREATE INDEX IF NOT EXISTS NEWS_STATE_INDEX ON NEWS(STATE)");
-        PreparedStatement prep = c.prepareStatement("INSERT INTO NEWS (FID, COMMENTS, LINK, STATE, VALUE) VALUES "
-                + "(?, ?, ?, ?, ?) ");
-        PreparedStatement prep2 = c.prepareStatement("INSERT INTO TEST (NAME) VALUES (?)");
+        stat.execute("CREATE TABLE NEWS" +
+                "(FID NUMERIC(19) PRIMARY KEY, COMMENTS LONGVARCHAR, " +
+                "LINK VARCHAR(255), STATE INTEGER, VALUE VARCHAR(255))");
+        stat.execute("CREATE INDEX IF NOT EXISTS " +
+                "NEWS_GUID_VALUE_INDEX ON NEWS(VALUE)");
+        stat.execute("CREATE INDEX IF NOT EXISTS " +
+                "NEWS_LINK_INDEX ON NEWS(LINK)");
+        stat.execute("CREATE INDEX IF NOT EXISTS " +
+                "NEWS_STATE_INDEX ON NEWS(STATE)");
+        PreparedStatement prep = c.prepareStatement(
+                "INSERT INTO NEWS (FID, COMMENTS, LINK, STATE, VALUE) " +
+                "VALUES (?, ?, ?, ?, ?) ");
+        PreparedStatement prep2 = c.prepareStatement(
+                "INSERT INTO TEST (NAME) VALUES (?)");
         for (int i = 0; i < LEN; i++) {
             int x = random.nextInt(10) * 128;
             StringBuilder buff = new StringBuilder();

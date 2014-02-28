@@ -60,8 +60,8 @@ public class TestPerformance implements Database.DatabaseTest {
             conn = getResultConnection();
             stat = conn.createStatement();
             stat.execute(
-                    "CREATE TABLE IF NOT EXISTS RESULTS(" + 
-                    "TESTID INT, TEST VARCHAR, " + 
+                    "CREATE TABLE IF NOT EXISTS RESULTS(" +
+                    "TESTID INT, TEST VARCHAR, " +
                     "UNIT VARCHAR, DBID INT, DB VARCHAR, RESULT VARCHAR)");
         } finally {
             JdbcUtils.closeSilently(stat);
@@ -131,7 +131,7 @@ public class TestPerformance implements Database.DatabaseTest {
             conn = getResultConnection();
             stat = conn.createStatement();
             prep = conn.prepareStatement(
-                        "INSERT INTO RESULTS(TESTID, TEST, " + 
+                        "INSERT INTO RESULTS(TESTID, TEST, " +
                         "UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
             for (int i = 0; i < results.size(); i++) {
                 Object[] res = results.get(i);
@@ -150,15 +150,15 @@ public class TestPerformance implements Database.DatabaseTest {
             writer = new PrintWriter(new FileWriter(out));
             ResultSet rs = stat.executeQuery(
                     "CALL '<table><tr><th>Test Case</th><th>Unit</th>' " +
-                    "|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' " + 
+                    "|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' " +
                     "ORDER BY DBID SEPARATOR '') FROM " +
                     "(SELECT DISTINCT DBID, DB FROM RESULTS)" +
-                    "|| '</tr>' || CHAR(10) " + 
-                    "|| SELECT GROUP_CONCAT('<tr><td>' || TEST || " + 
+                    "|| '</tr>' || CHAR(10) " +
+                    "|| SELECT GROUP_CONCAT('<tr><td>' || TEST || " +
                     "'</td><td>' || UNIT || '</td>' || ( " +
-                    "SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' " + 
+                    "SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' " +
                     "ORDER BY DBID SEPARATOR '') FROM RESULTS R2 WHERE " +
-                    "R2.TESTID = R1.TESTID) || '</tr>' " + 
+                    "R2.TESTID = R1.TESTID) || '</tr>' " +
                     "ORDER BY TESTID SEPARATOR CHAR(10)) FROM " +
                     "(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1" +
                     "|| '</table>'"

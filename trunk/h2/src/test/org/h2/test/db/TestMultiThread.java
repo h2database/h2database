@@ -33,7 +33,8 @@ public class TestMultiThread extends TestBase implements Runnable {
         // nothing to do
     }
 
-    private TestMultiThread(TestAll config, TestMultiThread parent) throws SQLException {
+    private TestMultiThread(TestAll config, TestMultiThread parent)
+            throws SQLException {
         this.config = config;
         this.parent = parent;
         random = new Random();
@@ -83,7 +84,8 @@ public class TestMultiThread extends TestBase implements Runnable {
             public void call() throws Exception {
                 Connection c2 = getConnection(url);
                 while (!stop) {
-                    c2.prepareStatement("select * from test_view where x" + r.nextInt(len) + "=1");
+                    c2.prepareStatement("select * from test_view where x" + 
+                            r.nextInt(len) + "=1");
                 }
                 c2.close();
             }
@@ -91,7 +93,8 @@ public class TestMultiThread extends TestBase implements Runnable {
         t.execute();
         SynchronizedVerifier.setDetect(SmallLRUCache.class, true);
         for (int i = 0; i < 1000; i++) {
-            conn.prepareStatement("select * from test_view where x" + r.nextInt(len) + "=1");
+            conn.prepareStatement("select * from test_view where x" + 
+                    r.nextInt(len) + "=1");
         }
         t.get();
         SynchronizedVerifier.setDetect(SmallLRUCache.class, false);
@@ -129,7 +132,8 @@ public class TestMultiThread extends TestBase implements Runnable {
         final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id bigint primary key) as select x from system_range(1, 1000)");
+        stat.execute("create table test(id bigint primary key) " + 
+                "as select x from system_range(1, 1000)");
         Task t = new Task() {
             @Override
             public void call() throws SQLException {
@@ -186,7 +190,8 @@ public class TestMultiThread extends TestBase implements Runnable {
             while (!parent.stop) {
                 threadStat.execute("SELECT COUNT(*) FROM TEST");
                 threadStat.execute("INSERT INTO TEST VALUES(NULL, 'Hi')");
-                PreparedStatement prep = threadConn.prepareStatement("UPDATE TEST SET NAME='Hello' WHERE ID=?");
+                PreparedStatement prep = threadConn.prepareStatement(
+                        "UPDATE TEST SET NAME='Hello' WHERE ID=?");
                 prep.setInt(1, random.nextInt(10000));
                 prep.execute();
                 prep = threadConn.prepareStatement("SELECT * FROM TEST WHERE ID=?");

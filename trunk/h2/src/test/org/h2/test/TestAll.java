@@ -493,7 +493,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 //                 "sa1", "sa1", "data/test.h2.sql", null, false);
 //            Recover.execute("data", null);
         }
-        System.out.println(TestBase.formatTime(System.currentTimeMillis() - time) + " total");
+        System.out.println(TestBase.formatTime(
+                System.currentTimeMillis() - time) + " total");
     }
 
     /**
@@ -612,7 +613,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     private void test() throws SQLException {
         System.out.println();
-        System.out.println("Test " + toString() + " (" + Utils.getMemoryUsed() + " KB used)");
+        System.out.println("Test " + toString() +
+                " (" + Utils.getMemoryUsed() + " KB used)");
         beforeTest();
 
         // db
@@ -837,8 +839,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         DeleteDbFiles.execute(TestBase.BASE_TEST_DIR, null, true);
         FileUtils.deleteRecursive("trace.db", false);
         if (networked) {
-            String[] args = ssl ? new String[] { "-tcpSSL", "-tcpPort", "9192" } : new String[] { "-tcpPort",
-                    "9192" };
+            String[] args = ssl ? new String[] { "-tcpSSL", "-tcpPort", "9192" }
+                    : new String[] { "-tcpPort", "9192" };
             server = Server.createTcpServer(args);
             try {
                 server.start();

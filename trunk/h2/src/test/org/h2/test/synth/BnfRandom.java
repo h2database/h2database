@@ -70,9 +70,12 @@ public class BnfRandom implements BnfVisitor {
         sql = sql.trim();
 
         if (sql.length() > 0) {
-            if (sql.indexOf("TRACE_LEVEL_") < 0 && sql.indexOf("COLLATION") < 0
-                    && sql.indexOf("SCRIPT ") < 0 && sql.indexOf("CSVWRITE") < 0
-                    && sql.indexOf("BACKUP") < 0 && sql.indexOf("DB_CLOSE_DELAY") < 0) {
+            if (sql.indexOf("TRACE_LEVEL_") < 0
+                    && sql.indexOf("COLLATION") < 0
+                    && sql.indexOf("SCRIPT ") < 0
+                    && sql.indexOf("CSVWRITE") < 0
+                    && sql.indexOf("BACKUP") < 0
+                    && sql.indexOf("DB_CLOSE_DELAY") < 0) {
                 if (SHOW_SYNTAX) {
                     System.out.println("  " + sql);
                 }
@@ -108,7 +111,8 @@ public class BnfRandom implements BnfVisitor {
         Random r = random;
         switch (type) {
         case RuleFixed.YMD:
-            return (1800 + r.nextInt(200)) + "-" + (1 + r.nextInt(12)) + "-" + (1 + r.nextInt(31));
+            return (1800 + r.nextInt(200)) + "-" +
+                (1 + r.nextInt(12)) + "-" + (1 + r.nextInt(31));
         case RuleFixed.HMS:
             return (r.nextInt(24)) + "-" + (r.nextInt(60)) + "-" + (r.nextInt(60));
         case RuleFixed.NANOS:

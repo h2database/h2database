@@ -57,9 +57,9 @@ public class SelfDestructor extends Thread {
                     System.out.println(time + " Killing the process after " +
                             minutes + " minute(s)");
                     try {
-                        Map<Thread, StackTraceElement[]> map = 
+                        Map<Thread, StackTraceElement[]> map =
                                 Thread.getAllStackTraces();
-                        for (Map.Entry<Thread, StackTraceElement[]> en : 
+                        for (Map.Entry<Thread, StackTraceElement[]> en :
                                 map.entrySet()) {
                             System.out.println(en.getKey());
                             for (StackTraceElement el : en.getValue()) {

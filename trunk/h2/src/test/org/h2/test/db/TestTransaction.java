@@ -127,7 +127,8 @@ public class TestTransaction extends TestBase {
         stat.execute("create table test(id int primary key) as select 1");
         stat.execute("set write_delay 0");
         stat.execute("set log " + logMode);
-        rs = stat.executeQuery("select value from information_schema.settings where name = 'LOG'");
+        rs = stat.executeQuery(
+                "select value from information_schema.settings where name = 'LOG'");
         rs.next();
         assertEquals(logMode, rs.getInt(1));
         stat.execute("insert into test values(2)");
@@ -157,7 +158,8 @@ public class TestTransaction extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
         conn.commit();
-        PreparedStatement prep = conn.prepareStatement("select * from test for update");
+        PreparedStatement prep = conn.prepareStatement(
+                "select * from test for update");
         prep.execute();
         Connection conn2 = getConnection("transaction");
         conn2.setAutoCommit(false);
@@ -175,7 +177,8 @@ public class TestTransaction extends TestBase {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
         conn.commit();
-        PreparedStatement prep = conn.prepareStatement("select * from test where id = 1 for update");
+        PreparedStatement prep = conn.prepareStatement(
+                "select * from test where id = 1 for update");
         prep.execute();
         // releases the lock
         conn.commit();
@@ -217,7 +220,8 @@ public class TestTransaction extends TestBase {
         conn = getConnection("transaction");
         stat = conn.createStatement();
         stat.execute("create table master(id int) as select 1");
-        stat.execute("create table child1(id int references master(id) on delete cascade)");
+        stat.execute("create table child1(id int references master(id) " + 
+                "on delete cascade)");
         stat.execute("insert into child1 values(1), (1), (1)");
         stat.execute("create table child2(id int references master(id)) as select 1");
         if (!config.memory) {
@@ -225,7 +229,8 @@ public class TestTransaction extends TestBase {
             conn = getConnection("transaction");
         }
         stat = conn.createStatement();
-        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, stat).
+        assertThrows(
+                ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, stat).
                 execute("delete from master");
         conn.rollback();
         rs = stat.executeQuery("select * from master where id=1");
@@ -260,7 +265,8 @@ public class TestTransaction extends TestBase {
         conn = getConnection("transaction");
         stat = conn.createStatement();
         stat.execute("create table master(id int) as select 1");
-        stat.execute("create table child1(id int references master(id) on delete cascade)");
+        stat.execute("create table child1(id int references master(id) " + 
+                "on delete cascade)");
         stat.execute("insert into child1 values(1), (1)");
         stat.execute("create table child2(id int references master(id)) as select 1");
         if (!config.memory) {
@@ -268,7 +274,8 @@ public class TestTransaction extends TestBase {
             conn = getConnection("transaction");
         }
         stat = conn.createStatement();
-        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, stat).
+        assertThrows(
+                ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_CHILD_EXISTS_1, stat).
                 execute("delete from master");
         rs = stat.executeQuery("select * from master where id=1");
         assertResultRowCount(1, rs);
@@ -314,7 +321,8 @@ public class TestTransaction extends TestBase {
         s1.executeUpdate("insert into A(code) values('one')");
         Statement s2 = c2.createStatement();
         if (config.mvcc) {
-            assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, s2).
+            assertThrows(
+                    ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, s2).
                     executeUpdate("insert into B values('two', 1)");
         } else {
             assertThrows(ErrorCode.LOCK_TIMEOUT_1, s2).
@@ -331,7 +339,8 @@ public class TestTransaction extends TestBase {
         Connection conn = getConnection("transaction");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST0(ID IDENTITY, NAME VARCHAR)");
-        stat.execute("CREATE TABLE TEST1(NAME VARCHAR, ID IDENTITY, X TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+        stat.execute("CREATE TABLE TEST1(NAME VARCHAR, " + 
+                "ID IDENTITY, X TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
         conn.setAutoCommit(false);
         int[] count = new int[2];
         int[] countCommitted = new int[2];
@@ -351,7 +360,8 @@ public class TestTransaction extends TestBase {
             case 1:
                 if (count[tableId] > 0) {
                     int updateCount = stat.executeUpdate(
-                            "DELETE FROM " + table + " WHERE ID=SELECT MIN(ID) FROM " + table);
+                            "DELETE FROM " + table + 
+                            " WHERE ID=SELECT MIN(ID) FROM " + table);
                     assertEquals(1, updateCount);
                     count[tableId]--;
                 }
@@ -388,7 +398,8 @@ public class TestTransaction extends TestBase {
         conn.close();
     }
 
-    private void checkTableCount(Statement stat, String tableName, int count) throws SQLException {
+    private void checkTableCount(Statement stat, String tableName, int count)
+            throws SQLException {
         ResultSet rs;
         rs = stat.executeQuery("SELECT COUNT(*) FROM " + tableName);
         rs.next();
@@ -399,9 +410,11 @@ public class TestTransaction extends TestBase {
         Connection conn = getConnection("transaction");
         trace("default TransactionIsolation=" + conn.getTransactionIsolation());
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-        assertTrue(conn.getTransactionIsolation() == Connection.TRANSACTION_READ_COMMITTED);
+        assertTrue(conn.getTransactionIsolation() == 
+                Connection.TRANSACTION_READ_COMMITTED);
         conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        assertTrue(conn.getTransactionIsolation() == Connection.TRANSACTION_SERIALIZABLE);
+        assertTrue(conn.getTransactionIsolation() == 
+                Connection.TRANSACTION_SERIALIZABLE);
         Statement stat = conn.createStatement();
         assertTrue(conn.getAutoCommit());
         conn.setAutoCommit(false);
@@ -479,7 +492,8 @@ public class TestTransaction extends TestBase {
         test(stat, "DROP TABLE NEST2");
     }
 
-    private void testValue(Statement stat, String sql, String data) throws SQLException {
+    private void testValue(Statement stat, String sql, String data)
+            throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
         rs.next();
         String s = rs.getString(1);

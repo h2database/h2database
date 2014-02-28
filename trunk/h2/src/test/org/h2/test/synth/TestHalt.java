@@ -90,7 +90,8 @@ public abstract class TestHalt extends TestBase {
      */
     protected Random random = new Random();
 
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
+    private final SimpleDateFormat dateFormat =
+            new SimpleDateFormat("MM-dd HH:mm:ss ");
     private int errorId;
     private int sequenceId;
 
@@ -147,7 +148,8 @@ public abstract class TestHalt extends TestBase {
     void processRunRandom() throws SQLException {
         connect();
         try {
-            traceOperation("connected, operations:" + operations + " flags:" + flags + " value:" + value);
+            traceOperation("connected, operations:" +
+                    operations + " flags:" + flags + " value:" + value);
             processAppStart();
             System.out.println("READY");
             System.out.println("READY");
@@ -219,7 +221,8 @@ public abstract class TestHalt extends TestBase {
         disconnect();
         for (int i = 0; i < 10; i++) {
             traceOperation("backing up " + sequenceId);
-            Backup.execute(getBaseDir() + "/haltSeq" + sequenceId + ".zip", getBaseDir(), null, true);
+            Backup.execute(getBaseDir() + "/haltSeq" +
+                    sequenceId + ".zip", getBaseDir(), null, true);
             sequenceId++;
             // int operations = OP_INSERT;
             // OP_DELETE = 1, OP_UPDATE = 2, OP_SELECT = 4;
@@ -240,7 +243,9 @@ public abstract class TestHalt extends TestBase {
             catcher.start();
             String s = catcher.readLine(5 * 60 * 1000);
             if (s == null) {
-                throw new IOException("No reply from process, command: " + StringUtils.arrayCombine(procDef, ' '));
+                throw new IOException(
+                        "No reply from process, command: " +
+                        StringUtils.arrayCombine(procDef, ' '));
             } else if (s.startsWith("READY")) {
                 traceOperation("got reply: " + s);
             }
@@ -249,14 +254,17 @@ public abstract class TestHalt extends TestBase {
             p.waitFor();
             try {
                 traceOperation("backing up " + sequenceId);
-                Backup.execute(getBaseDir() + "/haltSeq" + sequenceId + ".zip", getBaseDir(), null, true);
+                Backup.execute(getBaseDir() + "/haltSeq" +
+                        sequenceId + ".zip", getBaseDir(), null, true);
                 // new File(BASE_DIR + "/haltSeq" + (sequenceId-20) +
                 // ".zip").delete();
                 connect();
                 controllerCheckAfterCrash();
             } catch (Exception e) {
-                File zip = new File(getBaseDir() + "/haltSeq" + sequenceId + ".zip");
-                File zipId = new File(getBaseDir() + "/haltSeq" + sequenceId + "-" + errorId + ".zip");
+                File zip = new File(getBaseDir() + "/haltSeq" +
+                        sequenceId + ".zip");
+                File zipId = new File(getBaseDir() + "/haltSeq" +
+                        sequenceId + "-" + errorId + ".zip");
                 zip.renameTo(zipId);
                 printTime("ERROR: " + sequenceId + " " + errorId + " " + e.toString());
                 e.printStackTrace();

@@ -122,7 +122,7 @@ public class ProxyCodeGenerator {
             }
             if (constructor == null) {
                 constructor = c;
-            } else if (c.getParameterTypes().length < 
+            } else if (c.getParameterTypes().length <
                     constructor.getParameterTypes().length) {
                 constructor = c;
             }

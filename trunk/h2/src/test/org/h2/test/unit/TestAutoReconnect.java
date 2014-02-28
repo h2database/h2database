@@ -64,20 +64,20 @@ public class TestAutoReconnect extends TestBase {
         deleteDb("autoReconnect");
         Server tcp = Server.createTcpServer().start();
         try {
-            conn = getConnection("jdbc:h2:" + getBaseDir() + 
+            conn = getConnection("jdbc:h2:" + getBaseDir() +
                     "/autoReconnect;AUTO_SERVER=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() + 
+                    getConnection("jdbc:h2:" + getBaseDir() +
                             "/autoReconnect;OPEN_NEW=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() + 
+                    getConnection("jdbc:h2:" + getBaseDir() +
                             "/autoReconnect;OPEN_NEW=TRUE");
             conn.close();
 
-            conn = getConnection("jdbc:h2:tcp://localhost/" + getBaseDir() + 
+            conn = getConnection("jdbc:h2:tcp://localhost/" + getBaseDir() +
                     "/autoReconnect");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
-                    getConnection("jdbc:h2:" + getBaseDir() + 
+                    getConnection("jdbc:h2:" + getBaseDir() +
                             "/autoReconnect;AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
             conn.close();
         } finally {
@@ -99,7 +99,7 @@ public class TestAutoReconnect extends TestBase {
         }
 
         // test the database event listener
-        conn = getConnection(url + ";DATABASE_EVENT_LISTENER='" + 
+        conn = getConnection(url + ";DATABASE_EVENT_LISTENER='" +
         MyDatabaseEventListener.class.getName() + "'");
         conn.close();
 
@@ -185,7 +185,8 @@ public class TestAutoReconnect extends TestBase {
     /**
      * A database event listener used in this test.
      */
-    public static final class MyDatabaseEventListener implements DatabaseEventListener {
+    public static final class MyDatabaseEventListener implements
+            DatabaseEventListener {
 
         @Override
         public void closingDatabase() {

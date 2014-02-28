@@ -298,9 +298,9 @@ public class TestFileSystem extends TestBase {
         String url = "jdbc:h2:" + getBaseDir() + "/fsJar";
         Connection conn = getConnection(url, "sa", "sa");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, " + 
+        stat.execute("create table test(id int primary key, " +
                 "name varchar, b blob, c clob)");
-        stat.execute("insert into test values(1, 'Hello', " + 
+        stat.execute("insert into test values(1, 'Hello', " +
                 "SECURE_RAND(2000), space(2000))");
         ResultSet rs;
         rs = stat.executeQuery("select * from test");

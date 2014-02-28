@@ -54,7 +54,8 @@ public class TestUpdatableResultSet extends TestBase {
         Connection conn = getConnection("updatableResultSet");
         Statement stat;
         ResultSet rs;
-        stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_UPDATABLE);
 
         stat.execute("create table test(id int primary key, name varchar)");
         rs = stat.executeQuery("select * from test");
@@ -63,7 +64,8 @@ public class TestUpdatableResultSet extends TestBase {
         assertEquals(ResultSet.CONCUR_READ_ONLY, rs.getConcurrency());
         stat.execute("drop table test");
 
-        stat.execute("create table test(a int, b int, name varchar, primary key(a, b))");
+        stat.execute("create table test(a int, b int, " +
+                "name varchar, primary key(a, b))");
         rs = stat.executeQuery("select * from test");
         assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
         rs = stat.executeQuery("select a, name from test");
@@ -86,7 +88,8 @@ public class TestUpdatableResultSet extends TestBase {
         assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
         stat.execute("drop table test");
 
-        stat.execute("create table test(a int, b int, c int unique, name varchar, primary key(a, b))");
+        stat.execute("create table test(a int, b int, c int unique, " +
+                "name varchar, primary key(a, b))");
         rs = stat.executeQuery("select * from test");
         assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
         rs = stat.executeQuery("select a, name, c from test");
@@ -95,7 +98,8 @@ public class TestUpdatableResultSet extends TestBase {
         assertEquals(ResultSet.CONCUR_UPDATABLE, rs.getConcurrency());
         stat.execute("drop table test");
 
-        stat.execute("create table test(id int primary key, a int, b int, i int, j int, k int, name varchar)");
+        stat.execute("create table test(id int primary key, " +
+                "a int, b int, i int, j int, k int, name varchar)");
         stat.execute("create unique index on test(b, a)");
         stat.execute("create unique index on test(i, j)");
         stat.execute("create unique index on test(a, j)");
@@ -122,16 +126,20 @@ public class TestUpdatableResultSet extends TestBase {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE object_index (id integer primary key, object other, number integer)");
+        stat.execute("CREATE TABLE object_index " +
+                "(id integer primary key, object other, number integer)");
 
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO object_index (id,object)  VALUES (1,?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO object_index (id,object)  VALUES (1,?)");
         prep.setObject(1, "hello", Types.JAVA_OBJECT);
         prep.execute();
 
-        ResultSet rs = stat.executeQuery("SELECT object,id,number FROM object_index WHERE id =1");
+        ResultSet rs = stat.executeQuery(
+                "SELECT object,id,number FROM object_index WHERE id =1");
         rs.next();
         assertEquals("hello", rs.getObject(1).toString());
-        stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+        stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_UPDATABLE);
         rs = stat.executeQuery("SELECT object,id,number FROM object_index WHERE id =1");
         rs.next();
         assertEquals("hello", rs.getObject(1).toString());
@@ -148,7 +156,8 @@ public class TestUpdatableResultSet extends TestBase {
     private void testUpdateResetRead() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+        Statement stat = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         stat.execute("INSERT INTO TEST VALUES(2, 'World')");
@@ -181,7 +190,8 @@ public class TestUpdatableResultSet extends TestBase {
     private void testScroll() throws SQLException {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World'), (3, 'Test')");
 
@@ -277,7 +287,8 @@ public class TestUpdatableResultSet extends TestBase {
     private void testUpdateDataType() throws Exception {
         deleteDb("updatableResultSet");
         Connection conn = getConnection("updatableResultSet");
-        Statement stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+        Statement stat = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_UPDATABLE);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255), "
                 + "DEC DECIMAL(10,2), BOO BIT, BYE TINYINT, BIN BINARY(100), "
                 + "D DATE, T TIME, TS TIMESTAMP, DB DOUBLE, R REAL, L BIGINT, "
@@ -324,7 +335,8 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateObject(13, null);
         rs.updateShort(14, (short) 0);
         rs.updateCharacterStream(15, new StringReader("test"), 0);
-        rs.updateBinaryStream(16, new ByteArrayInputStream(new byte[] { (byte) 0xff, 0x00 }), 0);
+        rs.updateBinaryStream(16,
+                new ByteArrayInputStream(new byte[] { (byte) 0xff, 0x00 }), 0);
         rs.insertRow();
 
         rs.moveToInsertRow();
@@ -336,7 +348,8 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateBytes("BIN", new byte[] { 0x00, (byte) 0xff });
         rs.updateDate("D", Date.valueOf("2005-09-21"));
         rs.updateTime("T", Time.valueOf("21:46:28"));
-        rs.updateTimestamp("TS", Timestamp.valueOf("2005-09-21 21:47:09.567890123"));
+        rs.updateTimestamp("TS",
+                Timestamp.valueOf("2005-09-21 21:47:09.567890123"));
         rs.updateDouble("DB", 1.725);
         rs.updateFloat("R", (float) 2.5);
         rs.updateLong("L", Long.MAX_VALUE);
@@ -344,31 +357,36 @@ public class TestUpdatableResultSet extends TestBase {
         rs.updateShort("SH", Short.MIN_VALUE);
         // auml, ouml, uuml
         rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), 0);
-        rs.updateBinaryStream("BL", new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }), 0);
+        rs.updateBinaryStream("BL",
+                new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }), 0);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt("ID", 3);
         rs.updateCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"));
-        rs.updateBinaryStream("BL", new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
+        rs.updateBinaryStream("BL",
+                new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt("ID", 4);
         rs.updateCharacterStream(15, new StringReader("\u00ef\u00f6\u00fc"));
-        rs.updateBinaryStream(16, new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
+        rs.updateBinaryStream(16,
+                new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt("ID", 5);
         rs.updateClob("CL", new StringReader("\u00ef\u00f6\u00fc"));
-        rs.updateBlob("BL", new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
+        rs.updateBlob("BL",
+                new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt("ID", 6);
         rs.updateClob(15, new StringReader("\u00ef\u00f6\u00fc"));
-        rs.updateBlob(16, new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
+        rs.updateBlob(16,
+                new ByteArrayInputStream(new byte[] { (byte) 0xab, 0x12 }));
         rs.insertRow();
 
         rs.moveToInsertRow();
@@ -401,25 +419,29 @@ public class TestUpdatableResultSet extends TestBase {
 
         rs.moveToInsertRow();
         rs.updateInt("ID", 11);
-        rs.updateNCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"), -1);
+        rs.updateNCharacterStream("CL",
+                new StringReader("\u00ef\u00f6\u00fc"), -1);
         rs.updateBlob("BL", b);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt("ID", 12);
-        rs.updateNCharacterStream(15, new StringReader("\u00ef\u00f6\u00fc"), -1);
+        rs.updateNCharacterStream(15,
+                new StringReader("\u00ef\u00f6\u00fc"), -1);
         rs.updateBlob(16, b);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt("ID", 13);
-        rs.updateNCharacterStream("CL", new StringReader("\u00ef\u00f6\u00fc"));
+        rs.updateNCharacterStream("CL",
+                new StringReader("\u00ef\u00f6\u00fc"));
         rs.updateBlob("BL", b);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt("ID", 14);
-        rs.updateNCharacterStream(15, new StringReader("\u00ef\u00f6\u00fc"));
+        rs.updateNCharacterStream(15,
+                new StringReader("\u00ef\u00f6\u00fc"));
         rs.updateBlob(16, b);
         rs.insertRow();
 
@@ -495,7 +517,8 @@ public class TestUpdatableResultSet extends TestBase {
         deleteDb("updatableResultSet");
         Connection c1 = getConnection("updatableResultSet");
         Connection c2 = getConnection("updatableResultSet");
-        Statement stat = c1.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+        Statement stat = c1.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+                ResultSet.CONCUR_UPDATABLE);
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         int max = 8;
@@ -572,9 +595,11 @@ public class TestUpdatableResultSet extends TestBase {
 
     private void testScrollable(Connection conn, int rows) throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("CREATE TABLE IF NOT EXISTS TEST" +
+                "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("DELETE FROM TEST");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?)");
         for (int i = 0; i < rows; i++) {
             prep.setInt(1, i);
             prep.setString(2, "Data " + i);
@@ -582,11 +607,13 @@ public class TestUpdatableResultSet extends TestBase {
         }
         Statement regular = conn.createStatement();
         testScrollResultSet(regular, ResultSet.TYPE_FORWARD_ONLY, rows);
-        Statement scroll = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement scroll = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         testScrollResultSet(scroll, ResultSet.TYPE_SCROLL_INSENSITIVE, rows);
     }
 
-    private void testScrollResultSet(Statement stat, int type, int rows) throws SQLException {
+    private void testScrollResultSet(Statement stat, int type, int rows)
+            throws SQLException {
         boolean error = false;
         if (type == ResultSet.TYPE_FORWARD_ONLY) {
             error = true;

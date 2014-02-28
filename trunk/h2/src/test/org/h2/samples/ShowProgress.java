@@ -80,7 +80,7 @@ public class ShowProgress implements DatabaseEventListener {
         System.out.println("Open connection...");
         time = System.currentTimeMillis();
         conn = DriverManager.getConnection(
-                "jdbc:h2:test;DATABASE_EVENT_LISTENER='" + 
+                "jdbc:h2:test;DATABASE_EVENT_LISTENER='" +
                 getClass().getName() + "'", "sa", "");
         time = System.currentTimeMillis() - time;
         System.out.println("Done after " + time + " ms");
@@ -136,8 +136,8 @@ public class ShowProgress implements DatabaseEventListener {
         } catch (InterruptedException e) {
             // ignore
         }
-        System.out.println("State: " + stateName + " " + 
-                (100 * current / max) + "% (" + 
+        System.out.println("State: " + stateName + " " +
+                (100 * current / max) + "% (" +
                 current + " of " + max + ") "
                 + (time - start) + " ms");
     }

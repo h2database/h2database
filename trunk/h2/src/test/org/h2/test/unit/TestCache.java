@@ -59,10 +59,13 @@ public class TestCache extends TestBase implements CacheWriter {
             return;
         }
         deleteDb("cache");
-        Connection conn = getConnection("cache;LOG=0;UNDO_LOG=0");
+        Connection conn = getConnection(
+                "cache;LOG=0;UNDO_LOG=0");
         Statement stat = conn.createStatement();
-        stat.execute("create table if not exists lob(id int primary key, data blob)");
-        PreparedStatement prep = conn.prepareStatement("insert into lob values(?, ?)");
+        stat.execute("create table if not exists lob" +
+                "(id int primary key, data blob)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into lob values(?, ?)");
         Random r = new Random(1);
         byte[] buff = new byte[2 * 1024 * 1024];
         for (int i = 0; i < 10; i++) {
@@ -71,7 +74,8 @@ public class TestCache extends TestBase implements CacheWriter {
             prep.setBinaryStream(2, new ByteArrayInputStream(buff), -1);
             prep.execute();
         }
-        stat.execute("create table if not exists test(id int primary key, data varchar)");
+        stat.execute("create table if not exists test" +
+                "(id int primary key, data varchar)");
         prep = conn.prepareStatement("insert into test values(?, ?)");
         for (int i = 0; i < 20000; i++) {
             prep.setInt(1, i);
@@ -125,7 +129,7 @@ public class TestCache extends TestBase implements CacheWriter {
     private static int getReadCount(Statement stat) throws Exception {
         ResultSet rs;
         rs = stat.executeQuery(
-                "select value from information_schema.settings " + 
+                "select value from information_schema.settings " +
                 "where name = 'info.FILE_READ'");
         rs.next();
         return rs.getInt(1);
@@ -158,14 +162,14 @@ public class TestCache extends TestBase implements CacheWriter {
         //  -XX:+HeapDumpOnOutOfMemoryError
 
         stat.execute(
-                "insert into test select x, random_uuid() || space(1) " + 
+                "insert into test select x, random_uuid() || space(1) " +
                 "from system_range(1, 10000)");
 
         // stat.execute("create index idx_test_n on test(data)");
         // stat.execute("select data from test where data >= ''");
 
         rs = stat.executeQuery(
-                "select value from information_schema.settings " + 
+                "select value from information_schema.settings " +
                 "where name = 'info.CACHE_SIZE'");
         rs.next();
         int calculated = rs.getInt(1);

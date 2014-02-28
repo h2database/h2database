@@ -57,7 +57,8 @@ public class TestCacheLongKeyLIRS extends TestBase {
                 switch (r.nextInt(3)) {
                 case 0:
                     int memory = r.nextInt(5) + 1;
-                    buff.append("add ").append(key).append(' ').append(memory).append('\n');
+                    buff.append("add ").append(key).append(' ').
+                            append(memory).append('\n');
                     test.put(key, j, memory);
                     break;
                 case 1:
@@ -341,7 +342,8 @@ public class TestCacheLongKeyLIRS extends TestBase {
         for (int i = 0; i < 20; i++) {
             test.put(i, 10 * i);
         }
-        verify(test, "mem: 4 stack: 19 18 17 16 3 2 1 cold: 19 non-resident: 18 17 16");
+        verify(test, "mem: 4 stack: 19 18 17 16 3 2 1 " +
+                "cold: 19 non-resident: 18 17 16");
     }
 
     private void testScanResistance() {
@@ -490,7 +492,8 @@ public class TestCacheLongKeyLIRS extends TestBase {
         return createCache(maxElements, 1);
     }
 
-    private static <V> CacheLongKeyLIRS<V> createCache(int maxSize, int averageSize) {
+    private static <V> CacheLongKeyLIRS<V> createCache(int maxSize,
+            int averageSize) {
         return new CacheLongKeyLIRS<V>(maxSize, averageSize, 1, 0);
     }
 

@@ -15,9 +15,10 @@ import java.sql.Types;
  */
 class Column {
 
-    private static final int[] TYPES = { Types.INTEGER, Types.VARCHAR, Types.DECIMAL, Types.DATE, Types.TIME,
-            Types.TIMESTAMP, Types.BOOLEAN, Types.BINARY, Types.VARBINARY, Types.CLOB, Types.BLOB,
-            Types.DOUBLE, Types.BIGINT, Types.TIMESTAMP, Types.BIT, };
+    private static final int[] TYPES = { Types.INTEGER, Types.VARCHAR,
+            Types.DECIMAL, Types.DATE, Types.TIME, Types.TIMESTAMP,
+            Types.BOOLEAN, Types.BINARY, Types.VARBINARY, Types.CLOB,
+            Types.BLOB, Types.DOUBLE, Types.BIGINT, Types.TIMESTAMP, Types.BIT, };
 
     private TestSynth config;
     private String name;
@@ -190,7 +191,9 @@ class Column {
         while (true) {
             randomType = TYPES[config.random().getLog(TYPES.length)];
             if (config.is(TestSynth.POSTGRESQL)
-                    && (randomType == Types.BINARY || randomType == Types.VARBINARY || randomType == Types.BLOB)) {
+                    && (randomType == Types.BINARY ||
+                    randomType == Types.VARBINARY ||
+                    randomType == Types.BLOB)) {
                 continue;
             }
             break;

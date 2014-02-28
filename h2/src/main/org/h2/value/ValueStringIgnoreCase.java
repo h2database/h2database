@@ -14,7 +14,7 @@ import org.h2.util.StringUtils;
  */
 public class ValueStringIgnoreCase extends ValueString {
 
-    private static final ValueStringIgnoreCase EMPTY = 
+    private static final ValueStringIgnoreCase EMPTY =
             new ValueStringIgnoreCase("");
     private int hash;
 

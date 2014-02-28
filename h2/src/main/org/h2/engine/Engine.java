@@ -30,7 +30,7 @@ public class Engine implements SessionFactory {
     private static final Engine INSTANCE = new Engine();
     private static final HashMap<String, Database> DATABASES = New.hashMap();
 
-    private volatile long wrongPasswordDelay = 
+    private volatile long wrongPasswordDelay =
             SysProperties.DELAY_WRONG_PASSWORD_MIN;
     private boolean jmx;
 
@@ -38,7 +38,8 @@ public class Engine implements SessionFactory {
         return INSTANCE;
     }
 
-    private Session openSession(ConnectionInfo ci, boolean ifExists, String cipher) {
+    private Session openSession(ConnectionInfo ci, boolean ifExists,
+            String cipher) {
         String name = ci.getName();
         Database database;
         ci.removeProperty("NO_UPGRADE", false);
@@ -59,7 +60,7 @@ public class Engine implements SessionFactory {
             if (database.getAllUsers().size() == 0) {
                 // users is the last thing we add, so if no user is around,
                 // the database is new (or not initialized correctly)
-                user = new User(database, database.allocateObjectId(), 
+                user = new User(database, database.allocateObjectId(),
                         ci.getUserName(), false);
                 user.setAdmin(true);
                 user.setUserPasswordHash(ci.getUserPasswordHash());
@@ -188,7 +189,7 @@ public class Engine implements SessionFactory {
             String value = ci.getProperty(setting);
             try {
                 CommandInterface command = session.prepareCommand(
-                        "SET " + Parser.quoteIdentifier(setting) + " " + value, 
+                        "SET " + Parser.quoteIdentifier(setting) + " " + value,
                         Integer.MAX_VALUE);
                 command.executeUpdate();
             } catch (DbException e) {
@@ -200,7 +201,7 @@ public class Engine implements SessionFactory {
         }
         if (init != null) {
             try {
-                CommandInterface command = session.prepareCommand(init, 
+                CommandInterface command = session.prepareCommand(init,
                         Integer.MAX_VALUE);
                 command.executeUpdate();
             } catch (DbException e) {
@@ -231,7 +232,7 @@ public class Engine implements SessionFactory {
                                 ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);
                     }
                     throw DbException.get(
-                            ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1, 
+                            ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_CLUSTERED_1,
                             clusterDb);
                 }
             }

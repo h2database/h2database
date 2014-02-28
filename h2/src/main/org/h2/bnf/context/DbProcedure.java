@@ -28,7 +28,7 @@ public class DbProcedure {
     public DbProcedure(DbSchema schema, ResultSet rs) throws SQLException {
         this.schema = schema;
         name = rs.getString("PROCEDURE_NAME");
-        returnsResult = rs.getShort("PROCEDURE_TYPE") == 
+        returnsResult = rs.getShort("PROCEDURE_TYPE") ==
                 DatabaseMetaData.procedureReturnsResult;
         quotedName = schema.getContents().quoteIdentifier(name);
     }

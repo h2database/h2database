@@ -239,7 +239,7 @@ public class Constants {
      * The default result set concurrency for statements created with
      * Connection.createStatement() or prepareStatement(String sql).
      */
-    public static final int DEFAULT_RESULT_SET_CONCURRENCY = 
+    public static final int DEFAULT_RESULT_SET_CONCURRENCY =
             ResultSet.CONCUR_READ_ONLY;
 
     /**
@@ -311,13 +311,13 @@ public class Constants {
     /**
      * The memory needed by an object of class PageBtree.
      */
-    public static final int MEMORY_PAGE_BTREE = 
+    public static final int MEMORY_PAGE_BTREE =
             112 + MEMORY_DATA + 2 * MEMORY_OBJECT;
 
     /**
      * The memory needed by an object of class PageData.
      */
-    public static final int MEMORY_PAGE_DATA = 
+    public static final int MEMORY_PAGE_DATA =
             144 + MEMORY_DATA + 3 * MEMORY_OBJECT;
 
     /**
@@ -460,7 +460,7 @@ public class Constants {
      * The database URL format in simplified Backus-Naur form.
      */
     public static final String URL_FORMAT = START_URL +
-            "{ {.|mem:}[name] | [file:]fileName | " + 
+            "{ {.|mem:}[name] | [file:]fileName | " +
             "{tcp|ssl}:[//]server[:port][,server2[:port]]/name }[;key=value...]";
 
     /**

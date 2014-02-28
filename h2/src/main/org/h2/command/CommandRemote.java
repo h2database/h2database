@@ -123,7 +123,7 @@ public class CommandRemote implements CommandInterface {
                             writeInt(id).writeInt(objectId);
                     session.done(transfer);
                     int columnCount = transfer.readInt();
-                    result = new ResultRemote(session, transfer, objectId, 
+                    result = new ResultRemote(session, transfer, objectId,
                             columnCount, Integer.MAX_VALUE);
                     break;
                 } catch (IOException e) {

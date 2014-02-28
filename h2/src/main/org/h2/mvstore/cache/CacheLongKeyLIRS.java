@@ -627,7 +627,7 @@ public class CacheLongKeyLIRS<V> {
             }
             if (e.isHot()) {
                 if (e != stack.stackNext) {
-                    if (stackMoveDistance == 0 || 
+                    if (stackMoveDistance == 0 ||
                             stackMoveCounter - e.topMove > stackMoveDistance) {
                         access(key, hash);
                     }
@@ -651,7 +651,7 @@ public class CacheLongKeyLIRS<V> {
             }
             if (e.isHot()) {
                 if (e != stack.stackNext) {
-                    if (stackMoveDistance == 0 || 
+                    if (stackMoveDistance == 0 ||
                             stackMoveCounter - e.topMove > stackMoveDistance) {
                         // move a hot entry to the top of the stack
                         // unless it is already there

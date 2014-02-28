@@ -213,12 +213,14 @@ public class LobStorageBackend implements LobStorageInterface {
         assertNotHolds(conn.getSession());
         synchronized (database) {
             synchronized (conn.getSession()) {
-                String sql = "SELECT COMPRESSED, DATA FROM " + LOB_DATA + " WHERE BLOCK = ?";
+                String sql = "SELECT COMPRESSED, DATA FROM " + 
+                        LOB_DATA + " WHERE BLOCK = ?";
                 PreparedStatement prep = prepare(sql);
                 prep.setLong(1, block);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
-                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry, block: " + block)
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, 
+                            "Missing lob entry, block: " + block)
                             .getSQLException();
                 }
                 int compressed = rs.getInt(1);
@@ -319,7 +321,8 @@ public class LobStorageBackend implements LobStorageInterface {
     }
 
     @Override
-    public InputStream getInputStream(ValueLobDb lob, byte[] hmac, long byteCount) throws IOException {
+    public InputStream getInputStream(ValueLobDb lob, byte[] hmac,
+            long byteCount) throws IOException {
         try {
             init();
             assertNotHolds(conn.getSession());
@@ -335,7 +338,8 @@ public class LobStorageBackend implements LobStorageInterface {
         }
     }
 
-    private ValueLobDb addLob(InputStream in, long maxLength, int type, CountingReaderInputStream countingReaderForClob) {
+    private ValueLobDb addLob(InputStream in, long maxLength, int type,
+            CountingReaderInputStream countingReaderForClob) {
         try {
             byte[] buff = new byte[BLOCK_LENGTH];
             if (maxLength < 0) {
@@ -385,13 +389,15 @@ public class LobStorageBackend implements LobStorageInterface {
                 if (small != null) {
                     // For a BLOB, precision is length in bytes.
                     // For a CLOB, precision is length in chars
-                    long precision = countingReaderForClob == null ? small.length : countingReaderForClob.getLength();
+                    long precision = countingReaderForClob == null ? 
+                            small.length : countingReaderForClob.getLength();
                     ValueLobDb v = ValueLobDb.createSmallLob(type, small, precision);
                     return v;
                 }
                 // For a BLOB, precision is length in bytes.
                 // For a CLOB, precision is length in chars
-                long precision = countingReaderForClob == null ? length : countingReaderForClob.getLength();
+                long precision = countingReaderForClob == null ? 
+                        length : countingReaderForClob.getLength();
                 return registerLob(type, lobId, LobStorageFrontend.TABLE_TEMP, length, precision);
             } catch (IOException e) {
                 if (lobId != -1) {
@@ -404,7 +410,8 @@ public class LobStorageBackend implements LobStorageInterface {
         }
     }
 
-    private ValueLobDb registerLob(int type, long lobId, int tableId, long byteCount, long precision) throws SQLException {
+    private ValueLobDb registerLob(int type, long lobId, int tableId,
+            long byteCount, long precision) throws SQLException {
         assertNotHolds(conn.getSession());
         // see locking discussion at the top
         synchronized (database) {
@@ -495,7 +502,8 @@ public class LobStorageBackend implements LobStorageInterface {
      * @param b the data
      * @param compressAlgorithm the compression algorithm (may be null)
      */
-    void storeBlock(long lobId, int seq, long pos, byte[] b, String compressAlgorithm) throws SQLException {
+    void storeBlock(long lobId, int seq, long pos, byte[] b,
+            String compressAlgorithm) throws SQLException {
         long block;
         boolean blockExists = false;
         if (compressAlgorithm != null) {
@@ -523,7 +531,8 @@ public class LobStorageBackend implements LobStorageInterface {
         if (!blockExists) {
             block = nextBlock++;
             setHashCacheBlock(hash, block);
-            String sql = "INSERT INTO " + LOB_DATA + "(BLOCK, COMPRESSED, DATA) VALUES(?, ?, ?)";
+            String sql = "INSERT INTO " + LOB_DATA + 
+                    "(BLOCK, COMPRESSED, DATA) VALUES(?, ?, ?)";
             PreparedStatement prep = prepare(sql);
             prep.setLong(1, block);
             prep.setInt(2, compressAlgorithm == null ? 0 : 1);
@@ -531,7 +540,8 @@ public class LobStorageBackend implements LobStorageInterface {
             prep.execute();
             reuse(sql, prep);
         }
-        String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, POS, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO " + LOB_MAP + 
+                "(LOB, SEQ, POS, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
         PreparedStatement prep = prepare(sql);
         prep.setLong(1, lobId);
         prep.setInt(2, seq);
@@ -641,7 +651,8 @@ public class LobStorageBackend implements LobStorageInterface {
                 prep.setLong(1, lobId);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
-                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry: " + lobId).getSQLException();
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, 
+                            "Missing lob entry: " + lobId).getSQLException();
                 }
                 byteCount = rs.getLong(1);
                 reuse(sql, prep);
@@ -653,7 +664,8 @@ public class LobStorageBackend implements LobStorageInterface {
             prep.setLong(1, lobId);
             ResultSet rs = prep.executeQuery();
             if (!rs.next()) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, "Missing lob entry: " + lobId).getSQLException();
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, 
+                        "Missing lob entry: " + lobId).getSQLException();
             }
             int lobMapCount = rs.getInt(1);
             reuse(sql, prep);

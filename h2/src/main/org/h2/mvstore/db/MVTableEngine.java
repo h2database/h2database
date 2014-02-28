@@ -135,7 +135,7 @@ public class MVTableEngine implements TableEngine {
          * The map of open tables.
          * Key: the map name, value: the table.
          */
-        final ConcurrentHashMap<String, MVTable> tableMap = 
+        final ConcurrentHashMap<String, MVTable> tableMap =
                 new ConcurrentHashMap<String, MVTable>();
 
         /**

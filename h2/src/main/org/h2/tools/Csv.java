@@ -476,7 +476,7 @@ public class Csv implements SimpleRowSource {
                         break;
                     }
                 }
-                String s = new String(inputBuffer, 
+                String s = new String(inputBuffer,
                         inputBufferStart, inputBufferPos - inputBufferStart - sep);
                 if (containsEscape) {
                     s = unEscape(s);
@@ -528,7 +528,7 @@ public class Csv implements SimpleRowSource {
                         break;
                     }
                 }
-                String s = new String(inputBuffer, 
+                String s = new String(inputBuffer,
                         inputBufferStart, inputBufferPos - inputBufferStart - 1);
                 if (!preserveWhitespace) {
                     s = s.trim();

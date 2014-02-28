@@ -212,7 +212,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         if (intersection == null) {
             return find(session);
         }
-        Iterator<SpatialKey> cursor = 
+        Iterator<SpatialKey> cursor =
                 spatialMap.findIntersectingKeys(getEnvelope(intersection));
         TransactionMap<SpatialKey, Value> map = getMap(session);
         Iterator<SpatialKey> it = map.wrapIterator(cursor, false);

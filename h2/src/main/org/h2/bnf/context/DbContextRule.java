@@ -87,8 +87,8 @@ public class DbContextRule implements Rule {
                 } else if (s.length() == 0 || name.startsWith(up)) {
                     if (s.length() < name.length()) {
                         sentence.add(name, name.substring(s.length()), type);
-                        sentence.add(schema.quotedName + ".", 
-                                schema.quotedName.substring(s.length()) + ".", 
+                        sentence.add(schema.quotedName + ".",
+                                schema.quotedName.substring(s.length()) + ".",
                                 Sentence.CONTEXT);
                     }
                 }
@@ -121,8 +121,8 @@ public class DbContextRule implements Rule {
                     }
                 } else if (s.length() == 0 || name.startsWith(compare)) {
                     if (s.length() < name.length()) {
-                        sentence.add(table.getQuotedName(), 
-                                table.getQuotedName().substring(s.length()), 
+                        sentence.add(table.getQuotedName(),
+                                table.getQuotedName().substring(s.length()),
                                 Sentence.CONTEXT);
                     }
                 }
@@ -173,16 +173,16 @@ public class DbContextRule implements Rule {
                         name = column.getQuotedName();
                         compare = query;
                     }
-                    if (compare.startsWith(name) && 
-                            (columnType == null || 
+                    if (compare.startsWith(name) &&
+                            (columnType == null ||
                             column.getDataType().contains(columnType))) {
                         String b = s.substring(name.length());
                         if (best == null || b.length() < best.length()) {
                             best = b;
                         } else if (s.length() == 0 || name.startsWith(compare)) {
                             if (s.length() < name.length()) {
-                                sentence.add(column.getName(), 
-                                        column.getName().substring(s.length()), 
+                                sentence.add(column.getName(),
+                                        column.getName().substring(s.length()),
                                         Sentence.CONTEXT);
                             }
                         }
@@ -209,8 +209,8 @@ public class DbContextRule implements Rule {
                                 }
                             } else if (s.length() == 0 || name.startsWith(up)) {
                                 if (s.length() < name.length()) {
-                                    sentence.add(column.getName(), 
-                                            column.getName().substring(s.length()), 
+                                    sentence.add(column.getName(),
+                                            column.getName().substring(s.length()),
                                             Sentence.CONTEXT);
                                 }
                             }
@@ -246,7 +246,7 @@ public class DbContextRule implements Rule {
         String incompleteSentence = sentence.getQueryUpper();
         String incompleteFunctionName = incompleteSentence;
         if (incompleteSentence.contains("(")) {
-            incompleteFunctionName = incompleteSentence.substring(0, 
+            incompleteFunctionName = incompleteSentence.substring(0,
                     incompleteSentence.indexOf('(')).trim();
         }
 
@@ -309,7 +309,7 @@ public class DbContextRule implements Rule {
             sentence.addAlias(alias, sentence.getLastTable());
         }
         HashMap<String, DbTableOrView> map = sentence.getAliases();
-        if ((map != null && map.containsKey(alias)) || 
+        if ((map != null && map.containsKey(alias)) ||
                 (sentence.getLastTable() == null)) {
             if (newAlias && s.length() == alias.length()) {
                 return s;
@@ -324,15 +324,15 @@ public class DbContextRule implements Rule {
         if (tables != null) {
             String best = null;
             for (DbTableOrView table : tables) {
-                String tableName = 
+                String tableName =
                         StringUtils.toUpperEnglish(table.getName());
-                if (alias.startsWith(tableName) && 
+                if (alias.startsWith(tableName) &&
                         (best == null || tableName.length() > best.length())) {
                     sentence.setLastMatchedTable(table);
                     best = tableName;
                 } else if (s.length() == 0 || tableName.startsWith(alias)) {
-                    sentence.add(tableName + ".", 
-                            tableName.substring(s.length()) + ".", 
+                    sentence.add(tableName + ".",
+                            tableName.substring(s.length()) + ".",
                             Sentence.CONTEXT);
                 }
             }

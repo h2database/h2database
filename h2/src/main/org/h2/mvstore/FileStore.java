@@ -39,7 +39,7 @@ public class FileStore {
      * The free spaces between the chunks. The first block to use is block 2
      * (the first two blocks are the store header).
      */
-    protected final FreeSpaceBitSet freeSpace = 
+    protected final FreeSpaceBitSet freeSpace =
             new FreeSpaceBitSet(2, MVStore.BLOCK_SIZE);
 
     /**

@@ -209,7 +209,7 @@ public class SHA256 {
         Arrays.fill(hh, 0);
     }
 
-    private void calculateHash(byte[] data, int len, 
+    private void calculateHash(byte[] data, int len,
             byte[] byteBuff, int[] intBuff) {
         int[] w = this.w;
         int[] hh = this.hh;

@@ -17,7 +17,7 @@ import java.util.TreeMap;
  */
 public class OffHeapStore extends FileStore {
 
-    private final TreeMap<Long, ByteBuffer> memory = 
+    private final TreeMap<Long, ByteBuffer> memory =
             new TreeMap<Long, ByteBuffer>();
 
     @Override

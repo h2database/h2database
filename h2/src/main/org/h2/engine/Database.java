@@ -105,7 +105,7 @@ public class Database implements DataHandler {
     private final HashMap<String, UserAggregate> aggregates = New.hashMap();
     private final HashMap<String, Comment> comments = New.hashMap();
 
-    private final Set<Session> userSessions = 
+    private final Set<Session> userSessions =
             Collections.synchronizedSet(new HashSet<Session>());
     private Session exclusiveSession;
     private final BitField objectIds = new BitField();
@@ -155,7 +155,7 @@ public class Database implements DataHandler {
     private DatabaseCloser closeOnExit;
     private Mode mode = Mode.getInstance(Mode.REGULAR);
     private boolean multiThreaded;
-    private int maxOperationMemory = 
+    private int maxOperationMemory =
             Constants.DEFAULT_MAX_OPERATION_MEMORY;
     private SmallLRUCache<String, String[]> lobFileListCache;
     private final boolean autoServerMode;
@@ -230,19 +230,19 @@ public class Database implements DataHandler {
         if (modeName != null) {
             this.mode = Mode.getInstance(modeName);
         }
-        this.multiVersion = 
+        this.multiVersion =
                 ci.getProperty("MVCC", false);
-        this.logMode = 
+        this.logMode =
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
-        this.javaObjectSerializerName = 
+        this.javaObjectSerializerName =
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
 
-        boolean closeAtVmShutdown = 
+        boolean closeAtVmShutdown =
                 dbSettings.dbCloseOnExit;
-        int traceLevelFile = 
-                ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE, 
+        int traceLevelFile =
+                ci.getIntProperty(SetTypes.TRACE_LEVEL_FILE,
                 TraceSystem.DEFAULT_TRACE_LEVEL_FILE);
-        int traceLevelSystemOut = 
+        int traceLevelSystemOut =
                 ci.getIntProperty(SetTypes.TRACE_LEVEL_SYSTEM_OUT,
                 TraceSystem.DEFAULT_TRACE_LEVEL_SYSTEM_OUT);
         this.cacheType = StringUtils.toUpperEnglish(
@@ -686,7 +686,7 @@ public class Database implements DataHandler {
         data.session = systemSession;
         meta = mainSchema.createTable(data);
         IndexColumn[] pkCols = IndexColumn.wrap(new Column[] { columnId });
-        metaIdIndex = meta.addIndex(systemSession, "SYS_ID", 
+        metaIdIndex = meta.addIndex(systemSession, "SYS_ID",
                 0, pkCols, IndexType.createPrimaryKey(
                 false, false), true, null);
         objectIds.set(0);

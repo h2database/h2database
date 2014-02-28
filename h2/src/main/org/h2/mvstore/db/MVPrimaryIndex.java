@@ -281,7 +281,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * The maximum number of rows, including uncommitted rows of any session.
-     * 
+     *
      * @return the maximum number of rows
      */
     public long getRowCountMax() {
@@ -314,7 +314,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * Get the key from the row.
-     * 
+     *
      * @param row the row
      * @param ifEmpty the value to use if the row is empty
      * @param ifNull the value to use if the column is NULL
@@ -335,7 +335,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * Search for a specific row or a set of rows.
-     * 
+     *
      * @param session the session
      * @param first the key of the first row
      * @param last the key of the last row
@@ -353,7 +353,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     /**
      * Get the map to store the data.
-     * 
+     *
      * @param session the session
      * @return the map
      */

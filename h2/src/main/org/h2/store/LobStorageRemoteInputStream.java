@@ -39,7 +39,8 @@ class LobStorageRemoteInputStream extends InputStream {
      */
     private long remainingBytes;
 
-    public LobStorageRemoteInputStream(DataHandler handler, ValueLobDb lob, byte[] hmac, long byteCount) {
+    public LobStorageRemoteInputStream(DataHandler handler, ValueLobDb lob,
+            byte[] hmac, long byteCount) {
         this.handler = handler;
         this.lob = lob.getLobId();
         this.hmac = hmac;

@@ -156,7 +156,7 @@ public class MVStore {
     /**
      * The map of chunks.
      */
-    private final ConcurrentHashMap<Integer, Chunk> chunks = 
+    private final ConcurrentHashMap<Integer, Chunk> chunks =
             new ConcurrentHashMap<Integer, Chunk>();
 
     /**
@@ -173,7 +173,7 @@ public class MVStore {
      */
     private MVMapConcurrent<String, String> meta;
 
-    private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps = 
+    private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps =
             new ConcurrentHashMap<Integer, MVMap<?, ?>>();
 
     private HashMap<String, Object> fileHeader = New.hashMap();
@@ -1911,7 +1911,7 @@ public class MVStore {
             c = chunks.get(c.id - 1);
         }
         Chunk last = lastChunk;
-        if (removeChunksNewerThan != null && 
+        if (removeChunksNewerThan != null &&
                 last.version > removeChunksNewerThan.version) {
             revertTemp(version);
             loadFromFile = true;
@@ -2158,8 +2158,8 @@ public class MVStore {
         // start the background thread if needed
         if (millis > 0) {
             int sleep = Math.max(1, millis / 10);
-            BackgroundWriterThread t = 
-                    new BackgroundWriterThread(this, sleep, 
+            BackgroundWriterThread t =
+                    new BackgroundWriterThread(this, sleep,
                             fileStore.toString());
             t.start();
             backgroundWriterThread = t;

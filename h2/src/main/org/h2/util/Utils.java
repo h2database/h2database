@@ -67,7 +67,7 @@ public class Utils {
     /**
      *  In order to manage more than one class loader
      */
-    private static ArrayList<ClassFactory> userClassFactories = 
+    private static ArrayList<ClassFactory> userClassFactories =
             new ArrayList<ClassFactory>();
 
     private static String[] allowedClassNamePrefixes;
@@ -115,9 +115,9 @@ public class Utils {
     }
 
     private static int readInt(byte[] buff, int pos) {
-        return (buff[pos++] << 24) + 
-                ((buff[pos++] & 0xff) << 16) + 
-                ((buff[pos++] & 0xff) << 8) + 
+        return (buff[pos++] << 24) +
+                ((buff[pos++] & 0xff) << 16) +
+                ((buff[pos++] & 0xff) << 8) +
                 (buff[pos] & 0xff);
     }
 
@@ -150,7 +150,8 @@ public class Utils {
      * @return the value
      */
     public static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) + (readInt(buff, pos + 4) & 0xffffffffL);
+        return (((long) readInt(buff, pos)) << 32) + 
+                (readInt(buff, pos + 4) & 0xffffffffL);
     }
 
     /**
@@ -401,7 +402,7 @@ public class Utils {
                 final ClassLoader loader = Thread.currentThread().getContextClassLoader();
                 is = new ObjectInputStream(in) {
                     @Override
-                    protected Class<?> resolveClass(ObjectStreamClass desc) 
+                    protected Class<?> resolveClass(ObjectStreamClass desc)
                             throws IOException, ClassNotFoundException {
                         try {
                             return Class.forName(desc.getName(), true, loader);
@@ -520,7 +521,8 @@ public class Utils {
     public static <X> void sortTopN(X[] array, int offset, int limit,
             Comparator<? super X> comp) {
         partitionTopN(array, offset, limit, comp);
-        Arrays.sort(array, offset, (int) Math.min((long) offset + limit, array.length), comp);
+        Arrays.sort(array, offset,
+                (int) Math.min((long) offset + limit, array.length), comp);
     }
 
     /**
@@ -664,7 +666,7 @@ public class Utils {
         } catch (ClassNotFoundException e) {
             try {
                 return Class.forName(
-                        className, true, 
+                        className, true,
                         Thread.currentThread().getContextClassLoader());
             } catch (Exception e2) {
                 throw DbException.get(
@@ -775,7 +777,7 @@ public class Utils {
         int bestMatch = 0;
         boolean isStatic = instance == null;
         for (Method m : clazz.getMethods()) {
-            if (Modifier.isStatic(m.getModifiers()) == isStatic && 
+            if (Modifier.isStatic(m.getModifiers()) == isStatic &&
                     m.getName().equals(methodName)) {
                 int p = match(m.getParameterTypes(), params);
                 if (p > bestMatch) {

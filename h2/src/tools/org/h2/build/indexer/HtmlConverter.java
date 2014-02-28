@@ -14,9 +14,9 @@ import java.util.HashMap;
  */
 public class HtmlConverter {
 
-    private static final HashMap<String, Character> CHAR_MAP = 
+    private static final HashMap<String, Character> CHAR_MAP =
             new HashMap<String, Character>();
-    private static final HashMap<Character, String> CODE_MAP = 
+    private static final HashMap<Character, String> CODE_MAP =
             new HashMap<Character, String>();
 
     private static final String[] CHARS = { "quot:34", "amp:38", "lt:60",

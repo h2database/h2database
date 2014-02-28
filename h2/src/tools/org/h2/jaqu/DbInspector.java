@@ -35,7 +35,7 @@ public class DbInspector {
     /**
      * Set the preferred class to store date and time. Possible values are:
      * java.util.Date (default) and java.sql.Timestamp.
-     * 
+     *
      * @param dateTimeClass the new class
      */
     public void setPreferredDateTimeClass(
@@ -48,7 +48,7 @@ public class DbInspector {
      * name is undefined, models will be generated for every table within the
      * specified schema. Additionally, if no schema is defined, models will be
      * generated for all schemas and all tables.
-     * 
+     *
      * @param schema the schema name (optional)
      * @param table the table name (optional)
      * @param packageName the package name (optional)
@@ -75,7 +75,7 @@ public class DbInspector {
 
     /**
      * Validates a model.
-     * 
+     *
      * @param <T> the model class
      * @param model an instance of the model class
      * @param throwOnError if errors should cause validation to fail
@@ -104,7 +104,7 @@ public class DbInspector {
 
     /**
      * Get the table in the database based on the model definition.
-     * 
+     *
      * @param <T> the model class
      * @param model an instance of the model class
      * @return the table inspector
@@ -125,7 +125,7 @@ public class DbInspector {
     /**
      * Returns a list of tables. This method always returns at least one
      * element. If no table is found, an exception is thrown.
-     * 
+     *
      * @param schema the schema name
      * @param table the table name
      * @return a list of table inspectors (always contains at least one element)

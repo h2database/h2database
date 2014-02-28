@@ -19,7 +19,7 @@ public interface DbUpgrader {
      * Defines method interface to handle database upgrades. This method is only
      * called if your <i>DbUpgrader</i> implementation is annotated with
      * JQDatabase.
-     * 
+     *
      * @param db the database
      * @param fromVersion the old version
      * @param toVersion the new version
@@ -30,7 +30,7 @@ public interface DbUpgrader {
 
     /**
      * Defines method interface to handle table upgrades.
-     * 
+     *
      * @param db the database
      * @param schema the schema
      * @param table the table

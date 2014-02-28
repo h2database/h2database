@@ -87,25 +87,25 @@ public class Doclet {
         String className = getClass(clazz);
         FileWriter out = new FileWriter(fileName);
         PrintWriter writer = new PrintWriter(new BufferedWriter(out));
-        writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD " + 
+        writer.println("<!DOCTYPE html PUBLIC \"-//W3C//DTD " +
                 "XHTML 1.0 Strict//EN\" " +
                 "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">");
         String language = "en";
         writer.println("<html xmlns=\"http://www.w3.org/1999/xhtml\" " +
                 "lang=\"" + language + "\" xml:lang=\"" + language + "\">");
-        writer.println("<head>" + 
-                "<meta http-equiv=\"Content-Type\" " + 
+        writer.println("<head>" +
+                "<meta http-equiv=\"Content-Type\" " +
                 "content=\"text/html;charset=utf-8\" /><title>");
         writer.println(className);
-        writer.println("</title>" + 
-                "<link rel=\"stylesheet\" type=\"text/css\" " + 
+        writer.println("</title>" +
+                "<link rel=\"stylesheet\" type=\"text/css\" " +
                 "href=\"../../../stylesheet.css\" />");
-        writer.println("<script type=\"text/javascript\" " + 
+        writer.println("<script type=\"text/javascript\" " +
                 "src=\"../../../animate.js\"></script>");
         writer.println("</head><body onload=\"openLink();\">");
-        writer.println("<table class=\"content\">" + 
-                "<tr class=\"content\">" + 
-                "<td class=\"content\">" + 
+        writer.println("<table class=\"content\">" +
+                "<tr class=\"content\">" +
+                "<td class=\"content\">" +
                 "<div class=\"contentDiv\">");
         writer.println("<h1>" + className + "</h1>");
         writer.println(formatText(clazz.commentText()) + "<br /><br />");
@@ -113,7 +113,7 @@ public class Doclet {
         // methods
         ConstructorDoc[] constructors = clazz.constructors();
         MethodDoc[] methods = clazz.methods();
-        ExecutableMemberDoc[] constructorsMethods = 
+        ExecutableMemberDoc[] constructorsMethods =
                 new ExecutableMemberDoc[constructors.length
                 + methods.length];
         System.arraycopy(constructors, 0, constructorsMethods, 0,
@@ -151,16 +151,16 @@ public class Doclet {
                 continue;
             }
             if (!hasMethods) {
-                writer.println("<table class=\"block\">" + 
-                        "<tr onclick=\"return allDetails()\">" + 
+                writer.println("<table class=\"block\">" +
+                        "<tr onclick=\"return allDetails()\">" +
                         "<th colspan=\"2\">Methods</th></tr>");
                 hasMethods = true;
             }
             String type = getTypeName(method.isStatic(), false,
                     getReturnType(method));
-            writer.println("<tr id=\"__" + id + "\" onclick=\"return on(" + 
+            writer.println("<tr id=\"__" + id + "\" onclick=\"return on(" +
                     id + ")\">");
-            writer.println("<td class=\"return\">" + type + 
+            writer.println("<td class=\"return\">" + type +
                     "</td><td class=\"method\">");
             Parameter[] params = method.parameters();
             StringBuilder buff = new StringBuilder();
@@ -188,18 +188,18 @@ public class Doclet {
                 signatures.add(null);
             }
             signatures.add(i, signature);
-            writer.println("<a id=\"" + signature + 
-                    "\" href=\"#" + signature + "\">" + 
+            writer.println("<a id=\"" + signature +
+                    "\" href=\"#" + signature + "\">" +
                     name + "</a>" + buff.toString());
             String firstSentence = getFirstSentence(method.firstSentenceTags());
             if (firstSentence != null) {
-                writer.println("<div class=\"methodText\">" + 
+                writer.println("<div class=\"methodText\">" +
                         formatText(firstSentence) + "</div>");
             }
             writer.println("</td></tr>");
-            writer.println("<tr onclick=\"return off("+ 
+            writer.println("<tr onclick=\"return off("+
                     id +")\" class=\"detail\" id=\"_"+id+"\">");
-            writer.println("<td class=\"return\">" + 
+            writer.println("<td class=\"return\">" +
                     type + "</td><td>");
             writeMethodDetails(writer, clazz, method, signature);
             writer.println("</td></tr>");
@@ -228,7 +228,7 @@ public class Doclet {
             String name = field.name();
             String text = field.commentText();
             if (text == null || text.trim().length() == 0) {
-                addError("Undocumented field (" + 
+                addError("Undocumented field (" +
                         getLink(clazz, field.position().line()) + ") " + name);
             }
             if (text != null && text.startsWith("INTERNAL")) {
@@ -238,7 +238,7 @@ public class Doclet {
                 writer.println("<br /><table><tr><th colspan=\"2\">Fields</th></tr>");
             }
             String type = getTypeName(true, false, field.type());
-            writer.println("<tr><td class=\"return\">" + type + 
+            writer.println("<tr><td class=\"return\">" + type +
                     "</td><td class=\"method\">");
             String constant = field.constantValueExpression();
 
@@ -293,7 +293,7 @@ public class Doclet {
         String name = field.name();
         String constant = field.constantValueExpression();
         String link = getFieldLink(text, constant, clazz, name);
-        writer.println("<h4 id=\"" + link + "\"><span class=\"methodName\">" + 
+        writer.println("<h4 id=\"" + link + "\"><span class=\"methodName\">" +
                 name);
         if (constant == null) {
             writer.println();
@@ -335,11 +335,11 @@ public class Doclet {
         if (isDeprecated(method)) {
             name = "<span class=\"deprecated\">" + name + "</span>";
         }
-        writer.println("<a id=\"" + signature + "\" href=\"#" + signature + "\">" + 
+        writer.println("<a id=\"" + signature + "\" href=\"#" + signature + "\">" +
                 name + "</a>" + buff.toString());
-        boolean hasComment = method.commentText() != null && 
+        boolean hasComment = method.commentText() != null &&
                 method.commentText().trim().length() != 0;
-        writer.println("<div class=\"methodText\">" + 
+        writer.println("<div class=\"methodText\">" +
                 formatText(method.commentText()) + "</div>");
         ParamTag[] paramTags = method.paramTags();
         ThrowsTag[] throwsTags = method.throwsTags();
@@ -349,7 +349,7 @@ public class Doclet {
                 // [Not supported] and such are not problematic
                 addError("Undocumented parameter(s) (" +
                         getLink(clazz, method.position().line()) + ") " +
-                        name + " documented: " + paramTags.length + 
+                        name + " documented: " + paramTags.length +
                         " params: "+ params.length);
             }
         }
@@ -358,7 +358,7 @@ public class Doclet {
             String comment = paramTags[j].parameterComment();
             if (comment.trim().length() == 0) {
                 addError("Undocumented parameter (" +
-                        getLink(clazz, method.position().line()) + ") " + 
+                        getLink(clazz, method.position().line()) + ") " +
                         name + " " + paramName);
             }
             String p = paramName + " - " + comment;
@@ -378,7 +378,7 @@ public class Doclet {
             }
             writer.println("<div class=\"item\">" + returnComment + "</div>");
         } else if (returnType != null && !returnType.toString().equals("void")) {
-            if (hasComment && !method.commentText().startsWith("[") && 
+            if (hasComment && !method.commentText().startsWith("[") &&
                     !hasThrowsTag) {
                 // [Not supported] and such are not problematic
                 // also not problematic are methods that always throw an exception
@@ -417,7 +417,7 @@ public class Doclet {
             int linkEnd = text.indexOf("</code>", linkStart);
             link = text.substring(linkStart + "<code>".length(), linkEnd);
             if (constant != null && !constant.equals(link)) {
-                System.out.println("Wrong code tag? " + clazz.name() + "." + 
+                System.out.println("Wrong code tag? " + clazz.name() + "." +
                         name +
                         " code: " + link + " constant: " + constant);
                 errorCount++;

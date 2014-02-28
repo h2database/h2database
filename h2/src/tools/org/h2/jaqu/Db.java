@@ -86,7 +86,7 @@ public class Db {
     /**
      * Create a new database instance using a data source. This method is fast,
      * so that you can always call open() / close() on usage.
-     * 
+     *
      * @param ds the data source
      * @return the database instance.
      */
@@ -315,7 +315,7 @@ public class Db {
 
     /**
      * Run a SQL query directly against the database.
-     * 
+     *
      * @param sql the SQL statement
      * @return the result set
      */
@@ -329,7 +329,7 @@ public class Db {
 
     /**
      * Run a SQL statement directly against the database.
-     * 
+     *
      * @param sql the SQL statement
      * @return the update count
      */

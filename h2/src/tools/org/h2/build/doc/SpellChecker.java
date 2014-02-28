@@ -31,7 +31,7 @@ public class SpellChecker {
     private static final String[] IGNORE = { "dev", "nsi", "gif", "png", "odg",
             "ico", "sxd", "zip", "bz2", "rc", "layout", "res", "dll", "jar",
             "svg", "prefs", "prop", "iml" };
-    private static final String DELIMITERS = 
+    private static final String DELIMITERS =
             " \n.();-\"=,*/{}_<>+\r:'@[]&\\!#|?$^%~`\t";
     private static final String PREFIX_IGNORE = "abc";
     private static final String[] IGNORE_FILES = { "mainWeb.html",
@@ -49,11 +49,11 @@ public class SpellChecker {
      */
     public boolean printDictionary;
 
-    private final HashSet<String> dictionary = 
+    private final HashSet<String> dictionary =
             new HashSet<String>();
-    private final HashSet<String> used = 
+    private final HashSet<String> used =
             new HashSet<String>();
-    private final HashMap<String, Integer> unknown = 
+    private final HashMap<String, Integer> unknown =
             new HashMap<String, Integer>();
     private boolean addToDictionary;
     private int errorCount;
@@ -147,7 +147,7 @@ public class SpellChecker {
                 }
             }
             if (!ok) {
-                throw new IOException("Unsupported suffix: " + 
+                throw new IOException("Unsupported suffix: " +
                         suffix + " for file: " + fileName);
             }
             String text = new String(BuildBase.readFile(file));
@@ -206,7 +206,7 @@ public class SpellChecker {
             pos += "http://".length();
             while (true) {
                 char c = text.charAt(pos);
-                if (!Character.isJavaIdentifierPart(c) && 
+                if (!Character.isJavaIdentifierPart(c) &&
                         ".#/?&=%+_-:".indexOf(c) < 0) {
                     break;
                 }

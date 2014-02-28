@@ -18,10 +18,12 @@ import java.util.Arrays;
  */
 public class CheckTextFiles {
 
+    private static final int MAX_SOURCE_LINE_SIZE = 100;
+
     // must contain "+" otherwise this here counts as well
-    private static final String COPYRIGHT = "Copyright 2004-2013 " + 
+    private static final String COPYRIGHT = "Copyright 2004-2013 " +
             "H2 Group.";
-    private static final String LICENSE = "Multiple-Licensed " + 
+    private static final String LICENSE = "Multiple-Licensed " +
             "under the H2 License";
 
     private static final String[] SUFFIX_CHECK = { "html", "jsp", "js", "css",
@@ -90,8 +92,8 @@ public class CheckTextFiles {
 //                check = false;
 //                ignore = true;
 //            }
-            if (name.endsWith(".utf8.txt") || 
-                    (name.startsWith("_docs_") && 
+            if (name.endsWith(".utf8.txt") ||
+                    (name.startsWith("_docs_") &&
                     name.endsWith(".properties"))) {
                 check = false;
                 ignore = true;
@@ -164,6 +166,7 @@ public class CheckTextFiles {
             }
         }
         int line = 1;
+        int startLinePos = 0;
         boolean lastWasWhitespace = false;
         for (int i = 0; i < data.length; i++) {
             char ch = (char) (data[i] & 0xff);
@@ -186,6 +189,13 @@ public class CheckTextFiles {
                     }
                     lastWasWhitespace = false;
                     line++;
+                    int lineLength = i - startLinePos;
+                    if (lineLength > MAX_SOURCE_LINE_SIZE) {
+                        if (file.getName().endsWith(".java")) {
+                            fail(file, "line too long: " + lineLength, line);
+                        }
+                    }
+                    startLinePos = i;
                 } else if (ch == '\r') {
                     if (!ALLOW_CR) {
                         fail(file, "contains CR", line);

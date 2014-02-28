@@ -34,9 +34,9 @@ public class Migrate {
     private static final String USER = "sa";
     private static final String PASSWORD  = "sa";
     private static final File OLD_H2_FILE = new File("./h2-1.2.127.jar");
-    private static final String DOWNLOAD_URL = 
+    private static final String DOWNLOAD_URL =
             "http://repo2.maven.org/maven2/com/h2database/h2/1.2.127/h2-1.2.127.jar";
-    private static final String CHECKSUM = 
+    private static final String CHECKSUM =
             "056e784c7cf009483366ab9cd8d21d02fe47031a";
     private static final String TEMP_SCRIPT = "backup.sql";
     private final PrintStream sysOut = System.out;

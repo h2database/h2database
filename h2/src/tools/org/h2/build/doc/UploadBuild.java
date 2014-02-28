@@ -105,7 +105,7 @@ public class UploadBuild {
         if (ftp.exists("/httpdocs/automated", "history.sql")) {
             buildSql = new String(ftp.retrieve("/httpdocs/automated/history.sql"));
         } else {
-            buildSql = "create table item(id identity, title varchar, " + 
+            buildSql = "create table item(id identity, title varchar, " +
                     "issued timestamp, desc varchar);\n";
         }
         String ts = new java.sql.Timestamp(System.currentTimeMillis()).toString();
@@ -114,21 +114,21 @@ public class UploadBuild {
         if (idx >= 0) {
             int end = testOutput.indexOf("<br />", idx);
             if (end >= 0) {
-                String result = testOutput.substring(idx + 
+                String result = testOutput.substring(idx +
                         "Statements per second: ".length(), end);
                 now += " " + result + " op/s";
             }
         }
-        String sql = "insert into item(title, issued, desc) values('Build " + 
+        String sql = "insert into item(title, issued, desc) values('Build " +
             now +
             (error ? " FAILED" : "") +
             (coverageFailed ? " COVERAGE" : "") +
-            "', '" + ts + 
-            "', '<a href=\"http://www.h2database.com/" + 
+            "', '" + ts +
+            "', '<a href=\"http://www.h2database.com/" +
             "html/testOutput.html\">Output</a>" +
-            " - <a href=\"http://www.h2database.com/" + 
+            " - <a href=\"http://www.h2database.com/" +
             "coverage/overview.html\">Coverage</a>" +
-            " - <a href=\"http://www.h2database.com/" + 
+            " - <a href=\"http://www.h2database.com/" +
             "automated/h2-latest.jar\">Jar</a>');\n";
         buildSql += sql;
         Connection conn;
@@ -157,21 +157,21 @@ public class UploadBuild {
         rs.next();
         String content = rs.getString("content");
         conn.close();
-        ftp.store("/httpdocs/automated/history.sql", 
+        ftp.store("/httpdocs/automated/history.sql",
                 new ByteArrayInputStream(buildSql.getBytes()));
-        ftp.store("/httpdocs/automated/news.xml", 
+        ftp.store("/httpdocs/automated/news.xml",
                 new ByteArrayInputStream(content.getBytes()));
-        ftp.store("/httpdocs/html/testOutput.html", 
+        ftp.store("/httpdocs/html/testOutput.html",
                 new ByteArrayInputStream(testOutput.getBytes()));
         String jarFileName = "bin/h2-" + Constants.getVersion() + ".jar";
         if (FileUtils.exists(jarFileName)) {
-            ftp.store("/httpdocs/automated/h2-latest.jar", 
+            ftp.store("/httpdocs/automated/h2-latest.jar",
                     new FileInputStream(jarFileName));
         }
         if (coverage) {
-            ftp.store("/httpdocs/coverage/overview.html", 
+            ftp.store("/httpdocs/coverage/overview.html",
                     new FileInputStream("coverage/overview.html"));
-            ftp.store("/httpdocs/coverage/coverage.zip", 
+            ftp.store("/httpdocs/coverage/coverage.zip",
                     new FileInputStream("coverage.zip"));
             FileUtils.delete("coverage.zip");
         }

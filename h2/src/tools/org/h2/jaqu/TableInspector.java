@@ -62,7 +62,7 @@ public class TableInspector {
     /**
      * Tests to see if this TableInspector represents schema.table.
      * <p>
-     * 
+     *
      * @param schema the schema name
      * @param table the table name
      * @return true if the table matches
@@ -84,7 +84,7 @@ public class TableInspector {
     /**
      * Reads the DatabaseMetaData for the details of this table including
      * primary keys and indexes.
-     * 
+     *
      * @param metaData the database meta data
      */
     void read(DatabaseMetaData metaData) throws SQLException {
@@ -154,7 +154,7 @@ public class TableInspector {
      * the model between databases), and if to automatically trim strings for
      * those that have a maximum length.
      * <p>
-     * 
+     *
      * @return a complete model (class definition) for this table as a string
      */
     String generateModel(String packageName, boolean annotateSchema,
@@ -369,7 +369,7 @@ public class TableInspector {
      * returned as a list of validation remarks which includes recommendations,
      * warnings, and errors about the model. The caller may choose to have
      * validate throw an exception on any validation ERROR.
-     * 
+     *
      * @param <T> the table type
      * @param def the table definition
      * @param throwError whether or not to throw an exception if an error was

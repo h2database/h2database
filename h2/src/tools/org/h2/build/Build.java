@@ -39,36 +39,36 @@ public class Build extends BuildBase {
      * Run the benchmarks.
      */
     public void benchmark() {
-        downloadUsingMaven("ext/hsqldb-2.0.0.jar", 
+        downloadUsingMaven("ext/hsqldb-2.0.0.jar",
                 "hsqldb", "hsqldb", "2.0.0",
                 "c9d525ce1a464185e6b01c7de872127a06092673");
-        downloadUsingMaven("ext/derby-10.6.1.0.jar", 
+        downloadUsingMaven("ext/derby-10.6.1.0.jar",
                 "org/apache/derby", "derby", "10.6.1.0",
                 "01137cd636b0e3c22f0d273478adb58aa30e984a");
-        downloadUsingMaven("ext/derbyclient-10.6.1.0.jar", 
+        downloadUsingMaven("ext/derbyclient-10.6.1.0.jar",
                 "org/apache/derby", "derbyclient", "10.6.1.0",
                 "e7c6fbaca2ef4dbcad27fa7d8a9cd1ac0d1e4b00");
-        downloadUsingMaven("ext/derbynet-10.6.1.0.jar", 
+        downloadUsingMaven("ext/derbynet-10.6.1.0.jar",
                 "org/apache/derby", "derbynet", "10.6.1.0",
                 "d5d9d7b783eeaef016be85c34d5c65d1e7cec764");
-        downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar", 
+        downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar",
                 "postgresql", "postgresql", "8.3-603.jdbc3",
                 "33d531c3c53055ddcbea3d88bfa093466ffef924");
-        downloadUsingMaven("ext/mysql-connector-java-5.1.6.jar", 
+        downloadUsingMaven("ext/mysql-connector-java-5.1.6.jar",
                 "mysql", "mysql-connector-java", "5.1.6",
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
         compile();
 
-        String cp = "temp" + 
-                File.pathSeparator + "bin/h2" + getJarSuffix() + 
-                File.pathSeparator + "ext/hsqldb.jar" + 
-                File.pathSeparator + "ext/hsqldb-2.0.0.jar" + 
-                File.pathSeparator + "ext/derby-10.6.1.0.jar" + 
-                File.pathSeparator + "ext/derbyclient-10.6.1.0.jar" + 
-                File.pathSeparator + "ext/derbynet-10.6.1.0.jar" + 
-                File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" + 
+        String cp = "temp" +
+                File.pathSeparator + "bin/h2" + getJarSuffix() +
+                File.pathSeparator + "ext/hsqldb.jar" +
+                File.pathSeparator + "ext/hsqldb-2.0.0.jar" +
+                File.pathSeparator + "ext/derby-10.6.1.0.jar" +
+                File.pathSeparator + "ext/derbyclient-10.6.1.0.jar" +
+                File.pathSeparator + "ext/derbynet-10.6.1.0.jar" +
+                File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
                 File.pathSeparator + "ext/mysql-connector-java-5.1.6.jar";
-        StringList args = args("-Xmx128m", 
+        StringList args = args("-Xmx128m",
                 "-cp", cp, "org.h2.test.bench.TestPerformance");
         exec("java", args.plus("-init", "-db", "1"));
         exec("java", args.plus("-db", "2"));
@@ -101,7 +101,7 @@ public class Build extends BuildBase {
     private void compileTools() {
         FileList files = files("src/tools").keep("src/tools/org/h2/build/*");
         StringList args = args("-d", "temp", "-sourcepath", "src/tools" +
-                File.pathSeparator + "src/test" + 
+                File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/main");
         mkdir("temp");
         javac(args, files);
@@ -126,7 +126,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/jts-1.13.jar" +
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
-            File.pathSeparator + System.getProperty("java.home") + 
+            File.pathSeparator + System.getProperty("java.home") +
             "/../lib/tools.jar";
         // -XX:-UseSplitVerifier is for Java 7 compatibility
         exec("java", args(
@@ -136,7 +136,7 @@ public class Build extends BuildBase {
                 "-cp", "temp",
                 "-sp", "src/main",
                 "-r", "html,txt",
-                "-ix", "-org.h2.test.*,-org.h2.dev.*," + 
+                "-ix", "-org.h2.test.*,-org.h2.dev.*," +
                 "-org.h2.jaqu.*,-org.h2.mode.*,-org.h2.server.pg.*",
                 "org.h2.test.TestAll"));
     }
@@ -277,22 +277,22 @@ public class Build extends BuildBase {
     }
 
     private void downloadOrVerify(boolean offline) {
-        downloadOrVerify("ext/servlet-api-2.4.jar", 
+        downloadOrVerify("ext/servlet-api-2.4.jar",
                 "javax/servlet", "servlet-api", "2.4",
                 "3fc542fe8bb8164e8d3e840fe7403bc0518053c0", offline);
-        downloadOrVerify("ext/lucene-core-3.0.2.jar", 
+        downloadOrVerify("ext/lucene-core-3.0.2.jar",
                 "org/apache/lucene", "lucene-core", "3.0.2",
                 "c2b48995ab855c1b9ea13867a0f976c994e0105d", offline);
-        downloadOrVerify("ext/slf4j-api-1.6.0.jar", 
+        downloadOrVerify("ext/slf4j-api-1.6.0.jar",
                 "org/slf4j", "slf4j-api", "1.6.0",
                 "b353147a7d51fcfcd818d8aa6784839783db0915", offline);
-        downloadOrVerify("ext/org.osgi.core-4.2.0.jar", 
+        downloadOrVerify("ext/org.osgi.core-4.2.0.jar",
                 "org/osgi", "org.osgi.core", "4.2.0",
                 "66ab449ff3aa5c4adfc82c89025cc983b422eb95", offline);
-        downloadOrVerify("ext/org.osgi.enterprise-4.2.0.jar", 
+        downloadOrVerify("ext/org.osgi.enterprise-4.2.0.jar",
                 "org/osgi", "org.osgi.enterprise", "4.2.0",
                 "8634dcb0fc62196e820ed0f1062993c377f74972", offline);
-        downloadOrVerify("ext/jts-1.13.jar", 
+        downloadOrVerify("ext/jts-1.13.jar",
                 "com/vividsolutions", "jts", "1.13",
                 "3ccfb9b60f04d71add996a666ceb8902904fd805", offline);
     }
@@ -317,16 +317,16 @@ public class Build extends BuildBase {
                 "http://h2database.com/h2mig_pagestore_addon.jar",
                 "6dfafe1b86959c3ba4f7cf03e99535e8b9719965");
         // for TestOldVersion
-        downloadUsingMaven("ext/h2-1.2.127.jar", 
+        downloadUsingMaven("ext/h2-1.2.127.jar",
                 "com/h2database", "h2", "1.2.127",
                 "056e784c7cf009483366ab9cd8d21d02fe47031a");
         // for TestPgServer
 
-        downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar", 
+        downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar",
                 "postgresql", "postgresql", "8.3-603.jdbc3",
                 "33d531c3c53055ddcbea3d88bfa093466ffef924");
         // for TestTraceSystem
-        downloadUsingMaven("ext/slf4j-nop-1.6.0.jar", 
+        downloadUsingMaven("ext/slf4j-nop-1.6.0.jar",
                 "org/slf4j", "slf4j-nop", "1.6.0",
                 "4da67bb4a6eea5dc273f99c50ad2333eadb46f86");
     }
@@ -548,8 +548,8 @@ public class Build extends BuildBase {
     public void javadocImpl() {
         compileTools();
         mkdir("docs/javadocImpl2");
-        javadoc("-sourcepath", "src/main" + 
-                File.pathSeparator + "src/test" + 
+        javadoc("-sourcepath", "src/main" +
+                File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/tools" ,
                 "-noindex",
                 "-tag", "h2.resource",
@@ -566,12 +566,12 @@ public class Build extends BuildBase {
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
         System.setProperty("h2.interfacesOnly", "false");
         System.setProperty("h2.javadocDestDir", "docs/javadocImpl");
-        javadoc("-sourcepath", "src/main" + 
-                File.pathSeparator + "src/test" + 
-                File.pathSeparator + "src/tools", 
+        javadoc("-sourcepath", "src/main" +
+                File.pathSeparator + "src/test" +
+                File.pathSeparator + "src/tools",
                 "-classpath",
-                System.getProperty("java.home") + "/../lib/tools.jar" + 
-                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" + 
+                System.getProperty("java.home") + "/../lib/tools.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-2.4.jar" +
                 File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +

@@ -115,6 +115,7 @@ public class GrantRevoke extends DefineCommand {
                 db.addDatabaseObject(session, right);
             } else {
                 right.setRightMask(right.getRightMask() | rightMask);
+                db.update(session, right);
             }
         }
     }

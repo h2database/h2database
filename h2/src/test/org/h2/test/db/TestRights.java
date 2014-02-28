@@ -35,6 +35,7 @@ public class TestRights extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testGrantMore();
         testOpenNonAdminWithMode();
         testDisallowedTables();
         testDropOwnUser();
@@ -45,6 +46,26 @@ public class TestRights extends TestBase {
         testAccessRights();
         testSchemaAdminRole();
         deleteDb("rights");
+    }
+    
+    private void testGrantMore() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create role new_role");
+        stat.execute("create table test(id int)");
+        stat.execute("grant select on test to new_role");
+        ResultSet rs = stat.executeQuery("select * from information_schema.table_privileges");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        stat.execute("grant insert on test to new_role");
+        rs = stat.executeQuery("select * from information_schema.table_privileges");
+        assertTrue(rs.next());
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        stat.execute("drop table test");
+        stat.execute("drop role new_role");
+        conn.close();
     }
 
     private void testOpenNonAdminWithMode() throws SQLException {

@@ -58,13 +58,13 @@ public class SecureKeyStoreBuilder {
             String alias = en.nextElement();
             Key key = store.getKey(alias, password.toCharArray());
             System.out.println(
-                    "KeyFactory keyFactory = KeyFactory.getInstance(\"" 
+                    "KeyFactory keyFactory = KeyFactory.getInstance(\""
                     + key.getAlgorithm() + "\");");
             System.out.println("store.load(null, password.toCharArray());");
             String pkFormat = key.getFormat();
             String encoded = StringUtils.convertBytesToHex(key.getEncoded());
             System.out.println(
-                    pkFormat + "EncodedKeySpec keySpec = new " 
+                    pkFormat + "EncodedKeySpec keySpec = new "
                     + pkFormat + "EncodedKeySpec(getBytes(\""
                     + encoded + "\"));");
             System.out.println(

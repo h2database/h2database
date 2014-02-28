@@ -58,19 +58,19 @@ public class ClassObj {
     /**
      * The per-instance fields.
      */
-    LinkedHashMap<String, FieldObj> instanceFields = 
+    LinkedHashMap<String, FieldObj> instanceFields =
             new LinkedHashMap<String, FieldObj>();
 
     /**
      * The static fields of this class.
      */
-    LinkedHashMap<String, FieldObj> staticFields = 
+    LinkedHashMap<String, FieldObj> staticFields =
             new LinkedHashMap<String, FieldObj>();
 
     /**
      * The methods.
      */
-    LinkedHashMap<String, ArrayList<MethodObj>> methods = 
+    LinkedHashMap<String, ArrayList<MethodObj>> methods =
             new LinkedHashMap<String, ArrayList<MethodObj>>();
 
     /**
@@ -246,7 +246,7 @@ class MethodObj {
     /**
      * The parameter list.
      */
-    LinkedHashMap<String, FieldObj> parameters = 
+    LinkedHashMap<String, FieldObj> parameters =
             new LinkedHashMap<String, FieldObj>();
 
     /**

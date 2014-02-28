@@ -458,39 +458,39 @@ public class FileShell extends Tool {
 
     private void showHelp() {
         println("Commands are case sensitive");
-        println("? or help                  " + 
+        println("? or help                  " +
                 "Display this help");
-        println("cat <file>                 " + 
+        println("cat <file>                 " +
                 "Print the contents of the file");
-        println("cd <dir>                   " + 
+        println("cd <dir>                   " +
                 "Change the directory");
-        println("chmod -w <file>            " + 
+        println("chmod -w <file>            " +
                 "Make the file read-only");
-        println("cp <source> <target>       " + 
+        println("cp <source> <target>       " +
                 "Copy a file");
-        println("head <file>                " + 
+        println("head <file>                " +
                 "Print the first few lines of the contents");
-        println("ls [<dir>]                 " + 
+        println("ls [<dir>]                 " +
                 "Print the directory contents");
-        println("mkdir <dir>                " + 
+        println("mkdir <dir>                " +
                 "Create a directory (including parent directories)");
-        println("mv <source> <target>       " + 
+        println("mv <source> <target>       " +
                 "Rename a file or directory");
-        println("pwd                        " + 
+        println("pwd                        " +
                 "Print the current working directory");
-        println("rm <file>                  " + 
+        println("rm <file>                  " +
                 "Remove a file");
-        println("rm -r <dir>                " + 
+        println("rm -r <dir>                " +
                 "Remove a directory, recursively");
-        println("rm -rf <dir>               " + 
+        println("rm -rf <dir>               " +
                 "Remove a directory, recursively; force");
-        println("touch <file>               " + 
+        println("touch <file>               " +
                 "Update the last modified date (creates the file)");
-        println("truncate -s <size> <file>  " + 
+        println("truncate -s <size> <file>  " +
                 "Set the file length");
-        println("unzip <zip>                " + 
+        println("unzip <zip>                " +
                 "Extract all files from the zip file");
-        println("zip [-r] <zip> <files..>   " + 
+        println("zip [-r] <zip> <files..>   " +
                 "Create a zip file (-r to recurse directories)");
         println("exit                       Exit");
         println("");

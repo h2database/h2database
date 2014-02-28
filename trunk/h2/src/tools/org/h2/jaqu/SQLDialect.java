@@ -18,7 +18,7 @@ public interface SQLDialect {
 
     /**
      * Get the SQL snippet for the table name.
-     * 
+     *
      * @param schema the schema name, or null for no schema
      * @param table the table name
      * @return the SQL snippet
@@ -27,7 +27,7 @@ public interface SQLDialect {
 
     /**
      * Get the CREATE INDEX statement.
-     * 
+     *
      * @param schema the schema name
      * @param table the table name
      * @param index the index definition
@@ -37,7 +37,7 @@ public interface SQLDialect {
 
     /**
      * Append "LIMIT limit" to the SQL statement.
-     * 
+     *
      * @param stat the statement
      * @param limit the limit
      */
@@ -45,7 +45,7 @@ public interface SQLDialect {
 
     /**
      * Append "OFFSET offset" to the SQL statement.
-     * 
+     *
      * @param stat the statement
      * @param offset the offset
      */
@@ -53,7 +53,7 @@ public interface SQLDialect {
 
     /**
      * Whether memory tables are supported.
-     * 
+     *
      * @return true if they are
      */
     boolean supportsMemoryTables();

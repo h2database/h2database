@@ -36,7 +36,7 @@ public class GenerateDoc {
     private String inDir = "src/docsrc/html";
     private String outDir = "docs/html";
     private Connection conn;
-    private final HashMap<String, Object> session = 
+    private final HashMap<String, Object> session =
             new HashMap<String, Object>();
     private Bnf bnf;
 
@@ -69,37 +69,37 @@ public class GenerateDoc {
         session.put("stableVersion", Constants.getVersionStable());
         session.put("stableVersionDate", Constants.BUILD_DATE_STABLE);
         // String help = "SELECT * FROM INFORMATION_SCHEMA.HELP WHERE SECTION";
-        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" + 
+        String help = "SELECT ROWNUM ID, * FROM CSVREAD('" +
                 IN_HELP + "', NULL, 'lineComment=#') WHERE SECTION ";
-        map("commands", 
+        map("commands",
                 help + "LIKE 'Commands%' ORDER BY ID", true);
-        map("commandsDML", 
+        map("commandsDML",
                 help + "= 'Commands (DML)' ORDER BY ID", false);
-        map("commandsDDL", 
+        map("commandsDDL",
                 help + "= 'Commands (DDL)' ORDER BY ID", false);
-        map("commandsOther", 
+        map("commandsOther",
                 help + "= 'Commands (Other)' ORDER BY ID", false);
-        map("otherGrammar", 
+        map("otherGrammar",
                 help + "= 'Other Grammar' ORDER BY ID", true);
-        map("functionsAggregate", 
+        map("functionsAggregate",
                 help + "= 'Functions (Aggregate)' ORDER BY ID", false);
-        map("functionsNumeric", 
+        map("functionsNumeric",
                 help + "= 'Functions (Numeric)' ORDER BY ID", false);
-        map("functionsString", 
+        map("functionsString",
                 help + "= 'Functions (String)' ORDER BY ID", false);
-        map("functionsTimeDate", 
+        map("functionsTimeDate",
                 help + "= 'Functions (Time and Date)' ORDER BY ID", false);
-        map("functionsSystem", 
+        map("functionsSystem",
                 help + "= 'Functions (System)' ORDER BY ID", false);
-        map("functionsAll", 
+        map("functionsAll",
                 help + "LIKE 'Functions%' ORDER BY SECTION, ID", true);
-        map("dataTypes", 
+        map("dataTypes",
                 help + "LIKE 'Data Types%' ORDER BY SECTION, ID", true);
-        map("informationSchema", "SELECT TABLE_NAME TOPIC, " + 
-                "GROUP_CONCAT(COLUMN_NAME " + 
-                "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX " + 
-                "FROM INFORMATION_SCHEMA.COLUMNS " + 
-                "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' " + 
+        map("informationSchema", "SELECT TABLE_NAME TOPIC, " +
+                "GROUP_CONCAT(COLUMN_NAME " +
+                "ORDER BY ORDINAL_POSITION SEPARATOR ', ') SYNTAX " +
+                "FROM INFORMATION_SCHEMA.COLUMNS " +
+                "WHERE TABLE_SCHEMA='INFORMATION_SCHEMA' " +
                 "GROUP BY TABLE_NAME ORDER BY TABLE_NAME", false);
         processAll("");
         conn.close();
@@ -142,7 +142,7 @@ public class GenerateDoc {
         try {
             stat = conn.createStatement();
             rs = stat.executeQuery(sql);
-            ArrayList<HashMap<String, String>> list = 
+            ArrayList<HashMap<String, String>> list =
                     new ArrayList<HashMap<String, String>>();
             while (rs.next()) {
                 HashMap<String, String> map = new HashMap<String, String>();
@@ -168,9 +168,9 @@ public class GenerateDoc {
                 String text = map.get("text");
                 if (text != null) {
                     // text is enclosed in <p> .. </p> so this works.
-                    text = StringUtils.replaceAll(text, 
+                    text = StringUtils.replaceAll(text,
                             "<br /><br />", "</p><p>");
-                    text = StringUtils.replaceAll(text, 
+                    text = StringUtils.replaceAll(text,
                             "<br />", " ");
                     text = addCode(text);
                     map.put("text", text);

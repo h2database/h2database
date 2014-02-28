@@ -23,7 +23,7 @@ import org.h2.util.New;
 
 /**
  * This class represents a query.
- * 
+ *
  * @param <T> the return type
  */
 public class Query<T> {
@@ -285,7 +285,7 @@ public class Query<T> {
 
     /**
      * Sets the Limit and Offset of a query.
-     * 
+     *
      * @return the query
      */
     public Query<T> limit(long limit) {
@@ -300,7 +300,7 @@ public class Query<T> {
 
     /**
      * Order by a number of columns.
-     * 
+     *
      * @param expressions the columns
      * @return the query
      */
@@ -327,7 +327,7 @@ public class Query<T> {
 
     /**
      * INTERNAL
-     * 
+     *
      * @param stat the statement
      * @param x the alias object
      */
@@ -409,7 +409,7 @@ public class Query<T> {
 
     /**
      * Join another table.
-     * 
+     *
      * @param alias an alias for the table to join
      * @return the joined query
      */

@@ -26,7 +26,7 @@ public class WebSite {
 
     private static final String ANALYTICS_TAG = "<!-- analytics -->";
     private static final String ANALYTICS_SCRIPT =
-        "<script src=\"http://www.google-analytics.com/ga.js\" " + 
+        "<script src=\"http://www.google-analytics.com/ga.js\" " +
         "type=\"text/javascript\"></script>\n" +
         "<script type=\"text/javascript\">" +
         "var pageTracker=_gat._getTracker(\"UA-2351060-1\");" +

@@ -59,7 +59,7 @@ public class JavaParser {
     private FieldObj thisPointer;
     private final HashMap<String, String> importMap = New.hashMap();
     private final HashMap<String, ClassObj> classes = New.hashMap();
-    private final LinkedHashMap<String, FieldObj> localVars = 
+    private final LinkedHashMap<String, FieldObj> localVars =
             new LinkedHashMap<String, FieldObj>();
     private final HashMap<String, MethodObj> allMethodsMap = New.hashMap();
     private final ArrayList<Statement> nativeHeaders = New.arrayList();
@@ -109,7 +109,7 @@ public class JavaParser {
 
     /**
      * Get the wrapper class for the given primitive class.
-     * 
+     *
      * @param c the class
      * @return the wrapper class
      */
@@ -156,7 +156,7 @@ public class JavaParser {
 
     /**
      * Parse the source code.
-     * 
+     *
      * @param baseDir the base directory
      * @param className the fully qualified name of the class to parse
      */
@@ -268,7 +268,7 @@ public class JavaParser {
 
     /**
      * Get the class for a built-in type.
-     * 
+     *
      * @param type the type
      * @return the class or null if not found
      */
@@ -1240,7 +1240,7 @@ public class JavaParser {
 
     /**
      * Replace all Unicode escapes.
-     * 
+     *
      * @param s the text
      * @return the cleaned text
      */
@@ -1270,7 +1270,7 @@ public class JavaParser {
 
     /**
      * Replace all Unicode escapes and remove all remarks.
-     * 
+     *
      * @param s the source code
      * @return the cleaned source code
      */
@@ -1475,7 +1475,7 @@ public class JavaParser {
 
     /**
      * Parse a number literal and returns it.
-     * 
+     *
      * @param s the source code
      * @return the number
      */
@@ -1594,7 +1594,7 @@ public class JavaParser {
 
     /**
      * Write the C++ header.
-     * 
+     *
      * @param out the output writer
      */
     void writeHeader(PrintWriter out) {
@@ -1705,7 +1705,7 @@ public class JavaParser {
 
     /**
      * Write the C++ source code.
-     * 
+     *
      * @param out the output writer
      */
     void writeSource(PrintWriter out) {
@@ -1789,7 +1789,7 @@ public class JavaParser {
 
     /**
      * Move the source code 4 levels to the right.
-     * 
+     *
      * @param o the source code
      * @return the indented code
      */
@@ -1799,7 +1799,7 @@ public class JavaParser {
 
     /**
      * Get the C++ representation of this identifier.
-     * 
+     *
      * @param identifier the identifier
      * @return the C representation
      */
@@ -1813,7 +1813,7 @@ public class JavaParser {
 
     /**
      * Get the class of the given name.
-     * 
+     *
      * @param className the name
      * @return the class
      */

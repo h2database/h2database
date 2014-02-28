@@ -12,7 +12,7 @@ import org.h2.util.New;
 
 /**
  * This class represents a table in a query.
- * 
+ *
  * @param <T> the table class
  */
 class SelectTable<T> {

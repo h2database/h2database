@@ -26,7 +26,7 @@ public class ModelUtils {
      * The list of supported data types. It is used by the runtime mapping for
      * CREATE statements.
      */
-    private static final Map<Class<?>, String> SUPPORTED_TYPES = 
+    private static final Map<Class<?>, String> SUPPORTED_TYPES =
             new HashMap<Class<?>, String>();
 
     static {
@@ -51,7 +51,7 @@ public class ModelUtils {
      * Convert SQL type aliases to the list of supported types.
      * This map is used by generation and validation.
      */
-    private static final Map<String, String> SQL_TYPES = 
+    private static final Map<String, String> SQL_TYPES =
             new HashMap<String, String>();
 
     static {

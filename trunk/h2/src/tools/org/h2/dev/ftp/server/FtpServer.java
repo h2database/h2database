@@ -239,7 +239,7 @@ public class FtpServer extends Tool implements Service {
         Date now = new Date(), mod = new Date(FileUtils.lastModified(fileName));
         String date;
         if (mod.after(now)
-                || Math.abs((now.getTime() - mod.getTime()) / 
+                || Math.abs((now.getTime() - mod.getTime()) /
                         1000 / 60 / 60 / 24) > 180) {
             synchronized (dateFormatOld) {
                 date = dateFormatOld.format(mod);

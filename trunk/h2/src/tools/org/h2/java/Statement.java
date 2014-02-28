@@ -157,7 +157,7 @@ class SwitchStatement extends StatementBase {
 
     private StatementBlock defaultBlock;
     private final ArrayList<Expr> cases = new ArrayList<Expr>();
-    private final ArrayList<StatementBlock> blocks = 
+    private final ArrayList<StatementBlock> blocks =
             new ArrayList<StatementBlock>();
     private final Expr expr;
 

@@ -93,7 +93,7 @@ public class GenerateModels {
 
     /**
      * Generates models from the database.
-     * 
+     *
      * @param url the database URL
      * @param user the user name
      * @param password the password
@@ -149,7 +149,7 @@ public class GenerateModels {
 
     /**
      * Throw a SQLException saying this command line option is not supported.
-     * 
+     *
      * @param option the unsupported option
      * @return this method never returns normally
      */

@@ -213,7 +213,7 @@ public class BuildBase {
     private void runShell() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String last = "", line;
-        System.out.println("Shell mode. Type the target, then [Enter]. " + 
+        System.out.println("Shell mode. Type the target, then [Enter]. " +
                 "Just [Enter] repeats the last target.");
         while (true) {
             System.out.print("build> ");

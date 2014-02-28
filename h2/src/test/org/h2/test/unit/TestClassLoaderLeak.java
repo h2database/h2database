@@ -63,9 +63,9 @@ public class TestClassLoaderLeak extends TestBase {
                 memory.add(new byte[1024]);
             }
         }
-        DriverManager.registerDriver((Driver) 
+        DriverManager.registerDriver((Driver)
                 Class.forName("org.h2.Driver").newInstance());
-        DriverManager.registerDriver((Driver) 
+        DriverManager.registerDriver((Driver)
                 Class.forName("org.h2.upgrade.v1_1.Driver").newInstance());
     }
 

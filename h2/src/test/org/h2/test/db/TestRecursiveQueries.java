@@ -38,9 +38,11 @@ public class TestRecursiveQueries extends TestBase {
         Statement stat;
         stat = conn.createStatement();
         stat.execute("create table test(parent varchar(255), child varchar(255))");
-        stat.execute("insert into test values('/', 'a'), ('a', 'b1'), ('a', 'b2'), ('a', 'c'), ('c', 'd1'), ('c', 'd2')");
+        stat.execute("insert into test values('/', 'a'), ('a', 'b1'), " + 
+                "('a', 'b2'), ('a', 'c'), ('c', 'd1'), ('c', 'd2')");
 
-        ResultSet rs = stat.executeQuery("with recursive rec_test(depth, parent, child) as (" +
+        ResultSet rs = stat.executeQuery(
+                "with recursive rec_test(depth, parent, child) as (" +
                 "select 0, parent, child from test where parent = '/' " +
                 "union all " +
                 "select depth+1, r.parent, r.child from test i join rec_test r " +

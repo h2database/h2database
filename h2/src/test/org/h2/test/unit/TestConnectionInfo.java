@@ -52,18 +52,18 @@ public class TestConnectionInfo extends TestBase {
                         ";IFEXISTS=TRUE",
                 info);
 
-        assertEquals("jdbc:h2:mem:test", 
+        assertEquals("jdbc:h2:mem:test",
                 connectionInfo.getURL());
 
-        assertEquals("2", 
+        assertEquals("2",
                 connectionInfo.getProperty("LOG", ""));
-        assertEquals("rws", 
+        assertEquals("rws",
                 connectionInfo.getProperty("ACCESS_MODE_DATA", ""));
-        assertEquals("CREATE this...;INSERT that...", 
+        assertEquals("CREATE this...;INSERT that...",
                 connectionInfo.getProperty("INIT", ""));
-        assertEquals("TRUE", 
+        assertEquals("TRUE",
                 connectionInfo.getProperty("IFEXISTS", ""));
-        assertEquals("undefined", 
+        assertEquals("undefined",
                 connectionInfo.getProperty("CACHE_TYPE", "undefined"));
     }
 

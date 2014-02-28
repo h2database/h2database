@@ -57,7 +57,8 @@ public class TestOuterJoins extends TestBase {
 
         try {
             Class.forName("org.postgresql.Driver");
-            Connection c2 = DriverManager.getConnection("jdbc:postgresql:test", "sa", "sa");
+            Connection c2 = DriverManager.getConnection(
+                    "jdbc:postgresql:test", "sa", "sa");
             dbs.add(c2.createStatement());
         } catch (Exception e) {
             // database not installed - ok
@@ -147,7 +148,8 @@ public class TestOuterJoins extends TestBase {
         try {
             new File("derby.log").delete();
             try {
-                DriverManager.getConnection("jdbc:derby:" + getBaseDir() + "/derby/test;shutdown=true", "sa", "sa");
+                DriverManager.getConnection("jdbc:derby:" +
+                        getBaseDir() + "/derby/test;shutdown=true", "sa", "sa");
             } catch (Exception e) {
                 // ignore
             }
@@ -158,7 +160,8 @@ public class TestOuterJoins extends TestBase {
         }
     }
 
-    private void appendRandomJoin(Random random, StringBuilder buff, int min, int max) {
+    private void appendRandomJoin(Random random, StringBuilder buff, int min,
+            int max) {
         if (min == max) {
             buff.append("t" + min);
             return;
@@ -185,7 +188,8 @@ public class TestOuterJoins extends TestBase {
         buff.append(")");
     }
 
-    private static void appendRandomCondition(Random random, StringBuilder buff, int max) {
+    private static void appendRandomCondition(Random random,
+            StringBuilder buff, int max) {
         if (max > 0 && random.nextInt(4) == 0) {
             return;
         }
@@ -231,7 +235,8 @@ public class TestOuterJoins extends TestBase {
         }
     }
 
-    private static void appendRandomValueOrColumn(Random random, StringBuilder buff, int max) {
+    private static void appendRandomValueOrColumn(Random random,
+            StringBuilder buff, int max) {
         if (random.nextBoolean()) {
             buff.append(random.nextInt(8) - 2);
         } else {
@@ -300,7 +305,8 @@ public class TestOuterJoins extends TestBase {
         -- expected: uses the primary key index
         */
         stat.execute("create table test(id int primary key)");
-        rs = stat.executeQuery("explain select * from test a left outer join (test c) on a.id = c.id");
+        rs = stat.executeQuery("explain select * from test a " +
+                "left outer join (test c) on a.id = c.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
         assertTrue(sql.indexOf("PRIMARY_KEY") >= 0);
@@ -332,7 +338,8 @@ public class TestOuterJoins extends TestBase {
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT DISTINCT T1.A, T2.A, T3.A FROM PUBLIC.T2 " +
-                "LEFT OUTER JOIN ( PUBLIC.T3 LEFT OUTER JOIN ( PUBLIC.T1 ) ON T1.B = T3.A ) " +
+                "LEFT OUTER JOIN ( PUBLIC.T3 " +
+                "LEFT OUTER JOIN ( PUBLIC.T1 ) ON T1.B = T3.A ) " +
                 "ON T2.B = T1.A", sql);
         rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 " +
                 "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
@@ -371,7 +378,8 @@ public class TestOuterJoins extends TestBase {
         sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.C LEFT OUTER JOIN " +
                 "( PUBLIC.A INNER JOIN PUBLIC.B ON A.X = B.X ) ON C.X = A.X", sql);
-        rs = stat.executeQuery("select a.x, b.x, c.x from a inner join b on a.x = b.x " +
+        rs = stat.executeQuery("select a.x, b.x, c.x from a " +
+                "inner join b on a.x = b.x " +
                 "right outer join c on c.x = a.x");
         // expected result: 1   1       1; null    null    2
         assertTrue(rs.next());
@@ -534,13 +542,15 @@ public class TestOuterJoins extends TestBase {
         stat.execute("insert into a values(1, 'a')");
         stat.execute("insert into b values(2, 'a')");
         stat.execute("insert into b values(3, 'a')");
-        rs = stat.executeQuery("explain select a.pk, a_base.pk, b.pk, b_base.pk from a " +
+        rs = stat.executeQuery("explain select a.pk, a_base.pk, b.pk, b_base.pk " +
+                "from a " +
                 "inner join base a_base on a.pk = a_base.pk " +
                 "left outer join (b inner join base b_base " +
                 "on b.pk = b_base.pk and b_base.deleted = 0) on 1=1");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.PK, A_BASE.PK, B.PK, B_BASE.PK FROM PUBLIC.BASE A_BASE " +
+        assertEquals("SELECT A.PK, A_BASE.PK, B.PK, B_BASE.PK " +
+                "FROM PUBLIC.BASE A_BASE " +
                 "LEFT OUTER JOIN ( PUBLIC.B " +
                 "INNER JOIN PUBLIC.BASE B_BASE " +
                 "ON (B_BASE.DELETED = 0) AND (B.PK = B_BASE.PK) ) " +

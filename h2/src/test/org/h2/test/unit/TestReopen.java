@@ -101,10 +101,10 @@ public class TestReopen extends TestBase implements Recorder {
 
         try {
             if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-                IOUtils.copyFiles(fileName, testDatabase + 
+                IOUtils.copyFiles(fileName, testDatabase +
                         Constants.SUFFIX_PAGE_FILE);
             } else {
-                IOUtils.copyFiles(fileName, testDatabase + 
+                IOUtils.copyFiles(fileName, testDatabase +
                         Constants.SUFFIX_MV_FILE);
             }
             verifyCount++;
@@ -113,7 +113,7 @@ public class TestReopen extends TestBase implements Recorder {
             String userName =  getUser();
             p.setProperty("user", userName);
             p.setProperty("password", getPassword());
-            String url = "jdbc:h2:" + testDatabase + 
+            String url = "jdbc:h2:" + testDatabase +
                     ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
             if (config.mvStore) {
                 url += ";MV_STORE=TRUE";

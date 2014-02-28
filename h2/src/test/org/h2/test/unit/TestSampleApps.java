@@ -52,11 +52,11 @@ public class TestSampleApps extends TestBase {
                         "/optimizations.sql", "-checkResults");
         deleteDb("optimizations");
         testApp("Compacting...\nDone.", org.h2.samples.Compact.class);
-        testApp("NAME: Bob Meier\n" + 
-                "EMAIL: bob.meier@abcde.abc\n" + 
-                "PHONE: +41123456789\n\n" + 
-                "NAME: John Jones\n" + 
-                "EMAIL: john.jones@abcde.abc\n" + 
+        testApp("NAME: Bob Meier\n" +
+                "EMAIL: bob.meier@abcde.abc\n" +
+                "PHONE: +41123456789\n\n" +
+                "NAME: John Jones\n" +
+                "EMAIL: john.jones@abcde.abc\n" +
                 "PHONE: +41976543210\n",
                 org.h2.samples.CsvSample.class);
         testApp("",

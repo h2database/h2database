@@ -61,15 +61,15 @@ public class DirectInsert {
 
     private static void createAsSelect(String url, boolean optimize)
             throws SQLException {
-        Connection conn = DriverManager.getConnection(url + 
+        Connection conn = DriverManager.getConnection(url +
                 ";OPTIMIZE_INSERT_FROM_SELECT=" + optimize);
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST2");
-        System.out.println("CREATE TABLE ... AS SELECT " + 
+        System.out.println("CREATE TABLE ... AS SELECT " +
                 (optimize ? "(optimized)" : ""));
         long time = System.currentTimeMillis();
         stat.execute("CREATE TABLE TEST2 AS SELECT * FROM TEST");
-        System.out.printf("%.3f sec.\n", 
+        System.out.printf("%.3f sec.\n",
                 (System.currentTimeMillis() - time) / 1000.0);
         stat.execute("INSERT INTO TEST2 SELECT * FROM TEST2");
         stat.close();

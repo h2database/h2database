@@ -219,7 +219,8 @@ public class TestSynth extends TestBase {
             if (showError) {
                 TestBase.logError("synth", e);
             }
-            System.out.println("new TestSynth().init(test).testCase(" + seed + "); // id=" + id + " " + e.toString());
+            System.out.println("new TestSynth().init(test).testCase(" + seed +
+                    "); // id=" + id + " " + e.toString());
             if (stopImmediately) {
                 System.exit(0);
             }
@@ -234,7 +235,9 @@ public class TestSynth extends TestBase {
             Result copy = results.get(i);
             if (original.compareTo(copy) != 0) {
                 if (showError) {
-                    throw new AssertionError("Results don't match: original (0): \r\n" + original + "\r\n" + "other:\r\n" + copy);
+                    throw new AssertionError(
+                            "Results don't match: original (0): \r\n" +
+                                    original + "\r\n" + "other:\r\n" + copy);
                 }
                 throw new AssertionError("Results don't match");
             }
@@ -266,8 +269,10 @@ public class TestSynth extends TestBase {
         return mode;
     }
 
-    private void addDatabase(String className, String url, String user, String password, boolean useSentinel) {
-        DbConnection db = new DbConnection(this, className, url, user, password, databases.size(), useSentinel);
+    private void addDatabase(String className, String url, String user,
+            String password, boolean useSentinel) {
+        DbConnection db = new DbConnection(this, className, url, user,
+                password, databases.size(), useSentinel);
         databases.add(db);
     }
 
@@ -290,7 +295,8 @@ public class TestSynth extends TestBase {
         mode = H2_MEM;
         org.h2.Driver.load();
         addDatabase("org.h2.Driver", "jdbc:h2:mem:synth", "sa", "", true);
-        addDatabase("org.h2.Driver", "jdbc:h2:" + getBaseDir() + "/synth/synth", "sa", "", false);
+        addDatabase("org.h2.Driver", "jdbc:h2:" +
+                getBaseDir() + "/synth/synth", "sa", "", false);
 
         // addDatabase("com.mysql.jdbc.Driver", "jdbc:mysql://localhost/test",
         // "sa", "");

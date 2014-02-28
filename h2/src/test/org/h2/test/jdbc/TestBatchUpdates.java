@@ -24,18 +24,26 @@ import org.h2.test.TestBase;
  */
 public class TestBatchUpdates extends TestBase {
 
-    private static final String COFFEE_UPDATE = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=?";
-    private static final String COFFEE_SELECT = "SELECT PRICE FROM TEST WHERE KEY_ID=?";
+    private static final String COFFEE_UPDATE = 
+            "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=?";
+    private static final String COFFEE_SELECT = 
+            "SELECT PRICE FROM TEST WHERE KEY_ID=?";
     // private static final String COFFEE_QUERY =
     //  "SELECT C_NAME,PRICE FROM TEST WHERE TYPE_ID=?";
     // private static final String COFFEE_DELETE =
     //  "DELETE FROM TEST WHERE KEY_ID=?";
-    private static final String COFFEE_INSERT1 = "INSERT INTO TEST VALUES(9,'COFFEE-9',9.0,5)";
-    private static final String COFFEE_DELETE1 = "DELETE FROM TEST WHERE KEY_ID=9";
-    private static final String COFFEE_UPDATE1 = "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=1";
-    private static final String COFFEE_SELECT1 = "SELECT PRICE FROM TEST WHERE KEY_ID>4";
-    private static final String COFFEE_UPDATE_SET = "UPDATE TEST SET KEY_ID=?, C_NAME=? WHERE C_NAME=?";
-    private static final String COFFEE_SELECT_CONTINUED = "SELECT COUNT(*) FROM TEST WHERE C_NAME='Continue-1'";
+    private static final String COFFEE_INSERT1 = 
+            "INSERT INTO TEST VALUES(9,'COFFEE-9',9.0,5)";
+    private static final String COFFEE_DELETE1 = 
+            "DELETE FROM TEST WHERE KEY_ID=9";
+    private static final String COFFEE_UPDATE1 = 
+            "UPDATE TEST SET PRICE=PRICE*20 WHERE TYPE_ID=1";
+    private static final String COFFEE_SELECT1 = 
+            "SELECT PRICE FROM TEST WHERE KEY_ID>4";
+    private static final String COFFEE_UPDATE_SET = 
+            "UPDATE TEST SET KEY_ID=?, C_NAME=? WHERE C_NAME=?";
+    private static final String COFFEE_SELECT_CONTINUED = 
+            "SELECT COUNT(*) FROM TEST WHERE C_NAME='Continue-1'";
 
     private static final int COFFEE_SIZE = 10;
     private static final int COFFEE_TYPE = 11;
@@ -108,7 +116,8 @@ public class TestBatchUpdates extends TestBase {
         deleteDb("batchUpdates");
         conn = getConnection("batchUpdates");
         stat = conn.createStatement();
-        stat.execute("CREATE ALIAS updatePrices FOR \"" + getClass().getName() + ".updatePrices\"");
+        stat.execute("CREATE ALIAS updatePrices FOR \"" + 
+                getClass().getName() + ".updatePrices\"");
         CallableStatement call = conn.prepareCall("{call updatePrices(?, ?)}");
         call.setString(1, "Hello");
         call.setFloat(2, 1.4f);

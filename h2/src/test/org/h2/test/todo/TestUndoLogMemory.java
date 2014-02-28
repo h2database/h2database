@@ -34,7 +34,8 @@ public class TestUndoLogMemory {
 
         // -Xmx1m -XX:+HeapDumpOnOutOfMemoryError
         DeleteDbFiles.execute("data", "test", true);
-        Connection conn = DriverManager.getConnection("jdbc:h2:data/test;large_transactions=true");
+        Connection conn = DriverManager.getConnection(
+                "jdbc:h2:data/test;large_transactions=true");
         Statement stat = conn.createStatement();
         stat.execute("set cache_size 32");
         stat.execute("SET max_operation_memory 100");
@@ -43,16 +44,20 @@ public class TestUndoLogMemory {
 
         // also a problem: tables without unique index
         System.out.println("create--- " + count + " " + defaultValue);
-        stat.execute("create table test(id int, name varchar default " + defaultValue + " )");
+        stat.execute("create table test(id int, name varchar default " +
+                defaultValue + " )");
         System.out.println("insert---");
-        stat.execute("insert into test(id) select x from system_range(1, "+count+")");
+        stat.execute("insert into test(id) select x from system_range(1, " +
+                count + ")");
         System.out.println("rollback---");
         conn.rollback();
 
         System.out.println("drop---");
         stat.execute("drop table test");
         System.out.println("create---");
-        stat.execute("create table test(id int primary key, name varchar default " + defaultValue + " )");
+        stat.execute("create table test" +
+                "(id int primary key, name varchar default " +
+                defaultValue + " )");
 
         // INSERT problem
         System.out.println("insert---");
@@ -63,7 +68,8 @@ public class TestUndoLogMemory {
 
         // DELETE problem
         System.out.println("insert---");
-        PreparedStatement prep = conn.prepareStatement("insert into test(id) values(?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test(id) values(?)");
         for (int i = 0; i < count; i++) {
             prep.setInt(1, i);
             prep.execute();

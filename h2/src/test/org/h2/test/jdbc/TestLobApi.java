@@ -81,19 +81,30 @@ public class TestLobApi extends TestBase {
         clob.free();
         assertTrue(clob.toString().endsWith("null"));
 
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).truncate(0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).setAsciiStream(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).setString(1, "", 0, 1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).position("", 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).position((Clob) null, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).getCharacterStream(1, 1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
+                truncate(0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
+                setAsciiStream(1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
+                setString(1, "", 0, 1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
+                position("", 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
+                position((Clob) null, 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
+                getCharacterStream(1, 1);
 
         Blob blob = rs.getBlob(3);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).truncate(0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).setBytes(1, new byte[0], 0, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).position(new byte[1], 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).position((Blob) null, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).getBinaryStream(1, 1);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
+                truncate(0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
+                setBytes(1, new byte[0], 0, 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
+                position(new byte[1], 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
+                position((Blob) null, 0);
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
+                getBinaryStream(1, 1);
         assertTrue(blob.toString().endsWith("X'00'"));
         blob.free();
         assertTrue(blob.toString().endsWith("null"));
@@ -110,7 +121,8 @@ public class TestLobApi extends TestBase {
         Connection conn = getConnection("lob");
         stat = conn.createStatement();
         stat.execute("create table test(id identity, c clob, b blob)");
-        PreparedStatement prep = conn.prepareStatement("insert into test values(null, ?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test values(null, ?, ?)");
         prep.setString(1, "");
         prep.setBytes(2, new byte[0]);
         prep.execute();
@@ -149,11 +161,13 @@ public class TestLobApi extends TestBase {
         conn.close();
     }
 
-    private void testInputStreamThrowsException(final boolean ioException) throws Exception {
+    private void testInputStreamThrowsException(final boolean ioException)
+            throws Exception {
         Connection conn = getConnection("lob");
         stat = conn.createStatement();
         stat.execute("create table test(id identity, c clob, b blob)");
-        PreparedStatement prep = conn.prepareStatement("insert into test values(null, ?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test values(null, ?, ?)");
 
         assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
                 setCharacterStream(1, new Reader() {

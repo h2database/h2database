@@ -75,7 +75,8 @@ public class Listener implements Runnable {
             }
             time = System.currentTimeMillis() - time;
             int operationsPerSecond = (int) (1000 * maxValue / time);
-            System.out.println("Max=" + maxValue + " operations/sec=" + operationsPerSecond);
+            System.out.println("Max=" + maxValue +
+                    " operations/sec=" + operationsPerSecond);
         }
     }
 

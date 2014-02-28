@@ -101,7 +101,8 @@ public class TestJavaObjectSerializer extends TestBase {
             deleteDb("javaSerializer");
             Connection conn = getConnection("javaSerializer");
 
-            conn.createStatement().execute("SET JAVA_OBJECT_SERIALIZER '"+DbLevelJavaObjectSerializer.class.getName()+"'");
+            conn.createStatement().execute("SET JAVA_OBJECT_SERIALIZER '"+
+                    DbLevelJavaObjectSerializer.class.getName()+"'");
 
             Statement stat = conn.createStatement();
             stat.execute("create table t1(id identity, val other)");
@@ -129,7 +130,8 @@ public class TestJavaObjectSerializer extends TestBase {
     /**
      * The serializer to use for this test.
      */
-    public static class DbLevelJavaObjectSerializer implements JavaObjectSerializer {
+    public static class DbLevelJavaObjectSerializer implements
+            JavaObjectSerializer {
 
         /**
          * The test.

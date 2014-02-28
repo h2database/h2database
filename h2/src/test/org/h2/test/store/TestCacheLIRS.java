@@ -563,7 +563,8 @@ public class TestCacheLIRS extends TestBase {
         return createCache(maxElements, 1);
     }
 
-    private static <K, V> CacheLIRS<K, V> createCache(int maxSize, int averageSize) {
+    private static <K, V> CacheLIRS<K, V> createCache(int maxSize,
+            int averageSize) {
         return new CacheLIRS<K, V>(maxSize, averageSize, 1, 0);
     }
 

@@ -41,7 +41,7 @@ public class TestFileLock extends TestBase implements Runnable {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {

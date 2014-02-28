@@ -50,7 +50,8 @@ public class TestRandomCompare extends TestBase {
 
         try {
             Class.forName("org.postgresql.Driver");
-            Connection c2 = DriverManager.getConnection("jdbc:postgresql:test", "sa", "sa");
+            Connection c2 = DriverManager.getConnection(
+                    "jdbc:postgresql:test", "sa", "sa");
             dbs.add(c2.createStatement());
         } catch (Exception e) {
             // database not installed - ok
@@ -90,7 +91,8 @@ public class TestRandomCompare extends TestBase {
         execute(sql);
         for (int x0 = 0; x0 < 3; x0++) {
             for (int x1 = 0; x1 < 3; x1++) {
-                sql = "insert into test values(" + (x0 == 0 ? "null" : x0) + ", " + (x1 == 0 ? "null" : x1) + ")";
+                sql = "insert into test values(" + (x0 == 0 ? "null" : x0) +
+                        ", " + (x1 == 0 ? "null" : x1) + ")";
                 trace(sql + ";");
                 execute(sql);
             }
@@ -275,21 +277,26 @@ public class TestRandomCompare extends TestBase {
          */
         stat.execute("create table test(x int)");
         stat.execute("insert into test values(null)");
-        rs = stat.executeQuery("select * from (select x from test union all select x from test) where x is null");
+        rs = stat.executeQuery("select * from (select x from test " +
+                "union all select x from test) where x is null");
         assertTrue(rs.next());
-        rs = stat.executeQuery("select * from (select x from test) where x is null");
+        rs = stat.executeQuery(
+                "select * from (select x from test) where x is null");
         assertTrue(rs.next());
-        rs = stat.executeQuery("select * from (select x from test union all select x from test) where x is null");
+        rs = stat.executeQuery("select * from (select x from test " +
+                "union all select x from test) where x is null");
         assertTrue(rs.next());
         assertTrue(rs.next());
 
         Connection conn2 = DriverManager.getConnection("jdbc:h2:mem:temp");
         conn2.createStatement().execute("create table test(x int) as select null");
         stat.execute("drop table test");
-        stat.execute("create linked table test(null, 'jdbc:h2:mem:temp', null, null, 'TEST')");
+        stat.execute("create linked table test" +
+                "(null, 'jdbc:h2:mem:temp', null, null, 'TEST')");
         rs = stat.executeQuery("select * from (select x from test) where x is null");
         assertTrue(rs.next());
-        rs = stat.executeQuery("select * from (select x from test union all select x from test) where x is null");
+        rs = stat.executeQuery("select * from (select x from test " +
+                "union all select x from test) where x is null");
         assertTrue(rs.next());
         assertTrue(rs.next());
         conn2.close();

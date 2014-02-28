@@ -87,7 +87,8 @@ public class TestDataSource extends TestBase {
         ref.add(new StringRefAddr("password", "p"));
         ref.add(new StringRefAddr("loginTimeout", "1"));
         ref.add(new StringRefAddr("description", "test"));
-        JdbcDataSource ds = (JdbcDataSource) factory.getObjectInstance(ref, null, null, null);
+        JdbcDataSource ds = (JdbcDataSource) factory.getObjectInstance(
+                ref, null, null, null);
         assertEquals(1, ds.getLoginTimeout());
         assertEquals("test", ds.getDescription());
         assertEquals("jdbc:h2:mem:", ds.getURL());
@@ -95,11 +96,16 @@ public class TestDataSource extends TestBase {
         assertEquals("p", ds.getPassword());
         Reference ref2 = ds.getReference();
         assertEquals(ref.size(), ref2.size());
-        assertEquals(ref.get("url").getContent().toString(), ref2.get("url").getContent().toString());
-        assertEquals(ref.get("user").getContent().toString(), ref2.get("user").getContent().toString());
-        assertEquals(ref.get("password").getContent().toString(), ref2.get("password").getContent().toString());
-        assertEquals(ref.get("loginTimeout").getContent().toString(), ref2.get("loginTimeout").getContent().toString());
-        assertEquals(ref.get("description").getContent().toString(), ref2.get("description").getContent().toString());
+        assertEquals(ref.get("url").getContent().toString(),
+                ref2.get("url").getContent().toString());
+        assertEquals(ref.get("user").getContent().toString(),
+                ref2.get("user").getContent().toString());
+        assertEquals(ref.get("password").getContent().toString(),
+                ref2.get("password").getContent().toString());
+        assertEquals(ref.get("loginTimeout").getContent().toString(),
+                ref2.get("loginTimeout").getContent().toString());
+        assertEquals(ref.get("description").getContent().toString(),
+                ref2.get("description").getContent().toString());
         ds.setPasswordChars("abc".toCharArray());
         assertEquals("abc", ds.getPassword());
     }
@@ -120,9 +126,11 @@ public class TestDataSource extends TestBase {
             ds.setPassword(getPassword());
         }
         if (userInDataSource) {
-            assertEquals("ds" + ds.getTraceId() + ": url=" + url + " user=" + user, ds.toString());
+            assertEquals("ds" + ds.getTraceId() + ": url=" + url +
+                    " user=" + user, ds.toString());
         } else {
-            assertEquals("ds" + ds.getTraceId() + ": url=" + url + " user=", ds.toString());
+            assertEquals("ds" + ds.getTraceId() + ": url=" + url +
+                    " user=", ds.toString());
         }
         XAConnection xaConn;
         if (userInDataSource) {

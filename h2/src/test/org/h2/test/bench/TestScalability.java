@@ -57,8 +57,8 @@ public class TestScalability implements Database.DatabaseTest {
             conn = getResultConnection();
             stat = conn.createStatement();
             stat.execute(
-                    "CREATE TABLE IF NOT EXISTS RESULTS(TESTID INT, " + 
-                    "TEST VARCHAR, UNIT VARCHAR, DBID INT, " + 
+                    "CREATE TABLE IF NOT EXISTS RESULTS(TESTID INT, " +
+                    "TEST VARCHAR, UNIT VARCHAR, DBID INT, " +
                     "DB VARCHAR, RESULT VARCHAR)");
         } finally {
             JdbcUtils.closeSilently(stat);
@@ -74,7 +74,7 @@ public class TestScalability implements Database.DatabaseTest {
 
         ArrayList<Database> dbs = new ArrayList<Database>();
         int id = 1;
-        final String h2Url = "jdbc:h2:data/test;" + 
+        final String h2Url = "jdbc:h2:data/test;" +
                 "LOCK_TIMEOUT=10000;LOCK_MODE=3";
         dbs.add(createDbEntry(id++, "H2", 1, h2Url));
         dbs.add(createDbEntry(id++, "H2", 10, h2Url));
@@ -84,7 +84,7 @@ public class TestScalability implements Database.DatabaseTest {
         dbs.add(createDbEntry(id++, "H2", 50, h2Url));
         dbs.add(createDbEntry(id++, "H2", 100, h2Url));
 
-        final String mvUrl = "jdbc:h2:data/mvTest;" + 
+        final String mvUrl = "jdbc:h2:data/mvTest;" +
                 "LOCK_TIMEOUT=10000;MV_STORE=TRUE";
         dbs.add(createDbEntry(id++, "MV", 1, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 10, mvUrl));
@@ -108,7 +108,7 @@ public class TestScalability implements Database.DatabaseTest {
             conn = getResultConnection();
             stat = conn.createStatement();
             prep = conn.prepareStatement(
-                    "INSERT INTO RESULTS(TESTID, " + 
+                    "INSERT INTO RESULTS(TESTID, " +
                     "TEST, UNIT, DBID, DB, RESULT) VALUES(?, ?, ?, ?, ?, ?)");
             for (int i = 0; i < results.size(); i++) {
                 Object[] res = results.get(i);
@@ -126,7 +126,7 @@ public class TestScalability implements Database.DatabaseTest {
 
             writer = new PrintWriter(new FileWriter(out));
             ResultSet rs = stat.executeQuery(
-                    "CALL '<table><tr><th>Test Case</th>" + 
+                    "CALL '<table><tr><th>Test Case</th>" +
                     "<th>Unit</th>' " +
                     "|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' " +
                     "ORDER BY DBID SEPARATOR '') FROM " +
@@ -155,7 +155,7 @@ public class TestScalability implements Database.DatabaseTest {
         }
     }
 
-    private Database createDbEntry(int id, String namePrefix, 
+    private Database createDbEntry(int id, String namePrefix,
             int threadCount, String url) {
         Database db = Database.parse(this, id, namePrefix + "(" + threadCount +
                 "threads), org.h2.Driver, " + url + ", sa, sa", threadCount);
@@ -185,7 +185,7 @@ public class TestScalability implements Database.DatabaseTest {
             conn.close();
             db.log("Executed statements", "#", db.getExecutedStatements());
             db.log("Total time", "ms", db.getTotalTime());
-            int statPerSec = (int) (db.getExecutedStatements() * 
+            int statPerSec = (int) (db.getExecutedStatements() *
                     1000L / db.getTotalTime());
             db.log("Statements per second", "#", statPerSec);
             System.out.println("Statements per second: " + statPerSec);

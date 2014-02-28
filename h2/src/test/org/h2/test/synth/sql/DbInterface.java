@@ -97,7 +97,8 @@ public interface DbInterface {
      * @param condition the condition
      * @return the result of the update
      */
-    Result update(Table table, Column[] columns, Value[] values, String condition) throws SQLException;
+    Result update(Table table, Column[] columns, Value[] values,
+            String condition) throws SQLException;
 
     /**
      * Enable or disable autocommit.

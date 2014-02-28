@@ -113,7 +113,8 @@ class Table {
             }
             Column column = columns[i];
             sql += column.getCreateSQL();
-            if (primaryKeys != null && primaryKeys.length == 1 && primaryKeys[0] == column) {
+            if (primaryKeys != null && primaryKeys.length == 1 &&
+                    primaryKeys[0] == column) {
                 sql += " PRIMARY KEY";
             }
         }

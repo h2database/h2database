@@ -31,12 +31,14 @@ public class TestLinkedTableFullCondition {
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
         stat.execute("insert into test values(2, 'World')");
-        stat.execute("create linked table test_link('', 'jdbc:h2:data/test', '', '', 'TEST')");
+        stat.execute("create linked table test_link" +
+                "('', 'jdbc:h2:data/test', '', '', 'TEST')");
         stat.execute("set trace_level_system_out 2");
         // the query sent to the linked database is
         // SELECT * FROM PUBLIC.TEST T WHERE ID>=? AND ID<=? {1: 1, 2: 1};
         // it should also include AND NAME='Hello'
-        stat.execute("select * from test_link where id = 1 and name = 'Hello'");
+        stat.execute("select * from test_link " +
+                "where id = 1 and name = 'Hello'");
         conn.close();
     }
 

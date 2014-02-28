@@ -288,7 +288,8 @@ public class TestConcurrent extends TestMVStore {
         for (int i = 0; i < 10; i++) {
             // System.out.println("test " + i);
             s.setReuseSpace(false);
-            byte[] buff = readFileSlowly(s.getFileStore().getFile(), s.getFileStore().size());
+            byte[] buff = readFileSlowly(s.getFileStore().getFile(), 
+                    s.getFileStore().size());
             s.setReuseSpace(true);
             FileOutputStream out = new FileOutputStream(fileNameRestore);
             out.write(buff);
@@ -305,9 +306,11 @@ public class TestConcurrent extends TestMVStore {
         s.close();
     }
 
-    private static byte[] readFileSlowly(FileChannel file, long length) throws Exception {
+    private static byte[] readFileSlowly(FileChannel file, long length)
+            throws Exception {
         file.position(0);
-        InputStream in = new BufferedInputStream(new FileChannelInputStream(file, false));
+        InputStream in = new BufferedInputStream(new FileChannelInputStream(
+                file, false));
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         for (int j = 0; j < length; j++) {
             int x = in.read();

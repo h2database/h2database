@@ -73,10 +73,12 @@ public class TestView extends TestBase {
         deleteDb("view");
         Connection conn = getConnection("view");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE Test(id INT AUTO_INCREMENT NOT NULL, f1 VARCHAR NOT NULL, f2 VARCHAR NOT NULL)");
+        stat.execute("CREATE TABLE Test(id INT AUTO_INCREMENT NOT NULL, " + 
+                "f1 VARCHAR NOT NULL, f2 VARCHAR NOT NULL)");
         stat.execute("INSERT INTO Test(f1, f2) VALUES ('value1','value2')");
         stat.execute("INSERT INTO Test(f1, f2) VALUES ('value1','value3')");
-        PreparedStatement ps = conn.prepareStatement("CREATE VIEW Test_View AS SELECT f2 FROM Test WHERE f1=?");
+        PreparedStatement ps = conn.prepareStatement(
+                "CREATE VIEW Test_View AS SELECT f2 FROM Test WHERE f1=?");
         ps.setString(1, "value1");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, ps).
                 executeUpdate();
@@ -144,7 +146,8 @@ public class TestView extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key) as select 1");
         PreparedStatement prep = conn.prepareStatement(
-                "select * from test t where t.id in (select t2.id from test t2 where t2.id in (?, ?))");
+                "select * from test t where t.id in " + 
+                "(select t2.id from test t2 where t2.id in (?, ?))");
         prep.setInt(1, 1);
         prep.setInt(2, 2);
         prep.execute();
@@ -202,7 +205,8 @@ public class TestView extends TestBase {
         s.execute("create table t0(id int primary key)");
         s.execute("create view t1 as select * from t0");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, s).execute(
-                "create table t2(id int primary key, col1 int not null, foreign key (col1) references t1(id))");
+                "create table t2(id int primary key, " + 
+                "col1 int not null, foreign key (col1) references t1(id))");
         conn.close();
         deleteDb("view");
     }

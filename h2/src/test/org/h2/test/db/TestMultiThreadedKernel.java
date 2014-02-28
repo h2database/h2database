@@ -51,7 +51,7 @@ public class TestMultiThreadedKernel extends TestBase {
         testConcurrentRead();
         testCache();
         deleteDb("multiThreadedKernel");
-        final String url = getURL("multiThreadedKernel;" + 
+        final String url = getURL("multiThreadedKernel;" +
                 "DB_CLOSE_DELAY=-1;MULTI_THREADED=1", true);
         final String user = getUser(), password = getPassword();
         int len = 3;
@@ -63,19 +63,23 @@ public class TestMultiThreadedKernel extends TestBase {
                     Connection conn = null;
                     try {
                         for (int j = 0; j < 100 && !stop; j++) {
-                            conn = DriverManager.getConnection(url, user, password);
-                            Statement stat = conn.createStatement();
-                            stat.execute(
-                                    "create local temporary table temp(id identity)");
-                            stat.execute(
-                                    "insert into temp values(1)");
-                            conn.close();
+                            conn = DriverManager.getConnection(
+                                    url, user, password);
+                            work(conn);
                         }
                     } catch (Exception e) {
                         exception = e;
                     } finally {
                         JdbcUtils.closeSilently(conn);
                     }
+                }
+                private void work(Connection conn) throws SQLException {
+                    Statement stat = conn.createStatement();
+                    stat.execute(
+                            "create local temporary table temp(id identity)");
+                    stat.execute(
+                            "insert into temp values(1)");
+                    conn.close();
                 }
             });
         }
@@ -101,9 +105,11 @@ public class TestMultiThreadedKernel extends TestBase {
         int size = 2;
         final int count = 1000;
         final Connection[] connections = new Connection[count];
-        String url = getURL("multiThreadedKernel;MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
+        String url = getURL("multiThreadedKernel;" + 
+                "MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
         for (int i = 0; i < size; i++) {
-            final Connection conn = DriverManager.getConnection(url, getUser(), getPassword());
+            final Connection conn = DriverManager.getConnection(
+                    url, getUser(), getPassword());
             connections[i] = conn;
             if (i == 0) {
                 Statement stat = conn.createStatement();
@@ -140,9 +146,11 @@ public class TestMultiThreadedKernel extends TestBase {
         int size = 3;
         final int count = 100;
         final Connection[] connections = new Connection[count];
-        String url = getURL("multiThreadedKernel;MULTI_THREADED=TRUE;CACHE_SIZE=1", true);
+        String url = getURL("multiThreadedKernel;" + 
+                "MULTI_THREADED=TRUE;CACHE_SIZE=1", true);
         for (int i = 0; i < size; i++) {
-            final Connection conn = DriverManager.getConnection(url, getUser(), getPassword());
+            final Connection conn = DriverManager.getConnection(
+                    url, getUser(), getPassword());
             connections[i] = conn;
             if (i == 0) {
                 Statement stat = conn.createStatement();

@@ -87,13 +87,15 @@ public class TestKill extends TestBase {
     private void createTables() throws SQLException {
         trace("createTables...");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE IF NOT EXISTS ACCOUNT(ID INT PRIMARY KEY, SUM INT)");
-        stat
-                .execute("CREATE TABLE IF NOT EXISTS LOG(" +
+        stat.execute("CREATE TABLE IF NOT EXISTS ACCOUNT" +
+                "(ID INT PRIMARY KEY, SUM INT)");
+        stat.execute("CREATE TABLE IF NOT EXISTS LOG(" +
                         "ID IDENTITY, ACCOUNTID INT, AMOUNT INT, " +
                         "FOREIGN KEY(ACCOUNTID) REFERENCES ACCOUNT(ID))");
-        stat.execute("CREATE TABLE IF NOT EXISTS TEST_A(ID INT PRIMARY KEY, DATA VARCHAR)");
-        stat.execute("CREATE TABLE IF NOT EXISTS TEST_B(ID INT PRIMARY KEY, DATA VARCHAR)");
+        stat.execute("CREATE TABLE IF NOT EXISTS TEST_A" +
+                        "(ID INT PRIMARY KEY, DATA VARCHAR)");
+        stat.execute("CREATE TABLE IF NOT EXISTS TEST_B" +
+                        "(ID INT PRIMARY KEY, DATA VARCHAR)");
     }
 
     private void initData() throws SQLException {
@@ -103,13 +105,16 @@ public class TestKill extends TestBase {
         conn.createStatement().execute("DROP TABLE TEST_A");
         conn.createStatement().execute("DROP TABLE TEST_B");
         createTables();
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO ACCOUNT VALUES(?, 0)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO ACCOUNT VALUES(?, 0)");
         for (int i = 0; i < ACCOUNTS; i++) {
             prep.setInt(1, i);
             prep.execute();
         }
-        PreparedStatement p1 = conn.prepareStatement("INSERT INTO TEST_A VALUES(?, '')");
-        PreparedStatement p2 = conn.prepareStatement("INSERT INTO TEST_B VALUES(?, '')");
+        PreparedStatement p1 = conn.prepareStatement(
+                "INSERT INTO TEST_A VALUES(?, '')");
+        PreparedStatement p2 = conn.prepareStatement(
+                "INSERT INTO TEST_B VALUES(?, '')");
         for (int i = 0; i < ACCOUNTS; i++) {
             p1.setInt(1, i);
             p2.setInt(1, i);
@@ -120,8 +125,10 @@ public class TestKill extends TestBase {
 
     private void checkData() throws SQLException {
         trace("checkData...");
-        ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM ACCOUNT ORDER BY ID");
-        PreparedStatement prep = conn.prepareStatement("SELECT SUM(AMOUNT) FROM LOG WHERE ACCOUNTID=?");
+        ResultSet rs = conn.createStatement().executeQuery(
+                "SELECT * FROM ACCOUNT ORDER BY ID");
+        PreparedStatement prep = conn.prepareStatement(
+                "SELECT SUM(AMOUNT) FROM LOG WHERE ACCOUNTID=?");
         while (rs.next()) {
             int account = rs.getInt(1);
             int sum = rs.getInt(2);
@@ -132,8 +139,10 @@ public class TestKill extends TestBase {
             assertEquals(sum, sumLog);
             trace("account=" + account + " sum=" + sum);
         }
-        PreparedStatement p1 = conn.prepareStatement("SELECT * FROM TEST_A WHERE ID=?");
-        PreparedStatement p2 = conn.prepareStatement("SELECT * FROM TEST_B WHERE ID=?");
+        PreparedStatement p1 = conn.prepareStatement(
+                "SELECT * FROM TEST_A WHERE ID=?");
+        PreparedStatement p2 = conn.prepareStatement(
+                "SELECT * FROM TEST_B WHERE ID=?");
         for (int i = 0; i < ACCOUNTS; i++) {
             p1.setInt(1, i);
             p2.setInt(1, i);

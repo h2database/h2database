@@ -1,7 +1,8 @@
 /*
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
- * 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.test.store;
 
@@ -261,7 +262,8 @@ public class TestMVRTree extends TestMVStore {
 
     private static void render(MVRTreeMap<String> r, String fileName) {
         int width = 1000, height = 500;
-        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = (Graphics2D) img.getGraphics();
         g2d.setBackground(Color.WHITE);
         g2d.setColor(Color.WHITE);
@@ -303,10 +305,14 @@ public class TestMVRTree extends TestMVStore {
 
     private static int[] scale(SpatialKey b, SpatialKey x, int width, int height) {
         int[] rect = {
-                (int) ((x.min(0) - b.min(0)) * (width * 0.9) / (b.max(0) - b.min(0)) + width * 0.05),
-                (int) ((x.min(1) - b.min(1)) * (height * 0.9) / (b.max(1) - b.min(1)) + height * 0.05),
-                (int) ((x.max(0) - b.min(0)) * (width * 0.9) / (b.max(0) - b.min(0)) + width * 0.05),
-                (int) ((x.max(1) - b.min(1)) * (height * 0.9) / (b.max(1) - b.min(1)) + height * 0.05),
+                (int) ((x.min(0) - b.min(0)) * (width * 0.9) /
+                        (b.max(0) - b.min(0)) + width * 0.05),
+                (int) ((x.min(1) - b.min(1)) * (height * 0.9) /
+                        (b.max(1) - b.min(1)) + height * 0.05),
+                (int) ((x.max(0) - b.min(0)) * (width * 0.9) /
+                        (b.max(0) - b.min(0)) + width * 0.05),
+                (int) ((x.max(1) - b.min(1)) * (height * 0.9) /
+                        (b.max(1) - b.min(1)) + height * 0.05),
                 };
         return rect;
     }

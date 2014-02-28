@@ -48,15 +48,15 @@ public class BenchA implements Bench {
         db.dropTable("ACCOUNTS");
         db.dropTable("HISTORY");
 
-        String[] create = { 
-                "CREATE TABLE BRANCHES(BID INT NOT NULL PRIMARY KEY, " + 
+        String[] create = {
+                "CREATE TABLE BRANCHES(BID INT NOT NULL PRIMARY KEY, " +
                 "BBALANCE DECIMAL(15,2), FILLER VARCHAR(88))",
-                "CREATE TABLE TELLERS(TID INT NOT NULL PRIMARY KEY, " + 
+                "CREATE TABLE TELLERS(TID INT NOT NULL PRIMARY KEY, " +
                 "BID INT, TBALANCE DECIMAL(15,2), FILLER VARCHAR(84))",
-                "CREATE TABLE ACCOUNTS(AID INT NOT NULL PRIMARY KEY, " + 
+                "CREATE TABLE ACCOUNTS(AID INT NOT NULL PRIMARY KEY, " +
                 "BID INT, ABALANCE DECIMAL(15,2), FILLER VARCHAR(84))",
-                "CREATE TABLE HISTORY(TID INT, " + 
-                "BID INT, AID INT, DELTA DECIMAL(15,2), HTIME DATETIME, " + 
+                "CREATE TABLE HISTORY(TID INT, " +
+                "BID INT, AID INT, DELTA DECIMAL(15,2), HTIME DATETIME, " +
                 "FILLER VARCHAR(40))" };
 
         for (String sql : create) {
@@ -67,7 +67,7 @@ public class BenchA implements Bench {
         db.setAutoCommit(false);
         int commitEvery = 1000;
         prep = db.prepare(
-                "INSERT INTO BRANCHES(BID, BBALANCE, FILLER) " + 
+                "INSERT INTO BRANCHES(BID, BBALANCE, FILLER) " +
                 "VALUES(?, 10000.00, '" + FILLER + "')");
         for (int i = 0; i < branches * scale; i++) {
             prep.setInt(1, i);
@@ -78,7 +78,7 @@ public class BenchA implements Bench {
         }
         db.commit();
         prep = db.prepare(
-                "INSERT INTO TELLERS(TID, BID, TBALANCE, FILLER) " + 
+                "INSERT INTO TELLERS(TID, BID, TBALANCE, FILLER) " +
                 "VALUES(?, ?, 10000.00, '" + FILLER + "')");
         for (int i = 0; i < tellers * scale; i++) {
             prep.setInt(1, i);

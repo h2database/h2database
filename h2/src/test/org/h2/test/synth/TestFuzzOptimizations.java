@@ -79,7 +79,8 @@ public class TestFuzzOptimizations extends TestBase {
         db.execute("create index idx_1 on test0(a)");
         db.execute("create index idx_2 on test0(b, a)");
         db.execute("create table test1(a int, b int, c int)");
-        db.execute("insert into test0 select x / 100, mod(x / 10, 10), mod(x, 10) from system_range(0, 999)");
+        db.execute("insert into test0 select x / 100, " +
+                "mod(x / 10, 10), mod(x, 10) from system_range(0, 999)");
         db.execute("update test0 set a = null where a = 9");
         db.execute("update test0 set b = null where b = 9");
         db.execute("update test0 set c = null where c = 9");
@@ -105,7 +106,8 @@ public class TestFuzzOptimizations extends TestBase {
             println("seed: " + seed);
             Random random = new Random(seed);
             ArrayList<String> params = New.arrayList();
-            String condition = getRandomCondition(random, params, columns, compares, values);
+            String condition = getRandomCondition(random, params, columns,
+                    compares, values);
             //   System.out.println(condition + " " + params);
             PreparedStatement prep0 = conn.prepareStatement(
                     "select * from test0 where " + condition
@@ -161,7 +163,8 @@ public class TestFuzzOptimizations extends TestBase {
             } else if (compare.endsWith("(select")) {
                 String col = columns[random.nextInt(columns.length)];
                 buff.append(" ").append(col).append(" from test1 where ");
-                String condition = getRandomCondition(random, params, columns, compares, values);
+                String condition = getRandomCondition(
+                        random, params, columns, compares, values);
                 buff.append(condition);
                 buff.append(")");
             } else {
@@ -180,7 +183,8 @@ public class TestFuzzOptimizations extends TestBase {
         Db db = new Db(conn);
         db.execute("CREATE TABLE TEST(A INT, B INT)");
         db.execute("CREATE INDEX IDX ON TEST(A)");
-        db.execute("INSERT INTO TEST SELECT X/4, MOD(X, 4) FROM SYSTEM_RANGE(1, 16)");
+        db.execute("INSERT INTO TEST SELECT X/4, MOD(X, 4) " +
+                "FROM SYSTEM_RANGE(1, 16)");
         db.execute("UPDATE TEST SET A = NULL WHERE A = 0");
         db.execute("UPDATE TEST SET B = NULL WHERE B = 0");
         Random random = new Random();
@@ -192,12 +196,15 @@ public class TestFuzzOptimizations extends TestBase {
             String compare = random.nextBoolean() ? "A" : "B";
             int x = random.nextInt(3);
             String sql1 = "SELECT * FROM TEST T WHERE " + column + "+0 " +
-                "IN(SELECT " + value + " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
+                "IN(SELECT " + value +
+                " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
             String sql2 = "SELECT * FROM TEST T WHERE " + column + " " +
-                "IN(SELECT " + value + " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
+                "IN(SELECT " + value +
+                " FROM TEST I WHERE I." + compare + "=?) ORDER BY 1, 2";
             List<Map<String, Object>> a = db.prepare(sql1).set(x).query();
             List<Map<String, Object>> b = db.prepare(sql2).set(x).query();
-            assertTrue("seed: " + seed + " sql: " + sql1 + " a: " + a + " b: " + b, a.equals(b));
+            assertTrue("seed: " + seed + " sql: " + sql1 +
+                    " a: " + a + " b: " + b, a.equals(b));
         }
         db.execute("DROP TABLE TEST");
     }
@@ -236,7 +243,8 @@ public class TestFuzzOptimizations extends TestBase {
                     if (k > 0) {
                         x += ",";
                     }
-                    x += new String[] { "SUM(A)", "MAX(B)", "AVG(C)", "COUNT(B)" }[random.nextInt(4)];
+                    x += new String[] { "SUM(A)", "MAX(B)", "AVG(C)",
+                            "COUNT(B)" }[random.nextInt(4)];
                     x += " S" + k;
                 }
                 x += " FROM ";

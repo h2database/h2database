@@ -23,7 +23,8 @@ public class TestMultiOrder extends TestMultiThread {
     private static int orderCount;
     private static int orderLineCount;
 
-    private static final String[] ITEMS = { "Apples", "Oranges", "Bananas", "Coffee" };
+    private static final String[] ITEMS = { "Apples", "Oranges",
+            "Bananas", "Coffee" };
 
     private Connection conn;
     private PreparedStatement insertLine;
@@ -35,7 +36,8 @@ public class TestMultiOrder extends TestMultiThread {
 
     @Override
     void begin() throws SQLException {
-        insertLine = conn.prepareStatement("insert into orderLine(order_id, line_id, text, amount) values(?, ?, ?, ?)");
+        insertLine = conn.prepareStatement("insert into orderLine" +
+                "(order_id, line_id, text, amount) values(?, ?, ?, ?)");
         insertCustomer();
     }
 
@@ -54,7 +56,8 @@ public class TestMultiOrder extends TestMultiThread {
     }
 
     private void insertOrder() throws SQLException {
-        PreparedStatement prep = conn.prepareStatement("insert into orders(customer_id , total) values(?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into orders(customer_id , total) values(?, ?)");
         prep.setInt(1, random.nextInt(getCustomerCount()));
         BigDecimal total = new BigDecimal("0");
         prep.setBigDecimal(2, total);
@@ -67,14 +70,16 @@ public class TestMultiOrder extends TestMultiThread {
             insertLine.setInt(1, orderId);
             insertLine.setInt(2, i);
             insertLine.setString(3, ITEMS[random.nextInt(ITEMS.length)]);
-            BigDecimal amount = new BigDecimal(random.nextInt(100) + "." + random.nextInt(10));
+            BigDecimal amount = new BigDecimal(
+                    random.nextInt(100) + "." + random.nextInt(10));
             insertLine.setBigDecimal(4, amount);
             total = total.add(amount);
             insertLine.addBatch();
         }
         insertLine.executeBatch();
         increaseOrderLines(lines);
-        prep = conn.prepareStatement("update orders set total = ? where id = ?");
+        prep = conn.prepareStatement(
+                "update orders set total = ? where id = ?");
         prep.setBigDecimal(1, total);
         prep.setInt(2, orderId);
         increaseOrders();
@@ -82,7 +87,8 @@ public class TestMultiOrder extends TestMultiThread {
     }
 
     private void insertCustomer() throws SQLException {
-        PreparedStatement prep = conn.prepareStatement("insert into customer(id, name) values(?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into customer(id, name) values(?, ?)");
         int customerId = getNextCustomerId();
         prep.setInt(1, customerId);
         prep.setString(2, getString(customerId));
@@ -139,17 +145,20 @@ public class TestMultiOrder extends TestMultiThread {
     @Override
     void finalTest() throws SQLException {
         conn = base.getConnection();
-        ResultSet rs = conn.createStatement().executeQuery("select count(*) from customer");
+        ResultSet rs = conn.createStatement().executeQuery(
+                "select count(*) from customer");
         rs.next();
         base.assertEquals(customerCount, rs.getInt(1));
         // System.out.println("customers: " + rs.getInt(1));
 
-        rs = conn.createStatement().executeQuery("select count(*) from orders");
+        rs = conn.createStatement().executeQuery(
+                "select count(*) from orders");
         rs.next();
         base.assertEquals(orderCount, rs.getInt(1));
         // System.out.println("orders: " + rs.getInt(1));
 
-        rs = conn.createStatement().executeQuery("select count(*) from orderLine");
+        rs = conn.createStatement().executeQuery(
+                "select count(*) from orderLine");
         rs.next();
         base.assertEquals(orderLineCount, rs.getInt(1));
         // System.out.println("orderLines: " + rs.getInt(1));

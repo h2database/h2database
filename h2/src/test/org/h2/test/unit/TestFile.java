@@ -24,7 +24,7 @@ public class TestFile extends TestBase implements DataHandler {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {

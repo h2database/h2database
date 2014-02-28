@@ -157,7 +157,8 @@ public class TestNestedJoins extends TestBase {
         try {
             new File("derby.log").delete();
             try {
-                DriverManager.getConnection("jdbc:derby:" + getBaseDir() + "/derby/test;shutdown=true", "sa", "sa");
+                DriverManager.getConnection("jdbc:derby:" +
+                        getBaseDir() + "/derby/test;shutdown=true", "sa", "sa");
             } catch (Exception e) {
                 // ignore
             }
@@ -168,7 +169,8 @@ public class TestNestedJoins extends TestBase {
         }
     }
 
-    private void appendRandomJoin(Random random, StringBuilder buff, int min, int max) {
+    private void appendRandomJoin(Random random, StringBuilder buff, int min,
+            int max) {
         if (min == max) {
             buff.append("t" + min);
             return;
@@ -244,7 +246,8 @@ public class TestNestedJoins extends TestBase {
 
         // issue 288
         assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
-                execute("select 1 from dual a right outer join (select b.x from dual b) c on unknown.x = c.x, dual d");
+                execute("select 1 from dual a right outer join " +
+                        "(select b.x from dual b) c on unknown.x = c.x, dual d");
 
         // issue 288
         stat.execute("create table test(id int primary key)");
@@ -268,7 +271,8 @@ public class TestNestedJoins extends TestBase {
         drop table test;
          */
         stat.execute("create table test(id int)");
-        stat.execute("select 1 from test a right outer join test b on a.id = 1, test c");
+        stat.execute("select 1 from test a " +
+                "right outer join test b on a.id = 1, test c");
         stat.execute("drop table test");
 
         /*
@@ -281,7 +285,8 @@ public class TestNestedJoins extends TestBase {
         stat.execute("create table a(id int)");
         stat.execute("create table b(id int)");
         stat.execute("create table c(id int)");
-        rs = stat.executeQuery("explain select * from a inner join b inner join c on c.id = b.id on b.id = a.id");
+        rs = stat.executeQuery("explain select * from a inner join b " +
+                "inner join c on c.id = b.id on b.id = a.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
         assertTrue("nested", sql.indexOf("(") >= 0);
@@ -303,9 +308,11 @@ public class TestNestedJoins extends TestBase {
         drop table test;
         drop table o;
         */
-        stat.execute("create table test(id int primary key, x int) as select x, x from system_range(1, 10)");
+        stat.execute("create table test(id int primary key, x int) " +
+                "as select x, x from system_range(1, 10)");
         stat.execute("create index on test(x)");
-        stat.execute("create table o(id int primary key) as select x from system_range(1, 10)");
+        stat.execute("create table o(id int primary key) " +
+                "as select x from system_range(1, 10)");
         rs = stat.executeQuery("explain select * from test a inner join " +
                 "test b on a.id=b.id inner join o on o.id=a.id where b.x=1");
         assertTrue(rs.next());
@@ -330,7 +337,8 @@ public class TestNestedJoins extends TestBase {
         stat.execute("create table test(id int primary key)");
         stat.execute("insert into test values(1)");
         rs = stat.executeQuery("select b.id from test a left outer join " +
-                "test b on a.id = b.id and not exists (select * from test c where c.id = b.id)");
+                "test b on a.id = b.id and not exists " +
+                "(select * from test c where c.id = b.id)");
         assertTrue(rs.next());
         sql = rs.getString(1);
         assertEquals(null, sql);
@@ -342,7 +350,8 @@ public class TestNestedJoins extends TestBase {
         -- expected: uses the primary key index
         */
         stat.execute("create table test(id int primary key)");
-        rs = stat.executeQuery("explain select * from test a left outer join (test c) on a.id = c.id");
+        rs = stat.executeQuery("explain select * from test a " +
+                "left outer join (test c) on a.id = c.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
         assertTrue(sql.indexOf("PRIMARY_KEY") >= 0);
@@ -369,7 +378,8 @@ public class TestNestedJoins extends TestBase {
         stat.execute("insert into t2 values(1,1), (2,2)");
         stat.execute("insert into t3 values(1,1), (3,3)");
         stat.execute("insert into t4 values(1,1), (2,2), (3,3), (4,4)");
-        rs = stat.executeQuery("explain select distinct t1.a, t2.a, t3.a from t1 " +
+        rs = stat.executeQuery(
+                "explain select distinct t1.a, t2.a, t3.a from t1 " +
                 "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
@@ -377,7 +387,8 @@ public class TestNestedJoins extends TestBase {
                 "LEFT OUTER JOIN ( PUBLIC.T3 LEFT OUTER JOIN ( PUBLIC.T1 ) " +
                 "ON T1.B = T3.A ) ON T2.B = T1.A", sql);
         rs = stat.executeQuery("select distinct t1.a, t2.a, t3.a from t1 " +
-                "right outer join t3 on t1.b=t3.a right outer join t2 on t2.b=t1.a");
+                "right outer join t3 on t1.b=t3.a " +
+                "right outer join t2 on t2.b=t1.a");
         // expected: 1  1       1; null    2       null
         assertTrue(rs.next());
         assertEquals("1", rs.getString(1));
@@ -413,7 +424,8 @@ public class TestNestedJoins extends TestBase {
         sql = cleanRemarks(rs.getString(1));
         assertEquals("SELECT A.X, B.X, C.X FROM PUBLIC.C LEFT OUTER JOIN " +
                 "( PUBLIC.A INNER JOIN PUBLIC.B ON A.X = B.X ) ON C.X = A.X", sql);
-        rs = stat.executeQuery("select a.x, b.x, c.x from a inner join b on a.x = b.x " +
+        rs = stat.executeQuery("select a.x, b.x, c.x from a " +
+                "inner join b on a.x = b.x " +
                 "right outer join c on c.x = a.x");
         // expected result: 1   1       1; null    null    2
         assertTrue(rs.next());
@@ -576,18 +588,23 @@ public class TestNestedJoins extends TestBase {
         stat.execute("insert into a values(1, 'a')");
         stat.execute("insert into b values(2, 'a')");
         stat.execute("insert into b values(3, 'a')");
-        rs = stat.executeQuery("explain select a.pk, a_base.pk, b.pk, b_base.pk from a " +
+        rs = stat.executeQuery(
+                "explain select a.pk, a_base.pk, b.pk, b_base.pk " +
+                "from a " +
                 "inner join base a_base on a.pk = a_base.pk " +
                 "left outer join (b inner join base b_base " +
                 "on b.pk = b_base.pk and b_base.deleted = 0) on 1=1");
         assertTrue(rs.next());
         sql = cleanRemarks(rs.getString(1));
-        assertEquals("SELECT A.PK, A_BASE.PK, B.PK, B_BASE.PK FROM PUBLIC.BASE A_BASE " +
+        assertEquals("SELECT A.PK, A_BASE.PK, B.PK, B_BASE.PK " +
+                "FROM PUBLIC.BASE A_BASE " +
                 "LEFT OUTER JOIN ( PUBLIC.B " +
                 "INNER JOIN PUBLIC.BASE B_BASE " +
                 "ON (B_BASE.DELETED = 0) AND (B.PK = B_BASE.PK) ) " +
-                "ON TRUE INNER JOIN PUBLIC.A ON 1=1 WHERE A.PK = A_BASE.PK", sql);
-        rs = stat.executeQuery("select a.pk, a_base.pk, b.pk, b_base.pk from a " +
+                "ON TRUE INNER JOIN PUBLIC.A ON 1=1 " +
+                "WHERE A.PK = A_BASE.PK", sql);
+        rs = stat.executeQuery(
+                "select a.pk, a_base.pk, b.pk, b_base.pk from a " +
                 "inner join base a_base on a.pk = a_base.pk " +
                 "left outer join (b inner join base b_base " +
                 "on b.pk = b_base.pk and b_base.deleted = 0) on 1=1");

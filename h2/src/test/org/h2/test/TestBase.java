@@ -197,7 +197,8 @@ public abstract class TestBase {
      * @return the login password
      */
     protected String getPassword(String userPassword) {
-        return config == null || config.cipher == null ? userPassword : getFilePassword() + " " + userPassword;
+        return config == null || config.cipher == null ?
+                userPassword : getFilePassword() + " " + userPassword;
     }
 
     /**
@@ -272,7 +273,7 @@ public abstract class TestBase {
                 url = "tcp://localhost:9192/" + name;
             }
         } else if (config.googleAppEngine) {
-            url = "gae://" + name + 
+            url = "gae://" + name +
                     ";FILE_LOCK=NO;AUTO_SERVER=FALSE;DB_CLOSE_ON_EXIT=FALSE";
         } else {
             url = name;
@@ -504,7 +505,8 @@ public abstract class TestBase {
      */
     static void printlnWithTime(long millis, String s) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-        s = dateFormat.format(new java.util.Date()) + " " + formatTime(millis) + " " + s;
+        s = dateFormat.format(new java.util.Date()) + " " +
+                formatTime(millis) + " " + s;
         System.out.println(s);
     }
 
@@ -525,8 +527,9 @@ public abstract class TestBase {
      * @return the formatted time
      */
     static String formatTime(long millis) {
-        String s = new java.sql.Time(java.sql.Time.valueOf("0:0:0").getTime() + millis).toString()
-        + "." + ("" + (1000 + (millis % 1000))).substring(1);
+        String s = new java.sql.Time(
+                java.sql.Time.valueOf("0:0:0").getTime() + millis).toString() +
+                "." + ("" + (1000 + (millis % 1000))).substring(1);
         if (s.startsWith("00:")) {
             s = s.substring(3);
         }
@@ -606,7 +609,8 @@ public abstract class TestBase {
         assertEquals(expected.length, actual.length);
         for (int i = 0; i < expected.length; i++) {
             if (expected[i] != actual[i]) {
-                fail("[" + i + "]: expected: " + (int) expected[i] + " actual: " + (int) actual[i]);
+                fail("[" + i + "]: expected: " + (int) expected[i] +
+                        " actual: " + (int) actual[i]);
             }
         }
     }
@@ -941,7 +945,8 @@ public abstract class TestBase {
      * @param rs the result set
      * @throws AssertionError if a different number of rows have been found
      */
-    protected void assertResultRowCount(int expected, ResultSet rs) throws SQLException {
+    protected void assertResultRowCount(int expected, ResultSet rs)
+            throws SQLException {
         int i = 0;
         while (rs.next()) {
             i++;
@@ -1273,7 +1278,7 @@ public abstract class TestBase {
     protected void assertEqualDatabases(Statement stat1, Statement stat2)
             throws SQLException {
         ResultSet rs = stat1.executeQuery(
-                "select value from information_schema.settings " + 
+                "select value from information_schema.settings " +
                 "where name='ANALYZE_AUTO'");
         int analyzeAuto = rs.next() ? rs.getInt(1) : 0;
         if (analyzeAuto > 0) {

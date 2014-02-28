@@ -65,7 +65,8 @@ public class TestViewDropView extends TestBase {
 
     private void testDropViewDefaultBehaviour() throws SQLException {
         createTestData();
-        ResultSet rs = stat.executeQuery("select value from information_schema.settings where name = 'DROP_RESTRICT'");
+        ResultSet rs = stat.executeQuery("select value " + 
+                "from information_schema.settings where name = 'DROP_RESTRICT'");
         rs.next();
         boolean dropRestrict = rs.getBoolean(1);
         if (dropRestrict) {
@@ -107,7 +108,8 @@ public class TestViewDropView extends TestBase {
         checkViewRemainsValid();
     }
 
-    private void testCreateOrReplaceViewWithNowInvalidDependentViews() throws SQLException {
+    private void testCreateOrReplaceViewWithNowInvalidDependentViews()
+            throws SQLException {
         createTestData();
         // v2 and v3 need more than just "c", so we should get an error
         // dependent views need more columns than just 'c'
@@ -117,7 +119,8 @@ public class TestViewDropView extends TestBase {
         checkViewRemainsValid();
     }
 
-    private void testCreateOrReplaceForceViewWithNowInvalidDependentViews() throws SQLException {
+    private void testCreateOrReplaceForceViewWithNowInvalidDependentViews()
+            throws SQLException {
         createTestData();
 
         // v2 and v3 need more than just "c",

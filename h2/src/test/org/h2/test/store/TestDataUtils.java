@@ -70,8 +70,10 @@ public class TestDataUtils extends TestBase {
             }
         }
         Arrays.fill(data, (byte) 10);
-        assertEquals(0x1e1e1414, DataUtils.getFletcher32(data, 10000));
-        assertEquals(0x1e3fa7ed, DataUtils.getFletcher32("Fletcher32".getBytes(), 10));
+        assertEquals(0x1e1e1414,
+                DataUtils.getFletcher32(data, 10000));
+        assertEquals(0x1e3fa7ed,
+                DataUtils.getFletcher32("Fletcher32".getBytes(), 10));
     }
 
     private void testMap() {
@@ -267,10 +269,13 @@ public class TestDataUtils extends TestBase {
             assertEquals(1, DataUtils.getPageType(pos));
         }
         for (int type = 0; type <= 1; type++) {
-            for (int chunkId = 0; chunkId < Chunk.MAX_ID; chunkId += Chunk.MAX_ID / 100) {
-                for (long offset = 0; offset < Integer.MAX_VALUE; offset += Integer.MAX_VALUE / 100) {
+            for (int chunkId = 0; chunkId < Chunk.MAX_ID;
+                    chunkId += Chunk.MAX_ID / 100) {
+                for (long offset = 0; offset < Integer.MAX_VALUE;
+                        offset += Integer.MAX_VALUE / 100) {
                     for (int length = 0; length < 2000000; length += 200000) {
-                        long pos = DataUtils.getPagePos(chunkId, (int) offset, length, type);
+                        long pos = DataUtils.getPagePos(
+                                chunkId, (int) offset, length, type);
                         assertEquals(chunkId, DataUtils.getPageChunkId(pos));
                         assertEquals(offset, DataUtils.getPageOffset(pos));
                         assertTrue(DataUtils.getPageMaxLength(pos) >= length);

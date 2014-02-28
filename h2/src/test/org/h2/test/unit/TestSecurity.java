@@ -83,11 +83,13 @@ public class TestSecurity extends TestBase {
         //         "password".getBytes(),
         //         "salt".getBytes(), 16777216, 32)));
         assertEquals(
-                "348c89dbcbd32b2f32d814b8116e84cf2b17347ebc1800181c4e2a1fb8dd53e1c635518c7dac47e9",
+                "348c89dbcbd32b2f32d814b8116e84cf2b17347e" +
+                "bc1800181c4e2a1fb8dd53e1c635518c7dac47e9",
                 StringUtils.convertBytesToHex(
                 SHA256.getPBKDF2(
                 ("password" + "PASSWORD" + "password").getBytes(),
-                ("salt"+ "SALT"+ "salt"+ "SALT"+ "salt"+ "SALT"+ "salt"+ "SALT"+ "salt").getBytes(), 4096, 40)));
+                ("salt"+ "SALT"+ "salt"+ "SALT"+ "salt"+
+                "SALT"+ "salt"+ "SALT"+ "salt").getBytes(), 4096, 40)));
         assertEquals(
                 "89b69d0516f829893c696226650a8687",
                 StringUtils.convertBytesToHex(
@@ -156,11 +158,13 @@ public class TestSecurity extends TestBase {
                 "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
                 "248D6A61D20638B8E5C026930C3E6039A33CE45964FF2167F6ECEDD419DB06C1");
         checkSHA256(
-                "12345678901234567890123456789012345678901234567890123456789012345678901234567890",
+                "123456789012345678901234567890" +
+                        "12345678901234567890" +
+                        "123456789012345678901234567890",
                 "F371BC4A311F2B009EEF952DD83CA80E2B60026C8E935592D0F9C308453C813E");
         StringBuilder buff = new StringBuilder(1000000);
         buff.append('a');
-        checkSHA256(buff.toString(), 
+        checkSHA256(buff.toString(),
                 "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB");
     }
 

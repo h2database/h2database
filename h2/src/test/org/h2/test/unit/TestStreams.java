@@ -38,7 +38,8 @@ public class TestStreams extends TestBase {
     }
 
     private static byte[] getRandomBytes(Random random) {
-        int[] sizes = { 0, 1, random.nextInt(1000), random.nextInt(100000), random.nextInt(1000000) };
+        int[] sizes = { 0, 1, random.nextInt(1000), random.nextInt(100000),
+                random.nextInt(1000000) };
         int size = sizes[random.nextInt(sizes.length)];
         byte[] buffer = new byte[size];
         if (random.nextInt(5) == 1) {

@@ -81,11 +81,13 @@ public class TestOptimizations extends TestBase {
 
     private void testExplainRoundTrip() throws Exception {
         Connection conn = getConnection("optimizations");
-        assertExplainRoundTrip(conn, "select x from dual where x > any(select x from dual)");
+        assertExplainRoundTrip(conn, 
+                "select x from dual where x > any(select x from dual)");
         conn.close();
     }
 
-    private void assertExplainRoundTrip(Connection conn, String sql) throws SQLException {
+    private void assertExplainRoundTrip(Connection conn, String sql)
+            throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain " + sql);
         rs.next();
@@ -163,8 +165,10 @@ public class TestOptimizations extends TestBase {
     private void testLike() throws Exception {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(name varchar primary key) as select x from system_range(1, 10)");
-        ResultSet rs = stat.executeQuery("explain select * from test where name like ? || '%' {1: 'Hello'}");
+        stat.execute("create table test(name varchar primary key) as " + 
+                "select x from system_range(1, 10)");
+        ResultSet rs = stat.executeQuery("explain select * from test " + 
+                "where name like ? || '%' {1: 'Hello'}");
         rs.next();
         // ensure the ID = 10 part is evaluated first
         assertContains(rs.getString(1), "PRIMARY_KEY_");
@@ -176,7 +180,8 @@ public class TestOptimizations extends TestBase {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int) as select x from system_range(1, 10)");
-        ResultSet rs = stat.executeQuery("explain select * from test where exists(select 1 from test, test, test) and id = 10");
+        ResultSet rs = stat.executeQuery("explain select * from test " + 
+                "where exists(select 1 from test, test, test) and id = 10");
         rs.next();
         // ensure the ID = 10 part is evaluated first
         assertContains(rs.getString(1), "WHERE (ID = 10)");
@@ -195,7 +200,8 @@ public class TestOptimizations extends TestBase {
             tasks[i] = new Task() {
                 @Override
                 public void call() throws Exception {
-                    PreparedStatement prep = conn.prepareStatement("select * from test where id = ?");
+                    PreparedStatement prep = conn.prepareStatement(
+                            "select * from test where id = ?");
                     while (!stop) {
                         int x = (int) (Math.random() * 2);
                         prep.setInt(1, x);
@@ -245,8 +251,10 @@ public class TestOptimizations extends TestBase {
         stat.execute("insert into test(_rowid_, data) values(10, 'Hello')");
         stat.execute("insert into test(data) values('World')");
         stat.execute("insert into test(_rowid_, data) values(20, 'Hello')");
-        stat.execute("merge into test(_rowid_, data) key(_rowid_) values(20, 'Hallo')");
-        rs = stat.executeQuery("select _rowid_, data from test order by _rowid_");
+        stat.execute(
+                "merge into test(_rowid_, data) key(_rowid_) values(20, 'Hallo')");
+        rs = stat.executeQuery(
+                "select _rowid_, data from test order by _rowid_");
         rs.next();
         assertEquals(10, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
@@ -299,11 +307,13 @@ public class TestOptimizations extends TestBase {
         stat.execute("create index idx_id_asc on test(id)");
         ResultSet rs;
 
-        rs = stat.executeQuery("explain select * from test where id > 10 order by id");
+        rs = stat.executeQuery("explain select * from test " + 
+                "where id > 10 order by id");
         rs.next();
         assertTrue(rs.getString(1).indexOf("IDX_ID_ASC") >= 0);
 
-        rs = stat.executeQuery("explain select * from test where id < 10 order by id desc");
+        rs = stat.executeQuery("explain select * from test " + 
+                "where id < 10 order by id desc");
         rs.next();
         assertTrue(rs.getString(1).indexOf("IDX_ID_DESC") >= 0);
 
@@ -316,15 +326,18 @@ public class TestOptimizations extends TestBase {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select value from information_schema.settings where name='analyzeAuto'");
+        ResultSet rs = stat.executeQuery("select value " + 
+                "from information_schema.settings where name='analyzeAuto'");
         int auto = rs.next() ? rs.getInt(1) : 0;
         if (auto != 0) {
             stat.execute("create table test(id int)");
             stat.execute("create user onlyInsert password ''");
             stat.execute("grant insert on test to onlyInsert");
-            Connection conn2 = getConnection("optimizations", "onlyInsert", getPassword(""));
+            Connection conn2 = getConnection(
+                    "optimizations", "onlyInsert", getPassword(""));
             Statement stat2 = conn2.createStatement();
-            stat2.execute("insert into test select x from system_range(1, " + (auto + 10) + ")");
+            stat2.execute("insert into test select x " + 
+                    "from system_range(1, " + (auto + 10) + ")");
             conn2.close();
         }
         conn.close();
@@ -338,9 +351,11 @@ public class TestOptimizations extends TestBase {
         stat.execute("create table test(id int, name varchar)");
         stat.execute("create index idx_name on test(id, name)");
         stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
-        rs = stat.executeQuery("select * from test where id between 1 and 3 and name in ('World')");
+        rs = stat.executeQuery("select * from test " + 
+                "where id between 1 and 3 and name in ('World')");
         assertTrue(rs.next());
-        rs = stat.executeQuery("select * from test where id between 1 and 3 and name in (select 'World')");
+        rs = stat.executeQuery("select * from test " + 
+                "where id between 1 and 3 and name in (select 'World')");
         assertTrue(rs.next());
         stat.execute("drop table test");
         conn.close();
@@ -352,21 +367,26 @@ public class TestOptimizations extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("create table accounts(id integer primary key, status varchar(255), tag varchar(255))");
+        stat.execute("create table accounts(id integer primary key, " + 
+                "status varchar(255), tag varchar(255))");
         stat.execute("insert into accounts values (31, 'X', 'A')");
         stat.execute("create table parent(id int)");
         stat.execute("insert into parent values(31)");
-        stat.execute("create view test_view as select a.status, a.tag from accounts a, parent t where a.id = t.id");
-        rs = stat.executeQuery("select * from test_view where status='X' and tag in ('A','B')");
+        stat.execute("create view test_view as select a.status, a.tag " + 
+                "from accounts a, parent t where a.id = t.id");
+        rs = stat.executeQuery("select * from test_view " + 
+                "where status='X' and tag in ('A','B')");
         assertTrue(rs.next());
         rs = stat.executeQuery("select * from (select a.status, a.tag " +
-                "from accounts a, parent t where a.id = t.id) x where status='X' and tag in ('A','B')");
+                "from accounts a, parent t where a.id = t.id) x " + 
+                "where status='X' and tag in ('A','B')");
         assertTrue(rs.next());
 
         stat.execute("create table test(id int primary key, name varchar(255))");
         stat.execute("create unique index idx_name on test(name, id)");
         stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
-        rs = stat.executeQuery("select * from (select * from test) where id=1 and name in('Hello', 'World')");
+        rs = stat.executeQuery("select * from (select * from test) " + 
+                "where id=1 and name in('Hello', 'World')");
         assertTrue(rs.next());
         stat.execute("drop table test");
 
@@ -380,9 +400,12 @@ public class TestOptimizations extends TestBase {
 
         stat.execute("create table test(id int primary key, name varchar(255))");
         stat.execute("insert into test values(1, 'Hello'), (2, 'World')");
-        assertSingleValue(stat, "select count(*) from test where name in ('Hello', 'World', 1)", 2);
-        assertSingleValue(stat, "select count(*) from test where name in ('Hello', 'World')", 2);
-        assertSingleValue(stat, "select count(*) from test where name in ('Hello', 'Not')", 1);
+        assertSingleValue(stat, 
+                "select count(*) from test where name in ('Hello', 'World', 1)", 2);
+        assertSingleValue(stat, 
+                "select count(*) from test where name in ('Hello', 'World')", 2);
+        assertSingleValue(stat, 
+                "select count(*) from test where name in ('Hello', 'Not')", 1);
         stat.execute("drop table test");
 
         conn.close();
@@ -396,13 +419,17 @@ public class TestOptimizations extends TestBase {
         stat.executeUpdate("CREATE TABLE testValues (x VARCHAR(50))");
         stat.executeUpdate("INSERT INTO testValues (x) SELECT 'foo' x");
         ResultSet resultSet;
-        resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('foo')");
+        resultSet = stat.executeQuery(
+                "SELECT x FROM testValues WHERE x IN ('foo')");
         assertTrue(resultSet.next());
-        resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('FOO')");
+        resultSet = stat.executeQuery(
+                "SELECT x FROM testValues WHERE x IN ('FOO')");
         assertTrue(resultSet.next());
-        resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('foo','bar')");
+        resultSet = stat.executeQuery(
+                "SELECT x FROM testValues WHERE x IN ('foo','bar')");
         assertTrue(resultSet.next());
-        resultSet = stat.executeQuery("SELECT x FROM testValues WHERE x IN ('FOO','bar')");
+        resultSet = stat.executeQuery(
+                "SELECT x FROM testValues WHERE x IN ('FOO','bar')");
         assertTrue(resultSet.next());
 
         conn.close();
@@ -414,14 +441,17 @@ public class TestOptimizations extends TestBase {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("create table test(id int primary key, name varchar) as select 1, 'Hello'");
-        stat.execute("select * from (select * from test) where id=1 and name in('Hello', 'World')");
+        stat.execute("create table test(id int primary key, name varchar) " + 
+                "as select 1, 'Hello'");
+        stat.execute("select * from (select * from test) " + 
+                "where id=1 and name in('Hello', 'World')");
 
         stat.execute("drop table test");
 
         stat.execute("create table test(id int, name varchar) as select 1, 'Hello'");
         stat.execute("create index idx2 on test(id, name)");
-        rs = stat.executeQuery("select count(*) from test where id=1 and name in('Hello', 'x')");
+        rs = stat.executeQuery("select count(*) from test " + 
+                "where id=1 and name in('Hello', 'x')");
         rs.next();
         assertEquals(1, rs.getInt(1));
 
@@ -447,10 +477,12 @@ public class TestOptimizations extends TestBase {
         assertFalse(rs.next());
 
         PreparedStatement prep;
-        prep = conn.prepareStatement("SELECT * FROM DUAL A WHERE A.X IN (SELECT B.X FROM DUAL B WHERE B.X LIKE ?)");
+        prep = conn.prepareStatement("SELECT * FROM DUAL A " + 
+                "WHERE A.X IN (SELECT B.X FROM DUAL B WHERE B.X LIKE ?)");
         prep.setString(1, "1");
         prep.execute();
-        prep = conn.prepareStatement("SELECT * FROM DUAL A WHERE A.X IN (SELECT B.X FROM DUAL B WHERE B.X IN (?, ?))");
+        prep = conn.prepareStatement("SELECT * FROM DUAL A " + 
+                "WHERE A.X IN (SELECT B.X FROM DUAL B WHERE B.X IN (?, ?))");
         prep.setInt(1, 1);
         prep.setInt(2, 1);
         prep.executeQuery();
@@ -523,7 +555,8 @@ public class TestOptimizations extends TestBase {
 
         stat.execute("create table test(id int primary key)");
         stat.execute("insert into test select x from system_range(1, 1000)");
-        ResultSet rs = stat.executeQuery("explain select * from test where id in (400, 300)");
+        ResultSet rs = stat.executeQuery("explain select * " + 
+                "from test where id in (400, 300)");
         rs.next();
         String plan = rs.getString(1);
         if (plan.indexOf("/* PUBLIC.PRIMARY_KEY_") < 0) {
@@ -544,7 +577,8 @@ public class TestOptimizations extends TestBase {
             if (random.nextBoolean()) {
                 int count = random.nextBoolean() ? 1 : 1 + random.nextInt(len);
                 if (count > 0) {
-                    stat.execute("insert into test select null from system_range(1, " + count + ")");
+                    stat.execute("insert into test select null " + 
+                            "from system_range(1, " + count + ")");
                 }
             }
             int maxExpected = -1;
@@ -552,7 +586,8 @@ public class TestOptimizations extends TestBase {
             if (random.nextInt(10) != 1) {
                 minExpected = 1;
                 maxExpected = 1 + random.nextInt(len);
-                stat.execute("insert into test select x from system_range(1, " + maxExpected + ")");
+                stat.execute("insert into test select x " + 
+                        "from system_range(1, " + maxExpected + ")");
             }
             String sql = "create index idx on test(x";
             if (random.nextBoolean()) {
@@ -567,7 +602,8 @@ public class TestOptimizations extends TestBase {
             }
             sql += ")";
             stat.execute(sql);
-            ResultSet rs = stat.executeQuery("explain select min(x), max(x) from test");
+            ResultSet rs = stat.executeQuery(
+                    "explain select min(x), max(x) from test");
             rs.next();
             if (!config.mvcc) {
                 String plan = rs.getString(1);
@@ -595,10 +631,12 @@ public class TestOptimizations extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE Logs(id INT PRIMARY KEY, type INT)");
         stat.execute("CREATE unique INDEX type_index ON Logs(type, id)");
-        stat.execute("INSERT INTO Logs SELECT X, MOD(X, 3) FROM SYSTEM_RANGE(1, 1000)");
+        stat.execute("INSERT INTO Logs SELECT X, MOD(X, 3) " + 
+                "FROM SYSTEM_RANGE(1, 1000)");
         stat.execute("ANALYZE SAMPLE_SIZE 0");
         ResultSet rs;
-        rs = stat.executeQuery("EXPLAIN SELECT id FROM Logs WHERE id < 100 and type=2 AND id<100");
+        rs = stat.executeQuery("EXPLAIN SELECT id FROM Logs " + 
+                "WHERE id < 100 and type=2 AND id<100");
         rs.next();
         String plan = rs.getString(1);
         assertTrue(plan.indexOf("TYPE_INDEX") > 0);
@@ -609,12 +647,14 @@ public class TestOptimizations extends TestBase {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR, TYPE INT)");
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, " + 
+                "NAME VARCHAR, TYPE INT)");
         stat.execute("CREATE INDEX IDX_TEST_TYPE ON TEST(TYPE)");
         Random random = new Random(1);
         int len = getSize(10000, 100000);
         int[] groupCount = new int[10];
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(?, ?, ?)");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.setString(2, "Hello World");
@@ -624,31 +664,36 @@ public class TestOptimizations extends TestBase {
             prep.execute();
         }
         ResultSet rs;
-        rs = stat.executeQuery("SELECT TYPE, COUNT(*) FROM TEST GROUP BY TYPE ORDER BY TYPE");
+        rs = stat.executeQuery("SELECT TYPE, COUNT(*) FROM TEST " + 
+                "GROUP BY TYPE ORDER BY TYPE");
         for (int i = 0; rs.next(); i++) {
             assertEquals(i, rs.getInt(1));
             assertEquals(groupCount[i], rs.getInt(2));
         }
         assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE");
+        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST " + 
+                "ORDER BY TYPE");
         for (int i = 0; rs.next(); i++) {
             assertEquals(i, rs.getInt(1));
         }
         assertFalse(rs.next());
         stat.execute("ANALYZE");
-        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE");
+        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST " + 
+                "ORDER BY TYPE");
         for (int i = 0; i < 10; i++) {
             assertTrue(rs.next());
             assertEquals(i, rs.getInt(1));
         }
         assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT 5 OFFSET 2");
+        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST " + 
+                "ORDER BY TYPE LIMIT 5 OFFSET 2");
         for (int i = 2; i < 7; i++) {
             assertTrue(rs.next());
             assertEquals(i, rs.getInt(1));
         }
         assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST ORDER BY TYPE LIMIT -1 OFFSET 0 SAMPLE_SIZE 3");
+        rs = stat.executeQuery("SELECT DISTINCT TYPE FROM TEST " + 
+                "ORDER BY TYPE LIMIT -1 OFFSET 0 SAMPLE_SIZE 3");
         // must have at least one row
         assertTrue(rs.next());
         for (int i = 0; i < 3; i++) {
@@ -664,7 +709,8 @@ public class TestOptimizations extends TestBase {
     private void testQueryCacheTimestamp() throws Exception {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
-        PreparedStatement prep = conn.prepareStatement("SELECT CURRENT_TIMESTAMP()");
+        PreparedStatement prep = conn.prepareStatement(
+                "SELECT CURRENT_TIMESTAMP()");
         ResultSet rs = prep.executeQuery();
         rs.next();
         String a = rs.getString(1);
@@ -681,7 +727,8 @@ public class TestOptimizations extends TestBase {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
         testQuerySpeed(stat,
-                "select sum(a.n), sum(b.x) from system_range(1, 100) b, (select sum(x) n from system_range(1, 4000)) a");
+                "select sum(a.n), sum(b.x) from system_range(1, 100) b, " + 
+                "(select sum(x) n from system_range(1, 4000)) a");
         conn.close();
     }
 
@@ -714,7 +761,8 @@ public class TestOptimizations extends TestBase {
         stat.execute("create table test2(id int)");
         stat.execute("insert into test values(1), (1), (2)");
         stat.execute("insert into test2 values(1)");
-        PreparedStatement prep = conn.prepareStatement("select * from test where id = (select id from test2)");
+        PreparedStatement prep = conn.prepareStatement(
+                    "select * from test where id = (select id from test2)");
         ResultSet rs1 = prep.executeQuery();
         rs1.next();
         assertEquals(1, rs1.getInt(1));
@@ -730,11 +778,13 @@ public class TestOptimizations extends TestBase {
         conn.close();
     }
 
-    private void testMinMaxCountOptimization(boolean memory) throws SQLException {
+    private void testMinMaxCountOptimization(boolean memory)
+            throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        stat.execute("create " + (memory ? "memory" : "") + " table test(id int primary key, value int)");
+        stat.execute("create " + (memory ? "memory" : "") + 
+                " table test(id int primary key, value int)");
         stat.execute("create index idx_value_id on test(value, id);");
         int len = getSize(1000, 10000);
         HashMap<Integer, Integer> map = New.hashMap();
@@ -789,7 +839,8 @@ public class TestOptimizations extends TestBase {
                     min = set.first();
                     max = set.last();
                 }
-                ResultSet rs = stat.executeQuery("select min(value), max(value), count(*) from test");
+                ResultSet rs = stat.executeQuery(
+                        "select min(value), max(value), count(*) from test");
                 rs.next();
                 Integer minDb = (Integer) rs.getObject(1);
                 Integer maxDb = (Integer) rs.getObject(2);
@@ -812,13 +863,19 @@ public class TestOptimizations extends TestBase {
         PreparedStatement prep;
         ResultSet rs;
 
-        assertFalse(stat.executeQuery("select * from dual where x in()").next());
-        assertFalse(stat.executeQuery("select * from dual where null in(1)").next());
-        assertFalse(stat.executeQuery("select * from dual where null in(null)").next());
-        assertFalse(stat.executeQuery("select * from dual where null in(null, 1)").next());
+        assertFalse(stat.executeQuery("select * from dual " + 
+                "where x in()").next());
+        assertFalse(stat.executeQuery("select * from dual " + 
+                "where null in(1)").next());
+        assertFalse(stat.executeQuery("select * from dual " + 
+                "where null in(null)").next());
+        assertFalse(stat.executeQuery("select * from dual " + 
+                "where null in(null, 1)").next());
 
-        assertFalse(stat.executeQuery("select * from dual where 1+x in(3, 4)").next());
-        assertFalse(stat.executeQuery("select * from dual d1, dual d2 where d1.x in(3, 4)").next());
+        assertFalse(stat.executeQuery("select * from dual " + 
+                "where 1+x in(3, 4)").next());
+        assertFalse(stat.executeQuery("select * from dual d1, dual d2 " + 
+                "where d1.x in(3, 4)").next());
 
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("insert into test values(1, 'Hello')");
@@ -832,7 +889,8 @@ public class TestOptimizations extends TestBase {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
-        prep = conn.prepareStatement("select * from test t1 where t1.id in(?, ?) order by id");
+        prep = conn.prepareStatement("select * from test t1 " + 
+                "where t1.id in(?, ?) order by id");
         prep.setInt(1, 1);
         prep.setInt(2, 2);
         rs = prep.executeQuery();
@@ -877,10 +935,12 @@ public class TestOptimizations extends TestBase {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE my_table(K1 INT, K2 INT, VAL VARCHAR, PRIMARY KEY(K1, K2))");
+        stat.execute("CREATE TABLE my_table(K1 INT, K2 INT, " + 
+                "VAL VARCHAR, PRIMARY KEY(K1, K2))");
         stat.execute("CREATE INDEX my_index ON my_table(K1, VAL)");
         ResultSet rs = stat.executeQuery(
-                "EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 ORDER BY K1, VAL");
+                "EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 " + 
+                "ORDER BY K1, VAL");
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX: K1 = 7 */");
 
@@ -892,7 +952,8 @@ public class TestOptimizations extends TestBase {
         stat.execute("CREATE INDEX my_index1 ON my_table(K1, K2)");
         stat.execute("CREATE INDEX my_index2 ON my_table(K1, K2, VAL)");
         rs = stat.executeQuery(
-                "EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 ORDER BY K1, K2, VAL");
+                "EXPLAIN PLAN FOR SELECT * FROM my_table WHERE K1=7 " + 
+                "ORDER BY K1, K2, VAL");
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX2: K1 = 7 */");
 
@@ -905,13 +966,16 @@ public class TestOptimizations extends TestBase {
         Statement stat = conn.createStatement();
 
         stat.execute("create table test(id int primary key, name varchar(255))");
-        stat.execute("insert into test values(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')");
+        stat.execute("insert into test values" + 
+                "(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')");
 
-        ResultSet rs = stat.executeQuery("EXPLAIN PLAN FOR SELECT * FROM test WHERE ID=1 OR ID=2 OR ID=3 OR ID=4 OR ID=5");
+        ResultSet rs = stat.executeQuery("EXPLAIN PLAN FOR SELECT * " + 
+                "FROM test WHERE ID=1 OR ID=2 OR ID=3 OR ID=4 OR ID=5");
         rs.next();
         assertContains(rs.getString(1), "ID IN(1, 2, 3, 4, 5)");
 
-        rs = stat.executeQuery("SELECT COUNT(*) FROM test WHERE ID=1 OR ID=2 OR ID=3 OR ID=4 OR ID=5");
+        rs = stat.executeQuery("SELECT COUNT(*) FROM test " + 
+                "WHERE ID=1 OR ID=2 OR ID=3 OR ID=4 OR ID=5");
         rs.next();
         assertEquals(5, rs.getInt(1));
 

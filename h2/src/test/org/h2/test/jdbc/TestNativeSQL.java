@@ -24,18 +24,26 @@ public class TestNativeSQL extends TestBase {
             "CREATE TABLE TEST(ID INT PRIMARY KEY)",
             "CREATE TABLE TEST(ID INT PRIMARY KEY)",
 
-            "INSERT INTO TEST VALUES(1)", "INSERT INTO TEST VALUES(1)",
-            "SELECT '{nothing}' FROM TEST", "SELECT '{nothing}' FROM TEST",
+            "INSERT INTO TEST VALUES(1)", 
+            "INSERT INTO TEST VALUES(1)",
+            
+            "SELECT '{nothing}' FROM TEST", 
+            "SELECT '{nothing}' FROM TEST",
 
-            "SELECT '{fn ABS(1)}' FROM TEST", "SELECT '{fn ABS(1)}' FROM TEST",
+            "SELECT '{fn ABS(1)}' FROM TEST", 
+            "SELECT '{fn ABS(1)}' FROM TEST",
 
-            "SELECT {d '2001-01-01'} FROM TEST", "SELECT    '2001-01-01'  FROM TEST",
+            "SELECT {d '2001-01-01'} FROM TEST", 
+            "SELECT    '2001-01-01'  FROM TEST",
 
-            "SELECT {t '20:00:00'} FROM TEST", "SELECT    '20:00:00'  FROM TEST",
+            "SELECT {t '20:00:00'} FROM TEST", 
+            "SELECT    '20:00:00'  FROM TEST",
 
-            "SELECT {ts '2001-01-01 20:00:00'} FROM TEST", "SELECT     '2001-01-01 20:00:00'  FROM TEST",
+            "SELECT {ts '2001-01-01 20:00:00'} FROM TEST", 
+            "SELECT     '2001-01-01 20:00:00'  FROM TEST",
 
-            "SELECT {fn CONCAT('{fn x}','{oj}')} FROM TEST", "SELECT     CONCAT('{fn x}','{oj}')  FROM TEST",
+            "SELECT {fn CONCAT('{fn x}','{oj}')} FROM TEST", 
+            "SELECT     CONCAT('{fn x}','{oj}')  FROM TEST",
 
             "SELECT * FROM {oj TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID}",
             "SELECT * FROM     TEST T1 LEFT OUTER JOIN TEST T2 ON T1.ID=T2.ID ",

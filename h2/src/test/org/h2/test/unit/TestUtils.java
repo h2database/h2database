@@ -191,7 +191,8 @@ public class TestUtils extends TestBase {
         long x = (Long) Utils.callMethod(instance, "longValue");
         assertEquals(10, x);
         // Static fields
-        String pathSeparator = (String) Utils.getStaticField("java.io.File.pathSeparator");
+        String pathSeparator = (String) Utils
+                .getStaticField("java.io.File.pathSeparator");
         assertEquals(File.pathSeparator, pathSeparator);
         // Instance fields
         String test = (String) Utils.getField(this, "testField");

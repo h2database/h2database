@@ -42,14 +42,16 @@ public class TestSessionsLocks extends TestBase {
         Connection conn = getConnection("sessionsLocks;MULTI_THREADED=1");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select * from information_schema.locks order by session_id");
+        rs = stat.executeQuery("select * from information_schema.locks " + 
+                "order by session_id");
         assertFalse(rs.next());
         Connection conn2 = getConnection("sessionsLocks");
         Statement stat2 = conn2.createStatement();
         stat2.execute("create table test(id int primary key, name varchar)");
         conn2.setAutoCommit(false);
         stat2.execute("insert into test values(1, 'Hello')");
-        rs = stat.executeQuery("select * from information_schema.locks order by session_id");
+        rs = stat.executeQuery("select * from information_schema.locks " + 
+                "order by session_id");
         rs.next();
         assertEquals("PUBLIC", rs.getString("TABLE_SCHEMA"));
         assertEquals("TEST", rs.getString("TABLE_NAME"));
@@ -63,7 +65,8 @@ public class TestSessionsLocks extends TestBase {
         conn2.commit();
         conn2.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         stat2.execute("SELECT * FROM TEST");
-        rs = stat.executeQuery("select * from information_schema.locks order by session_id");
+        rs = stat.executeQuery("select * from information_schema.locks " + 
+                "order by session_id");
         if (!config.mvcc) {
             rs.next();
             assertEquals("PUBLIC", rs.getString("TABLE_SCHEMA"));
@@ -73,7 +76,8 @@ public class TestSessionsLocks extends TestBase {
         }
         assertFalse(rs.next());
         conn2.commit();
-        rs = stat.executeQuery("select * from information_schema.locks order by session_id");
+        rs = stat.executeQuery("select * from information_schema.locks " + 
+                "order by session_id");
         assertFalse(rs.next());
         conn.close();
         conn2.close();
@@ -84,7 +88,8 @@ public class TestSessionsLocks extends TestBase {
         Connection conn = getConnection("sessionsLocks;MULTI_THREADED=1");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select * from information_schema.sessions order by SESSION_START, ID");
+        rs = stat.executeQuery("select * from information_schema.sessions " + 
+                "order by SESSION_START, ID");
         rs.next();
         int sessionId = rs.getInt("ID");
         rs.getString("USER_NAME");
@@ -94,7 +99,8 @@ public class TestSessionsLocks extends TestBase {
         assertFalse(rs.next());
         Connection conn2 = getConnection("sessionsLocks");
         final Statement stat2 = conn2.createStatement();
-        rs = stat.executeQuery("select * from information_schema.sessions order by SESSION_START, ID");
+        rs = stat.executeQuery("select * from information_schema.sessions " + 
+                "order by SESSION_START, ID");
         assertTrue(rs.next());
         assertEquals(sessionId, rs.getInt("ID"));
         assertTrue(rs.next());
@@ -107,7 +113,8 @@ public class TestSessionsLocks extends TestBase {
             @Override
             public void run() {
                 try {
-                    stat2.execute("select count(*) from system_range(1, 10000000) t1, system_range(1, 10000000) t2");
+                    stat2.execute("select count(*) from " + 
+                            "system_range(1, 10000000) t1, system_range(1, 10000000) t2");
                     new Error("Unexpected success").printStackTrace();
                 } catch (SQLException e) {
                     done[0] = true;

@@ -138,17 +138,20 @@ public class TestWeb extends TestBase {
     }
 
     private void testAlreadyRunning() throws Exception {
-        Server server = Server.createWebServer("-webPort", "8182", "-properties", "null");
+        Server server = Server.createWebServer(
+                "-webPort", "8182", "-properties", "null");
         server.start();
         assertTrue(server.getStatus().indexOf("server running") >= 0);
-        Server server2 = Server.createWebServer("-webPort", "8182", "-properties", "null");
+        Server server2 = Server.createWebServer(
+                "-webPort", "8182", "-properties", "null");
         assertEquals("Not started", server2.getStatus());
         try {
             server2.start();
             fail();
         } catch (Exception e) {
             assertTrue(e.toString().indexOf("port may be in use") >= 0);
-            assertTrue(server2.getStatus().indexOf("could not be started") >= 0);
+            assertTrue(server2.getStatus().indexOf(
+                    "could not be started") >= 0);
         }
         server.stop();
     }
@@ -159,11 +162,13 @@ public class TestWeb extends TestBase {
         }
         deleteDb("web");
         Connection conn = getConnection("web");
-        conn.createStatement().execute("create table test(id int) as select 1");
+        conn.createStatement().execute(
+                "create table test(id int) as select 1");
         conn.close();
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-web", "-webPort", "8182", "-properties", "null", "-tcp", "-tcpPort", "9101");
+        server.runTool("-web", "-webPort", "8182",
+                "-properties", "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
             WebClient client;
@@ -174,10 +179,12 @@ public class TestWeb extends TestBase {
             result = client.get(url, "tools.jsp");
             FileUtils.delete(getBaseDir() + "/backup.zip");
             result = client.get(url, "tools.do?tool=Backup&args=-dir," +
-                    getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
+                    getBaseDir() + ",-db,web,-file," +
+                    getBaseDir() + "/backup.zip");
             deleteDb("web");
             assertTrue(FileUtils.exists(getBaseDir() + "/backup.zip"));
-            result = client.get(url, "tools.do?tool=DeleteDbFiles&args=-dir," +
+            result = client.get(url,
+                    "tools.do?tool=DeleteDbFiles&args=-dir," +
                     getBaseDir() + ",-db,web");
             String fn = getBaseDir() + "/web";
             if (config.mvStore) {
@@ -187,7 +194,8 @@ public class TestWeb extends TestBase {
             }
             assertFalse(FileUtils.exists(fn));
             result = client.get(url, "tools.do?tool=Restore&args=-dir," +
-                    getBaseDir() + ",-db,web,-file," + getBaseDir() + "/backup.zip");
+                    getBaseDir() + ",-db,web,-file," + getBaseDir() +
+                    "/backup.zip");
             assertTrue(FileUtils.exists(fn));
             FileUtils.delete(getBaseDir() + "/web.h2.sql");
             FileUtils.delete(getBaseDir() + "/backup.zip");
@@ -223,8 +231,11 @@ public class TestWeb extends TestBase {
             String test = client.get(url, "transfer/test.txt");
             assertEquals("Hello World", test);
             new File("transfer/testUpload.txt").delete();
-            client.upload(url + "/transfer/testUpload.txt", "testUpload.txt", new ByteArrayInputStream("Hallo Welt".getBytes()));
-            byte[] d = IOUtils.readBytesAndClose(new FileInputStream("transfer/testUpload.txt"), -1);
+            client.upload(url + "/transfer/testUpload.txt",
+                    "testUpload.txt", new ByteArrayInputStream(
+                    "Hallo Welt".getBytes()));
+            byte[] d = IOUtils.readBytesAndClose(
+                    new FileInputStream("transfer/testUpload.txt"), -1);
             assertEquals("Hallo Welt", new String(d));
             new File("transfer/testUpload.txt").delete();
         } finally {
@@ -236,7 +247,8 @@ public class TestWeb extends TestBase {
     private void testServer() throws Exception {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-web", "-webPort", "8182", "-properties", "null", "-tcp", "-tcpPort", "9101");
+        server.runTool("-web", "-webPort", "8182", "-properties",
+                "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
             WebClient client;
@@ -273,10 +285,12 @@ public class TestWeb extends TestBase {
     }
 
     private void testIfExists() throws Exception {
-        Connection conn = getConnection("jdbc:h2:mem:webExists", getUser(), getPassword());
+        Connection conn = getConnection("jdbc:h2:mem:webExists",
+                getUser(), getPassword());
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-ifExists", "-web", "-webPort", "8182", "-properties", "null", "-tcp", "-tcpPort", "9101");
+        server.runTool("-ifExists", "-web", "-webPort", "8182",
+                "-properties", "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
             WebClient client;
@@ -285,11 +299,15 @@ public class TestWeb extends TestBase {
             result = client.get(url);
             client.readSessionId(result);
             result = client.get(url, "login.jsp");
-            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:webExists" +
-                    "&user=" + getUser() + "&password=" + getPassword() + "&name=_test_");
+            result = client.get(url, "test.do?driver=org.h2.Driver" +
+                    "&url=jdbc:h2:mem:webExists" +
+                    "&user=" + getUser() + "&password=" +
+                    getPassword() + "&name=_test_");
             assertTrue(result.indexOf("Exception") < 0);
-            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:web" +
-                    "&user=" + getUser() + "&password=" + getPassword() + "&name=_test_");
+            result = client.get(url, "test.do?driver=org.h2.Driver" +
+                    "&url=jdbc:h2:mem:web" +
+                    "&user=" + getUser() + "&password=" +
+                    getPassword() + "&name=_test_");
             assertContains(result, "Exception");
         } finally {
             server.shutdown();
@@ -300,7 +318,8 @@ public class TestWeb extends TestBase {
     private void testWebApp() throws Exception {
         Server server = new Server();
         server.setOut(new PrintStream(new ByteArrayOutputStream()));
-        server.runTool("-web", "-webPort", "8182", "-properties", "null", "-tcp", "-tcpPort", "9101");
+        server.runTool("-web", "-webPort", "8182",
+                "-properties", "null", "-tcp", "-tcpPort", "9101");
         try {
             String url = "http://localhost:8182";
             WebClient client;
@@ -316,17 +335,22 @@ public class TestWeb extends TestBase {
             result = client.get(url, "index.do?language=en");
             result = client.get(url, "login.jsp");
             assertTrue(result.indexOf("Einstellung") < 0);
-            result = client.get(url, "test.do?driver=abc&url=jdbc:abc:mem:web&user=sa&password=sa&name=_test_");
+            result = client.get(url, "test.do?driver=abc" +
+                    "&url=jdbc:abc:mem:web&user=sa&password=sa&name=_test_");
             assertContains(result, "Exception");
-            result = client.get(url, "test.do?driver=org.h2.Driver&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
+            result = client.get(url, "test.do?driver=org.h2.Driver" +
+                    "&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
             assertTrue(result.indexOf("Exception") < 0);
-            result = client.get(url, "login.do?driver=org.h2.Driver&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
+            result = client.get(url, "login.do?driver=org.h2.Driver" +
+                    "&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
             result = client.get(url, "header.jsp");
-            result = client.get(url, "query.do?sql=create table test(id int primary key, name varchar);" +
+            result = client.get(url, "query.do?sql=" + 
+                    "create table test(id int primary key, name varchar);" +
                     "insert into test values(1, 'Hello')");
             result = client.get(url, "query.do?sql=create sequence test_sequence");
             result = client.get(url, "query.do?sql=create schema test_schema");
-            result = client.get(url, "query.do?sql=create view test_view as select * from test");
+            result = client.get(url, "query.do?sql=" + 
+                    "create view test_view as select * from test");
             result = client.get(url, "tables.do");
             result = client.get(url, "query.jsp");
             result = client.get(url, "query.do?sql=select * from test");
@@ -335,34 +359,41 @@ public class TestWeb extends TestBase {
             result = client.get(url, "query.do?sql=@META select * from test");
             assertContains(result, "typeName");
             result = client.get(url, "query.do?sql=delete from test");
-            result = client.get(url, "query.do?sql=@LOOP 1000 insert into test values(?, 'Hello ' || ?/*RND*/)");
+            result = client.get(url, "query.do?sql=@LOOP 1000 " +
+                    "insert into test values(?, 'Hello ' || ?/*RND*/)");
             assertContains(result, "1000 * (Prepared)");
             result = client.get(url, "query.do?sql=select * from test");
             result = client.get(url, "query.do?sql=@list select * from test");
             assertContains(result, "Row #");
-            result = client.get(url, "query.do?sql=@parameter_meta select * from test where id = ?");
+            result = client.get(url, "query.do?sql=@parameter_meta " +
+                    "select * from test where id = ?");
             assertContains(result, "INTEGER");
             result = client.get(url, "query.do?sql=@edit select * from test");
             assertContains(result, "editResult.do");
-            result = client.get(url, "query.do?sql=" + StringUtils.urlEncode("select space(100001) a, 1 b"));
+            result = client.get(url, "query.do?sql=" +
+                    StringUtils.urlEncode("select space(100001) a, 1 b"));
             assertContains(result, "...");
-            result = client.get(url, "query.do?sql=" + StringUtils.urlEncode("call '<&>'"));
+            result = client.get(url, "query.do?sql=" +
+                    StringUtils.urlEncode("call '<&>'"));
             assertContains(result, "&lt;&amp;&gt;");
             result = client.get(url, "query.do?sql=@HISTORY");
             result = client.get(url, "getHistory.do?id=4");
             assertContains(result, "select * from test");
             result = client.get(url, "query.do?sql=delete from test");
             // op 1 (row -1: insert, otherwise update): ok, 2: delete  3: cancel,
-            result = client.get(url, "editResult.do?sql=@edit select * from test&op=1&row=-1&r-1c1=1&r-1c2=Hello");
+            result = client.get(url, "editResult.do?sql=@edit " +
+                    "select * from test&op=1&row=-1&r-1c1=1&r-1c2=Hello");
             assertContains(result, "1");
             assertContains(result, "Hello");
-            result = client.get(url, "editResult.do?sql=@edit select * from test&op=1&row=1&r1c1=1&r1c2=Hallo");
+            result = client.get(url, "editResult.do?sql=@edit " +
+                    "select * from test&op=1&row=1&r1c1=1&r1c2=Hallo");
             assertContains(result, "1");
             assertContains(result, "Hallo");
             result = client.get(url, "query.do?sql=select * from test");
             assertContains(result, "1");
             assertContains(result, "Hallo");
-            result = client.get(url, "editResult.do?sql=@edit select * from test&op=2&row=1");
+            result = client.get(url, "editResult.do?sql=@edit " + 
+                    "select * from test&op=2&row=1");
             result = client.get(url, "query.do?sql=select * from test");
             assertContains(result, "no rows");
 
@@ -381,11 +412,14 @@ public class TestWeb extends TestBase {
             assertContains(result, "20");
             result = client.get(url, "autoCompleteList.do?query=call time '1");
             assertContains(StringUtils.urlDecode(result), "12:00:00");
-            result = client.get(url, "autoCompleteList.do?query=call timestamp '2001-01-01 12:00:00.");
+            result = client.get(url, "autoCompleteList.do?query=" +
+                    "call timestamp '2001-01-01 12:00:00.");
             assertContains(result, "nanoseconds");
-            result = client.get(url, "autoCompleteList.do?query=call timestamp '2001-01-01 12:00:00.00");
+            result = client.get(url, "autoCompleteList.do?query=" +
+                    "call timestamp '2001-01-01 12:00:00.00");
             assertContains(result, "nanoseconds");
-            result = client.get(url, "autoCompleteList.do?query=call $$ hello world");
+            result = client.get(url, "autoCompleteList.do?query=" +
+                    "call $$ hello world");
             assertContains(StringUtils.urlDecode(result), "$$");
             result = client.get(url, "autoCompleteList.do?query=alter index ");
             assertContains(StringUtils.urlDecode(result), "character");
@@ -408,15 +442,20 @@ public class TestWeb extends TestBase {
             assertContains(result, "set");
             result = client.get(url, "tables.do");
             assertContains(result, "TEST");
-            result = client.get(url, "autoCompleteList.do?query=select * from ");
+            result = client.get(url, "autoCompleteList.do?query=" +
+                    "select * from ");
             assertContains(result, "test");
-            result = client.get(url, "autoCompleteList.do?query=select * from test t where t.");
+            result = client.get(url, "autoCompleteList.do?query=" +
+                    "select * from test t where t.");
             assertContains(result, "id");
-            result = client.get(url, "autoCompleteList.do?query=select id x from test te where t");
+            result = client.get(url, "autoCompleteList.do?query=" +
+                    "select id x from test te where t");
             assertContains(result, "te");
-            result = client.get(url, "autoCompleteList.do?query=select * from test where name = '");
+            result = client.get(url, "autoCompleteList.do?query=" +
+                    "select * from test where name = '");
             assertContains(StringUtils.urlDecode(result), "'");
-            result = client.get(url, "autoCompleteList.do?query=select * from information_schema.columns where columns.");
+            result = client.get(url, "autoCompleteList.do?query=" +
+                    "select * from information_schema.columns where columns.");
             assertContains(result, "column_name");
 
             result = client.get(url, "query.do?sql=delete from test");
@@ -428,25 +467,32 @@ public class TestWeb extends TestBase {
             assertContains(result, "Auto commit is now OFF");
             result = client.get(url, "query.do?sql=@cancel");
             assertContains(result, "There is currently no running statement");
-            result = client.get(url, "query.do?sql=@generated insert into test(id) values(test_sequence.nextval)");
+            result = client.get(url,
+                    "query.do?sql=@generated insert into test(id) values(test_sequence.nextval)");
             assertContains(result, "SCOPE_IDENTITY()");
             result = client.get(url, "query.do?sql=@maxrows 2000");
             assertContains(result, "Max rowcount is set");
             result = client.get(url, "query.do?sql=@password_hash user password");
-            assertContains(result, "501cf5c163c184c26e62e76d25d441979f8f25dfd7a683484995b4a43a112fdf");
+            assertContains(result,
+                    "501cf5c163c184c26e62e76d25d441979f8f25dfd7a683484995b4a43a112fdf");
             result = client.get(url, "query.do?sql=@sleep 1");
             assertContains(result, "Ok");
             result = client.get(url, "query.do?sql=@catalogs");
             assertContains(result, "PUBLIC");
-            result = client.get(url, "query.do?sql=@column_privileges null null null TEST null");
+            result = client.get(url,
+                    "query.do?sql=@column_privileges null null null TEST null");
             assertContains(result, "PRIVILEGE");
-            result = client.get(url, "query.do?sql=@cross_references null null null TEST");
+            result = client.get(url,
+                    "query.do?sql=@cross_references null null null TEST");
             assertContains(result, "PKTABLE_NAME");
-            result = client.get(url, "query.do?sql=@exported_keys null null null TEST");
+            result = client.get(url,
+                    "query.do?sql=@exported_keys null null null TEST");
             assertContains(result, "PKTABLE_NAME");
-            result = client.get(url, "query.do?sql=@imported_keys null null null TEST");
+            result = client.get(url,
+                    "query.do?sql=@imported_keys null null null TEST");
             assertContains(result, "PKTABLE_NAME");
-            result = client.get(url, "query.do?sql=@primary_keys null null null TEST");
+            result = client.get(url,
+                    "query.do?sql=@primary_keys null null null TEST");
             assertContains(result, "PK_NAME");
             result = client.get(url, "query.do?sql=@procedures null null null");
             assertContains(result, "PROCEDURE_NAME");
@@ -472,7 +518,8 @@ public class TestWeb extends TestBase {
             assertContains(result, "Ok");
             result = client.get(url, "query.do?sql=@prof_stop");
             assertContains(result, "Top Stack Trace(s)");
-            result = client.get(url, "query.do?sql=@best_row_identifier null null TEST");
+            result = client.get(url,
+                    "query.do?sql=@best_row_identifier null null TEST");
             assertContains(result, "SCOPE");
             assertContains(result, "COLUMN_NAME");
             assertContains(result, "ID");
@@ -480,7 +527,8 @@ public class TestWeb extends TestBase {
             assertContains(result, "CLASS_NAME");
             result = client.get(url, "query.do?sql=@udts null null null 1,2,3");
             assertContains(result, "CLASS_NAME");
-            result = client.get(url, "query.do?sql=@LOOP 10 @STATEMENT insert into test values(?, 'Hello')");
+            result = client.get(url, "query.do?sql=@LOOP 10 " +
+                    "@STATEMENT insert into test values(?, 'Hello')");
             result = client.get(url, "query.do?sql=select * from test");
             assertContains(result, "8");
             result = client.get(url, "query.do?sql=@EDIT select * from test");
@@ -507,7 +555,8 @@ public class TestWeb extends TestBase {
             assertContains(result, "getCatalog");
 
             result = client.get(url, "logout.do");
-            result = client.get(url, "login.do?driver=org.h2.Driver&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
+            result = client.get(url, "login.do?driver=org.h2.Driver&" +
+                    "url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
 
             result = client.get(url, "logout.do");
             result = client.get(url, "settingRemove.do?name=_test_");
@@ -521,7 +570,8 @@ public class TestWeb extends TestBase {
     private void testStartWebServerWithConnection() throws Exception {
         String old = System.getProperty(SysProperties.H2_BROWSER);
         try {
-            System.setProperty(SysProperties.H2_BROWSER, "call:" + TestWeb.class.getName() + ".openBrowser");
+            System.setProperty(SysProperties.H2_BROWSER,
+                    "call:" + TestWeb.class.getName() + ".openBrowser");
             Server.openBrowser("testUrl");
             assertEquals("testUrl", lastUrl);
             String oldUrl = lastUrl;

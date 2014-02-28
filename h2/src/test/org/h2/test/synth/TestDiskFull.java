@@ -85,7 +85,8 @@ public class TestDiskFull extends TestBase {
             if (stat != null) {
                 try {
                     fs.setDiskFullCount(0, 0);
-                    stat.execute("create table if not exists test(id int primary key, name varchar)");
+                    stat.execute("create table if not exists test" +
+                            "(id int primary key, name varchar)");
                     stat.execute("insert into test values(4, space(10000))");
                     stat.execute("update test set name='Hallo' where id=3");
                     conn.close();

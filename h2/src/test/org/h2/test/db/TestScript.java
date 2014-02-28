@@ -149,7 +149,8 @@ public class TestScript extends TestBase {
     }
 
     private boolean containsTempTables() throws SQLException {
-        ResultSet rs = conn.getMetaData().getTables(null, null, null, new String[] { "TABLE" });
+        ResultSet rs = conn.getMetaData().getTables(null, null, null,
+                new String[] { "TABLE" });
         while (rs.next()) {
             String sql = rs.getString("SQL");
             if (sql != null) {
@@ -204,14 +205,16 @@ public class TestScript extends TestBase {
         write("");
     }
 
-    private static void setParameter(PreparedStatement prep, int i, String param) throws SQLException {
+    private static void setParameter(PreparedStatement prep, int i, String param)
+            throws SQLException {
         if (param.equalsIgnoreCase("null")) {
             param = null;
         }
         prep.setString(i, param);
     }
 
-    private int processPrepared(String sql, PreparedStatement prep, String param) throws Exception {
+    private int processPrepared(String sql, PreparedStatement prep, String param)
+            throws Exception {
         try {
             StringBuilder buff = new StringBuilder();
             int index = 0;
@@ -345,7 +348,8 @@ public class TestScript extends TestBase {
         writeResult(sql, "exception", e);
     }
 
-    private void writeResult(String sql, String s, SQLException e) throws Exception {
+    private void writeResult(String sql, String s, SQLException e)
+            throws Exception {
         assertKnownException(e);
         s = ("> " + s).trim();
         String compare = readLine();

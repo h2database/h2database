@@ -48,7 +48,8 @@ public class TestXASimple extends TestBase {
 
     }
 
-    private void testTwoPhase(String db, boolean shutdown, boolean commit) throws Exception {
+    private void testTwoPhase(String db, boolean shutdown, boolean commit)
+            throws Exception {
         deleteDb(db);
         JdbcDataSource ds = new JdbcDataSource();
         ds.setPassword(getPassword());
@@ -138,8 +139,10 @@ public class TestXASimple extends TestBase {
         Connection c2 = xa2.getConnection();
         c2.setAutoCommit(false);
 
-        c1.createStatement().executeUpdate("create table test(id int, test varchar(255))");
-        c2.createStatement().executeUpdate("create table test(id int, test varchar(255))");
+        c1.createStatement().executeUpdate(
+                "create table test(id int, test varchar(255))");
+        c2.createStatement().executeUpdate(
+                "create table test(id int, test varchar(255))");
 
         // ut.rollback();
         c1.close();

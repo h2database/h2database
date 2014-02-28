@@ -52,7 +52,8 @@ public class TestMvcc3 extends TestBase {
         c2.setAutoCommit(false);
         Statement s2 = c2.createStatement();
 
-        s1.execute("create table test(id int primary key, name varchar) as select x, x from system_range(1, 2)");
+        s1.execute("create table test(id int primary key, name varchar) as " +
+                "select x, x from system_range(1, 2)");
         s1.execute("create unique index on test(name)");
         s1.executeUpdate("update test set name = 100 where id = 1");
 
@@ -94,7 +95,8 @@ public class TestMvcc3 extends TestBase {
         Connection c2 = getConnection("mvcc3");
         Statement s2 = c2.createStatement();
 
-        s1.execute("create table test(id int primary key, name varchar) as select 0, 'Hello'");
+        s1.execute("create table test(id int primary key, name varchar) " +
+                "as select 0, 'Hello'");
         c1.setAutoCommit(false);
         s1.executeUpdate("update test set name = 'World'");
         printRows("after update", s1, s2);
@@ -113,7 +115,8 @@ public class TestMvcc3 extends TestBase {
         c2.close();
     }
 
-    private void printRows(String s, Statement s1, Statement s2) throws SQLException {
+    private void printRows(String s, Statement s1, Statement s2)
+            throws SQLException {
         trace(s);
         ResultSet rs;
         rs = s1.executeQuery("select * from test");
@@ -133,7 +136,8 @@ public class TestMvcc3 extends TestBase {
         deleteDb("mvcc3");
         Connection c1 = getConnection("mvcc3");
         Statement s1 = c1.createStatement();
-        s1.execute("CREATE TABLE TEST AS SELECT X ID, 'Hello' NAME FROM SYSTEM_RANGE(1, 3)");
+        s1.execute("CREATE TABLE TEST AS SELECT X ID, 'Hello' NAME " +
+                "FROM SYSTEM_RANGE(1, 3)");
         Connection c2 = getConnection("mvcc3");
         Statement s2 = c2.createStatement();
         ResultSet rs = s2.executeQuery("SELECT NAME FROM TEST WHERE ID=1");
@@ -152,7 +156,8 @@ public class TestMvcc3 extends TestBase {
         Connection conn = getConnection("mvcc3");
         Statement stat = conn.createStatement();
         stat.executeUpdate("DROP TABLE IF EXISTS TEST");
-        stat.executeUpdate("CREATE TABLE TEST (ID NUMBER(2) PRIMARY KEY, VAL VARCHAR(10))");
+        stat.executeUpdate("CREATE TABLE TEST (ID NUMBER(2) PRIMARY KEY, " +
+                "VAL VARCHAR(10))");
         stat.executeUpdate("INSERT INTO TEST (ID, VAL) VALUES (1, 'Value')");
         stat.executeUpdate("INSERT INTO TEST (ID, VAL) VALUES (2, 'Value')");
         if (!config.memory) {
@@ -166,19 +171,23 @@ public class TestMvcc3 extends TestBase {
         conn2.setAutoCommit(false);
         conn2.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
 
-        conn.createStatement().executeUpdate("UPDATE TEST SET VAL='Updated' WHERE ID = 1");
+        conn.createStatement().executeUpdate(
+                "UPDATE TEST SET VAL='Updated' WHERE ID = 1");
         conn.rollback();
 
-        ResultSet rs = conn2.createStatement().executeQuery("SELECT * FROM TEST");
+        ResultSet rs = conn2.createStatement().executeQuery(
+                "SELECT * FROM TEST");
         assertTrue(rs.next());
         assertEquals("Value", rs.getString(2));
         assertTrue(rs.next());
         assertEquals("Value", rs.getString(2));
         assertFalse(rs.next());
 
-        conn.createStatement().executeUpdate("UPDATE TEST SET VAL='Updated' WHERE ID = 1");
+        conn.createStatement().executeUpdate(
+                "UPDATE TEST SET VAL='Updated' WHERE ID = 1");
         conn.commit();
-        rs = conn2.createStatement().executeQuery("SELECT * FROM TEST ORDER BY ID");
+        rs = conn2.createStatement().executeQuery(
+                "SELECT * FROM TEST ORDER BY ID");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertEquals("Updated", rs.getString(2));

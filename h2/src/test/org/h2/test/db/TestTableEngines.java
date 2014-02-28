@@ -63,8 +63,10 @@ public class TestTableEngines extends TestBase {
         deleteDb("tableEngine");
         Connection conn = getConnection("tableEngine;EARLY_FILTER=TRUE");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + EndlessTableEngine.class.getName() + "\"");
-        ResultSet rs = stat.executeQuery("SELECT name FROM t1 where id=1 and name is not null");
+        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + 
+        EndlessTableEngine.class.getName() + "\"");
+        ResultSet rs = stat.executeQuery(
+                "SELECT name FROM t1 where id=1 and name is not null");
         assertTrue(rs.next());
         assertEquals("((ID = 1)\n    AND (NAME IS NOT NULL))", rs.getString(1));
         rs.close();
@@ -78,17 +80,23 @@ public class TestTableEngines extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" +
                 EndlessTableEngine.class.getName() + "\" WITH \"param1\", \"param2\"");
-        assertEquals(2, EndlessTableEngine.createTableData.tableEngineParams.size());
-        assertEquals("param1", EndlessTableEngine.createTableData.tableEngineParams.get(0));
-        assertEquals("param2", EndlessTableEngine.createTableData.tableEngineParams.get(1));
+        assertEquals(2, 
+                EndlessTableEngine.createTableData.tableEngineParams.size());
+        assertEquals("param1", 
+                EndlessTableEngine.createTableData.tableEngineParams.get(0));
+        assertEquals("param2", 
+                EndlessTableEngine.createTableData.tableEngineParams.get(1));
         conn.close();
         if (!config.memory) {
             // Test serialization of table parameters
             EndlessTableEngine.createTableData.tableEngineParams.clear();
             conn = getConnection("tableEngine");
-            assertEquals(2, EndlessTableEngine.createTableData.tableEngineParams.size());
-            assertEquals("param1", EndlessTableEngine.createTableData.tableEngineParams.get(0));
-            assertEquals("param2", EndlessTableEngine.createTableData.tableEngineParams.get(1));
+            assertEquals(2, 
+                    EndlessTableEngine.createTableData.tableEngineParams.size());
+            assertEquals("param1", 
+                    EndlessTableEngine.createTableData.tableEngineParams.get(0));
+            assertEquals("param2", 
+                    EndlessTableEngine.createTableData.tableEngineParams.get(1));
             conn.close();
         }
         deleteDb("tableEngine");
@@ -100,7 +108,8 @@ public class TestTableEngines extends TestBase {
 
         Connection conn = getConnection("tableEngine");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + OneRowTableEngine.class.getName() + "\"");
+        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + 
+                OneRowTableEngine.class.getName() + "\"");
 
         testStatements(stat);
 
@@ -210,7 +219,8 @@ public class TestTableEngines extends TestBase {
                 }
 
                 @Override
-                public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+                public double getCost(Session session, int[] masks,
+                        TableFilter filter, SortOrder sortOrder) {
                     return 0;
                 }
 
@@ -250,8 +260,9 @@ public class TestTableEngines extends TestBase {
             }
 
             @Override
-            public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols,
-                    IndexType indexType, boolean create, String indexComment) {
+            public Index addIndex(Session session, String indexName,
+                    int indexId, IndexColumn[] cols, IndexType indexType,
+                    boolean create, String indexComment) {
                 return null;
             }
 

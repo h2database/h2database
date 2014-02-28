@@ -98,9 +98,11 @@ public class TestPowerOff extends TestBase {
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         for (int i = 0; i < 10; i++) {
-            stat.execute("CREATE TABLE TEST" + i + "(ID INT PRIMARY KEY, NAME VARCHAR)");
+            stat.execute("CREATE TABLE TEST" + i + 
+                    "(ID INT PRIMARY KEY, NAME VARCHAR)");
             for (int j = 0; j < 10; j++) {
-                stat.execute("INSERT INTO TEST" + i + " VALUES(" + j + ", 'Hello')");
+                stat.execute("INSERT INTO TEST" + i + 
+                        " VALUES(" + j + ", 'Hello')");
             }
         }
         for (int i = 0; i < 10; i += 2) {
@@ -116,7 +118,8 @@ public class TestPowerOff extends TestBase {
         conn = getConnection(url);
         stat = conn.createStatement();
         for (int i = 1; i < 10; i += 2) {
-            ResultSet rs = stat.executeQuery("SELECT * FROM TEST" + i + " ORDER BY ID");
+            ResultSet rs = stat.executeQuery(
+                    "SELECT * FROM TEST" + i + " ORDER BY ID");
             for (int j = 0; j < 10; j++) {
                 rs.next();
                 assertEquals(j, rs.getInt(1));
@@ -150,7 +153,8 @@ public class TestPowerOff extends TestBase {
             ((JdbcConnection) conn).setPowerOffCount(random.nextInt(100));
             try {
                 stat.execute("DROP TABLE IF EXISTS TEST");
-                stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+                stat.execute("CREATE TABLE TEST" + 
+                        "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
                 conn.setAutoCommit(false);
                 int len = getSize(3, 100);
                 for (int j = 0; j < len; j++) {
@@ -160,7 +164,8 @@ public class TestPowerOff extends TestBase {
                     }
                     if (random.nextInt(10) == 0) {
                         stat.execute("DROP TABLE IF EXISTS TEST");
-                        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+                        stat.execute("CREATE TABLE TEST" + 
+                                "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
                     }
                 }
                 stat.execute("DROP TABLE IF EXISTS TEST");
@@ -177,7 +182,8 @@ public class TestPowerOff extends TestBase {
         deleteDb(dir, DB_NAME);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("CREATE TABLE TEST" + 
+                "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         stat.execute("SHUTDOWN");
         conn.close();
@@ -198,7 +204,8 @@ public class TestPowerOff extends TestBase {
 
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
-        stat.execute("CREATE MEMORY TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+        stat.execute("CREATE MEMORY TABLE TEST" + 
+                "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
         stat.execute("CHECKPOINT");
         ((JdbcConnection) conn).setPowerOffCount(1);
@@ -246,7 +253,8 @@ public class TestPowerOff extends TestBase {
         recoverAndCheckConsistency();
     }
 
-    private void runTest(int min, int max, boolean withConsistencyCheck) throws SQLException {
+    private void runTest(int min, int max, boolean withConsistencyCheck)
+            throws SQLException {
         for (int i = min; i < max; i++) {
             deleteDb(dir, DB_NAME);
             Database.setInitialPowerOffCount(i);
@@ -271,7 +279,8 @@ public class TestPowerOff extends TestBase {
             conn = getConnection(url);
             Statement stat = conn.createStatement();
             stat.execute("SET WRITE_DELAY 0");
-            stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");
+            stat.execute("CREATE TABLE IF NOT EXISTS TEST" + 
+                    "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
             state = 1;
             conn.setAutoCommit(false);
             stat.execute("INSERT INTO TEST VALUES(1, 'Hello')");
@@ -289,7 +298,8 @@ public class TestPowerOff extends TestBase {
             stat.execute("DROP TABLE TEST");
             state = 0;
             if (init) {
-                maxPowerOffCount = Integer.MAX_VALUE - ((JdbcConnection) conn).getPowerOffCount();
+                maxPowerOffCount = Integer.MAX_VALUE - 
+                        ((JdbcConnection) conn).getPowerOffCount();
             }
             conn.close();
         } catch (SQLException e) {

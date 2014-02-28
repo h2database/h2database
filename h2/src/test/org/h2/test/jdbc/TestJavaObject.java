@@ -72,7 +72,8 @@ public class TestJavaObject extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table t(id identity, val other)");
 
-        PreparedStatement ins = conn.prepareStatement("insert into t(val) values(?)");
+        PreparedStatement ins = conn.prepareStatement(
+                "insert into t(val) values(?)");
 
         ins.setObject(1, o1, Types.JAVA_OBJECT);
         assertEquals(1, ins.executeUpdate());
@@ -80,14 +81,16 @@ public class TestJavaObject extends TestBase {
         ins.setObject(1, o2, Types.JAVA_OBJECT);
         assertEquals(1, ins.executeUpdate());
 
-        ResultSet rs = stat.executeQuery("select val from t order by val limit 1");
+        ResultSet rs = stat.executeQuery(
+                "select val from t order by val limit 1");
 
         assertTrue(rs.next());
 
         Object smallest;
         if (hash) {
             if (o1.getClass() != o2.getClass()) {
-                smallest = o1.getClass().getName().compareTo(o2.getClass().getName()) < 0 ? o1 : o2;
+                smallest = o1.getClass().getName().compareTo(
+                        o2.getClass().getName()) < 0 ? o1 : o2;
             } else {
                 assertFalse(o1.hashCode() == o2.hashCode());
                 smallest = o1.hashCode() < o2.hashCode() ? o1 : o2;
@@ -107,7 +110,8 @@ public class TestJavaObject extends TestBase {
         assertFalse(rs.next());
         rs.close();
 
-        PreparedStatement prep = conn.prepareStatement("select id from t where val = ?");
+        PreparedStatement prep = conn.prepareStatement(
+                "select id from t where val = ?");
 
         prep.setObject(1, o1, Types.JAVA_OBJECT);
         rs = prep.executeQuery();

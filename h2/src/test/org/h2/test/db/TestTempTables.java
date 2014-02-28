@@ -51,8 +51,10 @@ public class TestTempTables extends TestBase {
         deleteDb("tempTables");
         Connection conn = getConnection("tempTables;MAX_MEMORY_ROWS=10");
         ResultSet rs1, rs2;
-        Statement stat1 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        Statement stat2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat1 = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat2 = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         rs1 = stat1.executeQuery("select * from system_range(1, 20)");
         rs2 = stat2.executeQuery("select * from system_range(1, 20)");
         for (int i = 0; i < 20; i++) {
@@ -70,8 +72,10 @@ public class TestTempTables extends TestBase {
         }
         rs1.close();
 
-        rs1 = stat1.executeQuery("select * from system_range(1, 20) order by x desc");
-        rs2 = stat2.executeQuery("select * from system_range(1, 20) order by x desc");
+        rs1 = stat1.executeQuery(
+                "select * from system_range(1, 20) order by x desc");
+        rs2 = stat2.executeQuery(
+                "select * from system_range(1, 20) order by x desc");
         for (int i = 0; i < 20; i++) {
             rs1.next();
             rs2.next();
@@ -92,9 +96,12 @@ public class TestTempTables extends TestBase {
 
     private void testTempTableResultSet() throws SQLException {
         deleteDb("tempTables");
-        Connection conn = getConnection("tempTables;MAX_MEMORY_ROWS_DISTINCT=10");
-        Statement stat1 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        Statement stat2 = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Connection conn = getConnection(
+                "tempTables;MAX_MEMORY_ROWS_DISTINCT=10");
+        Statement stat1 = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat2 = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         ResultSet rs1, rs2;
         rs1 = stat1.executeQuery("select distinct * from system_range(1, 20)");
         // this will re-use the same temp table
@@ -167,7 +174,8 @@ public class TestTempTables extends TestBase {
         Connection conn = getConnection("tempTables");
         Statement stat = conn.createStatement();
         stat.execute("create global temporary table test(id int, data varchar)");
-        stat.execute("insert into test select x, space(1000) from system_range(1, 1000)");
+        stat.execute("insert into test " + 
+                    "select x, space(1000) from system_range(1, 1000)");
         stat.execute("shutdown compact");
         try {
             conn.close();
@@ -196,7 +204,8 @@ public class TestTempTables extends TestBase {
         stat.execute("drop table test");
     }
 
-    private static void testConstraints(Connection conn1, Connection conn2) throws SQLException {
+    private static void testConstraints(Connection conn1, Connection conn2)
+            throws SQLException {
         Statement s1 = conn1.createStatement(), s2 = conn2.createStatement();
         s1.execute("create local temporary table test(id int unique)");
         s2.execute("create local temporary table test(id int unique)");
@@ -206,11 +215,16 @@ public class TestTempTables extends TestBase {
         s2.execute("drop table test");
     }
 
-    private static void testIndexes(Connection conn1, Connection conn2) throws SQLException {
-        conn1.createStatement().executeUpdate("create local temporary table test(id int)");
-        conn1.createStatement().executeUpdate("create index idx_id on test(id)");
-        conn2.createStatement().executeUpdate("create local temporary table test(id int)");
-        conn2.createStatement().executeUpdate("create index idx_id on test(id)");
+    private static void testIndexes(Connection conn1, Connection conn2)
+            throws SQLException {
+        conn1.createStatement().executeUpdate(
+                "create local temporary table test(id int)");
+        conn1.createStatement().executeUpdate(
+                "create index idx_id on test(id)");
+        conn2.createStatement().executeUpdate(
+                "create local temporary table test(id int)");
+        conn2.createStatement().executeUpdate(
+                "create index idx_id on test(id)");
         conn2.createStatement().executeUpdate("drop index idx_id");
         conn2.createStatement().executeUpdate("drop table test");
         conn2.createStatement().executeUpdate("create table test(id int)");
@@ -243,7 +257,8 @@ public class TestTempTables extends TestBase {
         // (this features are here for compatibility only)
         ResultSet rs;
         c1.setAutoCommit(false);
-        s1.execute("create local temporary table test_temp(id int) on commit delete rows");
+        s1.execute("create local temporary table test_temp(id int) " + 
+                "on commit delete rows");
         s1.execute("insert into test_temp values(1)");
         rs = s1.executeQuery("select * from test_temp");
         assertResultRowCount(1, rs);

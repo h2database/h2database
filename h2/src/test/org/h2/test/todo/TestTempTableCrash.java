@@ -61,12 +61,14 @@ public class TestTempTableCrash {
             stat.execute("drop table if exists test" + x);
             String type = random.nextBoolean() ? "temp" : "";
             // String type = "";
-            stat.execute("create " + type + " table test" + x + "(id int primary key, name varchar)");
+            stat.execute("create " + type + " table test" + x +
+                    "(id int primary key, name varchar)");
             if (random.nextBoolean()) {
                 stat.execute("create index idx_" + x + " on test" + x + "(name, id)");
             }
             if (random.nextBoolean()) {
-                stat.execute("insert into test" + x + " select x, x from system_range(1, " + random.nextInt(100) + ")");
+                stat.execute("insert into test" + x + " select x, x " +
+                        "from system_range(1, " + random.nextInt(100) + ")");
             }
             if (random.nextInt(10) == 1) {
                 conn.close();

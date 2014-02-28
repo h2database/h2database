@@ -58,7 +58,8 @@ public abstract class AssertThrows {
     public AssertThrows() {
         this(new ResultVerifier() {
             @Override
-            public boolean verify(Object returnValue, Throwable t, Method m, Object... args) {
+            public boolean verify(Object returnValue, Throwable t, Method m,
+                    Object... args) {
                 if (t != null) {
                     throw new AssertionError(
                             "Expected an exception to be thrown, but the method returned successfully");

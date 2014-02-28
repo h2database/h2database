@@ -366,7 +366,8 @@ public class TestStreamStore extends TestBase {
         }
     }
 
-    private void test(StreamStore store, int minBlockSize, int maxBlockSize, int length) throws IOException {
+    private void test(StreamStore store, int minBlockSize, int maxBlockSize,
+            int length) throws IOException {
         store.setMinBlockSize(minBlockSize);
         assertEquals(minBlockSize, store.getMinBlockSize());
         store.setMaxBlockSize(maxBlockSize);

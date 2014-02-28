@@ -56,11 +56,13 @@ public class TestMvccMultiThreaded extends TestBase {
         int len = 3;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
-            Connection conn = getConnection("mvccMultiThreaded;MVCC=TRUE;LOCK_TIMEOUT=500");
+            Connection conn = getConnection(
+                    "mvccMultiThreaded;MVCC=TRUE;LOCK_TIMEOUT=500");
             connList[i] = conn;
         }
         Connection conn = connList[0];
-        conn.createStatement().execute("create table test(id int primary key, name varchar)");
+        conn.createStatement().execute(
+                "create table test(id int primary key, name varchar)");
         Task[] tasks = new Task[len];
         final boolean[] stop = { false };
         for (int i = 0; i < len; i++) {
@@ -70,7 +72,8 @@ public class TestMvccMultiThreaded extends TestBase {
                 @Override
                 public void call() throws Exception {
                     while (!stop) {
-                        c.createStatement().execute("merge into test values(1, 'x')");
+                        c.createStatement().execute(
+                                "merge into test values(1, 'x')");
                         c.commit();
                         Thread.sleep(1);
                     }
@@ -94,11 +97,14 @@ public class TestMvccMultiThreaded extends TestBase {
         int len = 2;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
-            connList[i] = getConnection("mvccMultiThreaded;MVCC=TRUE" + suffix);
+            connList[i] = getConnection(
+                    "mvccMultiThreaded;MVCC=TRUE" + suffix);
         }
         Connection conn = connList[0];
-        conn.createStatement().execute("create table test(id int primary key, value int)");
-        conn.createStatement().execute("insert into test values(0, 0)");
+        conn.createStatement().execute(
+                "create table test(id int primary key, value int)");
+        conn.createStatement().execute(
+                "insert into test values(0, 0)");
         final int count = 1000;
         Task[] tasks = new Task[len];
 
@@ -110,7 +116,8 @@ public class TestMvccMultiThreaded extends TestBase {
                 @Override
                 public void call() throws Exception {
                     for (int a = 0; a < count; a++) {
-                        connList[x].createStatement().execute("update test set value=value+1");
+                        connList[x].createStatement().execute(
+                                "update test set value=value+1");
                         latch.countDown();
                         latch.await();
                     }

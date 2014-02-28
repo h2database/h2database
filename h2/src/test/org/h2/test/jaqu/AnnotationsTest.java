@@ -53,7 +53,8 @@ public class AnnotationsTest extends TestBase {
     private void testIndexCreation() throws SQLException {
         // test indexes are created, and columns are in the right order
         DatabaseMetaData meta = db.getConnection().getMetaData();
-        ResultSet rs = meta.getIndexInfo(null, "PUBLIC", "ANNOTATED" + "PRODUCT", false, true);
+        ResultSet rs = meta.getIndexInfo(null, "PUBLIC", 
+                "ANNOTATED" + "PRODUCT", false, true);
         assertTrue(rs.next());
         assertStartsWith(rs.getString("INDEX_NAME"), "PRIMARY_KEY");
         assertTrue(rs.next());
@@ -130,7 +131,8 @@ public class AnnotationsTest extends TestBase {
     private void testColumnInheritanceAnnotation() {
         ProductInheritedAnnotation table = new ProductInheritedAnnotation();
         Db db = Db.open("jdbc:h2:mem:", "sa", "sa");
-        List<ProductInheritedAnnotation> inserted = ProductInheritedAnnotation.getData();
+        List<ProductInheritedAnnotation> inserted = ProductInheritedAnnotation
+                .getData();
         db.insertAll(inserted);
 
         List<ProductInheritedAnnotation> retrieved = db.from(table).select();

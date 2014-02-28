@@ -75,17 +75,17 @@ public class BenchB implements Bench, Runnable {
         db.dropTable("ACCOUNTS");
         db.dropTable("HISTORY");
         String[] create = {
-                "CREATE TABLE BRANCHES(" + 
-                        "BID INT NOT NULL PRIMARY KEY, " + 
+                "CREATE TABLE BRANCHES(" +
+                        "BID INT NOT NULL PRIMARY KEY, " +
                         "BBALANCE INT, FILLER VARCHAR(88))",
-                "CREATE TABLE TELLERS(" + 
-                        "TID INT NOT NULL PRIMARY KEY, " + 
+                "CREATE TABLE TELLERS(" +
+                        "TID INT NOT NULL PRIMARY KEY, " +
                         "BID INT, TBALANCE INT, FILLER VARCHAR(84))",
-                "CREATE TABLE ACCOUNTS(" + 
-                        "AID INT NOT NULL PRIMARY KEY, " + 
+                "CREATE TABLE ACCOUNTS(" +
+                        "AID INT NOT NULL PRIMARY KEY, " +
                         "BID INT, ABALANCE INT, FILLER VARCHAR(84))",
-                "CREATE TABLE HISTORY(" + 
-                        "TID INT, BID INT, AID INT, " + 
+                "CREATE TABLE HISTORY(" +
+                        "TID INT, BID INT, AID INT, " +
                         "DELTA INT, TIME DATETIME, FILLER VARCHAR(22))" };
         for (String sql : create) {
             db.update(sql);

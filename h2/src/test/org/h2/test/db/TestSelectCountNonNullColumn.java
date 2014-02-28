@@ -37,7 +37,8 @@ public class TestSelectCountNonNullColumn extends TestBase {
         Connection conn = getConnection(DBNAME);
         stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE SIMPLE(KEY VARCHAR(25) PRIMARY KEY, NAME VARCHAR(25))");
+        stat.execute("CREATE TABLE SIMPLE(KEY VARCHAR(25) " + 
+                "PRIMARY KEY, NAME VARCHAR(25))");
         stat.execute("INSERT INTO SIMPLE(KEY) VALUES('k1')");
         stat.execute("INSERT INTO SIMPLE(KEY,NAME) VALUES('k2','name2')");
 
@@ -64,7 +65,8 @@ public class TestSelectCountNonNullColumn extends TestBase {
             assertEquals(expect, rs.getLong(1));
         } else {
             // System.out.println(rs.getString(1));
-            assertEquals("SELECT\n" + "    COUNT(*)\n" + "FROM PUBLIC.SIMPLE\n" + "    /* PUBLIC.SIMPLE.tableScan */\n"
+            assertEquals("SELECT\n" + "    COUNT(*)\n" + "FROM PUBLIC.SIMPLE\n"
+                    + "    /* PUBLIC.SIMPLE.tableScan */\n"
                     + "/* direct lookup */", rs.getString(1));
         }
     }
@@ -80,8 +82,10 @@ public class TestSelectCountNonNullColumn extends TestBase {
             assertEquals(expect, rs.getLong(1));
         } else {
             // System.out.println(rs.getString(1));
-            assertEquals("SELECT\n" + "    COUNT(KEY)\n" + "FROM PUBLIC.SIMPLE\n"
-                    + "    /* PUBLIC.SIMPLE.tableScan */\n" + "/* direct lookup */", rs.getString(1));
+            assertEquals("SELECT\n" + "    COUNT(KEY)\n"
+                    + "FROM PUBLIC.SIMPLE\n"
+                    + "    /* PUBLIC.SIMPLE.tableScan */\n"
+                    + "/* direct lookup */", rs.getString(1));
         }
     }
 

@@ -42,12 +42,14 @@ public class DateTimeUtils {
     private static final int SHIFT_YEAR = 9;
     private static final int SHIFT_MONTH = 5;
 
-    private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    private static final int[] NORMAL_DAYS_PER_MONTH = { 0, 31, 28, 31, 30, 31,
+            30, 31, 31, 30, 31, 30, 31 };
 
     /**
      * Offsets of month within a year, starting with March, April,...
      */
-    private static final int[] DAYS_OFFSET = { 0, 31, 61, 92, 122, 153, 184, 214, 245, 275, 306, 337, 366 };
+    private static final int[] DAYS_OFFSET = { 0, 31, 61, 92, 122, 153, 184,
+            214, 245, 275, 306, 337, 366 };
 
     private static int zoneOffset;
     private static Calendar cachedCalendar;
@@ -341,7 +343,8 @@ public class DateTimeUtils {
      * @param millis the number of milliseconds
      * @return the number of milliseconds (UTC)
      */
-    public static long getMillis(TimeZone tz, int year, int month, int day, int hour, int minute, int second, int millis) {
+    public static long getMillis(TimeZone tz, int year, int month, int day,
+            int hour, int minute, int second, int millis) {
         try {
             return getTimeTry(false, tz, year, month, day, hour, minute, second, millis);
         } catch (IllegalArgumentException e) {
@@ -391,8 +394,8 @@ public class DateTimeUtils {
         }
     }
 
-    private static void setCalendarFields(Calendar cal, int year, int month, int day,
-            int hour, int minute, int second, int millis) {
+    private static void setCalendarFields(Calendar cal, int year, int month,
+            int day, int hour, int minute, int second, int millis) {
         if (year <= 0) {
             cal.set(Calendar.ERA, GregorianCalendar.BC);
             cal.set(Calendar.YEAR, 1 - year);
@@ -539,7 +542,8 @@ public class DateTimeUtils {
      * @param timeZone the timezone
      * @return the formatted date
      */
-    public static String formatDateTime(java.util.Date date, String format, String locale, String timeZone) {
+    public static String formatDateTime(java.util.Date date, String format,
+            String locale, String timeZone) {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
         synchronized (dateFormat) {
             return dateFormat.format(date);
@@ -555,7 +559,8 @@ public class DateTimeUtils {
      * @param timeZone the timeZone
      * @return the parsed date
      */
-    public static java.util.Date parseDateTime(String date, String format, String locale, String timeZone) {
+    public static java.util.Date parseDateTime(String date, String format,
+            String locale, String timeZone) {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
         try {
             synchronized (dateFormat) {
@@ -567,7 +572,8 @@ public class DateTimeUtils {
         }
     }
 
-    private static SimpleDateFormat getDateFormat(String format, String locale, String timeZone) {
+    private static SimpleDateFormat getDateFormat(String format, String locale,
+            String timeZone) {
         try {
             // currently, a new instance is create for each call
             // however, could cache the last few instances
@@ -583,7 +589,8 @@ public class DateTimeUtils {
             }
             return df;
         } catch (Exception e) {
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, format + "/" + locale + "/" + timeZone);
+            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, 
+                    format + "/" + locale + "/" + timeZone);
         }
     }
 
@@ -641,7 +648,8 @@ public class DateTimeUtils {
      * @param nanos the nanoseconds since midnight
      * @return the timestamp
      */
-    public static Timestamp convertDateValueToTimestamp(long dateValue, long nanos) {
+    public static Timestamp convertDateValueToTimestamp(long dateValue,
+            long nanos) {
         long millis = nanos / 1000000;
         nanos -= millis * 1000000;
         long s = millis / 1000;
@@ -800,7 +808,8 @@ public class DateTimeUtils {
             nanos -= d * NANOS_PER_DAY;
             absoluteDay += d;
         }
-        return ValueTimestamp.fromDateValueAndNanos(dateValueFromAbsoluteDay(absoluteDay), nanos);
+        return ValueTimestamp.fromDateValueAndNanos(
+                dateValueFromAbsoluteDay(absoluteDay), nanos);
     }
 
     /**

@@ -140,9 +140,10 @@ public abstract class TriggerAdapter implements Trigger {
      * @throws SQLException if the operation must be undone
      */
     @Override
-    public void fire(Connection conn, Object[] oldRow,
-            Object[] newRow) throws SQLException {
-        fire(conn, wrap(oldResultSet, oldSource, oldRow), wrap(newResultSet, newSource, newRow));
+    public void fire(Connection conn, Object[] oldRow, Object[] newRow)
+            throws SQLException {
+        fire(conn, wrap(oldResultSet, oldSource, oldRow),
+                wrap(newResultSet, newSource, newRow));
     }
 
     /**
@@ -162,9 +163,11 @@ public abstract class TriggerAdapter implements Trigger {
      *            DELETE)
      * @throws SQLException if the operation must be undone
      */
-    public abstract void fire(Connection conn, ResultSet oldRow, ResultSet newRow) throws SQLException;
+    public abstract void fire(Connection conn, ResultSet oldRow,
+            ResultSet newRow) throws SQLException;
 
-    private static SimpleResultSet wrap(SimpleResultSet rs, TriggerRowSource source, Object[] row) throws SQLException {
+    private static SimpleResultSet wrap(SimpleResultSet rs,
+            TriggerRowSource source, Object[] row) throws SQLException {
         if (row == null) {
             return null;
         }

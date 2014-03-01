@@ -89,7 +89,8 @@ public class TestFunctionOverload extends TestBase {
     private void testOverloadNamedArgs() throws SQLException {
         Statement stat = conn.createStatement();
 
-        stat.execute("create alias overload1or2Named for \"" + ME + ".overload1or2(int)\"");
+        stat.execute("create alias overload1or2Named for \"" + ME +
+                ".overload1or2(int)\"");
 
         ResultSet rs = stat.executeQuery("select overload1or2Named(1) from dual");
         assertTrue("First Row", rs.next());
@@ -104,7 +105,8 @@ public class TestFunctionOverload extends TestBase {
     private void testOverloadWithConnection() throws SQLException {
         Statement stat = conn.createStatement();
 
-        stat.execute("create alias overload1or2WithConn for \"" + ME + ".overload1or2WithConn\"");
+        stat.execute("create alias overload1or2WithConn for \"" + ME +
+                ".overload1or2WithConn\"");
 
         ResultSet rs = stat.executeQuery("select overload1or2WithConn(1) from dual");
         rs.next();
@@ -158,7 +160,8 @@ public class TestFunctionOverload extends TestBase {
      * @param one the value
      * @return the value
      */
-    public static int overload1or2WithConn(Connection conn, int one) throws SQLException {
+    public static int overload1or2WithConn(Connection conn, int one)
+            throws SQLException {
         conn.createStatement().executeQuery("select 1 from dual");
         return one;
     }

@@ -67,7 +67,9 @@ public class TaskProcess {
             writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
             String line = reader.readLine();
             if (line == null) {
-                throw new RuntimeException("No reply from process, command: " + StringUtils.arrayCombine(procDef, ' '));
+                throw new RuntimeException(
+                        "No reply from process, command: " + 
+                        StringUtils.arrayCombine(procDef, ' '));
             } else if (line.startsWith("running")) {
                 traceOperation("got reply: " + line);
             } else if (line.startsWith("init error")) {

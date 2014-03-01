@@ -47,30 +47,46 @@ public class TestBigDb extends TestBase {
         deleteDb("bigDb");
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE CACHED TABLE TEST(" + "M_CODE CHAR(1) DEFAULT CAST(RAND()*9 AS INT),"
-                + "PRD_CODE CHAR(20) DEFAULT SECURE_RAND(10)," + "ORG_CODE_SUPPLIER CHAR(13) DEFAULT SECURE_RAND(6),"
-                + "PRD_CODE_1 CHAR(14) DEFAULT SECURE_RAND(7)," + "PRD_CODE_2 CHAR(20)  DEFAULT SECURE_RAND(10),"
-                + "ORG_CODE CHAR(13)  DEFAULT SECURE_RAND(6)," + "SUBSTITUTED_BY CHAR(20) DEFAULT SECURE_RAND(10),"
+        stat.execute("CREATE CACHED TABLE TEST("
+                + "M_CODE CHAR(1) DEFAULT CAST(RAND()*9 AS INT),"
+                + "PRD_CODE CHAR(20) DEFAULT SECURE_RAND(10),"
+                + "ORG_CODE_SUPPLIER CHAR(13) DEFAULT SECURE_RAND(6),"
+                + "PRD_CODE_1 CHAR(14) DEFAULT SECURE_RAND(7),"
+                + "PRD_CODE_2 CHAR(20)  DEFAULT SECURE_RAND(10),"
+                + "ORG_CODE CHAR(13)  DEFAULT SECURE_RAND(6),"
+                + "SUBSTITUTED_BY CHAR(20) DEFAULT SECURE_RAND(10),"
                 + "SUBSTITUTED_BY_2 CHAR(14) DEFAULT SECURE_RAND(7),"
                 + "SUBSTITUTION_FOR CHAR(20) DEFAULT SECURE_RAND(10),"
-                + "SUBSTITUTION_FOR_2 CHAR(14) DEFAULT SECURE_RAND(7)," + "TEST CHAR(2) DEFAULT SECURE_RAND(1),"
-                + "TEST_2 CHAR(2) DEFAULT SECURE_RAND(1)," + "TEST_3 DECIMAL(7,2) DEFAULT RAND(),"
+                + "SUBSTITUTION_FOR_2 CHAR(14) DEFAULT SECURE_RAND(7),"
+                + "TEST CHAR(2) DEFAULT SECURE_RAND(1),"
+                + "TEST_2 CHAR(2) DEFAULT SECURE_RAND(1),"
+                + "TEST_3 DECIMAL(7,2) DEFAULT RAND(),"
                 + "PRIMARY_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
                 + "RATE_PRICE_ORDER_UNIT DECIMAL(9,3) DEFAULT RAND(),"
-                + "ORDER_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1)," + "ORDER_QTY_MIN DECIMAL(6,1) DEFAULT RAND(),"
+                + "ORDER_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
+                + "ORDER_QTY_MIN DECIMAL(6,1) DEFAULT RAND(),"
                 + "ORDER_QTY_LOT_SIZE DECIMAL(6,1) DEFAULT RAND(),"
-                + "ORDER_UNIT_CODE_2 CHAR(3) DEFAULT SECURE_RAND(1)," + "PRICE_GROUP CHAR(20) DEFAULT SECURE_RAND(10),"
-                + "LEAD_TIME INTEGER DEFAULT RAND()," + "LEAD_TIME_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
-                + "PRD_GROUP CHAR(10) DEFAULT SECURE_RAND(5)," + "WEIGHT_GROSS DECIMAL(7,3) DEFAULT RAND(),"
-                + "WEIGHT_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1)," + "PACK_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
-                + "PACK_LENGTH DECIMAL(7,3) DEFAULT RAND()," + "PACK_WIDTH DECIMAL(7,3) DEFAULT RAND(),"
-                + "PACK_HEIGHT DECIMAL(7,3) DEFAULT RAND()," + "SIZE_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
-                + "STATUS_CODE CHAR(3) DEFAULT SECURE_RAND(1)," + "INTRA_STAT_CODE CHAR(12) DEFAULT SECURE_RAND(6),"
-                + "PRD_TITLE CHAR(50) DEFAULT SECURE_RAND(25)," + "VALID_FROM DATE DEFAULT NOW(),"
+                + "ORDER_UNIT_CODE_2 CHAR(3) DEFAULT SECURE_RAND(1),"
+                + "PRICE_GROUP CHAR(20) DEFAULT SECURE_RAND(10),"
+                + "LEAD_TIME INTEGER DEFAULT RAND(),"
+                + "LEAD_TIME_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
+                + "PRD_GROUP CHAR(10) DEFAULT SECURE_RAND(5),"
+                + "WEIGHT_GROSS DECIMAL(7,3) DEFAULT RAND(),"
+                + "WEIGHT_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
+                + "PACK_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
+                + "PACK_LENGTH DECIMAL(7,3) DEFAULT RAND(),"
+                + "PACK_WIDTH DECIMAL(7,3) DEFAULT RAND(),"
+                + "PACK_HEIGHT DECIMAL(7,3) DEFAULT RAND(),"
+                + "SIZE_UNIT_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
+                + "STATUS_CODE CHAR(3) DEFAULT SECURE_RAND(1),"
+                + "INTRA_STAT_CODE CHAR(12) DEFAULT SECURE_RAND(6),"
+                + "PRD_TITLE CHAR(50) DEFAULT SECURE_RAND(25),"
+                + "VALID_FROM DATE DEFAULT NOW(),"
                 + "MOD_DATUM DATE DEFAULT NOW())");
         int len = getSize(10, 50000);
         try {
-            PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(PRD_CODE) VALUES('abc' || ?)");
+            PreparedStatement prep = conn.prepareStatement(
+                    "INSERT INTO TEST(PRD_CODE) VALUES('abc' || ?)");
             long time = System.currentTimeMillis();
             for (int i = 0; i < len; i++) {
                 if ((i % 1000) == 0) {
@@ -104,9 +120,11 @@ public class TestBigDb extends TestBase {
         deleteDb("bigDb");
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT, NEG INT AS -ID, NAME VARCHAR, PRIMARY KEY(ID, NAME))");
+        stat.execute("CREATE TABLE TEST(ID INT, NEG INT AS -ID, " + 
+                "NAME VARCHAR, PRIMARY KEY(ID, NAME))");
         stat.execute("CREATE INDEX IDX_NEG ON TEST(NEG, NAME)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(ID, NAME) VALUES(?, '1234567890')");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST(ID, NAME) VALUES(?, '1234567890')");
         int len = getSize(10, 1000);
         int block = getSize(3, 10);
         int left, x = 0;
@@ -130,7 +148,8 @@ public class TestBigDb extends TestBase {
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST(NAME) VALUES('Hello World')");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST(NAME) VALUES('Hello World')");
         int len = getSize(1000, 10000);
         for (int i = 0; i < len; i++) {
             if (i % 1000 == 0) {

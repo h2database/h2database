@@ -66,7 +66,8 @@ public class TestDeadlock extends TestBase {
         conn2 = getConnection(url);
         final Statement stat = conn.createStatement();
         Statement stat2 = conn2.createStatement();
-        stat.execute("create alias if not exists ft_init for \"org.h2.fulltext.FullText.init\"");
+        stat.execute("create alias if not exists ft_init for " + 
+                "\"org.h2.fulltext.FullText.init\"");
         stat.execute("call ft_init()");
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("call ft_create_index('PUBLIC', 'TEST', null)");

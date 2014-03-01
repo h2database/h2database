@@ -22,7 +22,8 @@ public class CacheTQ implements Cache {
 
     private final Cache lru;
     private final Cache fifo;
-    private final SmallLRUCache<Integer, Object> recentlyUsed = SmallLRUCache.newInstance(1024);
+    private final SmallLRUCache<Integer, Object> recentlyUsed = 
+            SmallLRUCache.newInstance(1024);
     private int lastUsed = -1;
 
     private int maxMemory;

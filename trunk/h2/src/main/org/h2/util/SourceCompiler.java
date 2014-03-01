@@ -52,7 +52,8 @@ public class SourceCompiler {
 
     private static final Class<?> JAVAC_SUN;
 
-    private static final String COMPILE_DIR = Utils.getProperty("java.io.tmpdir", ".");
+    private static final String COMPILE_DIR = 
+            Utils.getProperty("java.io.tmpdir", ".");
 
     /**
      * The class name to source code map.

@@ -23,7 +23,8 @@ import org.h2.util.New;
  * runtime of the tested application.
  */
 public class Coverage {
-    private static final String IMPORT = "import " + Coverage.class.getPackage().getName() + ".Profile";
+    private static final String IMPORT = "import " + 
+            Coverage.class.getPackage().getName() + ".Profile";
     private final ArrayList<String> files = New.arrayList();
     private final ArrayList<String> exclude = New.arrayList();
     private Tokenizer tokenizer;
@@ -41,15 +42,22 @@ public class Coverage {
     private boolean perFunction = true;
 
     private void printUsage() {
-        System.out.println("Usage:\n" + "- copy all your source files to another directory\n"
-                + "  (be careful, they will be modified - don't take originals!)\n" + "- java " + getClass().getName()
-                + " <directory>\n" + "  this will modified the source code and create 'profile.txt'\n"
-                + "- compile the modified source files\n" + "- run your main application\n"
-                + "- after the application exits, a file 'notCovered.txt' is created,\n"
-                + "  which contains the class names, function names and line numbers\n"
-                + "  of code that has not been covered\n\n" + "Options:\n" + "-r     recurse all subdirectories\n"
-                + "-e     exclude files\n" + "-c     coverage on a per-class basis\n"
-                + "-f     coverage on a per-function basis\n" + "<dir>  directory name (. for current directory)");
+        System.out
+                .println("Usage:\n" +
+                        "- copy all your source files to another directory\n" +
+                        "  (be careful, they will be modified - don't take originals!)\n" +
+                        "- java " + getClass().getName() + " <directory>\n" +
+                        "  this will modified the source code and create 'profile.txt'\n" +
+                        "- compile the modified source files\n" +
+                        "- run your main application\n" +
+                        "- after the application exits, a file 'notCovered.txt' is created,\n" +
+                        "  which contains the class names, function names and line numbers\n" +
+                        "  of code that has not been covered\n\n" +
+                        "Options:\n" + "-r     recurse all subdirectories\n" +
+                        "-e     exclude files\n" +
+                        "-c     coverage on a per-class basis\n" +
+                        "-f     coverage on a per-function basis\n" +
+                        "<dir>  directory name (. for current directory)");
     }
 
     /**
@@ -124,7 +132,8 @@ public class Coverage {
         for (int i = 0; i < len; i++) {
             long t2 = System.currentTimeMillis();
             if (t2 - time > 1000 || i >= len - 1) {
-                System.out.println((i + 1) + " of " + len + " " + (100 * i / len) + "%");
+                System.out.println((i + 1) + " of " + len + 
+                        " " + (100 * i / len) + "%");
                 time = t2;
             }
             String fileName = files.get(i);
@@ -149,7 +158,9 @@ public class Coverage {
             }
             file = file.substring(0, i) + "." + file.substring(i + 1);
         }
-        if (name.endsWith("Coverage.java") || name.endsWith("Tokenizer.java") || name.endsWith("Profile.java")) {
+        if (name.endsWith("Coverage.java") || 
+                name.endsWith("Tokenizer.java") || 
+                name.endsWith("Profile.java")) {
             return;
         }
         File f = new File(name);
@@ -359,7 +370,8 @@ public class Coverage {
 
     private void processStatement() throws IOException {
         while (true) {
-            if (token.equals("while") || token.equals("for") || token.equals("synchronized")) {
+            if (token.equals("while") || token.equals("for") || 
+                    token.equals("synchronized")) {
                 read();
                 readThis("(");
                 processBracket();

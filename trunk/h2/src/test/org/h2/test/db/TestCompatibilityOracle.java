@@ -49,8 +49,10 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult("1", stat, "SELECT COUNT(*) FROM A WHERE X IS NULL");
         assertResult("2", stat, "SELECT COUNT(*) FROM A WHERE TRIM(X) IS NULL");
         assertResult("0", stat, "SELECT COUNT(*) FROM A WHERE X = ''");
-        assertResult(new Object[][] { { 1, "a" }, { 2, null }, { 3, " " } }, stat, "SELECT * FROM A");
-        assertResult(new Object[][] { { 1, "a" }, { 2, null }, { 3, null } }, stat, "SELECT ID, TRIM(X) FROM A");
+        assertResult(new Object[][] { { 1, "a" }, { 2, null }, { 3, " " } }, 
+                stat, "SELECT * FROM A");
+        assertResult(new Object[][] { { 1, "a" }, { 2, null }, { 3, null } }, 
+                stat, "SELECT ID, TRIM(X) FROM A");
 
         stat.execute("CREATE TABLE B (ID NUMBER, X NUMBER)");
         stat.execute("INSERT INTO B VALUES (1, '5')");
@@ -58,7 +60,8 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult("2", stat, "SELECT COUNT(*) FROM B");
         assertResult("1", stat, "SELECT COUNT(*) FROM B WHERE X IS NULL");
         assertResult("0", stat, "SELECT COUNT(*) FROM B WHERE X = ''");
-        assertResult(new Object[][] { { 1, 5 }, { 2, null } }, stat, "SELECT * FROM B");
+        assertResult(new Object[][] { { 1, 5 }, { 2, null } }, 
+                stat, "SELECT * FROM B");
 
         stat.execute("CREATE TABLE C (ID NUMBER, X TIMESTAMP)");
         stat.execute("INSERT INTO C VALUES (1, '1979-11-12')");
@@ -66,7 +69,8 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult("2", stat, "SELECT COUNT(*) FROM C");
         assertResult("1", stat, "SELECT COUNT(*) FROM C WHERE X IS NULL");
         assertResult("0", stat, "SELECT COUNT(*) FROM C WHERE X = ''");
-        assertResult(new Object[][] { { 1, "1979-11-12 00:00:00.0" }, { 2, null } }, stat, "SELECT * FROM C");
+        assertResult(new Object[][] { { 1, "1979-11-12 00:00:00.0" }, { 2, null } }, 
+                stat, "SELECT * FROM C");
 
         stat.execute("CREATE TABLE D (ID NUMBER, X VARCHAR2(1))");
         stat.execute("INSERT INTO D VALUES (1, 'a')");
@@ -75,7 +79,8 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult("2", stat, "SELECT COUNT(*) FROM D");
         assertResult("1", stat, "SELECT COUNT(*) FROM D WHERE X IS NULL");
         assertResult("0", stat, "SELECT COUNT(*) FROM D WHERE X = ''");
-        assertResult(new Object[][] { { 1, "a" }, { 2, null } }, stat, "SELECT * FROM D");
+        assertResult(new Object[][] { { 1, "a" }, { 2, null } }, 
+                stat, "SELECT * FROM D");
 
         stat.execute("CREATE TABLE E (ID NUMBER, X RAW(1))");
         stat.execute("INSERT INTO E VALUES (1, '0A')");
@@ -83,7 +88,8 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult("2", stat, "SELECT COUNT(*) FROM E");
         assertResult("1", stat, "SELECT COUNT(*) FROM E WHERE X IS NULL");
         assertResult("0", stat, "SELECT COUNT(*) FROM E WHERE X = ''");
-        assertResult(new Object[][] { { 1, new byte[] { 10 } }, { 2, null } }, stat, "SELECT * FROM E");
+        assertResult(new Object[][] { { 1, new byte[] { 10 } }, { 2, null } }, 
+                stat, "SELECT * FROM E");
 
         conn.close();
     }
@@ -98,16 +104,19 @@ public class TestCompatibilityOracle extends TestBase {
         stat.execute("INSERT INTO A VALUES (2, 4.3)");
         stat.execute("INSERT INTO A VALUES (3, '6.78')");
         assertResult("3", stat, "SELECT COUNT(*) FROM A");
-        assertResult(new Object[][] { { 1, 2 }, { 2, 4.3 }, { 3, 6.78 } }, stat, "SELECT * FROM A");
+        assertResult(new Object[][] { { 1, 2 }, { 2, 4.3 }, { 3, 6.78 } }, 
+                stat, "SELECT * FROM A");
 
         conn.close();
     }
 
-    private void assertResult(Object[][] expectedRowsOfValues, Statement stat, String sql) throws SQLException {
+    private void assertResult(Object[][] expectedRowsOfValues, Statement stat,
+            String sql) throws SQLException {
         assertResult(newSimpleResultSet(expectedRowsOfValues), stat, sql);
     }
 
-    private void assertResult(ResultSet expected, Statement stat, String sql) throws SQLException {
+    private void assertResult(ResultSet expected, Statement stat, String sql)
+            throws SQLException {
         ResultSet actual = stat.executeQuery(sql);
         int expectedColumnCount = expected.getMetaData().getColumnCount();
         assertEquals(expectedColumnCount, actual.getMetaData().getColumnCount());

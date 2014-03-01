@@ -31,7 +31,8 @@ public class Db {
 
     private Connection conn;
     private Statement stat;
-    private final HashMap<String, PreparedStatement> prepared = new HashMap<String, PreparedStatement>();
+    private final HashMap<String, PreparedStatement> prepared = 
+            new HashMap<String, PreparedStatement>();
 
     /**
      * Create a database object using the given connection.

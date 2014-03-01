@@ -64,7 +64,8 @@ public class TestDateStorage extends TestBase {
                 TimeZone.setDefault(tz);
                 DateTimeUtils.resetCalendar();
                 conn = getConnection(db);
-                PreparedStatement prep = conn.prepareStatement("insert into date_list values(?, ?, ?)");
+                PreparedStatement prep = conn.prepareStatement(
+                        "insert into date_list values(?, ?, ?)");
                 prep.setString(1, tz.getID());
                 for (int m = 1; m < 10; m++) {
                     String s = "2000-0" + m + "-01 15:00:00";

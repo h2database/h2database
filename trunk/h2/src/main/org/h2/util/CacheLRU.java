@@ -65,7 +65,8 @@ public class CacheLRU implements Cache {
      * @param cacheSize the size
      * @return the cache object
      */
-    public static Cache getCache(CacheWriter writer, String cacheType, int cacheSize) {
+    public static Cache getCache(CacheWriter writer, String cacheType,
+            int cacheSize) {
         Map<Integer, CacheObject> secondLevel = null;
         if (cacheType.startsWith("SOFT_")) {
             secondLevel = new SoftHashMap<Integer, CacheObject>();
@@ -121,7 +122,8 @@ public class CacheLRU implements Cache {
         } else {
             if (SysProperties.CHECK) {
                 if (old != rec) {
-                    DbException.throwInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
+                    DbException.throwInternalError("old!=record pos:" + 
+                            pos + " old:" + old + " new:" + rec);
                 }
             }
             if (!fifo) {
@@ -170,7 +172,9 @@ public class CacheLRU implements Cache {
                 } else {
                     // can't remove any record, because the records can not be removed
                     // hopefully this does not happen frequently, but it can happen
-                    writer.getTrace().info("cannot remove records, cache size too small? records:" + recordCount + " memory:" + memory);
+                    writer.getTrace().info(
+                            "cannot remove records, cache size too small? records:" + 
+                            recordCount + " memory:" + memory);
                     break;
                 }
             }

@@ -32,8 +32,10 @@ public class TestFullText extends TestBase {
     /**
      * The words used in this test.
      */
-    static final String[] KNOWN_WORDS = { "skiing", "balance", "storage", "water", "train" };
-    private static final String LUCENE_FULLTEXT_CLASS_NAME = "org.h2.fulltext.FullTextLucene";
+    static final String[] KNOWN_WORDS = { "skiing", "balance", "storage",
+            "water", "train" };
+    private static final String LUCENE_FULLTEXT_CLASS_NAME = 
+            "org.h2.fulltext.FullTextLucene";
 
     /**
      * Run just this test.
@@ -89,7 +91,8 @@ public class TestFullText extends TestBase {
         }
     }
 
-    private Connection getConnection(String name, Collection<Connection> list) throws SQLException {
+    private Connection getConnection(String name, Collection<Connection> list)
+            throws SQLException {
         Connection conn = getConnection(name);
         list.add(conn);
         return conn;
@@ -104,7 +107,8 @@ public class TestFullText extends TestBase {
 
         conn = getConnection("fullTextNative", connList);
         stat = conn.createStatement();
-        stat.execute("create alias if not exists ft_init for \"org.h2.fulltext.FullText.init\"");
+        stat.execute("create alias if not exists ft_init " + 
+                "for \"org.h2.fulltext.FullText.init\"");
         stat.execute("call ft_init()");
         stat.execute("create table test(id int primary key, name varchar)");
         stat.execute("call ft_create_index('PUBLIC', 'TEST', 'NAME')");
@@ -124,7 +128,8 @@ public class TestFullText extends TestBase {
         ArrayList<Connection> connList = new ArrayList<Connection>();
         Connection conn = getConnection("fullTextNative", connList);
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT " + 
+                "FOR \"org.h2.fulltext.FullText.init\"");
         stat.execute("CALL FT_INIT()");
         FullText.setIgnoreList(conn, "to,this");
         FullText.setWhitespaceChars(conn, " ,.-");
@@ -184,13 +189,16 @@ public class TestFullText extends TestBase {
         String id = UUID.randomUUID().toString();
         stat.execute("INSERT INTO TEST VALUES('" + id + "', 'Hello World')");
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME')");
-        ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "_SEARCH('Hello', 0, 0)");
         assertTrue(rs.next());
         stat.execute("UPDATE TEST SET NAME=NULL WHERE ID='" + id + "'");
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "_SEARCH('Hello', 0, 0)");
         assertFalse(rs.next());
         stat.execute("UPDATE TEST SET NAME='Good Bye' WHERE ID='" + id + "'");
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('bye', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "_SEARCH('bye', 0, 0)");
         assertTrue(rs.next());
         FullText.dropAll(conn);
         conn.close();
@@ -208,7 +216,8 @@ public class TestFullText extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
-        ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "_SEARCH('Hello', 0, 0)");
         assertTrue(rs.next());
         stat.execute("UPDATE TEST SET NAME=NULL WHERE ID=1");
         stat.execute("UPDATE TEST SET NAME='Hello World' WHERE ID=1");
@@ -220,9 +229,11 @@ public class TestFullText extends TestBase {
         }
         conn = getConnection("fullTextTransaction", connList);
         stat = conn.createStatement();
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "_SEARCH('Hello', 0, 0)");
         assertTrue(rs.next());
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Moon', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "_SEARCH('Moon', 0, 0)");
         assertFalse(rs.next());
         FullText.dropAll(conn);
         close(connList);
@@ -245,13 +256,16 @@ public class TestFullText extends TestBase {
             initFullText(stat, lucene);
             initFullText(stat, lucene);
             final String tableName = "TEST" + i;
-            stat.execute("CREATE TABLE " + tableName + "(ID INT PRIMARY KEY, DATA VARCHAR)");
-            stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', '" + tableName + "', NULL)");
+            stat.execute("CREATE TABLE " + tableName + 
+                    "(ID INT PRIMARY KEY, DATA VARCHAR)");
+            stat.execute("CALL " + prefix + 
+                    "_CREATE_INDEX('PUBLIC', '" + tableName + "', NULL)");
             task[i] = new Task() {
                 @Override
                 public void call() throws SQLException {
                     trace("starting thread " + Thread.currentThread());
-                    PreparedStatement prep = conn.prepareStatement("INSERT INTO " + tableName + " VALUES(?, ?)");
+                    PreparedStatement prep = conn.prepareStatement(
+                            "INSERT INTO " + tableName + " VALUES(?, ?)");
                     Statement stat = conn.createStatement();
                     Random random = new Random();
                     int x = 0;
@@ -269,7 +283,8 @@ public class TestFullText extends TestBase {
                         x++;
                         for (String knownWord : KNOWN_WORDS) {
                             trace("searching for " + knownWord + " with " + Thread.currentThread());
-                            ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('" + knownWord
+                            ResultSet rs = stat.executeQuery(
+                                    "SELECT * FROM " + prefix + "_SEARCH('" + knownWord
                                     + "', 0, 0)");
                             assertTrue(rs.next());
                         }
@@ -301,7 +316,8 @@ public class TestFullText extends TestBase {
         deleteDb("fullText");
         Connection conn = getConnection("fullText");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT " + 
+                "FOR \"org.h2.fulltext.FullText.init\"");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB)");
         FullText.createIndex(conn, "PUBLIC", "TEST", null);
         conn.setAutoCommit(false);
@@ -309,7 +325,8 @@ public class TestFullText extends TestBase {
         conn.rollback();
         conn.setAutoCommit(true);
         stat.execute("insert into test values(0, 'Hello World!')");
-        PreparedStatement prep = conn.prepareStatement("insert into test values(1, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test values(1, ?)");
         final int length = 1024 * 1024;
         prep.setCharacterStream(1, new Reader() {
             int remaining = length;
@@ -330,7 +347,8 @@ public class TestFullText extends TestBase {
             }
         }, length);
         prep.execute();
-        ResultSet rs = stat.executeQuery("SELECT * FROM FT_SEARCH('World', 0, 0)");
+        ResultSet rs = stat.executeQuery(
+                "SELECT * FROM FT_SEARCH('World', 0, 0)");
         assertTrue(rs.next());
         rs = stat.executeQuery("SELECT * FROM FT_SEARCH('Moon', 0, 0)");
         assertFalse(rs.next());
@@ -344,7 +362,8 @@ public class TestFullText extends TestBase {
         FileUtils.deleteRecursive(getBaseDir() + "/fullText", false);
         Connection conn = getConnection("fullText");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT FOR \"org.h2.fulltext.FullText.init\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT " + 
+                "FOR \"org.h2.fulltext.FullText.init\"");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         for (int i = 0; i < 10; i++) {
             FullText.createIndex(conn, "PUBLIC", "TEST", null);
@@ -355,18 +374,24 @@ public class TestFullText extends TestBase {
         FileUtils.deleteRecursive(getBaseDir() + "/fullText", false);
     }
 
-    private void testCreateDropLucene() throws SQLException, SecurityException, NoSuchMethodException,
-            ClassNotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+    private void testCreateDropLucene() throws SQLException, SecurityException,
+            NoSuchMethodException, ClassNotFoundException,
+            IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException {
         deleteDb("fullText");
         FileUtils.deleteRecursive(getBaseDir() + "/fullText", false);
         Connection conn = getConnection("fullText");
         Statement stat = conn.createStatement();
         initFullText(stat, true);
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        Method createIndexMethod = Class.forName(LUCENE_FULLTEXT_CLASS_NAME).getMethod("createIndex",
-                new Class[] { java.sql.Connection.class, String.class, String.class, String.class });
-        Method dropIndexMethod = Class.forName(LUCENE_FULLTEXT_CLASS_NAME).getMethod("dropIndex",
-                new Class[] { java.sql.Connection.class, String.class, String.class });
+        Method createIndexMethod = Class.forName(
+                LUCENE_FULLTEXT_CLASS_NAME).getMethod("createIndex",
+                new Class[] { java.sql.Connection.class, 
+                        String.class, String.class, String.class });
+        Method dropIndexMethod = Class.forName(
+                LUCENE_FULLTEXT_CLASS_NAME).getMethod("dropIndex",
+                new Class[] { java.sql.Connection.class, 
+                        String.class, String.class });
         for (int i = 0; i < 10; i++) {
             createIndexMethod.invoke(null, conn, "PUBLIC", "TEST", null);
             dropIndexMethod.invoke(null, conn, "PUBLIC", "TEST");
@@ -395,7 +420,8 @@ public class TestFullText extends TestBase {
 
         conn = getConnection("fullTextReopen");
         stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH('Hello', 0, 0)");
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "_SEARCH('Hello', 0, 0)");
         assertTrue(rs.next());
         stat.executeQuery("SELECT * FROM " + prefix + "_SEARCH(NULL, 0, 0)");
         stat.execute("INSERT INTO TEST VALUES(2, NULL)");
@@ -417,19 +443,22 @@ public class TestFullText extends TestBase {
         Statement stat = conn.createStatement();
         initFullText(stat, lucene);
         stat.execute("DROP TABLE IF EXISTS TEST");
-        stat.execute("CREATE TABLE TEST AS SELECT * FROM INFORMATION_SCHEMA.HELP");
+        stat.execute(
+                "CREATE TABLE TEST AS SELECT * FROM INFORMATION_SCHEMA.HELP");
         stat.execute("ALTER TABLE TEST ALTER COLUMN ID INT NOT NULL");
         stat.execute("CREATE PRIMARY KEY ON TEST(ID)");
         long time = System.currentTimeMillis();
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
         println("create " + prefix + ": " + (System.currentTimeMillis() - time));
-        PreparedStatement prep = conn.prepareStatement("SELECT * FROM " + prefix + "_SEARCH(?, 0, 0)");
+        PreparedStatement prep = conn.prepareStatement(
+                "SELECT * FROM " + prefix + "_SEARCH(?, 0, 0)");
         time = System.currentTimeMillis();
         ResultSet rs = stat.executeQuery("SELECT TEXT FROM TEST");
         int count = 0;
         while (rs.next()) {
             String text = rs.getString(1);
-            StringTokenizer tokenizer = new StringTokenizer(text, " ()[].,;:-+*/!?=<>{}#@'\"~$_%&|");
+            StringTokenizer tokenizer = new StringTokenizer(
+                        text, " ()[].,;:-+*/!?=<>{}#@'\"~$_%&|");
             while (tokenizer.hasMoreTokens()) {
                 String word = tokenizer.nextToken();
                 if (word.length() < 10) {
@@ -443,7 +472,8 @@ public class TestFullText extends TestBase {
                 }
             }
         }
-        println("search " + prefix + ": " + (System.currentTimeMillis() - time) + " count: " + count);
+        println("search " + prefix + ": " + 
+                (System.currentTimeMillis() - time) + " count: " + count);
         stat.execute("CALL " + prefix + "_DROP_ALL()");
         conn.close();
     }
@@ -458,35 +488,42 @@ public class TestFullText extends TestBase {
         String prefix = lucene ? "FTL_" : "FT_";
         Statement stat = conn.createStatement();
         String className = lucene ? "FullTextLucene" : "FullText";
-        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "INIT FOR \"org.h2.fulltext." + className + ".init\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS " + 
+                prefix + "INIT FOR \"org.h2.fulltext." + className + ".init\"");
         stat.execute("CALL " + prefix + "INIT()");
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME " + dataType + ")");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello World')");
         stat.execute("CALL " + prefix + "CREATE_INDEX('PUBLIC', 'TEST', NULL)");
         ResultSet rs;
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=1", rs.getString(1));
         assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('Hallo', 0, 0)");
         assertFalse(rs.next());
         stat.execute("INSERT INTO TEST VALUES(2, 'Hallo Welt')");
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=1", rs.getString(1));
         assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('Hallo', 0, 0)");
         rs.next();
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=2", rs.getString(1));
         assertFalse(rs.next());
 
         stat.execute("CALL " + prefix + "REINDEX()");
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hello', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('Hello', 0, 0)");
         rs.next();
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=1", rs.getString(1));
         assertFalse(rs.next());
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('Hallo', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('Hallo', 0, 0)");
         rs.next();
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=2", rs.getString(1));
         assertFalse(rs.next());
@@ -495,7 +532,8 @@ public class TestFullText extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(4, 'Hello World')");
         stat.execute("INSERT INTO TEST VALUES(5, 'Hello World')");
 
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0) ORDER BY QUERY");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('World', 0, 0) ORDER BY QUERY");
         rs.next();
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=1", rs.getString(1));
         rs.next();
@@ -506,32 +544,37 @@ public class TestFullText extends TestBase {
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=5", rs.getString(1));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 1, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('World', 1, 0)");
         rs.next();
         assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 2) ORDER BY QUERY");
-        rs.next();
-        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
-        rs.next();
-        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
-        assertFalse(rs.next());
-
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 2, 1) ORDER BY QUERY");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('World', 0, 2) ORDER BY QUERY");
         rs.next();
         assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
         rs.next();
         assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('1', 0, 0)");
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('World', 2, 1) ORDER BY QUERY");
+        rs.next();
+        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        rs.next();
+        assertTrue(rs.getString(1).startsWith("\"PUBLIC\".\"TEST\" WHERE \"ID\"="));
+        assertFalse(rs.next());
+
+        rs = stat.executeQuery("SELECT * FROM " + 
+                prefix + "SEARCH('1', 0, 0)");
         rs.next();
         assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=1", rs.getString(1));
         assertFalse(rs.next());
 
         if (lucene) {
-            rs = stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('NAME:Hallo', 0, 0)");
+            rs = stat.executeQuery("SELECT * FROM " + 
+                    prefix + "SEARCH('NAME:Hallo', 0, 0)");
             rs.next();
             assertEquals("\"PUBLIC\".\"TEST\" WHERE \"ID\"=2", rs.getString(1));
             assertFalse(rs.next());
@@ -560,13 +603,18 @@ public class TestFullText extends TestBase {
         Connection conn = getConnection("fullTextDropIndex");
         Statement stat = conn.createStatement();
         initFullText(stat, lucene);
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME1 VARCHAR, NAME2 VARCHAR)");
-        stat.execute("INSERT INTO TEST VALUES(1, 'Hello World', 'Hello Again')");
-        stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME1')");
+        stat.execute("CREATE TABLE TEST" + 
+                "(ID INT PRIMARY KEY, NAME1 VARCHAR, NAME2 VARCHAR)");
+        stat.execute("INSERT INTO TEST VALUES" + 
+                "(1, 'Hello World', 'Hello Again')");
+        stat.execute("CALL " + prefix + 
+                "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME1')");
         stat.execute("UPDATE TEST SET NAME1=NULL WHERE ID=1");
         stat.execute("UPDATE TEST SET NAME1='Hello World' WHERE ID=1");
-        stat.execute("CALL " + prefix + "_DROP_INDEX('PUBLIC', 'TEST')");
-        stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME1, NAME2')");
+        stat.execute("CALL " + prefix + 
+                "_DROP_INDEX('PUBLIC', 'TEST')");
+        stat.execute("CALL " + prefix + 
+                "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME1, NAME2')");
         stat.execute("UPDATE TEST SET NAME2=NULL WHERE ID=1");
         stat.execute("UPDATE TEST SET NAME2='Hello World' WHERE ID=1");
         conn.close();
@@ -575,10 +623,12 @@ public class TestFullText extends TestBase {
         FileUtils.deleteRecursive(getBaseDir() + "/fullTextDropIndex", false);
     }
 
-    private static void initFullText(Statement stat, boolean lucene) throws SQLException {
+    private static void initFullText(Statement stat, boolean lucene)
+            throws SQLException {
         String prefix = lucene ? "FTL" : "FT";
         String className = lucene ? "FullTextLucene" : "FullText";
-        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS " + prefix + 
+                "_INIT FOR \"org.h2.fulltext." + className + ".init\"");
         stat.execute("CALL " + prefix + "_INIT()");
     }
 }

@@ -75,11 +75,15 @@ public class TestCsv extends TestBase {
     private void testWriteColumnHeader() throws Exception {
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('" + getBaseDir() + "/test.tsv', 'select x from dual', 'writeColumnHeader=false')");
-        String x = IOUtils.readStringAndClose(IOUtils.getReader(FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
+        stat.execute("call csvwrite('" + getBaseDir() + 
+                "/test.tsv', 'select x from dual', 'writeColumnHeader=false')");
+        String x = IOUtils.readStringAndClose(IOUtils.getReader(
+                FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
         assertEquals("\"1\"", x.trim());
-        stat.execute("call csvwrite('" + getBaseDir() + "/test.tsv', 'select x from dual', 'writeColumnHeader=true')");
-        x = IOUtils.readStringAndClose(IOUtils.getReader(FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
+        stat.execute("call csvwrite('" + getBaseDir() + 
+                "/test.tsv', 'select x from dual', 'writeColumnHeader=true')");
+        x = IOUtils.readStringAndClose(IOUtils.getReader(
+                FileUtils.newInputStream(getBaseDir() + "/test.tsv")), -1);
         x = x.trim();
         assertTrue(x.startsWith("\"X\""));
         assertTrue(x.endsWith("\"1\""));
@@ -94,7 +98,8 @@ public class TestCsv extends TestBase {
         StringWriter writer = new StringWriter();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select timestamp '-100-01-01 12:00:00.0' ts, null n");
+        ResultSet rs = stat.executeQuery(
+                "select timestamp '-100-01-01 12:00:00.0' ts, null n");
         Csv csv = new Csv();
         csv.setFieldDelimiter((char) 0);
         csv.setLineSeparator(";");
@@ -106,19 +111,22 @@ public class TestCsv extends TestBase {
     }
 
     private void testCaseSensitiveColumnNames() throws Exception {
-        OutputStream out = FileUtils.newOutputStream(getBaseDir() + "/test.tsv", false);
+        OutputStream out = FileUtils.newOutputStream(
+                getBaseDir() + "/test.tsv", false);
         out.write("lower,Mixed,UPPER\n 1 , 2, 3 \n".getBytes());
         out.close();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
+        rs = stat.executeQuery("select * from csvread('" + 
+                getBaseDir() + "/test.tsv')");
         rs.next();
         assertEquals("LOWER", rs.getMetaData().getColumnName(1));
         assertEquals("MIXED", rs.getMetaData().getColumnName(2));
         assertEquals("UPPER", rs.getMetaData().getColumnName(3));
-        rs = stat.executeQuery("select * from csvread('" + getBaseDir()
-                + "/test.tsv', null, 'caseSensitiveColumnNames=true')");
+        rs = stat.executeQuery("select * from csvread('" + 
+                getBaseDir() + 
+                "/test.tsv', null, 'caseSensitiveColumnNames=true')");
         rs.next();
         assertEquals("lower", rs.getMetaData().getColumnName(1));
         assertEquals("Mixed", rs.getMetaData().getColumnName(2));
@@ -127,18 +135,20 @@ public class TestCsv extends TestBase {
     }
 
     private void testPreserveWhitespace() throws Exception {
-        OutputStream out = FileUtils.newOutputStream(getBaseDir() + "/test.tsv", false);
+        OutputStream out = FileUtils.newOutputStream(
+                getBaseDir() + "/test.tsv", false);
         out.write("a,b\n 1 , 2 \n".getBytes());
         out.close();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
+        rs = stat.executeQuery("select * from csvread('" + 
+                getBaseDir() + "/test.tsv')");
         rs.next();
         assertEquals("1", rs.getString(1));
         assertEquals("2", rs.getString(2));
-        rs = stat.executeQuery("select * from csvread('" + getBaseDir()
-                + "/test.tsv', null, 'preserveWhitespace=true')");
+        rs = stat.executeQuery("select * from csvread('" + 
+                getBaseDir() + "/test.tsv', null, 'preserveWhitespace=true')");
         rs.next();
         assertEquals(" 1 ", rs.getString(1));
         assertEquals(" 2 ", rs.getString(2));
@@ -146,12 +156,14 @@ public class TestCsv extends TestBase {
     }
 
     private void testChangeData() throws Exception {
-        OutputStream out = FileUtils.newOutputStream(getBaseDir() + "/test.tsv", false);
+        OutputStream out = FileUtils.newOutputStream(
+                getBaseDir() + "/test.tsv", false);
         out.write("a,b,c,d,e,f,g\n1".getBytes());
         out.close();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
+        ResultSet rs = stat.executeQuery("select * from csvread('" + 
+                getBaseDir() + "/test.tsv')");
         assertEquals(7, rs.getMetaData().getColumnCount());
         assertEquals("A", rs.getMetaData().getColumnLabel(1));
         rs.next();
@@ -159,7 +171,8 @@ public class TestCsv extends TestBase {
         out = FileUtils.newOutputStream(getBaseDir() + "/test.tsv", false);
         out.write("x".getBytes());
         out.close();
-        rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv')");
+        rs = stat.executeQuery("select * from csvread('" + 
+                getBaseDir() + "/test.tsv')");
         assertEquals(1, rs.getMetaData().getColumnCount());
         assertEquals("X", rs.getMetaData().getColumnLabel(1));
         assertFalse(rs.next());
@@ -192,8 +205,10 @@ public class TestCsv extends TestBase {
         assertFalse(csv.getPreserveWhitespace());
         assertFalse(csv.getCaseSensitiveColumnNames());
 
-        charset = csv.setOptions("escape=1x fieldDelimiter=2x fieldSeparator=3x " + "lineComment=4x lineSeparator=5x "
-                + "null=6x rowSeparator=7x charset=8x preserveWhitespace=true caseSensitiveColumnNames=true");
+        charset = csv.setOptions("escape=1x fieldDelimiter=2x " + 
+                "fieldSeparator=3x " + "lineComment=4x lineSeparator=5x " + 
+                "null=6x rowSeparator=7x charset=8x " + 
+                "preserveWhitespace=true caseSensitiveColumnNames=true");
         assertEquals('1', csv.getEscapeCharacter());
         assertEquals('2', csv.getFieldDelimiter());
         assertEquals('3', csv.getFieldSeparatorRead());
@@ -206,8 +221,9 @@ public class TestCsv extends TestBase {
         assertTrue(csv.getPreserveWhitespace());
         assertTrue(csv.getCaseSensitiveColumnNames());
 
-        charset = csv.setOptions("escape= fieldDelimiter= fieldSeparator= " + "lineComment= lineSeparator=\r\n "
-                + "null=\0 rowSeparator= charset=");
+        charset = csv.setOptions("escape= fieldDelimiter= " + 
+                "fieldSeparator= " + "lineComment= lineSeparator=\r\n " + 
+                "null=\0 rowSeparator= charset=");
         assertEquals(0, csv.getEscapeCharacter());
         assertEquals(0, csv.getFieldDelimiter());
         assertEquals(0, csv.getFieldSeparatorRead());
@@ -219,7 +235,8 @@ public class TestCsv extends TestBase {
         assertEquals("", charset);
 
         createClassProxy(Csv.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, csv).setOptions("escape=a error=b");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, csv).
+            setOptions("escape=a error=b");
         assertEquals('a', csv.getEscapeCharacter());
     }
 
@@ -266,11 +283,15 @@ public class TestCsv extends TestBase {
         stat.execute("create temporary table test (a int, b int, c int)");
         stat.execute("insert into test values(1,2,3)");
         stat.execute("insert into test values(4,null,5)");
-        stat.execute("call csvwrite('" + getBaseDir() + "/test.tsv','select * from test',null,' ')");
+        stat.execute("call csvwrite('" + getBaseDir() + 
+                "/test.tsv','select * from test',null,' ')");
         ResultSet rs1 = stat.executeQuery("select * from test");
-        assertResultSetOrdered(rs1, new String[][] { new String[] { "1", "2", "3" }, new String[] { "4", null, "5" } });
-        ResultSet rs2 = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.tsv',null,null,' ')");
-        assertResultSetOrdered(rs2, new String[][] { new String[] { "1", "2", "3" }, new String[] { "4", null, "5" } });
+        assertResultSetOrdered(rs1, new String[][] { 
+                new String[] { "1", "2", "3" }, new String[] { "4", null, "5" } });
+        ResultSet rs2 = stat.executeQuery("select * from csvread('" + 
+                getBaseDir() + "/test.tsv',null,null,' ')");
+        assertResultSetOrdered(rs2, new String[][] { 
+                new String[] { "1", "2", "3" }, new String[] { "4", null, "5" } });
         conn.close();
         FileUtils.delete(f.getAbsolutePath());
         FileUtils.delete(getBaseDir() + "/test.tsv");
@@ -311,8 +332,10 @@ public class TestCsv extends TestBase {
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         stat.execute("call csvwrite('" + fileName +
-                "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', 'UTF8', ',', '\"', NULL, '\\N', '\n')");
-        InputStreamReader reader = new InputStreamReader(FileUtils.newInputStream(fileName));
+                "', 'select NULL as a, '''' as b, ''\\N'' as c, NULL as d', " + 
+                "'UTF8', ',', '\"', NULL, '\\N', '\n')");
+        InputStreamReader reader = new InputStreamReader(
+                FileUtils.newInputStream(fileName));
         // on read, an empty string is treated like null,
         // but on write a null is always written with the nullString
         String data = IOUtils.readStringAndClose(reader, -1);
@@ -329,7 +352,8 @@ public class TestCsv extends TestBase {
         stat.execute("drop table if exists test");
         stat.execute("create table test(a varchar, b varchar)");
         int len = getSize(1000, 10000);
-        PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
+        PreparedStatement prep = conn.prepareStatement(
+                "insert into test values(?, ?)");
         ArrayList<String[]> list = New.arrayList();
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
@@ -339,7 +363,8 @@ public class TestCsv extends TestBase {
             list.add(new String[] { a, b });
             prep.execute();
         }
-        stat.execute("CALL CSVWRITE('" + getBaseDir() + "/test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
+        stat.execute("CALL CSVWRITE('" + getBaseDir() + 
+                "/test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
         Csv csv = new Csv();
         csv.setFieldSeparatorRead('|');
         csv.setFieldDelimiter('#');
@@ -375,11 +400,13 @@ public class TestCsv extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("call csvwrite('" + fileName
                 + "', 'select 1 id, ''Hello'' name', null, '|', '', null, null, chr(10))");
-        InputStreamReader reader = new InputStreamReader(FileUtils.newInputStream(fileName));
+        InputStreamReader reader = new InputStreamReader(
+                FileUtils.newInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
         text = StringUtils.replaceAll(text, "\n", " ");
         assertEquals("ID|NAME 1|Hello", text);
-        ResultSet rs = stat.executeQuery("select * from csvread('" + fileName + "', null, null, '|', '')");
+        ResultSet rs = stat.executeQuery("select * from csvread('" + 
+                fileName + "', null, null, '|', '')");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
         assertEquals("ID", meta.getColumnLabel(1));
@@ -402,7 +429,8 @@ public class TestCsv extends TestBase {
         out.close();
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("select * from csvread('" + fileName + "', null, null, ';', '''', '\\')");
+        ResultSet rs = stat.executeQuery("select * from csvread('" + 
+                fileName + "', null, null, ';', '''', '\\')");
         ResultSetMetaData meta = rs.getMetaData();
         assertEquals(2, meta.getColumnCount());
         assertEquals("A", meta.getColumnLabel(1));
@@ -433,8 +461,10 @@ public class TestCsv extends TestBase {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('" + getBaseDir() + "/test.csv', 'select 1 id, ''Hello'' name', 'utf-8', '|')");
-        ResultSet rs = stat.executeQuery("select * from csvread('" + getBaseDir() + "/test.csv', null, 'utf-8', '|')");
+        stat.execute("call csvwrite('" + getBaseDir() + 
+                "/test.csv', 'select 1 id, ''Hello'' name', 'utf-8', '|')");
+        ResultSet rs = stat.executeQuery("select * from csvread('" + 
+                getBaseDir() + "/test.csv', null, 'utf-8', '|')");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
@@ -456,8 +486,10 @@ public class TestCsv extends TestBase {
         deleteDb("csv");
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
-        stat.execute("call csvwrite('" + getBaseDir() + "/test.csv', 'select 1 id, ''Hello'' name')");
-        ResultSet rs = stat.executeQuery("select name from csvread('" + getBaseDir() + "/test.csv')");
+        stat.execute("call csvwrite('" + getBaseDir() + 
+                "/test.csv', 'select 1 id, ''Hello'' name')");
+        ResultSet rs = stat.executeQuery("select name from csvread('" + 
+                getBaseDir() + "/test.csv')");
         assertTrue(rs.next());
         assertEquals("Hello", rs.getString(1));
         assertFalse(rs.next());
@@ -474,7 +506,8 @@ public class TestCsv extends TestBase {
         String fileName = getBaseDir() + "/test.csv";
         FileUtils.delete(fileName);
         OutputStream out = FileUtils.newOutputStream(fileName, false);
-        byte[] b = "a,b,c,d\n201,-2,0,18\n, \"abc\"\"\" ,,\"\"\n 1 ,2 , 3, 4 \n5, 6, 7, 8".getBytes();
+        byte[] b = ("a,b,c,d\n201,-2,0,18\n, \"abc\"\"\" ," + 
+                ",\"\"\n 1 ,2 , 3, 4 \n5, 6, 7, 8").getBytes();
         out.write(b, 0, b.length);
         out.close();
         ResultSet rs = new Csv().read(fileName, null, "UTF8");

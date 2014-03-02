@@ -63,7 +63,8 @@ public class IndexType {
      * @param spatial if a spatial index should be used
      * @return the index type
      */
-    public static IndexType createNonUnique(boolean persistent, boolean hash, boolean spatial) {
+    public static IndexType createNonUnique(boolean persistent, boolean hash,
+            boolean spatial) {
         IndexType type = new IndexType();
         type.persistent = persistent;
         type.hash = hash;

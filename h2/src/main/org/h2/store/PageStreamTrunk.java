@@ -257,7 +257,7 @@ public class PageStreamTrunk extends Page {
                 }
                 throw e;
             }
-            if (p == null || p instanceof PageStreamTrunk || 
+            if (p == null || p instanceof PageStreamTrunk ||
                     p instanceof PageStreamData) {
                 canDelete = true;
             }
@@ -292,7 +292,7 @@ public class PageStreamTrunk extends Page {
 
     @Override
     public String toString() {
-        return "page[" + getPos() + "] stream trunk key:" + logKey + 
+        return "page[" + getPos() + "] stream trunk key:" + logKey +
                 " next:" + nextTrunk;
     }
 

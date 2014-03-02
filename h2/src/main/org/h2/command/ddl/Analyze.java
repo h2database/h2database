@@ -55,8 +55,10 @@ public class Analyze extends DefineCommand {
      * @param sample the number of sample rows
      * @param manual whether the command was called by the user
      */
-    public static void analyzeTable(Session session, Table table, int sample, boolean manual) {
-        if (!(table.getTableType().equals(Table.TABLE)) || table.isHidden() || session == null) {
+    public static void analyzeTable(Session session, Table table, int sample,
+            boolean manual) {
+        if (!(table.getTableType().equals(Table.TABLE)) ||
+                table.isHidden() || session == null) {
             return;
         }
         if (!manual) {

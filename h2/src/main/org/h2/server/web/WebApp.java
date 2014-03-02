@@ -146,7 +146,9 @@ public class WebApp {
         } else if ("css".equals(suffix)) {
             cache = true;
             mimeType = "text/css";
-        } else if ("html".equals(suffix) || "do".equals(suffix) || "jsp".equals(suffix)) {
+        } else if ("html".equals(suffix) ||
+                "do".equals(suffix) ||
+                "jsp".equals(suffix)) {
             cache = false;
             mimeType = "text/html";
             if (session == null && !file.startsWith(WebServer.TRANSFER)) {
@@ -250,7 +252,8 @@ public class WebApp {
     private String autoCompleteList() {
         String query = (String) attributes.get("query");
         boolean lowercase = false;
-        if (query.trim().length() > 0 && Character.isLowerCase(query.trim().charAt(0))) {
+        if (query.trim().length() > 0 &&
+                Character.isLowerCase(query.trim().charAt(0))) {
             lowercase = true;
         }
         try {
@@ -291,7 +294,8 @@ public class WebApp {
                 String space = "";
                 if (sql.length() > 0) {
                     char last = sql.charAt(sql.length() - 1);
-                    if (!Character.isWhitespace(last) && (last != '.' && last >= ' ' && last != '\'' && last != '"')) {
+                    if (!Character.isWhitespace(last) && (last != '.' &&
+                            last >= ' ' && last != '\'' && last != '"')) {
                         space = " ";
                     }
                 }
@@ -349,10 +353,12 @@ public class WebApp {
             int port = Integer.decode((String) attributes.get("port"));
             prop.setProperty("webPort", String.valueOf(port));
             server.setPort(port);
-            boolean allowOthers = Boolean.parseBoolean((String) attributes.get("allowOthers"));
+            boolean allowOthers = Boolean.parseBoolean(
+                    (String) attributes.get("allowOthers"));
             prop.setProperty("webAllowOthers", String.valueOf(allowOthers));
             server.setAllowOthers(allowOthers);
-            boolean ssl = Boolean.parseBoolean((String) attributes.get("ssl"));
+            boolean ssl = Boolean.parseBoolean(
+                    (String) attributes.get("ssl"));
             prop.setProperty("webSSL", String.valueOf(ssl));
             server.setSSL(ssl);
             server.saveProperties(prop);
@@ -432,7 +438,8 @@ public class WebApp {
         String language = (String) attributes.get("language");
         Locale locale = session.locale;
         if (language != null) {
-            if (locale == null || !StringUtils.toLowerEnglish(locale.getLanguage()).equals(language)) {
+            if (locale == null || !StringUtils.toLowerEnglish(
+                    locale.getLanguage()).equals(language)) {
                 locale = new Locale(language, "");
                 server.readTranslations(session, locale.getLanguage());
                 session.put("language", language);
@@ -485,12 +492,14 @@ public class WebApp {
             columnsBuffer.append(column.getName());
             String col = escapeIdentifier(column.getName());
             String level = mainSchema ? ", 1, 1" : ", 2, 2";
-            buff.append("setNode(" + treeIndex + level + ", 'column', '" + PageParser.escapeJavaScript(column.getName())
-                    + "', 'javascript:ins(\\'" + col + "\\')');\n");
+            buff.append("setNode(" + treeIndex + level + ", 'column', '" +
+                    PageParser.escapeJavaScript(column.getName()) +
+                    "', 'javascript:ins(\\'" + col + "\\')');\n");
             treeIndex++;
             if (mainSchema && showColumnTypes) {
-                buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '" + PageParser.escapeJavaScript(column.getDataType())
-                        + "', null);\n");
+                buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '" +
+                        PageParser.escapeJavaScript(column.getDataType()) +
+                        "', null);\n");
                 treeIndex++;
             }
         }
@@ -498,7 +507,8 @@ public class WebApp {
     }
 
     private static String escapeIdentifier(String name) {
-        return StringUtils.urlEncode(PageParser.escapeJavaScript(name)).replace('+', ' ');
+        return StringUtils.urlEncode(
+                PageParser.escapeJavaScript(name)).replace('+', ' ');
     }
 
     /**
@@ -551,7 +561,8 @@ public class WebApp {
                 if (name != null && type != null) {
                     info = new IndexInfo();
                     info.name = name;
-                    type = (rs.getBoolean("NON_UNIQUE") ? "${text.tree.nonUnique}" : "${text.tree.unique}") + type;
+                    type = (rs.getBoolean("NON_UNIQUE") ?
+                            "${text.tree.nonUnique}" : "${text.tree.unique}") + type;
                     info.type = type;
                     info.columns = rs.getString("COLUMN_NAME");
                     indexMap.put(name, info);
@@ -565,24 +576,29 @@ public class WebApp {
             String level = mainSchema ? ", 1, 1" : ", 2, 1";
             String levelIndex = mainSchema ? ", 2, 1" : ", 3, 1";
             String levelColumnType = mainSchema ? ", 3, 2" : ", 4, 2";
-            buff.append("setNode(" + treeIndex + level + ", 'index_az', '${text.tree.indexes}', null);\n");
+            buff.append("setNode(" + treeIndex + level +
+                    ", 'index_az', '${text.tree.indexes}', null);\n");
             treeIndex++;
             for (IndexInfo info : indexMap.values()) {
-                buff.append("setNode(" + treeIndex + levelIndex + ", 'index', '" + PageParser.escapeJavaScript(info.name)
-                        + "', null);\n");
+                buff.append("setNode(" + treeIndex + levelIndex +
+                        ", 'index', '" +
+                        PageParser.escapeJavaScript(info.name) + "', null);\n");
                 treeIndex++;
-                buff.append("setNode(" + treeIndex + levelColumnType + ", 'type', '" + info.type + "', null);\n");
+                buff.append("setNode(" + treeIndex + levelColumnType +
+                        ", 'type', '" + info.type + "', null);\n");
                 treeIndex++;
-                buff.append("setNode(" + treeIndex + levelColumnType + ", 'type', '" + PageParser.escapeJavaScript(info.columns)
-                        + "', null);\n");
+                buff.append("setNode(" + treeIndex + levelColumnType +
+                        ", 'type', '" +
+                        PageParser.escapeJavaScript(info.columns) +
+                        "', null);\n");
                 treeIndex++;
             }
         }
         return treeIndex;
     }
 
-    private int addTablesAndViews(DbSchema schema, boolean mainSchema, StringBuilder buff, int treeIndex)
-            throws SQLException {
+    private int addTablesAndViews(DbSchema schema, boolean mainSchema,
+            StringBuilder buff, int treeIndex) throws SQLException {
         if (schema == null) {
             return treeIndex;
         }
@@ -608,17 +624,22 @@ public class WebApp {
                 tab = schema.quotedName + "." + tab;
             }
             tab = escapeIdentifier(tab);
-            buff.append("setNode(" + treeIndex + indentation + " 'table', '" + PageParser.escapeJavaScript(table.getName())
-                    + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
+            buff.append("setNode(" + treeIndex + indentation + " 'table', '" +
+                    PageParser.escapeJavaScript(table.getName()) +
+                    "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;
             if (mainSchema || showColumns) {
                 StringBuilder columnsBuffer = new StringBuilder();
-                treeIndex = addColumns(mainSchema, table, buff, treeIndex, notManyTables, columnsBuffer);
+                treeIndex = addColumns(mainSchema, table, buff, treeIndex,
+                        notManyTables, columnsBuffer);
                 if (!isOracle && notManyTables) {
-                    treeIndex = addIndexes(mainSchema, meta, table.getName(), schema.name, buff, treeIndex);
+                    treeIndex = addIndexes(mainSchema, meta, table.getName(),
+                            schema.name, buff, treeIndex);
                 }
-                buff.append("addTable('" + PageParser.escapeJavaScript(table.getName()) + "', '"
-                        + PageParser.escapeJavaScript(columnsBuffer.toString()) + "', " + tableId + ");\n");
+                buff.append("addTable('" +
+                        PageParser.escapeJavaScript(table.getName()) + "', '" +
+                        PageParser.escapeJavaScript(columnsBuffer.toString()) +
+                        "', " + tableId + ");\n");
             }
         }
         tables = schema.getTables();
@@ -632,22 +653,27 @@ public class WebApp {
                 tab = view.getSchema().quotedName + "." + tab;
             }
             tab = escapeIdentifier(tab);
-            buff.append("setNode(" + treeIndex + indentation + " 'view', '" + PageParser.escapeJavaScript(view.getName())
-                    + "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
+            buff.append("setNode(" + treeIndex + indentation + " 'view', '" +
+                    PageParser.escapeJavaScript(view.getName()) +
+                    "', 'javascript:ins(\\'" + tab + "\\',true)');\n");
             treeIndex++;
             if (mainSchema) {
                 StringBuilder columnsBuffer = new StringBuilder();
-                treeIndex = addColumns(mainSchema, view, buff, treeIndex, notManyTables, columnsBuffer);
+                treeIndex = addColumns(mainSchema, view, buff,
+                        treeIndex, notManyTables, columnsBuffer);
                 if (schema.getContents().isH2()) {
                     PreparedStatement prep = null;
                     try {
-                        prep = conn.prepareStatement("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=?");
+                        prep = conn.prepareStatement("SELECT * FROM " +
+                                "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=?");
                         prep.setString(1, view.getName());
                         ResultSet rs = prep.executeQuery();
                         if (rs.next()) {
                             String sql = rs.getString("SQL");
-                            buff.append("setNode(" + treeIndex + indentNode + " 'type', '"
-                                    + PageParser.escapeJavaScript(sql) + "', null);\n");
+                            buff.append("setNode(" + treeIndex + indentNode +
+                                    " 'type', '" +
+                                    PageParser.escapeJavaScript(sql) +
+                                    "', null);\n");
                             treeIndex++;
                         }
                         rs.close();
@@ -655,8 +681,10 @@ public class WebApp {
                         JdbcUtils.closeSilently(prep);
                     }
                 }
-                buff.append("addTable('" + PageParser.escapeJavaScript(view.getName()) + "', '"
-                        + PageParser.escapeJavaScript(columnsBuffer.toString()) + "', " + tableId + ");\n");
+                buff.append("addTable('" +
+                        PageParser.escapeJavaScript(view.getName()) + "', '" +
+                        PageParser.escapeJavaScript(columnsBuffer.toString()) +
+                        "', " + tableId + ");\n");
             }
         }
         return treeIndex;
@@ -684,8 +712,9 @@ public class WebApp {
                 if (schema == defaultSchema || schema == null) {
                     continue;
                 }
-                buff.append("setNode(" + treeIndex + ", 0, 1, 'folder', '" + PageParser.escapeJavaScript(schema.name)
-                        + "', null);\n");
+                buff.append("setNode(" + treeIndex + ", 0, 1, 'folder', '" +
+                        PageParser.escapeJavaScript(schema.name) +
+                        "', null);\n");
                 treeIndex++;
                 treeIndex = addTablesAndViews(schema, false, buff, treeIndex);
             }
@@ -693,43 +722,55 @@ public class WebApp {
                 Statement stat = null;
                 try {
                     stat = conn.createStatement();
-                    ResultSet rs = stat
-                            .executeQuery("SELECT * FROM INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
+                    ResultSet rs = stat.executeQuery("SELECT * FROM " +
+                            "INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
                     for (int i = 0; rs.next(); i++) {
                         if (i == 0) {
-                            buff.append("setNode(" + treeIndex
-                                    + ", 0, 1, 'sequences', '${text.tree.sequences}', null);\n");
+                            buff.append("setNode(" + treeIndex +
+                                    ", 0, 1, 'sequences', '${text.tree.sequences}', null);\n");
                             treeIndex++;
                         }
                         String name = rs.getString("SEQUENCE_NAME");
                         String current = rs.getString("CURRENT_VALUE");
                         String increment = rs.getString("INCREMENT");
-                        buff.append("setNode(" + treeIndex + ", 1, 1, 'sequence', '"
-                                + PageParser.escapeJavaScript(name) + "', null);\n");
+                        buff.append("setNode(" + treeIndex +
+                                ", 1, 1, 'sequence', '" +
+                                PageParser.escapeJavaScript(name) +
+                                "', null);\n");
                         treeIndex++;
-                        buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '${text.tree.current}: "
-                                + PageParser.escapeJavaScript(current) + "', null);\n");
+                        buff.append("setNode(" + treeIndex +
+                                ", 2, 2, 'type', '${text.tree.current}: " +
+                                PageParser.escapeJavaScript(current) +
+                                "', null);\n");
                         treeIndex++;
                         if (!"1".equals(increment)) {
-                            buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '${text.tree.increment}: "
-                                    + PageParser.escapeJavaScript(increment) + "', null);\n");
+                            buff.append("setNode(" +
+                                    treeIndex +
+                                    ", 2, 2, 'type', '${text.tree.increment}: " +
+                                    PageParser.escapeJavaScript(increment) +
+                                    "', null);\n");
                             treeIndex++;
                         }
                     }
                     rs.close();
-                    rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.USERS ORDER BY NAME");
+                    rs = stat.executeQuery("SELECT * FROM " +
+                            "INFORMATION_SCHEMA.USERS ORDER BY NAME");
                     for (int i = 0; rs.next(); i++) {
                         if (i == 0) {
-                            buff.append("setNode(" + treeIndex + ", 0, 1, 'users', '${text.tree.users}', null);\n");
+                            buff.append("setNode(" + treeIndex +
+                                    ", 0, 1, 'users', '${text.tree.users}', null);\n");
                             treeIndex++;
                         }
                         String name = rs.getString("NAME");
                         String admin = rs.getString("ADMIN");
-                        buff.append("setNode(" + treeIndex + ", 1, 1, 'user', '" + PageParser.escapeJavaScript(name)
-                                + "', null);\n");
+                        buff.append("setNode(" + treeIndex +
+                                ", 1, 1, 'user', '" +
+                                PageParser.escapeJavaScript(name) +
+                                "', null);\n");
                         treeIndex++;
                         if (admin.equalsIgnoreCase("TRUE")) {
-                            buff.append("setNode(" + treeIndex + ", 2, 2, 'type', '${text.tree.admin}', null);\n");
+                            buff.append("setNode(" + treeIndex +
+                                    ", 2, 2, 'type', '${text.tree.admin}', null);\n");
                             treeIndex++;
                         }
                     }
@@ -739,9 +780,10 @@ public class WebApp {
                 }
             }
             DatabaseMetaData meta = session.getMetaData();
-            String version = meta.getDatabaseProductName() + " " + meta.getDatabaseProductVersion();
-            buff.append("setNode(" + treeIndex + ", 0, 0, 'info', '" + PageParser.escapeJavaScript(version)
-                    + "', null);\n");
+            String version = meta.getDatabaseProductName() + " " +
+                    meta.getDatabaseProductVersion();
+            buff.append("setNode(" + treeIndex + ", 0, 0, 'info', '" +
+                    PageParser.escapeJavaScript(version) + "', null);\n");
             buff.append("refreshQueryTables();");
             session.put("tree", buff.toString());
         } catch (Exception e) {
@@ -760,20 +802,25 @@ public class WebApp {
             if (isH2) {
                 stackTrace = linkToSource(stackTrace);
             }
-            stackTrace = StringUtils.replaceAll(stackTrace, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+            stackTrace = StringUtils.replaceAll(stackTrace, "\t",
+                    "&nbsp;&nbsp;&nbsp;&nbsp;");
             String message = PageParser.escapeHtml(e.getMessage());
-            String error = "<a class=\"error\" href=\"#\" onclick=\"var x=document.getElementById('st" + id
-                    + "').style;x.display=x.display==''?'none':'';\">" + message + "</a>";
+            String error = "<a class=\"error\" href=\"#\" " +
+                    "onclick=\"var x=document.getElementById('st" + id +
+                    "').style;x.display=x.display==''?'none':'';\">" + message +
+                    "</a>";
             if (e instanceof SQLException) {
                 SQLException se = (SQLException) e;
                 error += " " + se.getSQLState() + "/" + se.getErrorCode();
                 if (isH2) {
                     int code = se.getErrorCode();
-                    error += " <a href=\"http://h2database.com/javadoc/org/h2/constant/ErrorCode.html#c" + code
-                            + "\">(${text.a.help})</a>";
+                    error += " <a href=\"http://h2database.com/javadoc/" +
+                            "org/h2/constant/ErrorCode.html#c" + code +
+                            "\">(${text.a.help})</a>";
                 }
             }
-            error += "<span style=\"display: none;\" id=\"st" + id + "\"><br />" + stackTrace + "</span>";
+            error += "<span style=\"display: none;\" id=\"st" + id +
+                    "\"><br />" + stackTrace + "</span>";
             error = formatAsError(error);
             return error;
         } catch (OutOfMemoryError e2) {
@@ -862,7 +909,8 @@ public class WebApp {
             String success;
             if (time > 1000) {
                 success = "<a class=\"error\" href=\"#\" " +
-                    "onclick=\"var x=document.getElementById('prof').style;x.display=x.display==''?'none':'';\">" +
+                    "onclick=\"var x=document.getElementById('prof').style;x." +
+                    "display=x.display==''?'none':'';\">" +
                     "${text.login.testSuccessful}</a>" +
                     "<span style=\"display: none;\" id=\"prof\"><br />" +
                     PageParser.escapeHtml(profOpen) +
@@ -889,7 +937,8 @@ public class WebApp {
      * @return the formatted error message
      */
     private String getLoginError(Exception e, boolean isH2) {
-        if (e instanceof JdbcSQLException && ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
+        if (e instanceof JdbcSQLException &&
+                ((JdbcSQLException) e).getErrorCode() == ErrorCode.CLASS_NOT_FOUND_1) {
             return "${text.login.driverNotFound}<br />" + getStackTrace(0, e, isH2);
         }
         return getStackTrace(0, e, isH2);
@@ -1010,7 +1059,8 @@ public class WebApp {
             buff.append(PageParser.escapeHtml(s + ";")).append("<br />");
         }
         boolean forceEdit = s.startsWith("@edit");
-        buff.append(getResult(conn, i + 1, s, size == 1, forceEdit)).append("<br />");
+        buff.append(getResult(conn, i + 1, s, size == 1, forceEdit)).
+            append("<br />");
     }
 
     private String editResult() {
@@ -1052,7 +1102,8 @@ public class WebApp {
         return "result.jsp";
     }
 
-    private ResultSet getMetaResultSet(Connection conn, String sql) throws SQLException {
+    private ResultSet getMetaResultSet(Connection conn, String sql)
+            throws SQLException {
         DatabaseMetaData meta = conn.getMetaData();
         if (isBuiltIn(sql, "@best_row_identifier")) {
             String[] p = split(sql);
@@ -1167,7 +1218,8 @@ public class WebApp {
         return null;
     }
 
-    private static void addDatabaseMetaData(SimpleResultSet rs, DatabaseMetaData meta) {
+    private static void addDatabaseMetaData(SimpleResultSet rs,
+            DatabaseMetaData meta) {
         Method[] methods = DatabaseMetaData.class.getDeclaredMethods();
         Arrays.sort(methods, new Comparator<Method>() {
             @Override
@@ -1207,21 +1259,27 @@ public class WebApp {
         return maxrows;
     }
 
-    private String getResult(Connection conn, int id, String sql, boolean allowEdit, boolean forceEdit) {
+    private String getResult(Connection conn, int id, String sql,
+            boolean allowEdit, boolean forceEdit) {
         try {
             sql = sql.trim();
             StringBuilder buff = new StringBuilder();
             String sqlUpper = StringUtils.toUpperEnglish(sql);
-            if (sqlUpper.indexOf("CREATE") >= 0 || sqlUpper.indexOf("DROP") >= 0 || sqlUpper.indexOf("ALTER") >= 0
-                    || sqlUpper.indexOf("RUNSCRIPT") >= 0) {
+            if (sqlUpper.indexOf("CREATE") >= 0 ||
+                    sqlUpper.indexOf("DROP") >= 0 ||
+                    sqlUpper.indexOf("ALTER") >= 0 ||
+                    sqlUpper.indexOf("RUNSCRIPT") >= 0) {
                 String sessionId = attributes.getProperty("jsessionid");
-                buff.append("<script type=\"text/javascript\">top['h2menu'].location='tables.do?jsessionid="
+                buff.append("<script type=\"text/javascript\">" +
+                        "top['h2menu'].location='tables.do?jsessionid="
                         + sessionId + "';</script>");
             }
             Statement stat;
             DbContents contents = session.getContents();
             if (forceEdit || (allowEdit && contents.isH2())) {
-                stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+                stat = conn.createStatement(
+                        ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_UPDATABLE);
             } else {
                 stat = conn.createStatement();
             }
@@ -1272,7 +1330,8 @@ public class WebApp {
                 sql = sql.substring(idx).trim();
                 return executeLoop(conn, count, sql);
             } else if (isBuiltIn(sql, "@maxrows")) {
-                int maxrows = (int) Double.parseDouble(sql.substring("@maxrows".length()).trim());
+                int maxrows = (int) Double.parseDouble(
+                        sql.substring("@maxrows".length()).trim());
                 session.put("maxrows", "" + maxrows);
                 return "${text.result.maxrowsSet}";
             } else if (isBuiltIn(sql, "@parameter_meta")) {
@@ -1283,7 +1342,8 @@ public class WebApp {
             } else if (isBuiltIn(sql, "@password_hash")) {
                 sql = sql.substring("@password_hash".length()).trim();
                 String[] p = split(sql);
-                return StringUtils.convertBytesToHex(SHA256.getKeyPasswordHash(p[0], p[1].toCharArray()));
+                return StringUtils.convertBytesToHex(
+                        SHA256.getKeyPasswordHash(p[0], p[1].toCharArray()));
             } else if (isBuiltIn(sql, "@prof_start")) {
                 if (profiler != null) {
                     profiler.stopCollecting();
@@ -1305,11 +1365,16 @@ public class WebApp {
                     int level = Integer.parseInt(s);
                     conn.setTransactionIsolation(level);
                 }
-                buff.append("Transaction Isolation: " + conn.getTransactionIsolation() + "<br />");
-                buff.append(Connection.TRANSACTION_READ_UNCOMMITTED + ": read_uncommitted<br />");
-                buff.append(Connection.TRANSACTION_READ_COMMITTED + ": read_committed<br />");
-                buff.append(Connection.TRANSACTION_REPEATABLE_READ + ": repeatable_read<br />");
-                buff.append(Connection.TRANSACTION_SERIALIZABLE + ": serializable");
+                buff.append("Transaction Isolation: " +
+                        conn.getTransactionIsolation() + "<br />");
+                buff.append(Connection.TRANSACTION_READ_UNCOMMITTED +
+                        ": read_uncommitted<br />");
+                buff.append(Connection.TRANSACTION_READ_COMMITTED +
+                        ": read_committed<br />");
+                buff.append(Connection.TRANSACTION_REPEATABLE_READ +
+                        ": repeatable_read<br />");
+                buff.append(Connection.TRANSACTION_SERIALIZABLE +
+                        ": serializable");
             }
             if (sql.startsWith("@")) {
                 rs = getMetaResultSet(conn, sql);
@@ -1360,7 +1425,8 @@ public class WebApp {
         return StringUtils.startsWithIgnoreCase(sql, builtIn);
     }
 
-    private String executeLoop(Connection conn, int count, String sql) throws SQLException {
+    private String executeLoop(Connection conn, int count, String sql)
+            throws SQLException {
         ArrayList<Integer> params = New.arrayList();
         int idx = 0;
         while (!stop) {
@@ -1446,14 +1512,17 @@ public class WebApp {
     private String getHistoryString() {
         StringBuilder buff = new StringBuilder();
         ArrayList<String> history = session.getCommands();
-        buff.append("<table cellspacing=0 cellpadding=0><tr><th></th><th>Command</th></tr>");
+        buff.append("<table cellspacing=0 cellpadding=0>" +
+                "<tr><th></th><th>Command</th></tr>");
         for (int i = history.size() - 1; i >= 0; i--) {
             String sql = history.get(i);
             buff.append("<tr><td><a href=\"getHistory.do?id=").
                 append(i).
                 append("&jsessionid=${sessionId}\" target=\"h2query\" >").
-                append("<img width=16 height=16 src=\"ico_write.gif\" onmouseover = \"this.className ='icon_hover'\" ").
-                append("onmouseout = \"this.className ='icon'\" class=\"icon\" alt=\"${text.resultEdit.edit}\" ").
+                append("<img width=16 height=16 src=\"ico_write.gif\" " +
+                        "onmouseover = \"this.className ='icon_hover'\" ").
+                append("onmouseout = \"this.className ='icon'\" " +
+                        "class=\"icon\" alt=\"${text.resultEdit.edit}\" ").
                 append("title=\"${text.resultEdit.edit}\" border=\"1\"/></a>").
                 append("</td><td>").
                 append(PageParser.escapeHtml(sql)).
@@ -1463,7 +1532,8 @@ public class WebApp {
         return buff.toString();
     }
 
-    private static String getParameterResultSet(ParameterMetaData meta) throws SQLException {
+    private static String getParameterResultSet(ParameterMetaData meta)
+            throws SQLException {
         StringBuilder buff = new StringBuilder();
         if (meta == null) {
             return "No parameter meta data";
@@ -1490,14 +1560,16 @@ public class WebApp {
         return buff.toString();
     }
 
-    private String getResultSet(String sql, ResultSet rs, boolean metadata, boolean list, boolean edit, long time,
-            boolean allowEdit) throws SQLException {
+    private String getResultSet(String sql, ResultSet rs, boolean metadata,
+            boolean list, boolean edit, long time, boolean allowEdit)
+            throws SQLException {
         int maxrows = getMaxrows();
         time = System.currentTimeMillis() - time;
         StringBuilder buff = new StringBuilder();
         if (edit) {
             buff.append("<form id=\"editing\" name=\"editing\" method=\"post\" " +
-                    "action=\"editResult.do?jsessionid=${sessionId}\" id=\"mainForm\" target=\"h2result\">" +
+                    "action=\"editResult.do?jsessionid=${sessionId}\" " +
+                    "id=\"mainForm\" target=\"h2result\">" +
                     "<input type=\"hidden\" name=\"op\" value=\"1\" />" +
                     "<input type=\"hidden\" name=\"row\" value=\"\" />" +
                     "<table cellspacing=0 cellpadding=0 id=\"editTable\">");
@@ -1594,7 +1666,8 @@ public class WebApp {
                     buff.append("<td>").
                         append("<img onclick=\"javascript:editRow(").
                         append(rs.getRow()).
-                        append(",'${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'").
+                        append(",'${sessionId}', '${text.resultEdit.save}', " +
+                                "'${text.resultEdit.cancel}'").
                         append(")\" width=16 height=16 src=\"ico_write.gif\" " +
                                 "onmouseover = \"this.className ='icon_hover'\" " +
                                 "onmouseout = \"this.className ='icon'\" " +
@@ -1637,7 +1710,8 @@ public class WebApp {
         }
         if (edit) {
             buff.append("<tr><td>").
-                append("<img onclick=\"javascript:editRow(-1, '${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'").
+                append("<img onclick=\"javascript:editRow(-1, " +
+                        "'${sessionId}', '${text.resultEdit.save}', '${text.resultEdit.cancel}'").
                 append(")\" width=16 height=16 src=\"ico_add.gif\" " +
                         "onmouseover = \"this.className ='icon_hover'\" " +
                         "onmouseout = \"this.className ='icon'\" " +
@@ -1667,7 +1741,8 @@ public class WebApp {
             buff.append("<br /><br />" +
                     "<form name=\"editResult\" method=\"post\" " +
                     "action=\"query.do?jsessionid=${sessionId}\" target=\"h2result\">" +
-                    "<input type=\"submit\" class=\"button\" value=\"${text.resultEdit.editResult}\" />" +
+                    "<input type=\"submit\" class=\"button\" " +
+                    "value=\"${text.resultEdit.editResult}\" />" +
                     "<input type=\"hidden\" name=\"sql\" value=\"@edit ").
             append(PageParser.escapeHtmlData(sql)).
             append("\" /></form>");
@@ -1692,16 +1767,19 @@ public class WebApp {
         return "index.do";
     }
 
-    private static String escapeData(ResultSet rs, int columnIndex) throws SQLException {
+    private static String escapeData(ResultSet rs, int columnIndex)
+            throws SQLException {
         String d = rs.getString(columnIndex);
         if (d == null) {
             return "<i>null</i>";
         } else if (d.length() > 100000) {
             String s;
             if (isBinary(rs.getMetaData().getColumnType(columnIndex))) {
-                s = PageParser.escapeHtml(d.substring(0, 6)) + "... (" + (d.length() / 2) + " ${text.result.bytes})";
+                s = PageParser.escapeHtml(d.substring(0, 6)) +
+                        "... (" + (d.length() / 2) + " ${text.result.bytes})";
             } else {
-                s = PageParser.escapeHtml(d.substring(0, 100)) + "... (" + d.length() + " ${text.result.characters})";
+                s = PageParser.escapeHtml(d.substring(0, 100)) +
+                        "... (" + d.length() + " ${text.result.characters})";
             }
             return "<div style='display: none'>=+</div>" + s;
         } else if (d.equals("null") || d.startsWith("= ") || d.startsWith("=+")) {
@@ -1726,7 +1804,8 @@ public class WebApp {
         return false;
     }
 
-    private void unescapeData(String x, ResultSet rs, int columnIndex) throws SQLException {
+    private void unescapeData(String x, ResultSet rs, int columnIndex)
+            throws SQLException {
         if (x.equals("null")) {
             rs.updateNull(columnIndex);
             return;

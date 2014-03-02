@@ -83,7 +83,8 @@ public class TransactionCommand extends Prepared {
         case CommandInterface.SHUTDOWN_DEFRAG: {
             session.getUser().checkAdmin();
             session.commit(false);
-            if (type == CommandInterface.SHUTDOWN_COMPACT || type == CommandInterface.SHUTDOWN_DEFRAG) {
+            if (type == CommandInterface.SHUTDOWN_COMPACT ||
+                    type == CommandInterface.SHUTDOWN_DEFRAG) {
                 session.getDatabase().setCompactMode(type);
             }
             // close the database, but don't update the persistent setting

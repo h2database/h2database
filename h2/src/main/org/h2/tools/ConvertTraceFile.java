@@ -129,7 +129,7 @@ public class ConvertTraceFile extends Tool {
             cn = cn.substring(idx + 1);
         }
         javaWriter.println("public class " + cn + " {");
-        javaWriter.println("    public static void main(String... args) " + 
+        javaWriter.println("    public static void main(String... args) " +
                 "throws Exception {");
         javaWriter.println("        Class.forName(\"org.h2.Driver\");");
         while (true) {

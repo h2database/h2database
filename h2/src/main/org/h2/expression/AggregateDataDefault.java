@@ -96,7 +96,7 @@ class AggregateDataDefault extends AggregateData {
             if (value == null) {
                 value = v;
             } else {
-                value = ValueBoolean.get(value.getBoolean().booleanValue() && 
+                value = ValueBoolean.get(value.getBoolean().booleanValue() &&
                         v.getBoolean().booleanValue());
             }
             break;
@@ -105,7 +105,7 @@ class AggregateDataDefault extends AggregateData {
             if (value == null) {
                 value = v;
             } else {
-                value = ValueBoolean.get(value.getBoolean().booleanValue() || 
+                value = ValueBoolean.get(value.getBoolean().booleanValue() ||
                         v.getBoolean().booleanValue());
             }
             break;

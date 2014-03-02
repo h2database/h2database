@@ -208,7 +208,8 @@ public class Trace {
      * @param parameters the parameter list
      * @return the formatted text
      */
-    public static String formatParams(ArrayList<? extends ParameterInterface> parameters) {
+    public static String formatParams(
+            ArrayList<? extends ParameterInterface> parameters) {
         if (parameters.size() == 0) {
             return "";
         }
@@ -319,7 +320,8 @@ public class Trace {
      */
     public void infoCode(String java) {
         if (isEnabled(TraceSystem.INFO)) {
-            traceWriter.write(TraceSystem.INFO, module, lineSeparator + "/**/" + java, null);
+            traceWriter.write(TraceSystem.INFO, module, lineSeparator +
+                    "/**/" + java, null);
         }
     }
 
@@ -330,7 +332,8 @@ public class Trace {
      */
     void debugCode(String java) {
         if (isEnabled(TraceSystem.DEBUG)) {
-            traceWriter.write(TraceSystem.DEBUG, module, lineSeparator + "/**/" + java, null);
+            traceWriter.write(TraceSystem.DEBUG, module, lineSeparator +
+                    "/**/" + java, null);
         }
     }
 

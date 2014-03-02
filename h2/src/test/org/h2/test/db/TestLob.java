@@ -121,7 +121,7 @@ public class TestLob extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE test(id int, data CLOB)");
         conn.setAutoCommit(false);
-        stat.executeUpdate("insert into test values (1, '" + 
+        stat.executeUpdate("insert into test values (1, '" +
                 MORE_THAN_128_CHARS + "')");
         conn.rollback();
         ResultSet rs = stat.executeQuery("select count(*) from test");
@@ -378,7 +378,7 @@ public class TestLob extends TestBase {
             Random random = new Random();
             Statement stat = conn.createStatement();
             while (!stop) {
-                stat.execute("update test set counter = " + 
+                stat.execute("update test set counter = " +
                         random.nextInt(10) + " where id = " + random.nextInt(1000));
             }
         }
@@ -392,9 +392,9 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         Connection conn = getDeadlock2Connection();
         Statement stat = conn.createStatement();
-        stat.execute("create cached table test(id int not null identity, " + 
+        stat.execute("create cached table test(id int not null identity, " +
                 "name clob, counter int)");
-        stat.execute("insert into test(id, name) select x, space(100000) " + 
+        stat.execute("insert into test(id, name) select x, space(100000) " +
                 "from system_range(1, 100)");
         Deadlock2Task1 task1 = new Deadlock2Task1();
         Deadlock2Task2 task2 = new Deadlock2Task2();
@@ -418,7 +418,7 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity, data clob) " + 
+        stat.execute("create table test(id identity, data clob) " +
                 "as select 1, space(10000)");
         stat.execute("insert into test(id, data) select null, data from test");
         stat.execute("insert into test(id, data) select null, data from test");
@@ -439,7 +439,7 @@ public class TestLob extends TestBase {
         ResultSet rs;
         conn = getConnection("lob");
         stat = conn.createStatement();
-        stat.execute("create table test(id identity, data clob) " + 
+        stat.execute("create table test(id identity, data clob) " +
                 "as select 1, space(10000)");
         stat.execute("insert into test(id, data) select 2, data from test");
         stat.execute("delete from test where id = 1");
@@ -498,7 +498,7 @@ public class TestLob extends TestBase {
         Statement stat;
         conn = getConnection("lob");
         stat = conn.createStatement();
-        stat.execute("create table test(id int, data clob) as " + 
+        stat.execute("create table test(id int, data clob) as " +
                 "select x, null from system_range(1, 1000)");
         stat.execute("insert into test values(0, space(10000))");
         stat.execute("set max_memory_rows 100");
@@ -572,28 +572,28 @@ public class TestLob extends TestBase {
         assertSingleValue(stat,
                 "select count(*) from information_schema.lob_data", 1);
         stat.execute("insert into test values(2, space(10000))");
-        assertSingleValue(stat, 
+        assertSingleValue(stat,
                 "select count(*) from information_schema.lob_data", 1);
         stat.execute("delete from test where id = 1");
-        assertSingleValue(stat, 
+        assertSingleValue(stat,
                 "select count(*) from information_schema.lob_data", 1);
         stat.execute("insert into test values(3, space(10000))");
-        assertSingleValue(stat, 
+        assertSingleValue(stat,
                 "select count(*) from information_schema.lob_data", 1);
         stat.execute("insert into test values(4, space(10000))");
-        assertSingleValue(stat, 
+        assertSingleValue(stat,
                 "select count(*) from information_schema.lob_data", 1);
         stat.execute("delete from test where id = 2");
-        assertSingleValue(stat, 
+        assertSingleValue(stat,
                 "select count(*) from information_schema.lob_data", 1);
         stat.execute("delete from test where id = 3");
-        assertSingleValue(stat, 
+        assertSingleValue(stat,
                 "select count(*) from information_schema.lob_data", 1);
         stat.execute("delete from test");
         conn.close();
         conn = getConnection("lob");
         stat = conn.createStatement();
-        assertSingleValue(stat, 
+        assertSingleValue(stat,
                 "select count(*) from information_schema.lob_data", 0);
         stat.execute("drop table test");
         conn.close();
@@ -638,7 +638,7 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
-        stat.execute("create table post(id int primary key, text clob) as " + 
+        stat.execute("create table post(id int primary key, text clob) as " +
                 "select x, space(96) from system_range(1, 329)");
         PreparedStatement prep = conn.prepareStatement("update post set text = ?");
         prep.setCharacterStream(1, new StringReader(new String(new char[1025])), -1);
@@ -655,7 +655,7 @@ public class TestLob extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(data clob)");
 
-        ResultSet rs = stat.executeQuery("select count(*) " + 
+        ResultSet rs = stat.executeQuery("select count(*) " +
                 "from INFORMATION_SCHEMA.LOBS");
         assertTrue(rs.next());
         assertEquals(0, rs.getInt(1));
@@ -784,7 +784,7 @@ public class TestLob extends TestBase {
     private void testLobTransactions(int spaceLen) throws SQLException {
         deleteDb("lob");
         Connection conn = reconnect(null);
-        conn.createStatement().execute("CREATE TABLE TEST(ID IDENTITY, " + 
+        conn.createStatement().execute("CREATE TABLE TEST(ID IDENTITY, " +
                 "DATA CLOB, DATA2 VARCHAR)");
         conn.setAutoCommit(false);
         Random random = new Random(0);
@@ -797,7 +797,7 @@ public class TestLob extends TestBase {
             case 0:
                 trace("insert " + i);
                 conn.createStatement().execute(
-                        "INSERT INTO TEST(DATA, DATA2) VALUES('" + i + 
+                        "INSERT INTO TEST(DATA, DATA2) VALUES('" + i +
                         "' || SPACE(" + spaceLen + "), '" + i + "')");
                 rows++;
                 break;
@@ -814,7 +814,7 @@ public class TestLob extends TestBase {
                     int x = random.nextInt(rows);
                     trace("update " + x);
                     conn.createStatement().execute(
-                            "UPDATE TEST SET DATA='x' || DATA, " + 
+                            "UPDATE TEST SET DATA='x' || DATA, " +
                             "DATA2='x' || DATA2 WHERE ID=" + x);
                 }
                 break;
@@ -928,7 +928,7 @@ public class TestLob extends TestBase {
         Statement stat0 = conn0.createStatement();
         stat0.executeUpdate("drop table CLOB_ENTITY if exists");
         stat0.getWarnings();
-        stat0.executeUpdate("create table CLOB_ENTITY (ID bigint not null, " + 
+        stat0.executeUpdate("create table CLOB_ENTITY (ID bigint not null, " +
                 "DATA clob, CLOB_DATA clob, primary key (ID))");
         stat0.getWarnings();
         stat0.close();
@@ -947,7 +947,7 @@ public class TestLob extends TestBase {
         prep0.close();
         conn0.getAutoCommit();
         PreparedStatement prep1 = conn0
-                .prepareStatement("insert into CLOB_ENTITY" + 
+                .prepareStatement("insert into CLOB_ENTITY" +
                         "(DATA, CLOB_DATA, ID) values (?, ?, ?)");
         prep1.setNull(1, 2005);
         StringBuilder buff = new StringBuilder(10000);
@@ -987,7 +987,7 @@ public class TestLob extends TestBase {
         for (int i = 0; i < 10000; i++) {
             int ch = r.read();
             if (ch != ('0' + (i % 10))) {
-                fail("expected " + (char) ('0' + (i % 10)) + 
+                fail("expected " + (char) ('0' + (i % 10)) +
                         " got: " + ch + " (" + (char) ch + ")");
             }
         }
@@ -1011,7 +1011,7 @@ public class TestLob extends TestBase {
         conn = reconnect(conn);
         stat = conn.createStatement();
         ResultSet rs;
-        rs = stat.executeQuery("select value from information_schema.settings " + 
+        rs = stat.executeQuery("select value from information_schema.settings " +
                 "where NAME='COMPRESS_LOB'");
         rs.next();
         assertEquals(compress ? "LZF" : "NO", rs.getString(1));
@@ -1160,10 +1160,10 @@ public class TestLob extends TestBase {
                 "CREATE TABLE TEST(ID IDENTITY, C CLOB)");
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST(C) VALUES(?)");
-        prep.setCharacterStream(1, 
+        prep.setCharacterStream(1,
                 new CharArrayReader("Bohlen".toCharArray()), "Bohlen".length());
         prep.execute();
-        prep.setCharacterStream(1, 
+        prep.setCharacterStream(1,
                 new CharArrayReader("B\u00f6hlen".toCharArray()), "B\u00f6hlen".length());
         prep.execute();
         prep.setCharacterStream(1, getRandomReader(501, 1), -1);
@@ -1175,27 +1175,27 @@ public class TestLob extends TestBase {
                 "SELECT * FROM TEST ORDER BY ID");
         rs.next();
         assertEquals("Bohlen", rs.getString("C"));
-        assertEqualReaders(new CharArrayReader("Bohlen".toCharArray()), 
+        assertEqualReaders(new CharArrayReader("Bohlen".toCharArray()),
                 rs.getCharacterStream("C"), -1);
         rs.next();
-        assertEqualReaders(new CharArrayReader("B\u00f6hlen".toCharArray()), 
+        assertEqualReaders(new CharArrayReader("B\u00f6hlen".toCharArray()),
                 rs.getCharacterStream("C"), -1);
         rs.next();
-        assertEqualReaders(getRandomReader(501, 1), 
+        assertEqualReaders(getRandomReader(501, 1),
                 rs.getCharacterStream("C"), -1);
         Clob clob = rs.getClob("C");
-        assertEqualReaders(getRandomReader(501, 1), 
+        assertEqualReaders(getRandomReader(501, 1),
                 clob.getCharacterStream(), -1);
         assertEquals(501, clob.length());
         rs.next();
-        assertEqualReaders(getRandomReader(401, 2), 
+        assertEqualReaders(getRandomReader(401, 2),
                 rs.getCharacterStream("C"), -1);
-        assertEqualReaders(getRandomReader(1500, 2), 
+        assertEqualReaders(getRandomReader(1500, 2),
                 rs.getCharacterStream("C"), 401);
         clob = rs.getClob("C");
-        assertEqualReaders(getRandomReader(1501, 2), 
+        assertEqualReaders(getRandomReader(1501, 2),
                 clob.getCharacterStream(), 401);
-        assertEqualReaders(getRandomReader(401, 2), 
+        assertEqualReaders(getRandomReader(401, 2),
                 clob.getCharacterStream(), 401);
         assertEquals(401, clob.length());
         assertFalse(rs.next());
@@ -1291,7 +1291,7 @@ public class TestLob extends TestBase {
         stat = conn.createStatement();
         rs = stat.executeQuery("SELECT * FROM TEST WHERE ID=1");
         rs.next();
-        assertEqualStreams(rs.getBinaryStream("TEXT"), 
+        assertEqualStreams(rs.getBinaryStream("TEXT"),
                 new ByteArrayInputStream(data), -1);
 
         stat.execute("DROP TABLE IF EXISTS TEST");
@@ -1307,7 +1307,7 @@ public class TestLob extends TestBase {
         PreparedStatement prep;
         ResultSet rs;
         long time;
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE " + 
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, VALUE " +
                 (clob ? "CLOB" : "BLOB") + ")");
 
         int len = getSize(1, 1000);
@@ -1344,7 +1344,7 @@ public class TestLob extends TestBase {
                 if (obj instanceof Clob) {
                     obj = ((Clob) obj).getCharacterStream();
                 }
-                assertEqualReaders(getRandomReader(size, id), 
+                assertEqualReaders(getRandomReader(size, id),
                         (Reader) obj, -1);
             } else {
                 InputStream in = rs.getBinaryStream(2);
@@ -1353,7 +1353,7 @@ public class TestLob extends TestBase {
                 if (obj instanceof Blob) {
                     obj = ((Blob) obj).getBinaryStream();
                 }
-                assertEqualStreams(getRandomStream(size, id), 
+                assertEqualStreams(getRandomStream(size, id),
                         (InputStream) obj, -1);
             }
         }
@@ -1461,19 +1461,19 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, " + 
+        stat.execute("create table test(id int primary key, " +
                 "name clob, counter int)");
-        stat.execute("insert into test(id, name) select x, " + 
+        stat.execute("insert into test(id, name) select x, " +
                 "space(100000) from system_range(1, 3)");
 
-        ResultSet rs = stat.executeQuery("select name " + 
+        ResultSet rs = stat.executeQuery("select name " +
                 "from test where id = 1");
         rs.next();
         Reader r = rs.getClob("name").getCharacterStream();
         Random random = new Random();
         char[] tmp = new char[256];
         while (r.read(tmp) > 0) {
-            stat.execute("update test set counter = " + 
+            stat.execute("update test set counter = " +
                     random.nextInt(1000) + " where id = 1");
         }
         r.close();
@@ -1487,7 +1487,7 @@ public class TestLob extends TestBase {
         statement.execute("drop table if exists TEST");
         statement.execute("create table TEST (COL INTEGER, LOB CLOB)");
         conn.setAutoCommit(false);
-        statement.execute("insert into TEST (COL, LOB) values (1, '" + 
+        statement.execute("insert into TEST (COL, LOB) values (1, '" +
                 MORE_THAN_128_CHARS + "')");
         statement.execute("update TEST set COL=2");
         // OK
@@ -1503,7 +1503,7 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE logs" + 
+        stat.execute("CREATE TABLE logs" +
                 "(id int primary key auto_increment, message CLOB)");
         PreparedStatement s1 = conn.prepareStatement(
                 "INSERT INTO logs (id, message) VALUES(null, ?)");
@@ -1512,7 +1512,7 @@ public class TestLob extends TestBase {
             String data = randomUnicodeString(rand);
             s1.setString(1, data);
             s1.executeUpdate();
-            ResultSet rs = stat.executeQuery("SELECT id, message " + 
+            ResultSet rs = stat.executeQuery("SELECT id, message " +
                     "FROM logs ORDER BY id DESC LIMIT 1");
             rs.next();
             String read = rs.getString(2);

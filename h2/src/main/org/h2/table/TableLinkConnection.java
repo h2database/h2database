@@ -66,7 +66,7 @@ public class TableLinkConnection {
             HashMap<TableLinkConnection, TableLinkConnection> map,
             String driver, String url, String user, String password,
             boolean shareLinkedConnections) {
-        TableLinkConnection t = new TableLinkConnection(map, driver, url, 
+        TableLinkConnection t = new TableLinkConnection(map, driver, url,
                 user, password);
         if (!shareLinkedConnections) {
             t.open();

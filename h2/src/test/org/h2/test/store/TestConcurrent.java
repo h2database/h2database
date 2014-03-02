@@ -288,7 +288,7 @@ public class TestConcurrent extends TestMVStore {
         for (int i = 0; i < 10; i++) {
             // System.out.println("test " + i);
             s.setReuseSpace(false);
-            byte[] buff = readFileSlowly(s.getFileStore().getFile(), 
+            byte[] buff = readFileSlowly(s.getFileStore().getFile(),
                     s.getFileStore().size());
             s.setReuseSpace(true);
             FileOutputStream out = new FileOutputStream(fileNameRestore);

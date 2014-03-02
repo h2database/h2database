@@ -92,9 +92,9 @@ public class TestLinkedTable extends TestBase {
 
         Connection conn = getConnection("linkedTable");
         Statement stat = conn.createStatement();
-        stat.execute("create linked table test1('', " + 
+        stat.execute("create linked table test1('', " +
                 "'jdbc:h2:mem:linkedTable', '', '', 'TEST') emit updates");
-        stat.execute("create linked table test2('', " + 
+        stat.execute("create linked table test2('', " +
                 "'jdbc:h2:mem:linkedTable', '', '', 'TEST')");
         stat.execute("insert into test1 values(default, default)");
         stat.execute("insert into test2 values(default, default)");
@@ -133,14 +133,14 @@ public class TestLinkedTable extends TestBase {
         Connection conn = getConnection(
                 "linkedTable;SHARE_LINKED_CONNECTIONS=TRUE");
         try {
-            conn.createStatement().execute("create linked table test" + 
+            conn.createStatement().execute("create linked table test" +
                     "(null, 'jdbc:h2:mem:', 'sa', 'pwd', 'DUAL2')");
             fail();
         } catch (SQLException e) {
             assertTrue(e.toString().indexOf("pwd") >= 0);
         }
         try {
-            conn.createStatement().execute("create linked table test" + 
+            conn.createStatement().execute("create linked table test" +
                     "(null, 'jdbc:h2:mem:', 'sa', 'pwd', 'DUAL2') --hide--");
             fail();
         } catch (SQLException e) {
@@ -184,9 +184,9 @@ public class TestLinkedTable extends TestBase {
         ca.close();
         Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
         Statement sb = cb.createStatement();
-        sb.execute("CREATE LINKED TABLE T1(NULL, '" + 
+        sb.execute("CREATE LINKED TABLE T1(NULL, '" +
                 url + "', '"+user+"', '"+password+"', 'TEST')");
-        sb.executeQuery("SELECT * FROM DUAL A " + 
+        sb.executeQuery("SELECT * FROM DUAL A " +
                 "LEFT OUTER JOIN T1 A ON A.ID=1 LEFT OUTER JOIN T1 B ON B.ID=1");
         sb.execute("DROP ALL OBJECTS");
         cb.close();
@@ -207,9 +207,9 @@ public class TestLinkedTable extends TestBase {
         ca.close();
         Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
         Statement sb = cb.createStatement();
-        sb.execute("CREATE LINKED TABLE T1(NULL, '" + url + 
+        sb.execute("CREATE LINKED TABLE T1(NULL, '" + url +
                 ";OPEN_NEW=TRUE', '"+user+"', '"+password+"', 'TEST')");
-        sb.execute("CREATE LINKED TABLE T2(NULL, '" + url + 
+        sb.execute("CREATE LINKED TABLE T2(NULL, '" + url +
                 ";OPEN_NEW=TRUE', '"+user+"', '"+password+"', 'TEST')");
         sb.execute("DROP ALL OBJECTS");
         cb.close();
@@ -227,11 +227,11 @@ public class TestLinkedTable extends TestBase {
         sa.execute("INSERT INTO TEST VALUES(1)");
         sa.execute("INSERT INTO P.TEST VALUES(2)");
         assertThrows(ErrorCode.SCHEMA_NAME_MUST_MATCH, sb).
-                execute("CREATE LINKED TABLE T(NULL, " + 
+                execute("CREATE LINKED TABLE T(NULL, " +
                         "'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
-        sb.execute("CREATE LINKED TABLE T(NULL, " + 
+        sb.execute("CREATE LINKED TABLE T(NULL, " +
                         "'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC', 'TEST')");
-        sb.execute("CREATE LINKED TABLE T2(NULL, " + 
+        sb.execute("CREATE LINKED TABLE T2(NULL, " +
                         "'jdbc:h2:mem:one', 'sa', 'sa', 'P', 'TEST')");
         assertSingleValue(sb, "SELECT * FROM T", 1);
         assertSingleValue(sb, "SELECT * FROM T2", 2);
@@ -253,11 +253,11 @@ public class TestLinkedTable extends TestBase {
         sa.execute("INSERT INTO TEST VALUES(1)");
         String[] suffix = {"", "READONLY", "EMIT UPDATES"};
         for (int i = 0; i < suffix.length; i++) {
-            String sql = "CREATE LINKED TABLE T(NULL, " + 
+            String sql = "CREATE LINKED TABLE T(NULL, " +
                     "'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')" + suffix[i];
             sb.execute(sql);
             sb.executeQuery("SELECT * FROM T");
-            String[] update = {"DELETE FROM T", 
+            String[] update = {"DELETE FROM T",
                     "INSERT INTO T VALUES(2)", "UPDATE T SET ID = 3"};
             for (String u : update) {
                 try {
@@ -288,9 +288,9 @@ public class TestLinkedTable extends TestBase {
         sa.execute("CREATE TABLE GOOD (X NUMBER)");
         sa.execute("CREATE SCHEMA S");
         sa.execute("CREATE TABLE S.BAD (X NUMBER)");
-        sb.execute("CALL LINK_SCHEMA('G', '', " + 
+        sb.execute("CALL LINK_SCHEMA('G', '', " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC'); ");
-        sb.execute("CALL LINK_SCHEMA('B', '', " + 
+        sb.execute("CALL LINK_SCHEMA('B', '', " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'S'); ");
         // OK
         sb.executeQuery("SELECT * FROM G.GOOD");
@@ -312,9 +312,9 @@ public class TestLinkedTable extends TestBase {
         stat.execute("INSERT INTO Y.A VALUES(2)");
         Connection conn2 = DriverManager.getConnection("jdbc:h2:mem:two");
         Statement stat2 = conn2.createStatement();
-        stat2.execute("CREATE LINKED TABLE one('org.h2.Driver', " + 
+        stat2.execute("CREATE LINKED TABLE one('org.h2.Driver', " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'Y.A');");
-        stat2.execute("CREATE LINKED TABLE two('org.h2.Driver', " + 
+        stat2.execute("CREATE LINKED TABLE two('org.h2.Driver', " +
                 "'jdbc:h2:mem:one', 'sa', 'sa', 'PUBLIC.A');");
         ResultSet rs = stat2.executeQuery("SELECT * FROM one");
         rs.next();
@@ -333,7 +333,7 @@ public class TestLinkedTable extends TestBase {
         statA.execute("CREATE TABLE TEST(ID INT)");
         Connection connB = DriverManager.getConnection("jdbc:h2:mem:b");
         Statement statB = connB.createStatement();
-        statB.execute("CREATE LINKED TABLE " + 
+        statB.execute("CREATE LINKED TABLE " +
                 "TEST_LINK('', 'jdbc:h2:mem:a', '', '', 'TEST')");
         connA.close();
         // the connection should be closed now
@@ -369,7 +369,7 @@ public class TestLinkedTable extends TestBase {
         String link = "CREATE LINKED TABLE TEST_LINK_U('', '" + url1
                 + "', 'sa1', 'abc abc', 'TEST') EMIT UPDATES";
         stat2.execute(link);
-        link = "CREATE LINKED TABLE TEST_LINK_DI('', '" + url1 + 
+        link = "CREATE LINKED TABLE TEST_LINK_DI('', '" + url1 +
                 "', 'sa1', 'abc abc', 'TEST')";
         stat2.execute(link);
         stat2.executeUpdate("INSERT INTO TEST_LINK_U VALUES(1, 'Hello')");
@@ -428,7 +428,7 @@ public class TestLinkedTable extends TestBase {
 
         Connection conn2 = DriverManager.getConnection(url2, "sa2", "def def");
         Statement stat2 = conn2.createStatement();
-        String link = "CALL LINK_SCHEMA('LINKED', '', '" + url1 + 
+        String link = "CALL LINK_SCHEMA('LINKED', '', '" + url1 +
                 "', 'sa1', 'abc abc', 'PUBLIC')";
         stat2.execute(link);
         stat2.executeQuery("SELECT * FROM LINKED.TEST1");
@@ -486,11 +486,11 @@ public class TestLinkedTable extends TestBase {
 
         conn = DriverManager.getConnection(url2, "sa2", "def def");
         stat = conn.createStatement();
-        stat.execute("CREATE LINKED TABLE IF NOT EXISTS " + 
-                "LINK_TEST('org.h2.Driver', '" + url1 + 
+        stat.execute("CREATE LINKED TABLE IF NOT EXISTS " +
+                "LINK_TEST('org.h2.Driver', '" + url1 +
                 "', 'sa1', 'abc abc', 'TEST')");
-        stat.execute("CREATE LINKED TABLE IF NOT EXISTS " + 
-                "LINK_TEST('org.h2.Driver', '" + url1 + 
+        stat.execute("CREATE LINKED TABLE IF NOT EXISTS " +
+                "LINK_TEST('org.h2.Driver', '" + url1 +
                 "', 'sa1', 'abc abc', 'TEST')");
         testRow(stat, "LINK_TEST");
         ResultSet rs = stat.executeQuery("SELECT * FROM LINK_TEST");
@@ -522,7 +522,7 @@ public class TestLinkedTable extends TestBase {
         rs.next();
         assertEquals(3, rs.getInt(1));
 
-        rs = stat.executeQuery("SELECT * FROM " + 
+        rs = stat.executeQuery("SELECT * FROM " +
                 "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='LINK_TEST'");
         rs.next();
         assertEquals("TABLE LINK", rs.getString("TABLE_TYPE"));
@@ -594,7 +594,7 @@ public class TestLinkedTable extends TestBase {
         Statement sb = cb.createStatement();
         sa.execute("CREATE TABLE TEST(ID VARCHAR)");
         sa.execute("INSERT INTO TEST (ID) VALUES('abc')");
-        sb.execute("CREATE LOCAL TEMPORARY LINKED TABLE T" + 
+        sb.execute("CREATE LOCAL TEMPORARY LINKED TABLE T" +
                 "(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
 
         PreparedStatement paData = ca.prepareStatement(
@@ -669,7 +669,7 @@ public class TestLinkedTable extends TestBase {
 
         for (String file : FileUtils.newDirectoryStream(getBaseDir())) {
             String name = FileUtils.getName(file);
-            if ((name.startsWith("testLinkedTableInReadOnlyDb")) && 
+            if ((name.startsWith("testLinkedTableInReadOnlyDb")) &&
                     (!name.endsWith(".trace.db"))) {
                 FileUtils.setReadOnly(file);
                 boolean isReadOnly = !FileUtils.canWrite(file);
@@ -682,7 +682,7 @@ public class TestLinkedTable extends TestBase {
         // Now it's read only
         conn = DriverManager.getConnection(url1, "sa1", "abc abc");
         stat = conn.createStatement();
-        stat.execute("CREATE LOCAL TEMPORARY LINKED TABLE T" + 
+        stat.execute("CREATE LOCAL TEMPORARY LINKED TABLE T" +
                 "(NULL, 'jdbc:h2:mem:one', 'sa', 'sa', 'TEST')");
         // This is valid because it's a linked table
         stat.execute("INSERT INTO T VALUES('abc')");

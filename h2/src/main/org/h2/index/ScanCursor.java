@@ -58,7 +58,8 @@ public class ScanCursor implements Cursor {
                     }
                 } else {
                     row = scan.getNextRow(row);
-                    if (row != null && row.getSessionId() != 0 && row.getSessionId() != session.getId()) {
+                    if (row != null && row.getSessionId() != 0 &&
+                            row.getSessionId() != session.getId()) {
                         continue;
                     }
                 }

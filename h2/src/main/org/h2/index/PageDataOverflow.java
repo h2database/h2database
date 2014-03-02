@@ -143,7 +143,8 @@ public class PageDataOverflow extends Page {
             nextPage = data.readInt();
             size = store.getPageSize() - data.length();
         } else {
-            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "page:" + getPos() + " type:" + type);
+            throw DbException.get(ErrorCode.FILE_CORRUPTED_1, "page:" +
+                    getPos() + " type:" + type);
         }
         start = data.length();
     }
@@ -194,7 +195,8 @@ public class PageDataOverflow extends Page {
 
     @Override
     public String toString() {
-        return "page[" + getPos() + "] data leaf overflow parent:" + parentPageId + " next:" + nextPage;
+        return "page[" + getPos() + "] data leaf overflow parent:" +
+                parentPageId + " next:" + nextPage;
     }
 
     /**
@@ -225,7 +227,8 @@ public class PageDataOverflow extends Page {
             next = (PageDataOverflow) store.getPage(nextPage);
         }
         store.logUndo(this, data);
-        PageDataOverflow p2 = PageDataOverflow.create(store, newPos, type, parentPageId, nextPage, data, start, size);
+        PageDataOverflow p2 = PageDataOverflow.create(store, newPos, type,
+                parentPageId, nextPage, data, start, size);
         store.update(p2);
         if (next != null) {
             next.setParentPageId(newPos);

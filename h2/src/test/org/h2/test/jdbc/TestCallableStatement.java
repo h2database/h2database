@@ -199,7 +199,7 @@ public class TestCallableStatement extends TestBase {
 
     private void testCallWithResult(Connection conn) throws SQLException {
         CallableStatement call;
-        for (String s : new String[]{"{?= call abs(?)}", 
+        for (String s : new String[]{"{?= call abs(?)}",
                 " { ? = call abs(?)}", " {? = call abs(?)}"}) {
             call = conn.prepareCall(s);
             call.setInt(2, -3);
@@ -237,7 +237,7 @@ public class TestCallableStatement extends TestBase {
         assertEquals(1, rs.getInt(1));
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
-        stat.execute("CREATE ALIAS testCall FOR \"" + 
+        stat.execute("CREATE ALIAS testCall FOR \"" +
                     getClass().getName() + ".testCall\"");
         call = conn.prepareCall("{CALL testCall(?, ?, ?, ?)}");
         call.setInt("A", 50);
@@ -317,27 +317,27 @@ public class TestCallableStatement extends TestBase {
             // expected exception
         }
 
-        call.setCharacterStream("B", 
+        call.setCharacterStream("B",
                 new StringReader("xyz"));
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
-        call.setCharacterStream("B", 
+        call.setCharacterStream("B",
                 new StringReader("xyz-"), 3);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
-        call.setCharacterStream("B", 
+        call.setCharacterStream("B",
                 new StringReader("xyz-"), 3L);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
-        call.setAsciiStream("B", 
+        call.setAsciiStream("B",
                 new ByteArrayInputStream("xyz".getBytes("UTF-8")));
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
-        call.setAsciiStream("B", 
+        call.setAsciiStream("B",
                 new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
-        call.setAsciiStream("B", 
+        call.setAsciiStream("B",
                 new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3L);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));

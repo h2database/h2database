@@ -68,7 +68,7 @@ public class TaskProcess {
             String line = reader.readLine();
             if (line == null) {
                 throw new RuntimeException(
-                        "No reply from process, command: " + 
+                        "No reply from process, command: " +
                         StringUtils.arrayCombine(procDef, ' '));
             } else if (line.startsWith("running")) {
                 traceOperation("got reply: " + line);

@@ -120,7 +120,7 @@ public class TestBigDb extends TestBase {
         deleteDb("bigDb");
         Connection conn = getConnection("bigDb");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT, NEG INT AS -ID, " + 
+        stat.execute("CREATE TABLE TEST(ID INT, NEG INT AS -ID, " +
                 "NAME VARCHAR, PRIMARY KEY(ID, NAME))");
         stat.execute("CREATE INDEX IDX_NEG ON TEST(NEG, NAME)");
         PreparedStatement prep = conn.prepareStatement(

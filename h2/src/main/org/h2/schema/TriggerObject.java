@@ -68,7 +68,8 @@ public class TriggerObject extends SchemaObjectBase {
             Connection c2 = sysSession.createConnection(false);
             Object obj = Utils.loadUserClass(triggerClassName).newInstance();
             triggerCallback = (Trigger) obj;
-            triggerCallback.init(c2, getSchema().getName(), getName(), table.getName(), before, typeMask);
+            triggerCallback.init(c2, getSchema().getName(), getName(),
+                    table.getName(), before, typeMask);
         } catch (Throwable e) {
             // try again later
             triggerCallback = null;
@@ -154,7 +155,8 @@ public class TriggerObject extends SchemaObjectBase {
      * @param rollback when the operation occurred within a rollback
      * @return true if no further action is required (for 'instead of' triggers)
      */
-    public boolean fireRow(Session session, Row oldRow, Row newRow, boolean beforeAction, boolean rollback) {
+    public boolean fireRow(Session session, Row oldRow, Row newRow,
+            boolean beforeAction, boolean rollback) {
         if (!rowBased || before != beforeAction) {
             return false;
         }

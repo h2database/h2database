@@ -321,7 +321,7 @@ public class Recover extends Tool implements DataHandler {
             } else if (fileName.endsWith(Constants.SUFFIX_LOB_FILE)) {
                 dumpLob(fileName, false);
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
-                String f = fileName.substring(0, fileName.length() - 
+                String f = fileName.substring(0, fileName.length() -
                         Constants.SUFFIX_PAGE_FILE.length());
                 PrintWriter writer = getWriter(f + ".h2.db", ".sql");
                 dumpMVStoreFile(writer, fileName);
@@ -445,19 +445,19 @@ public class Recover extends Tool implements DataHandler {
     }
 
     private void dumpPageStore(String fileName) {
-        setDatabaseName(fileName.substring(0, fileName.length() - 
+        setDatabaseName(fileName.substring(0, fileName.length() -
                 Constants.SUFFIX_PAGE_FILE.length()));
         PrintWriter writer = null;
         stat = new Stats();
         try {
             writer = getWriter(fileName, ".sql");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + 
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" +
                     this.getClass().getName() + ".readBlob\";");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + 
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" +
                     this.getClass().getName() + ".readClob\";");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" + 
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" +
                     this.getClass().getName() + ".readBlobDb\";");
-            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" + 
+            writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" +
                     this.getClass().getName() + ".readClobDb\";");
             resetSchema();
             store = FileStore.open(null, fileName, remove ? "rw" : "r");
@@ -477,7 +477,7 @@ public class Recover extends Tool implements DataHandler {
             writer.println("-- pageSize: " + pageSize +
                     " writeVersion: " + writeVersion +
                     " readVersion: " + readVersion);
-            if (pageSize < PageStore.PAGE_SIZE_MIN || 
+            if (pageSize < PageStore.PAGE_SIZE_MIN ||
                     pageSize > PageStore.PAGE_SIZE_MAX) {
                 pageSize = Constants.DEFAULT_PAGE_SIZE;
                 writer.println("-- ERROR: page size; using " + pageSize);
@@ -518,7 +518,7 @@ public class Recover extends Tool implements DataHandler {
                 writer.println("-- head " + i +
                         ": writeCounter: " + writeCounter +
                         " log " + key + ":" + firstTrunkPage + "/" + firstDataPage +
-                        " crc " + got + " (" + (expected == got ? 
+                        " crc " + got + " (" + (expected == got ?
                                 "ok" : ("expected: " + expected)) + ")");
             }
             writer.println("-- log " + logKey + ":" + logFirstTrunkPage +
@@ -537,14 +537,14 @@ public class Recover extends Tool implements DataHandler {
             dumpPageStore(writer, pageCount);
             writeSchema(writer);
             try {
-                dumpPageLogStream(writer, logKey, logFirstTrunkPage, 
+                dumpPageLogStream(writer, logKey, logFirstTrunkPage,
                         logFirstDataPage, pageCount);
             } catch (IOException e) {
                 // ignore
             }
             writer.println("---- Statistics ----");
             writer.println("-- page count: " + pageCount + ", free: " + stat.free);
-            long total = Math.max(1, stat.pageDataRows + 
+            long total = Math.max(1, stat.pageDataRows +
                     stat.pageDataEmpty + stat.pageDataHead);
             writer.println("-- page data bytes: head " + stat.pageDataHead +
                     ", empty " + stat.pageDataEmpty +
@@ -553,7 +553,7 @@ public class Recover extends Tool implements DataHandler {
             for (int i = 0; i < stat.pageTypeCount.length; i++) {
                 int count = stat.pageTypeCount[i];
                 if (count > 0) {
-                    writer.println("-- " + getPageType(i) + " " + 
+                    writer.println("-- " + getPageType(i) + " " +
                             (100 * count / pageCount) + "%, " + count + " page(s)");
                 }
             }
@@ -568,20 +568,20 @@ public class Recover extends Tool implements DataHandler {
 
     private void dumpMVStoreFile(PrintWriter writer, String fileName) {
         writer.println("-- MVStore");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" + 
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB FOR \"" +
                 this.getClass().getName() + ".readBlob\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" + 
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB FOR \"" +
                 this.getClass().getName() + ".readClob\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" + 
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_DB FOR \"" +
                 this.getClass().getName() + ".readBlobDb\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" + 
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_DB FOR \"" +
                 this.getClass().getName() + ".readClobDb\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_MAP FOR \"" + 
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_BLOB_MAP FOR \"" +
                 this.getClass().getName() + ".readBlobMap\";");
-        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_MAP FOR \"" + 
+        writer.println("CREATE ALIAS IF NOT EXISTS READ_CLOB_MAP FOR \"" +
                 this.getClass().getName() + ".readClobMap\";");
         resetSchema();
-        setDatabaseName(fileName.substring(0, fileName.length() - 
+        setDatabaseName(fileName.substring(0, fileName.length() -
                 Constants.SUFFIX_MV_FILE.length()));
         MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open();
         dumpLobMaps(writer, mv);
@@ -747,9 +747,10 @@ public class Recover extends Tool implements DataHandler {
                 setStorage(s.readVarInt());
                 int columnCount = s.readVarInt();
                 int entries = s.readShortInt();
-                writer.println("-- page " + page + ": data leaf " + 
+                writer.println("-- page " + page + ": data leaf " +
                         (last ? "(last) " : "") + "parent: " + parentPageId +
-                        " table: " + storageId + " entries: " + entries + " columns: " + columnCount);
+                        " table: " + storageId + " entries: " + entries +
+                        " columns: " + columnCount);
                 dumpPageDataLeaf(writer, s, last, page, columnCount, entries);
                 break;
             }
@@ -760,16 +761,17 @@ public class Recover extends Tool implements DataHandler {
                 setStorage(s.readVarInt());
                 int rowCount = s.readInt();
                 int entries = s.readShortInt();
-                writer.println("-- page " + page + ": data node " + 
+                writer.println("-- page " + page + ": data node " +
                         (last ? "(last) " : "") + "parent: " + parentPageId +
-                        " table: " + storageId + " entries: " + entries + " rowCount: " + rowCount);
+                        " table: " + storageId + " entries: " + entries +
+                        " rowCount: " + rowCount);
                 dumpPageDataNode(writer, s, page, entries);
                 break;
             }
             // type 3
             case Page.TYPE_DATA_OVERFLOW:
                 stat.pageTypeCount[type]++;
-                writer.println("-- page " + page + ": data overflow " + 
+                writer.println("-- page " + page + ": data overflow " +
                         (last ? "(last) " : ""));
                 break;
             // type 4
@@ -778,7 +780,7 @@ public class Recover extends Tool implements DataHandler {
                 int parentPageId = s.readInt();
                 setStorage(s.readVarInt());
                 int entries = s.readShortInt();
-                writer.println("-- page " + page + ": b-tree leaf " + 
+                writer.println("-- page " + page + ": b-tree leaf " +
                         (last ? "(last) " : "") + "parent: " + parentPageId +
                         " index: " + storageId + " entries: " + entries);
                 if (trace) {
@@ -791,7 +793,7 @@ public class Recover extends Tool implements DataHandler {
                 stat.pageTypeCount[type]++;
                 int parentPageId = s.readInt();
                 setStorage(s.readVarInt());
-                writer.println("-- page " + page + ": b-tree node " + 
+                writer.println("-- page " + page + ": b-tree node " +
                         (last ? "(last) " : "") +  "parent: " + parentPageId +
                         " index: " + storageId);
                 dumpPageBtreeNode(writer, s, page, !last);
@@ -826,7 +828,7 @@ public class Recover extends Tool implements DataHandler {
             throws IOException {
         Data s = Data.create(this, pageSize);
         DataReader in = new DataReader(
-                new PageInputStream(writer, this, store, logKey, 
+                new PageInputStream(writer, this, store, logKey,
                 logFirstTrunkPage, logFirstDataPage, pageSize)
         );
         writer.println("---- Transaction log ----");
@@ -944,7 +946,7 @@ public class Recover extends Tool implements DataHandler {
                     } else {
                         String tableName = tableMap.get(storageId);
                         if (tableName != null) {
-                            String sql = "DELETE FROM " + tableName + 
+                            String sql = "DELETE FROM " + tableName +
                                     " WHERE _ROWID_ = " + key + ";";
                             writer.println(sql);
                         }
@@ -1084,7 +1086,7 @@ public class Recover extends Tool implements DataHandler {
                 int t = page.readByte();
                 page.readShortInt();
                 if (t != Page.TYPE_STREAM_TRUNK) {
-                    writer.println("-- log eof " + trunkPage + " type: " + t + 
+                    writer.println("-- log eof " + trunkPage + " type: " + t +
                             " expected type: " + Page.TYPE_STREAM_TRUNK);
                     endOfFile = true;
                     return;
@@ -1093,11 +1095,11 @@ public class Recover extends Tool implements DataHandler {
                 int key = page.readInt();
                 logKey++;
                 if (key != logKey) {
-                    writer.println("-- log eof " + trunkPage + 
+                    writer.println("-- log eof " + trunkPage +
                             " type: " + t + " expected key: " + logKey + " got: " + key);
                 }
                 nextTrunkPage = page.readInt();
-                writer.println("-- log " + key + ":" + trunkPage + 
+                writer.println("-- log " + key + ":" + trunkPage +
                         " next: " + nextTrunkPage);
                 int pageCount = page.readShortInt();
                 for (int i = 0; i < pageCount; i++) {
@@ -1121,7 +1123,7 @@ public class Recover extends Tool implements DataHandler {
                 store.readFully(page.getBytes(), 0, pageSize);
                 page.reset();
                 int t = page.readByte();
-                if (t != 0 && !PageStore.checksumTest(page.getBytes(), 
+                if (t != 0 && !PageStore.checksumTest(page.getBytes(),
                         (int) nextPage, pageSize)) {
                     writer.println("-- ERROR: checksum mismatch page: " +nextPage);
                     endOfFile = true;
@@ -1183,10 +1185,10 @@ public class Recover extends Tool implements DataHandler {
                     continue;
                 }
             }
-            writer.println("-- [" + i + "] child: " + children[i] + 
+            writer.println("-- [" + i + "] child: " + children[i] +
                     " key: " + key + " data: " + data);
         }
-        writer.println("-- [" + entryCount + "] child: " + 
+        writer.println("-- [" + entryCount + "] child: " +
                 children[entryCount] + " rowCount: " + rowCount);
     }
 
@@ -1257,10 +1259,10 @@ public class Recover extends Tool implements DataHandler {
             int index) {
         int child = children[index];
         if (child < 0 || child >= parents.length) {
-            writer.println("-- ERROR [" + pageId + "] child[" + 
+            writer.println("-- ERROR [" + pageId + "] child[" +
                     index + "]: " + child + " >= page count: " + parents.length);
         } else if (parents[child] != pageId) {
-            writer.println("-- ERROR [" + pageId + "] child[" + 
+            writer.println("-- ERROR [" + pageId + "] child[" +
                     index + "]: " + child + " parent: " + parents[child]);
         }
     }
@@ -1323,7 +1325,7 @@ public class Recover extends Tool implements DataHandler {
                 s2.readInt();
                 if (type == (Page.TYPE_DATA_OVERFLOW | Page.FLAG_LAST)) {
                     int size = s2.readShortInt();
-                    writer.println("-- chain: " + next + 
+                    writer.println("-- chain: " + next +
                             " type: " + type + " size: " + size);
                     s.checkCapacity(size);
                     s.write(s2.getBytes(), s2.length(), size);
@@ -1335,7 +1337,7 @@ public class Recover extends Tool implements DataHandler {
                         break;
                     }
                     int size = pageSize - s2.length();
-                    writer.println("-- chain: " + next + " type: " + type + 
+                    writer.println("-- chain: " + next + " type: " + type +
                             " size: " + size + " next: " + next);
                     s.checkCapacity(size);
                     s.write(s2.getBytes(), s2.length(), size);
@@ -1349,7 +1351,7 @@ public class Recover extends Tool implements DataHandler {
             long key = keys[i];
             int off = offsets[i];
             if (trace) {
-                writer.println("-- [" + i + "] storage: " + storageId + 
+                writer.println("-- [" + i + "] storage: " + storageId +
                         " key: " + key + " off: " + off);
             }
             s.setPos(off);
@@ -1362,7 +1364,7 @@ public class Recover extends Tool implements DataHandler {
                     if (sql.startsWith("CREATE USER ")) {
                         int saltIndex = Utils.indexOf(s.getBytes(), "SALT ".getBytes(), off);
                         if (saltIndex >= 0) {
-                            String userName = sql.substring("CREATE USER ".length(), 
+                            String userName = sql.substring("CREATE USER ".length(),
                                     sql.indexOf("SALT ") - 1);
                             if (userName.startsWith("IF NOT EXISTS ")) {
                                 userName = userName.substring("IF NOT EXISTS ".length());
@@ -1383,7 +1385,8 @@ public class Recover extends Tool implements DataHandler {
                                 append(StringUtils.convertBytesToHex(passwordHash)).
                                 append('\'');
                             byte[] replacement = buff.toString().getBytes();
-                            System.arraycopy(replacement, 0, s.getBytes(), saltIndex, replacement.length);
+                            System.arraycopy(replacement, 0, s.getBytes(),
+                                    saltIndex, replacement.length);
                             seek(pageId);
                             store.write(s.getBytes(), 0, pageSize);
                             if (trace) {
@@ -1487,7 +1490,7 @@ public class Recover extends Tool implements DataHandler {
                     writer.println("DELETE FROM " + name + ";");
                     writer.println("INSERT INTO " + name + " SELECT * FROM " + storageName + ";");
                     if (name.startsWith("INFORMATION_SCHEMA.LOBS")) {
-                        writer.println("UPDATE " + name + " SET TABLE = " + 
+                        writer.println("UPDATE " + name + " SET TABLE = " +
                                 LobStorageFrontend.TABLE_TEMP + ";");
                         deleteLobs = true;
                     }
@@ -1514,7 +1517,7 @@ public class Recover extends Tool implements DataHandler {
         writer.println("DROP ALIAS READ_BLOB_DB;");
         writer.println("DROP ALIAS READ_CLOB_DB;");
         if (deleteLobs) {
-            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " + 
+            writer.println("DELETE FROM INFORMATION_SCHEMA.LOBS WHERE TABLE = " +
                     LobStorageFrontend.TABLE_TEMP + ";");
         }
         for (MetaRecord m : schema) {

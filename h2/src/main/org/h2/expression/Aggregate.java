@@ -317,7 +317,7 @@ public class Aggregate extends Expression {
                 });
             }
             StatementBuilder buff = new StatementBuilder();
-            String sep = groupConcatSeparator == null ? 
+            String sep = groupConcatSeparator == null ?
                     "," : groupConcatSeparator.getValue(session).getString();
             for (Value val : list) {
                 String s;
@@ -585,7 +585,7 @@ public class Aggregate extends Expression {
         if (on != null && !on.isEverything(visitor)) {
             return false;
         }
-        if (groupConcatSeparator != null && 
+        if (groupConcatSeparator != null &&
                 !groupConcatSeparator.isEverything(visitor)) {
             return false;
         }

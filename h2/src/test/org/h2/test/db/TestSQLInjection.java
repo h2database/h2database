@@ -40,7 +40,7 @@ public class TestSQLInjection extends TestBase {
         deleteDb("sqlInjection");
         reconnect("sqlInjection");
         stat.execute("DROP TABLE IF EXISTS USERS");
-        stat.execute("CREATE TABLE USERS(NAME VARCHAR PRIMARY KEY, " + 
+        stat.execute("CREATE TABLE USERS(NAME VARCHAR PRIMARY KEY, " +
                 "PASSWORD VARCHAR, TYPE VARCHAR)");
         stat.execute("CREATE SCHEMA CONST");
         stat.execute("CREATE CONSTANT CONST.ACTIVE VALUE 'Active'");

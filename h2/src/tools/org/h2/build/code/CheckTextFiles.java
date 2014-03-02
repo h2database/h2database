@@ -32,7 +32,7 @@ public class CheckTextFiles {
     private static final String[] SUFFIX_IGNORE = { "gif", "png", "odg", "ico",
             "sxd", "layout", "res", "win", "jar", "task", "svg", "MF", "mf",
             "sh", "DS_Store", "prop" };
-   private static final String[] SUFFIX_CRLF = { "bat" };
+    private static final String[] SUFFIX_CRLF = { "bat" };
 
     private static final boolean ALLOW_TAB = false;
     private static final boolean ALLOW_CR = true;
@@ -273,7 +273,8 @@ public class CheckTextFiles {
                     if (data[j] != 32) {
                         int mod = (j - i - 1) & 3;
                         if (mod != 0 && (mod != 1 || data[j] != '*')) {
-                            fail(file, "contains wrong number of heading spaces: " + (j - i - 1), line);
+                            fail(file, "contains wrong number " +
+                                    "of heading spaces: " + (j - i - 1), line);
                         }
                         break;
                     }

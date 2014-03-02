@@ -146,7 +146,7 @@ public class IOUtils {
      */
     public static long copy(InputStream in, OutputStream out)
             throws IOException {
-       return copy(in, out, Long.MAX_VALUE);
+        return copy(in, out, Long.MAX_VALUE);
     }
 
     /**

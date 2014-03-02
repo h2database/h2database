@@ -116,9 +116,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     private void testFunctionTable() throws SQLException {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("create alias simple_function_table for \"" + 
+        stat.execute("create alias simple_function_table for \"" +
                 TestFunctions.class.getName() + ".simpleFunctionTable\"");
-        stat.execute("select * from simple_function_table() " + 
+        stat.execute("select * from simple_function_table() " +
                 "where a>0 and b in ('x', 'y')");
         conn.close();
     }
@@ -141,25 +141,25 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
 
-        String createSQL = "CREATE TABLE testNvl2(id BIGINT, txt1 " + 
+        String createSQL = "CREATE TABLE testNvl2(id BIGINT, txt1 " +
                 "varchar, txt2 varchar, num number(9, 0));";
         stat.execute(createSQL);
-        stat.execute("insert into testNvl2(id, txt1, txt2, num) " + 
+        stat.execute("insert into testNvl2(id, txt1, txt2, num) " +
                 "values(1, 'test1', 'test2', null)");
-        stat.execute("insert into testNvl2(id, txt1, txt2, num) " + 
+        stat.execute("insert into testNvl2(id, txt1, txt2, num) " +
                 "values(2, null, 'test4', null)");
-        stat.execute("insert into testNvl2(id, txt1, txt2, num) " + 
+        stat.execute("insert into testNvl2(id, txt1, txt2, num) " +
                 "values(3, 'test5', null, null)");
-        stat.execute("insert into testNvl2(id, txt1, txt2, num) " + 
+        stat.execute("insert into testNvl2(id, txt1, txt2, num) " +
                 "values(4, null, null, null)");
-        stat.execute("insert into testNvl2(id, txt1, txt2, num) " + 
+        stat.execute("insert into testNvl2(id, txt1, txt2, num) " +
                 "values(5, '2', null, 1)");
-        stat.execute("insert into testNvl2(id, txt1, txt2, num) " + 
+        stat.execute("insert into testNvl2(id, txt1, txt2, num) " +
                 "values(6, '2', null, null)");
-        stat.execute("insert into testNvl2(id, txt1, txt2, num) " + 
+        stat.execute("insert into testNvl2(id, txt1, txt2, num) " +
                 "values(7, 'test2', null, null)");
 
-        String query = "SELECT NVL2(txt1, txt1, txt2), txt1 " + 
+        String query = "SELECT NVL2(txt1, txt1, txt2), txt1 " +
                 "FROM testNvl2 order by id asc";
         ResultSet rs = stat.executeQuery(query);
         rs.next();
@@ -174,18 +174,18 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         actual = rs.getString(1);
         assertEquals(null, actual);
-        assertEquals(rs.getMetaData().getColumnType(2), 
+        assertEquals(rs.getMetaData().getColumnType(2),
                 rs.getMetaData().getColumnType(1));
         rs.close();
 
-        rs = stat.executeQuery("SELECT NVL2(num, num, txt1), num " + 
+        rs = stat.executeQuery("SELECT NVL2(num, num, txt1), num " +
                 "FROM testNvl2 where id in(5, 6) order by id asc");
         rs.next();
-        assertEquals(rs.getMetaData().getColumnType(2), 
+        assertEquals(rs.getMetaData().getColumnType(2),
                 rs.getMetaData().getColumnType(1));
 
         assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, stat).
-                executeQuery("SELECT NVL2(num, num, txt1), num " + 
+                executeQuery("SELECT NVL2(num, num, txt1), num " +
                         "FROM testNvl2 where id = 7 order by id asc");
 
         // nvl2 should return expr2's datatype, if expr2 is character data.
@@ -193,7 +193,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         actual = rs.getString(1);
         assertEquals("test", actual);
-        assertEquals(rs.getMetaData().getColumnType(2), 
+        assertEquals(rs.getMetaData().getColumnType(2),
                 rs.getMetaData().getColumnType(1));
 
         conn.close();
@@ -203,21 +203,21 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
 
-        String createSQL = "CREATE TABLE testConcat(id BIGINT, txt1 " + 
+        String createSQL = "CREATE TABLE testConcat(id BIGINT, txt1 " +
                 "varchar, txt2 varchar, txt3 varchar);";
         stat.execute(createSQL);
-        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " + 
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " +
                 "values(1, 'test1', 'test2', 'test3')");
-        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " + 
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " +
                 "values(2, 'test1', 'test2', null)");
-        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " + 
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " +
                 "values(3, 'test1', null, null)");
-        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " + 
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " +
                 "values(4, null, 'test2', null)");
-        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " + 
+        stat.execute("insert into testConcat(id, txt1, txt2, txt3) " +
                 "values(5, null, null, null)");
 
-        String query = "SELECT concat_ws('_',txt1, txt2, txt3), txt1 " + 
+        String query = "SELECT concat_ws('_',txt1, txt2, txt3), txt1 " +
                 "FROM testConcat order by id asc";
         ResultSet rs = stat.executeQuery(query);
         rs.next();
@@ -249,7 +249,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        stat.execute("create alias TO_CHAR_2 for \"" + 
+        stat.execute("create alias TO_CHAR_2 for \"" +
                 getClass().getName() + ".toChar\"");
         rs = stat.executeQuery(
                 "call TO_CHAR_2(TIMESTAMP '2001-02-03 04:05:06', 'format')");
@@ -315,14 +315,14 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         stat.execute(createSQL);
         stat.execute("insert into testGreatest values (1)");
 
-        String query = "SELECT GREATEST(id, " + 
+        String query = "SELECT GREATEST(id, " +
                 ((long) Integer.MAX_VALUE) + ") FROM testGreatest";
         ResultSet rs = stat.executeQuery(query);
         rs.next();
         Object o = rs.getObject(1);
         assertEquals(Long.class.getName(), o.getClass().getName());
 
-        String query2 = "SELECT GREATEST(id, " + 
+        String query2 = "SELECT GREATEST(id, " +
                 ((long) Integer.MAX_VALUE + 1) + ") FROM testGreatest";
         ResultSet rs2 = stat.executeQuery(query2);
         rs2.next();
@@ -338,7 +338,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         ResultSet rs;
         stat.execute("create force alias sayHi as 'String test(String name) {\n" +
                 "return \"Hello \" + name;\n}'");
-        rs = stat.executeQuery("SELECT ALIAS_NAME " + 
+        rs = stat.executeQuery("SELECT ALIAS_NAME " +
                 "FROM INFORMATION_SCHEMA.FUNCTION_ALIASES");
         rs.next();
         assertEquals("SAY" + "HI", rs.getString(1));
@@ -361,7 +361,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         ResultSet rs;
-        stat.execute("create alias dynamic deterministic for \"" + 
+        stat.execute("create alias dynamic deterministic for \"" +
                 getClass().getName() + ".dynamic\"");
         setCount(0);
         rs = stat.executeQuery("call dynamic(('a', 1))[0]");
@@ -413,8 +413,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.next();
         assertEquals(0, rs.getInt(1));
         stat.execute("drop alias getCount");
-        rs = stat.executeQuery("SELECT * FROM " + 
-                "INFORMATION_SCHEMA.FUNCTION_ALIASES " + 
+        rs = stat.executeQuery("SELECT * FROM " +
+                "INFORMATION_SCHEMA.FUNCTION_ALIASES " +
                 "WHERE UPPER(ALIAS_NAME) = 'GET' || 'COUNT'");
         assertFalse(rs.next());
         stat.execute("create alias reverse deterministic for \""+
@@ -514,13 +514,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
         assertEquals("MEAN2", rs.getString("PROCEDURE_NAME"));
         assertEquals("P2", rs.getString("COLUMN_NAME"));
-        assertEquals(DatabaseMetaData.procedureColumnIn, 
+        assertEquals(DatabaseMetaData.procedureColumnIn,
                 rs.getInt("COLUMN_TYPE"));
         assertEquals("OTHER", rs.getString("TYPE_NAME"));
         assertEquals(Integer.MAX_VALUE, rs.getInt("PRECISION"));
         assertEquals(Integer.MAX_VALUE, rs.getInt("LENGTH"));
         assertEquals(0, rs.getInt("SCALE"));
-        assertEquals(DatabaseMetaData.columnNullable, 
+        assertEquals(DatabaseMetaData.columnNullable,
                 rs.getInt("NULLABLE"));
         assertEquals("", rs.getString("REMARKS"));
         assertEquals(null, rs.getString("COLUMN_DEF"));
@@ -553,17 +553,17 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         OutputStream out = FileUtils.newOutputStream(fileName, false);
         prop.store(out, "");
         out.close();
-        ResultSet rs = stat.executeQuery("SELECT LENGTH(FILE_READ('" + 
+        ResultSet rs = stat.executeQuery("SELECT LENGTH(FILE_READ('" +
                 fileName + "')) LEN");
         rs.next();
         assertEquals(FileUtils.size(fileName), rs.getInt(1));
-        rs = stat.executeQuery("SELECT FILE_READ('" + 
+        rs = stat.executeQuery("SELECT FILE_READ('" +
                 fileName + "') PROP");
         rs.next();
         Properties p2 = new Properties();
         p2.load(rs.getBinaryStream(1));
         assertEquals(prop.size(), p2.size());
-        rs = stat.executeQuery("SELECT FILE_READ('" + 
+        rs = stat.executeQuery("SELECT FILE_READ('" +
                 fileName + "', NULL) PROP");
         rs.next();
         String ps = rs.getString(1);
@@ -636,9 +636,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE AGGREGATE MEDIAN FOR \"" + 
+        stat.execute("CREATE AGGREGATE MEDIAN FOR \"" +
                 MedianStringType.class.getName() + "\"");
-        stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" + 
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" +
                 MedianStringType.class.getName() + "\"");
         ResultSet rs = stat.executeQuery(
                 "SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
@@ -675,9 +675,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE AGGREGATE MEDIAN FOR \"" + 
+        stat.execute("CREATE AGGREGATE MEDIAN FOR \"" +
                 MedianString.class.getName() + "\"");
-        stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" + 
+        stat.execute("CREATE AGGREGATE IF NOT EXISTS MEDIAN FOR \"" +
                 MedianString.class.getName() + "\"");
         ResultSet rs = stat.executeQuery(
                 "SELECT MEDIAN(X) FROM SYSTEM_RANGE(1, 9)");
@@ -719,7 +719,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertCallResult("1", stat, "abs(1)");
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        stat.execute("CREATE ALIAS ADD_ROW FOR \"" + 
+        stat.execute("CREATE ALIAS ADD_ROW FOR \"" +
                 getClass().getName() + ".addRow\"");
         ResultSet rs;
         rs = stat.executeQuery("CALL ADD_ROW(1, 'Hello')");
@@ -738,7 +738,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
         assertEquals("ADD_ROW", rs.getString("PROCEDURE_NAME"));
         assertEquals("P2", rs.getString("COLUMN_NAME"));
-        assertEquals(DatabaseMetaData.procedureColumnIn, 
+        assertEquals(DatabaseMetaData.procedureColumnIn,
                 rs.getInt("COLUMN_TYPE"));
         assertEquals("INTEGER", rs.getString("TYPE_NAME"));
         assertEquals(10, rs.getInt("PRECISION"));
@@ -760,9 +760,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         stat.executeQuery("CALL ADD_ROW(2, 'World')");
 
-        stat.execute("CREATE ALIAS SELECT_F FOR \"" + 
+        stat.execute("CREATE ALIAS SELECT_F FOR \"" +
                 getClass().getName() + ".select\"");
-        rs = stat.executeQuery("CALL SELECT_F('SELECT * " + 
+        rs = stat.executeQuery("CALL SELECT_F('SELECT * " +
                 "FROM TEST ORDER BY ID')");
         assertEquals(2, rs.getMetaData().getColumnCount());
         rs.next();
@@ -773,7 +773,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("World", rs.getString(2));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT NAME FROM SELECT_F('SELECT * " + 
+        rs = stat.executeQuery("SELECT NAME FROM SELECT_F('SELECT * " +
                 "FROM TEST ORDER BY NAME') ORDER BY NAME DESC");
         assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
@@ -782,7 +782,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("Hello", rs.getString(1));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT SELECT_F('SELECT * " +   
+        rs = stat.executeQuery("SELECT SELECT_F('SELECT * " +
                 "FROM TEST WHERE ID=' || ID) FROM TEST ORDER BY ID");
         assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
@@ -791,7 +791,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("((2, World))", rs.getString(1));
         assertFalse(rs.next());
 
-        rs = stat.executeQuery("SELECT SELECT_F('SELECT * " + 
+        rs = stat.executeQuery("SELECT SELECT_F('SELECT * " +
                 "FROM TEST ORDER BY ID') FROM DUAL");
         assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
@@ -799,7 +799,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertFalse(rs.next());
         assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).
                 executeQuery("CALL SELECT_F('ERROR')");
-        stat.execute("CREATE ALIAS SIMPLE FOR \"" + 
+        stat.execute("CREATE ALIAS SIMPLE FOR \"" +
                 getClass().getName() + ".simpleResultSet\"");
         rs = stat.executeQuery("CALL SIMPLE(2, 1, 1, 1, 1, 1, 1, 1)");
         assertEquals(2, rs.getMetaData().getColumnCount());
@@ -818,7 +818,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("Hello", rs.getString(2));
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS ARRAY FOR \"" + 
+        stat.execute("CREATE ALIAS ARRAY FOR \"" +
                 getClass().getName() + ".getArray\"");
         rs = stat.executeQuery("CALL ARRAY()");
         assertEquals(1, rs.getMetaData().getColumnCount());
@@ -888,7 +888,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS MAX_ID FOR \"" + 
+        stat.execute("CREATE ALIAS MAX_ID FOR \"" +
                 getClass().getName() + ".selectMaxId\"");
         rs = stat.executeQuery("CALL MAX_ID()");
         rs.next();
@@ -919,7 +919,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
         rs.close();
 
-        stat.execute("create alias sql as " + 
+        stat.execute("create alias sql as " +
                 "'ResultSet sql(Connection conn, String sql) " +
                 "throws SQLException { return conn.createStatement().executeQuery(sql); }'");
         rs = stat.executeQuery("select * from sql('select cast(''Hello'' as clob)')");
@@ -944,9 +944,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("VARCHAR", meta2.getColumnTypeName(2));
         assertEquals("java.lang.String", meta2.getColumnClassName(2));
 
-        stat.execute("CREATE ALIAS blob2stream FOR \"" + 
+        stat.execute("CREATE ALIAS blob2stream FOR \"" +
                 getClass().getName() + ".blob2stream\"");
-        stat.execute("CREATE ALIAS stream2stream FOR \"" + 
+        stat.execute("CREATE ALIAS stream2stream FOR \"" +
                 getClass().getName() + ".stream2stream\"");
         stat.execute("CREATE TABLE TEST_BLOB(ID INT PRIMARY KEY, VALUE BLOB)");
         stat.execute("INSERT INTO TEST_BLOB VALUES(0, null)");
@@ -961,7 +961,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             // ignore
         }
 
-        stat.execute("CREATE ALIAS NULL_RESULT FOR \"" + 
+        stat.execute("CREATE ALIAS NULL_RESULT FOR \"" +
                 getClass().getName() + ".nullResultSet\"");
         rs = stat.executeQuery("CALL NULL_RESULT()");
         assertEquals(1, rs.getMetaData().getColumnCount());
@@ -978,14 +978,14 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(0, rs.getInt("NUM_OUTPUT_PARAMS"));
         assertEquals(0, rs.getInt("NUM_RESULT_SETS"));
         assertEquals("", rs.getString("REMARKS"));
-        assertEquals(DatabaseMetaData.procedureReturnsResult, 
+        assertEquals(DatabaseMetaData.procedureReturnsResult,
                 rs.getInt("PROCEDURE_TYPE"));
         assertEquals("NULL_RESULT", rs.getString("SPECIFIC_NAME"));
 
         rs = meta.getProcedureColumns(null, null, "NULL_RESULT", null);
         assertFalse(rs.next());
 
-        stat.execute("CREATE ALIAS RESULT_WITH_NULL FOR \"" + 
+        stat.execute("CREATE ALIAS RESULT_WITH_NULL FOR \"" +
         getClass().getName() + ".resultSetWithNull\"");
         rs = stat.executeQuery("CALL RESULT_WITH_NULL()");
         assertEquals(1, rs.getMetaData().getColumnCount());
@@ -1001,7 +1001,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         // with white space
-        stat.execute("CREATE ALIAS PARSE_INT2 FOR " + 
+        stat.execute("CREATE ALIAS PARSE_INT2 FOR " +
                 "\"java.lang.Integer.parseInt(java.lang.String, int)\"");
         ResultSet rs;
         rs = stat.executeQuery("CALL PARSE_INT2('473', 10)");
@@ -1009,7 +1009,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(473, rs.getInt(1));
         stat.execute("DROP ALIAS PARSE_INT2");
         // without white space
-        stat.execute("CREATE ALIAS PARSE_INT2 FOR " + 
+        stat.execute("CREATE ALIAS PARSE_INT2 FOR " +
                 "\"java.lang.Integer.parseInt(java.lang.String,int)\"");
         stat.execute("DROP ALIAS PARSE_INT2");
         conn.close();
@@ -1022,23 +1022,23 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         ResultSet rs;
         stat.execute("CREATE SCHEMA TEST");
         stat.execute("SET SCHEMA TEST");
-        stat.execute("CREATE ALIAS PARSE_INT2 FOR " + 
+        stat.execute("CREATE ALIAS PARSE_INT2 FOR " +
                 "\"java.lang.Integer.parseInt(java.lang.String, int)\";");
-        rs = stat.executeQuery("SELECT ALIAS_NAME FROM " + 
+        rs = stat.executeQuery("SELECT ALIAS_NAME FROM " +
                 "INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE ALIAS_SCHEMA ='TEST'");
         rs.next();
         assertEquals("PARSE_INT2", rs.getString(1));
         stat.execute("DROP ALIAS PARSE_INT2");
 
         stat.execute("SET SCHEMA PUBLIC");
-        stat.execute("CREATE ALIAS TEST.PARSE_INT2 FOR " + 
+        stat.execute("CREATE ALIAS TEST.PARSE_INT2 FOR " +
                 "\"java.lang.Integer.parseInt(java.lang.String, int)\";");
         stat.execute("SET SCHEMA_SEARCH_PATH PUBLIC, TEST");
 
         rs = stat.executeQuery("CALL PARSE_INT2('-FF', 16)");
         rs.next();
         assertEquals(-255, rs.getInt(1));
-        rs = stat.executeQuery("SELECT ALIAS_NAME FROM " + 
+        rs = stat.executeQuery("SELECT ALIAS_NAME FROM " +
                 "INFORMATION_SCHEMA.FUNCTION_ALIASES WHERE ALIAS_SCHEMA ='TEST'");
         rs.next();
         assertEquals("PARSE_INT2", rs.getString(1));
@@ -1091,7 +1091,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(1.23d, rs.getDouble(1));
 
         rs = stat.executeQuery(
-                "SELECT CURRENT_TIMESTAMP(), " + 
+                "SELECT CURRENT_TIMESTAMP(), " +
                 "TRUNCATE(CURRENT_TIMESTAMP()) FROM dual");
         rs.next();
         Calendar c = Calendar.getInstance();
@@ -1140,44 +1140,44 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         String tzLongName = tz.getID();
 
         stat.executeUpdate("CREATE TABLE T (X TIMESTAMP(6))");
-        stat.executeUpdate("INSERT INTO T VALUES " + 
+        stat.executeUpdate("INSERT INTO T VALUES " +
                 "(TIMESTAMP '1979-11-12 08:12:34.560')");
         stat.executeUpdate("CREATE TABLE U (X TIMESTAMP(6))");
-        stat.executeUpdate("INSERT INTO U VALUES " + 
+        stat.executeUpdate("INSERT INTO U VALUES " +
                 "(TIMESTAMP '-100-01-15 14:04:02.120')");
 
         assertResult("1979-11-12 08:12:34.56", stat, "SELECT X FROM T");
         assertResult("-100-01-15 14:04:02.12", stat, "SELECT X FROM U");
         assertResult("12-NOV-79 08.12.34.560000 AM", stat, "SELECT TO_CHAR(X) FROM T");
-        assertResult("- / , . ; : text - /", stat, 
+        assertResult("- / , . ; : text - /", stat,
                 "SELECT TO_CHAR(X, '- / , . ; : \"text\" - /') FROM T");
-        assertResult("1979-11-12", stat, 
+        assertResult("1979-11-12", stat,
                 "SELECT TO_CHAR(X, 'YYYY-MM-DD') FROM T");
-        assertResult("1979/11/12", stat, 
+        assertResult("1979/11/12", stat,
                 "SELECT TO_CHAR(X, 'YYYY/MM/DD') FROM T");
-        assertResult("1979,11,12", stat, 
+        assertResult("1979,11,12", stat,
                 "SELECT TO_CHAR(X, 'YYYY,MM,DD') FROM T");
-        assertResult("1979.11.12", stat, 
+        assertResult("1979.11.12", stat,
                 "SELECT TO_CHAR(X, 'YYYY.MM.DD') FROM T");
-        assertResult("1979;11;12", stat, 
+        assertResult("1979;11;12", stat,
                 "SELECT TO_CHAR(X, 'YYYY;MM;DD') FROM T");
-        assertResult("1979:11:12", stat, 
+        assertResult("1979:11:12", stat,
                 "SELECT TO_CHAR(X, 'YYYY:MM:DD') FROM T");
-        assertResult("year 1979!", stat, 
+        assertResult("year 1979!", stat,
                 "SELECT TO_CHAR(X, '\"year \"YYYY\"!\"') FROM T");
-        assertResult("1979 AD", stat, 
+        assertResult("1979 AD", stat,
                 "SELECT TO_CHAR(X, 'YYYY AD') FROM T");
-        assertResult("1979 A.D.", stat, 
+        assertResult("1979 A.D.", stat,
                 "SELECT TO_CHAR(X, 'YYYY A.D.') FROM T");
-        assertResult("0100 B.C.", stat, 
+        assertResult("0100 B.C.", stat,
                 "SELECT TO_CHAR(X, 'YYYY A.D.') FROM U");
-        assertResult("1979 AD", stat, 
+        assertResult("1979 AD", stat,
                 "SELECT TO_CHAR(X, 'YYYY BC') FROM T");
-        assertResult("100 BC", stat, 
+        assertResult("100 BC", stat,
                 "SELECT TO_CHAR(X, 'YYY BC') FROM U");
-        assertResult("00 BC", stat, 
+        assertResult("00 BC", stat,
                 "SELECT TO_CHAR(X, 'YY BC') FROM U");
-        assertResult("0 BC", stat, 
+        assertResult("0 BC", stat,
                 "SELECT TO_CHAR(X, 'Y BC') FROM U");
         assertResult("1979 A.D.", stat, "SELECT TO_CHAR(X, 'YYYY B.C.') FROM T");
         assertResult("08:12 AM", stat, "SELECT TO_CHAR(X, 'HH:MI AM') FROM T");
@@ -1200,16 +1200,16 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("monday   ", stat, "SELECT TO_CHAR(X, 'day') FROM T");
         assertResult("monday   ", stat, "SELECT TO_CHAR(X, 'dAY') FROM T");
         assertResult("Monday", stat, "SELECT TO_CHAR(X, 'fmDay') FROM T");
-        assertResult("monday   -monday-monday-monday   -monday", stat, 
+        assertResult("monday   -monday-monday-monday   -monday", stat,
                 "SELECT TO_CHAR(X, 'day-fmday-day-fmday-fmday') FROM T");
         assertResult("12", stat, "SELECT TO_CHAR(X, 'DD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'DDD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'DdD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'dDD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'ddd') FROM T");
-        assertResult("Monday, November 12, 1979", stat, 
+        assertResult("Monday, November 12, 1979", stat,
                 "SELECT TO_CHAR(X, 'DL') FROM T");
-        assertResult("Monday, November 12, 1979", stat, 
+        assertResult("Monday, November 12, 1979", stat,
                 "SELECT TO_CHAR(X, 'DL', 'NLS_DATE_LANGUAGE = English') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'DS') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'Ds') FROM T");
@@ -1219,29 +1219,29 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("Mon", stat, "SELECT TO_CHAR(X, 'Dy') FROM T");
         assertResult("mon", stat, "SELECT TO_CHAR(X, 'dy') FROM T");
         assertResult("mon", stat, "SELECT TO_CHAR(X, 'dY') FROM T");
-        assertResult("08:12:34.560000", stat, 
+        assertResult("08:12:34.560000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF') FROM T");
-        assertResult("08:12:34.5", stat, 
+        assertResult("08:12:34.5", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF1') FROM T");
-        assertResult("08:12:34.56", stat, 
+        assertResult("08:12:34.56", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF2') FROM T");
-        assertResult("08:12:34.560", stat, 
+        assertResult("08:12:34.560", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF3') FROM T");
-        assertResult("08:12:34.5600", stat, 
+        assertResult("08:12:34.5600", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF4') FROM T");
-        assertResult("08:12:34.56000", stat, 
+        assertResult("08:12:34.56000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF5') FROM T");
-        assertResult("08:12:34.560000", stat, 
+        assertResult("08:12:34.560000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF6') FROM T");
-        assertResult("08:12:34.5600000", stat, 
+        assertResult("08:12:34.5600000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF7') FROM T");
-        assertResult("08:12:34.56000000", stat, 
+        assertResult("08:12:34.56000000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF8') FROM T");
         assertResult("08:12:34.560000000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.FF9') FROM T");
-        assertResult("08:12:34.560000000", stat, 
+        assertResult("08:12:34.560000000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.ff9') FROM T");
-        assertResult("08:12:34.560000000", stat, 
+        assertResult("08:12:34.560000000", stat,
                 "SELECT TO_CHAR(X, 'HH:MI:SS.fF9') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH:MI') FROM T");
         assertResult("08:12", stat, "SELECT TO_CHAR(X, 'HH12:MI') FROM T");
@@ -1300,160 +1300,160 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         String cc = currency.getCurrencyCode();
         String cs = currency.getSymbol();
 
-        assertResult(".45", stat, 
+        assertResult(".45", stat,
                 "SELECT TO_CHAR(0.45) FROM DUAL");
-        assertResult("12923", stat, 
+        assertResult("12923", stat,
                 "SELECT TO_CHAR(12923) FROM DUAL");
-        assertResult(" 12923.00", stat, 
+        assertResult(" 12923.00", stat,
                 "SELECT TO_CHAR(12923, '99999.99', 'NLS_CURRENCY = BTC') FROM DUAL");
-        assertResult("12923.", stat, 
+        assertResult("12923.", stat,
                 "SELECT TO_CHAR(12923, 'FM99999.99', 'NLS_CURRENCY = BTC') FROM DUAL");
-        assertResult("######", stat, 
+        assertResult("######", stat,
                 "SELECT TO_CHAR(12345, '9,999') FROM DUAL");
-        assertResult("######", stat, 
+        assertResult("######", stat,
                 "SELECT TO_CHAR(1234567, '9,999') FROM DUAL");
-        assertResult(" 12,345", stat, 
+        assertResult(" 12,345", stat,
                 "SELECT TO_CHAR(12345, '99,999') FROM DUAL");
         assertResult(" 123,45", stat,
                 "SELECT TO_CHAR(12345, '999,99') FROM DUAL");
-        assertResult("######", stat, 
+        assertResult("######", stat,
                 "SELECT TO_CHAR(12345, '9.999') FROM DUAL");
-        assertResult("#######", stat, 
+        assertResult("#######", stat,
                 "SELECT TO_CHAR(12345, '99.999') FROM DUAL");
-        assertResult("########", stat, 
+        assertResult("########", stat,
                 "SELECT TO_CHAR(12345, '999.999') FROM DUAL");
-        assertResult("#########", stat, 
+        assertResult("#########", stat,
                 "SELECT TO_CHAR(12345, '9999.999') FROM DUAL");
         assertResult(" 12345.000", stat,
                 "SELECT TO_CHAR(12345, '99999.999') FROM DUAL");
-        assertResult("###", stat, 
+        assertResult("###", stat,
                 "SELECT TO_CHAR(12345, '$9') FROM DUAL");
-        assertResult("#####", stat, 
+        assertResult("#####", stat,
                 "SELECT TO_CHAR(12345, '$999') FROM DUAL");
-        assertResult("######", stat, 
+        assertResult("######", stat,
                 "SELECT TO_CHAR(12345, '$9999') FROM DUAL");
-        assertResult("    " + cs + "12345", stat, 
+        assertResult("    " + cs + "12345", stat,
                 "SELECT TO_CHAR(12345, '$99999999') FROM DUAL");
         assertResult("     " + cs + "12,345.35", stat,
                 "SELECT TO_CHAR(12345.345, '$99,999,999.99') FROM DUAL");
-        assertResult("     " + cs + "12,345", stat, 
+        assertResult("     " + cs + "12,345", stat,
                 "SELECT TO_CHAR(12345.345, '$99g999g999') FROM DUAL");
-        assertResult("     12,345.35", stat, 
+        assertResult("     12,345.35", stat,
                 "SELECT TO_CHAR(12345.345, '99,999,999.99') FROM DUAL");
-        assertResult("12,345.35", stat, 
+        assertResult("12,345.35", stat,
                 "SELECT TO_CHAR(12345.345, 'FM99,999,999.99') FROM DUAL");
-        assertResult(" 00,012,345.35", stat, 
+        assertResult(" 00,012,345.35", stat,
                 "SELECT TO_CHAR(12345.345, '00,000,000.00') FROM DUAL");
-        assertResult("00,012,345.35", stat, 
+        assertResult("00,012,345.35", stat,
                 "SELECT TO_CHAR(12345.345, 'FM00,000,000.00') FROM DUAL");
-        assertResult("###", stat, 
+        assertResult("###", stat,
                 "SELECT TO_CHAR(12345, '09') FROM DUAL");
-        assertResult("#####", stat, 
+        assertResult("#####", stat,
                 "SELECT TO_CHAR(12345, '0999') FROM DUAL");
-        assertResult(" 00012345", stat, 
+        assertResult(" 00012345", stat,
                 "SELECT TO_CHAR(12345, '09999999') FROM DUAL");
-        assertResult(" 0000012345", stat, 
+        assertResult(" 0000012345", stat,
                 "SELECT TO_CHAR(12345, '0009999999') FROM DUAL");
         assertResult("###", stat,
                 "SELECT TO_CHAR(12345, '90') FROM DUAL");
-        assertResult("#####", stat, 
+        assertResult("#####", stat,
                 "SELECT TO_CHAR(12345, '9990') FROM DUAL");
-        assertResult("    12345", stat, 
+        assertResult("    12345", stat,
                 "SELECT TO_CHAR(12345, '99999990') FROM DUAL");
-        assertResult("      12345", stat, 
+        assertResult("      12345", stat,
                 "SELECT TO_CHAR(12345, '9999999000') FROM DUAL");
         assertResult("      12345", stat,
                 "SELECT TO_CHAR(12345, '9999999990') FROM DUAL");
-        assertResult("12345", stat, 
+        assertResult("12345", stat,
                 "SELECT TO_CHAR(12345, 'FM9999999990') FROM DUAL");
-        assertResult("   12345.2300", stat, 
+        assertResult("   12345.2300", stat,
                 "SELECT TO_CHAR(12345.23, '9999999.9000') FROM DUAL");
-        assertResult("   12345", stat, 
+        assertResult("   12345", stat,
                 "SELECT TO_CHAR(12345, '9999999') FROM DUAL");
-        assertResult("  12345", stat, 
+        assertResult("  12345", stat,
                 "SELECT TO_CHAR(12345, '999999') FROM DUAL");
-        assertResult(" 12345", stat, 
+        assertResult(" 12345", stat,
                 "SELECT TO_CHAR(12345, '99999') FROM DUAL");
-        assertResult(" 12345", stat, 
+        assertResult(" 12345", stat,
                 "SELECT TO_CHAR(12345, '00000') FROM DUAL");
-        assertResult("#####", stat, 
+        assertResult("#####", stat,
                 "SELECT TO_CHAR(12345, '9999') FROM DUAL");
-        assertResult("#####", stat, 
+        assertResult("#####", stat,
                 "SELECT TO_CHAR(12345, '0000') FROM DUAL");
-        assertResult("   -12345", stat, 
+        assertResult("   -12345", stat,
                 "SELECT TO_CHAR(-12345, '99999999') FROM DUAL");
-        assertResult("  -12345", stat, 
+        assertResult("  -12345", stat,
                 "SELECT TO_CHAR(-12345, '9999999') FROM DUAL");
-        assertResult(" -12345", stat, 
+        assertResult(" -12345", stat,
                 "SELECT TO_CHAR(-12345, '999999') FROM DUAL");
-        assertResult("-12345", stat, 
+        assertResult("-12345", stat,
                 "SELECT TO_CHAR(-12345, '99999') FROM DUAL");
-        assertResult("#####", stat, 
+        assertResult("#####", stat,
                 "SELECT TO_CHAR(-12345, '9999') FROM DUAL");
-        assertResult("####", stat, 
+        assertResult("####", stat,
                 "SELECT TO_CHAR(-12345, '999') FROM DUAL");
-        assertResult("       0", stat, 
+        assertResult("       0", stat,
                 "SELECT TO_CHAR(0, '9999999') FROM DUAL");
-        assertResult(" 00.30", stat, 
+        assertResult(" 00.30", stat,
                 "SELECT TO_CHAR(0.3, '00.99') FROM DUAL");
-        assertResult("00.3", stat, 
+        assertResult("00.3", stat,
                 "SELECT TO_CHAR(0.3, 'FM00.99') FROM DUAL");
-        assertResult(" 00.30", stat, 
+        assertResult(" 00.30", stat,
                 "SELECT TO_CHAR(0.3, '00.00') FROM DUAL");
-        assertResult("   .30000", stat, 
+        assertResult("   .30000", stat,
                 "SELECT TO_CHAR(0.3, '99.00000') FROM DUAL");
-        assertResult(".30000", stat, 
+        assertResult(".30000", stat,
                 "SELECT TO_CHAR(0.3, 'FM99.00000') FROM DUAL");
-        assertResult(" 00.30", stat, 
+        assertResult(" 00.30", stat,
                 "SELECT TO_CHAR(0.3, 'B00.99') FROM DUAL");
-        assertResult("   .30", stat, 
+        assertResult("   .30", stat,
                 "SELECT TO_CHAR(0.3, 'B99.99') FROM DUAL");
-        assertResult("   .30", stat, 
+        assertResult("   .30", stat,
                 "SELECT TO_CHAR(0.3, '99.99') FROM DUAL");
-        assertResult(".3", stat, 
+        assertResult(".3", stat,
                 "SELECT TO_CHAR(0.3, 'FMB99.99') FROM DUAL");
-        assertResult(" 00.30", stat, 
+        assertResult(" 00.30", stat,
                 "SELECT TO_CHAR(0.3, 'B09.99') FROM DUAL");
-        assertResult(" 00.30", stat, 
+        assertResult(" 00.30", stat,
                 "SELECT TO_CHAR(0.3, 'B00.00') FROM DUAL");
         assertResult("     " + cc + "123.45", stat,
                 "SELECT TO_CHAR(123.45, 'C999.99') FROM DUAL");
-        assertResult("    -" + cc + "123.45", stat, 
+        assertResult("    -" + cc + "123.45", stat,
                 "SELECT TO_CHAR(-123.45, 'C999.99') FROM DUAL");
-        assertResult("         " + cc + "123.45", stat, 
+        assertResult("         " + cc + "123.45", stat,
                 "SELECT TO_CHAR(123.45, 'C999,999.99') FROM DUAL");
-        assertResult("         " + cc + "123", stat, 
+        assertResult("         " + cc + "123", stat,
                 "SELECT TO_CHAR(123.45, 'C999g999') FROM DUAL");
-        assertResult(cc + "123.45", stat, 
+        assertResult(cc + "123.45", stat,
                 "SELECT TO_CHAR(123.45, 'FMC999,999.99') FROM DUAL");
-        assertResult("          " + cs + "123.45", stat, 
+        assertResult("          " + cs + "123.45", stat,
                 "SELECT TO_CHAR(123.45, 'L999.99') FROM DUAL");
-        assertResult("         -" + cs + "123.45", stat, 
+        assertResult("         -" + cs + "123.45", stat,
                 "SELECT TO_CHAR(-123.45, 'L999.99') FROM DUAL");
-        assertResult(cs + "123.45", stat, 
+        assertResult(cs + "123.45", stat,
                 "SELECT TO_CHAR(123.45, 'FML999.99') FROM DUAL");
-        assertResult("          " + cs + "123.45", stat, 
+        assertResult("          " + cs + "123.45", stat,
                 "SELECT TO_CHAR(123.45, 'U999.99') FROM DUAL");
-        assertResult("          " + cs + "123.45", stat, 
+        assertResult("          " + cs + "123.45", stat,
                 "SELECT TO_CHAR(123.45, 'u999.99') FROM DUAL");
-        assertResult("   .33", stat, 
+        assertResult("   .33", stat,
                 "SELECT TO_CHAR(0.326, '99D99') FROM DUAL");
-        assertResult("  1.2E+02", stat, 
+        assertResult("  1.2E+02", stat,
                 "SELECT TO_CHAR(123.456, '9.9EEEE') FROM DUAL");
-        assertResult("  1.2E+14", stat, 
+        assertResult("  1.2E+14", stat,
                 "SELECT TO_CHAR(123456789012345, '9.9EEEE') FROM DUAL");
         assertResult("  1E+02", stat, "SELECT TO_CHAR(123.456, '9EEEE') FROM DUAL");
         assertResult("  1E+02", stat, "SELECT TO_CHAR(123.456, '999EEEE') FROM DUAL");
         assertResult("  1E-03", stat, "SELECT TO_CHAR(.00123456, '999EEEE') FROM DUAL");
         assertResult("  1E+00", stat, "SELECT TO_CHAR(1, '999EEEE') FROM DUAL");
         assertResult(" -1E+00", stat, "SELECT TO_CHAR(-1, '999EEEE') FROM DUAL");
-        assertResult("  1.23456000E+02", stat, 
+        assertResult("  1.23456000E+02", stat,
                 "SELECT TO_CHAR(123.456, '00.00000000EEEE') FROM DUAL");
-        assertResult("1.23456000E+02", stat, 
+        assertResult("1.23456000E+02", stat,
                 "SELECT TO_CHAR(123.456, 'fm00.00000000EEEE') FROM DUAL");
-        assertResult(" 1,234,567", stat, 
+        assertResult(" 1,234,567", stat,
                 "SELECT TO_CHAR(1234567, '9G999G999') FROM DUAL");
-        assertResult("-1,234,567", stat, 
+        assertResult("-1,234,567", stat,
                 "SELECT TO_CHAR(-1234567, '9G999G999') FROM DUAL");
         assertResult("123.45-", stat, "SELECT TO_CHAR(-123.45, '999.99MI') FROM DUAL");
         assertResult("123.45-", stat, "SELECT TO_CHAR(-123.45, '999.99mi') FROM DUAL");
@@ -1483,7 +1483,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult(" 42-", stat, "SELECT TO_CHAR(-42, '999S') FROM DUAL");
         assertResult("42", stat, "SELECT TO_CHAR(42, 'TM') FROM DUAL");
         assertResult("-42", stat, "SELECT TO_CHAR(-42, 'TM') FROM DUAL");
-        assertResult("4212341241234.23412342", stat, 
+        assertResult("4212341241234.23412342", stat,
                 "SELECT TO_CHAR(4212341241234.23412342, 'tm') FROM DUAL");
         assertResult(".23412342", stat, "SELECT TO_CHAR(0.23412342, 'tm') FROM DUAL");
         assertResult(" 12300", stat, "SELECT TO_CHAR(123, '999V99') FROM DUAL");
@@ -1491,7 +1491,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("123400", stat, "SELECT TO_CHAR(1234, 'FM9999v99') FROM DUAL");
         assertResult("1234", stat, "SELECT TO_CHAR(123.4, 'FM9999V9') FROM DUAL");
         assertResult("123", stat, "SELECT TO_CHAR(123.4, 'FM9999V') FROM DUAL");
-        assertResult("123400000", stat, 
+        assertResult("123400000", stat,
                 "SELECT TO_CHAR(123.4, 'FM9999V090909') FROM DUAL");
         assertResult("##", stat, "SELECT TO_CHAR(123, 'X') FROM DUAL");
         assertResult(" 7B", stat, "SELECT TO_CHAR(123, 'XX') FROM DUAL");
@@ -1508,15 +1508,15 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("123", stat, "SELECT TO_CHAR(123, 'tm') FROM DUAL");
         assertResult("123", stat, "SELECT TO_CHAR(123, 'tM9') FROM DUAL");
         assertResult("1.23E+02", stat, "SELECT TO_CHAR(123, 'TME') FROM DUAL");
-        assertResult("1.23456789012345E+14", stat, 
+        assertResult("1.23456789012345E+14", stat,
                 "SELECT TO_CHAR(123456789012345, 'TME') FROM DUAL");
         assertResult("4.5E-01", stat, "SELECT TO_CHAR(0.45, 'TME') FROM DUAL");
         assertResult("4.5E-01", stat, "SELECT TO_CHAR(0.45, 'tMe') FROM DUAL");
         assertThrows("Invalid TO_CHAR format \"999.99q\"", stat,
                 "SELECT TO_CHAR(123.45, '999.99q') FROM DUAL");
-        assertThrows("Invalid TO_CHAR format \"fm999.99q\"", stat, 
+        assertThrows("Invalid TO_CHAR format \"fm999.99q\"", stat,
                 "SELECT TO_CHAR(123.45, 'fm999.99q') FROM DUAL");
-        assertThrows("Invalid TO_CHAR format \"q999.99\"", stat, 
+        assertThrows("Invalid TO_CHAR format \"q999.99\"", stat,
                 "SELECT TO_CHAR(123.45, 'q999.99') FROM DUAL");
 
         conn.close();
@@ -1666,7 +1666,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * Test method to create a simple result set.
-     * 
+     *
      * @param rowCount the number of rows
      * @param ip an int
      * @param bp a boolean
@@ -1683,13 +1683,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         if (rowCount == null) {
-            if (ip != 0 || bp || fp != 0.0 || dp != 0.0 || 
+            if (ip != 0 || bp || fp != 0.0 || dp != 0.0 ||
                     sp != 0 || lp != 0 || byParam != 0) {
                 throw new AssertionError("params not 0/false");
             }
         }
         if (rowCount != null) {
-            if (ip != 1 || !bp || fp != 1.0 || dp != 1.0 || 
+            if (ip != 1 || !bp || fp != 1.0 || dp != 1.0 ||
                     sp != 1 || lp != 1 || byParam != 1) {
                 throw new AssertionError("params not 1/true");
             }

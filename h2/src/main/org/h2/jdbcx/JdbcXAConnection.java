@@ -32,7 +32,8 @@ import org.h2.message.TraceObject;
  * An application developer usually does not use this interface.
  * It is used by the transaction manager internally.
  */
-public class JdbcXAConnection extends TraceObject implements XAConnection, XAResource {
+public class JdbcXAConnection extends TraceObject implements XAConnection,
+        XAResource {
 
     private final JdbcDataSourceFactory factory;
 
@@ -49,7 +50,8 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
         org.h2.Driver.load();
     }
 
-    JdbcXAConnection(JdbcDataSourceFactory factory, int id, JdbcConnection physicalConn) {
+    JdbcXAConnection(JdbcDataSourceFactory factory, int id,
+            JdbcConnection physicalConn) {
         this.factory = factory;
         setTrace(factory.getTrace(), TraceObject.XA_DATA_SOURCE, id);
         this.physicalConn = physicalConn;
@@ -194,7 +196,8 @@ public class JdbcXAConnection extends TraceObject implements XAConnection, XARes
         Statement stat = null;
         try {
             stat = physicalConn.createStatement();
-            ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION");
+            ResultSet rs = stat.executeQuery("SELECT * FROM " +
+                    "INFORMATION_SCHEMA.IN_DOUBT ORDER BY TRANSACTION");
             ArrayList<Xid> list = New.arrayList();
             while (rs.next()) {
                 String tid = rs.getString("TRANSACTION");

@@ -131,7 +131,7 @@ public class TestIndex extends TestBase {
         testErrorMessage("PRIMARY", "KEY", " ON PUBLIC.TEST(NAME)");
         stat.execute("create table test(id int, name int, unique(name))");
         testErrorMessage("CONSTRAINT_INDEX_2 ON PUBLIC.TEST(NAME)");
-        stat.execute("create table test(id int, name int, " + 
+        stat.execute("create table test(id int, name int, " +
                 "constraint abc unique(name, id))");
         testErrorMessage("ABC_INDEX_2 ON PUBLIC.TEST(NAME, ID)");
     }
@@ -367,7 +367,7 @@ public class TestIndex extends TestBase {
         stat.execute("CREATE TABLE TEST(ID INT, NAME VARCHAR)");
         stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
         for (int i = 0; i < 100; i++) {
-            stat.execute("INSERT INTO TEST VALUES(" + i + 
+            stat.execute("INSERT INTO TEST VALUES(" + i +
                     ", SPACE(" + length + ") || " + i + " )");
         }
         ResultSet rs = stat.executeQuery("SELECT * FROM TEST ORDER BY NAME");
@@ -404,7 +404,7 @@ public class TestIndex extends TestBase {
             return;
         }
         stat.execute("CREATE TABLE PARENT(ID INT PRIMARY KEY)");
-        stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, " + 
+        stat.execute("CREATE TABLE CHILD(ID INT PRIMARY KEY, " +
                 "PID INT, FOREIGN KEY(PID) REFERENCES PARENT(ID))");
         reconnect();
         stat.execute("DROP TABLE PARENT");
@@ -448,7 +448,7 @@ public class TestIndex extends TestBase {
 
         stat.execute("DROP TABLE IF EXISTS TEST");
         if (primaryKey) {
-            stat.execute("CREATE TABLE TEST(A INT PRIMARY KEY " + 
+            stat.execute("CREATE TABLE TEST(A INT PRIMARY KEY " +
                     (hash ? "HASH" : "") + ", B INT)");
         } else {
             stat.execute("CREATE TABLE TEST(A INT, B INT)");
@@ -461,9 +461,9 @@ public class TestIndex extends TestBase {
             prep.setInt(1, a);
             prep.setInt(2, a);
             prep.execute();
-            assertEquals(1, 
+            assertEquals(1,
                     getValue("SELECT COUNT(*) FROM TEST WHERE A=" + a));
-            assertEquals(0, 
+            assertEquals(0,
                     getValue("SELECT COUNT(*) FROM TEST WHERE A=-1-" + a));
         }
 
@@ -472,7 +472,7 @@ public class TestIndex extends TestBase {
         prep = conn.prepareStatement("DELETE FROM TEST WHERE A=?");
         for (int a = 0; a < len; a++) {
             if (getValue("SELECT COUNT(*) FROM TEST WHERE A=" + a) != 1) {
-                assertEquals(1, 
+                assertEquals(1,
                         getValue("SELECT COUNT(*) FROM TEST WHERE A=" + a));
             }
             prep.setInt(1, a);
@@ -497,7 +497,7 @@ public class TestIndex extends TestBase {
         prep = conn.prepareStatement("DELETE FROM TEST WHERE A=?");
         for (int a = 0; a < len; a++) {
             log("SELECT * FROM TEST");
-            assertEquals(2, 
+            assertEquals(2,
                     getValue("SELECT COUNT(*) FROM TEST WHERE A=" + (len - a - 1)));
             assertEquals((len - a) * 2, getValue("SELECT COUNT(*) FROM TEST"));
             prep.setInt(1, len - a - 1);
@@ -555,12 +555,12 @@ public class TestIndex extends TestBase {
         stat.execute("create memory table hash_index_test as " +
                 "select x as id, x % 10 as data from (select *  from system_range(1, 100))");
         stat.execute("create hash index idx2 on hash_index_test(data)");
-        assertEquals(10, 
+        assertEquals(10,
                 getValue("select count(*) from hash_index_test where data = 1"));
 
         stat.execute("drop index idx2");
         stat.execute("create unique hash index idx2 on hash_index_test(id)");
-        assertEquals(1, 
+        assertEquals(1,
                 getValue("select count(*) from hash_index_test where id = 1"));
     }
 

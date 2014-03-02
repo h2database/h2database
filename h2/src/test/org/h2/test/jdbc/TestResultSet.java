@@ -170,7 +170,7 @@ public class TestResultSet extends TestBase {
     }
 
     private void testInsertRowWithUpdatableResultSetDefault() throws Exception {
-        stat.execute("create table test(id int primary key, " + 
+        stat.execute("create table test(id int primary key, " +
                 "data varchar(255) default 'Hello')");
         PreparedStatement prep = conn.prepareStatement("select * from test",
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -1135,7 +1135,7 @@ public class TestResultSet extends TestBase {
         assertEquals("2001-02-03", rs.getDate(2, regular).toString());
         assertEquals("04:05:06", rs.getTime(3, regular).toString());
         assertFalse(rs.getTime(3, other).toString().equals("04:05:06"));
-        assertEquals("2007-08-09 10:11:12.131415", 
+        assertEquals("2007-08-09 10:11:12.131415",
                 rs.getTimestamp(4, regular).toString());
         assertFalse(rs.getTimestamp(4, other).toString().
                 equals("2007-08-09 10:11:12.131415"));

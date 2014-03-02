@@ -1099,7 +1099,7 @@ public class DataType {
     public static boolean isStringType(int type) {
         if (type == Value.STRING || type == Value.STRING_FIXED
                 || type == Value.STRING_IGNORECASE) {
-      return true;
+            return true;
         }
         return false;
     }

@@ -138,7 +138,8 @@ public class JdbcBlob extends TraceObject implements Blob {
      * @return how many bytes have been written
      */
     @Override
-    public int setBytes(long pos, byte[] bytes, int offset, int len) throws SQLException {
+    public int setBytes(long pos, byte[] bytes, int offset, int len)
+            throws SQLException {
         throw unsupported("LOB update");
     }
 
@@ -330,7 +331,8 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     @Override
     public String toString() {
-        return getTraceObjectName() + ": " + (value == null ? "null" : value.getTraceSQL());
+        return getTraceObjectName() + ": " +
+                (value == null ? "null" : value.getTraceSQL());
     }
 
 }

@@ -165,7 +165,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                     "for each row call \"" + TestTriggerAdapter.class.getName() + "\"");
             fail();
         } catch (SQLException ex) {
-            assertEquals(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED, 
+            assertEquals(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED,
                     ex.getErrorCode());
         }
         conn.close();
@@ -180,10 +180,10 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("create table test(id int)");
         stat.execute("create view test_view as select * from test");
         stat.execute("create trigger test_view_insert " +
-                "instead of insert on test_view for each row call \"" + 
+                "instead of insert on test_view for each row call \"" +
                 TestView.class.getName() + "\"");
         stat.execute("create trigger test_view_delete " +
-                "instead of delete on test_view for each row call \"" + 
+                "instead of delete on test_view for each row call \"" +
                 TestView.class.getName() + "\"");
         if (!config.memory) {
             conn.close();
@@ -233,12 +233,12 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             if (newRow != null) {
                 if (oldRow == null) {
                     if (newRow.getInt(1) != 1) {
-                        throw new RuntimeException("Expected: 1 got: " + 
+                        throw new RuntimeException("Expected: 1 got: " +
                                 newRow.getString(1));
                     }
                 } else {
                     if (newRow.getInt(1) != 2) {
-                        throw new RuntimeException("Expected: 2 got: " + 
+                        throw new RuntimeException("Expected: 2 got: " +
                                 newRow.getString(1));
                     }
                 }
@@ -246,7 +246,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
                 newRow.getBinaryStream(3);
                 newRow.updateInt(1, newRow.getInt(1) * 10);
             }
-            conn.createStatement().execute("insert into message values('" + 
+            conn.createStatement().execute("insert into message values('" +
                     buff.toString() + "')");
         }
 
@@ -394,7 +394,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("create table test(id int primary key)");
         assertSingleValue(stat, "call seq.nextval", 1);
         conn.setAutoCommit(false);
-        stat.execute("create trigger test_upd before insert on test call \"" + 
+        stat.execute("create trigger test_upd before insert on test call \"" +
                 Test.class.getName() + "\"");
         stat.execute("insert into test values(1)");
         assertSingleValue(stat, "call seq.nextval", 3);

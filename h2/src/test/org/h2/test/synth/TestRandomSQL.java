@@ -87,7 +87,8 @@ public class TestRandomSQL extends TestBase {
                     Thread.yield();
                     total++;
                     if (total % 100 == 0) {
-                        printTime("total: " + total + " success: " + (100 * success / total) + "%");
+                        printTime("total: " + total + " success: " +
+                                (100 * success / total) + "%");
                     }
                     stat.execute(sql);
                     success++;

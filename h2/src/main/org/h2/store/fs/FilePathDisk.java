@@ -70,7 +70,7 @@ public class FilePathDisk extends FilePath {
      * @return the native file name
      */
     public static String expandUserHomeDirectory(String fileName) {
-        if (fileName.startsWith("~") && (fileName.length() == 1 || 
+        if (fileName.startsWith("~") && (fileName.length() == 1 ||
                 fileName.startsWith("~/"))) {
             String userDir = SysProperties.USER_HOME;
             fileName = userDir + fileName.substring(1);
@@ -102,7 +102,7 @@ public class FilePathDisk extends FilePath {
             }
             wait(i);
         }
-        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, 
+        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
                 new String[]{name, newName.name});
     }
 
@@ -446,7 +446,7 @@ class FileDisk extends FileBase {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        int len = file.read(dst.array(), dst.arrayOffset() + dst.position(), 
+        int len = file.read(dst.array(), dst.arrayOffset() + dst.position(),
                 dst.remaining());
         if (len > 0) {
             dst.position(dst.position() + len);

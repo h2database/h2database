@@ -25,7 +25,8 @@ class PageDataCursor implements Cursor {
     private final Session session;
     private Iterator<Row> delta;
 
-    PageDataCursor(Session session, PageDataLeaf current, int idx, long maxKey, boolean multiVersion) {
+    PageDataCursor(Session session, PageDataLeaf current, int idx, long maxKey,
+            boolean multiVersion) {
         this.current = current;
         this.idx = idx;
         this.maxKey = maxKey;
@@ -65,7 +66,8 @@ class PageDataCursor implements Cursor {
                 }
             } else {
                 nextRow();
-                if (row != null && row.getSessionId() != 0 && row.getSessionId() != session.getId()) {
+                if (row != null && row.getSessionId() != 0 &&
+                        row.getSessionId() != session.getId()) {
                     continue;
                 }
             }

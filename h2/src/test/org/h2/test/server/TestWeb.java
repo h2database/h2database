@@ -344,12 +344,12 @@ public class TestWeb extends TestBase {
             result = client.get(url, "login.do?driver=org.h2.Driver" +
                     "&url=jdbc:h2:mem:web&user=sa&password=sa&name=_test_");
             result = client.get(url, "header.jsp");
-            result = client.get(url, "query.do?sql=" + 
+            result = client.get(url, "query.do?sql=" +
                     "create table test(id int primary key, name varchar);" +
                     "insert into test values(1, 'Hello')");
             result = client.get(url, "query.do?sql=create sequence test_sequence");
             result = client.get(url, "query.do?sql=create schema test_schema");
-            result = client.get(url, "query.do?sql=" + 
+            result = client.get(url, "query.do?sql=" +
                     "create view test_view as select * from test");
             result = client.get(url, "tables.do");
             result = client.get(url, "query.jsp");
@@ -392,7 +392,7 @@ public class TestWeb extends TestBase {
             result = client.get(url, "query.do?sql=select * from test");
             assertContains(result, "1");
             assertContains(result, "Hallo");
-            result = client.get(url, "editResult.do?sql=@edit " + 
+            result = client.get(url, "editResult.do?sql=@edit " +
                     "select * from test&op=2&row=1");
             result = client.get(url, "query.do?sql=select * from test");
             assertContains(result, "no rows");

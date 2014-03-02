@@ -78,7 +78,7 @@ public class TestBackup extends TestBase {
             }
         };
         Connection conn2;
-        conn2 = getConnection(url + ";database_event_listener='" + 
+        conn2 = getConnection(url + ";database_event_listener='" +
                 BackupListener.class.getName() + "'");
         Statement stat2 = conn2.createStatement();
         task.execute();
@@ -150,10 +150,10 @@ public class TestBackup extends TestBase {
         conn.createStatement().execute(
                 "create table test(x clob) as select space(10000)");
         conn.close();
-        Backup.execute(getBaseDir() + "/backup.zip", 
+        Backup.execute(getBaseDir() + "/backup.zip",
                 getBaseDir(), "backup", true);
         deleteDb("backup");
-        Restore.execute(getBaseDir() + "/backup.zip", 
+        Restore.execute(getBaseDir() + "/backup.zip",
                 getBaseDir(), "backup");
     }
 
@@ -166,7 +166,7 @@ public class TestBackup extends TestBase {
                 getBaseDir() + "/backup.zip"+"'");
         conn.close();
         deleteDb("backup");
-        Restore.execute(getBaseDir() + "/backup.zip", 
+        Restore.execute(getBaseDir() + "/backup.zip",
                 getBaseDir(), "backup");
     }
 
@@ -177,13 +177,13 @@ public class TestBackup extends TestBase {
         Statement stat1, stat2, stat3;
         conn1 = getConnection("backup");
         stat1 = conn1.createStatement();
-        stat1.execute("create table test" + 
+        stat1.execute("create table test" +
                 "(id int primary key, name varchar(255))");
-        stat1.execute("insert into test values" + 
+        stat1.execute("insert into test values" +
                 "(1, 'first'), (2, 'second')");
-        stat1.execute("create table testlob" + 
+        stat1.execute("create table testlob" +
                 "(id int primary key, b blob, c clob)");
-        stat1.execute("insert into testlob values" + 
+        stat1.execute("insert into testlob values" +
                 "(1, space(10000), repeat('00', 10000))");
         conn2 = getConnection("backup");
         stat2 = conn2.createStatement();

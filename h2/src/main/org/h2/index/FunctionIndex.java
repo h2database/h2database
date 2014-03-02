@@ -48,11 +48,13 @@ public class FunctionIndex extends BaseIndex {
         if (functionTable.isBufferResultSetToLocalTemp()) {
             return new FunctionCursor(functionTable.getResult(session));
         }
-        return new FunctionCursorResultSet(session, functionTable.getResultSet(session));
+        return new FunctionCursorResultSet(session,
+                functionTable.getResultSet(session));
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
         if (masks != null) {
             throw DbException.getUnsupportedException("ALIAS");
         }

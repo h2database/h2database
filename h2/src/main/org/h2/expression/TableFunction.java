@@ -68,7 +68,8 @@ public class TableFunction extends Function {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(Session session, Expression[] nullArgs) {
+    public ValueResultSet getValueForColumnList(Session session,
+            Expression[] nullArgs) {
         return getTable(session, args, true, false);
     }
 
@@ -77,7 +78,8 @@ public class TableFunction extends Function {
         columns.toArray(columnList);
     }
 
-    private ValueResultSet getTable(Session session, Expression[] argList, boolean onlyColumnList, boolean distinctRows) {
+    private ValueResultSet getTable(Session session, Expression[] argList,
+            boolean onlyColumnList, boolean distinctRows) {
         int len = columnList.length;
         Expression[] header = new Expression[len];
         Database db = session.getDatabase();
@@ -124,11 +126,13 @@ public class TableFunction extends Function {
             }
         }
         result.done();
-        ValueResultSet vr = ValueResultSet.get(getSimpleResultSet(result, Integer.MAX_VALUE));
+        ValueResultSet vr = ValueResultSet.get(getSimpleResultSet(result,
+                Integer.MAX_VALUE));
         return vr;
     }
 
-    private static SimpleResultSet getSimpleResultSet(ResultInterface rs,  int maxrows) {
+    private static SimpleResultSet getSimpleResultSet(ResultInterface rs,
+            int maxrows) {
         int columnCount = rs.getVisibleColumnCount();
         SimpleResultSet simple = new SimpleResultSet();
         for (int i = 0; i < columnCount; i++) {
@@ -155,7 +159,8 @@ public class TableFunction extends Function {
 
     @Override
     public Expression[] getExpressionColumns(Session session) {
-        return getExpressionColumns(session, getTable(session, getArgs(), true, false).getResultSet());
+        return getExpressionColumns(session,
+                getTable(session, getArgs(), true, false).getResultSet());
     }
 
 }

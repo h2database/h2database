@@ -41,7 +41,8 @@ public class JdbcSQLException extends SQLException {
      * @param cause the exception that was the reason for this exception
      * @param stackTrace the stack trace
      */
-    public JdbcSQLException(String message, String sql, String state, int errorCode, Throwable cause, String stackTrace) {
+    public JdbcSQLException(String message, String sql, String state,
+            int errorCode, Throwable cause, String stackTrace) {
         super(message, state, errorCode);
         this.originalMessage = message;
         setSQL(sql);
@@ -153,11 +154,13 @@ public class JdbcSQLException extends SQLException {
     }
 
     private void buildMessage() {
-        StringBuilder buff = new StringBuilder(originalMessage == null ? "- " : originalMessage);
+        StringBuilder buff = new StringBuilder(originalMessage == null ?
+                "- " : originalMessage);
         if (sql != null) {
             buff.append("; SQL statement:\n").append(sql);
         }
-        buff.append(" [").append(getErrorCode()).append('-').append(Constants.BUILD_ID).append(']');
+        buff.append(" [").append(getErrorCode()).
+                append('-').append(Constants.BUILD_ID).append(']');
         message = buff.toString();
     }
 

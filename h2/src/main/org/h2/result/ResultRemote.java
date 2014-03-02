@@ -209,7 +209,8 @@ public class ResultRemote implements ResultInterface {
                 int fetch = Math.min(fetchSize, rowCount - rowOffset);
                 if (sendFetch) {
                     session.traceOperation("RESULT_FETCH_ROWS", id);
-                    transfer.writeInt(SessionRemote.RESULT_FETCH_ROWS).writeInt(id).writeInt(fetch);
+                    transfer.writeInt(SessionRemote.RESULT_FETCH_ROWS).
+                            writeInt(id).writeInt(fetch);
                     session.done(transfer);
                 }
                 for (int r = 0; r < fetch; r++) {

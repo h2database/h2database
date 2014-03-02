@@ -52,7 +52,7 @@ public class SourceCompiler {
 
     private static final Class<?> JAVAC_SUN;
 
-    private static final String COMPILE_DIR = 
+    private static final String COMPILE_DIR =
             Utils.getProperty("java.io.tmpdir", ".");
 
     /**

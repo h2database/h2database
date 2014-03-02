@@ -95,7 +95,9 @@ public class JavaFunction extends Expression implements FunctionCall {
         // TODO always append the schema once FUNCTIONS_IN_SCHEMA is enabled
         if (functionAlias.getDatabase().getSettings().functionsInSchema ||
                 !functionAlias.getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
-            buff.append(Parser.quoteIdentifier(functionAlias.getSchema().getName())).append('.');
+            buff.append(
+                    Parser.quoteIdentifier(functionAlias.getSchema().getName()))
+                    .append('.');
         }
         buff.append(Parser.quoteIdentifier(functionAlias.getName())).append('(');
         for (Expression e : args) {
@@ -125,7 +127,8 @@ public class JavaFunction extends Expression implements FunctionCall {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(Session session, Expression[] argList) {
+    public ValueResultSet getValueForColumnList(Session session,
+            Expression[] argList) {
         Value v = javaMethod.getValue(session, argList, true);
         return v == ValueNull.INSTANCE ? null : (ValueResultSet) v;
     }

@@ -559,7 +559,7 @@ public class MetaTable extends Table {
             int dataType;
             String name;
             if (idx < 0) {
-                dataType = database.getMode().lowerCaseIdentifiers ? 
+                dataType = database.getMode().lowerCaseIdentifiers ?
                         Value.STRING_IGNORECASE : Value.STRING;
                 name = nameType;
             } else {
@@ -684,7 +684,7 @@ public class MetaTable extends Table {
                         storageType = "LOCAL TEMPORARY";
                     }
                 } else {
-                    storageType = table.isPersistIndexes() ? 
+                    storageType = table.isPersistIndexes() ?
                             "CACHED" : "MEMORY";
                 }
                 add(rows,
@@ -764,8 +764,8 @@ public class MetaTable extends Table {
                             // TYPE_NAME
                             identifier(DataType.getDataType(c.getType()).name),
                             // NULLABLE
-                            "" + (c.isNullable() ? 
-                                    DatabaseMetaData.columnNullable : 
+                            "" + (c.isNullable() ?
+                                    DatabaseMetaData.columnNullable :
                                     DatabaseMetaData.columnNoNulls) ,
                             // IS_COMPUTED
                             "" + (c.getComputed() ? "TRUE" : "FALSE"),
@@ -833,7 +833,7 @@ public class MetaTable extends Table {
                                 // TABLE_NAME
                                 tableName,
                                 // NON_UNIQUE
-                                index.getIndexType().isUnique() ? 
+                                index.getIndexType().isUnique() ?
                                         "FALSE" : "TRUE",
                                 // INDEX_NAME
                                 identifier(index.getName()),
@@ -844,17 +844,17 @@ public class MetaTable extends Table {
                                 // CARDINALITY
                                 "0",
                                 // PRIMARY_KEY
-                                index.getIndexType().isPrimaryKey() ? 
+                                index.getIndexType().isPrimaryKey() ?
                                         "TRUE" : "FALSE",
                                 // INDEX_TYPE_NAME
                                 index.getIndexType().getSQL(),
                                 // IS_GENERATED
-                                index.getIndexType().getBelongsToConstraint() ? 
+                                index.getIndexType().getBelongsToConstraint() ?
                                         "TRUE" : "FALSE",
                                 // INDEX_TYPE
                                 "" + DatabaseMetaData.tableIndexOther,
                                 // ASC_OR_DESC
-                                (idxCol.sortType & SortOrder.DESCENDING) != 0 ? 
+                                (idxCol.sortType & SortOrder.DESCENDING) != 0 ?
                                         "D" : "A",
                                 // PAGES
                                 "0",
@@ -915,7 +915,7 @@ public class MetaTable extends Table {
                     add(rows, "property." + s, Utils.getProperty(s, ""));
                 }
             }
-            add(rows, "EXCLUSIVE", database.getExclusiveSession() == null ? 
+            add(rows, "EXCLUSIVE", database.getExclusiveSession() == null ?
                     "FALSE" : "TRUE");
             add(rows, "MODE", database.getMode().getName());
             add(rows, "MULTI_THREADED", database.isMultiThreaded() ? "1" : "0");
@@ -936,31 +936,31 @@ public class MetaTable extends Table {
             if (database.isPersistent()) {
                 PageStore store = database.getPageStore();
                 if (store != null) {
-                    add(rows, "info.FILE_WRITE_TOTAL", 
+                    add(rows, "info.FILE_WRITE_TOTAL",
                             "" + store.getWriteCountTotal());
-                    add(rows, "info.FILE_WRITE", 
+                    add(rows, "info.FILE_WRITE",
                             "" + store.getWriteCount());
-                    add(rows, "info.FILE_READ", 
+                    add(rows, "info.FILE_READ",
                             "" + store.getReadCount());
-                    add(rows, "info.PAGE_COUNT", 
+                    add(rows, "info.PAGE_COUNT",
                             "" + store.getPageCount());
-                    add(rows, "info.PAGE_SIZE", 
+                    add(rows, "info.PAGE_SIZE",
                             "" + store.getPageSize());
-                    add(rows, "info.CACHE_MAX_SIZE", 
+                    add(rows, "info.CACHE_MAX_SIZE",
                             "" + store.getCache().getMaxMemory());
-                    add(rows, "info.CACHE_SIZE", 
+                    add(rows, "info.CACHE_SIZE",
                             "" + store.getCache().getMemory());
                 }
                 Store mvStore = database.getMvStore();
                 if (mvStore != null) {
                     FileStore fs = mvStore.getStore().getFileStore();
-                    add(rows, "info.FILE_WRITE", "" + 
+                    add(rows, "info.FILE_WRITE", "" +
                             fs.getWriteCount());
-                    add(rows, "info.FILE_READ", "" + 
+                    add(rows, "info.FILE_READ", "" +
                             fs.getReadCount());
-                    add(rows, "info.CACHE_MAX_SIZE", "" + 
+                    add(rows, "info.CACHE_MAX_SIZE", "" +
                             mvStore.getStore().getCacheSize());
-                    add(rows, "info.CACHE_SIZE", "" + 
+                    add(rows, "info.CACHE_SIZE", "" +
                             mvStore.getStore().getCacheSizeUsed());
                 }
             }
@@ -1102,7 +1102,7 @@ public class MetaTable extends Table {
                 for (Right r : database.getAllRights()) {
                     Role role = r.getGrantedRole();
                     DbObject grantee = r.getGrantee();
-                    String rightType = grantee.getType() == DbObject.USER ? 
+                    String rightType = grantee.getType() == DbObject.USER ?
                             "USER" : "ROLE";
                     if (role == null) {
                         Table granted = r.getGrantedTable();
@@ -1149,12 +1149,12 @@ public class MetaTable extends Table {
             break;
         }
         case FUNCTION_ALIASES: {
-            for (SchemaObject aliasAsSchemaObject : 
+            for (SchemaObject aliasAsSchemaObject :
                     database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
-                    int returnsResult = method.getDataType() == Value.NULL ? 
-                            DatabaseMetaData.procedureNoResult : 
+                    int returnsResult = method.getDataType() == Value.NULL ?
+                            DatabaseMetaData.procedureNoResult :
                             DatabaseMetaData.procedureReturnsResult;
                     add(rows,
                             // ALIAS_CATALOG
@@ -1218,7 +1218,7 @@ public class MetaTable extends Table {
             break;
         }
         case FUNCTION_COLUMNS: {
-            for (SchemaObject aliasAsSchemaObject : 
+            for (SchemaObject aliasAsSchemaObject :
                     database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
@@ -1465,7 +1465,7 @@ public class MetaTable extends Table {
                 }
                 if (constraintType.equals(Constraint.CHECK)) {
                     checkExpression = ((ConstraintCheck) constraint).getExpression().getSQL();
-                } else if (constraintType.equals(Constraint.UNIQUE) || 
+                } else if (constraintType.equals(Constraint.UNIQUE) ||
                         constraintType.equals(Constraint.PRIMARY_KEY)) {
                     indexColumns = ((ConstraintUnique) constraint).getColumns();
                 } else if (constraintType.equals(Constraint.REFERENTIAL)) {

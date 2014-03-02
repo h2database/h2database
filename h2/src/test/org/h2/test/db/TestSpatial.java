@@ -101,9 +101,9 @@ public class TestSpatial extends TestBase {
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
 
-        stat.execute("create memory table test" + 
+        stat.execute("create memory table test" +
                 "(id int primary key, polygon geometry)");
-        stat.execute("insert into test values(1, " + 
+        stat.execute("insert into test values(1, " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
         ResultSet rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
@@ -117,13 +117,13 @@ public class TestSpatial extends TestBase {
                 new Coordinate(1, 1) });
         assertTrue(polygon.equals(rs.getObject(2)));
 
-        rs = stat.executeQuery("select * from test where polygon = " + 
+        rs = stat.executeQuery("select * from test where polygon = " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
-        stat.executeQuery("select * from test where polygon > " + 
+        stat.executeQuery("select * from test where polygon > " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
-        stat.executeQuery("select * from test where polygon < " + 
+        stat.executeQuery("select * from test where polygon < " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
 
         stat.execute("drop table test");
@@ -166,13 +166,13 @@ public class TestSpatial extends TestBase {
         Connection conn = getConnection(url);
         try {
             Statement stat = conn.createStatement();
-            stat.execute("create memory table test" + 
+            stat.execute("create memory table test" +
                     "(id int primary key, poly geometry)");
-            stat.execute("insert into test values(1, " + 
+            stat.execute("insert into test values(1, " +
                     "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
-            stat.execute("insert into test values(2, " + 
+            stat.execute("insert into test values(2, " +
                     "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
-            stat.execute("insert into test values(3, " + 
+            stat.execute("insert into test values(3, " +
                     "'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
 
             ResultSet rs = stat.executeQuery(
@@ -191,13 +191,13 @@ public class TestSpatial extends TestBase {
         Connection conn = getConnection(url);
         try {
             Statement stat = conn.createStatement();
-            stat.execute("create table test" + 
+            stat.execute("create table test" +
                     "(id int primary key, poly geometry)");
-            stat.execute("insert into test values(1, " + 
+            stat.execute("insert into test values(1, " +
                     "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
-            stat.execute("insert into test values(2, " + 
+            stat.execute("insert into test values(2, " +
                     "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
-            stat.execute("insert into test values(3, " + 
+            stat.execute("insert into test values(3, " +
                     "'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
             stat.execute("create spatial index on test(poly)");
 
@@ -247,13 +247,13 @@ public class TestSpatial extends TestBase {
         Connection conn = getConnection(url);
         try {
             Statement stat = conn.createStatement();
-            stat.execute("create memory table test" + 
+            stat.execute("create memory table test" +
                     "(id int primary key, poly geometry)");
-            stat.execute("insert into test values(1, " + 
+            stat.execute("insert into test values(1, " +
                     "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
-            stat.execute("insert into test values(2, " + 
+            stat.execute("insert into test values(2, " +
                     "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
-            stat.execute("insert into test values(3, " + 
+            stat.execute("insert into test values(3, " +
                     "'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
 
             ResultSet rs = stat.executeQuery(
@@ -288,25 +288,25 @@ public class TestSpatial extends TestBase {
         stat.execute("create table roads(idRoad int primary key, the_geom geometry)");
         stat.execute("create spatial index on roads(the_geom)");
         stat.execute("insert into roads values(1, " +
-                "'LINESTRING (27.65595463138 -16.728733459357244, " + 
+                "'LINESTRING (27.65595463138 -16.728733459357244, " +
                 "47.61814744801515 40.435727788279806)')");
         stat.execute("insert into roads values(2, " +
-                "'LINESTRING (17.674858223062415 55.861058601134246, " + 
+                "'LINESTRING (17.674858223062415 55.861058601134246, " +
                 "55.78449905482046 76.73062381852554)')");
         stat.execute("insert into roads values(3, " +
-                "'LINESTRING (68.48771266540646 67.65689981096412, " + 
+                "'LINESTRING (68.48771266540646 67.65689981096412, " +
                 "108.4120982986768 88.52646502835542)')");
         stat.execute("insert into roads values(4, " +
-                "'LINESTRING (177.3724007561437 18.65879017013235, " + 
+                "'LINESTRING (177.3724007561437 18.65879017013235, " +
                 "196.4272211720227 -16.728733459357244)')");
         stat.execute("insert into roads values(5, " +
-                "'LINESTRING (106.5973534971645 -12.191871455576518, " + 
+                "'LINESTRING (106.5973534971645 -12.191871455576518, " +
                 "143.79962192816637 30.454631379962223)')");
         stat.execute("insert into roads values(6, " +
-                "'LINESTRING (144.70699432892252 55.861058601134246, " + 
+                "'LINESTRING (144.70699432892252 55.861058601134246, " +
                 "150.1512287334594 83.9896030245747)')");
         stat.execute("insert into roads values(7, " +
-                "'LINESTRING (60.321361058601155 -13.099243856332663, " + 
+                "'LINESTRING (60.321361058601155 -13.099243856332663, " +
                 "149.24385633270325 5.955576559546344)')");
     }
 
@@ -429,9 +429,9 @@ public class TestSpatial extends TestBase {
 
         // these queries actually have no meaning in the context of a spatial index, but
         // check them anyhow
-        stat.executeQuery("select * from test where polygon > " + 
+        stat.executeQuery("select * from test where polygon > " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
-        stat.executeQuery("select * from test where polygon < " + 
+        stat.executeQuery("select * from test where polygon < " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
 
         rs = stat.executeQuery(
@@ -462,17 +462,17 @@ public class TestSpatial extends TestBase {
         Connection conn = getConnection(url);
         try {
             Statement stat = conn.createStatement();
-            stat.execute("CREATE ALIAS T_GEOM_FROM_TEXT FOR \"" + 
+            stat.execute("CREATE ALIAS T_GEOM_FROM_TEXT FOR \"" +
                     TestSpatial.class.getName() + ".geomFromText\"");
-            stat.execute("create table test(id int primary key " + 
+            stat.execute("create table test(id int primary key " +
                     "auto_increment, the_geom geometry)");
             stat.execute("insert into test(the_geom) values(" +
-                    "T_GEOM_FROM_TEXT('POLYGON ((" + 
+                    "T_GEOM_FROM_TEXT('POLYGON ((" +
                     "62 48, 84 48, 84 42, 56 34, 62 48))',1488))");
             stat.execute("DROP ALIAS T_GEOM_FROM_TEXT");
             ResultSet rs = stat.executeQuery("select the_geom from test");
             assertTrue(rs.next());
-            assertEquals("POLYGON ((62 48, 84 48, 84 42, 56 34, 62 48))", 
+            assertEquals("POLYGON ((62 48, 84 48, 84 42, 56 34, 62 48))",
                     rs.getObject(1).toString());
         } finally {
             conn.close();
@@ -598,7 +598,7 @@ public class TestSpatial extends TestBase {
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS OBJ_STRING FOR \"" +
-                TestSpatial.class.getName() + 
+                TestSpatial.class.getName() +
                 ".getObjectString\"");
         ResultSet rs = stat.executeQuery(
                 "select OBJ_STRING('POINT( 15 25 )'::geometry)");
@@ -632,11 +632,11 @@ public class TestSpatial extends TestBase {
         GeometryFactory geometryFactory = new GeometryFactory();
         Geometry geometry = geometryFactory.createPoint(new Coordinate(0, 0));
         geometry.setSRID(27572);
-        ValueGeometry valueGeometry = 
+        ValueGeometry valueGeometry =
                 ValueGeometry.getFromGeometry(geometry);
         Geometry geometry2 = geometryFactory.createPoint(new Coordinate(0, 0));
         geometry2.setSRID(5326);
-        ValueGeometry valueGeometry2 = 
+        ValueGeometry valueGeometry2 =
                 ValueGeometry.getFromGeometry(geometry2);
         assertFalse(valueGeometry.equals(valueGeometry2));
         // Check illegal geometry (no WKB representation)
@@ -663,7 +663,7 @@ public class TestSpatial extends TestBase {
             ResultSet columnMeta = conn.getMetaData().
                     getColumns(null, null, "TEST", "THE_GEOM");
             assertTrue(columnMeta.next());
-            assertEquals("geometry", 
+            assertEquals("geometry",
                     columnMeta.getString("TYPE_NAME").toLowerCase());
             assertFalse(columnMeta.next());
         } finally {

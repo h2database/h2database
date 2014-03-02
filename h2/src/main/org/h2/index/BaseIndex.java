@@ -76,7 +76,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         for (IndexColumn c : columns) {
             int type = c.column.getType();
             if (type == Value.CLOB || type == Value.BLOB) {
-                throw DbException.getUnsupportedException("Index on BLOB or CLOB column: " + c.column.getCreateSQL());
+                throw DbException.getUnsupportedException(
+                        "Index on BLOB or CLOB column: " + c.column.getCreateSQL());
             }
         }
     }
@@ -94,7 +95,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @return the exception
      */
     protected DbException getDuplicateKeyException(String key) {
-        String sql = getName() + " ON " + table.getSQL() + "(" + getColumnListSQL() + ")";
+        String sql = getName() + " ON " + table.getSQL() +
+                "(" + getColumnListSQL() + ")";
         if (key != null) {
             sql += " VALUES " + key;
         }
@@ -152,7 +154,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param sortOrder the sort order
      * @return the estimated cost
      */
-    protected long getCostRangeIndex(int[] masks, long rowCount, TableFilter filter, SortOrder sortOrder) {
+    protected long getCostRangeIndex(int[] masks, long rowCount,
+            TableFilter filter, SortOrder sortOrder) {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;
         long rows = rowCount;
@@ -169,7 +172,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                     cost = 3;
                     break;
                 }
-                totalSelectivity = 100 - ((100 - totalSelectivity) * (100 - column.getSelectivity()) / 100);
+                totalSelectivity = 100 - ((100 - totalSelectivity) *
+                        (100 - column.getSelectivity()) / 100);
                 long distinctRows = rowCount * totalSelectivity / 100;
                 if (distinctRows <= 0) {
                     distinctRows = 1;

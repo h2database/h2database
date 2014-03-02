@@ -25,8 +25,10 @@ public class PageDelegateIndex extends PageIndex {
     private final PageDataIndex mainIndex;
 
     public PageDelegateIndex(RegularTable table, int id, String name,
-            IndexType indexType, PageDataIndex mainIndex, boolean create, Session session) {
-        IndexColumn[] cols = IndexColumn.wrap(new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
+            IndexType indexType, PageDataIndex mainIndex, boolean create,
+            Session session) {
+        IndexColumn[] cols = IndexColumn.wrap(
+                new Column[] { table.getColumn(mainIndex.getMainIndexColumn())});
         this.initBaseIndex(table, id, name, cols, indexType);
         this.mainIndex = mainIndex;
         if (!database.isPersistent() || id < 0) {
@@ -95,8 +97,10 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
-        return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session), filter, sortOrder);
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
+        return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session),
+                filter, sortOrder);
     }
 
     @Override

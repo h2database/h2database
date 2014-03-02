@@ -88,10 +88,14 @@ public class CreateTrigger extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw DbException.get(ErrorCode.TRIGGER_ALREADY_EXISTS_1, triggerName);
+            throw DbException.get(
+                    ErrorCode.TRIGGER_ALREADY_EXISTS_1,
+                    triggerName);
         }
         if ((typeMask & Trigger.SELECT) == Trigger.SELECT && rowBased) {
-            throw DbException.get(ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED, triggerName);
+            throw DbException.get(
+                    ErrorCode.TRIGGER_SELECT_AND_ROW_BASED_NOT_SUPPORTED,
+                    triggerName);
         }
         int id = getObjectId();
         Table table = getSchema().getTableOrView(session, tableName);

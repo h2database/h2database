@@ -73,9 +73,11 @@ public class CreateIndex extends SchemaCommand {
         int id = getObjectId();
         if (indexName == null) {
             if (primaryKey) {
-                indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY);
+                indexName = table.getSchema().getUniqueIndexName(session,
+                        table, Constants.PREFIX_PRIMARY_KEY);
             } else {
-                indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_INDEX);
+                indexName = table.getSchema().getUniqueIndexName(session,
+                        table, Constants.PREFIX_INDEX);
             }
         }
         IndexType indexType;
@@ -90,7 +92,8 @@ public class CreateIndex extends SchemaCommand {
             indexType = IndexType.createNonUnique(persistent, hash, spatial);
         }
         IndexColumn.mapColumns(indexColumns, table);
-        table.addIndex(session, indexName, id, indexColumns, indexType, create, comment);
+        table.addIndex(session, indexName, id, indexColumns, indexType, create,
+                comment);
         return 0;
     }
 

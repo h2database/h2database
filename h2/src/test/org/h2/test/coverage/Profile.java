@@ -155,8 +155,8 @@ public class Profile extends Thread {
                 }
             }
             int percent = 100 * unvisited / maxIndex;
-            print("Not covered: " + percent + " % " + " (" + 
-                    unvisited + " of " + maxIndex + "; throw=" + 
+            print("Not covered: " + percent + " % " + " (" +
+                    unvisited + " of " + maxIndex + "; throw=" +
                     unvisitedThrow + ")");
         } finally {
             IOUtils.closeSilently(writer);

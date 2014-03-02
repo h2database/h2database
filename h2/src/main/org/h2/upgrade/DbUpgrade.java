@@ -126,7 +126,7 @@ public class DbUpgrade {
             } else {
                 script = name + ".script.sql";
             }
-            String oldUrl = "jdbc:h2v1_1:" + name + 
+            String oldUrl = "jdbc:h2v1_1:" + name +
                     ";UNDO_LOG=0;LOG=0;LOCK_MODE=0";
             String cipher = ci.getProperty("CIPHER", null);
             if (cipher != null) {
@@ -136,7 +136,7 @@ public class DbUpgrade {
             Statement stat = conn.createStatement();
             String uuid = UUID.randomUUID().toString();
             if (cipher != null) {
-                stat.execute("script to '" + script + 
+                stat.execute("script to '" + script +
                         "' cipher aes password '" + uuid + "' --hide--");
             } else {
                 stat.execute("script to '" + script + "'");
@@ -151,7 +151,7 @@ public class DbUpgrade {
             conn = new JdbcConnection(ci, true);
             stat = conn.createStatement();
             if (cipher != null) {
-                stat.execute("runscript from '" + script + 
+                stat.execute("runscript from '" + script +
                         "' cipher aes password '" + uuid + "' --hide--");
             } else {
                 stat.execute("runscript from '" + script + "'");

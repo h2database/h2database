@@ -456,7 +456,7 @@ public class Shell extends Tool implements Runnable {
                     rs = stat.getResultSet();
                     int rowCount = printResult(rs, listMode);
                     time = System.currentTimeMillis() - time;
-                    println("(" + rowCount + (rowCount == 1 ? 
+                    println("(" + rowCount + (rowCount == 1 ?
                             " row, " : " rows, ") + time + " ms)");
                 } else {
                     int updateCount = stat.getUpdateCount();

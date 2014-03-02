@@ -122,7 +122,7 @@ public class CacheLRU implements Cache {
         } else {
             if (SysProperties.CHECK) {
                 if (old != rec) {
-                    DbException.throwInternalError("old!=record pos:" + 
+                    DbException.throwInternalError("old!=record pos:" +
                             pos + " old:" + old + " new:" + rec);
                 }
             }
@@ -173,7 +173,7 @@ public class CacheLRU implements Cache {
                     // can't remove any record, because the records can not be removed
                     // hopefully this does not happen frequently, but it can happen
                     writer.getTrace().info(
-                            "cannot remove records, cache size too small? records:" + 
+                            "cannot remove records, cache size too small? records:" +
                             recordCount + " memory:" + memory);
                     break;
                 }

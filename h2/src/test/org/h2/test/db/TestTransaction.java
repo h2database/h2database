@@ -220,7 +220,7 @@ public class TestTransaction extends TestBase {
         conn = getConnection("transaction");
         stat = conn.createStatement();
         stat.execute("create table master(id int) as select 1");
-        stat.execute("create table child1(id int references master(id) " + 
+        stat.execute("create table child1(id int references master(id) " +
                 "on delete cascade)");
         stat.execute("insert into child1 values(1), (1), (1)");
         stat.execute("create table child2(id int references master(id)) as select 1");
@@ -265,7 +265,7 @@ public class TestTransaction extends TestBase {
         conn = getConnection("transaction");
         stat = conn.createStatement();
         stat.execute("create table master(id int) as select 1");
-        stat.execute("create table child1(id int references master(id) " + 
+        stat.execute("create table child1(id int references master(id) " +
                 "on delete cascade)");
         stat.execute("insert into child1 values(1), (1)");
         stat.execute("create table child2(id int references master(id)) as select 1");
@@ -339,7 +339,7 @@ public class TestTransaction extends TestBase {
         Connection conn = getConnection("transaction");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST0(ID IDENTITY, NAME VARCHAR)");
-        stat.execute("CREATE TABLE TEST1(NAME VARCHAR, " + 
+        stat.execute("CREATE TABLE TEST1(NAME VARCHAR, " +
                 "ID IDENTITY, X TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
         conn.setAutoCommit(false);
         int[] count = new int[2];
@@ -360,7 +360,7 @@ public class TestTransaction extends TestBase {
             case 1:
                 if (count[tableId] > 0) {
                     int updateCount = stat.executeUpdate(
-                            "DELETE FROM " + table + 
+                            "DELETE FROM " + table +
                             " WHERE ID=SELECT MIN(ID) FROM " + table);
                     assertEquals(1, updateCount);
                     count[tableId]--;
@@ -410,10 +410,10 @@ public class TestTransaction extends TestBase {
         Connection conn = getConnection("transaction");
         trace("default TransactionIsolation=" + conn.getTransactionIsolation());
         conn.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-        assertTrue(conn.getTransactionIsolation() == 
+        assertTrue(conn.getTransactionIsolation() ==
                 Connection.TRANSACTION_READ_COMMITTED);
         conn.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-        assertTrue(conn.getTransactionIsolation() == 
+        assertTrue(conn.getTransactionIsolation() ==
                 Connection.TRANSACTION_SERIALIZABLE);
         Statement stat = conn.createStatement();
         assertTrue(conn.getAutoCommit());

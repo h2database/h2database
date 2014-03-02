@@ -37,17 +37,20 @@ public class DbException extends RuntimeException {
 
     static {
         try {
-            byte[] messages = Utils.getResource("/org/h2/res/_messages_en.prop");
+            byte[] messages = Utils.getResource(
+                    "/org/h2/res/_messages_en.prop");
             if (messages != null) {
                 MESSAGES.load(new ByteArrayInputStream(messages));
             }
             String language = Locale.getDefault().getLanguage();
             if (!"en".equals(language)) {
-                byte[] translations = Utils.getResource("/org/h2/res/_messages_" + language + ".prop");
+                byte[] translations = Utils.getResource(
+                        "/org/h2/res/_messages_" + language + ".prop");
                 // message: translated message + english
                 // (otherwise certain applications don't work)
                 if (translations != null) {
-                    Properties p = SortedProperties.fromLines(new String(translations, Constants.UTF8));
+                    Properties p = SortedProperties.fromLines(
+                            new String(translations, Constants.UTF8));
                     for (Entry<Object, Object> e : p.entrySet()) {
                         String key = (String) e.getKey();
                         String translation = (String) e.getValue();
@@ -125,7 +128,8 @@ public class DbException extends RuntimeException {
             }
             return this;
         }
-        e = new JdbcSQLException(e.getMessage(), sql, e.getSQLState(), e.getErrorCode(), e, null);
+        e = new JdbcSQLException(e.getMessage(), sql, e.getSQLState(),
+                e.getErrorCode(), e, null);
         return new DbException(e);
     }
 
@@ -158,7 +162,8 @@ public class DbException extends RuntimeException {
      * @param params the list of parameters of the message
      * @return the exception
      */
-    public static DbException get(int errorCode, Throwable cause, String... params) {
+    public static DbException get(int errorCode, Throwable cause,
+            String... params) {
         return new DbException(getJdbcSQLException(errorCode, cause, params));
     }
 
@@ -193,9 +198,11 @@ public class DbException extends RuntimeException {
      * @param message the message
      * @return the exception
      */
-    public static DbException getSyntaxError(String sql, int index, String message) {
+    public static DbException getSyntaxError(String sql, int index,
+            String message) {
         sql = StringUtils.addAsterisk(sql, index);
-        return new DbException(getJdbcSQLException(ErrorCode.SYNTAX_ERROR_2, null, sql, message));
+        return new DbException(getJdbcSQLException(ErrorCode.SYNTAX_ERROR_2,
+                null, sql, message));
     }
 
     /**
@@ -215,8 +222,10 @@ public class DbException extends RuntimeException {
      * @param value the value passed
      * @return the IllegalArgumentException object
      */
-    public static DbException getInvalidValueException(String param, Object value) {
-        return get(ErrorCode.INVALID_VALUE_2, value == null ? "null" : value.toString(), param);
+    public static DbException getInvalidValueException(String param,
+            Object value) {
+        return get(ErrorCode.INVALID_VALUE_2,
+                value == null ? "null" : value.toString(), param);
     }
 
     /**
@@ -292,7 +301,8 @@ public class DbException extends RuntimeException {
      * @param message the added message or null
      * @return the database exception object
      */
-    public static DbException convertInvocation(InvocationTargetException te, String message) {
+    public static DbException convertInvocation(InvocationTargetException te,
+            String message) {
         Throwable t = te.getTargetException();
         if (t instanceof SQLException || t instanceof DbException) {
             return convert(t);
@@ -327,7 +337,8 @@ public class DbException extends RuntimeException {
      * @param params the list of parameters of the message
      * @return the SQLException object
      */
-    private static JdbcSQLException getJdbcSQLException(int errorCode, Throwable cause, String... params) {
+    private static JdbcSQLException getJdbcSQLException(int errorCode,
+            Throwable cause, String... params) {
         String sqlstate = ErrorCode.getState(errorCode);
         String message = translate(sqlstate, params);
         return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);

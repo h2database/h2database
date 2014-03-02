@@ -92,7 +92,8 @@ public class ParameterRemote implements ParameterInterface {
      * @param transfer the transfer object
      * @param p the parameter
      */
-    public static void writeMetaData(Transfer transfer, ParameterInterface p) throws IOException {
+    public static void writeMetaData(Transfer transfer, ParameterInterface p)
+            throws IOException {
         transfer.writeInt(p.getType());
         transfer.writeLong(p.getPrecision());
         transfer.writeInt(p.getScale());

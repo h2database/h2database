@@ -39,7 +39,7 @@ public class ProductInheritedAnnotation extends ProductMixedAnnotation {
 
     public static List<ProductInheritedAnnotation> getData() {
         String mappedField = "mapped";
-        ProductInheritedAnnotation[] list = { 
+        ProductInheritedAnnotation[] list = {
                 create(1, "Chai", "Beverages", 18, 39, mappedField),
                 create(2, "Chang", "Beverages", 19.0, 17, mappedField),
                 create(3, "Aniseed Syrup", "Condiments", 10.0, 13, mappedField),

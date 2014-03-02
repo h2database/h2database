@@ -211,7 +211,7 @@ public class TableView extends Table {
             TableFilter filter, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks, filter, sortOrder);
-        IntArray masksArray = new IntArray(masks == null ? 
+        IntArray masksArray = new IntArray(masks == null ?
                 Utils.EMPTY_INT_ARRAY : masks);
         SynchronizedVerifier.check(indexCache);
         ViewIndex i2 = indexCache.get(masksArray);
@@ -381,7 +381,7 @@ public class TableView extends Table {
     public Index getScanIndex(Session session) {
         if (createException != null) {
             String msg = createException.getMessage();
-            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, 
+            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2,
                     createException, getSQL(), msg);
         }
         PlanItem item = getBestPlanItem(session, null, null, null);
@@ -459,7 +459,7 @@ public class TableView extends Table {
             String name, Query query, Query topQuery) {
         Schema mainSchema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         String querySQL = query.getPlanSQL();
-        TableView v = new TableView(mainSchema, 0, name, 
+        TableView v = new TableView(mainSchema, 0, name,
                 querySQL, query.getParameters(), null, session,
                 false);
         if (v.createException != null) {

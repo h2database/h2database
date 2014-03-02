@@ -55,22 +55,28 @@ public class DropDatabase extends DefineCommand {
             ArrayList<Table> tables = db.getAllTablesAndViews(false);
             ArrayList<Table> toRemove = New.arrayList();
             for (Table t : tables) {
-                if (t.getName() != null && Table.VIEW.equals(t.getTableType())) {
+                if (t.getName() != null &&
+                        Table.VIEW.equals(t.getTableType())) {
                     toRemove.add(t);
                 }
             }
             for (Table t : tables) {
-                if (t.getName() != null && Table.TABLE_LINK.equals(t.getTableType())) {
+                if (t.getName() != null &&
+                        Table.TABLE_LINK.equals(t.getTableType())) {
                     toRemove.add(t);
                 }
             }
             for (Table t : tables) {
-                if (t.getName() != null && Table.TABLE.equals(t.getTableType()) && !t.isHidden()) {
+                if (t.getName() != null &&
+                        Table.TABLE.equals(t.getTableType()) &&
+                        !t.isHidden()) {
                     toRemove.add(t);
                 }
             }
             for (Table t : tables) {
-                if (t.getName() != null && Table.EXTERNAL_TABLE_ENGINE.equals(t.getTableType()) && !t.isHidden()) {
+                if (t.getName() != null &&
+                        Table.EXTERNAL_TABLE_ENGINE.equals(t.getTableType()) &&
+                        !t.isHidden()) {
                     toRemove.add(t);
                 }
             }

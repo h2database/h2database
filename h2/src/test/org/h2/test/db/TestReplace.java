@@ -48,19 +48,19 @@ public class TestReplace extends TestBase {
                 "  PRIMARY KEY (WORD_ID)" +
                 ");");
 
-        stat.execute("REPLACE INTO TABLE_WORD " + 
+        stat.execute("REPLACE INTO TABLE_WORD " +
                 "( WORD ) VALUES ('aaaaaaaaaa')");
-        stat.execute("REPLACE INTO TABLE_WORD " + 
+        stat.execute("REPLACE INTO TABLE_WORD " +
                 "( WORD ) VALUES ('bbbbbbbbbb')");
-        stat.execute("REPLACE INTO TABLE_WORD " + 
+        stat.execute("REPLACE INTO TABLE_WORD " +
                 "( WORD_ID, WORD ) VALUES (3, 'cccccccccc')");
 
-        rs = stat.executeQuery("SELECT WORD " + 
+        rs = stat.executeQuery("SELECT WORD " +
                 "FROM TABLE_WORD where WORD_ID = 1");
         rs.next();
         assertEquals("aaaaaaaaaa", rs.getNString(1));
 
-        stat.execute("REPLACE INTO TABLE_WORD " + 
+        stat.execute("REPLACE INTO TABLE_WORD " +
                 "(  WORD_ID, WORD ) VALUES (1, 'REPLACED')");
         rs = stat.executeQuery("SELECT WORD FROM TABLE_WORD where WORD_ID = 1");
         rs.next();

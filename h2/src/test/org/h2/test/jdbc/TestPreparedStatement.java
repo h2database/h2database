@@ -565,7 +565,7 @@ public class TestPreparedStatement extends TestBase {
 
     private void testUUIDGeneratedKeys(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST_UUID(id UUID DEFAULT " + 
+        stat.execute("CREATE TABLE TEST_UUID(id UUID DEFAULT " +
                 "random_UUID() PRIMARY KEY)");
         stat.execute("INSERT INTO TEST_UUID() VALUES()");
         ResultSet rs = stat.getGeneratedKeys();
@@ -725,7 +725,7 @@ public class TestPreparedStatement extends TestBase {
         assertThrows(ErrorCode.OBJECT_CLOSED, pm).getPrecision(1);
 
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST3(ID INT, " + 
+        stat.execute("CREATE TABLE TEST3(ID INT, " +
                 "NAME VARCHAR(255), DATA DECIMAL(10,2))");
         PreparedStatement prep1 = conn.prepareStatement(
                 "UPDATE TEST3 SET ID=?, NAME=?, DATA=?");
@@ -882,15 +882,15 @@ public class TestPreparedStatement extends TestBase {
         PreparedStatement prep;
         ResultSet rs;
         trace("Create tables");
-        stat.execute("CREATE TABLE T_INT" + 
+        stat.execute("CREATE TABLE T_INT" +
                 "(ID INT PRIMARY KEY,VALUE INT)");
-        stat.execute("CREATE TABLE T_VARCHAR" + 
+        stat.execute("CREATE TABLE T_VARCHAR" +
                 "(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
-        stat.execute("CREATE TABLE T_DECIMAL_0" + 
+        stat.execute("CREATE TABLE T_DECIMAL_0" +
                 "(ID INT PRIMARY KEY,VALUE DECIMAL(30,0))");
-        stat.execute("CREATE TABLE T_DECIMAL_10" + 
+        stat.execute("CREATE TABLE T_DECIMAL_10" +
                 "(ID INT PRIMARY KEY,VALUE DECIMAL(20,10))");
-        stat.execute("CREATE TABLE T_DATETIME" + 
+        stat.execute("CREATE TABLE T_DATETIME" +
                 "(ID INT PRIMARY KEY,VALUE DATETIME)");
         prep = conn.prepareStatement("INSERT INTO T_INT VALUES(?,?)",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);

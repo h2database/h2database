@@ -86,7 +86,8 @@ public class WebServlet extends HttpServlet {
     }
 
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
         req.setCharacterEncoding("utf-8");
         String file = req.getPathInfo();
         if (file == null) {
@@ -157,7 +158,8 @@ public class WebServlet extends HttpServlet {
     }
 
     @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    public void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
         doGet(req, resp);
     }
 

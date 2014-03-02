@@ -96,9 +96,9 @@ public class TestMetaData extends TestBase {
         stat.executeUpdate("create table test(data result_set)");
         stat.execute("create alias x as 'ResultSet x(Connection conn, String sql) " +
                 "throws SQLException { return conn.createStatement(" +
-                "ResultSet.TYPE_SCROLL_INSENSITIVE, " + 
+                "ResultSet.TYPE_SCROLL_INSENSITIVE, " +
                 "ResultSet.CONCUR_READ_ONLY).executeQuery(sql); }'");
-        stat.execute("insert into test values(" + 
+        stat.execute("insert into test values(" +
                 "select x('select x from system_range(1, 2)'))");
         ResultSet rs = stat.executeQuery("select * from test");
         ResultSetMetaData rsMeta = rs.getMetaData();
@@ -107,7 +107,7 @@ public class TestMetaData extends TestBase {
         assertEquals(DataType.TYPE_RESULT_SET, rsMeta.getColumnType(1));
         rs.next();
         assertTrue(rs.getObject(1) instanceof java.sql.ResultSet);
-        assertEquals("org.h2.tools.SimpleResultSet", 
+        assertEquals("org.h2.tools.SimpleResultSet",
                 rs.getObject(1).getClass().getName());
         stat.executeUpdate("drop alias x");
 
@@ -209,7 +209,7 @@ public class TestMetaData extends TestBase {
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs;
         Statement stat = conn.createStatement();
-        stat.execute("CREATE ALIAS PROP FOR " + 
+        stat.execute("CREATE ALIAS PROP FOR " +
                 "\"java.lang.System.getProperty(java.lang.String)\"");
         stat.execute("CREATE ALIAS EXIT FOR \"java.lang.System.exit\"");
         rs = meta.getProcedures(null, null, "EX%");
@@ -314,7 +314,7 @@ public class TestMetaData extends TestBase {
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST_TEMP");
-        stat.execute("CREATE TEMP TABLE TEST_TEMP" + 
+        stat.execute("CREATE TEMP TABLE TEST_TEMP" +
                 "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         stat.execute("CREATE INDEX IDX_NAME ON TEST_TEMP(NAME)");
         stat.execute("ALTER TABLE TEST_TEMP ADD FOREIGN KEY(ID) REFERENCES(ID)");
@@ -322,7 +322,7 @@ public class TestMetaData extends TestBase {
 
         conn = getConnection("metaData");
         stat = conn.createStatement();
-        stat.execute("CREATE TEMP TABLE TEST_TEMP" + 
+        stat.execute("CREATE TEMP TABLE TEST_TEMP" +
                 "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         ResultSet rs = stat.executeQuery("SELECT STORAGE_TYPE FROM "
                 + "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME='TEST_TEMP'");
@@ -360,22 +360,22 @@ public class TestMetaData extends TestBase {
         assertEquals(".", meta.getCatalogSeparator());
         assertEquals("catalog", meta.getCatalogTerm());
         assertTrue(meta.getConnection() == conn);
-        String versionStart = meta.getDatabaseMajorVersion() + "." + 
+        String versionStart = meta.getDatabaseMajorVersion() + "." +
                 meta.getDatabaseMinorVersion();
         assertTrue(meta.getDatabaseProductVersion().startsWith(versionStart));
-        assertEquals(meta.getDatabaseMajorVersion(), 
+        assertEquals(meta.getDatabaseMajorVersion(),
                 meta.getDriverMajorVersion());
-        assertEquals(meta.getDatabaseMinorVersion(), 
+        assertEquals(meta.getDatabaseMinorVersion(),
                 meta.getDriverMinorVersion());
         int majorVersion = 4;
         assertEquals(majorVersion, meta.getJDBCMajorVersion());
         assertEquals(0, meta.getJDBCMinorVersion());
         assertEquals("H2", meta.getDatabaseProductName());
-        assertEquals(Connection.TRANSACTION_READ_COMMITTED, 
+        assertEquals(Connection.TRANSACTION_READ_COMMITTED,
                 meta.getDefaultTransactionIsolation());
         assertEquals("H2 JDBC Driver", meta.getDriverName());
 
-        versionStart = meta.getDriverMajorVersion() + "." + 
+        versionStart = meta.getDriverMajorVersion() + "." +
                 meta.getDriverMinorVersion();
         assertTrue(meta.getDriverVersion().startsWith(versionStart));
         assertEquals("", meta.getExtraNameCharacters());
@@ -402,15 +402,15 @@ public class TestMetaData extends TestBase {
         assertEquals(0, meta.getMaxUserNameLength());
         assertEquals("procedure", meta.getProcedureTerm());
 
-        assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT, 
+        assertEquals(ResultSet.CLOSE_CURSORS_AT_COMMIT,
                 meta.getResultSetHoldability());
-        assertEquals(DatabaseMetaData.sqlStateSQL99, 
+        assertEquals(DatabaseMetaData.sqlStateSQL99,
                 meta.getSQLStateType());
         assertFalse(meta.locatorsUpdateCopy());
 
         assertEquals("schema", meta.getSchemaTerm());
         assertEquals("\\", meta.getSearchStringEscape());
-        assertEquals("LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY", 
+        assertEquals("LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY",
                 meta.getSQLKeywords());
 
         assertTrue(meta.getURL().startsWith("jdbc:h2:"));
@@ -835,7 +835,7 @@ public class TestMetaData extends TestBase {
         stat.executeUpdate("DROP TABLE TX2");
         stat.executeUpdate("DROP TABLE T_2");
         stat.executeUpdate("CREATE TABLE PARENT(ID INT PRIMARY KEY)");
-        stat.executeUpdate("CREATE TABLE CHILD(P_ID INT,ID INT," + 
+        stat.executeUpdate("CREATE TABLE CHILD(P_ID INT,ID INT," +
                 "PRIMARY KEY(P_ID,ID),FOREIGN KEY(P_ID) REFERENCES PARENT(ID))");
 
         trace("getImportedKeys");
@@ -1008,14 +1008,14 @@ public class TestMetaData extends TestBase {
         assertEquals("VIEW", rs.getString("TABLE_TYPE"));
         assertFalse(rs.next());
 
-        rs = meta.getTables(null, Constants.SCHEMA_MAIN, 
+        rs = meta.getTables(null, Constants.SCHEMA_MAIN,
                 null, new String[] { "TABLE" });
         assertTrue(rs.getStatement() == null);
         rs.next();
         assertEquals("TEST", rs.getString("TABLE_NAME"));
         assertFalse(rs.next());
 
-        rs = meta.getTables(null, "INFORMATION_SCHEMA", 
+        rs = meta.getTables(null, "INFORMATION_SCHEMA",
                 null, new String[] { "TABLE", "SYSTEM TABLE" });
         rs.next();
         assertEquals("CATALOGS", rs.getString("TABLE_NAME"));
@@ -1089,7 +1089,7 @@ public class TestMetaData extends TestBase {
         assertEquals("ID", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
 
-        rs = meta.getBestRowIdentifier(null, null, "TEST", 
+        rs = meta.getBestRowIdentifier(null, null, "TEST",
                 DatabaseMetaData.bestRowSession, false);
         rs.next();
         assertEquals("ID", rs.getString("COLUMN_NAME"));
@@ -1196,13 +1196,13 @@ public class TestMetaData extends TestBase {
         for (int i = 0; i < 6; i++) {
             stat.execute("insert into test values (1)");
         }
-        ResultSet rs = stat.executeQuery("select contains_uncommitted " + 
+        ResultSet rs = stat.executeQuery("select contains_uncommitted " +
                 "from INFORMATION_SCHEMA.SESSIONS");
         rs.next();
         assertEquals(true, rs.getBoolean(1));
         rs.close();
         stat.execute("commit");
-        rs = stat.executeQuery("select contains_uncommitted " + 
+        rs = stat.executeQuery("select contains_uncommitted " +
                 "from INFORMATION_SCHEMA.SESSIONS");
         rs.next();
         assertEquals(false, rs.getBoolean(1));
@@ -1213,7 +1213,7 @@ public class TestMetaData extends TestBase {
     private void testQueryStatistics() throws SQLException {
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name varchar) as " + 
+        stat.execute("create table test(id int primary key, name varchar) as " +
                 "select x, space(1000) from system_range(1, 2000)");
 
         ResultSet rs = stat.executeQuery(

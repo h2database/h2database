@@ -107,7 +107,7 @@ public class TestSpeed extends TestBase {
         for (int i = 0; i < max; i++) {
             prep.setInt(1, i);
             prep.setString(2,
-                    "abchelloasdfaldsjflajdflajdslfoajlskdfkjasdf" + 
+                    "abchelloasdfaldsjflajdflajdslfoajlskdfkjasdf" +
                     "abcfasdfadsfadfsalksdjflasjflajsdlkfjaksdjflkskd" + i);
             prep.execute();
         }
@@ -131,7 +131,7 @@ public class TestSpeed extends TestBase {
 
         time = System.currentTimeMillis();
 
-        prep = conn.prepareStatement("UPDATE TEST " + 
+        prep = conn.prepareStatement("UPDATE TEST " +
                 "SET NAME='Another data row which is long' WHERE ID=?");
         for (int i = 0; i < max; i++) {
             prep.setInt(1, i);

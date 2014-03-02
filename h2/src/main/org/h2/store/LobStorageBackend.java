@@ -143,23 +143,23 @@ public class LobStorageBackend implements LobStorageInterface {
                     stat.execute("CREATE CACHED TABLE IF NOT EXISTS " + LOBS +
                             "(ID BIGINT PRIMARY KEY, BYTE_COUNT BIGINT, TABLE INT) HIDDEN");
                     stat.execute("CREATE INDEX IF NOT EXISTS " +
-                            "INFORMATION_SCHEMA.INDEX_LOB_TABLE ON " + 
+                            "INFORMATION_SCHEMA.INDEX_LOB_TABLE ON " +
                             LOBS + "(TABLE)");
                     stat.execute("CREATE CACHED TABLE IF NOT EXISTS " + LOB_MAP +
-                            "(LOB BIGINT, SEQ INT, POS BIGINT, HASH INT, " + 
+                            "(LOB BIGINT, SEQ INT, POS BIGINT, HASH INT, " +
                             "BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
-                    stat.execute("ALTER TABLE " + LOB_MAP + 
+                    stat.execute("ALTER TABLE " + LOB_MAP +
                             " RENAME TO " + LOB_MAP + " HIDDEN");
-                    stat.execute("ALTER TABLE " + LOB_MAP + 
+                    stat.execute("ALTER TABLE " + LOB_MAP +
                             " ADD IF NOT EXISTS POS BIGINT BEFORE HASH");
                     // TODO the column name OFFSET was used in version 1.3.156,
                     // so this can be remove in a later version
-                    stat.execute("ALTER TABLE " + LOB_MAP + 
+                    stat.execute("ALTER TABLE " + LOB_MAP +
                             " DROP COLUMN IF EXISTS \"OFFSET\"");
                     stat.execute("CREATE INDEX IF NOT EXISTS " +
-                            "INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + 
+                            "INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " +
                             LOB_MAP + "(BLOCK, LOB)");
-                    stat.execute("CREATE CACHED TABLE IF NOT EXISTS " + 
+                    stat.execute("CREATE CACHED TABLE IF NOT EXISTS " +
                             LOB_DATA +
                             "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
                 }
@@ -220,13 +220,13 @@ public class LobStorageBackend implements LobStorageInterface {
         assertNotHolds(conn.getSession());
         synchronized (database) {
             synchronized (conn.getSession()) {
-                String sql = "SELECT COMPRESSED, DATA FROM " + 
+                String sql = "SELECT COMPRESSED, DATA FROM " +
                         LOB_DATA + " WHERE BLOCK = ?";
                 PreparedStatement prep = prepare(sql);
                 prep.setLong(1, block);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
-                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, 
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1,
                             "Missing lob entry, block: " + block)
                             .getSQLException();
                 }
@@ -373,7 +373,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     } else {
                         b = buff;
                     }
-                    if (seq == 0 && b.length < BLOCK_LENGTH && 
+                    if (seq == 0 && b.length < BLOCK_LENGTH &&
                             b.length <= maxLengthInPlaceLob) {
                         small = b;
                         break;
@@ -397,16 +397,16 @@ public class LobStorageBackend implements LobStorageInterface {
                 if (small != null) {
                     // For a BLOB, precision is length in bytes.
                     // For a CLOB, precision is length in chars
-                    long precision = countingReaderForClob == null ? 
+                    long precision = countingReaderForClob == null ?
                             small.length : countingReaderForClob.getLength();
                     ValueLobDb v = ValueLobDb.createSmallLob(type, small, precision);
                     return v;
                 }
                 // For a BLOB, precision is length in bytes.
                 // For a CLOB, precision is length in chars
-                long precision = countingReaderForClob == null ? 
+                long precision = countingReaderForClob == null ?
                         length : countingReaderForClob.getLength();
-                return registerLob(type, lobId, 
+                return registerLob(type, lobId,
                         LobStorageFrontend.TABLE_TEMP, length, precision);
             } catch (IOException e) {
                 if (lobId != -1) {
@@ -425,7 +425,7 @@ public class LobStorageBackend implements LobStorageInterface {
         // see locking discussion at the top
         synchronized (database) {
             synchronized (conn.getSession()) {
-                String sql = "INSERT INTO " + LOBS + 
+                String sql = "INSERT INTO " + LOBS +
                         "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)";
                 PreparedStatement prep = prepare(sql);
                 prep.setLong(1, lobId);
@@ -433,7 +433,7 @@ public class LobStorageBackend implements LobStorageInterface {
                 prep.setInt(3, tableId);
                 prep.execute();
                 reuse(sql, prep);
-                ValueLobDb v = ValueLobDb.create(type, 
+                ValueLobDb v = ValueLobDb.create(type,
                         database, tableId, lobId, null, precision);
                 return v;
             }
@@ -542,7 +542,7 @@ public class LobStorageBackend implements LobStorageInterface {
         if (!blockExists) {
             block = nextBlock++;
             setHashCacheBlock(hash, block);
-            String sql = "INSERT INTO " + LOB_DATA + 
+            String sql = "INSERT INTO " + LOB_DATA +
                     "(BLOCK, COMPRESSED, DATA) VALUES(?, ?, ?)";
             PreparedStatement prep = prepare(sql);
             prep.setLong(1, block);
@@ -551,7 +551,7 @@ public class LobStorageBackend implements LobStorageInterface {
             prep.execute();
             reuse(sql, prep);
         }
-        String sql = "INSERT INTO " + LOB_MAP + 
+        String sql = "INSERT INTO " + LOB_MAP +
                 "(LOB, SEQ, POS, HASH, BLOCK) VALUES(?, ?, ?, ?, ?)";
         PreparedStatement prep = prepare(sql);
         prep.setLong(1, lobId);
@@ -662,7 +662,7 @@ public class LobStorageBackend implements LobStorageInterface {
                 prep.setLong(1, lobId);
                 ResultSet rs = prep.executeQuery();
                 if (!rs.next()) {
-                    throw DbException.get(ErrorCode.IO_EXCEPTION_1, 
+                    throw DbException.get(ErrorCode.IO_EXCEPTION_1,
                             "Missing lob entry: " + lobId).getSQLException();
                 }
                 byteCount = rs.getLong(1);
@@ -675,7 +675,7 @@ public class LobStorageBackend implements LobStorageInterface {
             prep.setLong(1, lobId);
             ResultSet rs = prep.executeQuery();
             if (!rs.next()) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, 
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1,
                         "Missing lob entry: " + lobId).getSQLException();
             }
             int lobMapCount = rs.getInt(1);

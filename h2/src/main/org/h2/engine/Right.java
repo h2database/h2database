@@ -53,19 +53,21 @@ public class Right extends DbObjectBase {
     private RightOwner grantee;
 
     public Right(Database db, int id, RightOwner grantee, Role grantedRole) {
-        initDbObjectBase(db, id, "RIGHT_"+id, Trace.USER);
+        initDbObjectBase(db, id, "RIGHT_" + id, Trace.USER);
         this.grantee = grantee;
         this.grantedRole = grantedRole;
     }
 
-    public Right(Database db, int id, RightOwner grantee, int grantedRight, Table grantedRightOnTable) {
+    public Right(Database db, int id, RightOwner grantee, int grantedRight,
+            Table grantedRightOnTable) {
         initDbObjectBase(db, id, "" + id, Trace.USER);
         this.grantee = grantee;
         this.grantedRight = grantedRight;
         this.grantedTable = grantedRightOnTable;
     }
 
-    private static boolean appendRight(StringBuilder buff, int right, int mask, String name, boolean comma) {
+    private static boolean appendRight(StringBuilder buff, int right, int mask,
+            String name, boolean comma) {
         if ((right & mask) != 0) {
             if (comma) {
                 buff.append(", ");
@@ -82,10 +84,11 @@ public class Right extends DbObjectBase {
             buff.append("ALL");
         } else {
             boolean comma = false;
-            comma = appendRight(buff, grantedRight, SELECT,           "SELECT", comma);
-            comma = appendRight(buff, grantedRight, DELETE,           "DELETE", comma);
-            comma = appendRight(buff, grantedRight, INSERT,           "INSERT", comma);
-            comma = appendRight(buff, grantedRight, ALTER_ANY_SCHEMA, "ALTER ANY SCHEMA", comma);
+            comma = appendRight(buff, grantedRight, SELECT, "SELECT", comma);
+            comma = appendRight(buff, grantedRight, DELETE, "DELETE", comma);
+            comma = appendRight(buff, grantedRight, INSERT, "INSERT", comma);
+            comma = appendRight(buff, grantedRight, ALTER_ANY_SCHEMA,
+                    "ALTER ANY SCHEMA", comma);
             appendRight(buff, grantedRight, UPDATE, "UPDATE", comma);
         }
         return buff.toString();

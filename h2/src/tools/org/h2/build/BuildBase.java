@@ -569,8 +569,10 @@ public class BuildBase {
                     println("SHA1 checksum: " + got);
                 } else {
                     if (!got.equals(sha1Checksum)) {
-                        throw new RuntimeException("SHA1 checksum mismatch; got: " +
-                                got + " expected: " + sha1Checksum + " for file " + f.getAbsolutePath());
+                        throw new RuntimeException(
+                                "SHA1 checksum mismatch; got: " + got +
+                                        " expected: " + sha1Checksum +
+                                        " for file " + f.getAbsolutePath());
                     }
                 }
                 writeFile(targetFile, data);

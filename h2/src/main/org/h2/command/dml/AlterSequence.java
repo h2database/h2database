@@ -92,7 +92,8 @@ public class AlterSequence extends SchemaCommand {
             long size = cacheSize.optimize(session).getValue(session).getLong();
             sequence.setCacheSize(size);
         }
-        if (start != null || minValue != null || maxValue != null || increment != null) {
+        if (start != null || minValue != null ||
+                maxValue != null || increment != null) {
             Long startValue = getLong(start);
             Long min = getLong(minValue);
             Long max = getLong(maxValue);

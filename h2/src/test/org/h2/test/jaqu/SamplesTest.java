@@ -91,7 +91,7 @@ public class SamplesTest extends TestBase {
     }
 
     private void testReverseColumns() {
-        db.executeUpdate("create table TestReverse" + 
+        db.executeUpdate("create table TestReverse" +
                     "(id int, name varchar, additional varchar)");
         TestReverse t = new TestReverse();
         t.id = 10;

@@ -73,8 +73,10 @@ public class OffHeapStore extends FileStore {
         int length = src.remaining();
         if (prevPos == pos) {
             if (prevLength != length) {
-                throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
-                        "Could not write to position {0}; partial overwrite is not supported", pos);
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_READING_FAILED,
+                        "Could not write to position {0}; " +
+                        "partial overwrite is not supported", pos);
             }
             writeCount++;
             buff.rewind();
@@ -82,8 +84,10 @@ public class OffHeapStore extends FileStore {
             return;
         }
         if (prevPos + prevLength > pos) {
-            throw DataUtils.newIllegalStateException(DataUtils.ERROR_READING_FAILED,
-                    "Could not write to position {0}; partial overwrite is not supported", pos);
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_READING_FAILED,
+                    "Could not write to position {0}; " +
+                    "partial overwrite is not supported", pos);
         }
         writeNewEntry(pos, src);
     }

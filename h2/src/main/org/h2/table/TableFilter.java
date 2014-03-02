@@ -498,14 +498,14 @@ public class TableFilter implements ColumnResolver {
             if (joinCondition == null) {
                 joinCondition = condition;
             } else {
-                joinCondition = new ConditionAndOr(ConditionAndOr.AND, 
+                joinCondition = new ConditionAndOr(ConditionAndOr.AND,
                         joinCondition, condition);
             }
         } else {
             if (filterCondition == null) {
                 filterCondition = condition;
             } else {
-                filterCondition = new ConditionAndOr(ConditionAndOr.AND, 
+                filterCondition = new ConditionAndOr(ConditionAndOr.AND,
                         filterCondition, condition);
             }
         }

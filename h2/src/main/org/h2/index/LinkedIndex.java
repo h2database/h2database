@@ -34,7 +34,8 @@ public class LinkedIndex extends BaseIndex {
     private final String targetTableName;
     private long rowCount;
 
-    public LinkedIndex(TableLink table, int id, IndexColumn[] columns, IndexType indexType) {
+    public LinkedIndex(TableLink table, int id, IndexColumn[] columns,
+            IndexType indexType) {
         initBaseIndex(table, id, null, columns, indexType);
         link = table;
         targetTableName = link.getQualifiedTable();
@@ -141,8 +142,10 @@ public class LinkedIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
-        return 100 + getCostRangeIndex(masks, rowCount + Constants.COST_ROW_OFFSET, filter, sortOrder);
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
+        return 100 + getCostRangeIndex(masks, rowCount +
+                Constants.COST_ROW_OFFSET, filter, sortOrder);
     }
 
     @Override

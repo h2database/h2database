@@ -113,7 +113,8 @@ public class ConstraintReferential extends Constraint {
      * @param internalIndex add the index name to the statement
      * @return the SQL statement
      */
-    public String getCreateSQLForCopy(Table forTable, Table forRefTable, String quotedName, boolean internalIndex) {
+    public String getCreateSQLForCopy(Table forTable, Table forRefTable,
+            String quotedName, boolean internalIndex) {
         StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
         String mainTable = forTable.getSQL();
         buff.append(mainTable).append(" ADD CONSTRAINT ");
@@ -302,7 +303,8 @@ public class ConstraintReferential extends Constraint {
         if (!database.getReferentialIntegrity()) {
             return;
         }
-        if (!table.getCheckForeignKeyConstraints() || !refTable.getCheckForeignKeyConstraints()) {
+        if (!table.getCheckForeignKeyConstraints() ||
+                !refTable.getCheckForeignKeyConstraints()) {
             return;
         }
         if (t == table) {
@@ -370,7 +372,8 @@ public class ConstraintReferential extends Constraint {
         }
     }
 
-    private boolean existsRow(Session session, Index searchIndex, SearchRow check, Row excluding) {
+    private boolean existsRow(Session session, Index searchIndex,
+            SearchRow check, Row excluding) {
         Table searchTable = searchIndex.getTable();
         searchTable.lock(session, false, false);
         Cursor cursor = searchIndex.find(session, check, check);

@@ -116,12 +116,18 @@ class WebSession {
     void loadBnf() {
         try {
             Bnf newBnf = Bnf.getInstance(null);
-            DbContextRule columnRule = new DbContextRule(contents, DbContextRule.COLUMN);
-            DbContextRule newAliasRule = new DbContextRule(contents, DbContextRule.NEW_TABLE_ALIAS);
-            DbContextRule aliasRule = new DbContextRule(contents, DbContextRule.TABLE_ALIAS);
-            DbContextRule tableRule = new DbContextRule(contents, DbContextRule.TABLE);
-            DbContextRule schemaRule = new DbContextRule(contents, DbContextRule.SCHEMA);
-            DbContextRule columnAliasRule = new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
+            DbContextRule columnRule =
+                    new DbContextRule(contents, DbContextRule.COLUMN);
+            DbContextRule newAliasRule =
+                    new DbContextRule(contents, DbContextRule.NEW_TABLE_ALIAS);
+            DbContextRule aliasRule =
+                    new DbContextRule(contents, DbContextRule.TABLE_ALIAS);
+            DbContextRule tableRule =
+                    new DbContextRule(contents, DbContextRule.TABLE);
+            DbContextRule schemaRule =
+                    new DbContextRule(contents, DbContextRule.SCHEMA);
+            DbContextRule columnAliasRule =
+                    new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
             newBnf.updateTopic("column_name", columnRule);
             newBnf.updateTopic("new_table_alias", newAliasRule);
             newBnf.updateTopic("table_alias", aliasRule);
@@ -188,10 +194,14 @@ class WebSession {
         m.putAll(map);
         m.put("lastAccess", new Timestamp(lastAccess).toString());
         try {
-            m.put("url", conn == null ? "${text.admin.notConnected}" : conn.getMetaData().getURL());
-            m.put("user", conn == null ? "-" : conn.getMetaData().getUserName());
-            m.put("lastQuery", commandHistory.size() == 0 ? "" : commandHistory.get(0));
-            m.put("executing", executingStatement == null ? "${text.admin.no}" : "${text.admin.yes}");
+            m.put("url", conn == null ?
+                    "${text.admin.notConnected}" : conn.getMetaData().getURL());
+            m.put("user", conn == null ?
+                    "-" : conn.getMetaData().getUserName());
+            m.put("lastQuery", commandHistory.size() == 0 ?
+                    "" : commandHistory.get(0));
+            m.put("executing", executingStatement == null ?
+                    "${text.admin.no}" : "${text.admin.yes}");
         } catch (SQLException e) {
             TraceSystem.traceThrowable(e);
         }

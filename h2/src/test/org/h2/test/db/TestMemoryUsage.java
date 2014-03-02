@@ -112,7 +112,7 @@ public class TestMemoryUsage extends TestBase {
         try {
             int base = Utils.getMemoryUsed();
             for (int i = 0; i < 4; i++) {
-                stat.execute("INSERT INTO TEST(DATA) " + 
+                stat.execute("INSERT INTO TEST(DATA) " +
                         "SELECT SPACE(8000) FROM SYSTEM_RANGE(1, 800)");
                 freeSoftReferences();
                 int used = Utils.getMemoryUsed();

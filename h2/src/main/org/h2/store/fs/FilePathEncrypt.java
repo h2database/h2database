@@ -88,14 +88,14 @@ public class FilePathEncrypt extends FilePathWrapper {
      */
     private String[] parse(String fileName) {
         if (!fileName.startsWith(getScheme())) {
-            throw new IllegalArgumentException(fileName + 
+            throw new IllegalArgumentException(fileName +
                     " doesn't start with " + getScheme());
         }
         fileName = fileName.substring(getScheme().length() + 1);
         int idx = fileName.indexOf(':');
         String password;
         if (idx < 0) {
-            throw new IllegalArgumentException(fileName + 
+            throw new IllegalArgumentException(fileName +
                     " doesn't contain encryption algorithm and password");
         }
         password = fileName.substring(0, idx);
@@ -473,7 +473,7 @@ public class FilePathEncrypt extends FilePathWrapper {
             for (; i + CIPHER_BLOCK_SIZE <= len; i += CIPHER_BLOCK_SIZE) {
                 if (i > 0) {
                     updateTweak(tweak);
-                    if (i + CIPHER_BLOCK_SIZE + CIPHER_BLOCK_SIZE > len && 
+                    if (i + CIPHER_BLOCK_SIZE + CIPHER_BLOCK_SIZE > len &&
                             i + CIPHER_BLOCK_SIZE < len) {
                         tweakEnd = Arrays.copyOf(tweak, CIPHER_BLOCK_SIZE);
                         updateTweak(tweak);

@@ -53,7 +53,7 @@ public class SortOrder implements Comparator<Value[]> {
     /**
      * The default sort order for NULL.
      */
-    private static final int DEFAULT_NULL_SORT = 
+    private static final int DEFAULT_NULL_SORT =
             SysProperties.SORT_NULLS_HIGH ? 1 : -1;
 
     private final Database database;

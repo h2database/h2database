@@ -481,7 +481,8 @@ public class TestDate extends TestBase {
                         String a = v.getString();
                         String b = d.readValue().getString();
                         if (!a.equals(b)) {
-                            assertEquals("source: " + tz.getID() + " target: " + target.getID(), a, b);
+                            assertEquals("source: " + tz.getID() + " target: " +
+                                    target.getID(), a, b);
                         }
                     }
                 }

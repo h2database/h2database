@@ -114,7 +114,7 @@ public class FileLock implements Runnable {
      * @param sleep the number of milliseconds to sleep
      */
     public FileLock(TraceSystem traceSystem, String fileName, int sleep) {
-        this.trace = traceSystem == null ? 
+        this.trace = traceSystem == null ?
                 null : traceSystem.getTrace(Trace.FILE_LOCK);
         this.fileName = fileName;
         this.sleep = sleep;
@@ -236,7 +236,7 @@ public class FileLock implements Runnable {
         boolean running = false;
         String id = prop.getProperty("id");
         try {
-            Socket socket = NetUtils.createSocket(server, 
+            Socket socket = NetUtils.createSocket(server,
                     Constants.DEFAULT_TCP_PORT, false);
             Transfer transfer = new Transfer(null);
             transfer.setSocket(socket);
@@ -439,7 +439,7 @@ public class FileLock implements Runnable {
             return;
         }
         save();
-        watchdog = new Thread(this, 
+        watchdog = new Thread(this,
                 "H2 File Lock Watchdog (Socket) " + fileName);
         watchdog.setDaemon(true);
         watchdog.start();
@@ -510,7 +510,7 @@ public class FileLock implements Runnable {
             while (locked && fileName != null) {
                 // trace.debug("watchdog check");
                 try {
-                    if (!FileUtils.exists(fileName) || 
+                    if (!FileUtils.exists(fileName) ||
                             FileUtils.lastModified(fileName) != lastWrite) {
                         save();
                     }

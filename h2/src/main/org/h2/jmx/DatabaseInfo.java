@@ -52,7 +52,8 @@ public class DatabaseInfo implements DatabaseInfoMBean {
      * @return a new ObjectName instance
      * @throws JMException if the ObjectName could not be created
      */
-    private static ObjectName getObjectName(String name, String path) throws JMException {
+    private static ObjectName getObjectName(String name, String path)
+            throws JMException {
         name = name.replace(':', '_');
         path = path.replace(':', '_');
         Hashtable<String, String> map = new Hashtable<String, String>();
@@ -67,7 +68,8 @@ public class DatabaseInfo implements DatabaseInfoMBean {
      * @param connectionInfo connection info
      * @param database database
      */
-    public static void registerMBean(ConnectionInfo connectionInfo, Database database) throws JMException {
+    public static void registerMBean(ConnectionInfo connectionInfo,
+            Database database) throws JMException {
         String path = connectionInfo.getName();
         if (!MBEANS.containsKey(path)) {
             MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer();
@@ -227,7 +229,9 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     @Override
     public String listSettings() {
         StringBuilder buff = new StringBuilder();
-        for (Map.Entry<String, String> e : new TreeMap<String, String>(database.getSettings().getSettings()).entrySet()) {
+        for (Map.Entry<String, String> e :
+                new TreeMap<String, String>(
+                database.getSettings().getSettings()).entrySet()) {
             buff.append(e.getKey()).append(" = ").append(e.getValue()).append('\n');
         }
         return buff.toString();
@@ -238,14 +242,22 @@ public class DatabaseInfo implements DatabaseInfoMBean {
         StringBuilder buff = new StringBuilder();
         for (Session session : database.getSessions(false)) {
             buff.append("session id: ").append(session.getId());
-            buff.append(" user: ").append(session.getUser().getName()).append('\n');
-            buff.append("connected: ").append(new Timestamp(session.getSessionStart())).append('\n');
+            buff.append(" user: ").
+                    append(session.getUser().getName()).
+                    append('\n');
+            buff.append("connected: ").
+                    append(new Timestamp(session.getSessionStart())).
+                    append('\n');
             Command command = session.getCurrentCommand();
             if (command != null) {
-                buff.append("statement: ").append(session.getCurrentCommand()).append('\n');
+                buff.append("statement: ").
+                        append(session.getCurrentCommand()).
+                        append('\n');
                 long commandStart = session.getCurrentCommandStart();
                 if (commandStart != 0) {
-                    buff.append("started: ").append(new Timestamp(commandStart)).append('\n');
+                    buff.append("started: ").append(
+                            new Timestamp(commandStart)).
+                            append('\n');
                 }
             }
             Table[] t = session.getLocks();
@@ -256,7 +268,9 @@ public class DatabaseInfo implements DatabaseInfoMBean {
                     } else {
                         buff.append("read lock on ");
                     }
-                    buff.append(table.getSchema().getName()).append('.').append(table.getName()).append('\n');
+                    buff.append(table.getSchema().getName()).
+                            append('.').append(table.getName()).
+                            append('\n');
                 }
             }
             buff.append('\n');

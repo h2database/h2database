@@ -122,8 +122,10 @@ public class Session extends SessionWithState {
         this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;
-        Setting setting = database.findSetting(SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
-        this.lockTimeout = setting == null ? Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
+        Setting setting = database.findSetting(
+                SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
+        this.lockTimeout = setting == null ?
+                Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
@@ -153,7 +155,8 @@ public class Session extends SessionWithState {
             old = variables.remove(name);
         } else {
             // link LOB values, to make sure we have our own object
-            value = value.link(database, LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+            value = value.link(database,
+                    LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
             old = variables.put(name, value);
         }
         if (old != null) {
@@ -223,7 +226,8 @@ public class Session extends SessionWithState {
             localTempTables = database.newStringMap();
         }
         if (localTempTables.get(table.getName()) != null) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, table.getSQL());
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
+                    table.getSQL());
         }
         modificationId++;
         localTempTables.put(table.getName(), table);
@@ -274,7 +278,8 @@ public class Session extends SessionWithState {
             localTempTableIndexes = database.newStringMap();
         }
         if (localTempTableIndexes.get(index.getName()) != null) {
-            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, index.getSQL());
+            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1,
+                    index.getSQL());
         }
         localTempTableIndexes.put(index.getName(), index);
     }
@@ -332,7 +337,8 @@ public class Session extends SessionWithState {
         }
         String name = constraint.getName();
         if (localTempTableConstraints.get(name) != null) {
-            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraint.getSQL());
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1,
+                    constraint.getSQL());
         }
         localTempTableConstraints.put(name, constraint);
     }
@@ -374,7 +380,8 @@ public class Session extends SessionWithState {
     }
 
     @Override
-    public synchronized CommandInterface prepareCommand(String sql, int fetchSize) {
+    public synchronized CommandInterface prepareCommand(String sql,
+            int fetchSize) {
         return prepareLocal(sql);
     }
 
@@ -411,7 +418,8 @@ public class Session extends SessionWithState {
      */
     public Command prepareLocal(String sql) {
         if (closed) {
-            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "session closed");
+            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
+                    "session closed");
         }
         Command command;
         if (queryCacheSize > 0) {
@@ -590,7 +598,8 @@ public class Session extends SessionWithState {
         }
         if (transaction != null) {
             long savepointId = savepoint == null ? 0 : savepoint.transactionSavepoint;
-            HashMap<String, MVTable> tableMap = database.getMvStore().getTables();
+            HashMap<String, MVTable> tableMap =
+                    database.getMvStore().getTables();
             Iterator<Change> it = transaction.getChanges(savepointId);
             while (it.hasNext()) {
                 Change c = it.next();
@@ -700,7 +709,8 @@ public class Session extends SessionWithState {
             // otherwise rollback will try to rollback a not-inserted row
             if (SysProperties.CHECK) {
                 int lockMode = database.getLockMode();
-                if (lockMode != Constants.LOCK_MODE_OFF && !database.isMultiVersion()) {
+                if (lockMode != Constants.LOCK_MODE_OFF &&
+                        !database.isMultiVersion()) {
                     String tableType = log.getTable().getTableType();
                     if (locks.indexOf(log.getTable()) < 0
                             && !Table.TABLE_LINK.equals(tableType)
@@ -930,15 +940,18 @@ public class Session extends SessionWithState {
      * @param commit true for commit, false for rollback
      */
     public void setPreparedTransaction(String transactionName, boolean commit) {
-        if (currentTransactionName != null && currentTransactionName.equals(transactionName)) {
+        if (currentTransactionName != null &&
+                currentTransactionName.equals(transactionName)) {
             if (commit) {
                 commit(false);
             } else {
                 rollback();
             }
         } else {
-            ArrayList<InDoubtTransaction> list = database.getInDoubtTransactions();
-            int state = commit ? InDoubtTransaction.COMMIT : InDoubtTransaction.ROLLBACK;
+            ArrayList<InDoubtTransaction> list = database
+                    .getInDoubtTransactions();
+            int state = commit ? InDoubtTransaction.COMMIT
+                    : InDoubtTransaction.ROLLBACK;
             boolean found = false;
             if (list != null) {
                 for (InDoubtTransaction p: list) {
@@ -950,7 +963,8 @@ public class Session extends SessionWithState {
                 }
             }
             if (!found) {
-                throw DbException.get(ErrorCode.TRANSACTION_NOT_FOUND_1, transactionName);
+                throw DbException.get(ErrorCode.TRANSACTION_NOT_FOUND_1,
+                        transactionName);
             }
         }
     }
@@ -1369,7 +1383,8 @@ public class Session extends SessionWithState {
         if (undoLog.size() == 0) {
             return ValueNull.INSTANCE;
         }
-        return ValueString.get(firstUncommittedLog + "-" + firstUncommittedPos + "-" + id);
+        return ValueString.get(firstUncommittedLog + "-" + firstUncommittedPos +
+                "-" + id);
     }
 
     /**

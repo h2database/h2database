@@ -28,7 +28,8 @@ public class ExpressionVisitor {
     /**
      * The visitor singleton for the type INDEPENDENT.
      */
-    public static final ExpressionVisitor INDEPENDENT_VISITOR = new ExpressionVisitor(INDEPENDENT);
+    public static final ExpressionVisitor INDEPENDENT_VISITOR =
+            new ExpressionVisitor(INDEPENDENT);
 
     /**
      * Are all aggregates MIN(column), MAX(column), or COUNT(*) for the given
@@ -44,7 +45,8 @@ public class ExpressionVisitor {
     /**
      * The visitor singleton for the type DETERMINISTIC.
      */
-    public static final ExpressionVisitor DETERMINISTIC_VISITOR = new ExpressionVisitor(DETERMINISTIC);
+    public static final ExpressionVisitor DETERMINISTIC_VISITOR =
+            new ExpressionVisitor(DETERMINISTIC);
 
     /**
      * Can the expression be evaluated, that means are all columns set to
@@ -55,7 +57,8 @@ public class ExpressionVisitor {
     /**
      * The visitor singleton for the type EVALUATABLE.
      */
-    public static final ExpressionVisitor EVALUATABLE_VISITOR = new ExpressionVisitor(EVALUATABLE);
+    public static final ExpressionVisitor EVALUATABLE_VISITOR =
+            new ExpressionVisitor(EVALUATABLE);
 
     /**
      * Request to set the latest modification id (addDataModificationId).
@@ -70,7 +73,8 @@ public class ExpressionVisitor {
     /**
      * The visitor singleton for the type EVALUATABLE.
      */
-    public static final ExpressionVisitor READONLY_VISITOR = new ExpressionVisitor(READONLY);
+    public static final ExpressionVisitor READONLY_VISITOR =
+            new ExpressionVisitor(READONLY);
 
     /**
      * Does an expression have no relation to the given table filter
@@ -99,7 +103,8 @@ public class ExpressionVisitor {
     /**
      * The visitor singleton for the type QUERY_COMPARABLE.
      */
-    public static final ExpressionVisitor QUERY_COMPARABLE_VISITOR = new ExpressionVisitor(QUERY_COMPARABLE);
+    public static final ExpressionVisitor QUERY_COMPARABLE_VISITOR =
+            new ExpressionVisitor(QUERY_COMPARABLE);
 
     private final int type;
     private final int queryLevel;
@@ -140,8 +145,10 @@ public class ExpressionVisitor {
      * @param dependencies the dependencies set
      * @return the new visitor
      */
-    public static ExpressionVisitor getDependenciesVisitor(HashSet<DbObject> dependencies) {
-        return new ExpressionVisitor(GET_DEPENDENCIES, 0, dependencies, null, null, null, null);
+    public static ExpressionVisitor getDependenciesVisitor(
+            HashSet<DbObject> dependencies) {
+        return new ExpressionVisitor(GET_DEPENDENCIES, 0, dependencies, null,
+                null, null, null);
     }
 
     /**
@@ -151,7 +158,8 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     public static ExpressionVisitor getOptimizableVisitor(Table table) {
-        return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null, null, table, null, null);
+        return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null,
+                null, table, null, null);
     }
 
     /**
@@ -162,7 +170,8 @@ public class ExpressionVisitor {
      * @return the new visitor
      */
     static ExpressionVisitor getNotFromResolverVisitor(ColumnResolver resolver) {
-        return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, null, resolver, null);
+        return new ExpressionVisitor(NOT_FROM_RESOLVER, 0, null, null, null,
+                resolver, null);
     }
 
     /**
@@ -176,7 +185,8 @@ public class ExpressionVisitor {
     }
 
     public static ExpressionVisitor getMaxModificationIdVisitor() {
-        return new ExpressionVisitor(SET_MAX_DATA_MODIFICATION_ID, 0, null, null, null, null, new long[1]);
+        return new ExpressionVisitor(SET_MAX_DATA_MODIFICATION_ID, 0, null,
+                null, null, null, new long[1]);
     }
 
     /**
@@ -216,7 +226,8 @@ public class ExpressionVisitor {
      * @return a clone of this expression visitor, with the changed query level
      */
     public ExpressionVisitor incrementQueryLevel(int offset) {
-        return new ExpressionVisitor(type, queryLevel + offset, dependencies, columns, table, resolver, maxDataModificationId);
+        return new ExpressionVisitor(type, queryLevel + offset, dependencies,
+                columns, table, resolver, maxDataModificationId);
     }
 
     /**

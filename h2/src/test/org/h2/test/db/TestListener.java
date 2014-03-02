@@ -57,7 +57,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         }
         crash(conn);
 
-        conn = getConnection("listener;database_event_listener='" + 
+        conn = getConnection("listener;database_event_listener='" +
                 getClass().getName() + "'");
         conn.close();
         deleteDb("listener");
@@ -74,8 +74,8 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         if (state == lastState && time < last + 1000) {
             return;
         }
-        if (state == STATE_STATEMENT_START || 
-                state == STATE_STATEMENT_END || 
+        if (state == STATE_STATEMENT_START ||
+                state == STATE_STATEMENT_END ||
                 state == STATE_STATEMENT_PROGRESS) {
             return;
         }
@@ -104,7 +104,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
         } catch (InterruptedException e) {
             // ignore
         }
-        printTime("state: " + stateName + " " + 
+        printTime("state: " + stateName + " " +
                 (100 * current / max) + " " + (time - start));
     }
 

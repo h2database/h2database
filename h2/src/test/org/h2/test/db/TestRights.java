@@ -242,13 +242,13 @@ public class TestRights extends TestBase {
         executeSuccess("CREATE USER SCHEMA_CREATOR PASSWORD 'xyz'");
 
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
-        executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST " + 
+        executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST " +
                 "RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
         executeSuccess("DROP SCHEMA SCHEMA_RIGHT_TEST_RENAMED");
 
         /* create this for tests below */
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
-        executeSuccess("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS" + 
+        executeSuccess("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS" +
                 "(ID INT PRIMARY KEY, NAME VARCHAR)");
         conn.close();
 
@@ -304,15 +304,15 @@ public class TestRights extends TestBase {
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
             execute("CREATE SCHEMA SCHEMA_RIGHT_TEST");
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
-            execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS " + 
+            execute("ALTER SCHEMA SCHEMA_RIGHT_TEST_EXISTS " +
                     "RENAME TO SCHEMA_RIGHT_TEST_RENAMED");
         assertThrows(ErrorCode.ADMIN_RIGHTS_REQUIRED, stat).
             execute("DROP SCHEMA SCHEMA_RIGHT_TEST_EXISTS");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
-        execute("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST" + 
+        execute("CREATE TABLE SCHEMA_RIGHT_TEST_EXISTS.TEST" +
                 "(ID INT PRIMARY KEY, NAME VARCHAR)");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
-        execute("INSERT INTO  SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS " + 
+        execute("INSERT INTO  SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS " +
                 "(ID, NAME) VALUES (42, 'Adams')");
         assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat).
         execute("UPDATE SCHEMA_RIGHT_TEST_EXISTS.TEST_EXISTS Set NAME = 'Douglas'");
@@ -336,7 +336,7 @@ public class TestRights extends TestBase {
         // rights on tables and views
         executeSuccess("CREATE USER PASS_READER PASSWORD 'abc'");
         executeSuccess("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
-        executeSuccess("CREATE TABLE PASS(ID INT PRIMARY KEY, " + 
+        executeSuccess("CREATE TABLE PASS(ID INT PRIMARY KEY, " +
                 "NAME VARCHAR, PASSWORD VARCHAR)");
         executeSuccess("CREATE VIEW PASS_NAME AS SELECT ID, NAME FROM PASS");
         executeSuccess("GRANT SELECT ON PASS_NAME TO PASS_READER");
@@ -394,7 +394,7 @@ public class TestRights extends TestBase {
         executeSuccess("ALTER USER TEST SET PASSWORD 'def'");
         executeSuccess("CREATE USER TEST2 PASSWORD 'def' ADMIN");
         executeSuccess("ALTER USER TEST ADMIN FALSE");
-        executeSuccess("SCRIPT TO '" + getBaseDir() + 
+        executeSuccess("SCRIPT TO '" + getBaseDir() +
                     "/rights.sql' CIPHER XTEA PASSWORD 'test'");
         conn.close();
 

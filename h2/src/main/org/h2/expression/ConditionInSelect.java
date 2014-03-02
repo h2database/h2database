@@ -55,7 +55,7 @@ public class ConditionInSelect extends Condition {
         if (!session.getDatabase().getSettings().optimizeInSelect) {
             return getValueSlow(rows, l);
         }
-        if (all || (compareType != Comparison.EQUAL && 
+        if (all || (compareType != Comparison.EQUAL &&
                 compareType != Comparison.EQUAL_NULL_SAFE)) {
             return getValueSlow(rows, l);
         }

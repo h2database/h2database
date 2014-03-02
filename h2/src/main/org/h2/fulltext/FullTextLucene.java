@@ -55,7 +55,8 @@ public class FullTextLucene extends FullText {
     /**
      * Whether the text content should be stored in the Lucene index.
      */
-    protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX = Utils.getProperty("h2.storeDocumentTextInIndex", false);
+    protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX =
+            Utils.getProperty("h2.storeDocumentTextInIndex", false);
 
     private static final HashMap<String, IndexAccess> INDEX_ACCESS = New.hashMap();
     private static final String TRIGGER_PREFIX = "FTL_";
@@ -96,14 +97,21 @@ public class FullTextLucene extends FullText {
     public static void init(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                        + ".INDEXES(SCHEMA VARCHAR, TABLE VARCHAR, COLUMNS VARCHAR, PRIMARY KEY(SCHEMA, TABLE))");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_CREATE_INDEX FOR \"" + FullTextLucene.class.getName() + ".createIndex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_INDEX FOR \"" + FullTextLucene.class.getName() + ".dropIndex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH FOR \"" + FullTextLucene.class.getName() + ".search\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH_DATA FOR \"" + FullTextLucene.class.getName() + ".searchData\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" + FullTextLucene.class.getName() + ".reindex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" + FullTextLucene.class.getName() + ".dropAll\"");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
+                ".INDEXES(SCHEMA VARCHAR, TABLE VARCHAR, " +
+                "COLUMNS VARCHAR, PRIMARY KEY(SCHEMA, TABLE))");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_CREATE_INDEX FOR \"" +
+                FullTextLucene.class.getName() + ".createIndex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_INDEX FOR \"" +
+                FullTextLucene.class.getName() + ".dropIndex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH FOR \"" +
+                FullTextLucene.class.getName() + ".search\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_SEARCH_DATA FOR \"" +
+                FullTextLucene.class.getName() + ".searchData\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_REINDEX FOR \"" +
+                FullTextLucene.class.getName() + ".reindex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" +
+                FullTextLucene.class.getName() + ".dropAll\"");
         try {
             getIndexAccess(conn);
         } catch (SQLException e) {
@@ -120,7 +128,8 @@ public class FullTextLucene extends FullText {
      * @param table the table name (case sensitive)
      * @param columnList the column list (null for all columns)
      */
-    public static void createIndex(Connection conn, String schema, String table, String columnList) throws SQLException {
+    public static void createIndex(Connection conn, String schema,
+            String table, String columnList) throws SQLException {
         init(conn);
         PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA
                 + ".INDEXES(SCHEMA, TABLE, COLUMNS) VALUES(?, ?, ?)");
@@ -140,7 +149,8 @@ public class FullTextLucene extends FullText {
      * @param schema the schema name of the table (case sensitive)
      * @param table the table name (case sensitive)
      */
-    public static void dropIndex(Connection conn, String schema, String table) throws SQLException {
+    public static void dropIndex(Connection conn, String schema, String table)
+            throws SQLException {
         init(conn);
 
         PreparedStatement prep = conn.prepareStatement("DELETE FROM " + SCHEMA
@@ -202,7 +212,8 @@ public class FullTextLucene extends FullText {
      * @param offset the offset or 0 for no offset
      * @return the result set
      */
-    public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
+    public static ResultSet search(Connection conn, String text, int limit,
+            int offset) throws SQLException {
         return search(conn, text, limit, offset, false);
     }
 
@@ -211,13 +222,12 @@ public class FullTextLucene extends FullText {
      * the primary key data as an array. The returned result set has the
      * following columns:
      * <ul>
-     * <li>SCHEMA (varchar): the schema name. Example: PUBLIC </li>
-     * <li>TABLE (varchar): the table name. Example: TEST </li>
+     * <li>SCHEMA (varchar): the schema name. Example: PUBLIC</li>
+     * <li>TABLE (varchar): the table name. Example: TEST</li>
      * <li>COLUMNS (array of varchar): comma separated list of quoted column
-     * names. The column names are quoted if necessary. Example: (ID) </li>
-     * <li>KEYS (array of values): comma separated list of values. Example: (1)
-     * </li><li>SCORE (float) the relevance score as returned by Lucene.
-     * </li>
+     * names. The column names are quoted if necessary. Example: (ID)</li>
+     * <li>KEYS (array of values): comma separated list of values. Example: (1)</li>
+     * <li>SCORE (float) the relevance score as returned by Lucene.</li>
      * </ul>
      *
      * @param conn the connection
@@ -226,7 +236,8 @@ public class FullTextLucene extends FullText {
      * @param offset the offset or 0 for no offset
      * @return the result set
      */
-    public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
+    public static ResultSet searchData(Connection conn, String text, int limit,
+            int offset) throws SQLException {
         return search(conn, text, limit, offset, true);
     }
 
@@ -237,7 +248,8 @@ public class FullTextLucene extends FullText {
      * @return the converted SQL exception
      */
     protected static SQLException convertException(Exception e) {
-        SQLException e2 = new SQLException("Error while indexing document", "FULLTEXT");
+        SQLException e2 = new SQLException(
+                "Error while indexing document", "FULLTEXT");
         e2.initCause(e);
         return e2;
     }
@@ -249,17 +261,20 @@ public class FullTextLucene extends FullText {
      * @param schema the schema name
      * @param table the table name
      */
-    protected static void createTrigger(Connection conn, String schema, String table) throws SQLException {
+    protected static void createTrigger(Connection conn, String schema,
+            String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
 
     private static void createOrDropTrigger(Connection conn,
             String schema, String table, boolean create) throws SQLException {
         Statement stat = conn.createStatement();
-        String trigger = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
+        String trigger = StringUtils.quoteIdentifier(schema) + "." +
+                StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
         if (create) {
-            StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
+            StringBuilder buff = new StringBuilder(
+                    "CREATE TRIGGER IF NOT EXISTS ");
             // the trigger is also called on rollback because transaction rollback
             // will not undo the changes in the Lucene index
             buff.append(trigger).
@@ -280,13 +295,15 @@ public class FullTextLucene extends FullText {
      * @param conn the connection
      * @return the index access wrapper
      */
-    protected static IndexAccess getIndexAccess(Connection conn) throws SQLException {
+    protected static IndexAccess getIndexAccess(Connection conn)
+            throws SQLException {
         String path = getIndexPath(conn);
         synchronized (INDEX_ACCESS) {
             IndexAccess access = INDEX_ACCESS.get(path);
             if (access == null) {
                 try {
-                    Directory indexDir = path.startsWith(IN_MEMORY_PREFIX) ? new RAMDirectory() : FSDirectory.open(new File(path));
+                    Directory indexDir = path.startsWith(IN_MEMORY_PREFIX) ?
+                            new RAMDirectory() : FSDirectory.open(new File(path));
                     boolean recreate = !IndexReader.indexExists(indexDir);
                     Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
                     IndexWriter writer = new IndexWriter(indexDir, analyzer,
@@ -336,10 +353,12 @@ public class FullTextLucene extends FullText {
      * @param schema the schema name
      * @param table the table name
      */
-    protected static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
+    protected static void indexExistingRows(Connection conn, String schema,
+            String table) throws SQLException {
         FullTextLucene.FullTextTrigger existing = new FullTextLucene.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table);
+        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) +
+                "." + StringUtils.quoteIdentifier(table);
         ResultSet rs = conn.createStatement().executeQuery(sql);
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {
@@ -369,7 +388,8 @@ public class FullTextLucene extends FullText {
      * @param access the index writer/searcher wrapper
      * @param indexPath the index path
      */
-    protected static void removeIndexAccess(IndexAccess access, String indexPath) throws SQLException {
+    protected static void removeIndexAccess(IndexAccess access, String indexPath)
+            throws SQLException {
         synchronized (INDEX_ACCESS) {
             try {
                 INDEX_ACCESS.remove(indexPath);
